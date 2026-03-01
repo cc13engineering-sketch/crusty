@@ -1,0 +1,45 @@
+// World description language — minimal grammar for v1.
+
+world_file = { SOI ~ declaration* ~ EOI }
+
+declaration = { world_decl | feel_decl | entity_decl }
+
+world_decl = { "world" ~ string ~ "{" ~ world_prop* ~ "}" }
+world_prop = {
+    "bounds" ~ ":" ~ number ~ "x" ~ number
+    | "background" ~ ":" ~ color_value
+}
+
+feel_decl = { "feel" ~ ":" ~ "[" ~ ident_list ~ "]" }
+
+entity_decl = { "entity" ~ ident ~ "{" ~ entity_prop* ~ "}" }
+entity_prop = {
+    "role" ~ ":" ~ string
+    | "intent" ~ ":" ~ string
+    | "group" ~ ":" ~ string
+    | "position" ~ ":" ~ vec2
+    | "physics" ~ ":" ~ object
+    | "collider" ~ ":" ~ object
+    | "visual" ~ ":" ~ object
+    | "force_field" ~ ":" ~ object
+    | "tags" ~ ":" ~ "[" ~ string_list ~ "]"
+    | ident ~ ":" ~ value
+}
+
+object = { "{" ~ (object_field ~ ","?)* ~ "}" }
+object_field = { ident ~ ":" ~ value }
+value = { string | number | bool_val | color_value | vec2 | array | ident }
+vec2 = { "(" ~ number ~ "," ~ number ~ ")" }
+array = { "[" ~ value_list ~ "]" }
+value_list = { (value ~ ("," ~ value)*)? }
+string_list = { (string ~ ("," ~ string)*)? }
+ident_list = { (ident ~ ("," ~ ident)*)? }
+
+string = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+number = @{ "-"? ~ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+bool_val = { "true" | "false" }
+color_value = @{ "#" ~ ASCII_HEX_DIGIT{6,8} }
+ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
+
+comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }

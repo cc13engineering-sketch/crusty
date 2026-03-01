@@ -1,0 +1,77 @@
+// Demo scene — tests force fields, collisions, triggers, and drag-to-launch.
+// Drag and release on the canvas to launch the ball toward the green goal.
+// Press D to toggle debug visualization.
+
+world "Demo Scene" {
+    bounds: 960 x 540
+    background: #0a0a0a
+}
+
+feel: [floaty, bouncy]
+
+entity ball {
+    role: "player_object"
+    intent: "the thing the player launches"
+    position: (100, 270)
+    physics: { mass: 1.0, restitution: 0.85, damping: 0.003 }
+    collider: { shape: circle, radius: 8 }
+    visual: { shape: circle, radius: 8, color: #ffffff, filled: true }
+    tags: ["player", "ball"]
+}
+
+entity attractor {
+    role: "obstacle"
+    intent: "bends ball trajectory with gravity pull"
+    position: (480, 270)
+    physics: { mass: 999.0, is_static: true }
+    collider: { shape: circle, radius: 40 }
+    visual: { shape: circle, radius: 40, color: #4a6fa5, filled: true }
+    force_field: { type: attract, strength: 800.0, radius: 250.0, falloff: inverse_square }
+}
+
+entity repulsor {
+    role: "obstacle"
+    intent: "pushes the ball away creating a hazard zone"
+    position: (300, 400)
+    physics: { mass: 999.0, is_static: true }
+    collider: { shape: circle, radius: 25 }
+    visual: { shape: circle, radius: 25, color: #a05050, filled: true }
+    force_field: { type: repel, strength: 500.0, radius: 180.0, falloff: linear }
+}
+
+entity goal {
+    role: "objective"
+    intent: "the target the player must reach"
+    position: (850, 270)
+    collider: { shape: circle, radius: 30, is_trigger: true }
+    visual: { shape: circle, radius: 30, color: #50a050, filled: true }
+    tags: ["goal"]
+}
+
+entity wall_top {
+    position: (480, 0)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 480, half_height: 8 }
+    visual: { shape: rect, width: 960, height: 16, color: #1a1a1a, filled: true }
+}
+
+entity wall_bottom {
+    position: (480, 540)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 480, half_height: 8 }
+    visual: { shape: rect, width: 960, height: 16, color: #1a1a1a, filled: true }
+}
+
+entity wall_left {
+    position: (0, 270)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 8, half_height: 270 }
+    visual: { shape: rect, width: 16, height: 540, color: #1a1a1a, filled: true }
+}
+
+entity wall_right {
+    position: (960, 270)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 8, half_height: 270 }
+    visual: { shape: rect, width: 16, height: 540, color: #1a1a1a, filled: true }
+}

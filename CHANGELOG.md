@@ -171,20 +171,99 @@ lifecycle → signal → behavior → tween → flash → waypoint
 
 ---
 
+## Innovation Games Round 4 — Signal Breach (Tactical Stealth-Puzzle)
+**Commit**: `3365f4a` | **Theme**: Signal Breach — tactical puzzle-stealth with hierarchy, FSM, scripted sequences
+
+### New Components (5)
+| Component | Description |
+|-----------|-------------|
+| `Parent` | Entity hierarchy parent reference. Points to parent Entity. |
+| `Children` | Entity hierarchy children list. Deduplicating add/remove. |
+| `WorldTransform` | Computed world-space transform (x, y, rotation, scale). Propagated from hierarchy. |
+| `StateMachine` | Data-driven finite state machine. Current state, transitions with conditions (After/OnSignal/StateCheck/Always), elapsed timer, edge detection (just_entered, prev_state). |
+| `Coroutine` | Scripted async step sequences using VecDeque. Steps: WaitSeconds, WaitSignal, WaitUntil, SetState, AddState, SpawnTemplate, Log. Builder pattern API. Non-blocking steps cascade in one frame. |
+
+### New Systems (3)
+| System | Description |
+|--------|-------------|
+| `hierarchy` | Two-phase transform propagation: roots get identity WorldTransform, children get parent transform applied with rotation and scale. Iterative multi-pass with convergence check. |
+| `state_machine` | Ticks FSM elapsed timers, evaluates transition conditions (time-based, signal-based, state-check, always). First matching transition wins. Respects TimeScale. |
+| `coroutine` | Processes coroutine step queues. Blocking steps (WaitSeconds, WaitSignal, WaitUntil) pause until condition met. Non-blocking steps (SetState, AddState, SpawnTemplate, Log) cascade instantly. Completed coroutines auto-removed. Respects TimeScale. |
+
+### New Engine Modules (4)
+| Module | Description |
+|--------|-------------|
+| `TileMap` | Row-major grid with tile types (Empty/Solid/Platform/Custom). World↔tile coordinate conversion, viewport-culled rendering, fill_rect operations. |
+| `Raycast` | Ray-circle (quadratic), ray-AABB (slab method), DDA grid traversal for tilemaps. Functions: raycast (closest hit), raycast_all (sorted), line_of_sight (clear path check). |
+| `SpatialHashGrid` | Cell-bucketed spatial index. Insert point/AABB, query by radius/AABB/nearest. Automatic deduplication for multi-cell entities. |
+| `EntityPool` | Pre-warmed entity recycling with acquire/release pattern. PoolRegistry manages multiple named pools. |
+
+### Stats
+- Tests: 681 (137 new: 24 StateMachine, 7 Coroutine, 12 Raycast, 12 SpatialHashGrid, 20 TileMap, 18 EntityPool, 11 Hierarchy, 9 Hierarchy system, 10 SM system, 8 Coroutine system)
+- New files: 10 (3 components, 3 systems, 4 engine modules)
+- Modified files: 7 (world.rs, engine.rs, schema.rs, lib.rs, mod.rs files, spawn_queue.rs)
+
+---
+
+## Innovation Games Round 5 — Expert Review & E2E Testing
+**Commits**: `47b7930` (review), `17f3be8` (E2E tests) | **Focus**: Code quality + integration test coverage
+
+### Expert Rust Review Fixes
+- **Allocation optimization**: Replaced `HashSet<String>` with `HashSet<&str>` in signal, state_machine, and coroutine systems (avoids per-frame string cloning)
+- **Ghost trail ring buffer**: Replaced O(n) max-age search with O(1) `rotate_left(1)` for oldest snapshot replacement
+- **Raycast DDA fix**: Track entry t-value for correct hit point on near face of tile (was using far face)
+- **Raycast cleanup**: Removed unreachable wildcard arm in collider shape match
+- **Flash system optimization**: Collect expired entities during main loop instead of second iteration pass
+- **Tween system optimization**: Track empty PropertyTween components during iteration instead of second pass
+- **Default impls**: Added `Default` for Children, PropertyTween, ScreenFxStack, SceneManager (idiomatic Rust)
+- **Visibility**: Made `SpatialHashGrid.cell_size` public for debug introspection
+
+### E2E Integration Tests (22 new tests)
+| Test | Coverage |
+|------|----------|
+| E2E-1 | Full tick cycle: physics + collision end-to-end |
+| E2E-2 | Hierarchy transform propagation through engine tick |
+| E2E-3 | State machine transitions over multiple ticks |
+| E2E-4 | Coroutine execution across multiple ticks with cascading |
+| E2E-5 | Signal → StateMachine integration |
+| E2E-6 | Tween X-axis completion over N frames |
+| E2E-7 | Waypoint following with TimeScale |
+| E2E-8 | EntityFlash with Active flag |
+| E2E-9 | Tilemap queries end-to-end |
+| E2E-10 | Raycasting hits entity via World |
+| E2E-11 | Entity Pool lifecycle (prewarm, acquire, release) |
+| E2E-12 | Spatial query radius lookups |
+| E2E-13 | Multi-system concurrent: FSM + Coroutine + Tween |
+| E2E-14 | Stress test: 1000 entities |
+| E2E-15 | Tween Y-axis movement |
+| E2E-16 | Waypoint Once mode: stop at final waypoint |
+| E2E-17 | Signal receiver edge detection via tick |
+| E2E-18 | Tilemap fill rect round-trip |
+| E2E-19 | 3-level deep hierarchy chain |
+| E2E-20 | StateCheck condition via GameState |
+| E2E-21 | Stress: 100 parent-child hierarchy pairs |
+| E2E-22 | Coroutine cascade: multiple set_state in one tick |
+
+### Stats
+- Tests: 703 (22 new E2E integration tests)
+- Modified files: 13 (8 system/component optimizations, 1 test file)
+
+---
+
 ## Engine Summary (Current State)
 
-### Component Count: 22
-Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver
+### Component Count: 27
+Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine
 
-### System Count: 16
-lifecycle, behavior, tween, flash, ghost_trail, waypoint, signal, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, (camera integrated in engine)
+### System Count: 19
+lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, (camera integrated in engine)
 
 ### Rendering Modules: 12
 color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx, (HUD in renderer)
 
-### Engine Modules: 8
-SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera
+### Engine Modules: 12
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool
 
-### Test Count: 544
+### Test Count: 703 (including 22 E2E integration tests)
 ### Demo Games: 4 (bouncing balls, walker, space survival, minigolf RPG concept)
 ### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization

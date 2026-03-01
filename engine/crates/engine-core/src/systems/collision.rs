@@ -6,8 +6,10 @@
 
 use crate::ecs::{World, Entity};
 use crate::events::{EventQueue, EventKind};
-use crate::physics::{math, ccd};
+use crate::physics::{math, ccd, spatial_grid};
 use crate::components::ColliderShape;
+
+const GRID_CELL_SIZE: f64 = 128.0;
 
 #[derive(Clone)]
 struct EntitySnap {
@@ -61,8 +63,20 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
         });
     }
 
+    // BUILD spatial grid from all entity snapshots
+    let mut grid = spatial_grid::SpatialGrid::new(GRID_CELL_SIZE);
+    for (idx, snap) in snaps.iter().enumerate() {
+        let (hx, hy) = spatial_grid::collider_aabb_half(&snap.collider);
+        grid.insert(
+            idx,
+            snap.pos.0 - hx, snap.pos.1 - hy,
+            snap.pos.0 + hx, snap.pos.1 + hy,
+        );
+    }
+
     let mut results: Vec<MoveResult> = Vec::new();
     let mut new_events: Vec<EventKind> = Vec::new();
+    let mut candidates: Vec<usize> = Vec::new();
 
     // PROCESS each moving circle entity
     for i in 0..snaps.len() {
@@ -92,9 +106,18 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
                 math::scale(current_vel, dt * remaining_t),
             );
 
-            // Find earliest hit
+            // Compute swept AABB covering the entire trajectory + radius
+            let sweep_min_x = current_pos.0.min(target_pos.0) - r;
+            let sweep_min_y = current_pos.1.min(target_pos.1) - r;
+            let sweep_max_x = current_pos.0.max(target_pos.0) + r;
+            let sweep_max_y = current_pos.1.max(target_pos.1) + r;
+
+            // Query spatial grid for candidates in the swept region
+            grid.query(sweep_min_x, sweep_min_y, sweep_max_x, sweep_max_y, &mut candidates);
+
+            // Find earliest hit among candidates
             let mut best_hit: Option<(ccd::SweepHit, usize)> = None;
-            for j in 0..snaps.len() {
+            for &j in &candidates {
                 if i == j { continue; }
                 if excluded.contains(&snaps[j].entity) { continue; }
                 let other = &snaps[j];

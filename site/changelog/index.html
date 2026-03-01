@@ -49,12 +49,24 @@
     <div class="stats">
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
-        <span><span class="num">20</span> Engine Modules</span>
-        <span><span class="num">864</span> Tests</span>
+        <span><span class="num">26</span> Engine Modules</span>
+        <span><span class="num">954</span> Tests</span>
         <span><span class="num">5</span> Demos</span>
     </div>
 
-    <h2>Demo Game: Mycelia: Ascent <span class="badge badge-new">NEW</span></h2>
+    <h2>Round 8 — Mobile & Game Feel <span class="badge badge-new">NEW</span></h2>
+    <h3>New Engine Modules (6)</h3>
+    <ul>
+        <li><strong>GestureRecognizer</strong> — touch gesture recognition (tap, double-tap, long-press, swipe, pinch) with primary touch → mouse forwarding and EventBus integration</li>
+        <li><strong>SoundScape</strong> — command-buffer audio system with SoundCommandQueue, SoundPalette presets (impact, pickup, explosion, ui_click, ambient_wind, game_over), and <code>drain_sound_commands()</code> WASM binding for JS Web Audio</li>
+        <li><strong>AutoJuice</strong> — declarative game-feel pipeline mapping triggers (collision, spawn, despawn, bus events) to effects (particles, shake, flash, sound, freeze frames)</li>
+        <li><strong>UiCanvas</strong> — anchor-based UI widget system with data-bound labels, bars, buttons, and framebuffer hit-testing</li>
+        <li><strong>DiagnosticBus</strong> — structured runtime error reporting with NaN detection, out-of-bounds checks, entity count thresholds, and JSON export</li>
+        <li><strong>WorldLint</strong> — static analysis for .world files with Levenshtein-based "did you mean?" suggestions (W001, E002, W003, E005, H006)</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">90 new tests across 6 modules (864 → 954 total)</p>
+
+    <h2>Demo Game: Mycelia: Ascent</h2>
     <ul>
         <li><strong>Procedural cave generation</strong> via cellular automata</li>
         <li><strong>Tap-to-grow mechanics</strong> — expand mycelial network through caves</li>

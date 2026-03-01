@@ -4,6 +4,27 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Round 8 — Mobile & Game Feel
+
+**6 new engine modules, 90 new tests (864 → 954 total)**
+
+### New Engine Modules
+- **GestureRecognizer** (`gesture.rs`) — Touch gesture recognition: tap, double-tap, long-press, swipe (with direction/velocity), pinch. Primary touch → mouse forwarding for backwards compatibility. EventBus integration publishes `gesture:tap`, `gesture:swipe`, etc. (18 tests)
+- **SoundScape** (`sound.rs`) — Command-buffer audio system. `SoundCommandQueue` accumulates commands, `drain_json()` WASM binding lets JS Web Audio consume them each frame. `SoundPalette` provides 6 named presets (impact, pickup, explosion, ui_click, ambient_wind, game_over). (13 tests)
+- **AutoJuice** (`auto_juice.rs`) — Declarative game-feel pipeline. Maps `JuiceTrigger` (OnCollision, OnSpawn, OnDespawn, OnEvent) to `JuiceEffect` (particles, shake, flash, sound, freeze frames). Builder pattern, symmetric collision matching. (10 tests)
+- **UiCanvas** (`ui_canvas.rs`) — Anchor-based UI widget system. 9 anchor positions, `ValueBinding` for data-bound labels/bars/buttons. Framebuffer rendering + hit-testing for interactive overlays. (20 tests)
+- **DiagnosticBus** (`diagnostics.rs`) — Structured runtime error reporting. Runs NaN transform, out-of-bounds, and entity count threshold checks each frame. JSON export via `get_diagnostics()` WASM binding. (14 tests)
+- **WorldLint** (`world_lint.rs`) — Static analysis for .world files. Levenshtein-based "did you mean?" suggestions. Checks: W001 (physics without collider), E002 (unknown template), W003 (unknown tag), E005 (undefined timer), H006 (no player). (15 tests)
+
+### WASM Bindings (4 new exports)
+| Function | Description |
+|----------|-------------|
+| `touch_start/move/end(id, x, y)` | Touch input forwarded to gesture recognizer |
+| `drain_sound_commands()` | Drain audio command queue as JSON |
+| `get_diagnostics()` | Get runtime diagnostics as JSON |
+
+---
+
 ## Demo Game: Mycelia: Ascent
 
 **Branch**: `claude/review-game-engine-CaUoa`

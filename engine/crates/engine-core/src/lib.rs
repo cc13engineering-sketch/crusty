@@ -18,6 +18,10 @@ pub mod templates;
 pub mod behavior;
 pub mod dialogue;
 pub mod scene_manager;
+pub mod tilemap;
+pub mod raycast;
+pub mod spatial_query;
+pub mod entity_pool;
 
 #[cfg(test)]
 mod tests;

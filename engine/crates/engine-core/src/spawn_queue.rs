@@ -64,6 +64,10 @@ pub struct SpawnQueue {
 }
 
 impl SpawnQueue {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     pub fn spawn(&mut self, cmd: SpawnCommand) {
         self.spawns.push(cmd);
     }

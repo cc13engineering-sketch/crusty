@@ -17,6 +17,8 @@ use crate::templates::TemplateRegistry;
 use crate::behavior::BehaviorRules;
 use crate::dialogue::DialogueQueue;
 use crate::scene_manager::SceneManager;
+use crate::tilemap::TileMap;
+use crate::entity_pool::PoolRegistry;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -170,6 +172,10 @@ pub struct Engine {
     // Innovation Round 3: Animation, effects, gameplay logic, scene management
     pub screen_fx: ScreenFxStack,
     pub scene_manager: SceneManager,
+
+    // Innovation Round 4: Spatial systems, tile maps, entity pooling
+    pub tilemap: Option<TileMap>,
+    pub pool_registry: PoolRegistry,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -207,6 +213,8 @@ impl Engine {
             dialogue: DialogueQueue::new(),
             screen_fx: ScreenFxStack::new(),
             scene_manager: SceneManager::new(),
+            tilemap: None,
+            pool_registry: PoolRegistry::new(),
         }
     }
 
@@ -239,8 +247,23 @@ impl Engine {
             &self.templates, &mut self.rules, FIXED_DT,
         );
 
+        // Hierarchy system (parent→child transform propagation)
+        crate::systems::hierarchy::run(&mut self.world);
+
         // Signal system (wire emitters → receivers)
         crate::systems::signal::run(&mut self.world);
+
+        // State machine system (tick elapsed, check transitions)
+        crate::systems::state_machine::run(&mut self.world, dt);
+
+        // Coroutine system (advance async behavior steps)
+        crate::systems::coroutine::run(&mut self.world, dt);
+
+        // Drain coroutine-queued spawns into engine spawn queue
+        let queued_spawns: Vec<_> = self.world.spawn_queue.spawns.drain(..).collect();
+        for cmd in queued_spawns {
+            self.spawn_queue.spawn(cmd);
+        }
 
         // Behavior system (AI movement)
         crate::systems::behavior::run(&mut self.world, dt);

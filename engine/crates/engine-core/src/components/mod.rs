@@ -19,6 +19,9 @@ pub mod time_scale;
 pub mod active;
 pub mod waypoint_path;
 pub mod signal;
+pub mod hierarchy;
+pub mod state_machine;
+pub mod coroutine;
 
 pub use transform::Transform;
 pub use rigidbody::RigidBody;
@@ -41,6 +44,9 @@ pub use time_scale::TimeScale;
 pub use active::Active;
 pub use waypoint_path::WaypointPath;
 pub use signal::{SignalEmitter, SignalReceiver};
+pub use hierarchy::{Parent, Children, WorldTransform};
+pub use state_machine::StateMachine;
+pub use coroutine::Coroutine;
 
 /// Trait for components to provide their own schema metadata.
 pub trait SchemaInfo {

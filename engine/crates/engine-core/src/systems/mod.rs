@@ -13,3 +13,6 @@ pub mod flash;
 pub mod ghost_trail;
 pub mod waypoint;
 pub mod signal;
+pub mod hierarchy;
+pub mod state_machine;
+pub mod coroutine;

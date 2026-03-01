@@ -67,6 +67,13 @@ pub struct World {
     pub waypoint_paths: ComponentStore<WaypointPath>,
     pub signal_emitters: ComponentStore<SignalEmitter>,
     pub signal_receivers: ComponentStore<SignalReceiver>,
+    pub parents: ComponentStore<Parent>,
+    pub children: ComponentStore<Children>,
+    pub world_transforms: ComponentStore<WorldTransform>,
+    pub state_machines: ComponentStore<StateMachine>,
+    pub coroutines: ComponentStore<Coroutine>,
+
+    pub spawn_queue: crate::spawn_queue::SpawnQueue,
 }
 
 impl World {
@@ -97,6 +104,12 @@ impl World {
             waypoint_paths: ComponentStore::new(),
             signal_emitters: ComponentStore::new(),
             signal_receivers: ComponentStore::new(),
+            parents: ComponentStore::new(),
+            children: ComponentStore::new(),
+            world_transforms: ComponentStore::new(),
+            state_machines: ComponentStore::new(),
+            coroutines: ComponentStore::new(),
+            spawn_queue: crate::spawn_queue::SpawnQueue::new(),
         }
     }
 
@@ -139,6 +152,11 @@ impl World {
         self.waypoint_paths.remove(entity);
         self.signal_emitters.remove(entity);
         self.signal_receivers.remove(entity);
+        self.parents.remove(entity);
+        self.children.remove(entity);
+        self.world_transforms.remove(entity);
+        self.state_machines.remove(entity);
+        self.coroutines.remove(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -174,6 +192,12 @@ impl World {
         self.waypoint_paths.clear();
         self.signal_emitters.clear();
         self.signal_receivers.clear();
+        self.parents.clear();
+        self.children.clear();
+        self.world_transforms.clear();
+        self.state_machines.clear();
+        self.coroutines.clear();
+        self.spawn_queue.clear();
         self.next_id = 1;
     }
 }

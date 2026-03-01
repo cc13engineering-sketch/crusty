@@ -27,17 +27,22 @@ pub fn generate_schema() -> String {
             { "name": WaypointPath::schema_name(), "schema": WaypointPath::schema() },
             { "name": SignalEmitter::schema_name(), "schema": SignalEmitter::schema() },
             { "name": SignalReceiver::schema_name(), "schema": SignalReceiver::schema() },
+            { "name": Parent::schema_name(), "schema": Parent::schema() },
+            { "name": Children::schema_name(), "schema": Children::schema() },
+            { "name": WorldTransform::schema_name(), "schema": WorldTransform::schema() },
+            { "name": StateMachine::schema_name(), "schema": StateMachine::schema() },
+            { "name": Coroutine::schema_name(), "schema": Coroutine::schema() },
         ],
         "systems": [
-            "lifecycle", "behavior", "tween", "flash", "ghost_trail",
-            "waypoint", "signal",
+            "lifecycle", "hierarchy", "signal", "state_machine", "coroutine",
+            "behavior", "tween", "flash", "ghost_trail", "waypoint",
             "force_accumulator", "integrator", "collision",
             "gameplay", "event_processor", "input_gameplay",
             "renderer", "debug_render"
         ],
         "engine_state": [
             "global_game_state", "timer_queue", "template_registry", "behavior_rules",
-            "scene_manager", "screen_fx_stack"
+            "scene_manager", "screen_fx_stack", "tilemap", "spatial_query", "entity_pool"
         ]
     });
     serde_json::to_string_pretty(&schema).unwrap()

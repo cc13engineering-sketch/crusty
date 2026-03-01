@@ -54,7 +54,21 @@
         <span><span class="num">5</span> Demos</span>
     </div>
 
-    <h2>Round 9 — Game Creation Platform <span class="badge badge-new">NEW</span></h2>
+    <h2>Round 10 — Trap Links Game Design <span class="badge badge-new">NEW</span></h2>
+    <h3>Game Concept: Trap Links</h3>
+    <ul>
+        <li><strong>Genre</strong> — tile-based RPG with minigolf-as-combat fight scenes (Pokémon meets mini-golf)</li>
+        <li><strong>Core Loop</strong> — explore overworld → step on trap → iris transition → solve minigolf puzzle → earn XP/gold/caddies</li>
+        <li><strong>Fight Mechanic</strong> — slingshot aim model, par-based damage, 8 obstacle types (bumpers, wind, ice, portals, spinning blades)</li>
+        <li><strong>5 Biomes</strong> — Meadow Links, The Sandtraps, Frostway Greens, Cursed Caverns, The Final Course</li>
+        <li><strong>Capture System</strong> — catch defeated enemies as Caddies (passive fight bonuses), Shiny/Gilded variants</li>
+        <li><strong>Equipment</strong> — 8 Ball types, 12 Clubs, 10 Charms, 9 consumable items, 3 Signature Shots</li>
+        <li><strong>Procedural Courses</strong> — seeded generation via cellular automata + A* validation per enemy type</li>
+        <li><strong>Engine Gap Analysis</strong> — 8 gaps identified for Rounds 5-6 (multi-layer TileMap, physics isolation, restitution, dialogue branching, UI tap detection, aim preview, sprite tiles, one-shot SFX)</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">622-line game design document synthesized from 3 competing proposals</p>
+
+    <h2>Round 9 — Game Creation Platform</h2>
     <h3>New Engine Modules (4)</h3>
     <ul>
         <li><strong>GameFlow</strong> — declarative game lifecycle FSM (Title→Playing→Paused→GameOver→Victory) with transition conditions, pause/unpause, and sound-on-enter hooks</li>

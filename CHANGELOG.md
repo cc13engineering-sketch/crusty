@@ -4,6 +4,23 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Round 10 — Trap Links Game Design
+
+**Game concept document: 622 lines, synthesized from 3 competing proposals**
+
+### Trap Links: A Minigolf RPG
+- **Concept**: Tile-based RPG where trap encounters open minigolf fight scenes (Pokémon meets mini-golf)
+- **Core Loop**: Explore overworld → trigger trap → iris transition → solve minigolf puzzle → earn XP/gold/caddies
+- **Fight Mechanic**: Slingshot aim model, par-based damage system, 8 obstacle types
+- **5 Biomes**: Meadow Links, The Sandtraps, Frostway Greens, Cursed Caverns, The Final Course
+- **Capture System**: Catch enemies as Caddies (passive fight bonuses), Shiny (1/50) and Gilded (1/200) variants
+- **Equipment**: 8 Ball types, 12 Clubs, 10 Charms, 9 consumable items, 3 Signature Shots
+- **Procedural Courses**: Seeded generation via cellular automata + A* validation per enemy type
+- **Engine Gaps Identified**: 8 gaps for Rounds 5-6 (multi-layer TileMap, physics isolation, restitution, dialogue branching, UI tap detection, aim preview, sprite tiles, one-shot SFX)
+- **Estimated Play Time**: ~7-8 hours first playthrough, infinite via Daily Links endgame
+
+---
+
 ## Round 9 — Game Creation Platform
 
 **4 new engine modules, 109 new tests (954 → 1063 total)**

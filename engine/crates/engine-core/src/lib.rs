@@ -30,7 +30,13 @@ pub mod flow_network;
 pub mod procedural_gen;
 pub mod environment_clock;
 pub mod density_field;
+pub mod diagnostics;
+pub mod world_lint;
+pub mod gesture;
 pub mod mycelia;
+pub mod sound;
+pub mod auto_juice;
+pub mod ui_canvas;
 
 #[cfg(test)]
 mod tests;
@@ -97,6 +103,40 @@ pub fn mouse_down(x: f64, y: f64, button: u32) {
 #[wasm_bindgen]
 pub fn mouse_up(x: f64, y: f64, button: u32) {
     with_engine(|eng| eng.input.on_mouse_up(x, y, button));
+}
+
+// ─── Touch WASM API ─────────────────────────────────────────────────
+
+/// Handle a new touch starting. Forwards primary touch to Input mouse position.
+#[wasm_bindgen]
+pub fn touch_start(id: u32, x: f64, y: f64) {
+    with_engine(|eng| {
+        let (px, py) = eng.gestures.on_touch_start(id, x, y);
+        // Forward primary touch to mouse input for backwards compatibility
+        if eng.gestures.primary_touch() == Some(id) {
+            eng.input.on_mouse_down(px, py, 0);
+        }
+    });
+}
+
+/// Handle a touch moving. Forwards primary touch to Input mouse position.
+#[wasm_bindgen]
+pub fn touch_move(id: u32, x: f64, y: f64) {
+    with_engine(|eng| {
+        if let Some((px, py)) = eng.gestures.on_touch_move(id, x, y) {
+            eng.input.on_mouse_move(px, py);
+        }
+    });
+}
+
+/// Handle a touch ending. Forwards primary touch to Input mouse position.
+#[wasm_bindgen]
+pub fn touch_end(id: u32, x: f64, y: f64) {
+    with_engine(|eng| {
+        if let Some((px, py)) = eng.gestures.on_touch_end(id, x, y) {
+            eng.input.on_mouse_up(px, py, 0);
+        }
+    });
 }
 
 #[wasm_bindgen]
@@ -250,4 +290,21 @@ pub fn mycelia_render() {
 #[wasm_bindgen]
 pub fn mycelia_get_state() -> String {
     with_engine(|eng| mycelia::get_state(eng))
+}
+
+// ─── Diagnostics WASM API ────────────────────────────────────────────
+
+/// Get all runtime diagnostics as a JSON array string.
+#[wasm_bindgen]
+pub fn get_diagnostics() -> String {
+    with_engine(|eng| eng.diagnostic_bus.to_json())
+}
+
+// ─── Sound WASM API ─────────────────────────────────────────────────
+
+/// Drain all queued sound commands as a JSON array string.
+/// Returns "[]" when there are no pending commands.
+#[wasm_bindgen]
+pub fn drain_sound_commands() -> String {
+    with_engine(|eng| eng.sound_queue.drain_json())
 }

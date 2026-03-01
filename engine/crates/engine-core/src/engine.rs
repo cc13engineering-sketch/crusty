@@ -23,6 +23,10 @@ use crate::event_bus::EventBus;
 use crate::input_map::InputMap;
 use crate::flow_network::FlowNetwork;
 use crate::environment_clock::EnvironmentClock;
+use crate::diagnostics::DiagnosticBus;
+use crate::gesture::GestureRecognizer;
+use crate::auto_juice::AutoJuiceSystem;
+use crate::ui_canvas::UiCanvas;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -188,6 +192,22 @@ pub struct Engine {
     // Innovation Round 7: Flow network, environment clock
     pub flow_network: FlowNetwork,
     pub environment_clock: EnvironmentClock,
+
+    // SoundScape: command-buffer audio system
+    pub sound_queue: crate::sound::SoundCommandQueue,
+    pub sound_palette: crate::sound::SoundPalette,
+
+    // Diagnostics: structured runtime error reporting
+    pub diagnostic_bus: DiagnosticBus,
+
+    // Touch gesture recognition
+    pub gestures: GestureRecognizer,
+
+    // AutoJuice: automatic game-feel pipeline
+    pub auto_juice: AutoJuiceSystem,
+
+    // UiCanvas: declarative UI widget overlay
+    pub ui_canvas: UiCanvas,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -231,6 +251,12 @@ impl Engine {
             input_map: InputMap::new(),
             flow_network: FlowNetwork::new(),
             environment_clock: EnvironmentClock::new(),
+            sound_queue: crate::sound::SoundCommandQueue::new(),
+            sound_palette: crate::sound::SoundPalette::default_palette(),
+            diagnostic_bus: DiagnosticBus::new(),
+            gestures: GestureRecognizer::new(),
+            auto_juice: AutoJuiceSystem::new(),
+            ui_canvas: UiCanvas::new(),
         }
     }
 
@@ -248,6 +274,10 @@ impl Engine {
         self.event_bus.clear();
         self.flow_network.clear();
         self.environment_clock = EnvironmentClock::new();
+        self.sound_queue.clear();
+        self.diagnostic_bus.clear();
+        self.auto_juice.clear();
+        self.ui_canvas.clear();
     }
 
     pub fn tick(&mut self, dt: f64) {
@@ -257,6 +287,57 @@ impl Engine {
 
         if self.input.keys_pressed.contains("KeyD") {
             self.debug_mode = !self.debug_mode;
+        }
+
+        // Touch gesture recognition: update timers and drain recognized gestures
+        self.gestures.update(dt);
+        for gesture in self.gestures.drain_gestures() {
+            match &gesture {
+                crate::gesture::Gesture::Tap { x, y } => {
+                    self.event_bus.publish(
+                        crate::event_bus::BusEvent::new("gesture:tap")
+                            .with_f64("x", *x)
+                            .with_f64("y", *y)
+                    );
+                }
+                crate::gesture::Gesture::DoubleTap { x, y } => {
+                    self.event_bus.publish(
+                        crate::event_bus::BusEvent::new("gesture:double_tap")
+                            .with_f64("x", *x)
+                            .with_f64("y", *y)
+                    );
+                }
+                crate::gesture::Gesture::LongPress { x, y } => {
+                    self.event_bus.publish(
+                        crate::event_bus::BusEvent::new("gesture:long_press")
+                            .with_f64("x", *x)
+                            .with_f64("y", *y)
+                    );
+                }
+                crate::gesture::Gesture::Swipe { direction, velocity, start_x, start_y, end_x, end_y } => {
+                    let dir_str = match direction {
+                        crate::gesture::SwipeDirection::Up => "up",
+                        crate::gesture::SwipeDirection::Down => "down",
+                        crate::gesture::SwipeDirection::Left => "left",
+                        crate::gesture::SwipeDirection::Right => "right",
+                    };
+                    self.event_bus.publish(
+                        crate::event_bus::BusEvent::new("gesture:swipe")
+                            .with_text("direction", dir_str)
+                            .with_f64("velocity", *velocity)
+                            .with_f64("start_x", *start_x)
+                            .with_f64("start_y", *start_y)
+                            .with_f64("end_x", *end_x)
+                            .with_f64("end_y", *end_y)
+                    );
+                }
+                crate::gesture::Gesture::Pinch { scale_delta } => {
+                    self.event_bus.publish(
+                        crate::event_bus::BusEvent::new("gesture:pinch")
+                            .with_f64("scale_delta", *scale_delta)
+                    );
+                }
+            }
         }
 
         // Lifecycle: process spawns/despawns/lifetimes, tick timers, evaluate behavior rules
@@ -389,6 +470,11 @@ impl Engine {
         self.events.clear();
         self.event_bus.clear();
         self.input.end_frame();
+
+        // Runtime diagnostics: clear previous frame and run checks
+        self.diagnostic_bus.clear();
+        self.diagnostic_bus.run_checks(&self.world, self.config.bounds, self.frame);
+
         self.time += dt;
         self.frame += 1;
     }

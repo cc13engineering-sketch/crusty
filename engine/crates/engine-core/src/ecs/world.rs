@@ -80,6 +80,9 @@ pub struct World {
     pub coroutines: ComponentStore<Coroutine>,
     pub sprite_animators: ComponentStore<SpriteAnimator>,
     pub physics_joints: ComponentStore<PhysicsJoint>,
+    pub resource_inventories: ComponentStore<ResourceInventory>,
+    pub graph_nodes: ComponentStore<GraphNode>,
+    pub visual_connections: ComponentStore<VisualConnection>,
 
     pub spawn_queue: crate::spawn_queue::SpawnQueue,
 }
@@ -119,6 +122,9 @@ impl World {
             coroutines: ComponentStore::new(),
             sprite_animators: ComponentStore::new(),
             physics_joints: ComponentStore::new(),
+            resource_inventories: ComponentStore::new(),
+            graph_nodes: ComponentStore::new(),
+            visual_connections: ComponentStore::new(),
             spawn_queue: crate::spawn_queue::SpawnQueue::new(),
         }
     }
@@ -169,6 +175,9 @@ impl World {
         self.coroutines.remove(entity);
         self.sprite_animators.remove(entity);
         self.physics_joints.remove(entity);
+        self.resource_inventories.remove(entity);
+        self.graph_nodes.remove(entity);
+        self.visual_connections.remove(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -211,6 +220,9 @@ impl World {
         self.coroutines.clear();
         self.sprite_animators.clear();
         self.physics_joints.clear();
+        self.resource_inventories.clear();
+        self.graph_nodes.clear();
+        self.visual_connections.clear();
         self.spawn_queue.clear();
         self.next_id = 1;
     }

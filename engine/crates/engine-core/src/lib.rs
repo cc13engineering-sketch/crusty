@@ -26,6 +26,10 @@ pub mod pathfinding;
 pub mod event_bus;
 pub mod input_map;
 pub mod save_load;
+pub mod flow_network;
+pub mod procedural_gen;
+pub mod environment_clock;
+pub mod density_field;
 
 #[cfg(test)]
 mod tests;

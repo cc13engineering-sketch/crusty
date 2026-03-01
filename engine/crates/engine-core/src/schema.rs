@@ -34,6 +34,9 @@ pub fn generate_schema() -> String {
             { "name": Coroutine::schema_name(), "schema": Coroutine::schema() },
             { "name": SpriteAnimator::schema_name(), "schema": SpriteAnimator::schema() },
             { "name": PhysicsJoint::schema_name(), "schema": PhysicsJoint::schema() },
+            { "name": "ResourceInventory", "schema": { "description": "Multi-resource container with production/consumption rates" } },
+            { "name": "GraphNode", "schema": { "description": "Entity graph node with typed, weighted edges" } },
+            { "name": "VisualConnection", "schema": { "description": "Visual line/dash/flow between entities" } },
         ],
         "systems": [
             "lifecycle", "hierarchy", "signal", "state_machine", "coroutine",
@@ -45,7 +48,8 @@ pub fn generate_schema() -> String {
         "engine_state": [
             "global_game_state", "timer_queue", "template_registry", "behavior_rules",
             "scene_manager", "screen_fx_stack", "tilemap", "spatial_query", "entity_pool",
-            "event_bus", "input_map", "pathfinding", "save_load"
+            "event_bus", "input_map", "pathfinding", "save_load",
+            "flow_network", "procedural_gen", "environment_clock", "density_field"
         ]
     });
     serde_json::to_string_pretty(&schema).unwrap()

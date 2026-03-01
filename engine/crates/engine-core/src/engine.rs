@@ -21,6 +21,8 @@ use crate::tilemap::TileMap;
 use crate::entity_pool::PoolRegistry;
 use crate::event_bus::EventBus;
 use crate::input_map::InputMap;
+use crate::flow_network::FlowNetwork;
+use crate::environment_clock::EnvironmentClock;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -182,6 +184,10 @@ pub struct Engine {
     // Innovation Round 6: Event bus, input mapping
     pub event_bus: EventBus,
     pub input_map: InputMap,
+
+    // Innovation Round 7: Flow network, environment clock
+    pub flow_network: FlowNetwork,
+    pub environment_clock: EnvironmentClock,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -223,6 +229,8 @@ impl Engine {
             pool_registry: PoolRegistry::new(),
             event_bus: EventBus::new(),
             input_map: InputMap::new(),
+            flow_network: FlowNetwork::new(),
+            environment_clock: EnvironmentClock::new(),
         }
     }
 
@@ -238,6 +246,8 @@ impl Engine {
         self.transition = TransitionManager::new();
         self.screen_fx.clear();
         self.event_bus.clear();
+        self.flow_network.clear();
+        self.environment_clock = EnvironmentClock::new();
     }
 
     pub fn tick(&mut self, dt: f64) {
@@ -273,6 +283,12 @@ impl Engine {
         for cmd in queued_spawns {
             self.spawn_queue.spawn(cmd);
         }
+
+        // Environment clock (day/night, seasons)
+        self.environment_clock.tick(dt);
+
+        // Resource flow network (transfer resources along edges)
+        self.flow_network.solve(&mut self.world, dt);
 
         // Sprite animation system (advance frame timers)
         crate::systems::sprite_animator::run(&mut self.world, dt);

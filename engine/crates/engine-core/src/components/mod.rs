@@ -24,6 +24,9 @@ pub mod state_machine;
 pub mod coroutine;
 pub mod sprite_animator;
 pub mod physics_joint;
+pub mod resource_inventory;
+pub mod graph_node;
+pub mod visual_connection;
 
 pub use transform::Transform;
 pub use rigidbody::RigidBody;
@@ -51,6 +54,9 @@ pub use state_machine::StateMachine;
 pub use coroutine::Coroutine;
 pub use sprite_animator::SpriteAnimator;
 pub use physics_joint::PhysicsJoint;
+pub use resource_inventory::ResourceInventory;
+pub use graph_node::GraphNode;
+pub use visual_connection::VisualConnection;
 
 /// Trait for components to provide their own schema metadata.
 pub trait SchemaInfo {

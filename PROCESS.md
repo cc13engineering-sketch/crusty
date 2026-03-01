@@ -52,7 +52,7 @@ graph.add_edge(target_entity, "connection", 1.0, true);
 ```rust
 // CORRECT: pass camera CENTER position
 let (sw, sh) = (engine.framebuffer.width as f64, engine.framebuffer.height as f64);
-tm.render(&mut engine.framebuffer, cam.x + sw/2.0, cam.y + sh/2.0, cam.zoom, sw as usize, sh as usize);
+tm.render(&mut engine.framebuffer, cam.x + sw/2.0, cam.y + sh/2.0, cam.zoom, sw as u32, sh as u32);
 
 // WRONG: passing cam.x, cam.y directly (those are top-left corner)
 ```
@@ -64,14 +64,15 @@ use crate::rendering::text::{draw_text, draw_text_centered, text_width};
 // All draw functions take &mut Framebuffer as first arg
 // fill_rect(fb, x, y, w, h, color)
 // fill_circle(fb, cx, cy, radius, color)
-// draw_text(fb, text, x, y, color) — returns width
-// draw_text_centered(fb, text, cx, y, color)
+// draw_text(fb, x, y, text, color, scale) — returns ()
+// draw_text_centered(fb, cx, cy, text, color, scale)
+// text_width(text, scale) — returns i32
 ```
 
 ### Entity Creation Pattern
 ```rust
 let entity = engine.world.spawn();
-engine.world.transforms.insert(entity, Transform::new(x, y));
+engine.world.transforms.insert(entity, Transform { x, y, rotation: 0.0, scale: 1.0 });
 engine.world.tags.insert(entity, Tags::new(&["node", "root"]));
 engine.world.graph_nodes.insert(entity, GraphNode::new());
 ```

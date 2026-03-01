@@ -34,51 +34,53 @@ The CLI crate fails to compile due to a visibility error.
 
 ## Bugs & Correctness Issues
 
-### 1. Compilation Error — Private Module (Severity: Critical)
-`engine-core/src/lib.rs:8` declares `mod scripting;` (private), but `engine-cli/src/main.rs:14,23,25` access it. The CLI crate does not compile.
+### 1. ~~Compilation Error — Private Module (Severity: Critical)~~ FIXED
+~~`engine-core/src/lib.rs:8` declares `mod scripting;` (private).~~ Now `pub mod scripting;`.
 
-### 2. Debug Toggle Fires Every Frame (Severity: Medium)
-`engine.rs:77` — `self.input.keys_pressed.contains("KeyD")` toggles debug mode, but `keys_pressed` is only cleared in `end_frame()` which runs at the end of `tick()`. Since the physics loop runs multiple sub-steps before `end_frame()`, the toggle fires once per frame, not once per sub-step — so this is actually fine per-frame. However, if the user holds 'D', `keys_pressed` won't re-fire (good), but there's a subtlety: `keys_pressed` uses the raw event code string `"KeyD"` while `key_down` receives `e.code` from JS. This works, but if a different keyboard layout maps 'D' elsewhere, the code could be different. Consider documenting this as a known limitation.
+### 2. Debug Toggle Fires Every Frame (Severity: Medium) — KNOWN LIMITATION
+`engine.rs` uses raw `"KeyD"` event code for debug toggle. Works on standard QWERTY layouts but may not map correctly on others. Documented as known limitation.
 
-### 3. CCD Unused `denom` Variable (Severity: Low)
-`ccd.rs:77` — `let denom = dot(move_d, seg_n);` is computed but never used. This suggests an incomplete optimization (early-out when the circle moves parallel to the line). Either use it or remove it.
+### 3. CCD Unused `denom` Variable (Severity: Low) — SUPPRESSED
+`ccd.rs:77` — Renamed to `_denom` to suppress warning. Underlying early-out optimization still not implemented.
 
-### 4. World `despawn()` Doesn't Remove from NameMap (Severity: Medium)
-`world.rs:81-89` — `despawn()` removes the entity from all component stores and `alive`, but doesn't remove it from `names`. A despawned entity's name will persist and could be returned by `get_by_name()`, pointing to a dead entity.
+### 4. ~~World `despawn()` Doesn't Remove from NameMap (Severity: Medium)~~ FIXED
+~~Missing NameMap cleanup.~~ `world.rs` now calls `self.names.remove_entity(entity)` in `despawn()`. Test added.
 
-### 5. Collision: Rect-vs-Rect Not Supported (Severity: Low, Documented)
-Only circle movers support CCD. Non-circle movers log a warning and are skipped. This is documented, but means rect-on-rect collision doesn't exist — moving rect entities will pass through everything.
+### 5. Collision: Rect-vs-Rect Not Supported (Severity: Low, Documented) — STILL OPEN
+Only circle movers support CCD. Rect-on-rect collision still not implemented.
 
-### 6. `sweep_circle_vs_aabb` Corner Tests Are Redundant (Severity: Negligible)
-`ccd.rs:148-162` — The 4 corner point tests are already covered by `sweep_circle_vs_line_segment` which tests both endpoints of each segment. This doubles the corner work but won't cause incorrect results — just wastes ~8 extra sweep tests per AABB.
-
----
-
-## Warnings (from `cargo check`)
-
-| File | Warning | Suggested Fix |
-|------|---------|---------------|
-| `ecs/mod.rs:6` | Unused import `ComponentStore` | Remove or use in a public API |
-| `ecs/mod.rs:7` | Unused import `NameMap` | Remove or use in a public API |
-| `scripting/loader.rs:5` | Unused import `EntityDef` | Remove from import |
-| `systems/collision.rs:32` | Unused variable `tags` | Change to `tags: _` |
-| `physics/ccd.rs:77` | Unused variable `denom` | Prefix with `_` or remove |
-| `physics/math.rs:10-11,21` | Dead code: `distance`, `distance_sq`, `clamp_f64` | Keep (utility functions for future use) or gate with `#[allow(dead_code)]` |
-| `scripting/parser.rs:35,38,40` | Never-read fields in `Value::Str`, `Value::Vec2`, `Value::Array` | These are parsed but not yet consumed by the loader — expected for a v1 where not all value types are used yet |
+### 6. `sweep_circle_vs_aabb` Corner Tests Are Redundant (Severity: Negligible) — STILL OPEN
+Redundant corner tests remain. No functional impact.
 
 ---
 
-## Performance Observations
+## Warnings (from `cargo check`) — Updated Status
 
-1. **O(n^2) collision detection** (`collision.rs:97`) — Every moving entity checks against every other entity every sub-step. Fine for <100 entities, will need spatial partitioning (grid/quadtree) for more.
+Most original warnings have been fixed. Current state:
 
-2. **`sorted_entities()` allocates every call** (`component_store.rs:63`) — Collects keys into a Vec and sorts. Called multiple times per physics step. For determinism this is necessary with HashMap, but consider switching to a `BTreeMap` or caching the sorted order.
+| File | Warning | Status |
+|------|---------|--------|
+| `ecs/mod.rs:6-7` | Unused imports `ComponentStore`, `NameMap` | **FIXED** — removed |
+| `scripting/loader.rs:5` | Unused import `EntityDef` | **FIXED** |
+| `systems/collision.rs:32` | Unused variable `tags` | **FIXED** |
+| `physics/ccd.rs:77` | Unused variable `denom` | **SUPPRESSED** — renamed to `_denom` |
+| `physics/math.rs:10-11,21` | Dead code: utility functions | **SUPPRESSED** — `#![allow(dead_code)]` at module level |
+| `scripting/parser.rs:35,38,40` | Never-read fields in `Value` variants | **SUPPRESSED** — `#[allow(dead_code)]` on enum |
+| `systems/renderer.rs:26` | Unused function `run()` | **NEW** — `run_entities_only()` replaced it; `run()` is dead code |
 
-3. **`Visual::clone()` in renderer** (`renderer.rs:25`) — Every visible entity clones its `Visual` enum into the drawables list every frame. Since `Visual` contains `Color` (which is `Copy`), the clone is cheap, but collecting into a Vec and sorting by layer every frame could be avoided with a dirty flag or layer-bucketed storage.
+---
 
-4. **Thick line drawing** (`shapes.rs:113-150`) — Iterates every pixel in the bounding box. For long, thin lines this is mostly wasted iteration. A scanline approach would be faster.
+## Performance Observations — Updated Status
 
-5. **Alpha blending** (`framebuffer.rs:50-58`) — Uses integer division (`/ 255`). The standard trick `(x + 128) / 255` or `(x * 257 + 256) >> 16` gives more accurate rounding. Current approach is fine for a game though.
+1. ~~**O(n^2) collision detection**~~ — **FIXED** in Round 4. Collision system now uses `SpatialGrid` for broad-phase spatial partitioning.
+
+2. **`sorted_entities()` allocates every call** (`component_store.rs`) — STILL OPEN. Still collects keys into Vec and sorts each call.
+
+3. **`Visual::clone()` in renderer** — STILL OPEN. Collect-sort-draw pattern remains.
+
+4. **Thick line drawing** (`shapes.rs`) — STILL OPEN. Bounding-box iteration approach unchanged.
+
+5. **Alpha blending** (`framebuffer.rs`) — STILL OPEN. Uses simple integer division.
 
 ---
 

@@ -11,16 +11,42 @@ Input (JS → WASM strings) → Systems → Framebuffer (WASM memory → JS Imag
 ## System Execution Order (per tick)
 ```
 Physics (N times per frame at 60Hz fixed dt):
-  1. force_accumulator — reset + accumulate accelerations
-  2. integrator — update velocities (NOT positions)
+  1. force_accumulator — reset + accumulate accelerations (includes ZoneEffect)
+  2. integrator — update velocities, apply friction/drag/constraints
   3. collision — CCD sweep, update positions, push events
 
 Per-frame (once):
-  4. event_processor — handle collision/trigger events
-  5. input_gameplay — drag-to-launch
-  6. renderer — clear + draw all entities
-  7. debug_render — velocity vectors, force field radii, collider wireframes
+  lifecycle → signal → state_machine → coroutine → behavior
+  → tween → flash → waypoint → ghost_trail
+  → sprite_animator → physics_joint
+  → gameplay → event_processor → input_gameplay
+  → RENDER(clear → starfield → entities → particles → debug → HUD
+           → screen_fx → transition_overlay → post_fx)
+  → camera → events.clear → input.end_frame
 ```
+
+## Components (32)
+Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime,
+GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect,
+PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath,
+SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine,
+Coroutine, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection
+
+## Systems (21)
+lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash,
+ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay,
+event_processor, input_gameplay, renderer, debug_render, sprite_animator,
+physics_joint, (camera integrated in engine)
+
+## Engine Modules (20)
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue,
+SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus,
+InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock,
+DensityField
+
+## Rendering Modules (12)
+color, framebuffer, shapes, text, particles, starfield, post_fx, layers,
+sprite, transition, screen_fx, (HUD in renderer)
 
 ## Import Patterns
 Every system needs: `use crate::ecs::World;`

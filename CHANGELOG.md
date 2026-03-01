@@ -349,6 +349,6 @@ color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite,
 ### Engine Modules: 20
 SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField
 
-### Test Count: 850 (including 22 E2E integration tests + 83 Round 6 tests + 64 Round 7 tests)
-### Demo Games: 4 (bouncing balls, walker, space survival, minigolf RPG concept)
+### Test Count: 864 (including 22 E2E integration tests + 83 Round 6 tests + 64 Round 7 tests + 12 Mycelia tests)
+### Demo Games: 5 (bouncing balls, walker, space survival, minigolf RPG concept, Mycelia: Ascent)
 ### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization

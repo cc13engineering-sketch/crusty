@@ -225,7 +225,7 @@ pub fn mycelia_tap(screen_x: f64, screen_y: f64) -> bool {
 }
 
 /// Custom render pass for Mycelia (tilemap, connections, nodes, HUD).
-/// Call this INSTEAD of tick() — it handles its own render pipeline.
+/// Call this AFTER tick() — it overwrites the framebuffer with Mycelia's custom rendering.
 #[wasm_bindgen]
 pub fn mycelia_render() {
     with_engine(|eng| {

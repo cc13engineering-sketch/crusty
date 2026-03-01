@@ -211,7 +211,7 @@ pub fn run(world: &mut World, dt: f64) {
             crate::components::physics_joint::JointType::Hinge { radius, angular_velocity, angle, .. } => {
                 let new_angle = angle + angular_velocity * dt;
 
-                let joint_mut = world.physics_joints.get_mut(*owner).unwrap();
+                let Some(joint_mut) = world.physics_joints.get_mut(*owner) else { continue; };
                 if let crate::components::physics_joint::JointType::Hinge {
                     angle: ref mut a_angle, min_angle, max_angle, ..
                 } = joint_mut.joint_type {

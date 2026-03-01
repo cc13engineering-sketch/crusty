@@ -26,20 +26,43 @@
 - pest grammar path in `#[grammar = "..."]` is relative to src/
 
 ## Innovation Games (Development Methodology)
-Innovation Games drive much of this engine's development. The process:
-1. **Spawn competing agents** — each proposes novel engine features independently.
-2. **Theme-driven ideation** — each round has a game concept theme (e.g., space survival, minigolf RPG) used as an ideation seed. Agents validate feature proposals against the theme game's needs.
-3. **Cross-pollinate** — after proposals, review agents select the best ideas across all competitors.
-4. **Integrate** — winning features get implemented into the engine with tests.
-5. **Demo** — optionally build a demo game showcasing the new features.
 
-Past rounds:
-- **Round 1**: Space Survival theme. Added: SpawnQueue, GameState, Behavior AI, Lifetime/Lifecycle, Particle System, Bitmap Text, Starfield, Post-FX (vignette/scanlines/shake), HUD rendering, Gameplay collision rules, Wave spawning. Demo: game-3 (Space Survival).
-- **Round 2**: Minigolf Tile Art RPG theme. Added: Camera follow/zoom with smooth lerp, Render layer stack with parallax, Sprite sheet renderer, Scene transitions (fade/iris/pixelate), PhysicsMaterial (friction/drag), Impulse component, MotionConstraint (speed cap/axis lock), ZoneEffect (wind/drag/conveyor), DialogueQueue (dialogue/notification/floating text).
+Innovation Games drive this engine's development. Each round follows a structured process with mandatory pre-work, competitive proposals, and changelog publishing.
 
-- **Round 3**: Puzzle Platformer with Time Mechanics theme. Added: PropertyTween (9 easing curves for any numeric property), EntityFlash (hit flash/blink/color pulse), GhostTrail (fading afterimage ring buffer), Per-Entity TimeScale (local time multiplier), Active component (entity enable/disable), WaypointPath (once/loop/ping-pong path following), SignalEmitter/SignalReceiver (wired logic gate system with AND/OR/edge detection), ScreenFxStack (composable timed tint/desaturate/flash effects), SceneManager (named scene registry with push/pop stack). World Snapshot deferred.
+### Pre-Work: Codebase Audit (mandatory before each round)
+Before starting proposals, spawn agents with different technical backgrounds to:
+1. **Rust Engine Expert** — review engine code for dead code, unused imports, API drift, unfixed bugs, test gaps.
+2. **Game Developer** — verify all demos compile and run against current WASM build, check .world files use current grammar.
+3. **Documentation Reviewer** — audit CLAUDE.md, PROCESS.md, REVIEW.md, CHANGELOG.md, ARCHITECTURE.md for accuracy against actual source.
+4. Fix all issues found, update docs, commit as "pre-work: codebase audit".
+This ensures we build cohesively and don't accumulate drift between docs, code, and demos.
+
+### Innovation Round Steps
+1. **Pre-work audit** (see above)
+2. **Spawn competing agents** (4 agents) — each proposes features/ideas independently
+3. **Theme-driven ideation** — proposals validated against the round's theme
+4. **Cross-pollinate** — review agents select best ideas across all competitors
+5. **Integrate** — winning features implemented with tests
+6. **Demo** — build/update demo games showcasing new features
+7. **Changelog publish** — update CHANGELOG.md, publish changelog page to GitHub Pages with "how to run" info for all demos
 
 Key principle: features are designed for *engine generality*, not just the theme game. The theme game validates that features compose well together.
+
+### Round Schedule
+- **Rounds 1-2**: Focus on innovations that allow Claude Code to design high-quality immersive mobile games with minimal human input. Think about every aspect of the codebase.
+- **Rounds 3-4**: In-depth game concept competition. Theme: large-map tile-based RPG, Pokémon-style, but instead of fighting trainers, players encounter traps that open a "fight puzzle scene" (like Pokémon fight scenes) where they must use minigolf-like mechanics to solve/fight through the encounter. Must be a rich, ready-to-build concept.
+- **Rounds 5-6**: Code and engine improvements specifically to make building the agreed-upon game feasible.
+- **Rounds 7+**: Open feature competition. Continue until told to stop.
+
+### Past Rounds
+- **Round 1**: Space Survival theme. Added: SpawnQueue, GameState, Behavior AI, Lifetime/Lifecycle, Particle System, Bitmap Text, Starfield, Post-FX (vignette/scanlines/shake), HUD rendering, Gameplay collision rules, Wave spawning. Demo: game-3 (Space Survival).
+- **Round 2**: Minigolf Tile Art RPG theme. Added: Camera follow/zoom with smooth lerp, Render layer stack with parallax, Sprite sheet renderer, Scene transitions (fade/iris/pixelate), PhysicsMaterial (friction/drag), Impulse component, MotionConstraint (speed cap/axis lock), ZoneEffect (wind/drag/conveyor), DialogueQueue (dialogue/notification/floating text).
+- **Round 3**: Puzzle Platformer with Time Mechanics theme. Added: PropertyTween (9 easing curves), EntityFlash (hit flash/blink/color pulse), GhostTrail (fading afterimage ring buffer), Per-Entity TimeScale, Active component, WaypointPath (once/loop/ping-pong), SignalEmitter/SignalReceiver (wired logic gates with AND/OR/edge detection), ScreenFxStack (composable timed effects), SceneManager (push/pop scene stack).
+- **Round 4**: Signal Breach (Tactical Stealth-Puzzle) theme. Added: Parent/Children/WorldTransform (entity hierarchy with transform propagation), StateMachine (data-driven FSM with transitions), Coroutine (scripted async step sequences), TileMap (row-major grid with viewport culling), Raycast (circle/AABB/DDA grid), SpatialHashGrid (cell-bucketed spatial index), EntityPool (pre-warmed recycling).
+- **Round 5**: Expert Review & E2E Testing. Allocation optimizations (HashSet<&str>), ghost trail ring buffer fix, raycast DDA fix, flash/tween system optimizations, Default impls. 22 comprehensive E2E integration tests.
+- **Round 6**: Feature Bonanza. Added: SpriteAnimator (named clips with frame sequences), PhysicsJoint (distance/spring/rope/hinge with break force), EventBus (channel-based typed events), InputMap (abstract input layer), A* Pathfinding (octile heuristic, diagonal movement), Save/Load (world snapshot to JSON).
+- **Round 7**: Ecosystem Infrastructure. Added: ResourceInventory (bounded multi-resource container), GraphNode (entity-to-entity graph edges), VisualConnection (visual links with styles), FlowNetwork (directed resource flow), ProceduralGen (noise + cellular automata + dungeon gen), EnvironmentClock (cyclical time phases), DensityField (2D scalar field with diffusion).
+- **Demo Build**: Mycelia: Ascent — procedural cave game showcasing 8+ engine systems composing together. Custom Rust module with WASM bindings, mobile-first 480x720.
 
 ## Demo Game Building Process
 

@@ -27,6 +27,12 @@ impl NameMap {
         self.entity_to_name.get(&entity).map(|s| s.as_str())
     }
 
+    pub fn remove_entity(&mut self, entity: Entity) {
+        if let Some(name) = self.entity_to_name.remove(&entity) {
+            self.name_to_entity.remove(&name);
+        }
+    }
+
     pub fn clear(&mut self) {
         self.name_to_entity.clear();
         self.entity_to_name.clear();
@@ -80,6 +86,7 @@ impl World {
 
     pub fn despawn(&mut self, entity: Entity) {
         self.alive.remove(&entity);
+        self.names.remove_entity(entity);
         self.transforms.remove(entity);
         self.rigidbodies.remove(entity);
         self.colliders.remove(entity);

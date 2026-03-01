@@ -29,7 +29,7 @@ struct MoveResult {
 }
 
 pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
-    let World { transforms, colliders, rigidbodies, tags, .. } = world;
+    let World { transforms, colliders, rigidbodies, tags: _, .. } = world;
 
     // SNAPSHOT all collidable entities
     let mut snaps: Vec<EntitySnap> = Vec::new();

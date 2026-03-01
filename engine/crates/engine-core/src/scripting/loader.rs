@@ -2,7 +2,7 @@ use crate::ecs::World;
 use crate::engine::WorldConfig;
 use crate::rendering::color::Color;
 use crate::components::*;
-use super::parser::{WorldFile, EntityDef, Value};
+use super::parser::{WorldFile, Value};
 
 struct WorldDefaults {
     damping: f64,

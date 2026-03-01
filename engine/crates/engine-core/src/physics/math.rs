@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 /// 2D vector. Type alias keeps things simple — destructures naturally, zero-cost.
 pub type Vec2 = (f64, f64);
 

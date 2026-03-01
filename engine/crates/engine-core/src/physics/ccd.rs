@@ -74,7 +74,7 @@ pub fn sweep_circle_vs_line_segment(
     let seg_n = normalize(perpendicular(seg_d)); // outward normal
 
     let move_d = sub(end, start);
-    let denom = dot(move_d, seg_n);
+    let _denom = dot(move_d, seg_n);
 
     // Check both sides of the line (normal and -normal)
     for &sign in &[1.0_f64, -1.0] {

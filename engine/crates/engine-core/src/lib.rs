@@ -5,7 +5,7 @@ mod components;
 mod systems;
 mod rendering;
 mod physics;
-mod scripting;
+pub mod scripting;
 mod events;
 mod input;
 pub mod log;

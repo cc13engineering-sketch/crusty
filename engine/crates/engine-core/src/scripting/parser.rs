@@ -30,6 +30,7 @@ pub struct EntityDef {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 pub enum Value {
     Number(f64),
     Str(String),

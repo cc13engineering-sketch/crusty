@@ -2,7 +2,7 @@ import initWasm, {
     init, tick, framebuffer_ptr, framebuffer_len,
     key_down, key_up, mouse_move, mouse_down, mouse_up,
     mycelia_init, mycelia_update, mycelia_render, mycelia_tap, mycelia_get_state
-} from '../_pkg/engine_core.js';
+} from '../pkg/engine_core.js';
 
 // Game resolution (portrait, mobile-optimized)
 const WIDTH = 480;

@@ -49,7 +49,7 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/pkg _site/game-1 _site/game-2 _site/game-3
+          mkdir -p _site/pkg _site/game-1 _site/game-2 _site/game-3 _site/innovations-1
 
           # Copy WASM build artifacts (only the files needed at runtime)
           cp _pkg/engine_core.js _site/pkg/
@@ -63,6 +63,10 @@ jobs:
           cp site/game-2/game.js _site/game-2/
           cp site/game-3/index.html _site/game-3/
           cp site/game-3/game.js _site/game-3/
+
+          # Copy innovations
+          cp innovations-1/index.html _site/innovations-1/
+          cp innovations-1/game.js _site/innovations-1/
 
           # Copy world files
           cp engine/worlds/bouncing_balls.world _site/game-1/

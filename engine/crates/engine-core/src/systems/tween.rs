@@ -4,13 +4,16 @@
 /// ORDER: runs before physics, after lifecycle
 
 use crate::ecs::World;
-use crate::components::property_tween::{TweenTarget, PropertyTween};
+use crate::components::property_tween::TweenTarget;
 
 pub fn run(world: &mut World, dt: f64) {
     // Collect entity IDs that have tweens (snapshot to avoid borrow conflict)
     let entities: Vec<_> = world.property_tweens.iter()
         .map(|(e, _)| e)
         .collect();
+
+    // Components whose tween list empties during this tick — removed after the loop.
+    let mut to_remove: Vec<crate::ecs::Entity> = Vec::new();
 
     for entity in entities {
         // Get per-entity time scale
@@ -25,23 +28,21 @@ pub fn run(world: &mut World, dt: f64) {
             for tween in &mut pt.tweens {
                 tween.elapsed += effective_dt;
 
-                // Handle looping
-                if tween.elapsed >= tween.duration {
-                    if tween.looping {
-                        if tween.ping_pong {
-                            tween.forward = !tween.forward;
-                        }
-                        tween.elapsed -= tween.duration;
+                // Handle looping / ping-pong wrap
+                if tween.elapsed >= tween.duration && tween.looping {
+                    if tween.ping_pong {
+                        tween.forward = !tween.forward;
                     }
+                    tween.elapsed -= tween.duration;
                 }
             }
 
-            // Collect values to apply (snapshot to release borrow)
+            // Collect values to apply (snapshot to release borrow on pt)
             let values: Vec<_> = pt.tweens.iter()
                 .map(|tw| (tw.target.clone(), tw.current_value()))
                 .collect();
 
-            // Remove completed tweens
+            // Remove completed (non-looping, elapsed >= duration) tweens
             pt.tweens.retain(|tw| !tw.is_complete());
 
             // Apply values to target components
@@ -97,15 +98,15 @@ pub fn run(world: &mut World, dt: f64) {
                     }
                 }
             }
+            // If all tweens finished, remove the component immediately.
+            if pt.tweens.is_empty() {
+                to_remove.push(entity);
+            }
         }
     }
 
-    // Remove PropertyTween components with no remaining tweens
-    let empty: Vec<_> = world.property_tweens.iter()
-        .filter(|(_, pt)| pt.tweens.is_empty())
-        .map(|(e, _)| e)
-        .collect();
-    for entity in empty {
+    // Remove PropertyTween components that have no remaining tweens.
+    for entity in to_remove {
         world.property_tweens.remove(entity);
     }
 }

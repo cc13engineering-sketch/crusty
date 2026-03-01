@@ -447,6 +447,8 @@ entity player {
 
 // ─── 12. Despawn removes from all stores ───────────────────────────────────
 
+// (tests continue below — end-to-end tests are appended after test 12)
+
 #[test]
 fn test_despawn_removes_from_all_stores() {
     let mut engine = Engine::new(400, 400);

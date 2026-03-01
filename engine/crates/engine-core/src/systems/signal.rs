@@ -7,10 +7,11 @@ use std::collections::HashSet;
 use crate::ecs::World;
 
 pub fn run(world: &mut World) {
-    // Phase 1: Collect all active signal channels
-    let active_channels: HashSet<String> = world.signal_emitters.iter()
+    // Phase 1: Collect all active signal channels (borrow channel strings
+    // directly to avoid cloning them into the set).
+    let active_channels: HashSet<&str> = world.signal_emitters.iter()
         .filter(|(_, emitter)| emitter.active)
-        .map(|(_, emitter)| emitter.channel.clone())
+        .map(|(_, emitter)| emitter.channel.as_str())
         .collect();
 
     // Phase 2: Update all receivers
@@ -25,11 +26,11 @@ pub fn run(world: &mut World) {
         if receiver.require_all {
             // AND logic: all channels must be active
             receiver.triggered = receiver.channels.iter()
-                .all(|ch| active_channels.contains(ch));
+                .all(|ch| active_channels.contains(ch.as_str()));
         } else {
             // OR logic: any channel must be active
             receiver.triggered = receiver.channels.iter()
-                .any(|ch| active_channels.contains(ch));
+                .any(|ch| active_channels.contains(ch.as_str()));
         }
     }
 }

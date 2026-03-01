@@ -14,9 +14,15 @@ pub struct SceneManager {
     stack: Vec<SceneStackEntry>,
 }
 
+impl Default for SceneManager {
+    fn default() -> Self {
+        Self { registry: HashMap::new(), stack: Vec::new() }
+    }
+}
+
 impl SceneManager {
     pub fn new() -> Self {
-        Self { registry: HashMap::new(), stack: Vec::new() }
+        Self::default()
     }
 
     /// Register a scene by name with its .world source.

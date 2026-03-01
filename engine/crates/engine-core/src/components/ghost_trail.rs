@@ -51,13 +51,13 @@ impl GhostTrail {
             if self.snapshots.len() < self.max_snapshots {
                 self.snapshots.push(GhostSnapshot { x, y, age: 0.0 });
             } else if !self.snapshots.is_empty() {
-                // Replace oldest
-                let oldest_idx = self.snapshots.iter()
-                    .enumerate()
-                    .max_by(|(_, a), (_, b)| a.age.partial_cmp(&b.age).unwrap_or(std::cmp::Ordering::Equal))
-                    .map(|(i, _)| i)
-                    .unwrap_or(0);
-                self.snapshots[oldest_idx] = GhostSnapshot { x, y, age: 0.0 };
+                // Snapshots are kept in insertion order; index 0 is always the
+                // oldest because every existing entry receives the same +dt and
+                // new entries are appended with age 0.0.
+                self.snapshots[0] = GhostSnapshot { x, y, age: 0.0 };
+                // Rotate so the newly-reset entry moves to the back, restoring
+                // chronological order (oldest first, newest last).
+                self.snapshots.rotate_left(1);
             }
         }
     }

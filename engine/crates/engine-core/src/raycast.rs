@@ -154,7 +154,6 @@ pub fn raycast_all(world: &World, ray: &Ray, max_distance: f64) -> Vec<RayHit> {
             ColliderShape::Rect { half_width, half_height } => {
                 ray_vs_aabb(ray, transform.x, transform.y, *half_width, *half_height)
             }
-            _ => continue, // Skip line colliders for now
         };
 
         if let Some((dist, point, normal)) = result {
@@ -226,6 +225,11 @@ pub fn raycast_tilemap(tilemap: &crate::tilemap::TileMap, ray: &Ray, max_distanc
 
     let max_steps = ((max_distance * inv_ts).ceil() as usize + 2) * 2;
 
+    // `t_entry` tracks the parametric distance at which the ray *entered* the
+    // current cell. For the origin cell this is 0 (or could even be negative
+    // when the origin is inside the map, which we clamp to 0 below).
+    let mut t_entry: f64 = 0.0;
+
     for _ in 0..max_steps {
         // Check if current tile is valid and solid
         if tile_x >= 0 && tile_y >= 0
@@ -233,22 +237,26 @@ pub fn raycast_tilemap(tilemap: &crate::tilemap::TileMap, ray: &Ray, max_distanc
             && (tile_y as usize) < tilemap.height
         {
             if tilemap.is_solid(tile_x as usize, tile_y as usize) {
-                let t = t_max_x.min(t_max_y);
-                let hit_x = ray.origin_x + ray.dir_x * t.max(0.0);
-                let hit_y = ray.origin_y + ray.dir_y * t.max(0.0);
+                // Use the entry t so the hit point is on the near face of the
+                // tile, not the far face.
+                let t = t_entry.max(0.0);
                 if t <= max_distance {
+                    let hit_x = ray.origin_x + ray.dir_x * t;
+                    let hit_y = ray.origin_y + ray.dir_y * t;
                     return Some((hit_x, hit_y));
                 }
             }
         }
 
-        // Step to next cell
+        // Step to the next cell, recording the current t_max as the next entry t.
         if t_max_x < t_max_y {
             if t_max_x > max_distance { break; }
+            t_entry = t_max_x;
             tile_x += step_x;
             t_max_x += t_delta_x;
         } else {
             if t_max_y > max_distance { break; }
+            t_entry = t_max_y;
             tile_y += step_y;
             t_max_y += t_delta_y;
         }

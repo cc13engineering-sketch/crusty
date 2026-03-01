@@ -7,37 +7,39 @@ use crate::ecs::World;
 use crate::components::entity_flash::FlashMode;
 
 pub fn run(world: &mut World, dt: f64) {
-    // Collect entities with flashes
+    // Collect entities with flashes (snapshot avoids aliasing the store).
     let entities: Vec<_> = world.entity_flashes.iter()
         .map(|(e, _)| e)
         .collect();
 
-    for entity in &entities {
-        let effective_dt = if let Some(ts) = world.time_scales.get(*entity) {
+    // Entities whose flash expired this tick — gathered to avoid a second iteration.
+    let mut expired: Vec<crate::ecs::Entity> = Vec::new();
+
+    for entity in entities {
+        let effective_dt = if let Some(ts) = world.time_scales.get(entity) {
             ts.apply(dt)
         } else {
             dt
         };
 
-        if let Some(flash) = world.entity_flashes.get_mut(*entity) {
-            flash.tick(effective_dt);
+        if let Some(flash) = world.entity_flashes.get_mut(entity) {
+            let now_expired = flash.tick(effective_dt);
 
-            // For Blink mode, toggle visibility
-            if let FlashMode::Blink { is_on, .. } = &flash.mode {
-                if let Some(r) = world.renderables.get_mut(*entity) {
-                    r.visible = *is_on;
+            if now_expired {
+                expired.push(entity);
+            } else {
+                // For Blink mode, keep renderable visibility in sync with the blink state.
+                if let FlashMode::Blink { is_on, .. } = &flash.mode {
+                    if let Some(r) = world.renderables.get_mut(entity) {
+                        r.visible = *is_on;
+                    }
                 }
             }
         }
     }
 
-    // Remove expired flashes; restore visibility
-    let expired: Vec<_> = world.entity_flashes.iter()
-        .filter(|(_, f)| f.is_expired())
-        .map(|(e, _)| e)
-        .collect();
+    // Remove expired flashes and restore visibility for any that were blinking.
     for entity in expired {
-        // Ensure visibility is restored when blink expires
         if let Some(r) = world.renderables.get_mut(entity) {
             r.visible = true;
         }

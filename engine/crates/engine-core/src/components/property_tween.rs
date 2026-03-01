@@ -89,9 +89,15 @@ pub struct PropertyTween {
     pub tweens: Vec<Tween>,
 }
 
+impl Default for PropertyTween {
+    fn default() -> Self {
+        Self { tweens: Vec::new() }
+    }
+}
+
 impl PropertyTween {
     pub fn new() -> Self {
-        Self { tweens: Vec::new() }
+        Self::default()
     }
 
     pub fn with_tween(mut self, tween: Tween) -> Self {

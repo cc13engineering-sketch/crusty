@@ -29,9 +29,15 @@ pub struct Children {
     pub entities: Vec<Entity>,
 }
 
+impl Default for Children {
+    fn default() -> Self {
+        Self { entities: Vec::new() }
+    }
+}
+
 impl Children {
     pub fn new() -> Self {
-        Self { entities: Vec::new() }
+        Self::default()
     }
 
     pub fn with(entities: Vec<Entity>) -> Self {

@@ -5,7 +5,8 @@ use crate::ecs::Entity;
 /// Entities are inserted by position; queries return entities in overlapping cells.
 #[derive(Clone, Debug)]
 pub struct SpatialHashGrid {
-    cell_size: f64,
+    /// The size of each grid cell in world units. Retained for introspection and debug output.
+    pub cell_size: f64,
     inv_cell_size: f64,
     cells: HashMap<(i32, i32), Vec<Entity>>,
 }

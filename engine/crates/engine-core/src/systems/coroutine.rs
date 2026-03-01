@@ -11,10 +11,11 @@ pub fn run(world: &mut World, dt: f64) {
         .map(|(e, _)| e)
         .collect();
 
-    // Collect active signal channels
-    let active_channels: std::collections::HashSet<String> = world.signal_emitters.iter()
+    // Collect active signal channels (borrow channel strings directly to avoid
+    // cloning every channel name each frame).
+    let active_channels: std::collections::HashSet<&str> = world.signal_emitters.iter()
         .filter(|(_, em)| em.active)
-        .map(|(_, em)| em.channel.clone())
+        .map(|(_, em)| em.channel.as_str())
         .collect();
 
     // Collect spawn commands to defer
@@ -38,13 +39,16 @@ pub fn run(world: &mut World, dt: f64) {
 
             // Process steps — cascade through non-blocking steps in one frame
             loop {
-                if co.steps.is_empty() {
-                    completed.push(entity);
-                    break;
-                }
+                let step = match co.steps.front() {
+                    Some(s) => s.clone(),
+                    None => {
+                        completed.push(entity);
+                        break;
+                    }
+                };
 
-                match co.steps.front().cloned() {
-                    Some(CoroutineStep::WaitSeconds(duration)) => {
+                match step {
+                    CoroutineStep::WaitSeconds(duration) => {
                         co.wait_timer += effective_dt;
                         if co.wait_timer >= duration {
                             co.wait_timer -= duration;
@@ -54,15 +58,15 @@ pub fn run(world: &mut World, dt: f64) {
                             break; // Still waiting
                         }
                     }
-                    Some(CoroutineStep::WaitSignal(ref channel)) => {
-                        if active_channels.contains(channel) {
+                    CoroutineStep::WaitSignal(ref channel) => {
+                        if active_channels.contains(channel.as_str()) {
                             co.steps.pop_front();
                             // Continue to next step
                         } else {
                             break; // Still waiting
                         }
                     }
-                    Some(CoroutineStep::WaitUntil { ref key, ref op, value }) => {
+                    CoroutineStep::WaitUntil { ref key, ref op, value } => {
                         let current = world.game_states.get(entity)
                             .map(|gs| gs.get(key))
                             .unwrap_or(0.0);
@@ -72,7 +76,7 @@ pub fn run(world: &mut World, dt: f64) {
                             break; // Still waiting
                         }
                     }
-                    Some(CoroutineStep::SetState { ref key, value }) => {
+                    CoroutineStep::SetState { ref key, value } => {
                         let key = key.clone();
                         co.steps.pop_front();
                         // Apply to entity's GameState
@@ -85,7 +89,7 @@ pub fn run(world: &mut World, dt: f64) {
                         }
                         // Continue cascade
                     }
-                    Some(CoroutineStep::AddState { ref key, delta }) => {
+                    CoroutineStep::AddState { ref key, delta } => {
                         let key = key.clone();
                         co.steps.pop_front();
                         if let Some(gs) = world.game_states.get_mut(entity) {
@@ -97,17 +101,13 @@ pub fn run(world: &mut World, dt: f64) {
                             world.game_states.insert(entity, gs);
                         }
                     }
-                    Some(CoroutineStep::SpawnTemplate { ref name, x, y }) => {
+                    CoroutineStep::SpawnTemplate { ref name, x, y } => {
                         spawns.push((name.clone(), x, y));
                         co.steps.pop_front();
                     }
-                    Some(CoroutineStep::Log(ref msg)) => {
+                    CoroutineStep::Log(ref msg) => {
                         crate::log::log(&format!("[Coroutine {}] {}", co.label, msg));
                         co.steps.pop_front();
-                    }
-                    None => {
-                        completed.push(entity);
-                        break;
                     }
                 }
             }

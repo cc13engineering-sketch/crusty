@@ -11,10 +11,11 @@ pub fn run(world: &mut World, dt: f64) {
         .map(|(e, _)| e)
         .collect();
 
-    // Collect active signal channels for OnSignal checks
-    let active_channels: std::collections::HashSet<String> = world.signal_emitters.iter()
+    // Collect active signal channels for OnSignal checks (borrow strings to
+    // avoid cloning them each frame).
+    let active_channels: std::collections::HashSet<&str> = world.signal_emitters.iter()
         .filter(|(_, em)| em.active)
-        .map(|(_, em)| em.channel.clone())
+        .map(|(_, em)| em.channel.as_str())
         .collect();
 
     for entity in entities {
@@ -28,10 +29,10 @@ pub fn run(world: &mut World, dt: f64) {
         let entity_state = world.game_states.get(entity);
 
         if let Some(sm) = world.state_machines.get_mut(entity) {
-            // Clear one-frame flags from previous frame
-            if !sm.just_entered {
-                sm.prev_state = None;
-            }
+            // Clear one-frame flags from previous frame (they are only valid
+            // for the single frame on which the transition occurred).
+            sm.prev_state = None;
+            sm.just_entered = false;
 
             // Increment elapsed time
             sm.state_elapsed += effective_dt;
@@ -44,7 +45,7 @@ pub fn run(world: &mut World, dt: f64) {
                 }
                 let condition_met = match &transition.condition {
                     TransitionCondition::After(duration) => sm.state_elapsed >= *duration,
-                    TransitionCondition::OnSignal(channel) => active_channels.contains(channel),
+                    TransitionCondition::OnSignal(channel) => active_channels.contains(channel.as_str()),
                     TransitionCondition::StateCheck { key, op, value } => {
                         if let Some(gs) = entity_state {
                             let current = gs.get(key);
@@ -66,8 +67,6 @@ pub fn run(world: &mut World, dt: f64) {
                 sm.prev_state = Some(std::mem::replace(&mut sm.current_state, target));
                 sm.state_elapsed = 0.0;
                 sm.just_entered = true;
-            } else {
-                sm.just_entered = false;
             }
         }
     }

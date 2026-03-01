@@ -39,9 +39,15 @@ pub struct ScreenFxStack {
     pub effects: Vec<TimedEffect>,
 }
 
+impl Default for ScreenFxStack {
+    fn default() -> Self {
+        Self { effects: Vec::new() }
+    }
+}
+
 impl ScreenFxStack {
     pub fn new() -> Self {
-        Self { effects: Vec::new() }
+        Self::default()
     }
 
     /// Push a new timed effect onto the stack.

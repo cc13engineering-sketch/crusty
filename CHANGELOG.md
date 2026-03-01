@@ -280,10 +280,35 @@ lifecycle → signal → behavior → tween → flash → waypoint
 
 ---
 
+## Innovation Games Round 7 — Ecosystem Infrastructure
+**Commit**: `6cde1bd` | **Theme**: Colony/ecosystem simulation infrastructure (4 agents independently pitched "Mycelium")
+
+### New Components (3)
+| Component | Description |
+|-----------|-------------|
+| `ResourceInventory` | Bounded multi-resource container. Slots with capacity, production/consumption rates. `deposit()/withdraw()` with overflow/underflow handling. Fill ratio tracking. Builder pattern. |
+| `GraphNode` | Arbitrary entity-to-entity graph edges. Typed labels, weights, bidirectional flag. Query by edge type, find strongest edge, total weight. Group assignment for clustering. |
+| `VisualConnection` | Visual link between two entities. Styles: Line, Dashed, Catenary (drooping curve), FlowLine (animated dots). Gradient color, layer ordering, flow intensity modulation. |
+
+### New Engine Modules (4)
+| Module | Description |
+|--------|-------------|
+| `FlowNetwork` | Directed graph of resource flow edges. Priority-based transfer solving each frame. Transfers resources between entity `ResourceInventory` slots respecting capacity. Enable/disable edges. |
+| `ProceduralGen` | Seeded xorshift64 RNG. Multi-octave 2D value noise with smoothstep interpolation. Cellular automata cave generation (configurable birth/death thresholds). Room-and-corridor dungeon generator with L-shaped corridors. |
+| `EnvironmentClock` | Global cyclical time system. Multiple named cycles (day/night, seasons). Per-cycle speed, phase queries, normalized progress, sine value for smooth transitions. Pause support. |
+| `DensityField` | Continuous 2D scalar field on a regular grid. Bilinear interpolation sampling, weighted deposit/consume, central-difference gradient. Jacobi diffusion + multiplicative decay per timestep. Clamping. |
+
+### Stats
+- Tests: 850 (64 new: 11 ResourceInventory, 7 GraphNode, 4 VisualConnection, 7 FlowNetwork, 12 ProceduralGen, 11 EnvironmentClock, 12 DensityField)
+- New files: 7 (3 components, 4 engine modules)
+- Modified files: 5 (world.rs, engine.rs, schema.rs, lib.rs, components/mod.rs)
+
+---
+
 ## Engine Summary (Current State)
 
-### Component Count: 29
-Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint
+### Component Count: 32
+Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection
 
 ### System Count: 21
 lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, sprite_animator, physics_joint, (camera integrated in engine)
@@ -291,9 +316,9 @@ lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, 
 ### Rendering Modules: 12
 color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx, (HUD in renderer)
 
-### Engine Modules: 16
-SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load
+### Engine Modules: 20
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField
 
-### Test Count: 786 (including 22 E2E integration tests + 83 Round 6 tests)
+### Test Count: 850 (including 22 E2E integration tests + 83 Round 6 tests + 64 Round 7 tests)
 ### Demo Games: 4 (bouncing balls, walker, space survival, minigolf RPG concept)
 ### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization

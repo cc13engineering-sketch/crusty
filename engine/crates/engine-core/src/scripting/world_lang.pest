@@ -1,8 +1,8 @@
-// World description language — minimal grammar for v1.
+// World description language — v2 with templates, state, timers, and rules.
 
 world_file = { SOI ~ declaration* ~ EOI }
 
-declaration = { world_decl | feel_decl | entity_decl }
+declaration = { world_decl | feel_decl | entity_decl | template_decl | state_decl | timer_decl | rule_decl }
 
 world_decl = { "world" ~ string ~ "{" ~ world_prop* ~ "}" }
 world_prop = {
@@ -25,6 +25,28 @@ entity_prop = {
     | "tags" ~ ":" ~ "[" ~ string_list ~ "]"
     | ident ~ ":" ~ value
 }
+
+// Template declarations (entity blueprints for runtime spawning)
+template_decl = { "template" ~ ident ~ "{" ~ entity_prop* ~ "}" }
+
+// Initial game state values
+state_decl = { "state" ~ "{" ~ state_entry* ~ "}" }
+state_entry = { ident ~ ":" ~ value }
+
+// Timer declarations
+timer_decl = { "timer" ~ ident ~ "{" ~ timer_prop* ~ "}" }
+timer_prop = { ident ~ ":" ~ value }
+
+// Behavior rule declarations
+rule_decl = { "rule" ~ string ~ "{" ~ rule_section* ~ "}" }
+rule_section = {
+    "when" ~ ":" ~ rule_condition
+    | "then" ~ ":" ~ "[" ~ rule_action_list ~ "]"
+    | ident ~ ":" ~ value
+}
+rule_condition = { ident ~ "(" ~ value_list ~ ")" }
+rule_action_list = { (rule_action ~ ("," ~ rule_action)*)? }
+rule_action = { ident ~ "(" ~ value_list ~ ")" }
 
 object = { "{" ~ (object_field ~ ","?)* ~ "}" }
 object_field = { ident ~ ":" ~ value }

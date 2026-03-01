@@ -13,6 +13,25 @@ pub struct WorldFile {
     pub background: Option<String>,
     pub feel: Vec<String>,
     pub entities: Vec<EntityDef>,
+    pub templates: Vec<EntityDef>,
+    pub initial_state: HashMap<String, Value>,
+    pub timers: Vec<TimerDef>,
+    pub rules: Vec<RuleDef>,
+}
+
+/// A timer definition from the .world file.
+pub struct TimerDef {
+    pub name: String,
+    pub props: HashMap<String, Value>,
+}
+
+/// A behavior rule definition from the .world file.
+pub struct RuleDef {
+    pub name: String,
+    pub condition_name: String,
+    pub condition_args: Vec<Value>,
+    pub actions: Vec<(String, Vec<Value>)>,
+    pub props: HashMap<String, Value>,
 }
 
 pub struct EntityDef {
@@ -104,6 +123,10 @@ pub fn parse_world(source: &str) -> Result<WorldFile, String> {
         background: None,
         feel: Vec::new(),
         entities: Vec::new(),
+        templates: Vec::new(),
+        initial_state: HashMap::new(),
+        timers: Vec::new(),
+        rules: Vec::new(),
     };
 
     for pair in pairs.into_iter().next().unwrap().into_inner() {

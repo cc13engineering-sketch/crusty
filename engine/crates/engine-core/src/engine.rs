@@ -26,7 +26,11 @@ use crate::environment_clock::EnvironmentClock;
 use crate::diagnostics::DiagnosticBus;
 use crate::gesture::GestureRecognizer;
 use crate::auto_juice::AutoJuiceSystem;
+use crate::game_flow::GameFlow;
+use crate::camera_director::CameraDirector;
+use crate::level_curve::LevelCurve;
 use crate::ui_canvas::UiCanvas;
+use crate::color_palette::ColorPalette;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -206,6 +210,18 @@ pub struct Engine {
     // AutoJuice: automatic game-feel pipeline
     pub auto_juice: AutoJuiceSystem,
 
+    // GameFlow: declarative game lifecycle state machine
+    pub game_flow: GameFlow,
+
+    // CameraDirector: cinematic camera orchestration
+    pub camera_director: CameraDirector,
+
+    // LevelCurve: progression and difficulty scaling
+    pub level_curve: LevelCurve,
+
+    // ColorPalette: procedural art identity system
+    pub color_palette: ColorPalette,
+
     // UiCanvas: declarative UI widget overlay
     pub ui_canvas: UiCanvas,
 }
@@ -256,6 +272,10 @@ impl Engine {
             diagnostic_bus: DiagnosticBus::new(),
             gestures: GestureRecognizer::new(),
             auto_juice: AutoJuiceSystem::new(),
+            game_flow: GameFlow::new(),
+            camera_director: CameraDirector::new(),
+            level_curve: LevelCurve::new(),
+            color_palette: ColorPalette::default(),
             ui_canvas: UiCanvas::new(),
         }
     }
@@ -277,6 +297,10 @@ impl Engine {
         self.sound_queue.clear();
         self.diagnostic_bus.clear();
         self.auto_juice.clear();
+        self.game_flow.clear();
+        self.camera_director.clear();
+        self.level_curve.clear();
+        self.color_palette = ColorPalette::default();
         self.ui_canvas.clear();
     }
 

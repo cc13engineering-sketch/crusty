@@ -36,6 +36,10 @@ pub mod gesture;
 pub mod mycelia;
 pub mod sound;
 pub mod auto_juice;
+pub mod game_flow;
+pub mod color_palette;
+pub mod camera_director;
+pub mod level_curve;
 pub mod ui_canvas;
 
 #[cfg(test)]

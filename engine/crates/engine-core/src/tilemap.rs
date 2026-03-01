@@ -550,60 +550,183 @@ mod tests {
         assert_eq!(t.tile_type, TileType::Custom(42));
     }
 
-    // ── multi-layer ───────────────────────────────────────────────────────────
+    // ══════════════════════════════════════════════════════════════════════════
+    // Multi-layer tests
+    // ══════════════════════════════════════════════════════════════════════════
+
+    // ── 1. default TileMap has 1 layer named "base" ──────────────────────────
 
     #[test]
-    fn default_tilemap_has_one_layer() {
+    fn default_tilemap_has_one_base_layer() {
         let tm = TileMap::new(4, 4, 32.0);
         assert_eq!(tm.layer_count(), 1);
         assert_eq!(tm.layers[0].name, "base");
+        assert!(tm.layers[0].visible);
+        assert!(tm.layers[0].collidable);
+        assert!((tm.layers[0].opacity - 1.0).abs() < f64::EPSILON);
     }
 
+    // ── 2. get/set work on default layer (backward compat) ───────────────────
+
     #[test]
-    fn add_layer_creates_empty_layer() {
+    fn get_set_backward_compat_default_layer() {
         let mut tm = TileMap::new(4, 4, 32.0);
-        let idx = tm.add_layer("objects");
+        tm.set(1, 2, Tile::solid(Color::RED));
+        // Verify via direct layer 0 access
+        let i = 2 * 4 + 1;
+        assert_eq!(tm.layers[0].tiles[i].tile_type, TileType::Solid);
+        assert_eq!(tm.layers[0].tiles[i].color, Color::RED);
+        // Verify via get()
+        let t = tm.get(1, 2).expect("tile should exist");
+        assert_eq!(t.tile_type, TileType::Solid);
+        assert_eq!(t.color, Color::RED);
+    }
+
+    // ── 3. add_layer creates new layer with correct size ─────────────────────
+
+    #[test]
+    fn add_layer_creates_correct_size() {
+        let mut tm = TileMap::new(8, 6, 16.0);
+        let idx = tm.add_layer("foreground");
         assert_eq!(idx, 1);
         assert_eq!(tm.layer_count(), 2);
-        assert_eq!(tm.layers[1].name, "objects");
-        // New layer should be non-collidable by default
-        assert!(!tm.layers[1].collidable);
-        // Should have correct number of tiles
-        assert_eq!(tm.layers[1].tiles.len(), 16);
+        assert_eq!(tm.layers[1].name, "foreground");
+        assert_eq!(tm.layers[1].tiles.len(), 8 * 6);
+        for tile in &tm.layers[1].tiles {
+            assert_eq!(tile.tile_type, TileType::Empty);
+        }
+        assert!(tm.layers[1].visible);
+        assert!(tm.layers[1].collidable);
+        assert!((tm.layers[1].opacity - 1.0).abs() < f64::EPSILON);
     }
 
+    // ── 4. get_on_layer / set_on_layer work across layers ────────────────────
+
     #[test]
-    fn get_set_on_layer() {
+    fn get_set_on_layer_across_layers() {
         let mut tm = TileMap::new(4, 4, 32.0);
-        tm.add_layer("overlay");
-        tm.set_on_layer(1, 1, 1, Tile::solid(Color::RED));
-        let tile = tm.get_on_layer(1, 1, 1).unwrap();
-        assert_eq!(tile.tile_type, TileType::Solid);
-        assert_eq!(tile.color, Color::RED);
-        // Layer 0 should still be empty at same position
-        assert_eq!(tm.get(1, 1).unwrap().tile_type, TileType::Empty);
+        let layer1 = tm.add_layer("overlay");
+
+        // Set on layer 0 via default method
+        tm.set(0, 0, Tile::solid(Color::RED));
+        // Set on layer 1 via layer-aware method
+        tm.set_on_layer(0, 0, layer1, Tile::platform(Color::BLUE));
+
+        // Layer 0: solid red
+        let t0 = tm.get_on_layer(0, 0, 0).expect("layer 0 tile should exist");
+        assert_eq!(t0.tile_type, TileType::Solid);
+        assert_eq!(t0.color, Color::RED);
+
+        // Layer 1: platform blue
+        let t1 = tm.get_on_layer(0, 0, layer1).expect("layer 1 tile should exist");
+        assert_eq!(t1.tile_type, TileType::Platform);
+        assert_eq!(t1.color, Color::BLUE);
+
+        // Default get() still returns layer 0
+        assert_eq!(tm.get(0, 0).expect("tile should exist").tile_type, TileType::Solid);
     }
+
+    // ── 5. is_solid checks all collidable layers ─────────────────────────────
 
     #[test]
     fn is_solid_checks_all_collidable_layers() {
         let mut tm = TileMap::new(4, 4, 32.0);
-        let idx = tm.add_layer("walls");
-        tm.layers[idx].collidable = true;
-        // Set solid on layer 1 only
-        tm.set_on_layer(2, 2, idx, Tile::solid(Color::WHITE));
-        // is_solid should find it across layers
-        assert!(tm.is_solid(2, 2));
-        // Layer 0 at (2,2) is empty
-        assert_eq!(tm.get(2, 2).unwrap().tile_type, TileType::Empty);
+        let layer1 = tm.add_layer("obstacles");
+
+        // Layer 0 at (1,1) is empty; layer 1 at (1,1) is solid
+        tm.set_on_layer(1, 1, layer1, Tile::solid(Color::WHITE));
+
+        // Should be solid because layer 1 is collidable and has a solid tile
+        assert!(tm.is_solid(1, 1));
+        // Layer 0 at (1,1) is still empty
+        assert_eq!(tm.get(1, 1).expect("tile should exist").tile_type, TileType::Empty);
     }
+
+    // ── 6. non-collidable layer doesn't block ────────────────────────────────
 
     #[test]
     fn non_collidable_layer_does_not_block() {
         let mut tm = TileMap::new(4, 4, 32.0);
-        let idx = tm.add_layer("decor");
-        // decor is non-collidable by default
-        tm.set_on_layer(1, 1, idx, Tile::solid(Color::RED));
-        assert!(!tm.is_solid(1, 1));
+        let layer1 = tm.add_layer("decoration");
+        tm.layers[layer1].collidable = false;
+
+        // Put a solid tile on the non-collidable layer
+        tm.set_on_layer(2, 2, layer1, Tile::solid(Color::RED));
+
+        // Layer 0 is empty at (2,2), layer 1 has solid but is non-collidable
+        assert!(!tm.is_solid(2, 2));
+    }
+
+    // ── 7. invisible layer skipped in render ─────────────────────────────────
+
+    #[test]
+    fn invisible_layer_skipped_in_render() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let layer1 = tm.add_layer("hidden");
+        tm.layers[layer1].visible = false;
+
+        // Place a bright tile on the invisible layer only
+        tm.set_on_layer(0, 0, layer1, Tile::solid(Color::RED));
+
+        // Clear framebuffer to a known color (blue)
+        let mut fb = crate::rendering::framebuffer::Framebuffer::new(128, 128);
+        fb.clear(Color::BLUE);
+
+        // Render — the invisible layer's tile should be skipped
+        tm.render(&mut fb, 64.0, 64.0, 1.0, 128, 128);
+
+        // Tile (0,0) maps to screen (0,0)..(32,32).
+        // If invisible layer were rendered, pixel (16,16) would be RED.
+        // Since it's skipped, pixel should remain BLUE from the clear.
+        let idx = (16 * 128 + 16) * 4;
+        assert_eq!(fb.pixels[idx], 0, "red channel should be 0 (blue background)");
+        assert_eq!(fb.pixels[idx + 1], 0, "green channel should be 0");
+        assert_eq!(fb.pixels[idx + 2], 255, "blue channel should be 255 (background)");
+    }
+
+    // ── 8. layer_count returns correct value ─────────────────────────────────
+
+    #[test]
+    fn layer_count_returns_correct_value() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        assert_eq!(tm.layer_count(), 1);
+        tm.add_layer("a");
+        assert_eq!(tm.layer_count(), 2);
+        tm.add_layer("b");
+        assert_eq!(tm.layer_count(), 3);
+        tm.add_layer("c");
+        assert_eq!(tm.layer_count(), 4);
+    }
+
+    // ── additional multi-layer tests ─────────────────────────────────────────
+
+    #[test]
+    fn layer_out_of_bounds_returns_none() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        assert!(tm.get_on_layer(0, 0, 5).is_none());
+        assert!(tm.get_mut_on_layer(0, 0, 5).is_none());
+        // Should not panic
+        tm.set_on_layer(0, 0, 5, Tile::solid(Color::RED));
+    }
+
+    #[test]
+    fn clear_resets_all_layers() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let layer1 = tm.add_layer("overlay");
+        tm.set(0, 0, Tile::solid(Color::RED));
+        tm.set_on_layer(1, 1, layer1, Tile::solid(Color::BLUE));
+        tm.clear();
+        assert_eq!(tm.get(0, 0).expect("tile should exist").tile_type, TileType::Empty);
+        assert_eq!(tm.get_on_layer(1, 1, layer1).expect("tile should exist").tile_type, TileType::Empty);
+    }
+
+    #[test]
+    fn tiles_method_returns_layer_0() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        tm.set(0, 0, Tile::solid(Color::RED));
+        assert_eq!(tm.tiles().len(), 16);
+        assert_eq!(tm.tiles()[0].tile_type, TileType::Solid);
+        assert_eq!(tm.tiles()[0].color, Color::RED);
     }
 
     #[test]
@@ -620,21 +743,39 @@ mod tests {
         let mut tm = TileMap::new(4, 4, 32.0);
         let idx = tm.add_layer("fill_test");
         tm.fill_rect_on_layer(0, 0, 2, 2, idx, Tile::solid(Color::GREEN));
-        assert_eq!(tm.get_on_layer(0, 0, idx).unwrap().tile_type, TileType::Solid);
-        assert_eq!(tm.get_on_layer(1, 1, idx).unwrap().tile_type, TileType::Solid);
-        assert_eq!(tm.get_on_layer(2, 0, idx).unwrap().tile_type, TileType::Empty);
+        assert_eq!(tm.get_on_layer(0, 0, idx).expect("tile should exist").tile_type, TileType::Solid);
+        assert_eq!(tm.get_on_layer(1, 1, idx).expect("tile should exist").tile_type, TileType::Solid);
+        assert_eq!(tm.get_on_layer(2, 0, idx).expect("tile should exist").tile_type, TileType::Empty);
         // Layer 0 should be unaffected
-        assert_eq!(tm.get(0, 0).unwrap().tile_type, TileType::Empty);
+        assert_eq!(tm.get(0, 0).expect("tile should exist").tile_type, TileType::Empty);
     }
 
     #[test]
-    fn clear_resets_all_layers() {
+    fn opacity_affects_rendered_color() {
         let mut tm = TileMap::new(4, 4, 32.0);
-        tm.add_layer("extra");
+        tm.layers[0].opacity = 0.5;
+        // Place a fully opaque white solid tile
         tm.set(0, 0, Tile::solid(Color::WHITE));
-        tm.set_on_layer(0, 0, 1, Tile::solid(Color::RED));
-        tm.clear();
-        assert_eq!(tm.get(0, 0).unwrap().tile_type, TileType::Empty);
-        assert_eq!(tm.get_on_layer(0, 0, 1).unwrap().tile_type, TileType::Empty);
+
+        // Clear framebuffer to black
+        let mut fb = crate::rendering::framebuffer::Framebuffer::new(128, 128);
+        fb.clear(Color::BLACK);
+
+        // Camera at (64,64), screen 128x128, zoom 1.0
+        // Tile (0,0) world top-left = (0,0); screen_x = (0-64)*1+64 = 0
+        // Tile covers pixels (0,0)..(32,32)
+        tm.render(&mut fb, 64.0, 64.0, 1.0, 128, 128);
+
+        // White at 50% opacity blended onto black:
+        // The tile color with alpha=127 blends with black background.
+        // set_pixel_blended: result_r = (255 * 127 + 0 * 128) / 255 ~= 127
+        let idx = (16 * 128 + 16) * 4;
+        let r = fb.pixels[idx];
+        let g = fb.pixels[idx + 1];
+        let b = fb.pixels[idx + 2];
+        // Allow tolerance for integer rounding
+        assert!((r as i32 - 127).abs() <= 2, "r={} expected ~127", r);
+        assert!((g as i32 - 127).abs() <= 2, "g={} expected ~127", g);
+        assert!((b as i32 - 127).abs() <= 2, "b={} expected ~127", b);
     }
 }

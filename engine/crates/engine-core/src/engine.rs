@@ -7,6 +7,7 @@ use crate::rendering::post_fx::PostFxConfig;
 use crate::rendering::layers::RenderLayerStack;
 use crate::rendering::sprite::SpriteSheet;
 use crate::rendering::transition::TransitionManager;
+use crate::rendering::screen_fx::ScreenFxStack;
 use crate::input::Input;
 use crate::events::EventQueue;
 use crate::spawn_queue::SpawnQueue;
@@ -15,6 +16,7 @@ use crate::timers::TimerQueue;
 use crate::templates::TemplateRegistry;
 use crate::behavior::BehaviorRules;
 use crate::dialogue::DialogueQueue;
+use crate::scene_manager::SceneManager;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -164,6 +166,10 @@ pub struct Engine {
     // Innovation Round 2: Scene transitions + Dialogue
     pub transition: TransitionManager,
     pub dialogue: DialogueQueue,
+
+    // Innovation Round 3: Animation, effects, gameplay logic, scene management
+    pub screen_fx: ScreenFxStack,
+    pub scene_manager: SceneManager,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -199,6 +205,8 @@ impl Engine {
             sprite_sheets: Vec::new(),
             transition: TransitionManager::new(),
             dialogue: DialogueQueue::new(),
+            screen_fx: ScreenFxStack::new(),
+            scene_manager: SceneManager::new(),
         }
     }
 
@@ -212,6 +220,7 @@ impl Engine {
         self.rules.clear();
         self.dialogue.clear();
         self.transition = TransitionManager::new();
+        self.screen_fx.clear();
     }
 
     pub fn tick(&mut self, dt: f64) {
@@ -230,8 +239,20 @@ impl Engine {
             &self.templates, &mut self.rules, FIXED_DT,
         );
 
+        // Signal system (wire emitters → receivers)
+        crate::systems::signal::run(&mut self.world);
+
         // Behavior system (AI movement)
         crate::systems::behavior::run(&mut self.world, dt);
+
+        // Tween system (easing-curve property animation)
+        crate::systems::tween::run(&mut self.world, dt);
+
+        // Flash system (hit flash, blink, color pulse)
+        crate::systems::flash::run(&mut self.world, dt);
+
+        // Waypoint system (path-following movement)
+        crate::systems::waypoint::run(&mut self.world, dt);
 
         while self.accumulator >= FIXED_DT {
             self.physics_step(FIXED_DT);
@@ -252,6 +273,9 @@ impl Engine {
 
         // Spawning system (wave spawner, fire cooldown)
         self.run_spawners(dt);
+
+        // Ghost trail system (capture position snapshots)
+        crate::systems::ghost_trail::run(&mut self.world, dt);
 
         // Update particles
         self.particles.update(dt);
@@ -296,6 +320,10 @@ impl Engine {
 
         // HUD
         self.render_hud();
+
+        // Screen effects stack (tint, desaturate, flash)
+        self.screen_fx.tick(dt);
+        self.screen_fx.apply(&mut self.framebuffer);
 
         // Scene transition overlay (after all rendering, before post_fx)
         self.transition.apply(&mut self.framebuffer);

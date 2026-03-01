@@ -12,6 +12,13 @@ pub mod physics_material;
 pub mod impulse;
 pub mod motion_constraint;
 pub mod zone_effect;
+pub mod property_tween;
+pub mod entity_flash;
+pub mod ghost_trail;
+pub mod time_scale;
+pub mod active;
+pub mod waypoint_path;
+pub mod signal;
 
 pub use transform::Transform;
 pub use rigidbody::RigidBody;
@@ -27,6 +34,13 @@ pub use physics_material::PhysicsMaterial;
 pub use impulse::Impulse;
 pub use motion_constraint::MotionConstraint;
 pub use zone_effect::{ZoneEffect, ZoneEffectKind};
+pub use property_tween::PropertyTween;
+pub use entity_flash::EntityFlash;
+pub use ghost_trail::GhostTrail;
+pub use time_scale::TimeScale;
+pub use active::Active;
+pub use waypoint_path::WaypointPath;
+pub use signal::{SignalEmitter, SignalReceiver};
 
 /// Trait for components to provide their own schema metadata.
 pub trait SchemaInfo {

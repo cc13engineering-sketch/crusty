@@ -8,3 +8,4 @@ pub mod post_fx;
 pub mod layers;
 pub mod sprite;
 pub mod transition;
+pub mod screen_fx;

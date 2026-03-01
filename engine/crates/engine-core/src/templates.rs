@@ -42,6 +42,14 @@ pub struct EntityTemplate {
     pub motion_constraint: Option<MotionConstraint>,
     /// Optional zone effect.
     pub zone_effect: Option<ZoneEffect>,
+    pub property_tween: Option<PropertyTween>,
+    pub entity_flash: Option<EntityFlash>,
+    pub ghost_trail: Option<GhostTrail>,
+    pub time_scale: Option<TimeScale>,
+    pub active: Option<Active>,
+    pub waypoint_path: Option<WaypointPath>,
+    pub signal_emitter: Option<SignalEmitter>,
+    pub signal_receiver: Option<SignalReceiver>,
 }
 
 impl EntityTemplate {
@@ -62,6 +70,14 @@ impl EntityTemplate {
             impulse: None,
             motion_constraint: None,
             zone_effect: None,
+            property_tween: None,
+            entity_flash: None,
+            ghost_trail: None,
+            time_scale: None,
+            active: None,
+            waypoint_path: None,
+            signal_emitter: None,
+            signal_receiver: None,
         }
     }
 
@@ -145,6 +161,46 @@ impl EntityTemplate {
         // ZoneEffect
         if let Some(ref ze) = self.zone_effect {
             world.zone_effects.insert(entity, ze.clone());
+        }
+
+        // PropertyTween
+        if let Some(ref pt) = self.property_tween {
+            world.property_tweens.insert(entity, pt.clone());
+        }
+
+        // EntityFlash
+        if let Some(ref ef) = self.entity_flash {
+            world.entity_flashes.insert(entity, ef.clone());
+        }
+
+        // GhostTrail
+        if let Some(ref gt) = self.ghost_trail {
+            world.ghost_trails.insert(entity, gt.clone());
+        }
+
+        // TimeScale
+        if let Some(ref ts) = self.time_scale {
+            world.time_scales.insert(entity, ts.clone());
+        }
+
+        // Active
+        if let Some(ref a) = self.active {
+            world.actives.insert(entity, a.clone());
+        }
+
+        // WaypointPath
+        if let Some(ref wp) = self.waypoint_path {
+            world.waypoint_paths.insert(entity, wp.clone());
+        }
+
+        // SignalEmitter
+        if let Some(ref se) = self.signal_emitter {
+            world.signal_emitters.insert(entity, se.clone());
+        }
+
+        // SignalReceiver
+        if let Some(ref sr) = self.signal_receiver {
+            world.signal_receivers.insert(entity, sr.clone());
         }
 
         entity

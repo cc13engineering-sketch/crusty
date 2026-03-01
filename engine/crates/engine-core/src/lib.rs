@@ -17,6 +17,7 @@ pub mod timers;
 pub mod templates;
 pub mod behavior;
 pub mod dialogue;
+pub mod scene_manager;
 
 #[cfg(test)]
 mod tests;

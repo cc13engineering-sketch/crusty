@@ -52,6 +52,14 @@ pub fn run(
         if let Some(imp) = cmd.impulse { world.impulses.insert(entity, imp); }
         if let Some(mc) = cmd.motion_constraint { world.motion_constraints.insert(entity, mc); }
         if let Some(ze) = cmd.zone_effect { world.zone_effects.insert(entity, ze); }
+        if let Some(pt) = cmd.property_tween { world.property_tweens.insert(entity, pt); }
+        if let Some(ef) = cmd.entity_flash { world.entity_flashes.insert(entity, ef); }
+        if let Some(gt) = cmd.ghost_trail { world.ghost_trails.insert(entity, gt); }
+        if let Some(ts) = cmd.time_scale { world.time_scales.insert(entity, ts); }
+        if let Some(a) = cmd.active { world.actives.insert(entity, a); }
+        if let Some(wp) = cmd.waypoint_path { world.waypoint_paths.insert(entity, wp); }
+        if let Some(se) = cmd.signal_emitter { world.signal_emitters.insert(entity, se); }
+        if let Some(sr) = cmd.signal_receiver { world.signal_receivers.insert(entity, sr); }
     }
 
     // --- Phase 2: Process deferred despawns ---

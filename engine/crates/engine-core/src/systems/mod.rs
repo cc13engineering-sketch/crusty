@@ -8,3 +8,8 @@ pub mod debug_render;
 pub mod lifecycle;
 pub mod behavior;
 pub mod gameplay;
+pub mod tween;
+pub mod flash;
+pub mod ghost_trail;
+pub mod waypoint;
+pub mod signal;

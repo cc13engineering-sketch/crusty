@@ -17,6 +17,14 @@ pub struct SpawnCommand {
     pub impulse: Option<Impulse>,
     pub motion_constraint: Option<MotionConstraint>,
     pub zone_effect: Option<ZoneEffect>,
+    pub property_tween: Option<PropertyTween>,
+    pub entity_flash: Option<EntityFlash>,
+    pub ghost_trail: Option<GhostTrail>,
+    pub time_scale: Option<TimeScale>,
+    pub active: Option<Active>,
+    pub waypoint_path: Option<WaypointPath>,
+    pub signal_emitter: Option<SignalEmitter>,
+    pub signal_receiver: Option<SignalReceiver>,
 }
 
 impl SpawnCommand {
@@ -36,6 +44,14 @@ impl SpawnCommand {
             impulse: None,
             motion_constraint: None,
             zone_effect: None,
+            property_tween: None,
+            entity_flash: None,
+            ghost_trail: None,
+            time_scale: None,
+            active: None,
+            waypoint_path: None,
+            signal_emitter: None,
+            signal_receiver: None,
         }
     }
 }

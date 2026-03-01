@@ -59,6 +59,14 @@ pub struct World {
     pub impulses: ComponentStore<Impulse>,
     pub motion_constraints: ComponentStore<MotionConstraint>,
     pub zone_effects: ComponentStore<ZoneEffect>,
+    pub property_tweens: ComponentStore<PropertyTween>,
+    pub entity_flashes: ComponentStore<EntityFlash>,
+    pub ghost_trails: ComponentStore<GhostTrail>,
+    pub time_scales: ComponentStore<TimeScale>,
+    pub actives: ComponentStore<Active>,
+    pub waypoint_paths: ComponentStore<WaypointPath>,
+    pub signal_emitters: ComponentStore<SignalEmitter>,
+    pub signal_receivers: ComponentStore<SignalReceiver>,
 }
 
 impl World {
@@ -81,6 +89,14 @@ impl World {
             impulses: ComponentStore::new(),
             motion_constraints: ComponentStore::new(),
             zone_effects: ComponentStore::new(),
+            property_tweens: ComponentStore::new(),
+            entity_flashes: ComponentStore::new(),
+            ghost_trails: ComponentStore::new(),
+            time_scales: ComponentStore::new(),
+            actives: ComponentStore::new(),
+            waypoint_paths: ComponentStore::new(),
+            signal_emitters: ComponentStore::new(),
+            signal_receivers: ComponentStore::new(),
         }
     }
 
@@ -115,6 +131,14 @@ impl World {
         self.impulses.remove(entity);
         self.motion_constraints.remove(entity);
         self.zone_effects.remove(entity);
+        self.property_tweens.remove(entity);
+        self.entity_flashes.remove(entity);
+        self.ghost_trails.remove(entity);
+        self.time_scales.remove(entity);
+        self.actives.remove(entity);
+        self.waypoint_paths.remove(entity);
+        self.signal_emitters.remove(entity);
+        self.signal_receivers.remove(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -142,6 +166,14 @@ impl World {
         self.impulses.clear();
         self.motion_constraints.clear();
         self.zone_effects.clear();
+        self.property_tweens.clear();
+        self.entity_flashes.clear();
+        self.ghost_trails.clear();
+        self.time_scales.clear();
+        self.actives.clear();
+        self.waypoint_paths.clear();
+        self.signal_emitters.clear();
+        self.signal_receivers.clear();
         self.next_id = 1;
     }
 }

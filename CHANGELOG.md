@@ -1,0 +1,190 @@
+# Crusty Engine Changelog
+
+All notable changes to the Crusty game engine, organized by Innovation Games round.
+
+---
+
+## Foundation (Pre-Innovation Games)
+
+**Commits**: `first` through `Add GitHub Pages deployment`
+
+### Core Engine
+- **ECS Architecture**: Entity-Component-System with `ComponentStore<T>` (HashMap-backed), `Entity(u64)` IDs, `World` struct holding all stores
+- **Fixed Timestep Physics**: `FIXED_DT = 1/60s` accumulator pattern in `Engine::tick()`
+- **Software Renderer**: RGBA framebuffer shared with JS via WASM linear memory
+- **WASM Bindings**: `wasm_bindgen` API for init, tick, input, framebuffer access
+
+### Components (6)
+| Component | Description |
+|-----------|-------------|
+| `Transform` | Position (x, y), rotation, scale |
+| `RigidBody` | Velocity, acceleration, mass, body type (dynamic/static/kinematic), damping |
+| `Collider` | Shape (Circle/Rect/Line), is_trigger flag, collision layer/mask |
+| `Renderable` | Visual type (Rect/Circle/Ellipse/Polygon), color, z-order, visibility |
+| `ForceField` | Field type (gravity/repulsion/vortex), strength, radius, falloff (linear/quadratic/none) |
+| `Tags` | String tag set for entity classification |
+
+### Systems (6)
+| System | Description |
+|--------|-------------|
+| `force_accumulator` | Applies ForceField effects to nearby RigidBodies |
+| `integrator` | Semi-implicit Euler integration (velocity → position) |
+| `collision` | Spatial grid broad-phase + narrow-phase (circle-circle, circle-rect, rect-rect, circle-line), collision response with restitution |
+| `event_processor` | Processes collision events for gameplay rules |
+| `input_gameplay` | Maps keyboard/mouse input to player entity actions |
+| `renderer` | Draws all Renderable entities to framebuffer |
+
+### Rendering
+- `color`: RGBA color with hex parsing, blend, lerp
+- `framebuffer`: RGBA pixel buffer with clear, set_pixel, draw primitives
+- `shapes`: Circle, rectangle, line, filled/outlined, polygon fill
+- `text`: 5x7 bitmap font renderer (uppercase, digits, symbols)
+
+### Infrastructure
+- Spatial grid collision broad-phase (replaces O(n^2))
+- GitHub Pages deployment with demo games
+- Two demos: bouncing balls, arrow-key walker
+- Comprehensive code review and cleanup
+- 244 initial unit tests
+
+---
+
+## Innovation Games Round 1 — Space Survival
+**Commit**: `eb94682` | **Theme**: Space Survival (asteroid dodging, wave spawning)
+
+### New Components (4)
+| Component | Description |
+|-----------|-------------|
+| `Role` | Entity role enum (Player/Enemy/Projectile/Pickup/Obstacle/Decoration/UI) |
+| `Lifetime` | TTL timer — entity auto-despawns when expired |
+| `GameState` | Per-entity key-value state (f64 + string maps) |
+| `Behavior` | AI behavior with BehaviorMode (Idle/Chase/Flee/Wander/Patrol/Orbit), action queue |
+
+### New Systems (3)
+| System | Description |
+|--------|-------------|
+| `lifecycle` | Processes SpawnQueue, ticks Lifetime, despawns expired entities |
+| `behavior` | Evaluates BehaviorRules against GameState conditions, executes actions |
+| `gameplay` | Collision-triggered gameplay (damage, pickups, scoring) |
+
+### New Engine Modules
+- **SpawnQueue**: Deferred entity spawning with full component specification
+- **GameState** (global): Engine-wide key-value store (f64/string) with WASM API
+- **Timers**: One-shot and repeating named timers with fire count tracking
+- **Templates**: Named entity template registry with `spawn()` at position
+- **Behavior Rules**: Condition→action rules (state comparisons, timer checks, spawning)
+
+### New Rendering
+- **Particles**: Particle emitter system with burst/continuous modes, gravity, fade, size curves
+- **Bitmap Text (HUD)**: Score, lives, wave display rendered at fixed screen positions
+- **Starfield**: Parallax scrolling star background (seed-based generation)
+- **Post-FX**: Vignette darkening, scanline overlay, screen shake
+
+### Scripting
+- **`.world` file format**: PEG grammar (pest) for declarative world definition
+- **Parser**: Parses entities, components, properties, templates, timers, rules
+- **Loader**: Maps parsed AST to ECS components and engine state
+
+### Stats
+- Tests: 285 (added scripting parser + system integration tests)
+- Demo: game-3 (Space Survival) with asteroid waves, shooting, scoring
+
+---
+
+## Innovation Games Round 2 — Minigolf RPG
+**Commit**: `18d3c31` | **Theme**: Minigolf tile-art RPG (precision physics, world traversal)
+
+### New Components (5)
+| Component | Description |
+|-----------|-------------|
+| `PhysicsMaterial` | Friction coefficient, drag, bounciness override per-entity |
+| `Impulse` | One-shot force application (consumed after apply), with optional direction |
+| `MotionConstraint` | Speed cap (max velocity), axis lock (X-only, Y-only, or free) |
+| `ZoneEffect` | Area effect zones: Wind (directional force), Drag (slowdown), Conveyor (constant push) |
+| — | (DialogueQueue is engine-level, not a component) |
+
+### New Rendering
+- **Camera**: Follow target entity with smooth lerp, configurable zoom, deadzone
+- **Render Layers**: Ordered layer stack with per-layer parallax factor and offset
+- **Sprite Renderer**: Sprite sheet support with frame selection, scale, flip
+- **Scene Transitions**: Fade, iris (circle wipe), pixelate effects with configurable duration
+
+### New Engine Modules
+- **DialogueQueue**: Three display modes — dialogue box (bottom), notification (top toast), floating text (world-space above entity). Auto-advance with timers.
+
+### Systems Enhanced
+- `integrator`: Now applies PhysicsMaterial friction/drag, MotionConstraint speed caps
+- `force_accumulator`: Now processes ZoneEffect forces
+- `renderer`: Layer-aware rendering with camera transform and sprite support
+- `lifecycle`: Handles all new component types in spawn processing
+
+### Stats
+- Tests: 378 (93 new tests for Round 2 features)
+
+---
+
+## Innovation Games Round 3 — Puzzle Platformer with Time Mechanics
+**Commit**: `b60d519` | **Theme**: Puzzle platformer with temporal mechanics
+
+### New Components (8)
+| Component | Description |
+|-----------|-------------|
+| `PropertyTween` | Easing-curve animation for any numeric property. 9 easing functions: Linear, QuadIn/Out, CubicIn/Out, BounceOut, ElasticOut, SineInOut, ExpoOut. Supports looping and ping-pong. Target properties: X, Y, Rotation, Scale, VelocityX, VelocityY, Opacity. |
+| `EntityFlash` | Visual flash effects — HitFlash (solid color overlay), Blink (visibility toggle), ColorPulse (sinusoidal intensity). Duration-based with automatic expiry. |
+| `GhostTrail` | Fading afterimage trail using position snapshot ring buffer. Configurable interval, duration, max snapshots. Alpha fades based on age. |
+| `TimeScale` | Per-entity time multiplier (0.0=frozen, 1.0=normal, 2.0=double speed). All time-aware systems respect this. Constructors: `normal()`, `frozen()`, `slow_mo(factor)`. |
+| `Active` | Entity enable/disable flag. When `enabled=false`, systems skip the entity entirely. Constructors: `enabled()`, `disabled()`. |
+| `WaypointPath` | Path-following along ordered waypoint sequences. Modes: Once (stop at end), Loop (wrap around), PingPong (reverse at ends). Configurable speed and pause-at-waypoint duration. |
+| `SignalEmitter` | Named signal channel broadcaster. When `active=true`, emits on its channel name. |
+| `SignalReceiver` | Multi-channel signal listener with AND/OR logic. Edge detection via `just_triggered()` and `just_released()`. Tracks previous frame state for rising/falling edges. |
+
+### New Systems (5)
+| System | Description |
+|--------|-------------|
+| `tween` | Ticks PropertyTween components, applies eased values to Transform/RigidBody/Renderable. Handles looping, ping-pong, completion removal. Respects per-entity TimeScale. |
+| `flash` | Processes EntityFlash: ticks timers, toggles visibility for Blink mode, removes expired flashes, restores original visibility. Respects TimeScale. |
+| `ghost_trail` | Captures position snapshots into ring buffer, ages existing snapshots. Respects TimeScale. |
+| `waypoint` | Moves entities toward current waypoint at speed×dt. Handles Once/Loop/PingPong mode transitions and pause timers. Respects Active flag and TimeScale. |
+| `signal` | Two-phase: (1) collects active SignalEmitter channels, (2) updates SignalReceiver triggered state with AND/OR logic and edge detection. |
+
+### New Rendering
+- **ScreenFxStack**: Composable stack of timed screen effects applied to the framebuffer. Effect types: Tint (color overlay with alpha), Desaturate (luminance-based grayscale blend), Flash (bright white burst). Effects auto-expire and are removed.
+
+### New Engine Modules
+- **SceneManager**: Named scene registry storing `.world` source strings. Push/pop stack semantics for scene navigation. Methods: register, push, pop, replace, current, depth, clear.
+
+### System Execution Order (Final)
+```
+lifecycle → signal → behavior → tween → flash → waypoint
+→ physics_loop(force_acc → integrator → collision)
+→ gameplay → event_processor → input → spawners → ghost_trail
+→ particles → transition → dialogue → camera
+→ RENDER(clear → starfield → entities → particles → debug → HUD
+         → screen_fx → transition_overlay → post_fx)
+→ events.clear → input.end_frame
+```
+
+### Stats
+- Tests: 544 (166 new tests for Round 3 features)
+- New files: 14 (7 components, 5 systems, 1 rendering, 1 engine module)
+- Modified files: 10 (integration across ECS, loader, schema, engine tick)
+
+---
+
+## Engine Summary (Current State)
+
+### Component Count: 22
+Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver
+
+### System Count: 16
+lifecycle, behavior, tween, flash, ghost_trail, waypoint, signal, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, (camera integrated in engine)
+
+### Rendering Modules: 12
+color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx, (HUD in renderer)
+
+### Engine Modules: 8
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera
+
+### Test Count: 544
+### Demo Games: 4 (bouncing balls, walker, space survival, minigolf RPG concept)
+### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization

@@ -1,0 +1,55 @@
+// Space Survival — Crusty Engine Demo #3
+// Innovation Games Round 1 showcase: particles, HUD, game state,
+// runtime spawning, behavior AI, screen shake, starfield, post-FX
+
+world "Space Survival" {
+    bounds: 960 x 540
+    background: #050510
+}
+
+feel: [floaty]
+
+// --- Player ship ---
+entity player {
+    position: (480, 400)
+    physics: { mass: 1.0, restitution: 0.1, damping: 0.05 }
+    collider: { shape: circle, radius: 12 }
+    visual: { shape: circle, radius: 12, color: #00ffaa, filled: true }
+    tags: ["player"]
+    // Game state stored as extra numeric properties
+    health: 100
+    shield: 50
+    score: 0
+    ammo: 50
+    wave: 0
+    kills: 0
+    damage: 0
+}
+
+// --- Invisible spawner entity that triggers wave spawning ---
+entity spawner {
+    position: (480, 270)
+    tags: ["spawner"]
+}
+
+// --- Arena walls ---
+entity wall_top {
+    position: (480, -5)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 490, half_height: 5 }
+}
+entity wall_bottom {
+    position: (480, 545)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 490, half_height: 5 }
+}
+entity wall_left {
+    position: (-5, 270)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 5, half_height: 280 }
+}
+entity wall_right {
+    position: (965, 270)
+    physics: { is_static: true }
+    collider: { shape: rect, half_width: 5, half_height: 280 }
+}

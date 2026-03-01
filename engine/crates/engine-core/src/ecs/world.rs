@@ -52,6 +52,9 @@ pub struct World {
     pub force_fields: ComponentStore<ForceField>,
     pub tags: ComponentStore<Tags>,
     pub roles: ComponentStore<Role>,
+    pub lifetimes: ComponentStore<Lifetime>,
+    pub game_states: ComponentStore<GameState>,
+    pub behaviors: ComponentStore<Behavior>,
 }
 
 impl World {
@@ -67,6 +70,9 @@ impl World {
             force_fields: ComponentStore::new(),
             tags: ComponentStore::new(),
             roles: ComponentStore::new(),
+            lifetimes: ComponentStore::new(),
+            game_states: ComponentStore::new(),
+            behaviors: ComponentStore::new(),
         }
     }
 
@@ -94,6 +100,9 @@ impl World {
         self.force_fields.remove(entity);
         self.tags.remove(entity);
         self.roles.remove(entity);
+        self.lifetimes.remove(entity);
+        self.game_states.remove(entity);
+        self.behaviors.remove(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -114,6 +123,9 @@ impl World {
         self.force_fields.clear();
         self.tags.clear();
         self.roles.clear();
+        self.lifetimes.clear();
+        self.game_states.clear();
+        self.behaviors.clear();
         self.next_id = 1;
     }
 }

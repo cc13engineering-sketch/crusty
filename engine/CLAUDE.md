@@ -24,3 +24,16 @@
 - `number` rule yields string — parse with `.parse::<f64>()`
 - `color_value` includes `#` — pass directly to `Color::from_hex()`
 - pest grammar path in `#[grammar = "..."]` is relative to src/
+
+## Innovation Games (Development Methodology)
+Innovation Games drive much of this engine's development. The process:
+1. **Spawn competing agents** — each proposes novel engine features independently.
+2. **Theme-driven ideation** — each round has a game concept theme (e.g., space survival, minigolf RPG) used as an ideation seed. Agents validate feature proposals against the theme game's needs.
+3. **Cross-pollinate** — after proposals, review agents select the best ideas across all competitors.
+4. **Integrate** — winning features get implemented into the engine with tests.
+5. **Demo** — optionally build a demo game showcasing the new features.
+
+Past rounds:
+- **Round 1**: Space Survival theme. Added: SpawnQueue, GameState, Behavior AI, Lifetime/Lifecycle, Particle System, Bitmap Text, Starfield, Post-FX (vignette/scanlines/shake), HUD rendering, Gameplay collision rules, Wave spawning. Demo: game-3 (Space Survival).
+
+Key principle: features are designed for *engine generality*, not just the theme game. The theme game validates that features compose well together.

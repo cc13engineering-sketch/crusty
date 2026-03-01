@@ -152,6 +152,28 @@ pub fn load_world_file(wf: &WorldFile, world: &mut World, config: &mut WorldConf
             world.renderables.insert(entity, Renderable { visual, layer, visible: true });
         }
 
+        // GameState — collect any extra numeric properties prefixed with "state_"
+        // Also check tags for "has_state" to create an empty GameState
+        {
+            let mut gs = GameState::new();
+            let mut has_any = false;
+            for (key, val) in &edef.extra {
+                if let Value::Number(n) = val {
+                    // Properties like "health", "damage", "score" etc.
+                    gs.set(key, *n);
+                    has_any = true;
+                }
+            }
+            if has_any {
+                world.game_states.insert(entity, gs);
+            }
+        }
+
+        // Lifetime — load from extra property
+        if let Some(Value::Number(secs)) = edef.extra.get("lifetime") {
+            world.lifetimes.insert(entity, Lifetime::new(*secs));
+        }
+
         // ForceField
         if let Some(ref ff) = edef.force_field {
             let type_name = get_ident(ff, "type").unwrap_or_else(|| "attract".to_string());

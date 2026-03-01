@@ -11,9 +11,17 @@ use crate::engine::{WorldConfig, Camera};
 use crate::input::Input;
 use crate::components::{Visual, ColliderShape};
 
+/// Render entities only (no framebuffer clear). Called by engine after starfield.
+pub fn run_entities_only(world: &World, fb: &mut Framebuffer, input: &Input, camera: &Camera) {
+    render_drawables(world, fb, input, camera);
+}
+
 pub fn run(world: &World, fb: &mut Framebuffer, config: &WorldConfig, input: &Input, camera: &Camera) {
     fb.clear(config.background);
+    render_drawables(world, fb, input, camera);
+}
 
+fn render_drawables(world: &World, fb: &mut Framebuffer, input: &Input, camera: &Camera) {
     // Collect drawable entities
     let mut drawables: Vec<(i32, f64, f64, DrawType)> = Vec::new();
 

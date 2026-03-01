@@ -11,6 +11,11 @@ mod input;
 pub mod log;
 pub mod engine;
 pub mod schema;
+mod spawn_queue;
+pub mod game_state;
+pub mod timers;
+pub mod templates;
+pub mod behavior;
 
 #[cfg(test)]
 mod tests;
@@ -87,6 +92,21 @@ pub fn load_world(source: String) {
                 scripting::loader::load_world_file(&world_file, &mut eng.world, &mut eng.config);
                 log::log(&format!("Loaded world '{}' with {} entities",
                     eng.config.name, eng.world.entity_count()));
+
+                // Initialize starfield for space-themed games
+                let name_lower = eng.config.name.to_lowercase();
+                if name_lower.contains("space") || name_lower.contains("asteroid")
+                    || name_lower.contains("star") || name_lower.contains("cosmic")
+                {
+                    let (bw, bh) = eng.config.bounds;
+                    eng.starfield = Some(rendering::starfield::Starfield::generate(
+                        42, bw, bh, 200,
+                    ));
+                    eng.post_fx.vignette_strength = 0.6;
+                }
+
+                // Reset game state
+                eng.reset_game_state();
             }
             Err(e) => {
                 log::error(&format!("World parse error: {}", e));
@@ -98,4 +118,64 @@ pub fn load_world(source: String) {
 #[wasm_bindgen]
 pub fn get_schema() -> String {
     schema::generate_schema()
+}
+
+// ─── Game State WASM API ─────────────────────────────────────────────
+
+/// Get the entire global game state as a JSON string.
+#[wasm_bindgen]
+pub fn get_game_state() -> String {
+    with_engine(|eng| eng.global_state.to_json())
+}
+
+/// Set a numeric game state value.
+#[wasm_bindgen]
+pub fn set_game_state_f64(key: String, value: f64) {
+    with_engine(|eng| eng.global_state.set_f64(&key, value));
+}
+
+/// Get a numeric game state value (returns 0 if not found).
+#[wasm_bindgen]
+pub fn get_game_state_f64(key: String) -> f64 {
+    with_engine(|eng| eng.global_state.get_f64(&key).unwrap_or(0.0))
+}
+
+// ─── Runtime Spawn WASM API ──────────────────────────────────────────
+
+/// Spawn an entity from a named template at the given position.
+/// Returns the entity ID, or 0 if the template was not found.
+#[wasm_bindgen]
+pub fn spawn_template(name: String, x: f64, y: f64) -> u64 {
+    with_engine(|eng| {
+        if let Some(entity) = eng.templates.spawn(&name, &mut eng.world, Some((x, y))) {
+            entity.0
+        } else {
+            log::warn(&format!("spawn_template: template '{}' not found", name));
+            0
+        }
+    })
+}
+
+// ─── Timer WASM API ──────────────────────────────────────────────────
+
+/// Start a one-shot timer. When it fires, behavior rules can react to it.
+#[wasm_bindgen]
+pub fn start_timer(name: String, delay: f64) {
+    with_engine(|eng| {
+        eng.timers.add(timers::Timer::one_shot(&name, delay));
+    });
+}
+
+/// Start a repeating timer.
+#[wasm_bindgen]
+pub fn start_repeating_timer(name: String, delay: f64, interval: f64) {
+    with_engine(|eng| {
+        eng.timers.add(timers::Timer::repeating(&name, delay, interval));
+    });
+}
+
+/// Cancel a timer by name.
+#[wasm_bindgen]
+pub fn cancel_timer(name: String) {
+    with_engine(|eng| { eng.timers.cancel(&name); });
 }

@@ -11,8 +11,64 @@ use crate::rendering::color::Color;
 
 const MAX_DRAG_DISTANCE: f64 = 200.0;
 const MAX_LAUNCH_SPEED: f64 = 1000.0;
+const WALK_SPEED: f64 = 200.0;
 
 pub fn run(world: &mut World, input: &Input, _events: &mut EventQueue) {
+    // Arrow key movement for player entities
+    let has_arrow = input.keys_held.contains("ArrowUp")
+        || input.keys_held.contains("ArrowDown")
+        || input.keys_held.contains("ArrowLeft")
+        || input.keys_held.contains("ArrowRight");
+
+    if has_arrow {
+        let mut dx = 0.0_f64;
+        let mut dy = 0.0_f64;
+        if input.keys_held.contains("ArrowLeft") { dx -= 1.0; }
+        if input.keys_held.contains("ArrowRight") { dx += 1.0; }
+        if input.keys_held.contains("ArrowUp") { dy -= 1.0; }
+        if input.keys_held.contains("ArrowDown") { dy += 1.0; }
+        // Normalize diagonal movement
+        let len = (dx * dx + dy * dy).sqrt();
+        if len > 0.0 {
+            dx /= len;
+            dy /= len;
+        }
+
+        let World { tags, rigidbodies, .. } = world;
+        for (entity, tag) in tags.iter() {
+            if tag.has("player") {
+                if let Some(rb) = rigidbodies.get_mut(entity) {
+                    rb.vx = dx * WALK_SPEED;
+                    rb.vy = dy * WALK_SPEED;
+                }
+            }
+        }
+        return;
+    }
+
+    // Stop player when no arrow keys are held (only if no other velocity source)
+    {
+        let World { tags, rigidbodies, .. } = world;
+        let mut stop = false;
+        for (_, tag) in tags.iter() {
+            if tag.has("player") { stop = true; break; }
+        }
+        if stop && !input.keys_held.iter().any(|k| k.starts_with("Arrow")) {
+            for (entity, tag) in tags.iter() {
+                if tag.has("player") {
+                    if let Some(rb) = rigidbodies.get_mut(entity) {
+                        // Only stop if velocity is near walk speed (don't kill slingshot momentum)
+                        let speed = (rb.vx * rb.vx + rb.vy * rb.vy).sqrt();
+                        if speed <= WALK_SPEED + 1.0 {
+                            rb.vx = 0.0;
+                            rb.vy = 0.0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Slingshot launch on drag release
     if input.mouse_buttons_released.contains(&0) && input.is_dragging {
         if let Some((start_x, start_y)) = input.drag_start {

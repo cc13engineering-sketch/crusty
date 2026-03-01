@@ -11,8 +11,8 @@ async function main() {
     const wasm = await initWasm();
     init(WIDTH, HEIGHT);
 
-    // Load the demo world
-    const resp = await fetch('bouncing_balls.world');
+    // Load the demo world (change filename to switch demos)
+    const resp = await fetch('walker.world');
     const source = await resp.text();
     load_world(source);
 

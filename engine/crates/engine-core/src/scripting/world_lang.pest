@@ -41,5 +41,5 @@ bool_val = { "true" | "false" }
 color_value = @{ "#" ~ ASCII_HEX_DIGIT{6,8} }
 ident = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 
-comment = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
+COMMENT = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }

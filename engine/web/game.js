@@ -12,7 +12,7 @@ async function main() {
     init(WIDTH, HEIGHT);
 
     // Load the demo world
-    const resp = await fetch('demo.world');
+    const resp = await fetch('bouncing_balls.world');
     const source = await resp.text();
     load_world(source);
 

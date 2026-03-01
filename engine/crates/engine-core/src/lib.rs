@@ -12,6 +12,9 @@ pub mod log;
 pub mod engine;
 pub mod schema;
 
+#[cfg(test)]
+mod tests;
+
 use engine::Engine;
 
 thread_local! {

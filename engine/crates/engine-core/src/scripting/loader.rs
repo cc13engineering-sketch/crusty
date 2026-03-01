@@ -179,3 +179,225 @@ pub fn load_world_file(wf: &WorldFile, world: &mut World, config: &mut WorldConf
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ecs::World;
+    use crate::engine::WorldConfig;
+    use super::super::parser::parse_world;
+
+    /// Helper: parse source and load into a fresh world + config.
+    fn load_from_source(src: &str) -> (World, WorldConfig) {
+        let wf = parse_world(src).unwrap();
+        let mut world = World::new();
+        let mut config = WorldConfig::default();
+        load_world_file(&wf, &mut world, &mut config);
+        (world, config)
+    }
+
+    // -----------------------------------------------------------------------
+    // 1. Load minimal world — config name set, world cleared
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_minimal_world_sets_config_name() {
+        let (world, config) = load_from_source(r#"world "Hello" {}"#);
+        assert_eq!(config.name, "Hello");
+        assert_eq!(world.entity_count(), 0);
+    }
+
+    // -----------------------------------------------------------------------
+    // 2. Load world with bounds — config.bounds updated
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_world_with_bounds_updates_config() {
+        let (_, config) = load_from_source(r#"world "Test" { bounds: 800 x 600 }"#);
+        assert_eq!(config.bounds, (800.0, 600.0));
+    }
+
+    // -----------------------------------------------------------------------
+    // 3. Load world with background — config.background updated
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_world_with_background_updates_config() {
+        let (_, config) = load_from_source(r#"world "Test" { background: #ff0000 }"#);
+        assert_eq!(config.background, Color::from_hex("#ff0000").unwrap());
+    }
+
+    // -----------------------------------------------------------------------
+    // 4. Load entity with position — Transform.x/y set
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_position_sets_transform() {
+        let src = r#"
+            world "Test" {}
+            entity ball { position: (150, 250) }
+        "#;
+        let (world, _) = load_from_source(src);
+        assert_eq!(world.entity_count(), 1);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let transform = world.transforms.get(entity).unwrap();
+        assert_eq!(transform.x, 150.0);
+        assert_eq!(transform.y, 250.0);
+    }
+
+    // -----------------------------------------------------------------------
+    // 5. Load entity with physics — RigidBody created with correct values
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_physics_creates_rigidbody() {
+        let src = r#"
+            world "Test" {}
+            entity ball { physics: { mass: 2.0, vx: 100, vy: -50 } }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let rb = world.rigidbodies.get(entity).unwrap();
+        assert_eq!(rb.mass, 2.0);
+        assert_eq!(rb.vx, 100.0);
+        assert_eq!(rb.vy, -50.0);
+    }
+
+    // -----------------------------------------------------------------------
+    // 6. Load entity with collider circle — Collider with Circle shape
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_collider_circle() {
+        let src = r#"
+            world "Test" {}
+            entity ball { collider: { shape: circle, radius: 25 } }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let collider = world.colliders.get(entity).unwrap();
+        match collider.shape {
+            ColliderShape::Circle { radius } => assert_eq!(radius, 25.0),
+            _ => panic!("expected Circle shape"),
+        }
+        assert_eq!(collider.is_trigger, false);
+    }
+
+    // -----------------------------------------------------------------------
+    // 7. Load entity with collider rect — Collider with Rect shape
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_collider_rect() {
+        let src = r#"
+            world "Test" {}
+            entity wall { collider: { shape: rect, half_width: 50, half_height: 10 } }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("wall").unwrap();
+        let collider = world.colliders.get(entity).unwrap();
+        match collider.shape {
+            ColliderShape::Rect { half_width, half_height } => {
+                assert_eq!(half_width, 50.0);
+                assert_eq!(half_height, 10.0);
+            }
+            _ => panic!("expected Rect shape"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 8. Load entity with tags — Tags component added
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_tags() {
+        let src = r#"
+            world "Test" {}
+            entity ball { tags: ["player", "ball"] }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let tags = world.tags.get(entity).unwrap();
+        assert_eq!(tags.values, vec!["player", "ball"]);
+    }
+
+    // -----------------------------------------------------------------------
+    // 9. Load entity with role/intent — Role component added
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_entity_with_role_intent() {
+        let src = r#"
+            world "Test" {}
+            entity hero {
+                role: "player"
+                intent: "wander"
+                group: "team_a"
+            }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("hero").unwrap();
+        let role = world.roles.get(entity).unwrap();
+        assert_eq!(role.name, "player");
+        assert_eq!(role.intent, "wander");
+        assert_eq!(role.group.as_deref(), Some("team_a"));
+    }
+
+    // -----------------------------------------------------------------------
+    // 10. Feel "bouncy" sets restitution to 0.9
+    // -----------------------------------------------------------------------
+    #[test]
+    fn feel_bouncy_sets_restitution() {
+        let src = r#"
+            world "Test" {}
+            feel: [bouncy]
+            entity ball { physics: { mass: 1.0 } }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let rb = world.rigidbodies.get(entity).unwrap();
+        // When feel is bouncy, default restitution should be 0.9
+        assert_eq!(rb.restitution, 0.9);
+    }
+
+    // -----------------------------------------------------------------------
+    // 11. Feel "floaty" sets damping to 0.001
+    // -----------------------------------------------------------------------
+    #[test]
+    fn feel_floaty_sets_damping() {
+        let src = r#"
+            world "Test" {}
+            feel: [floaty]
+            entity ball { physics: { mass: 1.0 } }
+        "#;
+        let (world, _) = load_from_source(src);
+        let entity = world.names.get_by_name("ball").unwrap();
+        let rb = world.rigidbodies.get(entity).unwrap();
+        // When feel is floaty, default damping should be 0.001
+        assert_eq!(rb.damping, 0.001);
+    }
+
+    // -----------------------------------------------------------------------
+    // 12. load_world_file clears existing entities first
+    // -----------------------------------------------------------------------
+    #[test]
+    fn load_world_file_clears_existing_entities() {
+        let mut world = World::new();
+        let mut config = WorldConfig::default();
+
+        // Pre-populate the world with some entities
+        let e1 = world.spawn_named("old_entity_1");
+        world.transforms.insert(e1, Transform { x: 1.0, y: 2.0, ..Default::default() });
+        let e2 = world.spawn_named("old_entity_2");
+        world.transforms.insert(e2, Transform { x: 3.0, y: 4.0, ..Default::default() });
+        assert_eq!(world.entity_count(), 2);
+
+        // Now load a new world file
+        let wf = parse_world(r#"
+            world "Fresh" {}
+            entity new_one { position: (10, 20) }
+        "#).unwrap();
+        load_world_file(&wf, &mut world, &mut config);
+
+        // Old entities should be gone, only the new one remains
+        assert_eq!(world.entity_count(), 1);
+        assert!(world.names.get_by_name("old_entity_1").is_none());
+        assert!(world.names.get_by_name("old_entity_2").is_none());
+        let new_entity = world.names.get_by_name("new_one").unwrap();
+        let t = world.transforms.get(new_entity).unwrap();
+        assert_eq!(t.x, 10.0);
+        assert_eq!(t.y, 20.0);
+        assert_eq!(config.name, "Fresh");
+    }
+}

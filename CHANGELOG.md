@@ -4,6 +4,21 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Round 11 — Physics & Core Engine Improvements
+
+**4 engine upgrades, 31 new tests (1063 → 1094 total)**
+
+### Engine Upgrades
+- **Restitution Override** — `PhysicsMaterial.restitution_override` wired into CCD collision response. Changed combination from `min()` to `max()` enabling bumper entities with restitution >1.0 to amplify bounces. (5 tests)
+- **Scene Isolation** — World snapshot save/restore for fight scene physics isolation. Added `push_with_snapshot()`/`pop_with_restore()` to SceneManager. Clone derives on World, ComponentStore, NameMap, SpawnQueue. (8 tests)
+- **Multi-layer TileMap** — `TileLayer` struct with per-layer name, visibility, collidability, opacity. All existing APIs delegate to layer 0 for backward compatibility. New: `add_layer()`, `get_on_layer()`, `set_on_layer()`, `fill_rect_on_layer()`, `layer_count()`, `layer_index()`. `is_solid()` checks all collidable layers. (8 tests)
+- **AimPreview** (`aim_preview.rs`) — New module for trajectory simulation. `compute_arc()` uses Euler integration with configurable drag, gravity, restitution, ball_radius. Detects wall collisions via closure, reflects velocity, produces `Vec<ArcPoint>` for rendering ghost dots. `compute_arc_with_hazards()` variant for hazard zone detection. (10 tests)
+
+### Performance
+- Removed `sorted_entities()` from collision hot path in `collision.rs` — eliminates per-frame Vec allocation + sort. Iteration order doesn't affect results because each entity's sweep is independent.
+
+---
+
 ## Round 10 — Trap Links Game Design
 
 **Game concept document: 622 lines, synthesized from 3 competing proposals**

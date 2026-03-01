@@ -116,13 +116,14 @@ impl TileMap {
     // ─── Layer management ──────────────────────────────────────────────
 
     /// Add a new empty layer. Returns the layer index.
+    /// The new layer is visible, collidable, and fully opaque by default.
     pub fn add_layer(&mut self, name: &str) -> usize {
         let tiles = (0..self.width * self.height).map(|_| Tile::empty()).collect();
         self.layers.push(TileLayer {
             name: name.to_string(),
             tiles,
             visible: true,
-            collidable: false,
+            collidable: true,
             opacity: 1.0,
         });
         self.layers.len() - 1
@@ -146,7 +147,15 @@ impl TileMap {
         self.index(x, y).map(|i| &self.layers[layer].tiles[i])
     }
 
+    /// Get a mutable reference to a tile on a specific layer.
+    /// Returns `None` if coordinates or layer index are out of bounds.
+    pub fn get_mut_on_layer(&mut self, x: usize, y: usize, layer: usize) -> Option<&mut Tile> {
+        if layer >= self.layers.len() { return None; }
+        self.index(x, y).map(move |i| &mut self.layers[layer].tiles[i])
+    }
+
     /// Set a tile on a specific layer.
+    /// Silently ignored if coordinates or layer index are out of bounds.
     pub fn set_on_layer(&mut self, x: usize, y: usize, layer: usize, tile: Tile) {
         if layer >= self.layers.len() { return; }
         if let Some(i) = self.index(x, y) {

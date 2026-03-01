@@ -63,6 +63,49 @@ Key principle: features are designed for *engine generality*, not just the theme
 - **Round 6**: Feature Bonanza. Added: SpriteAnimator (named clips with frame sequences), PhysicsJoint (distance/spring/rope/hinge with break force), EventBus (channel-based typed events), InputMap (abstract input layer), A* Pathfinding (octile heuristic, diagonal movement), Save/Load (world snapshot to JSON).
 - **Round 7**: Ecosystem Infrastructure. Added: ResourceInventory (bounded multi-resource container), GraphNode (entity-to-entity graph edges), VisualConnection (visual links with styles), FlowNetwork (directed resource flow), ProceduralGen (noise + cellular automata + dungeon gen), EnvironmentClock (cyclical time phases), DensityField (2D scalar field with diffusion).
 - **Demo Build**: Mycelia: Ascent — procedural cave game showcasing 8+ engine systems composing together. Custom Rust module with WASM bindings, mobile-first 480x720.
+- **Round 8**: Mobile & Game Feel. Added: GestureRecognizer (touch gestures), SoundScape (command-buffer audio), AutoJuice (declarative game-feel), UiCanvas (anchor-based UI), DiagnosticBus (runtime error reporting), WorldLint (static .world analysis). 90 tests.
+- **Round 9**: Game Creation Platform. Added: GameFlow (lifecycle FSM), CameraDirector (cinematic camera), ColorPalette (procedural art identity), LevelCurve (difficulty progression). 109 tests.
+- **Round 10**: Trap Links Game Design. 622-line GDD synthesized from 3 competing proposals. RPG/minigolf game concept with 5 biomes, 8 obstacle types, capture system, equipment.
+- **Round 11**: Physics & Core Improvements. Restitution override wiring, scene isolation (World snapshot), multi-layer TileMap, AimPreview module, sorted_entities hot path fix. 31 tests.
+
+---
+
+## Carry On — Next Session Instructions
+
+**When the user says "carry on" or "continue innovation games", resume from this point:**
+
+### Current State (after Round 11)
+- **Branch**: `claude/review-game-engine-CaUoa`
+- **Tests**: 1094 passing
+- **Engine modules**: 31 (including new aim_preview.rs)
+- **Game design**: Complete GDD at `game-concept/DESIGN.md` (Trap Links)
+- **Detailed specs**: `game-concept/SPEC_PHYSICS.md`, `SPEC_TILEMAP.md`, `SPEC_UI_SOUND.md`
+
+### What to do next: Round 6 (Round 12)
+
+**Theme**: UI & Content improvements — the remaining 4 engine gaps from the Trap Links design.
+
+**Gaps to implement** (see `game-concept/SPEC_UI_SOUND.md` for detailed specs):
+
+1. **Gap 5: UI Tap Actions** — Wire `UiCanvas.hit_test()` into engine tick so tap gestures trigger EventBus events. Add `disabled` and `pressed_timer` to UiWidget. File: `ui_canvas.rs` + `engine.rs`.
+
+2. **Gap 3: Dialogue Branching** — Add `Conversation` system alongside existing `DialogueQueue`. `DialogueNode` enum (Statement/Choice), directed graph traversal, `ConversationBuilder`, EventBus integration for choice selections. File: `dialogue.rs`.
+
+3. **Gap 2: Sprite Tiles** — Wire `Tile.sprite_index` into `TileMap::render()`. Add optional sprite sheet data to render function. When tile has sprite_index and sheet provided, blit sprite instead of fill_rect. File: `tilemap.rs`.
+
+4. **Gap 8: One-shot SFX wiring** — Wire `AutoJuice.sound_queue` (palette names) through `SoundPalette.play()` into `SoundCommandQueue`. Add AutoJuice.apply() call to engine tick. Add `SoundPalette::trap_links_palette()` with game-specific sounds. Files: `sound.rs`, `auto_juice.rs`, `engine.rs`.
+
+**After Round 6**: Continue to Round 7+ (open feature competition). Consider building the Trap Links game itself as a demo, similar to how Mycelia was built.
+
+### Process reminder
+1. Pre-work codebase audit (spawn 3 agents)
+2. Implement all 4 gaps (spawn 4 parallel agents)
+3. Run tests (`cargo test --lib`)
+4. Commit + push + update changelog
+5. Continue to next round
+
+### OpenAI ECS Feedback (addressed)
+The `sorted_entities()` hot path fix was implemented in Round 11. The HashMap→DenseStore migration is acknowledged but deferred — particles already use dense `Vec<Particle>` (not ECS), and the engine targets ~100-300 entities. The API is clean enough for a future drop-in replacement if scaling demands it.
 
 ## Demo Game Building Process
 

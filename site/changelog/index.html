@@ -49,12 +49,26 @@
     <div class="stats">
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
-        <span><span class="num">30</span> Engine Modules</span>
-        <span><span class="num">1063</span> Tests</span>
+        <span><span class="num">31</span> Engine Modules</span>
+        <span><span class="num">1094</span> Tests</span>
         <span><span class="num">5</span> Demos</span>
     </div>
 
-    <h2>Round 10 — Trap Links Game Design <span class="badge badge-new">NEW</span></h2>
+    <h2>Round 11 — Physics &amp; Core Engine Improvements <span class="badge badge-new">NEW</span></h2>
+    <h3>Engine Upgrades (4)</h3>
+    <ul>
+        <li><strong>Restitution Override</strong> — <code>PhysicsMaterial.restitution_override</code> wired into CCD collision response, max() combination enables bumper amplification (&gt;1.0 restitution)</li>
+        <li><strong>Scene Isolation</strong> — World snapshot save/restore via <code>push_with_snapshot()</code> / <code>pop_with_restore()</code>; Clone derives on World, ComponentStore, NameMap, SpawnQueue</li>
+        <li><strong>Multi-layer TileMap</strong> — <code>TileLayer</code> struct with per-layer visibility, collidability, opacity; backward-compatible API delegates to layer 0</li>
+        <li><strong>AimPreview</strong> — trajectory simulation module with <code>compute_arc()</code> using Euler integration, wall reflection, configurable drag/gravity/restitution</li>
+    </ul>
+    <h3>Performance</h3>
+    <ul>
+        <li>Removed <code>sorted_entities()</code> from collision hot path — eliminates per-frame sort+alloc (addresses OpenAI ECS review feedback)</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">31 new tests across 4 improvements (1063 → 1094 total)</p>
+
+    <h2>Round 10 — Trap Links Game Design</h2>
     <h3>Game Concept: Trap Links</h3>
     <ul>
         <li><strong>Genre</strong> — tile-based RPG with minigolf-as-combat fight scenes (Pokémon meets mini-golf)</li>

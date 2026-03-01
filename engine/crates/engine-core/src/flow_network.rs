@@ -57,6 +57,8 @@ impl FlowNetwork {
     /// Solve resource flow for one timestep.
     /// Transfers resources between entity inventories along edges.
     pub fn solve(&mut self, world: &mut crate::ecs::World, dt: f64) {
+        if dt <= 0.0 { return; }
+
         // Sort by priority (higher priority first)
         let mut indices: Vec<usize> = (0..self.edges.len()).collect();
         indices.sort_by(|&a, &b| self.edges[b].priority.cmp(&self.edges[a].priority));
@@ -66,23 +68,24 @@ impl FlowNetwork {
             if !edge.enabled { continue; }
 
             let max_transfer = edge.max_rate * dt;
-            let resource = edge.resource.clone();
             let source = edge.source;
             let target = edge.target;
 
             // Check source availability
             let available = world.resource_inventories.get(source)
-                .and_then(|inv| inv.get(&resource))
+                .and_then(|inv| inv.get(&edge.resource))
                 .map_or(0.0, |slot| slot.current);
 
             // Check target capacity
             let space = world.resource_inventories.get(target)
-                .and_then(|inv| inv.get(&resource))
+                .and_then(|inv| inv.get(&edge.resource))
                 .map_or(0.0, |slot| slot.capacity - slot.current);
 
             let actual = max_transfer.min(available).min(space).max(0.0);
 
             if actual > 0.0 {
+                // Clone the resource key once, only when we actually need to mutate
+                let resource = self.edges[idx].resource.clone();
                 if let Some(inv) = world.resource_inventories.get_mut(source) {
                     if let Some(slot) = inv.get_mut(&resource) {
                         slot.withdraw(actual);

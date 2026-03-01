@@ -32,7 +32,8 @@ impl SeededRng {
 
     pub fn range_i32(&mut self, min: i32, max: i32) -> i32 {
         if max <= min { return min; }
-        min + (self.next_u64() % (max - min + 1) as u64) as i32
+        let range = (max as i64 - min as i64 + 1) as u64;
+        (min as i64 + (self.next_u64() % range) as i64) as i32
     }
 
     pub fn chance(&mut self, probability: f64) -> bool {

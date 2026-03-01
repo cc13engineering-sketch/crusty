@@ -137,7 +137,7 @@ impl DensityField {
     pub fn step(&mut self, dt: f64) {
         let w = self.width;
         let h = self.height;
-        let diff = self.diffusion_rate * dt;
+        let diff = (self.diffusion_rate * dt).min(1.0);
 
         // Diffusion: average with neighbors
         self.scratch.copy_from_slice(&self.data);

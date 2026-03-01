@@ -12,11 +12,17 @@ pub struct NameMap {
 
 impl NameMap {
     pub fn insert(&mut self, name: String, entity: Entity) {
-        if self.name_to_entity.contains_key(&name) {
-            crate::log::warn(&format!("Duplicate entity name '{}' — overwriting", name));
+        if let Some(old_entity) = self.name_to_entity.insert(name.clone(), entity) {
+            if old_entity != entity {
+                crate::log::warn(&format!("Duplicate entity name '{}' — overwriting", name));
+                self.entity_to_name.remove(&old_entity);
+            }
         }
-        self.name_to_entity.insert(name.clone(), entity);
-        self.entity_to_name.insert(entity, name);
+        if let Some(old_name) = self.entity_to_name.insert(entity, name) {
+            if self.name_to_entity.get(&old_name).copied() == Some(entity) {
+                self.name_to_entity.remove(&old_name);
+            }
+        }
     }
 
     pub fn get_by_name(&self, name: &str) -> Option<Entity> {

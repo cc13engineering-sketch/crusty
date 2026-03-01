@@ -237,6 +237,7 @@ impl Engine {
         self.dialogue.clear();
         self.transition = TransitionManager::new();
         self.screen_fx.clear();
+        self.event_bus.clear();
     }
 
     pub fn tick(&mut self, dt: f64) {

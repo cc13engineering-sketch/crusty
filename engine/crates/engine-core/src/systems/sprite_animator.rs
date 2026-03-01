@@ -59,8 +59,8 @@ pub fn run(world: &mut World, dt: f64) {
                 }
             }
 
-            let frame_index = (anim.elapsed / frame_duration).floor() as usize;
-            let frame_index = frame_index.min(num_frames - 1);
+            let raw_index = (anim.elapsed / frame_duration).floor();
+            let frame_index = (raw_index.max(0.0) as usize).min(num_frames - 1);
             anim.current_frame_index = frame_index;
             anim.current_tile = anim.clips[clip_idx].frames[frame_index];
         }

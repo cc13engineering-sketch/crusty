@@ -15,14 +15,14 @@ pub enum InputSource {
 }
 
 /// An action binding: one action can have multiple input sources.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct ActionBinding {
     pub sources: Vec<InputSource>,
 }
 
 impl ActionBinding {
     pub fn new() -> Self {
-        Self { sources: Vec::new() }
+        Self::default()
     }
 
     pub fn key(mut self, key: &str) -> Self {
@@ -37,7 +37,7 @@ impl ActionBinding {
 }
 
 /// Axis binding: maps two actions (positive/negative) to a -1..+1 range.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct AxisBinding {
     pub positive_sources: Vec<InputSource>,
     pub negative_sources: Vec<InputSource>,
@@ -45,10 +45,7 @@ pub struct AxisBinding {
 
 impl AxisBinding {
     pub fn new() -> Self {
-        Self {
-            positive_sources: Vec::new(),
-            negative_sources: Vec::new(),
-        }
+        Self::default()
     }
 
     pub fn positive_key(mut self, key: &str) -> Self {

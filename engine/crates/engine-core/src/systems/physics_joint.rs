@@ -69,14 +69,13 @@ pub fn run(world: &mut World, dt: f64) {
                     (false, false) => continue,
                 };
 
-                let half_correction = correction * 0.5;
                 if let Some(ta) = world.transforms.get_mut(a) {
-                    ta.x += nx * half_correction * a_ratio;
-                    ta.y += ny * half_correction * a_ratio;
+                    ta.x += nx * correction * a_ratio;
+                    ta.y += ny * correction * a_ratio;
                 }
                 if let Some(tb) = world.transforms.get_mut(b) {
-                    tb.x -= nx * half_correction * b_ratio;
-                    tb.y -= ny * half_correction * b_ratio;
+                    tb.x -= nx * correction * b_ratio;
+                    tb.y -= ny * correction * b_ratio;
                 }
 
                 if *damping > 0.0 {
@@ -118,6 +117,10 @@ pub fn run(world: &mut World, dt: f64) {
                 let a_dyn = is_dynamic(world, a);
                 let b_dyn = is_dynamic(world, b);
 
+                // Read velocities before modification for damping calculation
+                let a_vel = world.rigidbodies.get(a).map(|rb| (rb.vx, rb.vy)).unwrap_or((0.0, 0.0));
+                let b_vel = world.rigidbodies.get(b).map(|rb| (rb.vx, rb.vy)).unwrap_or((0.0, 0.0));
+
                 if a_dyn {
                     if let Some(rb) = world.rigidbodies.get_mut(a) {
                         let inv_mass = if rb.mass > 0.0 { 1.0 / rb.mass } else { 0.0 };
@@ -134,8 +137,6 @@ pub fn run(world: &mut World, dt: f64) {
                 }
 
                 if *damping > 0.0 {
-                    let a_vel = world.rigidbodies.get(a).map(|rb| (rb.vx, rb.vy)).unwrap_or((0.0, 0.0));
-                    let b_vel = world.rigidbodies.get(b).map(|rb| (rb.vx, rb.vy)).unwrap_or((0.0, 0.0));
                     let rel_vx = b_vel.0 - a_vel.0;
                     let rel_vy = b_vel.1 - a_vel.1;
                     let rel_v_along = rel_vx * nx + rel_vy * ny;

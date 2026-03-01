@@ -86,21 +86,22 @@ fn heuristic(a: GridPos, b: GridPos, config: &PathConfig) -> f64 {
     }
 }
 
-/// Neighbors for a grid position.
-fn neighbors(pos: GridPos, allow_diagonal: bool) -> Vec<(GridPos, bool)> {
-    let mut result = vec![
-        (GridPos::new(pos.x + 1, pos.y), false),
-        (GridPos::new(pos.x - 1, pos.y), false),
-        (GridPos::new(pos.x, pos.y + 1), false),
-        (GridPos::new(pos.x, pos.y - 1), false),
-    ];
+/// Neighbors for a grid position. Returns (array, count) to avoid heap allocation.
+fn neighbors(pos: GridPos, allow_diagonal: bool) -> ([(GridPos, bool); 8], usize) {
+    let mut result = [(GridPos::new(0, 0), false); 8];
+    result[0] = (GridPos::new(pos.x + 1, pos.y), false);
+    result[1] = (GridPos::new(pos.x - 1, pos.y), false);
+    result[2] = (GridPos::new(pos.x, pos.y + 1), false);
+    result[3] = (GridPos::new(pos.x, pos.y - 1), false);
     if allow_diagonal {
-        result.push((GridPos::new(pos.x + 1, pos.y + 1), true));
-        result.push((GridPos::new(pos.x - 1, pos.y + 1), true));
-        result.push((GridPos::new(pos.x + 1, pos.y - 1), true));
-        result.push((GridPos::new(pos.x - 1, pos.y - 1), true));
+        result[4] = (GridPos::new(pos.x + 1, pos.y + 1), true);
+        result[5] = (GridPos::new(pos.x - 1, pos.y + 1), true);
+        result[6] = (GridPos::new(pos.x + 1, pos.y - 1), true);
+        result[7] = (GridPos::new(pos.x - 1, pos.y - 1), true);
+        (result, 8)
+    } else {
+        (result, 4)
     }
-    result
 }
 
 /// Find the shortest path from `start` to `goal` on a grid.
@@ -162,7 +163,8 @@ where
             continue;
         }
 
-        for (neighbor, is_diagonal) in neighbors(current.pos, config.allow_diagonal) {
+        let (neighbor_arr, neighbor_count) = neighbors(current.pos, config.allow_diagonal);
+        for &(neighbor, is_diagonal) in &neighbor_arr[..neighbor_count] {
             if !is_walkable(neighbor) {
                 continue;
             }

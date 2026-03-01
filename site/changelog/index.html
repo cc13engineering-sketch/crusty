@@ -49,12 +49,22 @@
     <div class="stats">
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
-        <span><span class="num">26</span> Engine Modules</span>
-        <span><span class="num">954</span> Tests</span>
+        <span><span class="num">30</span> Engine Modules</span>
+        <span><span class="num">1063</span> Tests</span>
         <span><span class="num">5</span> Demos</span>
     </div>
 
-    <h2>Round 8 — Mobile & Game Feel <span class="badge badge-new">NEW</span></h2>
+    <h2>Round 9 — Game Creation Platform <span class="badge badge-new">NEW</span></h2>
+    <h3>New Engine Modules (4)</h3>
+    <ul>
+        <li><strong>GameFlow</strong> — declarative game lifecycle FSM (Title→Playing→Paused→GameOver→Victory) with transition conditions, pause/unpause, and sound-on-enter hooks</li>
+        <li><strong>CameraDirector</strong> — cinematic camera orchestration via mode stack (Follow/Pan/Zoom/Shake/Letterbox) with EventBus-driven rules, auto-pop timers, and dead-zone support</li>
+        <li><strong>ColorPalette</strong> — procedural art identity from seed + color scheme (Complementary/Triadic/Analogous/SplitComplementary), 6 built-in palettes, 7 semantic color roles</li>
+        <li><strong>LevelCurve</strong> — difficulty progression with named curves (Linear/EaseIn/EaseOut/Step), keyframe interpolation, and 3 DifficultyPresets (Casual/Standard/Hardcore)</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">109 new tests across 4 modules (954 → 1063 total)</p>
+
+    <h2>Round 8 — Mobile & Game Feel</h2>
     <h3>New Engine Modules (6)</h3>
     <ul>
         <li><strong>GestureRecognizer</strong> — touch gesture recognition (tap, double-tap, long-press, swipe, pinch) with primary touch → mouse forwarding and EventBus integration</li>

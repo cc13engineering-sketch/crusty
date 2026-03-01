@@ -4,6 +4,18 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Round 9 — Game Creation Platform
+
+**4 new engine modules, 109 new tests (954 → 1063 total)**
+
+### New Engine Modules
+- **GameFlow** (`game_flow.rs`) — Declarative game lifecycle FSM with FlowState (Title/Playing/Paused/GameOver/Victory/Custom), FlowCondition (StateReaches/EventFired/ButtonTapped/AfterSeconds), CompareOp, pause/unpause, sound-on-enter, JSON export. (33 tests)
+- **CameraDirector** (`camera_director.rs`) — Cinematic camera orchestration via mode stack. CameraMode (Follow/Pan/Zoom/Shake/Letterbox), CameraRule (EventBus→push_mode with auto-pop), 4 Easing curves (Linear/EaseIn/EaseOut/EaseInOut), dead-zone, letterbox rendering. (24 tests)
+- **ColorPalette** (`color_palette.rs`) — Procedural art identity system. HSL color theory generation with 4 ColorSchemes, 7 semantic PaletteRoles, 6 built-in palettes (neon_cave, sunset, ice_dungeon, toxic_swamp, ocean_depths, volcanic), deterministic from_seed. (26 tests)
+- **LevelCurve** (`level_curve.rs`) — Difficulty progression with named Curves (Linear/EaseIn/EaseOut/Step), keyframe interpolation with sorted auto-ordering, clamp_min/clamp_max, 3 DifficultyPresets (Casual=0.7x, Standard=1.0x, Hardcore=1.5x) with 5 pre-built curves each (enemy_speed, spawn_rate, enemy_health, player_damage, score_mult). (26 tests)
+
+---
+
 ## Round 8 — Mobile & Game Feel
 
 **6 new engine modules, 90 new tests (864 → 954 total)**

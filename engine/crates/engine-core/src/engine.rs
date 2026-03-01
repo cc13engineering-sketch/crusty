@@ -4,6 +4,9 @@ use crate::rendering::color::Color;
 use crate::rendering::particles::ParticlePool;
 use crate::rendering::starfield::Starfield;
 use crate::rendering::post_fx::PostFxConfig;
+use crate::rendering::layers::RenderLayerStack;
+use crate::rendering::sprite::SpriteSheet;
+use crate::rendering::transition::TransitionManager;
 use crate::input::Input;
 use crate::events::EventQueue;
 use crate::spawn_queue::SpawnQueue;
@@ -11,6 +14,7 @@ use crate::game_state::GameState as GlobalGameState;
 use crate::timers::TimerQueue;
 use crate::templates::TemplateRegistry;
 use crate::behavior::BehaviorRules;
+use crate::dialogue::DialogueQueue;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -29,15 +33,98 @@ impl Default for WorldConfig {
 pub struct Camera {
     pub x: f64,
     pub y: f64,
+    pub zoom: f64,
+    pub target_tag: Option<String>,
+    pub smoothing: f64,
+    pub clamp_to_bounds: bool,
 }
 
 impl Default for Camera {
-    fn default() -> Self { Self { x: 0.0, y: 0.0 } }
+    fn default() -> Self {
+        Self {
+            x: 0.0,
+            y: 0.0,
+            zoom: 1.0,
+            target_tag: None,
+            smoothing: 0.0,
+            clamp_to_bounds: false,
+        }
+    }
 }
 
 impl Camera {
+    /// Original world-to-screen conversion (no zoom). Kept for backward compatibility.
     pub fn world_to_screen(&self, wx: f64, wy: f64) -> (i32, i32) {
         ((wx - self.x).round() as i32, (wy - self.y).round() as i32)
+    }
+
+    /// World-to-screen conversion that accounts for zoom, centered on the viewport.
+    /// `sw` and `sh` are the screen (viewport) width and height.
+    pub fn world_to_screen_zoomed(&self, wx: f64, wy: f64, sw: f64, sh: f64) -> (i32, i32) {
+        let cx = sw / 2.0;
+        let cy = sh / 2.0;
+        let sx = (wx - self.x) * self.zoom + cx;
+        let sy = (wy - self.y) * self.zoom + cy;
+        (sx.round() as i32, sy.round() as i32)
+    }
+
+    /// Smoothly follow the target entity and clamp to world bounds.
+    /// `bounds` is (world_width, world_height), `viewport` is (screen_width, screen_height).
+    pub fn update(&mut self, world: &crate::ecs::World, bounds: (f64, f64), viewport: (u32, u32), dt: f64) {
+        // Follow the target entity by tag
+        if let Some(ref tag) = self.target_tag {
+            let mut target_pos: Option<(f64, f64)> = None;
+            for (entity, tags) in world.tags.iter() {
+                if tags.has(tag) {
+                    if let Some(t) = world.transforms.get(entity) {
+                        target_pos = Some((t.x, t.y));
+                        break;
+                    }
+                }
+            }
+
+            if let Some((tx, ty)) = target_pos {
+                // The camera position represents the world coordinate at the center of the viewport
+                let vw = viewport.0 as f64;
+                let vh = viewport.1 as f64;
+                let desired_x = tx - vw / (2.0 * self.zoom);
+                let desired_y = ty - vh / (2.0 * self.zoom);
+
+                if self.smoothing <= 0.0 {
+                    // Instant follow
+                    self.x = desired_x;
+                    self.y = desired_y;
+                } else {
+                    // Lerp toward the target; higher smoothing = slower convergence
+                    let t = (dt / self.smoothing).min(1.0);
+                    self.x += (desired_x - self.x) * t;
+                    self.y += (desired_y - self.y) * t;
+                }
+            }
+        }
+
+        // Clamp camera to world bounds
+        if self.clamp_to_bounds {
+            let vw = viewport.0 as f64 / self.zoom;
+            let vh = viewport.1 as f64 / self.zoom;
+            let (bw, bh) = bounds;
+
+            // If the viewport is smaller than the world, clamp so the camera
+            // doesn't show outside the world. Otherwise center the world.
+            if vw < bw {
+                if self.x < 0.0 { self.x = 0.0; }
+                if self.x + vw > bw { self.x = bw - vw; }
+            } else {
+                self.x = (bw - vw) / 2.0;
+            }
+
+            if vh < bh {
+                if self.y < 0.0 { self.y = 0.0; }
+                if self.y + vh > bh { self.y = bh - vh; }
+            } else {
+                self.y = (bh - vh) / 2.0;
+            }
+        }
     }
 }
 
@@ -69,6 +156,14 @@ pub struct Engine {
     pub timers: TimerQueue,
     pub templates: TemplateRegistry,
     pub rules: BehaviorRules,
+
+    // Innovation Round 2: Render layers + Sprite sheets
+    pub layers: RenderLayerStack,
+    pub sprite_sheets: Vec<SpriteSheet>,
+
+    // Innovation Round 2: Scene transitions + Dialogue
+    pub transition: TransitionManager,
+    pub dialogue: DialogueQueue,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -100,6 +195,10 @@ impl Engine {
             timers: TimerQueue::new(),
             templates: TemplateRegistry::new(),
             rules: BehaviorRules::new(),
+            layers: RenderLayerStack::new(),
+            sprite_sheets: Vec::new(),
+            transition: TransitionManager::new(),
+            dialogue: DialogueQueue::new(),
         }
     }
 
@@ -111,6 +210,8 @@ impl Engine {
         self.global_state.clear();
         self.timers.clear();
         self.rules.clear();
+        self.dialogue.clear();
+        self.transition = TransitionManager::new();
     }
 
     pub fn tick(&mut self, dt: f64) {
@@ -155,8 +256,22 @@ impl Engine {
         // Update particles
         self.particles.update(dt);
 
+        // Update transition
+        self.transition.update(dt);
+
+        // Update dialogue messages
+        self.dialogue.tick(dt);
+
         // Check game over
         self.check_game_over();
+
+        // Camera follow + zoom
+        self.camera.update(
+            &self.world,
+            self.config.bounds,
+            (self.width, self.height),
+            dt,
+        );
 
         // --- RENDERING ---
         // Background + starfield
@@ -168,6 +283,7 @@ impl Engine {
         // Entity rendering
         crate::systems::renderer::run_entities_only(
             &self.world, &mut self.framebuffer, &self.input, &self.camera,
+            &self.sprite_sheets,
         );
 
         // Particles
@@ -180,6 +296,9 @@ impl Engine {
 
         // HUD
         self.render_hud();
+
+        // Scene transition overlay (after all rendering, before post_fx)
+        self.transition.apply(&mut self.framebuffer);
 
         // Post-processing effects
         crate::rendering::post_fx::apply(
@@ -402,6 +521,7 @@ impl Engine {
 
     fn render_hud(&mut self) {
         use crate::rendering::text;
+        use crate::dialogue::MessageKind;
 
         // Find player state
         let player_state = self.world.tags.iter()
@@ -501,6 +621,88 @@ impl Engine {
                     &format!("ENT {} PRT {}", self.world.entity_count(), self.particles.count()),
                     Color::from_rgba(100, 100, 100, 200), 1,
                 );
+            }
+        }
+
+        // Dialogue / notification / floating text messages
+        {
+            // Collect messages to avoid borrow conflict with self.framebuffer
+            let msgs: Vec<_> = self.dialogue.active().cloned().collect();
+            let mut notification_y = 10i32;
+            let screen_w = self.width as i32;
+            let screen_h = self.height as i32;
+
+            for msg in &msgs {
+                // Fade alpha based on remaining time (fade out in last 0.5s)
+                let alpha_factor = if msg.remaining < 0.5 {
+                    (msg.remaining / 0.5).max(0.0).min(1.0)
+                } else {
+                    1.0
+                };
+                let msg_color = Color::from_rgba(
+                    msg.color.r,
+                    msg.color.g,
+                    msg.color.b,
+                    (msg.color.a as f64 * alpha_factor) as u8,
+                );
+
+                match msg.kind {
+                    MessageKind::Dialogue => {
+                        // Draw text box at bottom of screen
+                        let box_h = 40i32;
+                        let box_y = screen_h - box_h - 4;
+                        let box_w = screen_w - 20;
+                        crate::rendering::shapes::fill_rect(
+                            &mut self.framebuffer,
+                            10.0, box_y as f64,
+                            box_w as f64, box_h as f64,
+                            Color::from_rgba(0, 0, 0, 180),
+                        );
+                        crate::rendering::shapes::draw_rect(
+                            &mut self.framebuffer,
+                            10.0, box_y as f64,
+                            box_w as f64, box_h as f64,
+                            Color::from_rgba(200, 200, 200, 150),
+                        );
+                        text::draw_text(
+                            &mut self.framebuffer,
+                            18, box_y + 14,
+                            &msg.text,
+                            msg_color, 1,
+                        );
+                    }
+                    MessageKind::Notification => {
+                        // Draw toast at top-center
+                        let tw = text::text_width(&msg.text, 1);
+                        let tx = screen_w / 2 - tw / 2;
+                        // Background pill
+                        crate::rendering::shapes::fill_rect(
+                            &mut self.framebuffer,
+                            (tx - 6) as f64, (notification_y - 2) as f64,
+                            (tw + 12) as f64, 12.0,
+                            Color::from_rgba(0, 0, 0, 160),
+                        );
+                        text::draw_text(
+                            &mut self.framebuffer,
+                            tx, notification_y,
+                            &msg.text,
+                            msg_color, 1,
+                        );
+                        notification_y += 16;
+                    }
+                    MessageKind::FloatingText => {
+                        // Draw at world_pos using camera transform
+                        if let Some((wx, wy)) = msg.world_pos {
+                            let (sx, sy) = self.camera.world_to_screen(wx, wy);
+                            text::draw_text_centered(
+                                &mut self.framebuffer,
+                                sx, sy,
+                                &msg.text,
+                                msg_color, 1,
+                            );
+                        }
+                    }
+                }
             }
         }
 

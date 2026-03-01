@@ -16,6 +16,7 @@ pub mod game_state;
 pub mod timers;
 pub mod templates;
 pub mod behavior;
+pub mod dialogue;
 
 #[cfg(test)]
 mod tests;
@@ -89,9 +90,21 @@ pub fn load_world(source: String) {
     with_engine(|eng| {
         match scripting::parser::parse_world(&source) {
             Ok(world_file) => {
-                scripting::loader::load_world_file(&world_file, &mut eng.world, &mut eng.config);
-                log::log(&format!("Loaded world '{}' with {} entities",
-                    eng.config.name, eng.world.entity_count()));
+                // Reset everything first (clears spawner timers, particles, etc.)
+                eng.reset_game_state();
+
+                // Full load: entities + templates + state + timers + rules
+                // (load_world_full also clears and repopulates these from the .world file)
+                scripting::loader::load_world_full(
+                    &world_file, &mut eng.world, &mut eng.config,
+                    &mut eng.global_state, &mut eng.timers,
+                    &mut eng.templates, &mut eng.rules,
+                );
+                log::log(&format!(
+                    "Loaded world '{}' with {} entities, {} templates, {} timers, {} rules",
+                    eng.config.name, eng.world.entity_count(),
+                    eng.templates.len(), eng.timers.len(), eng.rules.len(),
+                ));
 
                 // Initialize starfield for space-themed games
                 let name_lower = eng.config.name.to_lowercase();
@@ -104,9 +117,6 @@ pub fn load_world(source: String) {
                     ));
                     eng.post_fx.vignette_strength = 0.6;
                 }
-
-                // Reset game state
-                eng.reset_game_state();
             }
             Err(e) => {
                 log::error(&format!("World parse error: {}", e));

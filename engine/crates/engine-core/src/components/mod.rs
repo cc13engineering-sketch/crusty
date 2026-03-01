@@ -8,6 +8,10 @@ pub mod role;
 pub mod lifetime;
 pub mod game_state;
 pub mod behavior;
+pub mod physics_material;
+pub mod impulse;
+pub mod motion_constraint;
+pub mod zone_effect;
 
 pub use transform::Transform;
 pub use rigidbody::RigidBody;
@@ -19,6 +23,10 @@ pub use role::Role;
 pub use lifetime::Lifetime;
 pub use game_state::GameState;
 pub use behavior::{Behavior, BehaviorMode};
+pub use physics_material::PhysicsMaterial;
+pub use impulse::Impulse;
+pub use motion_constraint::MotionConstraint;
+pub use zone_effect::{ZoneEffect, ZoneEffectKind};
 
 /// Trait for components to provide their own schema metadata.
 pub trait SchemaInfo {

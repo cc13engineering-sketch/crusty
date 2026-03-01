@@ -15,6 +15,10 @@ pub fn generate_schema() -> String {
             { "name": Lifetime::schema_name(), "schema": Lifetime::schema() },
             { "name": GameState::schema_name(), "schema": GameState::schema() },
             { "name": Behavior::schema_name(), "schema": Behavior::schema() },
+            { "name": PhysicsMaterial::schema_name(), "schema": PhysicsMaterial::schema() },
+            { "name": Impulse::schema_name(), "schema": Impulse::schema() },
+            { "name": MotionConstraint::schema_name(), "schema": MotionConstraint::schema() },
+            { "name": ZoneEffect::schema_name(), "schema": ZoneEffect::schema() },
         ],
         "systems": [
             "lifecycle", "behavior",

@@ -5,3 +5,6 @@ pub mod text;
 pub mod particles;
 pub mod starfield;
 pub mod post_fx;
+pub mod layers;
+pub mod sprite;
+pub mod transition;

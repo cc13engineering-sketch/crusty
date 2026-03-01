@@ -55,6 +55,10 @@ pub struct World {
     pub lifetimes: ComponentStore<Lifetime>,
     pub game_states: ComponentStore<GameState>,
     pub behaviors: ComponentStore<Behavior>,
+    pub physics_materials: ComponentStore<PhysicsMaterial>,
+    pub impulses: ComponentStore<Impulse>,
+    pub motion_constraints: ComponentStore<MotionConstraint>,
+    pub zone_effects: ComponentStore<ZoneEffect>,
 }
 
 impl World {
@@ -73,6 +77,10 @@ impl World {
             lifetimes: ComponentStore::new(),
             game_states: ComponentStore::new(),
             behaviors: ComponentStore::new(),
+            physics_materials: ComponentStore::new(),
+            impulses: ComponentStore::new(),
+            motion_constraints: ComponentStore::new(),
+            zone_effects: ComponentStore::new(),
         }
     }
 
@@ -103,6 +111,10 @@ impl World {
         self.lifetimes.remove(entity);
         self.game_states.remove(entity);
         self.behaviors.remove(entity);
+        self.physics_materials.remove(entity);
+        self.impulses.remove(entity);
+        self.motion_constraints.remove(entity);
+        self.zone_effects.remove(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -126,6 +138,10 @@ impl World {
         self.lifetimes.clear();
         self.game_states.clear();
         self.behaviors.clear();
+        self.physics_materials.clear();
+        self.impulses.clear();
+        self.motion_constraints.clear();
+        self.zone_effects.clear();
         self.next_id = 1;
     }
 }

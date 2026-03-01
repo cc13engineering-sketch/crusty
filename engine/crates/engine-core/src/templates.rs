@@ -34,6 +34,14 @@ pub struct EntityTemplate {
     pub game_state: Option<GameState>,
     /// Optional autonomous behavior.
     pub behavior: Option<Behavior>,
+    /// Optional surface physics material.
+    pub physics_material: Option<PhysicsMaterial>,
+    /// Optional impulse (instant velocity change).
+    pub impulse: Option<Impulse>,
+    /// Optional motion constraint.
+    pub motion_constraint: Option<MotionConstraint>,
+    /// Optional zone effect.
+    pub zone_effect: Option<ZoneEffect>,
 }
 
 impl EntityTemplate {
@@ -50,6 +58,10 @@ impl EntityTemplate {
             lifetime: None,
             game_state: None,
             behavior: None,
+            physics_material: None,
+            impulse: None,
+            motion_constraint: None,
+            zone_effect: None,
         }
     }
 
@@ -113,6 +125,26 @@ impl EntityTemplate {
         // Behavior
         if let Some(ref beh) = self.behavior {
             world.behaviors.insert(entity, beh.clone());
+        }
+
+        // PhysicsMaterial
+        if let Some(ref pm) = self.physics_material {
+            world.physics_materials.insert(entity, pm.clone());
+        }
+
+        // Impulse
+        if let Some(ref imp) = self.impulse {
+            world.impulses.insert(entity, imp.clone());
+        }
+
+        // MotionConstraint
+        if let Some(ref mc) = self.motion_constraint {
+            world.motion_constraints.insert(entity, mc.clone());
+        }
+
+        // ZoneEffect
+        if let Some(ref ze) = self.zone_effect {
+            world.zone_effects.insert(entity, ze.clone());
         }
 
         entity

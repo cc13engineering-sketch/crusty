@@ -48,6 +48,10 @@ pub fn run(
         if let Some(lt) = cmd.lifetime { world.lifetimes.insert(entity, lt); }
         if let Some(gs) = cmd.game_state { world.game_states.insert(entity, gs); }
         if let Some(beh) = cmd.behavior { world.behaviors.insert(entity, beh); }
+        if let Some(pm) = cmd.physics_material { world.physics_materials.insert(entity, pm); }
+        if let Some(imp) = cmd.impulse { world.impulses.insert(entity, imp); }
+        if let Some(mc) = cmd.motion_constraint { world.motion_constraints.insert(entity, mc); }
+        if let Some(ze) = cmd.zone_effect { world.zone_effects.insert(entity, ze); }
     }
 
     // --- Phase 2: Process deferred despawns ---

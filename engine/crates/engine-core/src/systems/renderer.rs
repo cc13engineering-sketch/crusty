@@ -6,22 +6,42 @@
 use crate::ecs::World;
 use crate::rendering::framebuffer::Framebuffer;
 use crate::rendering::shapes;
+use crate::rendering::sprite::SpriteSheet;
 use crate::rendering::color::Color;
 use crate::engine::{WorldConfig, Camera};
 use crate::input::Input;
 use crate::components::{Visual, ColliderShape};
 
 /// Render entities only (no framebuffer clear). Called by engine after starfield.
-pub fn run_entities_only(world: &World, fb: &mut Framebuffer, input: &Input, camera: &Camera) {
-    render_drawables(world, fb, input, camera);
+pub fn run_entities_only(
+    world: &World,
+    fb: &mut Framebuffer,
+    input: &Input,
+    camera: &Camera,
+    sprite_sheets: &[SpriteSheet],
+) {
+    render_drawables(world, fb, input, camera, sprite_sheets);
 }
 
-pub fn run(world: &World, fb: &mut Framebuffer, config: &WorldConfig, input: &Input, camera: &Camera) {
+pub fn run(
+    world: &World,
+    fb: &mut Framebuffer,
+    config: &WorldConfig,
+    input: &Input,
+    camera: &Camera,
+    sprite_sheets: &[SpriteSheet],
+) {
     fb.clear(config.background);
-    render_drawables(world, fb, input, camera);
+    render_drawables(world, fb, input, camera, sprite_sheets);
 }
 
-fn render_drawables(world: &World, fb: &mut Framebuffer, input: &Input, camera: &Camera) {
+fn render_drawables(
+    world: &World,
+    fb: &mut Framebuffer,
+    input: &Input,
+    camera: &Camera,
+    sprite_sheets: &[SpriteSheet],
+) {
     // Collect drawable entities
     let mut drawables: Vec<(i32, f64, f64, DrawType)> = Vec::new();
 
@@ -80,6 +100,14 @@ fn render_drawables(world: &World, fb: &mut Framebuffer, input: &Input, camera: 
                 Visual::Line { x2, y2, color, thickness } => {
                     let (sx2, sy2) = camera.world_to_screen(*x2, *y2);
                     shapes::draw_line_thick(fb, *x, *y, sx2 as f64, sy2 as f64, *thickness, *color);
+                }
+                Visual::Sprite { sheet_id, tile_index } => {
+                    if let Some(sheet) = sprite_sheets.get(*sheet_id as usize) {
+                        // Center the tile on the entity position
+                        let dx = *x as i32 - (sheet.tile_w as i32 / 2);
+                        let dy = *y as i32 - (sheet.tile_h as i32 / 2);
+                        sheet.draw_tile(fb, *tile_index, dx, dy);
+                    }
                 }
             }
         }

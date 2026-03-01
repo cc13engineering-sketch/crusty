@@ -13,6 +13,10 @@ pub struct SpawnCommand {
     pub lifetime: Option<Lifetime>,
     pub game_state: Option<GameState>,
     pub behavior: Option<Behavior>,
+    pub physics_material: Option<PhysicsMaterial>,
+    pub impulse: Option<Impulse>,
+    pub motion_constraint: Option<MotionConstraint>,
+    pub zone_effect: Option<ZoneEffect>,
 }
 
 impl SpawnCommand {
@@ -28,6 +32,10 @@ impl SpawnCommand {
             lifetime: None,
             game_state: None,
             behavior: None,
+            physics_material: None,
+            impulse: None,
+            motion_constraint: None,
+            zone_effect: None,
         }
     }
 }

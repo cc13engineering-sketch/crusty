@@ -1,14 +1,17 @@
 /// SYSTEM: force_accumulator
-/// READS: Transform, ForceField, RigidBody, Collider
+/// READS: Transform, ForceField, RigidBody, Collider, ZoneEffect
 /// WRITES: RigidBody.ax, RigidBody.ay (resets then accumulates)
 /// ORDER: 1st in physics step
 
 use crate::ecs::World;
 use crate::physics::math::{self, Vec2};
-use crate::components::{FieldType, Falloff, ColliderShape};
+use crate::components::{FieldType, Falloff, ColliderShape, ZoneEffectKind};
 
 pub fn run(world: &mut World) {
-    let World { transforms, rigidbodies, force_fields, colliders, .. } = world;
+    let World {
+        transforms, rigidbodies, force_fields, colliders,
+        zone_effects, ..
+    } = world;
 
     // Collect force field data: (position, field_ref, min_distance)
     let sources: Vec<(Vec2, crate::components::ForceField, f64)> = force_fields
@@ -20,6 +23,19 @@ pub fn run(world: &mut World) {
                 ColliderShape::Rect { half_width, half_height } => half_width.min(*half_height),
             });
             Some(((t.x, t.y), ff.clone(), min_dist))
+        })
+        .collect();
+
+    // Collect zone effect data: (position, collider_shape, effects)
+    let zones: Vec<(Vec2, ColliderShape, Vec<ZoneEffectKind>)> = zone_effects
+        .iter()
+        .filter_map(|(entity, ze)| {
+            let t = transforms.get(entity)?;
+            let col = colliders.get(entity)?;
+            if !col.is_trigger {
+                return None;
+            }
+            Some(((t.x, t.y), col.shape.clone(), ze.effects.clone()))
         })
         .collect();
 
@@ -38,6 +54,7 @@ pub fn run(world: &mut World) {
         rb.ax = 0.0;
         rb.ay = 0.0;
 
+        // --- ForceField accumulation ---
         for (src_pos, ff, min_dist) in &sources {
             let diff = math::sub(pos, *src_pos);
             let mut dist = math::length(diff);
@@ -65,6 +82,63 @@ pub fn run(world: &mut World) {
             let accel = magnitude / rb.mass;
             rb.ax += dir.0 * accel;
             rb.ay += dir.1 * accel;
+        }
+
+        // --- ZoneEffect accumulation ---
+        for (zone_pos, zone_shape, effects) in &zones {
+            if !point_in_shape(pos, *zone_pos, zone_shape) {
+                continue;
+            }
+
+            for effect in effects {
+                match effect {
+                    ZoneEffectKind::Wind { dx, dy, strength } => {
+                        // Wind applies as acceleration (force / mass, but
+                        // strength is already in acceleration units)
+                        let wind_dir = math::normalize((*dx, *dy));
+                        rb.ax += wind_dir.0 * strength;
+                        rb.ay += wind_dir.1 * strength;
+                    }
+                    ZoneEffectKind::Drag { coefficient } => {
+                        // Drag opposes current velocity: a = -coefficient * v
+                        rb.ax -= coefficient * rb.vx;
+                        rb.ay -= coefficient * rb.vy;
+                    }
+                    ZoneEffectKind::SpeedMultiplier { factor } => {
+                        // Apply as a per-frame velocity scale via acceleration.
+                        // The target velocity is v * factor, so the needed
+                        // acceleration nudge is v * (factor - 1).
+                        rb.ax += rb.vx * (factor - 1.0);
+                        rb.ay += rb.vy * (factor - 1.0);
+                    }
+                    ZoneEffectKind::Conveyor { dx, dy, speed } => {
+                        // Conveyor pushes toward the conveyor direction at a
+                        // fixed speed. Apply as acceleration toward target vel.
+                        let dir = math::normalize((*dx, *dy));
+                        let target_vx = dir.0 * speed;
+                        let target_vy = dir.1 * speed;
+                        // Acceleration proportional to difference from target
+                        rb.ax += (target_vx - rb.vx) * 5.0;
+                        rb.ay += (target_vy - rb.vy) * 5.0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// Simple point-in-shape test. Checks if `point` is inside the shape
+/// centered at `center`.
+fn point_in_shape(point: Vec2, center: Vec2, shape: &ColliderShape) -> bool {
+    match shape {
+        ColliderShape::Circle { radius } => {
+            let dist_sq = math::distance_sq(point, center);
+            dist_sq <= radius * radius
+        }
+        ColliderShape::Rect { half_width, half_height } => {
+            let dx = (point.0 - center.0).abs();
+            let dy = (point.1 - center.1).abs();
+            dx <= *half_width && dy <= *half_height
         }
     }
 }

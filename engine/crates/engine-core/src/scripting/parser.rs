@@ -113,6 +113,75 @@ fn parse_object(pair: pest::iterators::Pair<Rule>) -> HashMap<String, Value> {
     map
 }
 
+/// Parse entity properties from an entity_decl or template_decl pair.
+fn parse_entity_props(pair: pest::iterators::Pair<Rule>) -> EntityDef {
+    let mut inner_pairs = pair.into_inner();
+    let id = inner_pairs.next().unwrap().as_str().to_string();
+    let mut entity = EntityDef {
+        id,
+        role: None, intent: None, group: None,
+        position: None, physics: None, collider: None,
+        visual: None, force_field: None,
+        tags: Vec::new(), extra: HashMap::new(),
+    };
+
+    for prop in inner_pairs {
+        if prop.as_rule() != Rule::entity_prop { continue; }
+        let prop_str = prop.as_str();
+        let mut parts = prop.into_inner();
+        let first = parts.next().unwrap();
+
+        match first.as_rule() {
+            Rule::string if prop_str.starts_with("role") => {
+                entity.role = Some(strip_quotes(first.as_str()).to_string());
+            }
+            Rule::string if prop_str.starts_with("intent") => {
+                entity.intent = Some(strip_quotes(first.as_str()).to_string());
+            }
+            Rule::string if prop_str.starts_with("group") => {
+                entity.group = Some(strip_quotes(first.as_str()).to_string());
+            }
+            Rule::vec2 => {
+                let mut coords = first.into_inner();
+                let x = coords.next().unwrap().as_str().parse::<f64>().unwrap_or(0.0);
+                let y = coords.next().unwrap().as_str().parse::<f64>().unwrap_or(0.0);
+                entity.position = Some((x, y));
+            }
+            Rule::object if prop_str.starts_with("physics") => {
+                entity.physics = Some(parse_object(first));
+            }
+            Rule::object if prop_str.starts_with("collider") => {
+                entity.collider = Some(parse_object(first));
+            }
+            Rule::object if prop_str.starts_with("visual") => {
+                entity.visual = Some(parse_object(first));
+            }
+            Rule::object if prop_str.starts_with("force_field") => {
+                entity.force_field = Some(parse_object(first));
+            }
+            Rule::string_list => {
+                for s in first.into_inner() {
+                    entity.tags.push(strip_quotes(s.as_str()).to_string());
+                }
+            }
+            Rule::ident => {
+                let key = first.as_str().to_string();
+                if let Some(val_pair) = parts.next() {
+                    entity.extra.insert(key, parse_value(val_pair));
+                }
+            }
+            _ => {
+                // Catch-all for ident: value properties
+                if let Some(val_pair) = parts.next() {
+                    let key = first.as_str().to_string();
+                    entity.extra.insert(key, parse_value(val_pair));
+                }
+            }
+        }
+    }
+    entity
+}
+
 pub fn parse_world(source: &str) -> Result<WorldFile, String> {
     let pairs = WorldParser::parse(Rule::world_file, source)
         .map_err(|e| format!("Parse error: {}", e))?;
@@ -163,71 +232,87 @@ pub fn parse_world(source: &str) -> Result<WorldFile, String> {
                         }
                     }
                     Rule::entity_decl => {
+                        world_file.entities.push(parse_entity_props(inner));
+                    }
+                    Rule::template_decl => {
+                        world_file.templates.push(parse_entity_props(inner));
+                    }
+                    Rule::state_decl => {
+                        for entry in inner.into_inner() {
+                            if entry.as_rule() == Rule::state_entry {
+                                let mut parts = entry.into_inner();
+                                let key = parts.next().unwrap().as_str().to_string();
+                                let val = parse_value(parts.next().unwrap());
+                                world_file.initial_state.insert(key, val);
+                            }
+                        }
+                    }
+                    Rule::timer_decl => {
                         let mut inner_pairs = inner.into_inner();
-                        let id = inner_pairs.next().unwrap().as_str().to_string();
-                        let mut entity = EntityDef {
-                            id,
-                            role: None, intent: None, group: None,
-                            position: None, physics: None, collider: None,
-                            visual: None, force_field: None,
-                            tags: Vec::new(), extra: HashMap::new(),
-                        };
-
+                        let name = inner_pairs.next().unwrap().as_str().to_string();
+                        let mut props = HashMap::new();
                         for prop in inner_pairs {
-                            if prop.as_rule() != Rule::entity_prop { continue; }
-                            let prop_str = prop.as_str();
-                            let mut parts = prop.into_inner();
+                            if prop.as_rule() == Rule::timer_prop {
+                                let mut parts = prop.into_inner();
+                                let key = parts.next().unwrap().as_str().to_string();
+                                let val = parse_value(parts.next().unwrap());
+                                props.insert(key, val);
+                            }
+                        }
+                        world_file.timers.push(TimerDef { name, props });
+                    }
+                    Rule::rule_decl => {
+                        let mut inner_pairs = inner.into_inner();
+                        let name = strip_quotes(inner_pairs.next().unwrap().as_str()).to_string();
+                        let mut cond_name = String::new();
+                        let mut cond_args = Vec::new();
+                        let mut actions = Vec::new();
+                        let mut props = HashMap::new();
+                        for section in inner_pairs {
+                            if section.as_rule() != Rule::rule_section { continue; }
+                            let section_str = section.as_str();
+                            let mut parts = section.into_inner();
                             let first = parts.next().unwrap();
-
-                            match first.as_rule() {
-                                Rule::string if prop_str.starts_with("role") => {
-                                    entity.role = Some(strip_quotes(first.as_str()).to_string());
-                                }
-                                Rule::string if prop_str.starts_with("intent") => {
-                                    entity.intent = Some(strip_quotes(first.as_str()).to_string());
-                                }
-                                Rule::string if prop_str.starts_with("group") => {
-                                    entity.group = Some(strip_quotes(first.as_str()).to_string());
-                                }
-                                Rule::vec2 => {
-                                    let mut coords = first.into_inner();
-                                    let x = coords.next().unwrap().as_str().parse::<f64>().unwrap_or(0.0);
-                                    let y = coords.next().unwrap().as_str().parse::<f64>().unwrap_or(0.0);
-                                    entity.position = Some((x, y));
-                                }
-                                Rule::object if prop_str.starts_with("physics") => {
-                                    entity.physics = Some(parse_object(first));
-                                }
-                                Rule::object if prop_str.starts_with("collider") => {
-                                    entity.collider = Some(parse_object(first));
-                                }
-                                Rule::object if prop_str.starts_with("visual") => {
-                                    entity.visual = Some(parse_object(first));
-                                }
-                                Rule::object if prop_str.starts_with("force_field") => {
-                                    entity.force_field = Some(parse_object(first));
-                                }
-                                Rule::string_list => {
-                                    for s in first.into_inner() {
-                                        entity.tags.push(strip_quotes(s.as_str()).to_string());
+                            if section_str.starts_with("when") {
+                                // rule_condition
+                                if first.as_rule() == Rule::rule_condition {
+                                    let mut cond_parts = first.into_inner();
+                                    cond_name = cond_parts.next().unwrap().as_str().to_string();
+                                    if let Some(vl) = cond_parts.next() {
+                                        cond_args = vl.into_inner().map(parse_value).collect();
                                     }
                                 }
-                                Rule::ident => {
-                                    let key = first.as_str().to_string();
-                                    if let Some(val_pair) = parts.next() {
-                                        entity.extra.insert(key, parse_value(val_pair));
+                            } else if section_str.starts_with("then") {
+                                // rule_action_list
+                                if first.as_rule() == Rule::rule_action_list {
+                                    for action_pair in first.into_inner() {
+                                        if action_pair.as_rule() == Rule::rule_action {
+                                            let mut ap = action_pair.into_inner();
+                                            let act_name = ap.next().unwrap().as_str().to_string();
+                                            let act_args: Vec<Value> = if let Some(vl) = ap.next() {
+                                                vl.into_inner().map(parse_value).collect()
+                                            } else {
+                                                Vec::new()
+                                            };
+                                            actions.push((act_name, act_args));
+                                        }
                                     }
                                 }
-                                _ => {
-                                    // Catch-all for ident: value properties
-                                    if let Some(val_pair) = parts.next() {
-                                        let key = first.as_str().to_string();
-                                        entity.extra.insert(key, parse_value(val_pair));
-                                    }
+                            } else {
+                                // Extra prop like once: true
+                                let key = first.as_str().to_string();
+                                if let Some(val_pair) = parts.next() {
+                                    props.insert(key, parse_value(val_pair));
                                 }
                             }
                         }
-                        world_file.entities.push(entity);
+                        world_file.rules.push(RuleDef {
+                            name,
+                            condition_name: cond_name,
+                            condition_args: cond_args,
+                            actions,
+                            props,
+                        });
                     }
                     _ => {}
                 }
@@ -907,5 +992,212 @@ entity pebble_3 {
         let pebble_3 = &wf.entities[23];
         assert_eq!(pebble_3.id, "pebble_3");
         assert_eq!(pebble_3.position, Some((100.0, 100.0)));
+    }
+
+    // -----------------------------------------------------------------------
+    // 18. Parse template declaration
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_template_declaration() {
+        let src = r#"
+            world "Test" {}
+            template bullet {
+                physics: { mass: 0.1, vy: -500 }
+                collider: { shape: circle, radius: 3 }
+                visual: { shape: circle, radius: 3, color: #ffffff, filled: true }
+                tags: ["bullet"]
+                lifetime: 2.0
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.templates.len(), 1);
+        let tmpl = &wf.templates[0];
+        assert_eq!(tmpl.id, "bullet");
+        assert!(tmpl.physics.is_some());
+        assert!(tmpl.collider.is_some());
+        assert!(tmpl.visual.is_some());
+        assert_eq!(tmpl.tags, vec!["bullet"]);
+        match tmpl.extra.get("lifetime") {
+            Some(Value::Number(n)) => assert_eq!(*n, 2.0),
+            other => panic!("expected Number(2.0), got {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 19. Parse state declaration
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_state_declaration() {
+        let src = r#"
+            world "Test" {}
+            state {
+                score: 0
+                lives: 3
+                game_active: true
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.initial_state.len(), 3);
+        match wf.initial_state.get("score") {
+            Some(Value::Number(n)) => assert_eq!(*n, 0.0),
+            other => panic!("expected Number(0), got {:?}", other),
+        }
+        match wf.initial_state.get("lives") {
+            Some(Value::Number(n)) => assert_eq!(*n, 3.0),
+            other => panic!("expected Number(3), got {:?}", other),
+        }
+        match wf.initial_state.get("game_active") {
+            Some(Value::Bool(b)) => assert_eq!(*b, true),
+            other => panic!("expected Bool(true), got {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 20. Parse timer declaration
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_timer_declaration() {
+        let src = r#"
+            world "Test" {}
+            timer spawn_wave {
+                delay: 3.0
+                interval: 5.0
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.timers.len(), 1);
+        assert_eq!(wf.timers[0].name, "spawn_wave");
+        match wf.timers[0].props.get("delay") {
+            Some(Value::Number(n)) => assert_eq!(*n, 3.0),
+            other => panic!("expected Number(3.0), got {:?}", other),
+        }
+        match wf.timers[0].props.get("interval") {
+            Some(Value::Number(n)) => assert_eq!(*n, 5.0),
+            other => panic!("expected Number(5.0), got {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 21. Parse rule declaration
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_rule_declaration() {
+        let src = r#"
+            world "Test" {}
+            rule "Bullet hits asteroid" {
+                when: collision(bullet, asteroid)
+                then: [
+                    despawn(both),
+                    add_state(score, 10)
+                ]
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.rules.len(), 1);
+        let rule = &wf.rules[0];
+        assert_eq!(rule.name, "Bullet hits asteroid");
+        assert_eq!(rule.condition_name, "collision");
+        assert_eq!(rule.condition_args.len(), 2);
+        assert_eq!(rule.actions.len(), 2);
+        assert_eq!(rule.actions[0].0, "despawn");
+        assert_eq!(rule.actions[1].0, "add_state");
+    }
+
+    // -----------------------------------------------------------------------
+    // 22. Parse rule with once flag
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_rule_with_once_flag() {
+        let src = r#"
+            world "Test" {}
+            rule "Game Over" {
+                when: state(lives, lte, 0)
+                then: [
+                    set_flag(game_over, true),
+                    log("GAME OVER")
+                ]
+                once: true
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        let rule = &wf.rules[0];
+        assert_eq!(rule.name, "Game Over");
+        assert_eq!(rule.condition_name, "state");
+        assert_eq!(rule.condition_args.len(), 3);
+        match rule.props.get("once") {
+            Some(Value::Bool(b)) => assert_eq!(*b, true),
+            other => panic!("expected Bool(true), got {:?}", other),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 23. Parse multiple templates
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_multiple_templates() {
+        let src = r#"
+            world "Test" {}
+            template bullet {
+                collider: { shape: circle, radius: 3 }
+                tags: ["bullet"]
+            }
+            template asteroid {
+                collider: { shape: circle, radius: 15 }
+                tags: ["asteroid"]
+            }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.templates.len(), 2);
+        assert_eq!(wf.templates[0].id, "bullet");
+        assert_eq!(wf.templates[1].id, "asteroid");
+    }
+
+    // -----------------------------------------------------------------------
+    // 24. Parse mixed entities and templates
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_mixed_entities_and_templates() {
+        let src = r#"
+            world "Test" {}
+            entity player { position: (100, 200) tags: ["player"] }
+            template bullet { tags: ["bullet"] }
+            entity wall { position: (0, 0) }
+            template asteroid { tags: ["rock"] }
+        "#;
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.entities.len(), 2);
+        assert_eq!(wf.templates.len(), 2);
+        assert_eq!(wf.entities[0].id, "player");
+        assert_eq!(wf.entities[1].id, "wall");
+        assert_eq!(wf.templates[0].id, "bullet");
+        assert_eq!(wf.templates[1].id, "asteroid");
+    }
+
+    // -----------------------------------------------------------------------
+    // 25. Parse the space_survival_v2 world
+    // -----------------------------------------------------------------------
+    #[test]
+    fn parse_space_survival_v2() {
+        let src = include_str!("../../../../worlds/space_survival_v2.world");
+        let wf = parse_world(src).unwrap();
+        assert_eq!(wf.name, "Space Survival v2");
+        assert_eq!(wf.bounds, Some((960.0, 540.0)));
+
+        // State
+        assert!(wf.initial_state.contains_key("score"));
+        assert!(wf.initial_state.contains_key("lives"));
+        assert!(wf.initial_state.contains_key("wave"));
+
+        // Templates
+        assert_eq!(wf.templates.len(), 4); // bullet, asteroid_small, asteroid_large, pickup_health
+
+        // Timers
+        assert_eq!(wf.timers.len(), 2); // asteroid_wave, pickup_spawn
+
+        // Rules
+        assert_eq!(wf.rules.len(), 6);
+
+        // Entities (player, spawner, 4 walls)
+        assert_eq!(wf.entities.len(), 6);
     }
 }

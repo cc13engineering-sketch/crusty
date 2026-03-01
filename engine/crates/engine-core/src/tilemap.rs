@@ -51,29 +51,54 @@ impl Tile {
     }
 }
 
-/// A 2D grid of tiles stored in row-major order.
+/// A single layer of tiles in a TileMap.
+#[derive(Clone, Debug)]
+pub struct TileLayer {
+    pub name: String,
+    pub tiles: Vec<Tile>,
+    pub visible: bool,
+    pub collidable: bool,
+    pub opacity: f64,
+}
+
+/// A 2D grid of tiles stored in row-major order, with multi-layer support.
 ///
-/// Tile `(x, y)` is stored at index `y * width + x`.
+/// Tile `(x, y)` is stored at index `y * width + x` within each layer.
 /// The grid's world-space top-left corner is `(origin_x, origin_y)`.
+/// Layer 0 ("base") is created by default. All legacy methods operate on layer 0.
 #[derive(Clone, Debug)]
 pub struct TileMap {
     pub width: usize,    // grid width in tiles
     pub height: usize,   // grid height in tiles
     pub tile_size: f64,  // pixel size of each (square) tile
-    pub tiles: Vec<Tile>, // row-major: tiles[y * width + x]
+    pub layers: Vec<TileLayer>,
     pub origin_x: f64,   // world-space left edge
     pub origin_y: f64,   // world-space top edge
 }
 
+// Backward-compatible `tiles` accessor — delegates to layer 0.
 impl TileMap {
-    /// Create a new TileMap filled with empty tiles.
+    #[inline]
+    pub fn tiles(&self) -> &[Tile] { &self.layers[0].tiles }
+    #[inline]
+    pub fn tiles_mut(&mut self) -> &mut Vec<Tile> { &mut self.layers[0].tiles }
+}
+
+impl TileMap {
+    /// Create a new TileMap filled with empty tiles (single base layer).
     pub fn new(width: usize, height: usize, tile_size: f64) -> Self {
         let tiles = (0..width * height).map(|_| Tile::empty()).collect();
         Self {
             width,
             height,
             tile_size,
-            tiles,
+            layers: vec![TileLayer {
+                name: "base".to_string(),
+                tiles,
+                visible: true,
+                collidable: true,
+                opacity: 1.0,
+            }],
             origin_x: 0.0,
             origin_y: 0.0,
         }
@@ -88,31 +113,76 @@ impl TileMap {
         }
     }
 
-    /// Get a reference to the tile at grid position `(x, y)`.
+    // ─── Layer management ──────────────────────────────────────────────
+
+    /// Add a new empty layer. Returns the layer index.
+    pub fn add_layer(&mut self, name: &str) -> usize {
+        let tiles = (0..self.width * self.height).map(|_| Tile::empty()).collect();
+        self.layers.push(TileLayer {
+            name: name.to_string(),
+            tiles,
+            visible: true,
+            collidable: false,
+            opacity: 1.0,
+        });
+        self.layers.len() - 1
+    }
+
+    /// Number of layers.
+    pub fn layer_count(&self) -> usize {
+        self.layers.len()
+    }
+
+    /// Get the index of a layer by name.
+    pub fn layer_index(&self, name: &str) -> Option<usize> {
+        self.layers.iter().position(|l| l.name == name)
+    }
+
+    // ─── Layer-aware accessors ─────────────────────────────────────────
+
+    /// Get a tile on a specific layer.
+    pub fn get_on_layer(&self, x: usize, y: usize, layer: usize) -> Option<&Tile> {
+        if layer >= self.layers.len() { return None; }
+        self.index(x, y).map(|i| &self.layers[layer].tiles[i])
+    }
+
+    /// Set a tile on a specific layer.
+    pub fn set_on_layer(&mut self, x: usize, y: usize, layer: usize, tile: Tile) {
+        if layer >= self.layers.len() { return; }
+        if let Some(i) = self.index(x, y) {
+            self.layers[layer].tiles[i] = tile;
+        }
+    }
+
+    // ─── Legacy accessors (layer 0) ────────────────────────────────────
+
+    /// Get a reference to the tile at grid position `(x, y)` on layer 0.
     /// Returns `None` if the coordinates are out of bounds.
     pub fn get(&self, x: usize, y: usize) -> Option<&Tile> {
-        self.index(x, y).map(|i| &self.tiles[i])
+        self.get_on_layer(x, y, 0)
     }
 
-    /// Get a mutable reference to the tile at grid position `(x, y)`.
+    /// Get a mutable reference to the tile at grid position `(x, y)` on layer 0.
     /// Returns `None` if the coordinates are out of bounds.
     pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut Tile> {
-        self.index(x, y).map(|i| &mut self.tiles[i])
+        self.index(x, y).map(|i| &mut self.layers[0].tiles[i])
     }
 
-    /// Set the tile at grid position `(x, y)`. Silently ignored if out of bounds.
+    /// Set the tile at grid position `(x, y)` on layer 0. Silently ignored if out of bounds.
     pub fn set(&mut self, x: usize, y: usize, tile: Tile) {
-        if let Some(i) = self.index(x, y) {
-            self.tiles[i] = tile;
-        }
+        self.set_on_layer(x, y, 0, tile);
     }
 
-    /// Returns true if the tile at `(x, y)` is `Solid` (not Platform, not Custom, not Empty).
+    /// Returns true if any collidable layer has a `Solid` tile at `(x, y)`.
     pub fn is_solid(&self, x: usize, y: usize) -> bool {
-        match self.get(x, y) {
-            Some(tile) => tile.tile_type == TileType::Solid,
-            None => false,
+        if let Some(i) = self.index(x, y) {
+            for layer in &self.layers {
+                if layer.collidable && layer.tiles[i].tile_type == TileType::Solid {
+                    return true;
+                }
+            }
         }
+        false
     }
 
     /// Convert a world-space position to tile grid coordinates.
@@ -148,29 +218,37 @@ impl TileMap {
         }
     }
 
-    /// Fill a rectangular region with copies of `tile`.
+    /// Fill a rectangular region on layer 0 with copies of `tile`.
     /// Clamps to map bounds; silently ignores out-of-bounds regions.
     pub fn fill_rect(&mut self, x: usize, y: usize, w: usize, h: usize, tile: Tile) {
+        self.fill_rect_on_layer(x, y, w, h, 0, tile);
+    }
+
+    /// Fill a rectangular region on a specific layer.
+    pub fn fill_rect_on_layer(&mut self, x: usize, y: usize, w: usize, h: usize, layer: usize, tile: Tile) {
+        if layer >= self.layers.len() { return; }
         let x_end = (x + w).min(self.width);
         let y_end = (y + h).min(self.height);
         for ty in y..y_end {
             for tx in x..x_end {
                 let i = ty * self.width + tx;
-                self.tiles[i] = tile.clone();
+                self.layers[layer].tiles[i] = tile.clone();
             }
         }
     }
 
-    /// Reset all tiles to `Empty`.
+    /// Reset all tiles on all layers to `Empty`.
     pub fn clear(&mut self) {
-        for tile in self.tiles.iter_mut() {
-            *tile = Tile::empty();
+        for layer in self.layers.iter_mut() {
+            for tile in layer.tiles.iter_mut() {
+                *tile = Tile::empty();
+            }
         }
     }
 
-    /// Count the number of `Solid` tiles in the map.
+    /// Count the number of `Solid` tiles on layer 0.
     pub fn solid_count(&self) -> usize {
-        self.tiles.iter().filter(|t| t.tile_type == TileType::Solid).count()
+        self.layers[0].tiles.iter().filter(|t| t.tile_type == TileType::Solid).count()
     }
 
     /// Render visible tiles to a framebuffer using camera position and zoom.
@@ -219,29 +297,36 @@ impl TileMap {
             (v.max(0) as usize).min(self.height)
         };
 
-        for ty in tile_y_min..tile_y_max {
-            for tx in tile_x_min..tile_x_max {
-                let tile = &self.tiles[ty * self.width + tx];
-                if tile.tile_type == TileType::Empty {
-                    continue;
+        // Render layers back-to-front.
+        for layer in &self.layers {
+            if !layer.visible { continue; }
+            for ty in tile_y_min..tile_y_max {
+                for tx in tile_x_min..tile_x_max {
+                    let tile = &layer.tiles[ty * self.width + tx];
+                    if tile.tile_type == TileType::Empty {
+                        continue;
+                    }
+
+                    let world_tx = self.origin_x + tx as f64 * self.tile_size;
+                    let world_ty = self.origin_y + ty as f64 * self.tile_size;
+
+                    let screen_x = (world_tx - camera_x) * zoom + half_sw;
+                    let screen_y = (world_ty - camera_y) * zoom + half_sh;
+
+                    let mut color = tile.color;
+                    if layer.opacity < 1.0 {
+                        color.a = (color.a as f64 * layer.opacity) as u8;
+                    }
+
+                    crate::rendering::shapes::fill_rect(
+                        fb,
+                        screen_x,
+                        screen_y,
+                        tile_px,
+                        tile_px,
+                        color,
+                    );
                 }
-
-                // Top-left world-space corner of this tile.
-                let world_tx = self.origin_x + tx as f64 * self.tile_size;
-                let world_ty = self.origin_y + ty as f64 * self.tile_size;
-
-                // Convert to screen space.
-                let screen_x = (world_tx - camera_x) * zoom + half_sw;
-                let screen_y = (world_ty - camera_y) * zoom + half_sh;
-
-                crate::rendering::shapes::fill_rect(
-                    fb,
-                    screen_x,
-                    screen_y,
-                    tile_px,
-                    tile_px,
-                    tile.color,
-                );
             }
         }
     }
@@ -260,13 +345,13 @@ mod tests {
         assert_eq!(tm.width, 10);
         assert_eq!(tm.height, 8);
         assert_eq!(tm.tile_size, 32.0);
-        assert_eq!(tm.tiles.len(), 80);
+        assert_eq!(tm.tiles().len(), 80);
     }
 
     #[test]
     fn new_all_empty() {
         let tm = TileMap::new(5, 5, 16.0);
-        for tile in &tm.tiles {
+        for tile in tm.tiles() {
             assert_eq!(tile.tile_type, TileType::Empty);
         }
     }
@@ -431,7 +516,7 @@ mod tests {
         assert_eq!(tm.solid_count(), 16);
         tm.clear();
         assert_eq!(tm.solid_count(), 0);
-        for tile in &tm.tiles {
+        for tile in tm.tiles() {
             assert_eq!(tile.tile_type, TileType::Empty);
         }
     }
@@ -454,5 +539,93 @@ mod tests {
     fn tile_custom_has_correct_id() {
         let t = Tile::custom(42, Color::BLUE);
         assert_eq!(t.tile_type, TileType::Custom(42));
+    }
+
+    // ── multi-layer ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn default_tilemap_has_one_layer() {
+        let tm = TileMap::new(4, 4, 32.0);
+        assert_eq!(tm.layer_count(), 1);
+        assert_eq!(tm.layers[0].name, "base");
+    }
+
+    #[test]
+    fn add_layer_creates_empty_layer() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let idx = tm.add_layer("objects");
+        assert_eq!(idx, 1);
+        assert_eq!(tm.layer_count(), 2);
+        assert_eq!(tm.layers[1].name, "objects");
+        // New layer should be non-collidable by default
+        assert!(!tm.layers[1].collidable);
+        // Should have correct number of tiles
+        assert_eq!(tm.layers[1].tiles.len(), 16);
+    }
+
+    #[test]
+    fn get_set_on_layer() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        tm.add_layer("overlay");
+        tm.set_on_layer(1, 1, 1, Tile::solid(Color::RED));
+        let tile = tm.get_on_layer(1, 1, 1).unwrap();
+        assert_eq!(tile.tile_type, TileType::Solid);
+        assert_eq!(tile.color, Color::RED);
+        // Layer 0 should still be empty at same position
+        assert_eq!(tm.get(1, 1).unwrap().tile_type, TileType::Empty);
+    }
+
+    #[test]
+    fn is_solid_checks_all_collidable_layers() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let idx = tm.add_layer("walls");
+        tm.layers[idx].collidable = true;
+        // Set solid on layer 1 only
+        tm.set_on_layer(2, 2, idx, Tile::solid(Color::WHITE));
+        // is_solid should find it across layers
+        assert!(tm.is_solid(2, 2));
+        // Layer 0 at (2,2) is empty
+        assert_eq!(tm.get(2, 2).unwrap().tile_type, TileType::Empty);
+    }
+
+    #[test]
+    fn non_collidable_layer_does_not_block() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let idx = tm.add_layer("decor");
+        // decor is non-collidable by default
+        tm.set_on_layer(1, 1, idx, Tile::solid(Color::RED));
+        assert!(!tm.is_solid(1, 1));
+    }
+
+    #[test]
+    fn layer_index_finds_by_name() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        tm.add_layer("traps");
+        assert_eq!(tm.layer_index("base"), Some(0));
+        assert_eq!(tm.layer_index("traps"), Some(1));
+        assert_eq!(tm.layer_index("nonexistent"), None);
+    }
+
+    #[test]
+    fn fill_rect_on_layer_works() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        let idx = tm.add_layer("fill_test");
+        tm.fill_rect_on_layer(0, 0, 2, 2, idx, Tile::solid(Color::GREEN));
+        assert_eq!(tm.get_on_layer(0, 0, idx).unwrap().tile_type, TileType::Solid);
+        assert_eq!(tm.get_on_layer(1, 1, idx).unwrap().tile_type, TileType::Solid);
+        assert_eq!(tm.get_on_layer(2, 0, idx).unwrap().tile_type, TileType::Empty);
+        // Layer 0 should be unaffected
+        assert_eq!(tm.get(0, 0).unwrap().tile_type, TileType::Empty);
+    }
+
+    #[test]
+    fn clear_resets_all_layers() {
+        let mut tm = TileMap::new(4, 4, 32.0);
+        tm.add_layer("extra");
+        tm.set(0, 0, Tile::solid(Color::WHITE));
+        tm.set_on_layer(0, 0, 1, Tile::solid(Color::RED));
+        tm.clear();
+        assert_eq!(tm.get(0, 0).unwrap().tile_type, TileType::Empty);
+        assert_eq!(tm.get_on_layer(0, 0, 1).unwrap().tile_type, TileType::Empty);
     }
 }

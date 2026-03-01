@@ -57,7 +57,7 @@ impl SpawnCommand {
 }
 
 /// Queue of spawn and despawn commands processed once per frame.
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct SpawnQueue {
     pub spawns: Vec<SpawnCommand>,
     pub despawns: Vec<Entity>,

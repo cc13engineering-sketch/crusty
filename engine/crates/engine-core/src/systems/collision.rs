@@ -31,11 +31,11 @@ struct MoveResult {
 }
 
 pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
-    let World { transforms, colliders, rigidbodies, tags: _, .. } = world;
+    let World { transforms, colliders, rigidbodies, physics_materials, tags: _, .. } = world;
 
     // SNAPSHOT all collidable entities
     let mut snaps: Vec<EntitySnap> = Vec::new();
-    let entities = colliders.sorted_entities();
+    let entities: Vec<Entity> = colliders.entities().collect();
     for entity in &entities {
         let t = match transforms.get(*entity) {
             Some(t) => t,
@@ -46,17 +46,21 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
             None => continue,
         };
         let rb = rigidbodies.get(*entity);
+        let pm = physics_materials.get(*entity);
         let radius = match &c.shape {
             ColliderShape::Circle { radius } => *radius,
             ColliderShape::Rect { .. } => 0.0,
         };
+        let restitution = pm
+            .and_then(|m| m.restitution_override)
+            .unwrap_or_else(|| rb.map_or(0.5, |r| r.restitution));
         snaps.push(EntitySnap {
             entity: *entity,
             pos: (t.x, t.y),
             vel: rb.map_or((0.0, 0.0), |r| (r.vx, r.vy)),
             collider: c.shape.clone(),
             radius_for_sweep: radius,
-            restitution: rb.map_or(0.5, |r| r.restitution),
+            restitution,
             is_static: rb.map_or(true, |r| r.is_static),
             is_trigger: c.is_trigger,
             has_rigidbody: rb.is_some(),
@@ -166,7 +170,7 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
                         math::scale(hit.normal, 0.01), // epsilon separation
                     );
 
-                    let e = snap.restitution.min(other.restitution);
+                    let e = snap.restitution.max(other.restitution);
                     let reflected = math::reflect(current_vel, hit.normal);
                     let new_vel = math::scale(reflected, e);
 
@@ -192,7 +196,7 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
     }
 
     // Position update for entities with RigidBody but NO Collider
-    let rb_entities: Vec<Entity> = rigidbodies.sorted_entities();
+    let rb_entities: Vec<Entity> = rigidbodies.entities().collect();
     for entity in &rb_entities {
         if colliders.has(*entity) { continue; }
         let rb = match rigidbodies.get(*entity) {
@@ -222,5 +226,185 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
 
     for event in new_events {
         events.push(event);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::{Transform, RigidBody, Collider, ColliderShape, PhysicsMaterial};
+    use crate::events::EventQueue;
+
+    /// Helper: create a world with a moving ball at (-100, 0) heading right
+    /// toward a static wall (rect) at (0, 0). Ball radius 10, wall 50x200.
+    /// Returns (world, events) ready to call `run()`.
+    fn ball_and_wall(
+        ball_restitution: f64,
+        ball_material: Option<PhysicsMaterial>,
+        wall_material: Option<PhysicsMaterial>,
+    ) -> (World, EventQueue) {
+        let mut world = World::new();
+        let events = EventQueue::default();
+
+        // Ball entity — moving right
+        let ball = world.spawn();
+        world.transforms.insert(ball, Transform { x: -100.0, y: 0.0, ..Transform::default() });
+        world.colliders.insert(ball, Collider {
+            shape: ColliderShape::Circle { radius: 10.0 },
+            is_trigger: false,
+        });
+        world.rigidbodies.insert(ball, RigidBody {
+            vx: 200.0, vy: 0.0,
+            restitution: ball_restitution,
+            is_static: false,
+            ..RigidBody::default()
+        });
+        if let Some(pm) = ball_material {
+            world.physics_materials.insert(ball, pm);
+        }
+
+        // Wall entity — static rect
+        let wall = world.spawn();
+        world.transforms.insert(wall, Transform { x: 0.0, y: 0.0, ..Transform::default() });
+        world.colliders.insert(wall, Collider {
+            shape: ColliderShape::Rect { half_width: 50.0, half_height: 200.0 },
+            is_trigger: false,
+        });
+        world.rigidbodies.insert(wall, RigidBody {
+            restitution: 0.5,
+            is_static: true,
+            ..RigidBody::default()
+        });
+        if let Some(pm) = wall_material {
+            world.physics_materials.insert(wall, pm);
+        }
+
+        (world, events)
+    }
+
+    // ─── Test 1: Default restitution uses RigidBody value ───────────
+
+    #[test]
+    fn default_restitution_uses_rigidbody_value() {
+        // Ball has restitution 0.8 on RigidBody, no PhysicsMaterial
+        let (mut world, mut events) = ball_and_wall(0.8, None, None);
+        run(&mut world, &mut events, 1.0);
+
+        // Ball should have bounced; wall rb has 0.5, ball rb has 0.8
+        // max(0.8, 0.5) = 0.8 → velocity scaled by 0.8
+        let ball = Entity(1);
+        let rb = world.rigidbodies.get(ball).unwrap();
+        // Ball was going right (+200), hit wall, reflected to left
+        assert!(rb.vx < 0.0, "ball should bounce left, got vx={}", rb.vx);
+        // Speed should be approximately 200 * 0.8 = 160
+        let speed = rb.vx.abs();
+        assert!((speed - 160.0).abs() < 1.0,
+            "speed should be ~160 (200*0.8), got {}", speed);
+    }
+
+    // ─── Test 2: PhysicsMaterial override takes precedence ──────────
+
+    #[test]
+    fn physics_material_override_takes_precedence() {
+        // Ball rb.restitution = 0.3, but PhysicsMaterial overrides to 0.9
+        let ball_pm = PhysicsMaterial {
+            restitution_override: Some(0.9),
+            ..PhysicsMaterial::default()
+        };
+        let (mut world, mut events) = ball_and_wall(0.3, Some(ball_pm), None);
+        run(&mut world, &mut events, 1.0);
+
+        let ball = Entity(1);
+        let rb = world.rigidbodies.get(ball).unwrap();
+        assert!(rb.vx < 0.0, "ball should bounce left");
+        // max(0.9, 0.5) = 0.9 → speed ~200*0.9 = 180
+        let speed = rb.vx.abs();
+        assert!((speed - 180.0).abs() < 1.0,
+            "speed should be ~180 (200*0.9), got {}", speed);
+    }
+
+    // ─── Test 3: max() allows amplification (e > 1.0) ──────────────
+
+    #[test]
+    fn max_combination_allows_amplification() {
+        // Wall has restitution_override = 1.5 (bumper)
+        let wall_pm = PhysicsMaterial {
+            restitution_override: Some(1.5),
+            ..PhysicsMaterial::default()
+        };
+        let (mut world, mut events) = ball_and_wall(0.5, None, Some(wall_pm));
+        run(&mut world, &mut events, 1.0);
+
+        let ball = Entity(1);
+        let rb = world.rigidbodies.get(ball).unwrap();
+        assert!(rb.vx < 0.0, "ball should bounce left");
+        // max(0.5, 1.5) = 1.5 → speed ~200*1.5 = 300
+        let speed = rb.vx.abs();
+        assert!((speed - 300.0).abs() < 1.0,
+            "speed should be ~300 (200*1.5), got {}", speed);
+    }
+
+    // ─── Test 4: Two entities with overrides use max of both ────────
+
+    #[test]
+    fn two_overrides_use_max() {
+        // Ball override = 0.6, wall override = 0.9
+        let ball_pm = PhysicsMaterial {
+            restitution_override: Some(0.6),
+            ..PhysicsMaterial::default()
+        };
+        let wall_pm = PhysicsMaterial {
+            restitution_override: Some(0.9),
+            ..PhysicsMaterial::default()
+        };
+        let (mut world, mut events) = ball_and_wall(0.3, Some(ball_pm), Some(wall_pm));
+        run(&mut world, &mut events, 1.0);
+
+        let ball = Entity(1);
+        let rb = world.rigidbodies.get(ball).unwrap();
+        assert!(rb.vx < 0.0, "ball should bounce left");
+        // max(0.6, 0.9) = 0.9 → speed ~200*0.9 = 180
+        let speed = rb.vx.abs();
+        assert!((speed - 180.0).abs() < 1.0,
+            "speed should be ~180 (200*max(0.6,0.9)), got {}", speed);
+    }
+
+    // ─── Test 5: Restitution scales reflected velocity correctly ────
+
+    #[test]
+    fn restitution_scales_reflected_velocity() {
+        // Test with e=1.0 (perfect elastic) — speed should be preserved
+        let ball_pm = PhysicsMaterial {
+            restitution_override: Some(1.0),
+            ..PhysicsMaterial::default()
+        };
+        let (mut world, mut events) = ball_and_wall(0.5, Some(ball_pm), None);
+        run(&mut world, &mut events, 1.0);
+
+        let ball = Entity(1);
+        let rb = world.rigidbodies.get(ball).unwrap();
+        assert!(rb.vx < 0.0, "ball should bounce left");
+        // max(1.0, 0.5) = 1.0 → speed = 200 * 1.0 = 200
+        let speed = rb.vx.abs();
+        assert!((speed - 200.0).abs() < 1.0,
+            "perfect elastic bounce should preserve speed ~200, got {}", speed);
+
+        // Now test with e=0.0 (perfectly inelastic) on both
+        let ball_pm2 = PhysicsMaterial {
+            restitution_override: Some(0.0),
+            ..PhysicsMaterial::default()
+        };
+        let wall_pm2 = PhysicsMaterial {
+            restitution_override: Some(0.0),
+            ..PhysicsMaterial::default()
+        };
+        let (mut world2, mut events2) = ball_and_wall(0.5, Some(ball_pm2), Some(wall_pm2));
+        run(&mut world2, &mut events2, 1.0);
+
+        let rb2 = world2.rigidbodies.get(ball).unwrap();
+        // max(0.0, 0.0) = 0.0 → speed = 200 * 0.0 = 0
+        let speed2 = (rb2.vx * rb2.vx + rb2.vy * rb2.vy).sqrt();
+        assert!(speed2 < 1.0,
+            "perfectly inelastic bounce should stop ball, got speed {}", speed2);
     }
 }

@@ -4,7 +4,7 @@ use super::component_store::ComponentStore;
 use crate::components::*;
 
 /// Bidirectional name↔entity mapping.
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct NameMap {
     name_to_entity: HashMap<String, Entity>,
     entity_to_name: HashMap<Entity, String>,
@@ -46,6 +46,7 @@ impl NameMap {
 }
 
 /// The world holds all entities and all component stores.
+#[derive(Clone, Debug)]
 pub struct World {
     next_id: u64,
     pub alive: HashSet<Entity>,

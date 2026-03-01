@@ -760,7 +760,7 @@ mod tests {
         let mut engine = make_engine();
         setup(&mut engine, 42);
         let tm = engine.tilemap.as_ref().unwrap();
-        let nutrients = tm.tiles.iter()
+        let nutrients = tm.tiles().iter()
             .filter(|t| t.tile_type == TileType::Custom(NUTRIENT_TILE_ID))
             .count();
         assert!(nutrients > 0, "Should have nutrient tiles");

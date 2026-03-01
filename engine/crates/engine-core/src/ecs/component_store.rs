@@ -6,6 +6,21 @@ pub struct ComponentStore<T> {
     data: HashMap<Entity, T>,
 }
 
+// Manual Clone — only available when T: Clone.
+impl<T: Clone> Clone for ComponentStore<T> {
+    fn clone(&self) -> Self {
+        Self { data: self.data.clone() }
+    }
+}
+
+impl<T: std::fmt::Debug> std::fmt::Debug for ComponentStore<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ComponentStore")
+            .field("len", &self.data.len())
+            .finish()
+    }
+}
+
 // Manual Default — no T: Default bound required.
 impl<T> Default for ComponentStore<T> {
     fn default() -> Self {

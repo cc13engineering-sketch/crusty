@@ -41,6 +41,7 @@ pub mod color_palette;
 pub mod camera_director;
 pub mod level_curve;
 pub mod ui_canvas;
+pub mod aim_preview;
 
 #[cfg(test)]
 mod tests;

@@ -1443,7 +1443,7 @@ fn e2e_tilemap_fill_rect_and_solid_count_round_trip() {
     // Clear everything
     tilemap.clear();
     assert_eq!(tilemap.solid_count(), 0, "solid count should be 0 after clear");
-    for tile in &tilemap.tiles {
+    for tile in tilemap.tiles() {
         assert_eq!(
             tile.tile_type, TileType::Empty,
             "all tiles should be empty after clear",

@@ -1,6 +1,5 @@
 /target
 /web/pkg
 /schema/engine.schema.json
-Cargo.lock
 *.swp
 .DS_Store

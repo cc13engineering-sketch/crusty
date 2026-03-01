@@ -1,0 +1,83 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry and build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/wasm-pack
+            engine/target
+          key: wasm-build-${{ hashFiles('engine/Cargo.lock') }}
+          restore-keys: wasm-build-
+
+      - name: Install wasm-pack
+        run: cargo install wasm-pack --locked || true
+        # Falls back silently if already cached
+
+      - name: Build WASM
+        working-directory: engine
+        run: wasm-pack build --target web --release crates/engine-core --out-dir ../../../_pkg
+
+      - name: Verify WASM build output
+        run: ls -la _pkg/engine_core.js _pkg/engine_core_bg.wasm
+
+      - name: Assemble site
+        run: |
+          mkdir -p _site/pkg _site/game-1 _site/game-2
+
+          # Copy WASM build artifacts (only the files needed at runtime)
+          cp _pkg/engine_core.js _site/pkg/
+          cp _pkg/engine_core_bg.wasm _site/pkg/
+
+          # Copy site pages
+          cp site/index.html _site/
+          cp site/game-1/index.html _site/game-1/
+          cp site/game-1/game.js _site/game-1/
+          cp site/game-2/index.html _site/game-2/
+          cp site/game-2/game.js _site/game-2/
+
+          # Copy world files
+          cp engine/worlds/bouncing_balls.world _site/game-1/
+          cp engine/worlds/walker.world _site/game-2/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

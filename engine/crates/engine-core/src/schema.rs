@@ -32,17 +32,20 @@ pub fn generate_schema() -> String {
             { "name": WorldTransform::schema_name(), "schema": WorldTransform::schema() },
             { "name": StateMachine::schema_name(), "schema": StateMachine::schema() },
             { "name": Coroutine::schema_name(), "schema": Coroutine::schema() },
+            { "name": SpriteAnimator::schema_name(), "schema": SpriteAnimator::schema() },
+            { "name": PhysicsJoint::schema_name(), "schema": PhysicsJoint::schema() },
         ],
         "systems": [
             "lifecycle", "hierarchy", "signal", "state_machine", "coroutine",
-            "behavior", "tween", "flash", "ghost_trail", "waypoint",
-            "force_accumulator", "integrator", "collision",
+            "sprite_animator", "behavior", "tween", "flash", "ghost_trail", "waypoint",
+            "force_accumulator", "integrator", "physics_joint", "collision",
             "gameplay", "event_processor", "input_gameplay",
             "renderer", "debug_render"
         ],
         "engine_state": [
             "global_game_state", "timer_queue", "template_registry", "behavior_rules",
-            "scene_manager", "screen_fx_stack", "tilemap", "spatial_query", "entity_pool"
+            "scene_manager", "screen_fx_stack", "tilemap", "spatial_query", "entity_pool",
+            "event_bus", "input_map", "pathfinding", "save_load"
         ]
     });
     serde_json::to_string_pretty(&schema).unwrap()

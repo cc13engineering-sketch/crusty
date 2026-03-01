@@ -16,3 +16,5 @@ pub mod signal;
 pub mod hierarchy;
 pub mod state_machine;
 pub mod coroutine;
+pub mod sprite_animator;
+pub mod physics_joint;

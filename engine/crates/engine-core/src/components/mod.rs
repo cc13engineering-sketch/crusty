@@ -22,6 +22,8 @@ pub mod signal;
 pub mod hierarchy;
 pub mod state_machine;
 pub mod coroutine;
+pub mod sprite_animator;
+pub mod physics_joint;
 
 pub use transform::Transform;
 pub use rigidbody::RigidBody;
@@ -47,6 +49,8 @@ pub use signal::{SignalEmitter, SignalReceiver};
 pub use hierarchy::{Parent, Children, WorldTransform};
 pub use state_machine::StateMachine;
 pub use coroutine::Coroutine;
+pub use sprite_animator::SpriteAnimator;
+pub use physics_joint::PhysicsJoint;
 
 /// Trait for components to provide their own schema metadata.
 pub trait SchemaInfo {

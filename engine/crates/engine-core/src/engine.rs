@@ -19,6 +19,8 @@ use crate::dialogue::DialogueQueue;
 use crate::scene_manager::SceneManager;
 use crate::tilemap::TileMap;
 use crate::entity_pool::PoolRegistry;
+use crate::event_bus::EventBus;
+use crate::input_map::InputMap;
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -176,6 +178,10 @@ pub struct Engine {
     // Innovation Round 4: Spatial systems, tile maps, entity pooling
     pub tilemap: Option<TileMap>,
     pub pool_registry: PoolRegistry,
+
+    // Innovation Round 6: Event bus, input mapping
+    pub event_bus: EventBus,
+    pub input_map: InputMap,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -215,6 +221,8 @@ impl Engine {
             scene_manager: SceneManager::new(),
             tilemap: None,
             pool_registry: PoolRegistry::new(),
+            event_bus: EventBus::new(),
+            input_map: InputMap::new(),
         }
     }
 
@@ -265,6 +273,9 @@ impl Engine {
             self.spawn_queue.spawn(cmd);
         }
 
+        // Sprite animation system (advance frame timers)
+        crate::systems::sprite_animator::run(&mut self.world, dt);
+
         // Behavior system (AI movement)
         crate::systems::behavior::run(&mut self.world, dt);
 
@@ -279,6 +290,8 @@ impl Engine {
 
         while self.accumulator >= FIXED_DT {
             self.physics_step(FIXED_DT);
+            // Physics joints (distance, spring, rope, hinge) — after integrator, within physics step
+            crate::systems::physics_joint::run(&mut self.world, FIXED_DT);
             self.accumulator -= FIXED_DT;
         }
 
@@ -357,6 +370,7 @@ impl Engine {
         );
 
         self.events.clear();
+        self.event_bus.clear();
         self.input.end_frame();
         self.time += dt;
         self.frame += 1;

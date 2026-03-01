@@ -22,6 +22,10 @@ pub mod tilemap;
 pub mod raycast;
 pub mod spatial_query;
 pub mod entity_pool;
+pub mod pathfinding;
+pub mod event_bus;
+pub mod input_map;
+pub mod save_load;
 
 #[cfg(test)]
 mod tests;

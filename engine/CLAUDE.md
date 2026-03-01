@@ -37,4 +37,17 @@ Past rounds:
 - **Round 1**: Space Survival theme. Added: SpawnQueue, GameState, Behavior AI, Lifetime/Lifecycle, Particle System, Bitmap Text, Starfield, Post-FX (vignette/scanlines/shake), HUD rendering, Gameplay collision rules, Wave spawning. Demo: game-3 (Space Survival).
 - **Round 2**: Minigolf Tile Art RPG theme. Added: Camera follow/zoom with smooth lerp, Render layer stack with parallax, Sprite sheet renderer, Scene transitions (fade/iris/pixelate), PhysicsMaterial (friction/drag), Impulse component, MotionConstraint (speed cap/axis lock), ZoneEffect (wind/drag/conveyor), DialogueQueue (dialogue/notification/floating text).
 
+### Round 3 Proposals (Puzzle Platformer with Time Mechanics theme — not yet implemented)
+Top candidates from competitive ideation:
+- **PropertyTween**: Easing-curve property animation (linear/quad/cubic/bounce/elastic) for any numeric property
+- **EntityFlash**: Hit flash, blink, and color pulse effects as a lightweight component
+- **GhostTrail**: Temporal afterimage renderer using position snapshot ring buffers
+- **Per-Entity TimeScale**: Local time multiplier per entity + global time scale on Engine
+- **Entity Enable/Disable**: Active flag on World that causes systems to skip inactive entities
+- **Waypoint Movement**: Entity path-following along ordered waypoint sequences
+- **Signal/Wire System**: Named signal channels connecting switch entities to responders
+- **World Snapshot & Restore**: Ring buffer of full ECS snapshots for rewind/save/undo
+- **Scene Manager**: Named scene registry with push/pop stack semantics
+- **ScreenFx Stack**: Composable timed screen effects (tint, desaturate, chromatic aberration)
+
 Key principle: features are designed for *engine generality*, not just the theme game. The theme game validates that features compose well together.

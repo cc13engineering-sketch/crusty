@@ -30,6 +30,7 @@ pub mod flow_network;
 pub mod procedural_gen;
 pub mod environment_clock;
 pub mod density_field;
+pub mod mycelia;
 
 #[cfg(test)]
 mod tests;
@@ -201,4 +202,52 @@ pub fn start_repeating_timer(name: String, delay: f64, interval: f64) {
 #[wasm_bindgen]
 pub fn cancel_timer(name: String) {
     with_engine(|eng| { eng.timers.cancel(&name); });
+}
+
+// ─── Mycelia: Ascent WASM API ───────────────────────────────────────────
+
+/// Initialize Mycelia game with a seed.
+#[wasm_bindgen]
+pub fn mycelia_init(seed: u64) {
+    with_engine(|eng| mycelia::setup(eng, seed));
+}
+
+/// Run one frame of Mycelia game logic. Call BEFORE tick().
+#[wasm_bindgen]
+pub fn mycelia_update(dt_ms: f64) {
+    with_engine(|eng| mycelia::update(eng, dt_ms / 1000.0));
+}
+
+/// Handle a tap at screen coordinates. Returns true if game should restart.
+#[wasm_bindgen]
+pub fn mycelia_tap(screen_x: f64, screen_y: f64) -> bool {
+    with_engine(|eng| mycelia::on_tap(eng, screen_x, screen_y))
+}
+
+/// Custom render pass for Mycelia (tilemap, connections, nodes, HUD).
+/// Call this INSTEAD of tick() — it handles its own render pipeline.
+#[wasm_bindgen]
+pub fn mycelia_render() {
+    with_engine(|eng| {
+        // Clear framebuffer
+        eng.framebuffer.clear(eng.config.background);
+
+        // Mycelia custom rendering (tilemap + nodes + connections + blight + HUD)
+        mycelia::render(eng);
+
+        // Screen effects
+        eng.screen_fx.tick(0.016);
+        eng.screen_fx.apply(&mut eng.framebuffer);
+
+        // Post-FX
+        rendering::post_fx::apply(
+            &mut eng.framebuffer, &mut eng.post_fx, 0.016, eng.frame,
+        );
+    });
+}
+
+/// Get Mycelia game state as JSON.
+#[wasm_bindgen]
+pub fn mycelia_get_state() -> String {
+    with_engine(|eng| mycelia::get_state(eng))
 }

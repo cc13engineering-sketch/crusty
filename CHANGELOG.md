@@ -4,6 +4,36 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Demo Game: Mycelia: Ascent
+
+**Branch**: `claude/review-game-engine-CaUoa`
+
+### Game Module (`mycelia.rs`)
+- **Procedural cave generation**: Cellular automata with carved starting chamber and surface opening
+- **Tap-to-grow mechanics**: Tap empty tiles near existing nodes to expand mycelial network
+- **Rising blight**: Time-pressure mechanic that accelerates as depth increases
+- **Energy system**: Nodes produce energy during pulse surge phases (EnvironmentClock)
+- **Nutrient collection**: Fading tile pickups that boost energy
+- **Win/lose conditions**: Reach surface to win, lose all nodes to blight to lose
+- **Custom render pipeline**: Tilemap → connections → nodes → blight overlay → particles → HUD
+- **Mobile-first**: Portrait 480x720, tap-only input, unified touch/mouse handling
+- **12 unit tests** covering setup, tap mechanics, energy, blight, and rendering
+
+### WASM Bindings (5 new exports)
+| Function | Description |
+|----------|-------------|
+| `mycelia_init(seed)` | Initialize game with random seed |
+| `mycelia_update(dt_ms)` | Update game logic |
+| `mycelia_tap(x, y)` | Handle tap input, returns restart flag |
+| `mycelia_render()` | Custom render pipeline |
+| `mycelia_get_state()` | JSON state for debugging |
+
+### Web Files (`innovations-1/`)
+- `index.html`: Mobile-optimized with viewport meta, touch-action: none
+- `game.js`: WASM loader, input handling, game loop, framebuffer rendering
+
+---
+
 ## Foundation (Pre-Innovation Games)
 
 **Commits**: `first` through `Add GitHub Pages deployment`

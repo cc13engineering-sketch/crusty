@@ -250,20 +250,50 @@ lifecycle → signal → behavior → tween → flash → waypoint
 
 ---
 
+## Innovation Games Round 6 — Feature Bonanza (6 New Modules)
+**Commit**: `011a311` | **Theme**: Cherry-picked features from 4 competing game pitches
+
+### New Components (2)
+| Component | Description |
+|-----------|-------------|
+| `SpriteAnimator` | Named animation clip controller. Clips define frame sequences with per-frame duration. Supports play/stop/resume, looping, speed multiplier, `just_finished` edge detection for chaining. |
+| `PhysicsJoint` | Constraint between two entities. Joint types: Distance (stiffness+damping), Spring (Hooke's law+damping), Rope (slack/taut with velocity clamping), Hinge (orbital with angular limits). Break force support. |
+
+### New Systems (2)
+| System | Description |
+|--------|-------------|
+| `sprite_animator` | Advances animation frame timers, handles looping/non-looping clips, sets `just_finished` flag, respects TimeScale. |
+| `physics_joint` | Processes all joint types with mass-aware position correction and velocity adjustment. Handles static vs dynamic body ratios. Marks broken joints when break force exceeded. |
+
+### New Engine Modules (4)
+| Module | Description |
+|--------|-------------|
+| `EventBus` | Channel-based typed event system. Events carry optional source/target entities and key-value payloads (Float/Int/Text/Bool). Query by channel, source entity, or target entity. Auto-cleared each frame. |
+| `InputMap` | Abstract input layer mapping raw keys/mouse buttons to named actions and axes. `is_action_held/pressed/released()`, `axis_value()`. Default WASD+arrows+space preset. |
+| `Pathfinding` | A* grid pathfinding with octile heuristic. Diagonal movement with corner-cutting prevention. `PathConfig` for cost tuning and iteration limits. TileMap integration via `find_path_on_tilemap()`. |
+| `Save/Load` | World state serialization to JSON. `WorldSnapshot` captures entities (transforms, game states, tags, names) plus global state and camera. Selective restore for transforms, game states, and global state. |
+
+### Stats
+- Tests: 786 (83 new: 10 SpriteAnimator component, 9 SpriteAnimator system, 6 PhysicsJoint component, 8 PhysicsJoint system, 11 EventBus, 16 InputMap, 11 Pathfinding, 12 Save/Load)
+- New files: 8 (2 components, 2 systems, 4 engine modules)
+- Modified files: 6 (world.rs, engine.rs, schema.rs, lib.rs, components/mod.rs, systems/mod.rs)
+
+---
+
 ## Engine Summary (Current State)
 
-### Component Count: 27
-Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine
+### Component Count: 29
+Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint
 
-### System Count: 19
-lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, (camera integrated in engine)
+### System Count: 21
+lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay, event_processor, input_gameplay, renderer, debug_render, sprite_animator, physics_joint, (camera integrated in engine)
 
 ### Rendering Modules: 12
 color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx, (HUD in renderer)
 
-### Engine Modules: 12
-SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool
+### Engine Modules: 16
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load
 
-### Test Count: 703 (including 22 E2E integration tests)
+### Test Count: 786 (including 22 E2E integration tests + 83 Round 6 tests)
 ### Demo Games: 4 (bouncing balls, walker, space survival, minigolf RPG concept)
 ### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization

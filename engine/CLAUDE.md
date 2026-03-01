@@ -40,3 +40,12 @@ Past rounds:
 - **Round 3**: Puzzle Platformer with Time Mechanics theme. Added: PropertyTween (9 easing curves for any numeric property), EntityFlash (hit flash/blink/color pulse), GhostTrail (fading afterimage ring buffer), Per-Entity TimeScale (local time multiplier), Active component (entity enable/disable), WaypointPath (once/loop/ping-pong path following), SignalEmitter/SignalReceiver (wired logic gate system with AND/OR/edge detection), ScreenFxStack (composable timed tint/desaturate/flash effects), SceneManager (named scene registry with push/pop stack). World Snapshot deferred.
 
 Key principle: features are designed for *engine generality*, not just the theme game. The theme game validates that features compose well together.
+
+## Demo Game Building Process
+
+When building a demo game:
+1. **Read `PROCESS.md`** at repo root for lessons learned, API pitfalls, and patterns from prior builds. Use as helper info — first principles are king.
+2. **Research the engine API** before writing code. Read the actual source for components, systems, and rendering functions you plan to use. Don't assume signatures.
+3. **Decide architecture**: `.world` file for simple games, custom Rust module for anything procedural or with custom mechanics.
+4. **Build iteratively**: Get compilation passing first, then tests, then web integration.
+5. **After each build**: Update `PROCESS.md` with new findings, API corrections, and patterns discovered. Every build attempt teaches something — capture it.

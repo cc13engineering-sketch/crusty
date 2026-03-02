@@ -1,13 +1,17 @@
 use super::*;
 use crate::trap_links_demo;
 
+// All headless tests use setup_fight_only to go directly into fight mode,
+// bypassing the overworld. This ensures ball_x, ball_y, strokes, etc. are
+// immediately available for testing.
+
 // ─── HeadlessRunner basics ──────────────────────────────────────────────
 
 #[test]
 fn headless_runner_runs_frames() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         60,
@@ -20,7 +24,7 @@ fn headless_runner_runs_frames() {
 fn headless_runner_game_state_populated() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         1,
@@ -35,7 +39,7 @@ fn headless_runner_game_state_populated() {
 fn headless_runner_framebuffer_hash_nonzero() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         1,
@@ -48,7 +52,7 @@ fn headless_runner_deterministic() {
     let run = || {
         let mut runner = HeadlessRunner::new(480, 720);
         runner.run(
-            trap_links_demo::setup,
+            trap_links_demo::setup_fight_only,
             trap_links_demo::update,
             trap_links_demo::render,
             30,
@@ -71,7 +75,7 @@ fn scenario_no_input_stays_in_aiming_phase() {
         name: "idle".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup,
+        setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
         actions: vec![],
@@ -103,7 +107,7 @@ fn scenario_shoot_increments_strokes() {
         name: "shoot_once".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup,
+        setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
         actions: vec![
@@ -159,7 +163,7 @@ fn shot_builder_shoot_upward_moves_ball() {
         name: "shoot_upward".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup,
+        setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
         actions,
@@ -202,7 +206,7 @@ fn sweep_runs_multiple_configs() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         &actions,
@@ -234,7 +238,7 @@ fn sweep_min_max_by_state() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         &actions,
@@ -254,7 +258,7 @@ fn sweep_min_max_by_state() {
 #[test]
 fn timeline_records_ball_position() {
     let tl = record_timeline(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         30,
@@ -278,7 +282,7 @@ fn timeline_with_shot_shows_movement() {
         .build();
 
     let tl = record_timeline_with_actions(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         &actions,
@@ -297,7 +301,7 @@ fn timeline_with_shot_shows_movement() {
 #[test]
 fn timeline_stats_work() {
     let tl = record_timeline(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         30,
@@ -315,7 +319,7 @@ fn timeline_stats_work() {
 #[test]
 fn timeline_first_frame_where() {
     let tl = record_timeline(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         10,
@@ -333,7 +337,7 @@ fn timeline_first_frame_where() {
 fn fitness_idle_scores_low_completion() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         60,
@@ -364,7 +368,7 @@ fn fitness_shot_toward_hole_scores_higher() {
     // Run idle
     let mut idle_runner = HeadlessRunner::new(480, 720);
     let idle_result = idle_runner.run(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         60,
@@ -375,7 +379,7 @@ fn fitness_shot_toward_hole_scores_higher() {
         name: "shot_toward_hole".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup,
+        setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
         actions,
@@ -411,7 +415,7 @@ fn fitness_rank_sweep() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup,
+        trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
         &actions,
@@ -437,7 +441,7 @@ fn regression_identical_runs_no_diff() {
             name: "idle".into(),
             width: 480,
             height: 720,
-            setup_fn: trap_links_demo::setup,
+            setup_fn: trap_links_demo::setup_fight_only,
             update_fn: trap_links_demo::update,
             render_fn: trap_links_demo::render,
             actions: vec![],
@@ -467,7 +471,7 @@ fn regression_detects_state_change() {
             name: "shot".into(),
             width: 480,
             height: 720,
-            setup_fn: trap_links_demo::setup,
+            setup_fn: trap_links_demo::setup_fight_only,
             update_fn: trap_links_demo::update,
             render_fn: trap_links_demo::render,
             actions,

@@ -16,7 +16,7 @@ fn main() {
 
             let mut runner = engine_core::headless::HeadlessRunner::new(480, 720);
             let result = runner.run(
-                engine_core::trap_links_demo::setup,
+                engine_core::trap_links_demo::setup_fight_only,
                 engine_core::trap_links_demo::update,
                 engine_core::trap_links_demo::render,
                 frames,

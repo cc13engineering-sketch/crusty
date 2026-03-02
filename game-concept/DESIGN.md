@@ -1,4 +1,5 @@
-# Trap Links: A Minigolf RPG — Game Design Document
+# S-League: A Minigolf RPG — Game Design Document
+(Formerly "Trap Links")
 
 **Engine**: Crusty (Rust → WASM → Canvas 2D)
 **Screen**: 480 × 720 portrait, tap-only mobile

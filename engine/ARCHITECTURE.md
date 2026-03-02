@@ -1,28 +1,37 @@
 # Architecture
 
 ## Overview
-2D physics game engine. Rust → WASM → shared memory framebuffer → JS canvas. One HTML file, one JS file, one WASM binary.
+2D physics game engine purpose-built for the S-League minigolf RPG. Rust → WASM → shared memory framebuffer → JS canvas. Games are defined as Rust modules, not spec files.
 
 ## Data Flow
 ```
-Input (JS → WASM strings) → Systems → Framebuffer (WASM memory → JS ImageData → Canvas)
+Input (JS → WASM) → Systems → Framebuffer (WASM memory → JS ImageData → Canvas)
+Sound commands queued in Rust → drained as JSON by JS
+Diagnostics/metrics → drained as JSON by JS
 ```
 
 ## System Execution Order (per tick)
+See `SystemPhase` enum in engine.rs for authoritative documentation.
 ```
-Physics (N times per frame at 60Hz fixed dt):
-  1. force_accumulator — reset + accumulate accelerations (includes ZoneEffect)
-  2. integrator — update velocities, apply friction/drag/constraints
-  3. collision — CCD sweep, update positions, push events
+Input:
+  debug toggle, gesture recognition, gesture→EventBus
 
-Per-frame (once):
-  lifecycle → signal → state_machine → coroutine → behavior
-  → tween → flash → waypoint → ghost_trail
-  → sprite_animator → physics_joint
-  → gameplay → event_processor → input_gameplay
-  → RENDER(clear → starfield → entities → particles → debug → HUD
-           → screen_fx → transition_overlay → post_fx)
-  → camera → events.clear → input.end_frame
+Simulation (variable dt):
+  lifecycle → hierarchy → signal → state_machine → coroutine
+  → environment_clock → flow_network → sprite_animator
+  → behavior → tween → flash → waypoint
+
+Physics (fixed dt, 60Hz):
+  force_accumulator → integrator → collision → physics_joint
+
+PostPhysics:
+  gameplay → event_processor → input_gameplay → spawners
+  → ghost_trail → particles → transition → dialogue → camera
+
+RenderingPrep:
+  clear → starfield → entities → particles → debug → HUD
+  → screen_fx → transition_overlay → post_fx
+  → events.clear → input.end_frame → frame_metrics
 ```
 
 ## Components (32)
@@ -38,11 +47,12 @@ ghost_trail, waypoint, force_accumulator, integrator, collision, gameplay,
 event_processor, input_gameplay, renderer, debug_render, sprite_animator,
 physics_joint, (camera integrated in engine)
 
-## Engine Modules (20)
+## Engine Modules
 SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue,
 SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus,
 InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock,
-DensityField
+DensityField, DiagnosticBus, GestureRecognizer, SoundCommandQueue, AutoJuice,
+GameFlow, CameraDirector, ColorPalette, LevelCurve, UiCanvas, AimPreview, FrameMetrics
 
 ## Rendering Modules (12)
 color, framebuffer, shapes, text, particles, starfield, post_fx, layers,

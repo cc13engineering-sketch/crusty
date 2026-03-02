@@ -41,6 +41,7 @@ pub mod ui_canvas;
 pub mod aim_preview;
 pub mod frame_metrics;
 pub mod trap_links_demo;
+pub mod headless;
 
 #[cfg(test)]
 mod tests;

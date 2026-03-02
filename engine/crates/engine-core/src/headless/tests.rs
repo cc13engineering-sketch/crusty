@@ -1686,3 +1686,327 @@ fn golden_summary_format() {
     assert!(summary.contains("Golden test:"));
     assert!(summary.contains("MATCH"));
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// Round 9: AI-Driven Game Analysis & Improvement
+// ═══════════════════════════════════════════════════════════════════════
+
+#[test]
+fn r9_grid_shot_analysis() {
+    // Systematic grid search: which angle/power combos are most effective?
+    let ball_x = 15.0 * 16.0; // 240.0
+    let ball_y = 32.0 * 16.0; // 512.0
+
+    let shots = super::action_gen::grid_shots(
+        ball_x, ball_y,
+        240.0, 300.0, 4,  // angles: 240-300 degrees (upward arc)
+        0.3, 1.0, 4,      // power: 30%-100%
+    );
+
+    let evaluator = FitnessEvaluator::new()
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
+
+    let mut scores: Vec<(String, f64)> = Vec::new();
+    for (label, actions, frames) in &shots {
+        let result = GameScenario {
+            name: label.clone(),
+            width: 480, height: 720,
+            setup_fn: sleague::setup_fight_only,
+            update_fn: sleague::update,
+            render_fn: sleague::render,
+            action_dispatch: sleague::dispatch_action,
+            actions: actions.clone(),
+            total_frames: *frames,
+            assertions: vec![],
+        }.run();
+        let fitness = evaluator.evaluate(&result.sim);
+        scores.push((label.clone(), fitness.total));
+    }
+
+    // At least some shots should score > 0
+    let best_score = scores.iter().map(|(_, s)| *s).fold(0.0f64, f64::max);
+    assert!(best_score > 0.0, "at least one shot should score > 0");
+    assert_eq!(scores.len(), 16); // 4x4 grid
+}
+
+#[test]
+fn r9_physics_anomaly_check() {
+    // Record a replay with a shot and check for physics anomalies
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "physics_check",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 80.0 },
+        ],
+        180,
+        &["ball_x", "ball_y", "ball_vx", "ball_vy"],
+    );
+
+    // Check that ball stays in world bounds
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(500.0) // allow normal velocity changes
+        .with_plateau_min_frames(999) // disable plateau for this check
+        .with_bounds(-10.0, 600.0) // world bounds
+        .scan(&replay, &["ball_x", "ball_y"]);
+
+    let oob: Vec<_> = anomalies.iter()
+        .filter(|a| a.kind == AnomalyKind::OutOfBounds)
+        .collect();
+    assert!(oob.is_empty(), "ball should stay in world bounds: {:?}",
+        oob.iter().map(|a| &a.detail).collect::<Vec<_>>());
+}
+
+#[test]
+fn r9_ball_settles_after_shot() {
+    // Verify ball velocity reaches zero and doesn't drift forever
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "settle_check",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        300, // 5 seconds
+        &["ball_vx", "ball_vy", "tl_phase"],
+    );
+
+    // By end of 300 frames, velocity should be near zero
+    let final_vx = replay.get(299, "ball_vx").unwrap_or(0.0);
+    let final_vy = replay.get(299, "ball_vy").unwrap_or(0.0);
+    let speed = (final_vx * final_vx + final_vy * final_vy).sqrt();
+    assert!(speed < 10.0, "ball should settle by frame 300, speed={:.2}", speed);
+}
+
+#[test]
+fn r9_optimal_shot_hill_climb() {
+    // Use hill climber to find the optimal angle for a direct upward shot
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    // We'll construct a fitness function that evaluates proximity to hole
+    // The hill climber searches over ball starting position, but we can
+    // also use it to assess how close we can get
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.8)
+        .build();
+
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        sleague::score_proximity_to_hole,
+    )
+    .with_actions(actions)
+    .with_frames(180)
+    .with_param(ParamRange::new("ball_y", 300.0, 550.0, 30.0))
+    .with_max_iterations(3)
+    .run();
+
+    assert!(result.best.fitness > 0.0, "should find some proximity score");
+    // The optimal ball_y should be closer to the hole (lower y = closer)
+    let optimal_y = result.best.params[0].1;
+    assert!(optimal_y < 550.0, "optimizer should move ball closer to hole");
+}
+
+#[test]
+fn r9_full_game_quality_harness() {
+    // Comprehensive quality check using the test harness
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    // Test 1: idle state is valid
+    .add(
+        "idle_valid",
+        vec![],
+        30,
+        vec![
+            Assertion::StateEquals { key: "tl_phase".into(), expected: 0.0, tolerance: 0.0 },
+            Assertion::StateEquals { key: "strokes".into(), expected: 0.0, tolerance: 0.0 },
+            Assertion::StateGreaterThan { key: "ball_x".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "ball_y".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "hole_x".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "hole_y".into(), threshold: 0.0 },
+        ],
+    )
+    // Test 2: single shot changes state
+    .add(
+        "shot_registers",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        vec![
+            Assertion::StateEquals { key: "strokes".into(), expected: 1.0, tolerance: 0.0 },
+        ],
+    )
+    // Test 3: ball position stays valid
+    .add(
+        "ball_in_bounds",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 80.0 },
+        ],
+        180,
+        vec![
+            Assertion::StateGreaterThan { key: "ball_x".into(), threshold: -10.0 },
+            Assertion::StateLessThan { key: "ball_x".into(), threshold: 500.0 },
+            Assertion::StateGreaterThan { key: "ball_y".into(), threshold: -10.0 },
+            Assertion::StateLessThan { key: "ball_y".into(), threshold: 600.0 },
+        ],
+    )
+    // Test 4: hp is set correctly
+    .add(
+        "hp_initialized",
+        vec![],
+        1,
+        vec![
+            Assertion::StateEquals { key: "player_hp".into(), expected: 5.0, tolerance: 0.0 },
+            Assertion::StateEquals { key: "player_max_hp".into(), expected: 5.0, tolerance: 0.0 },
+        ],
+    )
+    .run();
+
+    assert!(report.all_passed(), "{}", report.summary());
+}
+
+#[test]
+fn r9_multi_shot_strategy() {
+    // Test multi-shot gameplay using strategy
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let (shot_actions, shot_frames) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let result = Strategy::new(
+        "multi_shot",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .record("one_shot", shot_actions, shot_frames, &["ball_x", "ball_y", "strokes", "tl_phase"])
+    .assert_state("one_shot", "strokes", StatePredicate::Equals(1.0, 0.0))
+    .assert_state("one_shot", "ball_y", StatePredicate::LessThan(ball_y)) // ball moved up
+    .run();
+
+    assert!(result.all_passed(), "{}", result.summary());
+}
+
+// ─── Round 9: Game Improvement Verification ──────────────────────────
+
+#[test]
+fn r9_dist_to_hole_tracked() {
+    // Verify the new dist_to_hole state key is set and updates
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "dist_tracking",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        &["dist_to_hole", "best_dist"],
+    );
+
+    // Initial distance should be set
+    let initial_dist = replay.get(0, "dist_to_hole").unwrap_or(0.0);
+    assert!(initial_dist > 0.0, "dist_to_hole should be positive initially");
+
+    // After shot, best_dist should decrease (ball moves toward hole)
+    let best = replay.get(119, "best_dist").unwrap_or(f64::MAX);
+    assert!(best < initial_dist, "best_dist={:.1} should be < initial={:.1}", best, initial_dist);
+}
+
+#[test]
+fn r9_wall_bounces_counted() {
+    // Shoot sideways to force wall bounces
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "bounce_count",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            // Shoot directly upward at full power — will hit top wall
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 120.0 },
+        ],
+        300,
+        &["wall_bounces"],
+    );
+
+    let bounces = replay.get(299, "wall_bounces").unwrap_or(0.0);
+    assert!(bounces >= 1.0, "should have at least 1 wall bounce, got {}", bounces);
+}
+
+#[test]
+fn r9_improved_quality_harness() {
+    // Extended quality harness including new state keys
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .add(
+        "new_keys_init",
+        vec![],
+        1,
+        vec![
+            Assertion::StateGreaterThan { key: "dist_to_hole".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "best_dist".into(), threshold: 0.0 },
+            Assertion::StateEquals { key: "wall_bounces".into(), expected: 0.0, tolerance: 0.0 },
+        ],
+    )
+    .add(
+        "dist_decreases_on_upward_shot",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        vec![
+            Assertion::StateEquals { key: "strokes".into(), expected: 1.0, tolerance: 0.0 },
+            // best_dist should be less than initial starting distance (~400)
+            Assertion::StateLessThan { key: "best_dist".into(), threshold: 350.0 },
+        ],
+    )
+    .run();
+
+    assert!(report.all_passed(), "{}", report.summary());
+}

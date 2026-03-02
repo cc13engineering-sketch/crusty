@@ -4,6 +4,28 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: AI-Driven Game Improvement — Round 9
+
+**Theme: Use headless tools to analyze and improve S-League**
+
+### Analysis (Headless-Driven)
+- Grid shot analysis: 16 angle/power combos evaluated with fitness scoring
+- Physics anomaly check: ball bounds, velocity settling, spike detection
+- Full game quality harness: 4-scenario battery test
+- Multi-shot strategy validation using Strategy playbook
+
+### Game Improvements (Informed by Analysis)
+- **Wall bounce screen shake** — proportional to impact speed, adds game feel
+- **`dist_to_hole` state key** — continuously tracks distance, enabling AI proximity analysis
+- **`best_dist` state key** — tracks closest approach to hole during a shot
+- **`wall_bounces` counter** — tracks number of wall bounces per attempt
+
+### Tests
+- 9 new diagnostic/verification tests
+- Total: 1116 tests passing
+
+---
+
 ## Innovation Games: Headless Testing — Round 8
 
 **Theme: Strategy, orchestration, and golden file testing**

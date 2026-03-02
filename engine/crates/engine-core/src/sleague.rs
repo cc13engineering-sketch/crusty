@@ -128,6 +128,9 @@ const K_HOLE_Y: &str = "hole_y";
 const K_START_X: &str = "start_x";
 const K_START_Y: &str = "start_y";
 const K_MONSTER_ID: &str = "monster_id";
+const K_DIST_TO_HOLE: &str = "dist_to_hole";
+const K_BEST_DIST: &str = "best_dist";
+const K_WALL_BOUNCES: &str = "wall_bounces";
 
 // ═══════════════════════════════════════════════════════════════════════
 // MONSTER DATA
@@ -465,6 +468,12 @@ fn build_fight_course(engine: &mut Engine, monster_id: i32) {
     engine.global_state.set_f64(K_HOLE_Y, hole_y);
     engine.global_state.set_f64(K_START_X, start_x);
     engine.global_state.set_f64(K_START_Y, start_y);
+
+    // AI-observable metrics
+    let initial_dist = ((start_x - hole_x).powi(2) + (start_y - hole_y).powi(2)).sqrt();
+    engine.global_state.set_f64(K_DIST_TO_HOLE, initial_dist);
+    engine.global_state.set_f64(K_BEST_DIST, initial_dist);
+    engine.global_state.set_f64(K_WALL_BOUNCES, 0.0);
 }
 
 fn start_fight(engine: &mut Engine, monster_id: i32) {
@@ -760,6 +769,15 @@ fn fight_update(engine: &mut Engine, dt: f64) {
                 (true, false) => { vx = -vx * RESTITUTION; by = new_y; }
                 (false, true) => { bx = new_x; vy = -vy * RESTITUTION; }
             }
+            // Wall bounce feedback: shake proportional to impact speed
+            let impact_speed = (vx * vx + vy * vy).sqrt();
+            let shake_strength = (impact_speed / MAX_POWER).min(1.0);
+            if shake_strength > 0.05 {
+                engine.post_fx.shake_remaining = 0.08;
+                engine.post_fx.shake_intensity = shake_strength * 3.0;
+            }
+            let bounces = engine.global_state.get_f64(K_WALL_BOUNCES).unwrap_or(0.0);
+            engine.global_state.set_f64(K_WALL_BOUNCES, bounces + 1.0);
         } else {
             bx = new_x;
             by = new_y;
@@ -799,6 +817,16 @@ fn fight_update(engine: &mut Engine, dt: f64) {
     engine.global_state.set_f64(K_BALL_Y, by);
     engine.global_state.set_f64(K_BALL_VX, vx);
     engine.global_state.set_f64(K_BALL_VY, vy);
+
+    // Track distance to hole for AI analysis
+    let dx = bx - hole_x;
+    let dy = by - hole_y;
+    let dist = (dx * dx + dy * dy).sqrt();
+    engine.global_state.set_f64(K_DIST_TO_HOLE, dist);
+    let best = engine.global_state.get_f64(K_BEST_DIST).unwrap_or(f64::MAX);
+    if dist < best {
+        engine.global_state.set_f64(K_BEST_DIST, dist);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════

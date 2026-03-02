@@ -1,20 +1,17 @@
 import initWasm, {
     init, tick, framebuffer_ptr, framebuffer_len,
-    key_down, key_up, mouse_move, mouse_down, mouse_up,
-    mycelia_init, mycelia_update, mycelia_render, mycelia_tap, mycelia_get_state
+    key_down, key_up,
+    sleague_init, sleague_update, sleague_render,
+    sleague_pointer_down, sleague_pointer_move, sleague_pointer_up
 } from '../pkg/engine_core.js';
 
-// Game resolution (portrait, mobile-optimized)
 const WIDTH = 480;
 const HEIGHT = 720;
 
 async function main() {
     const wasm = await initWasm();
     init(WIDTH, HEIGHT);
-
-    // Initialize Mycelia with a random seed
-    const seed = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
-    mycelia_init(seed);
+    sleague_init();
 
     const canvas = document.getElementById('game');
     canvas.width = WIDTH;
@@ -42,7 +39,7 @@ async function main() {
     resize();
     window.addEventListener('resize', resize);
 
-    // Input: convert screen coordinates to game coordinates
+    // Convert screen coordinates to game coordinates
     function gameCoords(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
         const scaleX = WIDTH / rect.width;
@@ -53,78 +50,48 @@ async function main() {
         };
     }
 
-    // Tap handling (unified touch + mouse)
-    let tapStart = null;
-    const TAP_THRESHOLD = 15; // max movement to count as tap (in screen px)
-
-    function onPointerDown(x, y) {
-        tapStart = { x, y };
-        const g = gameCoords(x, y);
-        mouse_down(g.x, g.y, 0);
-    }
-
-    function onPointerMove(x, y) {
-        const g = gameCoords(x, y);
-        mouse_move(g.x, g.y);
-    }
-
-    function onPointerUp(x, y) {
-        const g = gameCoords(x, y);
-        mouse_up(g.x, g.y, 0);
-
-        // Check if this was a tap (not a drag)
-        if (tapStart) {
-            const dx = x - tapStart.x;
-            const dy = y - tapStart.y;
-            if (Math.sqrt(dx * dx + dy * dy) < TAP_THRESHOLD) {
-                const restart = mycelia_tap(g.x, g.y);
-                if (restart) {
-                    // Restart game with new seed
-                    const newSeed = BigInt(Math.floor(Math.random() * 0xFFFFFFFF));
-                    init(WIDTH, HEIGHT);
-                    mycelia_init(newSeed);
-                }
-            }
-        }
-        tapStart = null;
-    }
-
     // Touch events
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         const t = e.touches[0];
-        onPointerDown(t.clientX, t.clientY);
+        const g = gameCoords(t.clientX, t.clientY);
+        sleague_pointer_down(g.x, g.y);
     }, { passive: false });
 
     canvas.addEventListener('touchmove', e => {
         e.preventDefault();
         const t = e.touches[0];
-        onPointerMove(t.clientX, t.clientY);
+        const g = gameCoords(t.clientX, t.clientY);
+        sleague_pointer_move(g.x, g.y);
     }, { passive: false });
 
     canvas.addEventListener('touchend', e => {
         e.preventDefault();
         const t = e.changedTouches[0];
-        onPointerUp(t.clientX, t.clientY);
+        const g = gameCoords(t.clientX, t.clientY);
+        sleague_pointer_up(g.x, g.y);
     }, { passive: false });
 
-    // Mouse events (for desktop)
+    // Mouse events (desktop)
     canvas.addEventListener('mousedown', e => {
         e.preventDefault();
-        onPointerDown(e.clientX, e.clientY);
+        const g = gameCoords(e.clientX, e.clientY);
+        sleague_pointer_down(g.x, g.y);
     });
 
     canvas.addEventListener('mousemove', e => {
-        onPointerMove(e.clientX, e.clientY);
+        const g = gameCoords(e.clientX, e.clientY);
+        sleague_pointer_move(g.x, g.y);
     });
 
     canvas.addEventListener('mouseup', e => {
-        onPointerUp(e.clientX, e.clientY);
+        const g = gameCoords(e.clientX, e.clientY);
+        sleague_pointer_up(g.x, g.y);
     });
 
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-    // Keyboard (for debug)
+    // Keyboard (debug)
     document.addEventListener('keydown', e => {
         key_down(e.code);
         e.preventDefault();
@@ -139,14 +106,9 @@ async function main() {
         const dt = Math.min(now - lastTime, 50);
         lastTime = now;
 
-        // Update game logic
-        mycelia_update(dt);
-
-        // Run engine systems (physics, environment clock, particles, etc.)
+        sleague_update(dt);
         tick(dt);
-
-        // Custom render (tilemap, nodes, connections, blight, HUD)
-        mycelia_render();
+        sleague_render();
 
         // Copy framebuffer to canvas
         const ptr = framebuffer_ptr();

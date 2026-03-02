@@ -5,7 +5,6 @@ mod components;
 mod systems;
 mod rendering;
 mod physics;
-pub mod scripting;
 mod events;
 mod input;
 pub mod log;
@@ -31,9 +30,7 @@ pub mod procedural_gen;
 pub mod environment_clock;
 pub mod density_field;
 pub mod diagnostics;
-pub mod world_lint;
 pub mod gesture;
-pub mod mycelia;
 pub mod sound;
 pub mod auto_juice;
 pub mod game_flow;
@@ -42,6 +39,7 @@ pub mod camera_director;
 pub mod level_curve;
 pub mod ui_canvas;
 pub mod aim_preview;
+pub mod trap_links_demo;
 
 #[cfg(test)]
 mod tests;
@@ -144,51 +142,6 @@ pub fn touch_end(id: u32, x: f64, y: f64) {
     });
 }
 
-#[wasm_bindgen]
-pub fn load_world(source: String) {
-    with_engine(|eng| {
-        match scripting::parser::parse_world(&source) {
-            Ok(world_file) => {
-                // Reset everything first (clears spawner timers, particles, etc.)
-                eng.reset_game_state();
-
-                // Full load: entities + templates + state + timers + rules
-                // (load_world_full also clears and repopulates these from the .world file)
-                scripting::loader::load_world_full(
-                    &world_file, &mut eng.world, &mut eng.config,
-                    &mut eng.global_state, &mut eng.timers,
-                    &mut eng.templates, &mut eng.rules,
-                );
-                log::log(&format!(
-                    "Loaded world '{}' with {} entities, {} templates, {} timers, {} rules",
-                    eng.config.name, eng.world.entity_count(),
-                    eng.templates.len(), eng.timers.len(), eng.rules.len(),
-                ));
-
-                // Initialize starfield for space-themed games
-                let name_lower = eng.config.name.to_lowercase();
-                if name_lower.contains("space") || name_lower.contains("asteroid")
-                    || name_lower.contains("star") || name_lower.contains("cosmic")
-                {
-                    let (bw, bh) = eng.config.bounds;
-                    eng.starfield = Some(rendering::starfield::Starfield::generate(
-                        42, bw, bh, 200,
-                    ));
-                    eng.post_fx.vignette_strength = 0.6;
-                }
-            }
-            Err(e) => {
-                log::error(&format!("World parse error: {}", e));
-            }
-        }
-    });
-}
-
-#[wasm_bindgen]
-pub fn get_schema() -> String {
-    schema::generate_schema()
-}
-
 // ─── Game State WASM API ─────────────────────────────────────────────
 
 /// Get the entire global game state as a JSON string.
@@ -249,52 +202,42 @@ pub fn cancel_timer(name: String) {
     with_engine(|eng| { eng.timers.cancel(&name); });
 }
 
-// ─── Mycelia: Ascent WASM API ───────────────────────────────────────────
+// ─── S-League WASM API ──────────────────────────────────────────────
 
-/// Initialize Mycelia game with a seed.
+/// Initialize the S-League minigolf RPG demo.
 #[wasm_bindgen]
-pub fn mycelia_init(seed: u64) {
-    with_engine(|eng| mycelia::setup(eng, seed));
+pub fn sleague_init() {
+    with_engine(|eng| trap_links_demo::setup(eng));
 }
 
-/// Run one frame of Mycelia game logic. Call BEFORE tick().
+/// Handle pointer down for S-League (aiming).
 #[wasm_bindgen]
-pub fn mycelia_update(dt_ms: f64) {
-    with_engine(|eng| mycelia::update(eng, dt_ms / 1000.0));
+pub fn sleague_pointer_down(x: f64, y: f64) {
+    with_engine(|eng| trap_links_demo::on_pointer_down(eng, x, y));
 }
 
-/// Handle a tap at screen coordinates. Returns true if game should restart.
+/// Handle pointer move for S-League (aiming).
 #[wasm_bindgen]
-pub fn mycelia_tap(screen_x: f64, screen_y: f64) -> bool {
-    with_engine(|eng| mycelia::on_tap(eng, screen_x, screen_y))
+pub fn sleague_pointer_move(x: f64, y: f64) {
+    with_engine(|eng| trap_links_demo::on_pointer_move(eng, x, y));
 }
 
-/// Custom render pass for Mycelia (tilemap, connections, nodes, HUD).
-/// Call this AFTER tick() — it overwrites the framebuffer with Mycelia's custom rendering.
+/// Handle pointer up for S-League (shoot).
 #[wasm_bindgen]
-pub fn mycelia_render() {
-    with_engine(|eng| {
-        // Clear framebuffer
-        eng.framebuffer.clear(eng.config.background);
-
-        // Mycelia custom rendering (tilemap + nodes + connections + blight + HUD)
-        mycelia::render(eng);
-
-        // Screen effects
-        eng.screen_fx.tick(0.016);
-        eng.screen_fx.apply(&mut eng.framebuffer);
-
-        // Post-FX
-        rendering::post_fx::apply(
-            &mut eng.framebuffer, &mut eng.post_fx, 0.016, eng.frame,
-        );
-    });
+pub fn sleague_pointer_up(x: f64, y: f64) {
+    with_engine(|eng| trap_links_demo::on_pointer_up(eng, x, y));
 }
 
-/// Get Mycelia game state as JSON.
+/// Run one frame of S-League game logic.
 #[wasm_bindgen]
-pub fn mycelia_get_state() -> String {
-    with_engine(|eng| mycelia::get_state(eng))
+pub fn sleague_update(dt_ms: f64) {
+    with_engine(|eng| trap_links_demo::update(eng, dt_ms / 1000.0));
+}
+
+/// Custom render pass for S-League.
+#[wasm_bindgen]
+pub fn sleague_render() {
+    with_engine(|eng| trap_links_demo::render(eng));
 }
 
 // ─── Diagnostics WASM API ────────────────────────────────────────────

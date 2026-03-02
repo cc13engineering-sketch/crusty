@@ -1,7 +1,7 @@
 /// Integration tests for engine systems.
 ///
 /// These tests exercise the full Engine through its public API and verify that
-/// the internal systems (physics, collision, events, input, scripting) behave
+/// the internal systems (physics, collision, events, input) behave
 /// correctly when composed together.
 
 use crate::engine::Engine;
@@ -356,101 +356,7 @@ fn test_damping_reduces_velocity() {
     );
 }
 
-// ─── 10. World load and tick ───────────────────────────────────────────────
-
-#[test]
-fn test_world_load_and_tick() {
-    let source = r#"
-world "Test World" {
-    bounds: 400 x 300
-    background: #222233
-}
-
-entity ball {
-    position: (100, 150)
-    physics: { mass: 1.0, vx: 50.0, vy: 0.0, restitution: 0.9, damping: 0.01 }
-    collider: { shape: circle, radius: 10 }
-    visual: { shape: circle, radius: 10, color: #ff0000, filled: true }
-    tags: ["ball"]
-}
-
-entity wall_right {
-    position: (390, 150)
-    physics: { is_static: true }
-    collider: { shape: rect, half_width: 10, half_height: 150 }
-    visual: { shape: rect, width: 20, height: 300, color: #333333, filled: true }
-}
-"#;
-
-    let wf = crate::scripting::parser::parse_world(source)
-        .expect("world should parse without error");
-
-    let mut engine = Engine::new(400, 300);
-    crate::scripting::loader::load_world_file(&wf, &mut engine.world, &mut engine.config);
-
-    assert_eq!(engine.config.name, "Test World");
-    assert!(
-        engine.world.entity_count() >= 2,
-        "expected at least 2 entities, got {}",
-        engine.world.entity_count(),
-    );
-
-    // Tick several times -- should not panic
-    for _ in 0..30 {
-        engine.tick(DT);
-    }
-
-    // Verify entities still alive
-    assert!(
-        engine.world.entity_count() >= 2,
-        "entities should persist after ticks",
-    );
-}
-
-// ─── 11. Input affects player ──────────────────────────────────────────────
-
-#[test]
-fn test_input_affects_player() {
-    let source = r#"
-world "Input Test" {
-    bounds: 400 x 300
-}
-
-entity player {
-    position: (200, 150)
-    physics: { mass: 1.0, restitution: 0.0, damping: 0.01 }
-    collider: { shape: circle, radius: 10 }
-    tags: ["player"]
-}
-"#;
-
-    let wf = crate::scripting::parser::parse_world(source)
-        .expect("world should parse without error");
-
-    let mut engine = Engine::new(400, 300);
-    crate::scripting::loader::load_world_file(&wf, &mut engine.world, &mut engine.config);
-
-    let player = engine.world.names.get_by_name("player")
-        .expect("player entity should exist");
-
-    // Simulate pressing the right arrow key
-    engine.input.on_key_down("ArrowRight".to_string());
-
-    // Run a tick -- the input_gameplay system should set the player's velocity
-    engine.tick(DT);
-
-    let rb = engine.world.rigidbodies.get(player)
-        .expect("player should have rigidbody");
-
-    // The input_gameplay system sets vx = WALK_SPEED (200.0) when ArrowRight held
-    assert!(
-        rb.vx > 0.0,
-        "player vx should be positive after pressing ArrowRight: vx={}",
-        rb.vx,
-    );
-}
-
-// ─── 12. Despawn removes from all stores ───────────────────────────────────
+// ─── 10. Despawn removes from all stores ───────────────────────────────────
 
 // (tests continue below — end-to-end tests are appended after test 12)
 

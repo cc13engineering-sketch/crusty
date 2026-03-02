@@ -38,7 +38,6 @@ jobs:
 
       - name: Install wasm-pack
         run: cargo install wasm-pack --locked || true
-        # Falls back silently if already cached
 
       - name: Build WASM
         working-directory: engine
@@ -49,32 +48,21 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/pkg _site/game-1 _site/game-2 _site/game-3 _site/innovations-1 _site/changelog
+          mkdir -p _site/pkg _site/s-league _site/changelog
 
-          # Copy WASM build artifacts (only the files needed at runtime)
+          # Copy WASM build artifacts
           cp _pkg/engine_core.js _site/pkg/
           cp _pkg/engine_core_bg.wasm _site/pkg/
 
           # Copy site pages
           cp site/index.html _site/
-          cp site/game-1/index.html _site/game-1/
-          cp site/game-1/game.js _site/game-1/
-          cp site/game-2/index.html _site/game-2/
-          cp site/game-2/game.js _site/game-2/
-          cp site/game-3/index.html _site/game-3/
-          cp site/game-3/game.js _site/game-3/
 
-          # Copy innovations
-          cp innovations-1/index.html _site/innovations-1/
-          cp innovations-1/game.js _site/innovations-1/
+          # Copy S-League demo
+          cp site/s-league/index.html _site/s-league/
+          cp site/s-league/game.js _site/s-league/
 
           # Copy changelog
           cp site/changelog/index.html _site/changelog/
-
-          # Copy world files
-          cp engine/worlds/bouncing_balls.world _site/game-1/
-          cp engine/worlds/walker.world _site/game-2/
-          cp engine/worlds/space_survival.world _site/game-3/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

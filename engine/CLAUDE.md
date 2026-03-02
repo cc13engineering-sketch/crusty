@@ -17,101 +17,37 @@
 ## File Conventions
 - Adding a component: create file in components/, add to components/mod.rs, add store to world.rs, add to World::new/despawn/clear, add SchemaInfo impl.
 - Adding a system: create file in systems/, add to systems/mod.rs, add call in engine.rs tick().
-- Adding a .world property: extend loader.rs mapping. Grammar's catch-all handles new ident:value properties automatically.
+- Games are defined as Rust modules (like `trap_links_demo.rs` or `mycelia.rs`), never as spec files.
 
-## Parser Gotchas
-- `string` rule includes quotes — strip with `&s[1..s.len()-1]`
-- `number` rule yields string — parse with `.parse::<f64>()`
-- `color_value` includes `#` — pass directly to `Color::from_hex()`
-- pest grammar path in `#[grammar = "..."]` is relative to src/
+## Development Methodology
 
-## Innovation Games (Development Methodology)
+This engine is purpose-built for the **S-League** minigolf RPG. The game is always defined as a Rust crate — not using the world spec language. Development is driven by game needs: build what the RPG requires, harden what exists, avoid feature sprawl.
+
+### Innovation Games Process
 
 Innovation Games drive this engine's development. Each round follows a structured process with mandatory pre-work, competitive proposals, and changelog publishing.
 
-### Pre-Work: Codebase Audit (mandatory before each round)
+#### Pre-Work: Codebase Audit (mandatory before each round)
 Before starting proposals, spawn agents with different technical backgrounds to:
 1. **Rust Engine Expert** — review engine code for dead code, unused imports, API drift, unfixed bugs, test gaps.
-2. **Game Developer** — verify all demos compile and run against current WASM build, check .world files use current grammar.
-3. **Documentation Reviewer** — audit CLAUDE.md, PROCESS.md, REVIEW.md, CHANGELOG.md, ARCHITECTURE.md for accuracy against actual source.
+2. **Game Developer** — verify demos compile and run against current WASM build.
+3. **Documentation Reviewer** — audit all .md files for accuracy against actual source.
 4. Fix all issues found, update docs, commit as "pre-work: codebase audit".
-This ensures we build cohesively and don't accumulate drift between docs, code, and demos.
 
-### Innovation Round Steps
+#### Innovation Round Steps
 1. **Pre-work audit** (see above)
 2. **Spawn competing agents** (4 agents) — each proposes features/ideas independently
 3. **Theme-driven ideation** — proposals validated against the round's theme
 4. **Cross-pollinate** — review agents select best ideas across all competitors
 5. **Integrate** — winning features implemented with tests
 6. **Demo** — build/update demo games showcasing new features
-7. **Changelog publish** — update CHANGELOG.md, publish changelog page to GitHub Pages with "how to run" info for all demos
-
-Key principle: features are designed for *engine generality*, not just the theme game. The theme game validates that features compose well together.
-
-### Round Schedule
-- **Rounds 1-2**: Focus on innovations that allow Claude Code to design high-quality immersive mobile games with minimal human input. Think about every aspect of the codebase.
-- **Rounds 3-4**: In-depth game concept competition. Theme: large-map tile-based RPG, Pokémon-style, but instead of fighting trainers, players encounter traps that open a "fight puzzle scene" (like Pokémon fight scenes) where they must use minigolf-like mechanics to solve/fight through the encounter. Must be a rich, ready-to-build concept.
-- **Rounds 5-6**: Code and engine improvements specifically to make building the agreed-upon game feasible.
-- **Rounds 7+**: Open feature competition. Continue until told to stop.
-
-### Past Rounds
-- **Round 1**: Space Survival theme. Added: SpawnQueue, GameState, Behavior AI, Lifetime/Lifecycle, Particle System, Bitmap Text, Starfield, Post-FX (vignette/scanlines/shake), HUD rendering, Gameplay collision rules, Wave spawning. Demo: game-3 (Space Survival).
-- **Round 2**: Minigolf Tile Art RPG theme. Added: Camera follow/zoom with smooth lerp, Render layer stack with parallax, Sprite sheet renderer, Scene transitions (fade/iris/pixelate), PhysicsMaterial (friction/drag), Impulse component, MotionConstraint (speed cap/axis lock), ZoneEffect (wind/drag/conveyor), DialogueQueue (dialogue/notification/floating text).
-- **Round 3**: Puzzle Platformer with Time Mechanics theme. Added: PropertyTween (9 easing curves), EntityFlash (hit flash/blink/color pulse), GhostTrail (fading afterimage ring buffer), Per-Entity TimeScale, Active component, WaypointPath (once/loop/ping-pong), SignalEmitter/SignalReceiver (wired logic gates with AND/OR/edge detection), ScreenFxStack (composable timed effects), SceneManager (push/pop scene stack).
-- **Round 4**: Signal Breach (Tactical Stealth-Puzzle) theme. Added: Parent/Children/WorldTransform (entity hierarchy with transform propagation), StateMachine (data-driven FSM with transitions), Coroutine (scripted async step sequences), TileMap (row-major grid with viewport culling), Raycast (circle/AABB/DDA grid), SpatialHashGrid (cell-bucketed spatial index), EntityPool (pre-warmed recycling).
-- **Round 5**: Expert Review & E2E Testing. Allocation optimizations (HashSet<&str>), ghost trail ring buffer fix, raycast DDA fix, flash/tween system optimizations, Default impls. 22 comprehensive E2E integration tests.
-- **Round 6**: Feature Bonanza. Added: SpriteAnimator (named clips with frame sequences), PhysicsJoint (distance/spring/rope/hinge with break force), EventBus (channel-based typed events), InputMap (abstract input layer), A* Pathfinding (octile heuristic, diagonal movement), Save/Load (world snapshot to JSON).
-- **Round 7**: Ecosystem Infrastructure. Added: ResourceInventory (bounded multi-resource container), GraphNode (entity-to-entity graph edges), VisualConnection (visual links with styles), FlowNetwork (directed resource flow), ProceduralGen (noise + cellular automata + dungeon gen), EnvironmentClock (cyclical time phases), DensityField (2D scalar field with diffusion).
-- **Demo Build**: Mycelia: Ascent — procedural cave game showcasing 8+ engine systems composing together. Custom Rust module with WASM bindings, mobile-first 480x720.
-- **Round 8**: Mobile & Game Feel. Added: GestureRecognizer (touch gestures), SoundScape (command-buffer audio), AutoJuice (declarative game-feel), UiCanvas (anchor-based UI), DiagnosticBus (runtime error reporting), WorldLint (static .world analysis). 90 tests.
-- **Round 9**: Game Creation Platform. Added: GameFlow (lifecycle FSM), CameraDirector (cinematic camera), ColorPalette (procedural art identity), LevelCurve (difficulty progression). 109 tests.
-- **Round 10**: Trap Links Game Design. 622-line GDD synthesized from 3 competing proposals. RPG/minigolf game concept with 5 biomes, 8 obstacle types, capture system, equipment.
-- **Round 11**: Physics & Core Improvements. Restitution override wiring, scene isolation (World snapshot), multi-layer TileMap, AimPreview module, sorted_entities hot path fix. 31 tests.
-
----
-
-## Carry On — Next Session Instructions
-
-**When the user says "carry on" or "continue innovation games", resume from this point:**
-
-### Current State (after Round 11)
-- **Branch**: `claude/review-game-engine-CaUoa`
-- **Tests**: 1094 passing
-- **Engine modules**: 31 (including new aim_preview.rs)
-- **Game design**: Complete GDD at `game-concept/DESIGN.md` (Trap Links)
-- **Detailed specs**: `game-concept/SPEC_PHYSICS.md`, `SPEC_TILEMAP.md`, `SPEC_UI_SOUND.md`
-
-### What to do next: Round 6 (Round 12)
-
-**Theme**: UI & Content improvements — the remaining 4 engine gaps from the Trap Links design.
-
-**Gaps to implement** (see `game-concept/SPEC_UI_SOUND.md` for detailed specs):
-
-1. **Gap 5: UI Tap Actions** — Wire `UiCanvas.hit_test()` into engine tick so tap gestures trigger EventBus events. Add `disabled` and `pressed_timer` to UiWidget. File: `ui_canvas.rs` + `engine.rs`.
-
-2. **Gap 3: Dialogue Branching** — Add `Conversation` system alongside existing `DialogueQueue`. `DialogueNode` enum (Statement/Choice), directed graph traversal, `ConversationBuilder`, EventBus integration for choice selections. File: `dialogue.rs`.
-
-3. **Gap 2: Sprite Tiles** — Wire `Tile.sprite_index` into `TileMap::render()`. Add optional sprite sheet data to render function. When tile has sprite_index and sheet provided, blit sprite instead of fill_rect. File: `tilemap.rs`.
-
-4. **Gap 8: One-shot SFX wiring** — Wire `AutoJuice.sound_queue` (palette names) through `SoundPalette.play()` into `SoundCommandQueue`. Add AutoJuice.apply() call to engine tick. Add `SoundPalette::trap_links_palette()` with game-specific sounds. Files: `sound.rs`, `auto_juice.rs`, `engine.rs`.
-
-**After Round 6**: Continue to Round 7+ (open feature competition). Consider building the Trap Links game itself as a demo, similar to how Mycelia was built.
-
-### Process reminder
-1. Pre-work codebase audit (spawn 3 agents)
-2. Implement all 4 gaps (spawn 4 parallel agents)
-3. Run tests (`cargo test --lib`)
-4. Commit + push + update changelog
-5. Continue to next round
-
-### OpenAI ECS Feedback (addressed)
-The `sorted_entities()` hot path fix was implemented in Round 11. The HashMap→DenseStore migration is acknowledged but deferred — particles already use dense `Vec<Particle>` (not ECS), and the engine targets ~100-300 entities. The API is clean enough for a future drop-in replacement if scaling demands it.
+7. **Changelog publish** — update CHANGELOG.md, publish changelog page to GitHub Pages
 
 ## Demo Game Building Process
 
 When building a demo game:
 1. **Read `PROCESS.md`** at repo root for lessons learned, API pitfalls, and patterns from prior builds. Use as helper info — first principles are king.
 2. **Research the engine API** before writing code. Read the actual source for components, systems, and rendering functions you plan to use. Don't assume signatures.
-3. **Decide architecture**: `.world` file for simple games, custom Rust module for anything procedural or with custom mechanics.
+3. **Architecture**: Custom Rust crate/module. The game is defined in code, not spec files.
 4. **Build iteratively**: Get compilation passing first, then tests, then web integration.
-5. **After each build**: Update `PROCESS.md` with new findings, API corrections, and patterns discovered. Every build attempt teaches something — capture it.
+5. **After each build**: Update `PROCESS.md` with new findings, API corrections, and patterns discovered.

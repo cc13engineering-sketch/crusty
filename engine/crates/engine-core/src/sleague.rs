@@ -803,6 +803,11 @@ fn level_up_monster(engine: &mut Engine, slot: usize) {
             ss_team(engine, slot, "atk", calc_atk(evo.base_atk, level));
             ss_team(engine, slot, "def", calc_def(evo.base_def, level));
             ss_team(engine, slot, "spd", calc_spd(evo.base_spd, level));
+            // Evolution sound fanfare
+            play_evolution_sound(engine);
+            engine.screen_fx.push(ScreenEffect::Flash {
+                color: Color { r: 255, g: 255, b: 200, a: 255 }, intensity: 0.8,
+            }, 0.5);
         }
     }
 }
@@ -1706,6 +1711,54 @@ fn play_victory_sound(engine: &mut Engine) {
     }
 }
 
+fn play_evolution_sound(engine: &mut Engine) {
+    let notes = [440.0, 554.0, 659.0, 880.0, 1047.0, 1319.0];
+    for (i, &freq) in notes.iter().enumerate() {
+        engine.sound_queue.push(SoundCommand::PlayTone {
+            frequency: freq, duration: 0.2, volume: 0.3,
+            waveform: Waveform::Sine, attack: 0.01 + i as f64 * 0.04, decay: 0.12,
+        });
+    }
+}
+
+fn play_zone_bgm(engine: &mut Engine, zone: Zone) {
+    // Each zone gets a unique ambient drone
+    let (freq, waveform) = match zone {
+        Zone::PebbleTown => (220.0, Waveform::Sine),
+        Zone::VerdantPath => (196.0, Waveform::Triangle),
+        Zone::EmberHollow => (165.0, Waveform::Sawtooth),
+        Zone::CoralShore => (247.0, Waveform::Sine),
+        Zone::Sparkridge => (277.0, Waveform::Square),
+        Zone::DeepCave => (147.0, Waveform::Sawtooth),
+        Zone::ShadowVale => (131.0, Waveform::Square),
+        Zone::CrystalSpire => (330.0, Waveform::Sine),
+        Zone::Frostpeak => (294.0, Waveform::Triangle),
+    };
+    engine.sound_queue.push(SoundCommand::StartLoop {
+        id: "zone_bgm".into(), frequency: freq, volume: 0.08, waveform,
+    });
+}
+
+fn stop_zone_bgm(engine: &mut Engine) {
+    engine.sound_queue.push(SoundCommand::StopLoop {
+        id: "zone_bgm".into(), fade_out: 0.3,
+    });
+}
+
+fn play_battle_bgm(engine: &mut Engine, is_boss: bool) {
+    let freq = if is_boss { 110.0 } else { 165.0 };
+    engine.sound_queue.push(SoundCommand::StartLoop {
+        id: "battle_bgm".into(), frequency: freq, volume: 0.06,
+        waveform: Waveform::Square,
+    });
+}
+
+fn stop_battle_bgm(engine: &mut Engine) {
+    engine.sound_queue.push(SoundCommand::StopLoop {
+        id: "battle_bgm".into(), fade_out: 0.2,
+    });
+}
+
 // ═══════════════════════════════════════════════════════════════════════
 // INPUT HANDLERS
 // ═══════════════════════════════════════════════════════════════════════
@@ -2223,7 +2276,9 @@ fn check_special_tiles(engine: &mut Engine) {
 }
 
 fn start_battle(engine: &mut Engine, species_id: u8, level: u8, is_boss: bool) {
+    stop_zone_bgm(engine);
     play_encounter_sound(engine);
+    play_battle_bgm(engine, is_boss);
     engine.screen_fx.push(ScreenEffect::Flash {
         color: COL_WHITE,
         intensity: 0.8,
@@ -2272,6 +2327,7 @@ fn start_battle(engine: &mut Engine, species_id: u8, level: u8, is_boss: bool) {
 }
 
 fn start_zone_transition(engine: &mut Engine, target: Zone, spawn_x: f64, spawn_y: f64) {
+    stop_zone_bgm(engine);
     ss(engine, K_MODE, MODE_TRANSITION);
     ss(engine, K_TRANS_TIMER, 0.0);
     ss(engine, K_TRANS_TARGET, zone_to_f64(target));
@@ -2283,6 +2339,7 @@ fn start_zone_transition(engine: &mut Engine, target: Zone, spawn_x: f64, spawn_
         color: COL_BLACK,
         intensity: 1.0,
     }, 0.6);
+    play_zone_bgm(engine, target);
 }
 
 fn update_transition(engine: &mut Engine, dt: f64) {
@@ -2693,12 +2750,14 @@ fn on_player_defeated(engine: &mut Engine) {
 }
 
 fn end_battle(engine: &mut Engine, victory: bool) {
+    stop_battle_bgm(engine);
     // Restore overworld map
     let zone = zone_from_f64(gs(engine, K_ZONE));
     engine.tilemap = Some(build_zone_map(zone));
     ss(engine, K_MODE, MODE_OVERWORLD);
     ss(engine, K_PLAYER_MOVING, 0.0);
     ss(engine, K_ENCOUNTER_CD, 3.0);
+    play_zone_bgm(engine, zone);
 
     if !victory {
         // Ran away - no penalty
@@ -3168,59 +3227,116 @@ fn render_monster_sprite(fb: &mut crate::rendering::framebuffer::Framebuffer, cx
     let scale = if small { 0.6 } else { 1.0 };
     let r = 20.0 * scale;
 
-    shapes::fill_circle(fb, cx, cy, r, sp.body_color);
-
     match sp.element {
         Element::Fire => {
-            shapes::fill_circle(fb, cx - r * 0.5, cy - r * 0.8, r * 0.3, sp.accent_color);
-            shapes::fill_circle(fb, cx + r * 0.5, cy - r * 0.8, r * 0.3, sp.accent_color);
-            shapes::fill_circle(fb, cx, cy - r, r * 0.4, Color { r: 255, g: 200, b: 60, a: 255 });
+            // Flame-shaped body (wider at bottom, pointed top)
+            shapes::fill_circle(fb, cx, cy + r * 0.2, r * 1.0, sp.body_color);
+            shapes::fill_circle(fb, cx, cy - r * 0.3, r * 0.7, sp.body_color);
+            shapes::fill_circle(fb, cx, cy - r * 0.8, r * 0.4, sp.accent_color);
+            // Flame tips
+            shapes::fill_circle(fb, cx - r * 0.5, cy - r * 0.7, r * 0.25, Color { r: 255, g: 200, b: 60, a: 255 });
+            shapes::fill_circle(fb, cx + r * 0.5, cy - r * 0.7, r * 0.25, Color { r: 255, g: 200, b: 60, a: 255 });
+            shapes::fill_circle(fb, cx, cy - r * 1.1, r * 0.3, Color { r: 255, g: 160, b: 40, a: 200 });
         }
         Element::Water => {
-            shapes::fill_circle(fb, cx, cy - r * 0.3, r * 0.6, sp.accent_color);
-            shapes::fill_circle(fb, cx - r * 0.4, cy + r * 0.4, r * 0.2, Color { r: 200, g: 230, b: 255, a: 180 });
+            // Droplet body (round bottom, tapered top)
+            shapes::fill_circle(fb, cx, cy + r * 0.1, r, sp.body_color);
+            shapes::fill_circle(fb, cx, cy - r * 0.4, r * 0.7, sp.body_color);
+            // Fins
+            shapes::fill_circle(fb, cx - r * 1.0, cy + r * 0.2, r * 0.35, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 1.0, cy + r * 0.2, r * 0.35, sp.accent_color);
+            // Bubble
+            shapes::fill_circle(fb, cx + r * 0.7, cy - r * 0.6, r * 0.15, Color { r: 200, g: 230, b: 255, a: 160 });
         }
         Element::Leaf => {
-            shapes::fill_circle(fb, cx - r * 0.7, cy - r * 0.7, r * 0.3, sp.accent_color);
-            shapes::fill_circle(fb, cx + r * 0.7, cy - r * 0.7, r * 0.3, sp.accent_color);
+            // Stocky body with leaf crown
+            shapes::fill_circle(fb, cx, cy + r * 0.15, r * 0.95, sp.body_color);
+            // Leaf ears
+            shapes::fill_circle(fb, cx - r * 0.8, cy - r * 0.6, r * 0.4, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 0.8, cy - r * 0.6, r * 0.4, sp.accent_color);
+            shapes::fill_circle(fb, cx, cy - r * 0.9, r * 0.35, sp.accent_color);
+            // Seed pattern
+            shapes::fill_circle(fb, cx, cy + r * 0.5, r * 0.15, sp.accent_color);
         }
         Element::Electric => {
-            shapes::draw_line_thick(fb, cx - r * 0.5, cy - r, cx - r * 0.2, cy - r * 0.5, 2.0, Color { r: 255, g: 255, b: 100, a: 255 });
-            shapes::draw_line_thick(fb, cx + r * 0.5, cy - r, cx + r * 0.2, cy - r * 0.5, 2.0, Color { r: 255, g: 255, b: 100, a: 255 });
+            // Spiky body
+            shapes::fill_circle(fb, cx, cy, r * 0.9, sp.body_color);
+            // Lightning bolt horns
+            let bolt_col = Color { r: 255, g: 255, b: 100, a: 255 };
+            shapes::draw_line_thick(fb, cx - r * 0.4, cy - r * 0.7, cx - r * 0.6, cy - r * 1.2, 2.0 * scale, bolt_col);
+            shapes::draw_line_thick(fb, cx - r * 0.6, cy - r * 1.2, cx - r * 0.3, cy - r * 0.9, 2.0 * scale, bolt_col);
+            shapes::draw_line_thick(fb, cx + r * 0.4, cy - r * 0.7, cx + r * 0.6, cy - r * 1.2, 2.0 * scale, bolt_col);
+            shapes::draw_line_thick(fb, cx + r * 0.6, cy - r * 1.2, cx + r * 0.3, cy - r * 0.9, 2.0 * scale, bolt_col);
+            // Cheek sparks
+            shapes::fill_circle(fb, cx - r * 0.6, cy + r * 0.1, r * 0.15, bolt_col);
+            shapes::fill_circle(fb, cx + r * 0.6, cy + r * 0.1, r * 0.15, bolt_col);
         }
         Element::Earth => {
-            shapes::fill_circle(fb, cx - r * 0.3, cy - r * 0.2, r * 0.15, sp.accent_color);
-            shapes::fill_circle(fb, cx + r * 0.4, cy + r * 0.1, r * 0.15, sp.accent_color);
-            shapes::fill_circle(fb, cx, cy + r * 0.3, r * 0.15, sp.accent_color);
+            // Bulky hexagonal body
+            shapes::fill_circle(fb, cx, cy + r * 0.1, r * 1.1, sp.body_color);
+            shapes::fill_circle(fb, cx, cy - r * 0.5, r * 0.6, sp.body_color);
+            // Rocky bumps
+            shapes::fill_circle(fb, cx - r * 0.6, cy - r * 0.6, r * 0.25, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 0.6, cy - r * 0.6, r * 0.25, sp.accent_color);
+            shapes::fill_circle(fb, cx, cy + r * 0.7, r * 0.3, sp.accent_color);
+            // Crack lines
+            shapes::draw_line(fb, cx - r * 0.3, cy, cx + r * 0.3, cy + r * 0.3, sp.accent_color);
         }
         Element::Ice => {
-            shapes::fill_circle(fb, cx, cy - r * 0.9, r * 0.25, Color { r: 200, g: 240, b: 255, a: 255 });
-            shapes::fill_circle(fb, cx - r * 0.6, cy - r * 0.5, r * 0.2, Color { r: 200, g: 240, b: 255, a: 255 });
-            shapes::fill_circle(fb, cx + r * 0.6, cy - r * 0.5, r * 0.2, Color { r: 200, g: 240, b: 255, a: 255 });
+            // Crystal-shaped body
+            shapes::fill_circle(fb, cx, cy, r * 0.85, sp.body_color);
+            // Ice crown
+            let ice_col = Color { r: 200, g: 240, b: 255, a: 255 };
+            shapes::fill_circle(fb, cx, cy - r * 0.9, r * 0.3, ice_col);
+            shapes::fill_circle(fb, cx - r * 0.7, cy - r * 0.5, r * 0.22, ice_col);
+            shapes::fill_circle(fb, cx + r * 0.7, cy - r * 0.5, r * 0.22, ice_col);
+            // Frost pattern
+            shapes::fill_circle(fb, cx - r * 0.3, cy + r * 0.5, r * 0.12, ice_col);
+            shapes::fill_circle(fb, cx + r * 0.4, cy + r * 0.4, r * 0.1, ice_col);
         }
         Element::Shadow => {
-            shapes::fill_circle(fb, cx - r * 0.8, cy, r * 0.2, sp.accent_color);
-            shapes::fill_circle(fb, cx + r * 0.8, cy, r * 0.2, sp.accent_color);
-            shapes::fill_circle(fb, cx, cy + r * 0.9, r * 0.15, sp.accent_color);
+            // Wispy body with tendrils
+            shapes::fill_circle(fb, cx, cy - r * 0.1, r * 0.85, sp.body_color);
+            // Shadow tendrils
+            shapes::fill_circle(fb, cx - r * 0.9, cy + r * 0.2, r * 0.25, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 0.9, cy + r * 0.2, r * 0.25, sp.accent_color);
+            shapes::fill_circle(fb, cx, cy + r * 0.8, r * 0.2, sp.accent_color);
+            shapes::fill_circle(fb, cx - r * 0.5, cy + r * 0.6, r * 0.18, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 0.5, cy + r * 0.6, r * 0.18, sp.accent_color);
         }
         Element::Light => {
-            for i in 0..6 {
-                let angle = i as f64 * std::f64::consts::PI / 3.0;
-                let x2 = cx + angle.cos() * r * 1.3;
-                let y2 = cy + angle.sin() * r * 1.3;
-                shapes::draw_line(fb, cx, cy, x2, y2, Color { r: 255, g: 240, b: 180, a: 100 });
+            // Radiant body with halo
+            for i in 0..8 {
+                let angle = i as f64 * std::f64::consts::PI / 4.0;
+                let x2 = cx + angle.cos() * r * 1.4;
+                let y2 = cy + angle.sin() * r * 1.4;
+                shapes::draw_line_thick(fb, cx, cy, x2, y2, 1.5 * scale, Color { r: 255, g: 240, b: 180, a: 80 });
             }
+            shapes::fill_circle(fb, cx, cy, r * 0.9, sp.body_color);
+            // Halo
+            shapes::draw_circle(fb, cx, cy - r * 0.8, r * 0.5, Color { r: 255, g: 240, b: 150, a: 200 });
         }
-        _ => {}
+        _ => {
+            // Normal type
+            shapes::fill_circle(fb, cx, cy, r, sp.body_color);
+            // Ears
+            shapes::fill_circle(fb, cx - r * 0.7, cy - r * 0.7, r * 0.25, sp.accent_color);
+            shapes::fill_circle(fb, cx + r * 0.7, cy - r * 0.7, r * 0.25, sp.accent_color);
+        }
     }
 
-    let eye_y = cy - r * 0.15;
-    let eye_r = r * 0.12;
+    // Eyes (larger, more expressive)
+    let eye_y = cy - r * 0.1;
+    let eye_r = r * 0.16;
     shapes::fill_circle(fb, cx - r * 0.3, eye_y, eye_r + 1.0, COL_WHITE);
     shapes::fill_circle(fb, cx + r * 0.3, eye_y, eye_r + 1.0, COL_WHITE);
-    shapes::fill_circle(fb, cx - r * 0.3, eye_y, eye_r, COL_BLACK);
-    shapes::fill_circle(fb, cx + r * 0.3, eye_y, eye_r, COL_BLACK);
-    shapes::draw_line(fb, cx - r * 0.2, cy + r * 0.2, cx + r * 0.2, cy + r * 0.2, sp.accent_color);
+    shapes::fill_circle(fb, cx - r * 0.28, eye_y, eye_r * 0.7, COL_BLACK);
+    shapes::fill_circle(fb, cx + r * 0.28, eye_y, eye_r * 0.7, COL_BLACK);
+    // Eye highlights
+    shapes::fill_circle(fb, cx - r * 0.25, eye_y - eye_r * 0.3, eye_r * 0.3, COL_WHITE);
+    shapes::fill_circle(fb, cx + r * 0.25, eye_y - eye_r * 0.3, eye_r * 0.3, COL_WHITE);
+    // Mouth
+    shapes::draw_line(fb, cx - r * 0.15, cy + r * 0.25, cx + r * 0.15, cy + r * 0.25, sp.accent_color);
 }
 
 fn render_dialogue(engine: &mut Engine) {

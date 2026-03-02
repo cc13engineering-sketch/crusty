@@ -4,6 +4,31 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Headless Testing — Round 4
+
+**Theme: Game-agnostic decoupling**
+
+### Breaking Changes (Game-Specific Code Removed from headless/)
+- **`scenario.rs`**: Removed hardcoded `trap_links_demo` import and `dispatch_action_pub`. `GameScenario` now requires an `action_dispatch: fn(&mut Engine, &ScheduledAction)` field — each game supplies its own input handler.
+- **`fitness.rs`**: Removed `score_hole_completion`, `score_stroke_efficiency`, `score_proximity_to_hole` from public API. Moved to `trap_links_demo` where they belong. Replaced with generic helpers: `score_distance()`, `score_state_match()`, `score_ratio()`.
+- **`sweep.rs`**: `run_sweep()` now takes an `action_dispatch` parameter. `summary()` no longer hardcodes `tl_phase`/`strokes` — shows overrides and framebuffer hash. Added `summary_with_keys()` for callers who want specific state keys displayed.
+- **`regression.rs`**: Removed hardcoded `classify_delta` that knew about "strokes" and "dist_to_hole". `RegressionSuite` now accepts a pluggable classifier via `with_classifier()`. Provides `classify_any_change` (default, marks all deltas as Changed) and `classify_lower_is_better` (generic "lower is better" for any key list).
+- **`timeline.rs`**: `record_timeline_with_actions()` now takes an `action_dispatch` parameter.
+- **`shot_builder.rs`**: `ShotBuilder` now has configurable `drag_scale` (default 120.0) and `settle_frames` (default 180) instead of hardcoded constants. `with_drag_scale()` and `with_settle_frames()` builder methods.
+
+### New Generic API
+- `dispatch_noop` — no-op action dispatcher for scenarios without input
+- `score_distance(x1, y1, x2, y2, max_dist, sim)` — proximity scoring between any two (x,y) state key pairs
+- `score_state_match(key, target, tolerance, sim)` — 1.0 when state equals target
+- `score_ratio(key, target, sim)` — efficiency scoring (target/actual)
+- `classify_any_change(key, delta)` — default classifier, all deltas are Changed
+- `classify_lower_is_better(lower_keys, key, delta)` — generic "lower is better" for caller-specified keys
+
+### Value
+The headless testing infrastructure is now fully game-agnostic. Any game built on Crusty Engine can plug in its own setup, update, render, and action dispatch functions. Game-specific scoring and classification logic lives in the game module, not the engine.
+
+---
+
 ## S-League RPG Overworld Expansion
 
 **Demo rewrite: 258 → 1052 lines, full RPG with overworld + monster encounters**

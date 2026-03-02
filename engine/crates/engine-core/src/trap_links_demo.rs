@@ -1049,3 +1049,47 @@ fn render_fight(engine: &mut Engine) {
     engine.screen_fx.apply(fb);
     crate::rendering::post_fx::apply(fb, &mut engine.post_fx, 0.016, engine.frame);
 }
+
+// ═══════════════════════════════════════════════════════════════════════
+// HEADLESS TEST SUPPORT
+// ═══════════════════════════════════════════════════════════════════════
+
+/// Action dispatcher for headless testing. Routes ScheduledActions to
+/// the appropriate S-League input handlers.
+pub fn dispatch_action(engine: &mut Engine, action: &crate::headless::ScheduledAction) {
+    match action {
+        crate::headless::ScheduledAction::PointerDown { x, y, .. } => {
+            on_pointer_down(engine, *x, *y);
+        }
+        crate::headless::ScheduledAction::PointerMove { x, y, .. } => {
+            on_pointer_move(engine, *x, *y);
+        }
+        crate::headless::ScheduledAction::PointerUp { x, y, .. } => {
+            on_pointer_up(engine, *x, *y);
+        }
+    }
+}
+
+/// S-League scoring: 1.0 if ball sunk (phase==2), 0.0 otherwise.
+pub fn score_hole_completion(sim: &crate::headless::SimResult) -> f64 {
+    let phase = sim.game_state.get("tl_phase").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    if (phase - 2.0).abs() < 0.01 { 1.0 } else { 0.0 }
+}
+
+/// S-League scoring: 1.0 for hole-in-one at par 3, scales down as strokes increase.
+pub fn score_stroke_efficiency(sim: &crate::headless::SimResult) -> f64 {
+    let strokes = sim.game_state.get("strokes").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    if strokes <= 0.0 { return 0.0; }
+    let par = 3.0;
+    (par / strokes).min(1.0)
+}
+
+/// S-League scoring: 1.0 at hole, degrades linearly with distance (up to 500px).
+pub fn score_proximity_to_hole(sim: &crate::headless::SimResult) -> f64 {
+    let bx = sim.game_state.get("ball_x").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let by = sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let hx = sim.game_state.get("hole_x").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let hy = sim.game_state.get("hole_y").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let dist = ((bx - hx).powi(2) + (by - hy).powi(2)).sqrt();
+    (1.0 - dist / 500.0).max(0.0)
+}

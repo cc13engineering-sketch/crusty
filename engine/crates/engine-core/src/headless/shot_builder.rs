@@ -1,19 +1,19 @@
 use super::scenario::ScheduledAction;
 
-/// High-level builder for constructing minigolf shot input sequences.
+/// High-level builder for constructing slingshot-style input sequences.
 ///
-/// Abstracts the slingshot mechanic so that test code can specify shots by
-/// angle and power instead of manually computing pointer coordinates.
+/// Abstracts a drag-and-release mechanic: pointer_down at origin, then release
+/// at an offset computed from angle and power. The drag distance normalization
+/// is configurable via `drag_scale` (default 120.0).
 ///
-/// The slingshot mechanic: pointer_down at ball position, then drag AWAY from
-/// the desired shot direction. The velocity goes opposite to the drag vector.
-/// `on_pointer_up` computes: `velocity = (ball_pos - pointer_pos).normalized() * power`
-///
-/// ShotBuilder inverts this: given a desired shot angle and power fraction,
-/// it computes the pointer_up position that produces that shot.
+/// Works for any game that uses a slingshot/pull-back aiming mechanic.
 pub struct ShotBuilder {
     actions: Vec<ScheduledAction>,
     next_frame: u64,
+    /// Pixels of drag that correspond to power=1.0.
+    drag_scale: f64,
+    /// Frames to wait after each shot for the simulation to settle.
+    settle_frames: u64,
 }
 
 impl ShotBuilder {
@@ -21,6 +21,8 @@ impl ShotBuilder {
         Self {
             actions: Vec::new(),
             next_frame: 5, // small delay after setup
+            drag_scale: 120.0,
+            settle_frames: 180,
         }
     }
 
@@ -29,30 +31,42 @@ impl ShotBuilder {
         Self {
             actions: Vec::new(),
             next_frame: frame,
+            drag_scale: 120.0,
+            settle_frames: 180,
         }
+    }
+
+    /// Set the drag distance that corresponds to power=1.0.
+    /// Default is 120.0 pixels.
+    pub fn with_drag_scale(mut self, scale: f64) -> Self {
+        self.drag_scale = scale;
+        self
+    }
+
+    /// Set how many frames to wait after each shot for the simulation to settle.
+    /// Default is 180 (3 seconds at 60fps).
+    pub fn with_settle_frames(mut self, frames: u64) -> Self {
+        self.settle_frames = frames;
+        self
     }
 
     /// Queue a shot aimed at `angle_deg` (0=right, 90=down, 180=left, 270=up)
     /// with `power` in 0.0..1.0.
     ///
-    /// Internally computes the slingshot drag vector: pointer_down at ball,
-    /// pointer_up at `ball - direction * (power * 120px)`.
-    /// The `120px` matches the `dist / 120.0` normalization in trap_links_demo.
-    pub fn aim_and_shoot(mut self, ball_x: f64, ball_y: f64, angle_deg: f64, power: f64) -> Self {
+    /// Computes the slingshot drag vector: pointer_down at origin,
+    /// pointer_up at `origin - direction * (power * drag_scale)`.
+    pub fn aim_and_shoot(mut self, origin_x: f64, origin_y: f64, angle_deg: f64, power: f64) -> Self {
         let angle_rad = angle_deg.to_radians();
-        let drag_dist = power.clamp(0.0, 1.0) * 120.0;
+        let drag_dist = power.clamp(0.0, 1.0) * self.drag_scale;
 
         // Slingshot: we drag OPPOSITE to desired direction
-        // So pointer_up = ball - desired_direction * drag_dist
-        // But the game's atan2(ball - pointer) gives the direction,
-        // so we put the pointer in the opposite direction of where we want to go.
-        let up_x = ball_x - angle_rad.cos() * drag_dist;
-        let up_y = ball_y - angle_rad.sin() * drag_dist;
+        let up_x = origin_x - angle_rad.cos() * drag_dist;
+        let up_y = origin_y - angle_rad.sin() * drag_dist;
 
         self.actions.push(ScheduledAction::PointerDown {
             frame: self.next_frame,
-            x: ball_x,
-            y: ball_y,
+            x: origin_x,
+            y: origin_y,
         });
         self.actions.push(ScheduledAction::PointerUp {
             frame: self.next_frame,
@@ -60,8 +74,7 @@ impl ShotBuilder {
             y: up_y,
         });
 
-        // Wait ~3 seconds for ball to settle
-        self.next_frame += 180;
+        self.next_frame += self.settle_frames;
         self
     }
 

@@ -43,14 +43,41 @@ impl SweepReport {
     }
 
     /// Generate a compact summary for AI consumption.
+    ///
+    /// Lists each configuration with its framebuffer hash and any overridden
+    /// state keys. Game-agnostic: reports only what was configured in the sweep.
     pub fn summary(&self) -> String {
         let mut out = format!("Sweep: {} configurations\n", self.results.len());
         for r in &self.results {
-            let phase = r.sim.game_state.get("tl_phase").and_then(|v| v.as_f64()).unwrap_or(-1.0);
-            let strokes = r.sim.game_state.get("strokes").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let overrides_str: String = r.config.overrides.iter()
+                .map(|(k, v)| format!("{}={:.2}", k, v))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let info = if overrides_str.is_empty() { "baseline".to_string() } else { overrides_str };
             out.push_str(&format!(
-                "  [{}] phase={} strokes={} fb={:#x}\n",
-                r.config.label, phase, strokes, r.sim.framebuffer_hash
+                "  [{}] {} fb={:#x}\n",
+                r.config.label, info, r.sim.framebuffer_hash
+            ));
+        }
+        out
+    }
+
+    /// Generate a summary showing specific state keys.
+    pub fn summary_with_keys(&self, keys: &[&str]) -> String {
+        let mut out = format!("Sweep: {} configurations\n", self.results.len());
+        for r in &self.results {
+            let vals: String = keys.iter()
+                .map(|k| {
+                    let v = r.sim.game_state.get(*k)
+                        .and_then(|v| v.as_f64())
+                        .map_or("?".to_string(), |v| format!("{:.2}", v));
+                    format!("{}={}", k, v)
+                })
+                .collect::<Vec<_>>()
+                .join(" ");
+            out.push_str(&format!(
+                "  [{}] {} fb={:#x}\n",
+                r.config.label, vals, r.sim.framebuffer_hash
             ));
         }
         out
@@ -59,13 +86,13 @@ impl SweepReport {
 
 /// Run a parameter sweep: execute the same scenario with different configs.
 ///
-/// `setup_fn` initializes the game, `actions_fn` provides the input sequence,
-/// `configs` specifies the parameter variations. After each setup, the
-/// overrides are applied to GameState before the simulation runs.
+/// Game-agnostic: supply your own `action_dispatch` to route ScheduledActions
+/// to your game's input handlers.
 pub fn run_sweep(
     setup_fn: fn(&mut Engine),
     update_fn: fn(&mut Engine, f64),
     render_fn: fn(&mut Engine),
+    action_dispatch: fn(&mut Engine, &super::scenario::ScheduledAction),
     actions: &[super::scenario::ScheduledAction],
     configs: &[SweepConfig],
     frames: u64,
@@ -74,15 +101,8 @@ pub fn run_sweep(
 
     for config in configs {
         let mut runner = HeadlessRunner::new(480, 720);
-        let sorted_actions: Vec<_> = {
-            let mut a = actions.to_vec();
-            a.sort_by_key(|a| match a {
-                super::scenario::ScheduledAction::PointerDown { frame, .. } => *frame,
-                super::scenario::ScheduledAction::PointerMove { frame, .. } => *frame,
-                super::scenario::ScheduledAction::PointerUp { frame, .. } => *frame,
-            });
-            a
-        };
+        let mut sorted_actions: Vec<_> = actions.to_vec();
+        sorted_actions.sort_by_key(|a| a.frame());
 
         let overrides = config.overrides.clone();
         let sim = runner.run_with_frame_cb(
@@ -95,13 +115,8 @@ pub fn run_sweep(
             },
             |engine, frame, dt| {
                 for action in &sorted_actions {
-                    let af = match action {
-                        super::scenario::ScheduledAction::PointerDown { frame, .. } => *frame,
-                        super::scenario::ScheduledAction::PointerMove { frame, .. } => *frame,
-                        super::scenario::ScheduledAction::PointerUp { frame, .. } => *frame,
-                    };
-                    if af == frame {
-                        super::scenario::dispatch_action_pub(engine, action);
+                    if action.frame() == frame {
+                        action_dispatch(engine, action);
                     }
                 }
                 update_fn(engine, dt);

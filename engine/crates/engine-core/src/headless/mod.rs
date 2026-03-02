@@ -24,16 +24,19 @@ mod fitness;
 mod regression;
 
 pub use runner::{HeadlessRunner, SimResult};
-pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult};
+pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, dispatch_noop};
 pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;
 pub use sweep::{run_sweep, SweepConfig, SweepResult, SweepReport};
 pub use timeline::{record_timeline, record_timeline_with_actions, StateTimeline};
 pub use fitness::{
     FitnessEvaluator, FitnessResult, CriterionResult,
-    score_hole_completion, score_stroke_efficiency, score_proximity_to_hole,
+    score_distance, score_state_match, score_ratio,
 };
-pub use regression::{RegressionSuite, RegressionBaseline, DiffReport, DiffEntry, DiffStatus};
+pub use regression::{
+    RegressionSuite, RegressionBaseline, DiffReport, DiffEntry, DiffStatus,
+    classify_any_change, classify_lower_is_better,
+};
 
 #[cfg(test)]
 mod tests;

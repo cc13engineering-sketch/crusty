@@ -54,7 +54,18 @@
         <span><span class="num">S-League RPG</span> Demo</span>
     </div>
 
-    <h2>S-League RPG Overworld Expansion <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 4 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: Game-Agnostic Decoupling</h3>
+    <ul>
+        <li><strong>Action dispatch callback</strong> — <code>GameScenario</code>, <code>run_sweep</code>, <code>record_timeline_with_actions</code> now accept a game-supplied <code>action_dispatch</code> function instead of hardcoding S-League input handlers</li>
+        <li><strong>Pluggable classifiers</strong> — <code>RegressionSuite::with_classifier()</code> replaces hardcoded golf metric classification. Built-in: <code>classify_any_change</code>, <code>classify_lower_is_better</code></li>
+        <li><strong>Generic scoring helpers</strong> — <code>score_distance()</code>, <code>score_state_match()</code>, <code>score_ratio()</code> replace game-specific scoring functions</li>
+        <li><strong>Configurable ShotBuilder</strong> — <code>with_drag_scale()</code> and <code>with_settle_frames()</code> replace hardcoded constants</li>
+        <li><strong>Generic sweep summary</strong> — reports overrides and framebuffer hash instead of hardcoded game keys</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">9 files changed, game-specific code moved to game module. Headless infrastructure is now fully reusable by any game. All 1054 tests pass.</p>
+
+    <h2>S-League RPG Overworld Expansion</h2>
     <h3>Full RPG: Overworld + Monster Encounters</h3>
     <ul>
         <li><strong>Tile-based overworld</strong> — 30x37 map with town center, 4 routes (N/S/E/W), wild grass encounter zones, pond, tree borders</li>

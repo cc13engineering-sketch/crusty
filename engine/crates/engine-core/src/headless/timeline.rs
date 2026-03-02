@@ -3,7 +3,7 @@ use super::runner::HeadlessRunner;
 
 /// A recorded time-series of game state values across frames.
 ///
-/// Use this to analyze ball trajectories, velocity profiles, and phase
+/// Use this to analyze object trajectories, velocity profiles, and state
 /// transitions without modifying game code.
 #[derive(Clone, Debug)]
 pub struct StateTimeline {
@@ -81,11 +81,15 @@ pub fn record_timeline(
     StateTimeline { keys, samples }
 }
 
-/// Record a timeline with scheduled actions (for shots).
+/// Record a timeline with scheduled actions.
+///
+/// Supply your own `action_dispatch` to route ScheduledActions to your
+/// game's input handlers.
 pub fn record_timeline_with_actions(
     setup_fn: fn(&mut Engine),
     update_fn: fn(&mut Engine, f64),
     render_fn: fn(&mut Engine),
+    action_dispatch: fn(&mut Engine, &super::scenario::ScheduledAction),
     actions: &[super::scenario::ScheduledAction],
     frames: u64,
     track_keys: &[&str],
@@ -103,7 +107,7 @@ pub fn record_timeline_with_actions(
         runner.engine.tick(dt);
         for action in &sorted_actions {
             if action.frame() == frame {
-                super::scenario::dispatch_action_pub(&mut runner.engine, action);
+                action_dispatch(&mut runner.engine, action);
             }
         }
         update_fn(&mut runner.engine, dt);

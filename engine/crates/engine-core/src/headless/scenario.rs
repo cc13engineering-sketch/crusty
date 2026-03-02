@@ -65,6 +65,9 @@ impl ScenarioResult {
 }
 
 /// A declarative test scenario: setup, scheduled inputs, assertions.
+///
+/// Game-agnostic: supply your own `action_dispatch` to route ScheduledActions
+/// to your game's input handlers. Use [`dispatch_noop`] if the scenario has no actions.
 pub struct GameScenario {
     pub name: String,
     pub width: u32,
@@ -72,6 +75,8 @@ pub struct GameScenario {
     pub setup_fn: fn(&mut Engine),
     pub update_fn: fn(&mut Engine, f64),
     pub render_fn: fn(&mut Engine),
+    /// Routes a ScheduledAction to the game's input handlers.
+    pub action_dispatch: fn(&mut Engine, &ScheduledAction),
     pub actions: Vec<ScheduledAction>,
     pub total_frames: u64,
     pub assertions: Vec<Assertion>,
@@ -85,6 +90,7 @@ impl GameScenario {
 
         let update_fn = self.update_fn;
         let render_fn = self.render_fn;
+        let action_dispatch = self.action_dispatch;
 
         let sim = runner.run_with_frame_cb(
             self.setup_fn,
@@ -92,7 +98,7 @@ impl GameScenario {
                 // Inject any actions scheduled for this frame
                 for action in &sorted_actions {
                     if action.frame() == frame {
-                        dispatch_action(engine, action);
+                        action_dispatch(engine, action);
                     }
                 }
                 update_fn(engine, dt);
@@ -112,26 +118,8 @@ impl GameScenario {
     }
 }
 
-/// Dispatch a scheduled action to the S-League game demo.
-/// Public so that other headless modules (sweep, etc.) can reuse it.
-pub fn dispatch_action_pub(engine: &mut Engine, action: &ScheduledAction) {
-    dispatch_action(engine, action);
-}
-
-fn dispatch_action(engine: &mut Engine, action: &ScheduledAction) {
-    use crate::trap_links_demo;
-    match action {
-        ScheduledAction::PointerDown { x, y, .. } => {
-            trap_links_demo::on_pointer_down(engine, *x, *y);
-        }
-        ScheduledAction::PointerMove { x, y, .. } => {
-            trap_links_demo::on_pointer_move(engine, *x, *y);
-        }
-        ScheduledAction::PointerUp { x, y, .. } => {
-            trap_links_demo::on_pointer_up(engine, *x, *y);
-        }
-    }
-}
+/// No-op action dispatcher for scenarios without input.
+pub fn dispatch_noop(_engine: &mut Engine, _action: &ScheduledAction) {}
 
 fn evaluate(assertion: &Assertion, sim: &super::runner::SimResult) -> AssertionOutcome {
     match assertion {

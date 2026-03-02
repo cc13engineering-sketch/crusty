@@ -103,31 +103,34 @@ impl FitnessEvaluator {
     }
 }
 
-// ─── Built-in S-League scoring functions ────────────────────────────
+// ─── Generic scoring helpers ────────────────────────────────────────
 
-/// 1.0 if ball sunk (phase==2), 0.0 otherwise.
-pub fn score_hole_completion(sim: &SimResult) -> f64 {
-    let phase = sim.game_state.get("tl_phase").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    if (phase - 2.0).abs() < 0.01 { 1.0 } else { 0.0 }
+/// 1.0 when distance between two (x,y) state key pairs is 0, degrades linearly
+/// to 0.0 at `max_dist`. Useful for proximity-based objectives in any game.
+pub fn score_distance(
+    x1_key: &str, y1_key: &str,
+    x2_key: &str, y2_key: &str,
+    max_dist: f64,
+    sim: &SimResult,
+) -> f64 {
+    let x1 = sim.game_state.get(x1_key).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let y1 = sim.game_state.get(y1_key).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let x2 = sim.game_state.get(x2_key).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let y2 = sim.game_state.get(y2_key).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let dist = ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt();
+    (1.0 - dist / max_dist).max(0.0)
 }
 
-/// 1.0 for hole-in-one at par 3, scales down as strokes increase.
-pub fn score_stroke_efficiency(sim: &SimResult) -> f64 {
-    let strokes = sim.game_state.get("strokes").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    if strokes <= 0.0 { return 0.0; }
-    let par = 3.0;
-    let efficiency = par / strokes;
-    efficiency.min(1.0)
+/// 1.0 when `key` equals `target` (within tolerance), 0.0 otherwise.
+pub fn score_state_match(key: &str, target: f64, tolerance: f64, sim: &SimResult) -> f64 {
+    let actual = sim.game_state.get(key).and_then(|v| v.as_f64()).unwrap_or(f64::NAN);
+    if (actual - target).abs() <= tolerance { 1.0 } else { 0.0 }
 }
 
-/// 1.0 when ball is at the hole, degrades linearly with distance (up to 500px).
-pub fn score_proximity_to_hole(sim: &SimResult) -> f64 {
-    let bx = sim.game_state.get("ball_x").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let by = sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let hx = sim.game_state.get("hole_x").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let hy = sim.game_state.get("hole_y").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let dx = bx - hx;
-    let dy = by - hy;
-    let dist = (dx * dx + dy * dy).sqrt();
-    (1.0 - dist / 500.0).max(0.0)
+/// Score based on ratio: `target / actual`. 1.0 when actual == target,
+/// <1.0 when actual > target. Useful for efficiency metrics.
+pub fn score_ratio(key: &str, target: f64, sim: &SimResult) -> f64 {
+    let actual = sim.game_state.get(key).and_then(|v| v.as_f64()).unwrap_or(0.0);
+    if actual <= 0.0 { return 0.0; }
+    (target / actual).min(1.0)
 }

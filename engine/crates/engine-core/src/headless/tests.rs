@@ -1,9 +1,9 @@
 use super::*;
 use crate::trap_links_demo;
 
-// All headless tests use setup_fight_only to go directly into fight mode,
-// bypassing the overworld. This ensures ball_x, ball_y, strokes, etc. are
-// immediately available for testing.
+// All headless tests use S-League as the test game, but the headless
+// infrastructure itself is game-agnostic. The game-specific parts
+// (dispatch_action, scoring functions) live in trap_links_demo.
 
 // ─── HeadlessRunner basics ──────────────────────────────────────────────
 
@@ -78,6 +78,7 @@ fn scenario_no_input_stays_in_aiming_phase() {
         setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
+        action_dispatch: trap_links_demo::dispatch_action,
         actions: vec![],
         total_frames: 60,
         assertions: vec![
@@ -110,6 +111,7 @@ fn scenario_shoot_increments_strokes() {
         setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
+        action_dispatch: trap_links_demo::dispatch_action,
         actions: vec![
             ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
             ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
@@ -166,6 +168,7 @@ fn shot_builder_shoot_upward_moves_ball() {
         setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
+        action_dispatch: trap_links_demo::dispatch_action,
         actions,
         total_frames,
         assertions: vec![
@@ -209,6 +212,7 @@ fn sweep_runs_multiple_configs() {
         trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
+        trap_links_demo::dispatch_action,
         &actions,
         &configs,
         120,
@@ -241,6 +245,7 @@ fn sweep_min_max_by_state() {
         trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
+        trap_links_demo::dispatch_action,
         &actions,
         &configs,
         120,
@@ -285,6 +290,7 @@ fn timeline_with_shot_shows_movement() {
         trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
+        trap_links_demo::dispatch_action,
         &actions,
         total.min(120),
         &["ball_y", "ball_vy", "tl_phase"],
@@ -343,10 +349,11 @@ fn fitness_idle_scores_low_completion() {
         60,
     );
 
+    // Game-specific scoring functions live in trap_links_demo
     let evaluator = FitnessEvaluator::new()
-        .add("completion", 3.0, score_hole_completion)
-        .add("efficiency", 2.0, score_stroke_efficiency)
-        .add("proximity", 1.0, score_proximity_to_hole);
+        .add("completion", 3.0, trap_links_demo::score_hole_completion)
+        .add("efficiency", 2.0, trap_links_demo::score_stroke_efficiency)
+        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
 
     let fitness = evaluator.evaluate(&result);
 
@@ -382,6 +389,7 @@ fn fitness_shot_toward_hole_scores_higher() {
         setup_fn: trap_links_demo::setup_fight_only,
         update_fn: trap_links_demo::update,
         render_fn: trap_links_demo::render,
+        action_dispatch: trap_links_demo::dispatch_action,
         actions,
         total_frames,
         assertions: vec![],
@@ -389,7 +397,7 @@ fn fitness_shot_toward_hole_scores_higher() {
     let shot_result = shot_scenario.run();
 
     let evaluator = FitnessEvaluator::new()
-        .add("proximity", 1.0, score_proximity_to_hole);
+        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
 
     let idle_fitness = evaluator.evaluate(&idle_result);
     let shot_fitness = evaluator.evaluate(&shot_result.sim);
@@ -418,13 +426,14 @@ fn fitness_rank_sweep() {
         trap_links_demo::setup_fight_only,
         trap_links_demo::update,
         trap_links_demo::render,
+        trap_links_demo::dispatch_action,
         &actions,
         &configs,
         120,
     );
 
     let evaluator = FitnessEvaluator::new()
-        .add("proximity", 1.0, score_proximity_to_hole);
+        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
 
     let ranked = evaluator.rank_sweep(&report);
     assert_eq!(ranked.len(), 2);
@@ -444,6 +453,7 @@ fn regression_identical_runs_no_diff() {
             setup_fn: trap_links_demo::setup_fight_only,
             update_fn: trap_links_demo::update,
             render_fn: trap_links_demo::render,
+            action_dispatch: trap_links_demo::dispatch_action,
             actions: vec![],
             total_frames: 30,
             assertions: vec![],
@@ -474,6 +484,7 @@ fn regression_detects_state_change() {
             setup_fn: trap_links_demo::setup_fight_only,
             update_fn: trap_links_demo::update,
             render_fn: trap_links_demo::render,
+            action_dispatch: trap_links_demo::dispatch_action,
             actions,
             total_frames: total.min(120),
             assertions: vec![],

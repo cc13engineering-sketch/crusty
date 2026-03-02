@@ -73,12 +73,19 @@ impl DiffReport {
 }
 
 /// A regression suite: run scenarios, capture baselines, diff against them.
+///
+/// Game-agnostic: the classifier callback determines which metrics are
+/// improvements vs regressions. See [`classify_any_change`] for a default
+/// that marks all deltas as Changed, or supply your own domain-aware classifier.
 pub struct RegressionSuite {
     scenarios: Vec<GameScenario>,
     /// Keys to track for f64 comparisons.
     watch_keys: Vec<String>,
     /// Tolerance for f64 comparisons.
     pub tolerance: f64,
+    /// Classifies a delta for a given key. Supply your own for domain-aware
+    /// Improved/Regressed distinctions, or use [`classify_any_change`].
+    classify: fn(&str, f64) -> DiffStatus,
 }
 
 impl RegressionSuite {
@@ -87,6 +94,7 @@ impl RegressionSuite {
             scenarios: Vec::new(),
             watch_keys: watch_keys.iter().map(|s| s.to_string()).collect(),
             tolerance: 0.5,
+            classify: classify_any_change,
         }
     }
 
@@ -97,6 +105,12 @@ impl RegressionSuite {
 
     pub fn with_tolerance(mut self, tol: f64) -> Self {
         self.tolerance = tol;
+        self
+    }
+
+    /// Set a custom classifier for domain-aware Improved/Regressed distinctions.
+    pub fn with_classifier(mut self, f: fn(&str, f64) -> DiffStatus) -> Self {
+        self.classify = f;
         self
     }
 
@@ -145,7 +159,7 @@ impl RegressionSuite {
                         entries.push(DiffEntry {
                             scenario: base.name.clone(),
                             metric: key.clone(),
-                            status: classify_delta(key, delta),
+                            status: (self.classify)(key, delta),
                         });
                     }
                 }
@@ -156,12 +170,17 @@ impl RegressionSuite {
     }
 }
 
-/// Domain-aware classification of deltas.
-fn classify_delta(key: &str, delta: f64) -> DiffStatus {
-    // Keys where LOWER is better
-    let lower_is_better = ["strokes", "dist_to_hole"];
+/// Default classifier: marks all deltas as Changed (no Improved/Regressed).
+pub fn classify_any_change(key: &str, delta: f64) -> DiffStatus {
+    DiffStatus::Changed {
+        detail: format!("{} delta={:.2}", key, delta),
+    }
+}
 
-    if lower_is_better.iter().any(|k| key.contains(k)) {
+/// Classifier for "lower is better" metrics. Supply a list of key substrings
+/// where a decrease is an improvement (e.g. "time", "errors", "distance").
+pub fn classify_lower_is_better(lower_keys: &[&str], key: &str, delta: f64) -> DiffStatus {
+    if lower_keys.iter().any(|k| key.contains(k)) {
         if delta < 0.0 {
             DiffStatus::Improved {
                 delta,

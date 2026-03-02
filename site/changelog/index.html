@@ -50,11 +50,20 @@
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
         <span><span class="num">21</span> Engine Modules</span>
-        <span><span class="num">1084</span> Tests</span>
+        <span><span class="num">1097</span> Tests</span>
         <span><span class="num">S-League RPG</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 6 <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 7 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: Simulation Replay, Comparison, Anomaly Detection</h3>
+    <ul>
+        <li><strong>Replay recording</strong> — <code>record_replay()</code> captures per-frame state for all tracked keys. <code>Replay</code> with <code>series()</code>, <code>get()</code>, <code>at()</code>, <code>first_frame_where()</code></li>
+        <li><strong>Side-by-side comparison</strong> — <code>compare_replays()</code> diffs two replays: <code>KeyDiff</code> with max/mean delta, divergence point, full delta series</li>
+        <li><strong>Anomaly detection</strong> — <code>AnomalyDetector</code> scans for spikes, plateaus, out-of-bounds values in replay state series</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">3 new files (replay.rs, compare.rs, anomaly.rs), 13 new tests. Total: 1097 tests passing.</p>
+
+    <h2>Headless Testing — Innovation Round 6</h2>
     <h3>Theme: AI Iteration Loop</h3>
     <ul>
         <li><strong>Experiment runner</strong> — <code>Experiment</code> combines sweep + fitness + regression into a single declarative call. <code>ExperimentResult</code> with <code>best()</code>, <code>worst()</code>, <code>regression_ok()</code>, <code>summary()</code></li>

@@ -4,6 +4,29 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Headless Testing — Round 7
+
+**Theme: Simulation replay, comparison, and anomaly detection**
+
+### Replay Recording (`replay.rs`)
+- `record_replay()` — captures per-frame state for all tracked keys during simulation
+- `Replay` struct with `series()`, `get()`, `at()`, `first_frame_where()` queries
+- Records at every frame (vs snapshots which capture at specific frames)
+
+### Side-by-Side Comparison (`compare.rs`)
+- `compare_replays()` — structural diff of two replays across specified keys
+- `KeyDiff` — per-key stats: `max_delta`, `mean_delta`, `first_divergence`, full delta series
+- `Comparison` with `is_identical()`, `key_diff()`, `summary()`, visual divergence detection
+
+### Anomaly Detection (`anomaly.rs`)
+- `AnomalyDetector` — configurable scanner: spike, plateau, out-of-bounds detection
+- `scan()` returns `Vec<Anomaly>`, `report()` generates text summary
+
+### Tests
+- 13 new tests, 1097 total passing
+
+---
+
 ## Innovation Games: Headless Testing — Round 6
 
 **Theme: AI iteration loop — experiment, optimize, generate**

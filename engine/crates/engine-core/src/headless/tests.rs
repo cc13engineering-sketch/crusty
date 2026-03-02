@@ -1130,3 +1130,310 @@ fn hill_climb_summary_format() {
     assert!(summary.contains("fitness="));
     assert!(summary.contains("ball_y="));
 }
+
+// ─── Round 7: Replay Recording ────────────────────────────────────────
+
+#[test]
+fn replay_records_all_frames() {
+    let replay = record_replay(
+        "idle_replay",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &["ball_x", "ball_y", "tl_phase"],
+    );
+
+    assert_eq!(replay.len(), 30);
+    assert_eq!(replay.name, "idle_replay");
+    assert!(replay.final_fb_hash != 0);
+}
+
+#[test]
+fn replay_series_extracts_values() {
+    let replay = record_replay(
+        "series_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        10,
+        &["ball_x"],
+    );
+
+    let series = replay.series("ball_x");
+    assert_eq!(series.len(), 10);
+    // Idle ball should have constant x
+    assert!(series.iter().all(|v| (*v - series[0]).abs() < 0.01));
+}
+
+#[test]
+fn replay_get_and_at_frame() {
+    let replay = record_replay(
+        "access_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        10,
+        &["ball_x"],
+    );
+
+    assert!(replay.at(0).is_some());
+    assert!(replay.at(9).is_some());
+    assert!(replay.at(10).is_none());
+
+    let bx = replay.get(0, "ball_x");
+    assert!(bx.is_some());
+    assert!(bx.unwrap() > 0.0);
+}
+
+#[test]
+fn replay_first_frame_where() {
+    let replay = record_replay(
+        "predicate_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        10,
+        &["tl_phase"],
+    );
+
+    // tl_phase should be 0 from the start
+    let frame = replay.first_frame_where("tl_phase", |v| v == 0.0);
+    assert_eq!(frame, Some(0));
+}
+
+#[test]
+fn replay_with_shot_shows_movement() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "shot_replay",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        60,
+        &["ball_y"],
+    );
+
+    let series = replay.series("ball_y");
+    let min_y = series.iter().cloned().fold(f64::INFINITY, f64::min);
+    assert!(min_y < ball_y, "ball should move up from {}, min was {}", ball_y, min_y);
+}
+
+// ─── Round 7: Comparison ─────────────────────────────────────────────
+
+#[test]
+fn compare_identical_replays() {
+    let replay_a = record_replay(
+        "a",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &["ball_x", "ball_y"],
+    );
+    let replay_b = record_replay(
+        "b",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &["ball_x", "ball_y"],
+    );
+
+    let cmp = compare_replays(&replay_a, &replay_b, &["ball_x", "ball_y"], 0.01);
+    assert!(cmp.is_identical(0.01), "identical runs should compare equal");
+    assert!(cmp.first_visual_divergence.is_none());
+}
+
+#[test]
+fn compare_different_replays() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay_a = record_replay(
+        "idle",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        60,
+        &["ball_y"],
+    );
+    let replay_b = record_replay(
+        "shot",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        60,
+        &["ball_y"],
+    );
+
+    let cmp = compare_replays(&replay_a, &replay_b, &["ball_y"], 0.01);
+    assert!(!cmp.is_identical(0.01), "different runs should differ");
+
+    let ball_diff = cmp.key_diff("ball_y").unwrap();
+    assert!(ball_diff.max_delta > 1.0);
+    assert!(ball_diff.first_divergence.is_some());
+}
+
+#[test]
+fn compare_summary_format() {
+    let replay_a = record_replay(
+        "a", sleague::setup_fight_only, sleague::update, sleague::render,
+        sleague::dispatch_action, &[], 10, &["ball_x"],
+    );
+    let replay_b = record_replay(
+        "b", sleague::setup_fight_only, sleague::update, sleague::render,
+        sleague::dispatch_action, &[], 10, &["ball_x"],
+    );
+
+    let cmp = compare_replays(&replay_a, &replay_b, &["ball_x"], 0.01);
+    let summary = cmp.summary();
+    assert!(summary.contains("Compare:"));
+    assert!(summary.contains("ball_x"));
+}
+
+// ─── Round 7: Anomaly Detection ──────────────────────────────────────
+
+#[test]
+fn anomaly_no_anomalies_idle() {
+    let replay = record_replay(
+        "idle",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        20,
+        &["ball_x"],
+    );
+
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(10.0)
+        .with_plateau_min_frames(30) // longer than replay
+        .scan(&replay, &["ball_x"]);
+
+    // Idle ball shouldn't have spikes
+    let spikes: Vec<_> = anomalies.iter().filter(|a| a.kind == AnomalyKind::Spike).collect();
+    assert!(spikes.is_empty(), "idle ball should have no spikes");
+}
+
+#[test]
+fn anomaly_detects_spike() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let replay = record_replay(
+        "spike_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        30,
+        &["ball_vy"],
+    );
+
+    // With a low spike threshold, the velocity jump should be detected
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(1.0)
+        .with_plateau_min_frames(999) // disable plateau
+        .scan(&replay, &["ball_vy"]);
+
+    let spikes: Vec<_> = anomalies.iter().filter(|a| a.kind == AnomalyKind::Spike).collect();
+    assert!(!spikes.is_empty(), "velocity change from shot should trigger spike");
+}
+
+#[test]
+fn anomaly_detects_plateau() {
+    let replay = record_replay(
+        "plateau_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &["ball_x"],
+    );
+
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(9999.0) // disable spike
+        .with_plateau_min_frames(10) // detect plateaus of 10+ frames
+        .scan(&replay, &["ball_x"]);
+
+    let plateaus: Vec<_> = anomalies.iter().filter(|a| a.kind == AnomalyKind::Plateau).collect();
+    assert!(!plateaus.is_empty(), "idle ball should have plateau");
+}
+
+#[test]
+fn anomaly_detects_out_of_bounds() {
+    let replay = record_replay(
+        "bounds_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        10,
+        &["ball_x"],
+    );
+
+    // Set bounds that the ball position violates
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(9999.0)
+        .with_plateau_min_frames(999)
+        .with_bounds(0.0, 10.0) // ball_x is ~240, way out of these bounds
+        .scan(&replay, &["ball_x"]);
+
+    let oob: Vec<_> = anomalies.iter().filter(|a| a.kind == AnomalyKind::OutOfBounds).collect();
+    assert!(!oob.is_empty(), "ball_x ~240 should be out of [0, 10] bounds");
+}
+
+#[test]
+fn anomaly_report_format() {
+    let replay = record_replay(
+        "report",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        10,
+        &["ball_x"],
+    );
+
+    let report = AnomalyDetector::new()
+        .with_bounds(0.0, 10.0)
+        .report(&replay, &["ball_x"]);
+
+    assert!(report.contains("anomal")); // "anomalies" or "Anomaly"
+}

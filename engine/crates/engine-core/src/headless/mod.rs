@@ -26,6 +26,9 @@ mod snapshot;
 mod experiment;
 mod hill_climb;
 pub mod action_gen;
+mod replay;
+mod compare;
+mod anomaly;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -44,6 +47,9 @@ pub use regression::{
 pub use snapshot::{run_with_snapshots, FrameSnapshot, SnapshotResult};
 pub use experiment::{Experiment, ExperimentResult};
 pub use hill_climb::{HillClimber, ParamRange, ClimbResult, Candidate};
+pub use replay::{Replay, ReplayFrame, record_replay};
+pub use compare::{compare_replays, Comparison, KeyDiff};
+pub use anomaly::{AnomalyDetector, Anomaly, AnomalyKind};
 
 #[cfg(test)]
 mod tests;

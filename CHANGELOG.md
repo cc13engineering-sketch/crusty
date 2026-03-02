@@ -4,6 +4,32 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Headless Testing — Round 8
+
+**Theme: Strategy, orchestration, and golden file testing**
+
+### Strategy Playbook (`strategy.rs`)
+- `Strategy` — chain record, compare, detect-anomalies, and assert-state steps
+- Declarative multi-step workflows: "record baseline, record variant, compare, assert"
+- `StrategyResult` with `all_passed()`, `failures()`, `summary()` for AI consumption
+- `StatePredicate` enum: GreaterThan, LessThan, Equals, InRange
+
+### Test Harness (`harness.rs`)
+- `TestHarness` — run battery of scenarios, produce consolidated quality report
+- `add()` for assertion-only cases, `add_with_fitness()` for scored cases
+- `HarnessReport` with `passed()`, `failed()`, `avg_fitness()`, `summary()`
+
+### Golden File Testing (`golden.rs`)
+- `GoldenTest` — record a reference replay, then compare future runs against it
+- `record_golden()` captures the reference, `compare_against()` diffs current vs golden
+- `GoldenResult` with match/mismatch verdict and divergence details
+- Headless equivalent of visual regression testing
+
+### Tests
+- 10 new tests, 1107 total passing
+
+---
+
 ## Innovation Games: Headless Testing — Round 7
 
 **Theme: Simulation replay, comparison, and anomaly detection**

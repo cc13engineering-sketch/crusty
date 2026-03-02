@@ -29,6 +29,9 @@ pub mod action_gen;
 mod replay;
 mod compare;
 mod anomaly;
+mod strategy;
+mod harness;
+mod golden;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -50,6 +53,9 @@ pub use hill_climb::{HillClimber, ParamRange, ClimbResult, Candidate};
 pub use replay::{Replay, ReplayFrame, record_replay};
 pub use compare::{compare_replays, Comparison, KeyDiff};
 pub use anomaly::{AnomalyDetector, Anomaly, AnomalyKind};
+pub use strategy::{Strategy, StrategyResult, StepOutcome, StatePredicate};
+pub use harness::{TestHarness, HarnessReport, HarnessEntry};
+pub use golden::{GoldenTest, GoldenResult};
 
 #[cfg(test)]
 mod tests;

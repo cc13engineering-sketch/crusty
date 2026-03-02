@@ -1437,3 +1437,252 @@ fn anomaly_report_format() {
 
     assert!(report.contains("anomal")); // "anomalies" or "Anomaly"
 }
+
+// ─── Round 8: Strategy ───────────────────────────────────────────────
+
+#[test]
+fn strategy_record_and_assert() {
+    let result = Strategy::new(
+        "basic_strategy",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .record("idle", vec![], 30, &["ball_x", "ball_y", "tl_phase"])
+    .assert_state("idle", "tl_phase", StatePredicate::Equals(0.0, 0.0))
+    .assert_state("idle", "ball_x", StatePredicate::GreaterThan(0.0))
+    .run();
+
+    assert!(result.all_passed(), "{}", result.summary());
+    assert_eq!(result.outcomes.len(), 3);
+}
+
+#[test]
+fn strategy_record_compare_detect() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let result = Strategy::new(
+        "compare_strategy",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .record("baseline", vec![], 30, &["ball_y"])
+    .record("with_shot", vec![
+        ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+        ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+    ], 30, &["ball_y"])
+    .compare("baseline", "with_shot", &["ball_y"], 0.01)
+    .run();
+
+    // Record steps should pass, compare should detect differences
+    assert_eq!(result.outcomes.len(), 3);
+    assert!(result.outcomes[0].passed); // record baseline
+    assert!(result.outcomes[1].passed); // record with_shot
+    // compare: passed means "detected differences" (which is expected)
+    assert!(result.outcomes[2].passed);
+}
+
+#[test]
+fn strategy_assert_fails_correctly() {
+    let result = Strategy::new(
+        "fail_strategy",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .record("idle", vec![], 10, &["ball_x"])
+    .assert_state("idle", "ball_x", StatePredicate::LessThan(0.0)) // ball_x > 0, so this should fail
+    .run();
+
+    assert!(!result.all_passed());
+    assert!(!result.failures().is_empty());
+}
+
+#[test]
+fn strategy_summary_format() {
+    let result = Strategy::new(
+        "summary_strategy",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .record("idle", vec![], 10, &["ball_x"])
+    .assert_state("idle", "ball_x", StatePredicate::GreaterThan(0.0))
+    .run();
+
+    let summary = result.summary();
+    assert!(summary.contains("summary_strategy"));
+    assert!(summary.contains("PASS"));
+}
+
+// ─── Round 8: Test Harness ───────────────────────────────────────────
+
+#[test]
+fn harness_multiple_cases() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .add(
+        "idle_check",
+        vec![],
+        30,
+        vec![Assertion::StateEquals {
+            key: "tl_phase".into(),
+            expected: 0.0,
+            tolerance: 0.0,
+        }],
+    )
+    .add(
+        "shot_check",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        vec![Assertion::StateEquals {
+            key: "strokes".into(),
+            expected: 1.0,
+            tolerance: 0.0,
+        }],
+    )
+    .run();
+
+    assert!(report.all_passed(), "{}", report.summary());
+    assert_eq!(report.passed(), 2);
+    assert_eq!(report.failed(), 0);
+}
+
+#[test]
+fn harness_with_fitness() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .add_with_fitness(
+        "shot_fitness",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        vec![],
+        FitnessEvaluator::new()
+            .add("proximity", 1.0, sleague::score_proximity_to_hole),
+    )
+    .run();
+
+    assert!(report.all_passed());
+    assert!(report.avg_fitness().is_some());
+    let avg = report.avg_fitness().unwrap();
+    assert!(avg >= 0.0);
+}
+
+#[test]
+fn harness_summary_format() {
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .add("simple", vec![], 10, vec![])
+    .run();
+
+    let summary = report.summary();
+    assert!(summary.contains("Harness:"));
+    assert!(summary.contains("PASS"));
+}
+
+// ─── Round 8: Golden File Testing ────────────────────────────────────
+
+#[test]
+fn golden_identical_runs_match() {
+    let golden_test = GoldenTest::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_frames(30)
+    .with_keys(&["ball_x", "ball_y", "tl_phase"])
+    .with_tolerance(0.01);
+
+    let golden = golden_test.record_golden("golden_ref");
+    let result = golden_test.compare_against(&golden);
+
+    assert!(result.matches, "identical runs should match: {}", result.summary());
+}
+
+#[test]
+fn golden_different_inputs_mismatch() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    // Record golden with no input
+    let golden_test = GoldenTest::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_frames(60)
+    .with_keys(&["ball_y"])
+    .with_tolerance(0.01);
+
+    let golden = golden_test.record_golden("golden_idle");
+
+    // Now compare with a shot — should mismatch
+    let shot_test = GoldenTest::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_actions(vec![
+        ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+        ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+    ])
+    .with_frames(60)
+    .with_keys(&["ball_y"])
+    .with_tolerance(0.01);
+
+    let result = shot_test.compare_against(&golden);
+    assert!(!result.matches, "different inputs should mismatch");
+}
+
+#[test]
+fn golden_summary_format() {
+    let golden_test = GoldenTest::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_frames(10)
+    .with_keys(&["ball_x"])
+    .with_tolerance(0.01);
+
+    let golden = golden_test.record_golden("ref");
+    let result = golden_test.compare_against(&golden);
+
+    let summary = result.summary();
+    assert!(summary.contains("Golden test:"));
+    assert!(summary.contains("MATCH"));
+}

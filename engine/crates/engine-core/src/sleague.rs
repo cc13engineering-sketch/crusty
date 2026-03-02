@@ -41,6 +41,7 @@ const MODE_HEAL: f64 = 7.0;
 const MODE_CATCH_ANIM: f64 = 8.0;
 const MODE_TRANSITION: f64 = 9.0;
 const MODE_STARTER: f64 = 10.0;    // Starter monster choice screen
+#[allow(dead_code)]
 const MODE_BATTLE_ITEMS: f64 = 11.0; // Item sub-menu in battle
 
 // Battle sub-phases
@@ -772,6 +773,107 @@ fn rng_seeded(seed: f64) -> f64 {
 // MONSTER STAT CALCULATIONS
 // ═══════════════════════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════════════════════
+// LEARNABLE MOVES SYSTEM
+// ═══════════════════════════════════════════════════════════════════════
+
+#[derive(Clone, Debug)]
+#[allow(dead_code)]
+struct Move {
+    name: &'static str,
+    element: Element,
+    power: f64,
+    learn_level: u8,
+}
+
+/// Returns learnable moves for each species (3-4 per species)
+fn species_moves(species_id: u8) -> Vec<Move> {
+    match species_id {
+        0 | 1 => vec![ // Sproutail/Thornvine line
+            Move { name: "Vine Whip", element: Element::Leaf, power: 1.0, learn_level: 1 },
+            Move { name: "Tackle", element: Element::Normal, power: 0.8, learn_level: 1 },
+            Move { name: "Razor Leaf", element: Element::Leaf, power: 1.4, learn_level: 10 },
+            Move { name: "Solar Slam", element: Element::Leaf, power: 1.8, learn_level: 20 },
+        ],
+        2 | 3 => vec![ // Emberpup/Blazewolf
+            Move { name: "Ember", element: Element::Fire, power: 1.0, learn_level: 1 },
+            Move { name: "Scratch", element: Element::Normal, power: 0.8, learn_level: 1 },
+            Move { name: "Flame Fang", element: Element::Fire, power: 1.4, learn_level: 12 },
+            Move { name: "Inferno", element: Element::Fire, power: 1.8, learn_level: 22 },
+        ],
+        4 | 5 => vec![ // Bubblefin/Tidalord
+            Move { name: "Bubble", element: Element::Water, power: 1.0, learn_level: 1 },
+            Move { name: "Tackle", element: Element::Normal, power: 0.8, learn_level: 1 },
+            Move { name: "Aqua Jet", element: Element::Water, power: 1.4, learn_level: 11 },
+            Move { name: "Tidal Wave", element: Element::Water, power: 1.8, learn_level: 21 },
+        ],
+        6 | 7 => vec![ // Zapkit/Voltiger
+            Move { name: "Spark", element: Element::Electric, power: 1.0, learn_level: 1 },
+            Move { name: "Quick Attack", element: Element::Normal, power: 0.9, learn_level: 1 },
+            Move { name: "Thunderbolt", element: Element::Electric, power: 1.5, learn_level: 14 },
+            Move { name: "Lightning Storm", element: Element::Electric, power: 1.9, learn_level: 24 },
+        ],
+        8 | 9 => vec![ // Pebblet/Bouldox
+            Move { name: "Rock Throw", element: Element::Earth, power: 1.0, learn_level: 1 },
+            Move { name: "Headbutt", element: Element::Normal, power: 0.9, learn_level: 1 },
+            Move { name: "Earthquake", element: Element::Earth, power: 1.5, learn_level: 15 },
+        ],
+        10 | 11 => vec![ // Frostkit/Glacirex
+            Move { name: "Ice Shard", element: Element::Ice, power: 1.0, learn_level: 1 },
+            Move { name: "Tackle", element: Element::Normal, power: 0.8, learn_level: 1 },
+            Move { name: "Blizzard", element: Element::Ice, power: 1.6, learn_level: 16 },
+        ],
+        12 | 13 => vec![ // Shadewisp/Duskfiend
+            Move { name: "Shadow Claw", element: Element::Shadow, power: 1.0, learn_level: 1 },
+            Move { name: "Dark Pulse", element: Element::Shadow, power: 1.4, learn_level: 14 },
+            Move { name: "Void Strike", element: Element::Shadow, power: 1.8, learn_level: 24 },
+        ],
+        14 | 15 => vec![ // Glimmer/Radiance
+            Move { name: "Light Beam", element: Element::Light, power: 1.0, learn_level: 1 },
+            Move { name: "Holy Flash", element: Element::Light, power: 1.4, learn_level: 14 },
+            Move { name: "Divine Ray", element: Element::Light, power: 1.8, learn_level: 24 },
+        ],
+        16 => vec![ // Fluffmole
+            Move { name: "Scratch", element: Element::Normal, power: 0.8, learn_level: 1 },
+            Move { name: "Dig", element: Element::Earth, power: 1.2, learn_level: 8 },
+        ],
+        17 => vec![ // Scurratt
+            Move { name: "Bite", element: Element::Normal, power: 0.9, learn_level: 1 },
+            Move { name: "Quick Attack", element: Element::Normal, power: 1.1, learn_level: 6 },
+        ],
+        18..=22 => vec![ // Bosses
+            Move { name: "Guardian Strike", element: get_species(species_id).element, power: 1.5, learn_level: 1 },
+            Move { name: "Guardian Wrath", element: get_species(species_id).element, power: 2.0, learn_level: 20 },
+        ],
+        23 => vec![ // Mossbear
+            Move { name: "Vine Whip", element: Element::Leaf, power: 1.0, learn_level: 1 },
+            Move { name: "Bear Claw", element: Element::Normal, power: 1.3, learn_level: 12 },
+            Move { name: "Forest Fury", element: Element::Leaf, power: 1.7, learn_level: 22 },
+        ],
+        _ => vec![
+            Move { name: "Tackle", element: Element::Normal, power: 0.8, learn_level: 1 },
+        ],
+    }
+}
+
+/// Pick the strongest move the monster has learned at its level
+fn best_move_for_level(species_id: u8, level: u8) -> Move {
+    let moves = species_moves(species_id);
+    let mut best: Option<&Move> = None;
+    for m in &moves {
+        if m.learn_level <= level {
+            if let Some(current_best) = best {
+                if m.power > current_best.power {
+                    best = Some(m);
+                }
+            } else {
+                best = Some(m);
+            }
+        }
+    }
+    best.unwrap_or(&Move { name: "Struggle", element: Element::Normal, power: 0.5, learn_level: 1 }).clone()
+}
+
 fn calc_max_hp(base: f64, level: f64) -> f64 {
     (base + level * 3.0 + 10.0).floor()
 }
@@ -827,6 +929,17 @@ fn level_up_monster(engine: &mut Engine, slot: usize) {
     ss_team(engine, slot, "def", calc_def(sp.base_def, level));
     ss_team(engine, slot, "spd", calc_spd(sp.base_spd, level));
 
+    // Check for newly learned moves
+    let moves = species_moves(species_id);
+    let new_level = level as u8;
+    for m in &moves {
+        if m.learn_level == new_level {
+            // Show "Learned [move]!" message
+            ss(engine, K_BATTLE_MSG, 7.0);
+            ss(engine, K_MSG_TIMER, 2.0);
+        }
+    }
+
     // Check evolution
     if let Some(evo_id) = sp.evolves_to {
         if level >= sp.evolve_level as f64 {
@@ -841,6 +954,11 @@ fn level_up_monster(engine: &mut Engine, slot: usize) {
             ss_team(engine, slot, "spd", calc_spd(evo.base_spd, level));
             // Evolution sound fanfare
             play_evolution_sound(engine);
+            // Element-colored tint for evolution
+            let evo_elem_color = evo.element.color();
+            engine.screen_fx.push(ScreenEffect::Flash {
+                color: evo_elem_color, intensity: 0.6,
+            }, 0.4);
             engine.screen_fx.push(ScreenEffect::Flash {
                 color: Color { r: 255, g: 255, b: 200, a: 255 }, intensity: 0.8,
             }, 0.5);
@@ -1373,6 +1491,12 @@ fn get_dialogue(id: u32) -> &'static [&'static str] {
             "at level 16! Keep",
             "battling to grow!",
         ],
+        16 => &[
+            "All your creatures fainted!",
+            "You blacked out...",
+            "Lost some gold. Healed at",
+            "Pebble Town Spirit Center.",
+        ],
         _ => &["..."],
     }
 }
@@ -1457,7 +1581,7 @@ fn check_zone_exit(zone: Zone, px: f64, py: f64, badges: u32) -> Option<(Zone, f
                 return Some((Zone::CoralShore, 15.0 * TILE_SIZE, (MAP_H as f64 - 3.0) * TILE_SIZE));
             }
             if ty >= MAP_H - 2 && tx >= 13 && tx <= 16 {
-                if badges >= 3 {
+                if badges.count_ones() >= 3 {
                     return Some((Zone::ShadowVale, 15.0 * TILE_SIZE, 2.0 * TILE_SIZE));
                 }
             }
@@ -1475,7 +1599,7 @@ fn check_zone_exit(zone: Zone, px: f64, py: f64, badges: u32) -> Option<(Zone, f
                 return Some((Zone::Sparkridge, 15.0 * TILE_SIZE, (MAP_H as f64 - 3.0) * TILE_SIZE));
             }
             if ty >= MAP_H - 2 && tx >= 13 && tx <= 16 {
-                if badges >= 4 {
+                if badges.count_ones() >= 4 {
                     return Some((Zone::CrystalSpire, 15.0 * TILE_SIZE, 2.0 * TILE_SIZE));
                 }
             }
@@ -1575,12 +1699,21 @@ pub fn setup_fight_only(engine: &mut Engine) {
 // ═══════════════════════════════════════════════════════════════════════
 
 fn play_hit_sound(engine: &mut Engine) {
+    // Richer impact: initial thud + mid crack + tail
     engine.sound_queue.push(SoundCommand::PlayTone {
-        frequency: 200.0, duration: 0.12, volume: 0.4,
-        waveform: Waveform::Square, attack: 0.005, decay: 0.1,
+        frequency: 180.0, duration: 0.06, volume: 0.45,
+        waveform: Waveform::Square, attack: 0.002, decay: 0.05,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 250.0, duration: 0.1, volume: 0.3,
+        waveform: Waveform::Sawtooth, attack: 0.01, decay: 0.08,
     });
     engine.sound_queue.push(SoundCommand::PlayNoise {
-        duration: 0.08, volume: 0.25, filter_freq: 2000.0,
+        duration: 0.1, volume: 0.2, filter_freq: 2500.0,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 120.0, duration: 0.08, volume: 0.15,
+        waveform: Waveform::Sine, attack: 0.04, decay: 0.04,
     });
 }
 
@@ -1668,13 +1801,22 @@ fn play_super_effective_sound(engine: &mut Engine) {
 }
 
 fn play_catch_sound(engine: &mut Engine) {
+    // Richer catch: ascending shimmer + sparkle
     engine.sound_queue.push(SoundCommand::PlayTone {
-        frequency: 440.0, duration: 0.2, volume: 0.3,
-        waveform: Waveform::Triangle, attack: 0.01, decay: 0.15,
+        frequency: 440.0, duration: 0.15, volume: 0.3,
+        waveform: Waveform::Triangle, attack: 0.005, decay: 0.12,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 554.0, duration: 0.15, volume: 0.28,
+        waveform: Waveform::Sine, attack: 0.05, decay: 0.1,
     });
     engine.sound_queue.push(SoundCommand::PlayTone {
         frequency: 660.0, duration: 0.2, volume: 0.25,
         waveform: Waveform::Sine, attack: 0.1, decay: 0.1,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 880.0, duration: 0.25, volume: 0.2,
+        waveform: Waveform::Sine, attack: 0.15, decay: 0.1,
     });
 }
 
@@ -1741,31 +1883,88 @@ fn play_victory_sound(engine: &mut Engine) {
 }
 
 fn play_evolution_sound(engine: &mut Engine) {
-    let notes = [440.0, 554.0, 659.0, 880.0, 1047.0, 1319.0];
+    // Fuller ascending fanfare: 8 notes + final chord
+    let notes = [330.0, 392.0, 440.0, 523.0, 587.0, 659.0, 784.0, 880.0];
     for (i, &freq) in notes.iter().enumerate() {
         engine.sound_queue.push(SoundCommand::PlayTone {
-            frequency: freq, duration: 0.2, volume: 0.3,
-            waveform: Waveform::Sine, attack: 0.01 + i as f64 * 0.04, decay: 0.12,
+            frequency: freq, duration: 0.18, volume: 0.3,
+            waveform: Waveform::Sine, attack: 0.005 + i as f64 * 0.02, decay: 0.12,
+        });
+    }
+    // Final chord (major triad)
+    for &freq in &[1047.0, 1319.0, 1568.0] {
+        engine.sound_queue.push(SoundCommand::PlayTone {
+            frequency: freq, duration: 0.5, volume: 0.25,
+            waveform: Waveform::Sine, attack: 0.15, decay: 0.3,
         });
     }
 }
 
 fn play_zone_bgm(engine: &mut Engine, zone: Zone) {
-    // Each zone gets a unique ambient drone
-    let (freq, waveform) = match zone {
-        Zone::PebbleTown => (220.0, Waveform::Sine),
-        Zone::VerdantPath => (196.0, Waveform::Triangle),
-        Zone::EmberHollow => (165.0, Waveform::Sawtooth),
-        Zone::CoralShore => (247.0, Waveform::Sine),
-        Zone::Sparkridge => (277.0, Waveform::Square),
-        Zone::DeepCave => (147.0, Waveform::Sawtooth),
-        Zone::ShadowVale => (131.0, Waveform::Square),
-        Zone::CrystalSpire => (330.0, Waveform::Sine),
-        Zone::Frostpeak => (294.0, Waveform::Triangle),
+    // Each zone gets a unique ambient drone; arpeggio cycles notes
+    let notes = zone_arpeggio(zone);
+    let (_, waveform) = match zone {
+        Zone::PebbleTown => (0.0, Waveform::Sine),
+        Zone::VerdantPath => (0.0, Waveform::Triangle),
+        Zone::EmberHollow => (0.0, Waveform::Sawtooth),
+        Zone::CoralShore => (0.0, Waveform::Sine),
+        Zone::Sparkridge => (0.0, Waveform::Square),
+        Zone::DeepCave => (0.0, Waveform::Sawtooth),
+        Zone::ShadowVale => (0.0, Waveform::Square),
+        Zone::CrystalSpire => (0.0, Waveform::Sine),
+        Zone::Frostpeak => (0.0, Waveform::Triangle),
     };
     engine.sound_queue.push(SoundCommand::StartLoop {
-        id: "zone_bgm".into(), frequency: freq, volume: 0.08, waveform,
+        id: "zone_bgm".into(), frequency: notes[0], volume: 0.08, waveform,
     });
+    // Initialize arpeggio
+    ss(engine, K_ARP_STEP, 0.0);
+    ss(engine, K_ARP_TIMER, engine.time);
+}
+
+fn zone_arpeggio(zone: Zone) -> [f64; 4] {
+    match zone {
+        Zone::PebbleTown => [220.0, 277.0, 330.0, 440.0],
+        Zone::VerdantPath => [196.0, 247.0, 294.0, 392.0],
+        Zone::EmberHollow => [165.0, 220.0, 262.0, 330.0],
+        Zone::CoralShore => [247.0, 311.0, 370.0, 494.0],
+        Zone::Sparkridge => [277.0, 349.0, 415.0, 554.0],
+        Zone::DeepCave => [147.0, 185.0, 220.0, 294.0],
+        Zone::ShadowVale => [131.0, 156.0, 196.0, 262.0],
+        Zone::CrystalSpire => [330.0, 415.0, 494.0, 660.0],
+        Zone::Frostpeak => [294.0, 370.0, 440.0, 587.0],
+    }
+}
+
+fn update_zone_bgm_arpeggio(engine: &mut Engine) {
+    let zone = zone_from_f64(gs(engine, K_ZONE));
+    let arp_timer = gs(engine, K_ARP_TIMER);
+    if engine.time - arp_timer < 0.5 { return; }
+    ss(engine, K_ARP_TIMER, engine.time);
+
+    let step = gs(engine, K_ARP_STEP) as usize;
+    let notes = zone_arpeggio(zone);
+    let freq = notes[step % 4];
+    let (_, waveform) = match zone {
+        Zone::PebbleTown => (0.0, Waveform::Sine),
+        Zone::VerdantPath => (0.0, Waveform::Triangle),
+        Zone::EmberHollow => (0.0, Waveform::Sawtooth),
+        Zone::CoralShore => (0.0, Waveform::Sine),
+        Zone::Sparkridge => (0.0, Waveform::Square),
+        Zone::DeepCave => (0.0, Waveform::Sawtooth),
+        Zone::ShadowVale => (0.0, Waveform::Square),
+        Zone::CrystalSpire => (0.0, Waveform::Sine),
+        Zone::Frostpeak => (0.0, Waveform::Triangle),
+    };
+
+    engine.sound_queue.push(SoundCommand::StartLoop {
+        id: "zone_bgm".into(),
+        frequency: freq,
+        volume: 0.08,
+        waveform,
+    });
+
+    ss(engine, K_ARP_STEP, ((step + 1) % 4) as f64);
 }
 
 fn stop_zone_bgm(engine: &mut Engine) {
@@ -1774,12 +1973,42 @@ fn stop_zone_bgm(engine: &mut Engine) {
     });
 }
 
-fn play_battle_bgm(engine: &mut Engine, is_boss: bool) {
-    let freq = if is_boss { 110.0 } else { 165.0 };
+fn battle_arpeggio(is_boss: bool) -> [f64; 4] {
+    if is_boss {
+        [110.0, 139.0, 165.0, 220.0]
+    } else {
+        [165.0, 196.0, 247.0, 330.0]
+    }
+}
+
+fn update_battle_bgm_arpeggio(engine: &mut Engine) {
+    let is_boss = gs(engine, K_IS_BOSS) == 1.0;
+    let arp_timer = gs(engine, K_BATTLE_ARP_TIMER);
+    if engine.time - arp_timer < 0.3 { return; }
+    ss(engine, K_BATTLE_ARP_TIMER, engine.time);
+
+    let step = gs(engine, K_BATTLE_ARP_STEP) as usize;
+    let notes = battle_arpeggio(is_boss);
+    let freq = notes[step % 4];
+
     engine.sound_queue.push(SoundCommand::StartLoop {
-        id: "battle_bgm".into(), frequency: freq, volume: 0.06,
+        id: "battle_bgm".into(),
+        frequency: freq,
+        volume: 0.06,
         waveform: Waveform::Square,
     });
+
+    ss(engine, K_BATTLE_ARP_STEP, ((step + 1) % 4) as f64);
+}
+
+fn play_battle_bgm(engine: &mut Engine, is_boss: bool) {
+    let notes = battle_arpeggio(is_boss);
+    engine.sound_queue.push(SoundCommand::StartLoop {
+        id: "battle_bgm".into(), frequency: notes[0], volume: 0.06,
+        waveform: Waveform::Square,
+    });
+    ss(engine, K_BATTLE_ARP_STEP, 0.0);
+    ss(engine, K_BATTLE_ARP_TIMER, engine.time);
 }
 
 fn stop_battle_bgm(engine: &mut Engine) {
@@ -1805,12 +2034,35 @@ pub fn on_pointer_down(engine: &mut Engine, x: f64, y: f64) {
         return;
     }
 
+    if mode == MODE_STARTER {
+        // 3 columns for starter choice
+        let col_w = WIDTH / 3.0;
+        if y > 250.0 && y < 550.0 {
+            let species_id = if x < col_w { 0u8 } // Sproutail (Leaf)
+                else if x < col_w * 2.0 { 2u8 }   // Emberpup (Fire)
+                else { 4u8 };                      // Bubblefin (Water)
+            play_ui_click(engine);
+            set_team_monster(engine, 0, species_id, 5);
+            ss(engine, K_TEAM_SIZE, 1.0);
+            ss(engine, K_ACTIVE_MON, 0.0);
+            ss(engine, K_MODE, MODE_OVERWORLD);
+            play_zone_bgm(engine, zone_from_f64(gs(engine, K_ZONE)));
+        }
+        return;
+    }
+
     if mode == MODE_DIALOGUE {
         advance_dialogue(engine);
         return;
     }
 
     if mode == MODE_OVERWORLD {
+        // Top-right corner: MENU button
+        if x > WIDTH - 80.0 && y < 50.0 {
+            play_ui_click(engine);
+            ss(engine, K_MODE, MODE_MENU);
+            return;
+        }
         // Tap to set movement target
         let cam_x = gs(engine, K_PLAYER_X) - WIDTH / 2.0;
         let cam_y = gs(engine, K_PLAYER_Y) - HEIGHT / 2.0;
@@ -1825,21 +2077,34 @@ pub fn on_pointer_down(engine: &mut Engine, x: f64, y: f64) {
     if mode == MODE_BATTLE {
         let bphase = gs(engine, K_BPHASE);
         if bphase == BPHASE_PLAYER_AIM && gs(engine, K_BALL_ACTIVE) == 0.0 {
-            // Check if tapping battle menu buttons (bottom HUD)
-            if y > HEIGHT - 120.0 {
-                // Menu buttons
-                if x < WIDTH / 3.0 {
-                    // Attack (start aiming)
-                    ss(engine, K_AIMING, 1.0);
-                    ss(engine, K_AIM_START_X, x);
-                    ss(engine, K_AIM_START_Y, y);
-                    ss(engine, K_AIM_X, x);
-                    ss(engine, K_AIM_Y, y);
-                } else if x < 2.0 * WIDTH / 3.0 {
+            // Check if tapping battle item row (second row of buttons)
+            if y > HEIGHT - 80.0 && y <= HEIGHT - 40.0 {
+                let btn_w = WIDTH / 2.0;
+                if x < btn_w {
+                    // POTION
+                    use_battle_potion(engine);
+                } else {
+                    // REVIVE
+                    use_battle_revive(engine);
+                }
+                return;
+            }
+            // Check if tapping battle menu buttons (bottom HUD main row)
+            if y > HEIGHT - 130.0 && y <= HEIGHT - 80.0 {
+                let btn_w = WIDTH / 4.0;
+                if x < btn_w {
+                    // Attack (start aiming) - also cycle shot type on tap
+                    let shot = gs(engine, K_SHOT_TYPE);
+                    let next_shot = if shot >= SHOT_SPLIT { SHOT_NORMAL } else { shot + 1.0 };
+                    ss(engine, K_SHOT_TYPE, next_shot);
+                } else if x < btn_w * 2.0 {
                     // Catch
                     try_catch(engine);
+                } else if x < btn_w * 3.0 {
+                    // Switch
+                    try_switch(engine);
                 } else {
-                    // Items / Run
+                    // Run
                     try_run(engine);
                 }
                 return;
@@ -1911,7 +2176,9 @@ pub fn on_pointer_up(engine: &mut Engine, x: f64, y: f64) {
         let dy = sy - y;
         let dist = (dx * dx + dy * dy).sqrt();
         if dist > 15.0 {
-            let power = (dist * 12.0).min(1800.0);
+            let shot = gs(engine, K_SHOT_TYPE);
+            let power_mult = if shot == SHOT_POWER { 1.6 } else { 1.0 };
+            let power = (dist * 12.0 * power_mult).min(2400.0);
             let angle = dy.atan2(dx);
             let vx = angle.cos() * power;
             let vy = angle.sin() * power;
@@ -1921,6 +2188,22 @@ pub fn on_pointer_up(engine: &mut Engine, x: f64, y: f64) {
             ss(engine, K_BPHASE, BPHASE_PLAYER_SHOT);
             let strokes = gs(engine, K_STROKES);
             ss(engine, K_STROKES, strokes + 1.0);
+            ss(engine, K_SHOT_DIST, 0.0);
+            ss(engine, K_SPLIT_DONE, 0.0);
+            ss(engine, K_BALL2_ACTIVE, 0.0);
+
+            // Curve: store perpendicular force direction
+            if shot == SHOT_CURVE {
+                // Perpendicular to shot direction (right-hand)
+                let perp_x = -angle.sin();
+                let perp_y = angle.cos();
+                let force = 400.0;
+                ss(engine, K_CURVE_FORCE, if perp_x.abs() > perp_y.abs() {
+                    force * perp_x.signum()
+                } else {
+                    force * perp_y.signum()
+                });
+            }
 
             // Shot sound
             engine.sound_queue.push(SoundCommand::PlayTone {
@@ -1953,7 +2236,17 @@ fn advance_dialogue(engine: &mut Engine) {
         ss(engine, K_DLG_LINE, (line + 1) as f64);
     } else {
         // Dialogue finished
-        ss(engine, K_MODE, MODE_OVERWORLD);
+        let team_size = gs(engine, K_TEAM_SIZE) as usize;
+        if id == 0 && team_size == 0 {
+            // After intro dialogue, go to starter choice
+            ss(engine, K_MODE, MODE_STARTER);
+            ss(engine, K_STARTER_SEL, 0.0);
+        } else if id == 16 {
+            // After defeat dialogue, go to overworld
+            ss(engine, K_MODE, MODE_OVERWORLD);
+        } else {
+            ss(engine, K_MODE, MODE_OVERWORLD);
+        }
     }
 }
 
@@ -2002,6 +2295,73 @@ fn try_run(engine: &mut Engine) {
     // Run away
     play_ui_click(engine);
     end_battle(engine, false);
+}
+
+fn try_switch(engine: &mut Engine) {
+    let team_size = gs(engine, K_TEAM_SIZE) as usize;
+    let current = gs(engine, K_ACTIVE_MON) as usize;
+    // Cycle to next alive team monster
+    for offset in 1..team_size {
+        let idx = (current + offset) % team_size;
+        if gs_team(engine, idx, "hp") > 0.0 {
+            ss(engine, K_ACTIVE_MON, idx as f64);
+            play_ui_click(engine);
+            // Reset ball position
+            ss(engine, K_BALL_X, 15.0 * TILE_SIZE);
+            ss(engine, K_BALL_Y, 35.0 * TILE_SIZE);
+            ss(engine, K_BALL_VX, 0.0);
+            ss(engine, K_BALL_VY, 0.0);
+            ss(engine, K_BALL_ACTIVE, 0.0);
+            // Costs a turn
+            ss(engine, K_BPHASE, BPHASE_ENEMY_TURN);
+            ss(engine, K_BATTLE_TIMER, 0.0);
+            return;
+        }
+    }
+    // No other alive monster to switch to
+}
+
+fn use_battle_potion(engine: &mut Engine) {
+    let potions = gs_inv(engine, ITEM_POTION);
+    let supers = gs_inv(engine, ITEM_SUPER_POTION);
+    if potions <= 0.0 && supers <= 0.0 { return; }
+
+    let active = gs(engine, K_ACTIVE_MON) as usize;
+    let hp = gs_team(engine, active, "hp");
+    let maxhp = gs_team(engine, active, "maxhp");
+    if hp >= maxhp || hp <= 0.0 { return; }
+
+    let (heal_amount, use_super) = if supers > 0.0 { (60.0, true) } else { (30.0, false) };
+    ss_team(engine, active, "hp", (hp + heal_amount).min(maxhp));
+    if use_super {
+        ss_inv(engine, ITEM_SUPER_POTION, supers - 1.0);
+    } else {
+        ss_inv(engine, ITEM_POTION, potions - 1.0);
+    }
+    play_heal_sound(engine);
+    // Costs a turn
+    ss(engine, K_BPHASE, BPHASE_ENEMY_TURN);
+    ss(engine, K_BATTLE_TIMER, 0.0);
+}
+
+fn use_battle_revive(engine: &mut Engine) {
+    let revives = gs_inv(engine, ITEM_REVIVE);
+    if revives <= 0.0 { return; }
+
+    let team_size = gs(engine, K_TEAM_SIZE) as usize;
+    for i in 0..team_size {
+        let hp = gs_team(engine, i, "hp");
+        if hp <= 0.0 {
+            let maxhp = gs_team(engine, i, "maxhp");
+            ss_team(engine, i, "hp", (maxhp / 2.0).floor().max(1.0));
+            ss_inv(engine, ITEM_REVIVE, revives - 1.0);
+            play_heal_sound(engine);
+            // Costs a turn
+            ss(engine, K_BPHASE, BPHASE_ENEMY_TURN);
+            ss(engine, K_BATTLE_TIMER, 0.0);
+            return;
+        }
+    }
 }
 
 fn handle_shop_tap(engine: &mut Engine, _x: f64, y: f64) {
@@ -2082,6 +2442,10 @@ pub fn update(engine: &mut Engine, dt: f64) {
     if mode == MODE_TITLE {
         let t = gs(engine, K_TITLE_TIMER) + dt;
         ss(engine, K_TITLE_TIMER, t);
+        return;
+    }
+
+    if mode == MODE_STARTER {
         return;
     }
 
@@ -2200,6 +2564,9 @@ fn update_overworld(engine: &mut Engine, dt: f64) {
 
     // Check special tiles
     check_special_tiles(engine);
+
+    // Update zone BGM arpeggio
+    update_zone_bgm_arpeggio(engine);
 }
 
 fn check_wild_encounter(engine: &mut Engine, px: f64, py: f64) {
@@ -2431,6 +2798,9 @@ fn update_battle(engine: &mut Engine, dt: f64) {
     let timer = gs(engine, K_BATTLE_TIMER) + dt;
     ss(engine, K_BATTLE_TIMER, timer);
 
+    // Update battle BGM arpeggio
+    update_battle_bgm_arpeggio(engine);
+
     // Update message timer
     let msg_t = gs(engine, K_MSG_TIMER);
     if msg_t > 0.0 {
@@ -2480,14 +2850,55 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
     let mut vx = gs(engine, K_BALL_VX);
     let mut vy = gs(engine, K_BALL_VY);
 
+    let shot = gs(engine, K_SHOT_TYPE);
+
     // Physics step (dt-corrected exponential friction)
-    let friction_per_sec: f64 = 0.3;
+    let friction_per_sec: f64 = if shot == SHOT_POWER { 0.15 } else { 0.3 }; // Power has extra friction
     let friction = friction_per_sec.powf(dt);
     vx *= friction;
     vy *= friction;
 
+    // Curve: apply lateral force
+    if shot == SHOT_CURVE {
+        let curve_f = gs(engine, K_CURVE_FORCE);
+        let speed = (vx * vx + vy * vy).sqrt();
+        if speed > 20.0 {
+            // Apply perpendicular force proportional to speed
+            let nx = -vy / speed;
+            let ny = vx / speed;
+            vx += nx * curve_f * dt;
+            vy += ny * curve_f * dt;
+        }
+    }
+
     bx += vx * dt;
     by += vy * dt;
+
+    // Track distance traveled for split
+    if shot == SHOT_SPLIT {
+        let old_dist = gs(engine, K_SHOT_DIST);
+        let step_dist = ((vx * dt) * (vx * dt) + (vy * dt) * (vy * dt)).sqrt();
+        ss(engine, K_SHOT_DIST, old_dist + step_dist);
+
+        // At 40% of arena height distance, spawn ball2
+        let split_threshold = MAP_H as f64 * TILE_SIZE * 0.15;
+        if old_dist + step_dist > split_threshold && gs(engine, K_SPLIT_DONE) == 0.0 {
+            ss(engine, K_SPLIT_DONE, 1.0);
+            ss(engine, K_BALL2_ACTIVE, 1.0);
+            ss(engine, K_BALL2_X, bx);
+            ss(engine, K_BALL2_Y, by);
+            // Split perpendicular
+            let speed = (vx * vx + vy * vy).sqrt().max(1.0);
+            let nx = -vy / speed;
+            let ny = vx / speed;
+            let spread = 200.0;
+            ss(engine, K_BALL2_VX, vx * 0.7 + nx * spread);
+            ss(engine, K_BALL2_VY, vy * 0.7 + ny * spread);
+            // Main ball adjusts too
+            vx = vx * 0.7 - nx * spread;
+            vy = vy * 0.7 - ny * spread;
+        }
+    }
 
     // Wall bouncing
     let min_x = 2.0 * TILE_SIZE;
@@ -2540,12 +2951,15 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
         let atk = gs_team(engine, active, "atk");
         let def = gs(engine, K_ENEMY_DEF);
 
-        // Element effectiveness
+        // Use learnable move system
         let active_species = gs_team(engine, active, "species") as u8;
+        let active_level = gs_team(engine, active, "level") as u8;
         let enemy_species = gs(engine, K_ENEMY_SPECIES) as u8;
-        let atk_elem = get_species(active_species).element;
+        let best_move = best_move_for_level(active_species, active_level);
+        let atk_elem = best_move.element;
         let def_elem = get_species(enemy_species).element;
         let eff = type_effectiveness(atk_elem, def_elem);
+        let move_power = best_move.power;
 
         // Speed of impact affects damage
         let speed = (vx * vx + vy * vy).sqrt();
@@ -2559,7 +2973,10 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
         // Damage variance: ±15%
         let variance = 0.85 + rng(engine) * 0.30;
 
-        let raw_dmg = (atk * 2.0 - def * 0.8) * eff * speed_mult * crit_mult * variance;
+        // Split shot: each ball does 0.6x damage
+        let split_mult = if shot == SHOT_SPLIT { 0.6 } else { 1.0 };
+
+        let raw_dmg = (atk * 2.0 - def * 0.8) * eff * speed_mult * crit_mult * variance * split_mult * move_power;
         let damage = raw_dmg.max(1.0).floor();
 
         let enemy_hp = gs(engine, K_ENEMY_HP);
@@ -2639,12 +3056,91 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
     ss(engine, K_BALL_Y, by);
     ss(engine, K_BALL_VX, vx);
     ss(engine, K_BALL_VY, vy);
+
+    // Ball2 physics (Split shot)
+    if gs(engine, K_BALL2_ACTIVE) == 1.0 {
+        let mut b2x = gs(engine, K_BALL2_X);
+        let mut b2y = gs(engine, K_BALL2_Y);
+        let mut b2vx = gs(engine, K_BALL2_VX);
+        let mut b2vy = gs(engine, K_BALL2_VY);
+        let fric2: f64 = 0.3_f64.powf(dt);
+        b2vx *= fric2;
+        b2vy *= fric2;
+        b2x += b2vx * dt;
+        b2y += b2vy * dt;
+
+        // Wall bounce for ball2
+        let min_x = 2.0 * TILE_SIZE;
+        let max_x = (MAP_W as f64 - 2.0) * TILE_SIZE;
+        let min_y = 2.0 * TILE_SIZE;
+        let max_y = (MAP_H as f64 - 2.0) * TILE_SIZE;
+        if b2x < min_x { b2x = min_x; b2vx = -b2vx * 0.8; }
+        if b2x > max_x { b2x = max_x; b2vx = -b2vx * 0.8; }
+        if b2y < min_y { b2y = min_y; b2vy = -b2vy * 0.8; }
+        if b2y > max_y { b2y = max_y; b2vy = -b2vy * 0.8; }
+
+        // Hit detection for ball2
+        let target_cx = 15.0 * TILE_SIZE;
+        let target_cy = 7.0 * TILE_SIZE;
+        let d2x = b2x - target_cx;
+        let d2y = b2y - target_cy;
+        let d2 = (d2x * d2x + d2y * d2y).sqrt();
+        let hit_radius = 2.5 * TILE_SIZE;
+
+        if d2 < hit_radius {
+            // Ball2 hit! 0.6x damage
+            let active = gs(engine, K_ACTIVE_MON) as usize;
+            let atk = gs_team(engine, active, "atk");
+            let def = gs(engine, K_ENEMY_DEF);
+            let active_species = gs_team(engine, active, "species") as u8;
+            let enemy_species = gs(engine, K_ENEMY_SPECIES) as u8;
+            let atk_elem = get_species(active_species).element;
+            let def_elem = get_species(enemy_species).element;
+            let eff = type_effectiveness(atk_elem, def_elem);
+            let speed2 = (b2vx * b2vx + b2vy * b2vy).sqrt();
+            let speed_mult = (speed2 / 200.0).min(2.0).max(0.5);
+            let raw_dmg = (atk * 2.0 - def * 0.8) * eff * speed_mult * 0.6; // 0.6x for split
+            let damage = raw_dmg.max(1.0).floor();
+            let enemy_hp = gs(engine, K_ENEMY_HP);
+            let new_hp = (enemy_hp - damage).max(0.0);
+            ss(engine, K_ENEMY_HP, new_hp);
+            ss(engine, K_DMG_POPUP, damage);
+            ss(engine, K_DMG_POPUP_X, b2x);
+            ss(engine, K_DMG_POPUP_Y, b2y);
+            ss(engine, K_DMG_POPUP_TIMER, 1.0);
+            ss(engine, K_BALL2_ACTIVE, 0.0);
+            play_hit_sound(engine);
+            if new_hp <= 0.0 {
+                ss(engine, K_BALL_ACTIVE, 0.0);
+                on_enemy_defeated(engine);
+                return;
+            }
+        }
+
+        let speed2 = (b2vx * b2vx + b2vy * b2vy).sqrt();
+        if speed2 < 5.0 {
+            ss(engine, K_BALL2_ACTIVE, 0.0);
+        } else {
+            ss(engine, K_BALL2_X, b2x);
+            ss(engine, K_BALL2_Y, b2y);
+            ss(engine, K_BALL2_VX, b2vx);
+            ss(engine, K_BALL2_VY, b2vy);
+        }
+    }
 }
 
 fn play_wall_bounce(engine: &mut Engine) {
+    // Richer bounce: knock + resonance
     engine.sound_queue.push(SoundCommand::PlayTone {
-        frequency: 150.0, duration: 0.06, volume: 0.2,
-        waveform: Waveform::Square, attack: 0.002, decay: 0.05,
+        frequency: 160.0, duration: 0.05, volume: 0.25,
+        waveform: Waveform::Square, attack: 0.001, decay: 0.04,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 100.0, duration: 0.08, volume: 0.15,
+        waveform: Waveform::Sine, attack: 0.02, decay: 0.06,
+    });
+    engine.sound_queue.push(SoundCommand::PlayNoise {
+        duration: 0.04, volume: 0.1, filter_freq: 1500.0,
     });
 }
 
@@ -2653,17 +3149,19 @@ fn do_enemy_attack(engine: &mut Engine) {
     let active = gs(engine, K_ACTIVE_MON) as usize;
     let def = gs_team(engine, active, "def");
 
-    // Element effectiveness for enemy attacks too
+    // Use learnable move system for enemy attacks
     let enemy_species = gs(engine, K_ENEMY_SPECIES) as u8;
+    let enemy_level = gs(engine, K_ENEMY_LEVEL) as u8;
     let active_species = gs_team(engine, active, "species") as u8;
-    let atk_elem = get_species(enemy_species).element;
+    let enemy_move = best_move_for_level(enemy_species, enemy_level);
+    let atk_elem = enemy_move.element;
     let def_elem = get_species(active_species).element;
     let eff = type_effectiveness(atk_elem, def_elem);
 
     // Damage variance ±15%
     let variance = rng_range(engine, 0.85, 1.15);
 
-    let raw_dmg = (enemy_atk * 1.5 - def * 0.6) * eff * variance;
+    let raw_dmg = (enemy_atk * 1.5 - def * 0.6) * eff * variance * enemy_move.power;
     let damage = raw_dmg.max(1.0).floor();
 
     let hp = gs_team(engine, active, "hp");
@@ -2762,6 +3260,7 @@ fn on_enemy_defeated(engine: &mut Engine) {
 }
 
 fn on_player_defeated(engine: &mut Engine) {
+    stop_battle_bgm(engine);
     // Heal team to half HP and teleport back to Pebble Town
     let team_size = gs(engine, K_TEAM_SIZE) as usize;
     for i in 0..team_size {
@@ -2778,7 +3277,22 @@ fn on_player_defeated(engine: &mut Engine) {
     engine.tilemap = Some(build_zone_map(Zone::PebbleTown));
     ss(engine, K_PLAYER_X, 15.0 * TILE_SIZE);
     ss(engine, K_PLAYER_Y, 24.0 * TILE_SIZE);
-    ss(engine, K_MODE, MODE_OVERWORLD);
+
+    // Defeat sound
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 200.0, duration: 0.4, volume: 0.4,
+        waveform: Waveform::Sawtooth, attack: 0.01, decay: 0.35,
+    });
+    engine.sound_queue.push(SoundCommand::PlayTone {
+        frequency: 150.0, duration: 0.5, volume: 0.35,
+        waveform: Waveform::Sawtooth, attack: 0.2, decay: 0.3,
+    });
+
+    // Show defeat dialogue
+    ss(engine, K_MODE, MODE_DIALOGUE);
+    ss(engine, K_DLG_ID, 16.0);
+    ss(engine, K_DLG_LINE, 0.0);
+    ss(engine, K_DLG_TIMER, 0.0);
 
     engine.screen_fx.push(ScreenEffect::Desaturate { amount: 0.8 }, 1.0);
 }
@@ -2830,6 +3344,8 @@ pub fn render(engine: &mut Engine) {
     } else if mode == MODE_CATCH_ANIM {
         render_battle(engine);
         render_catch_anim(engine);
+    } else if mode == MODE_STARTER {
+        render_starter_choice(engine);
     }
 
     engine.screen_fx.apply(&mut engine.framebuffer);
@@ -3002,8 +3518,13 @@ fn render_zone_banner(engine: &mut Engine) {
     let fb = &mut engine.framebuffer;
 
     shapes::fill_rect(fb, 0.0, 0.0, WIDTH, 24.0, Color { r: 0, g: 0, b: 0, a: 160 });
-    text::draw_text_centered(fb, 240, 8, zone_name, COL_UI_TEXT, 1);
-    text::draw_text(fb, 370, 8, &badge_text, COL_UI_HIGHLIGHT, 1);
+    text::draw_text_centered(fb, 200, 8, zone_name, COL_UI_TEXT, 1);
+    text::draw_text(fb, 300, 8, &badge_text, COL_UI_HIGHLIGHT, 1);
+
+    // MENU button in top-right
+    shapes::fill_rect(fb, WIDTH - 70.0, 2.0, 60.0, 20.0, Color { r: 40, g: 35, b: 60, a: 200 });
+    shapes::draw_rect(fb, WIDTH - 70.0, 2.0, 60.0, 20.0, COL_UI_BORDER);
+    text::draw_text_centered(fb, (WIDTH - 40.0) as i32, 6, "MENU", COL_UI_TEXT, 1);
 }
 
 fn render_overworld_hud(engine: &mut Engine) {
@@ -3083,6 +3604,9 @@ fn render_battle(engine: &mut Engine) {
     let battle_msg = gs(engine, K_BATTLE_MSG) as u32;
     let msg_timer = gs(engine, K_MSG_TIMER);
     let orb_count = gs_inv(engine, ITEM_SPIRIT_ORB) as u32 + gs_inv(engine, ITEM_ULTRA_ORB) as u32;
+    let potion_count = gs_inv(engine, ITEM_POTION) as u32 + gs_inv(engine, ITEM_SUPER_POTION) as u32;
+    let revive_count = gs_inv(engine, ITEM_REVIVE) as u32;
+    let shot_type = gs(engine, K_SHOT_TYPE);
     let dmg_popup = gs(engine, K_DMG_POPUP);
     let dmg_popup_x = gs(engine, K_DMG_POPUP_X);
     let dmg_popup_y = gs(engine, K_DMG_POPUP_Y);
@@ -3208,24 +3732,56 @@ fn render_battle(engine: &mut Engine) {
     shapes::fill_rect(fb, pbar_x, xpbar_y, 120.0, 4.0, Color { r: 30, g: 30, b: 60, a: 255 });
     shapes::fill_rect(fb, pbar_x, xpbar_y, 120.0 * xp_ratio, 4.0, COL_XP_BAR);
 
-    // Action buttons
+    // Action buttons (4-column main row + item row)
     if bphase == BPHASE_PLAYER_AIM {
-        let btn_y = panel_y + 75.0;
-        let btn_w = WIDTH / 3.0;
+        let btn_y = HEIGHT - 130.0 + 75.0;
+        let btn_w = WIDTH / 4.0;
         let btn_h = 40.0;
+
+        // Shot type name for STRIKE button
+        let shot_name = match shot_type as u32 {
+            1 => "POWER",
+            2 => "CURVE",
+            3 => "SPLIT",
+            _ => "NORMAL",
+        };
+        let strike_label = format!("{}", shot_name);
 
         shapes::fill_rect(fb, 0.0, btn_y, btn_w, btn_h, Color { r: 60, g: 40, b: 20, a: 255 });
         shapes::draw_rect(fb, 0.0, btn_y, btn_w, btn_h, COL_UI_HIGHLIGHT);
-        text::draw_text_centered(fb, (btn_w / 2.0) as i32, (btn_y + 14.0) as i32, "STRIKE", COL_UI_HIGHLIGHT, 1);
+        text::draw_text_centered(fb, (btn_w / 2.0) as i32, (btn_y + 14.0) as i32, &strike_label, COL_UI_HIGHLIGHT, 1);
 
         shapes::fill_rect(fb, btn_w, btn_y, btn_w, btn_h, Color { r: 20, g: 40, b: 60, a: 255 });
         shapes::draw_rect(fb, btn_w, btn_y, btn_w, btn_h, COL_UI_TEXT);
         let catch_text = format!("CATCH({})", orb_count);
         text::draw_text_centered(fb, (btn_w * 1.5) as i32, (btn_y + 14.0) as i32, &catch_text, COL_UI_TEXT, 1);
 
-        shapes::fill_rect(fb, btn_w * 2.0, btn_y, btn_w, btn_h, Color { r: 40, g: 20, b: 20, a: 255 });
+        shapes::fill_rect(fb, btn_w * 2.0, btn_y, btn_w, btn_h, Color { r: 20, g: 50, b: 40, a: 255 });
         shapes::draw_rect(fb, btn_w * 2.0, btn_y, btn_w, btn_h, COL_UI_TEXT);
-        text::draw_text_centered(fb, (btn_w * 2.5) as i32, (btn_y + 14.0) as i32, "RUN", COL_UI_TEXT, 1);
+        text::draw_text_centered(fb, (btn_w * 2.5) as i32, (btn_y + 14.0) as i32, "SWITCH", COL_UI_TEXT, 1);
+
+        shapes::fill_rect(fb, btn_w * 3.0, btn_y, btn_w, btn_h, Color { r: 40, g: 20, b: 20, a: 255 });
+        shapes::draw_rect(fb, btn_w * 3.0, btn_y, btn_w, btn_h, COL_UI_TEXT);
+        text::draw_text_centered(fb, (btn_w * 3.5) as i32, (btn_y + 14.0) as i32, "RUN", COL_UI_TEXT, 1);
+
+        // Item row (second row, only show if items available)
+        let item_row_y = btn_y + btn_h + 2.0;
+        let item_btn_w = WIDTH / 2.0;
+        let item_btn_h = 30.0;
+        if potion_count > 0 || revive_count > 0 {
+            if potion_count > 0 {
+                shapes::fill_rect(fb, 0.0, item_row_y, item_btn_w, item_btn_h, Color { r: 30, g: 50, b: 30, a: 255 });
+                shapes::draw_rect(fb, 0.0, item_row_y, item_btn_w, item_btn_h, COL_HP_BAR);
+                let pot_text = format!("POTION({})", potion_count);
+                text::draw_text_centered(fb, (item_btn_w / 2.0) as i32, (item_row_y + 8.0) as i32, &pot_text, COL_HP_BAR, 1);
+            }
+            if revive_count > 0 {
+                shapes::fill_rect(fb, item_btn_w, item_row_y, item_btn_w, item_btn_h, Color { r: 50, g: 40, b: 20, a: 255 });
+                shapes::draw_rect(fb, item_btn_w, item_row_y, item_btn_w, item_btn_h, Color { r: 255, g: 200, b: 100, a: 255 });
+                let rev_text = format!("REVIVE({})", revive_count);
+                text::draw_text_centered(fb, (item_btn_w * 1.5) as i32, (item_row_y + 8.0) as i32, &rev_text, Color { r: 255, g: 200, b: 100, a: 255 }, 1);
+            }
+        }
     }
 
     // Battle intro
@@ -3250,6 +3806,7 @@ fn render_battle(engine: &mut Engine) {
             4 => ("Can't run from Guardian!", Color { r: 255, g: 100, b: 100, a: alpha }),
             5 => ("CRITICAL! Super effective!", Color { r: 255, g: 160, b: 40, a: alpha }),
             6 => ("Critical hit!", Color { r: 255, g: 255, b: 200, a: alpha }),
+            7 => ("Learned new move!", Color { r: 100, g: 200, b: 255, a: alpha }),
             _ => ("", COL_UI_TEXT),
         };
         if !msg_text.is_empty() {
@@ -3415,6 +3972,46 @@ fn render_monster_sprite(fb: &mut crate::rendering::framebuffer::Framebuffer, cx
     shapes::fill_circle(fb, cx + r * 0.25, eye_y - eye_r * 0.3, eye_r * 0.3, COL_WHITE);
     // Mouth
     shapes::draw_line(fb, cx - r * 0.15, cy + r * 0.25, cx + r * 0.15, cy + r * 0.25, sp.accent_color);
+}
+
+fn render_starter_choice(engine: &mut Engine) {
+    let time = engine.time;
+    let fb = &mut engine.framebuffer;
+
+    // Background gradient
+    for y in 0..HEIGHT as i32 {
+        let ratio = y as f64 / HEIGHT;
+        let r = (15.0 + ratio * 25.0) as u8;
+        let g = (10.0 + ratio * 15.0) as u8;
+        let b = (35.0 + ratio * 45.0) as u8;
+        shapes::fill_rect(fb, 0.0, y as f64, WIDTH, 1.0, Color { r, g, b, a: 255 });
+    }
+
+    text::draw_text_centered(fb, 240, 80, "Choose Your Starter!", COL_UI_HIGHLIGHT, 3);
+    text::draw_text_centered(fb, 240, 130, "Tap to select your first creature", COL_UI_TEXT, 1);
+
+    let starters: [(u8, &str); 3] = [(0, "Leaf"), (2, "Fire"), (4, "Water")];
+    let col_w = WIDTH / 3.0;
+
+    for (i, &(species_id, elem_name)) in starters.iter().enumerate() {
+        let sp = get_species(species_id);
+        let cx = col_w * i as f64 + col_w / 2.0;
+        let cy = 350.0;
+        let bob = (time * 2.0 + i as f64 * 1.5).sin() * 6.0;
+
+        // Card background
+        shapes::fill_rect(fb, cx - 60.0, 250.0, 120.0, 250.0, Color { r: 25, g: 20, b: 40, a: 230 });
+        shapes::draw_rect(fb, cx - 60.0, 250.0, 120.0, 250.0, sp.element.color());
+
+        render_monster_sprite(fb, cx, cy + bob, &sp, false);
+        text::draw_text_centered(fb, cx as i32, 430, sp.name, COL_UI_TEXT, 2);
+        text::draw_text_centered(fb, cx as i32, 460, elem_name, sp.element.color(), 1);
+    }
+
+    let blink = (time * 3.0).sin() > 0.0;
+    if blink {
+        text::draw_text_centered(fb, 240, 550, "Tap a creature to begin!", COL_UI_HIGHLIGHT, 1);
+    }
 }
 
 fn render_dialogue(engine: &mut Engine) {

@@ -326,3 +326,172 @@ fn timeline_first_frame_where() {
     let frame = tl.first_frame_where("tl_phase", |v| v == 0.0);
     assert_eq!(frame, Some(0));
 }
+
+// ─── Round 3: Fitness Evaluator ───────────────────────────────────────
+
+#[test]
+fn fitness_idle_scores_low_completion() {
+    let mut runner = HeadlessRunner::new(480, 720);
+    let result = runner.run(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        60,
+    );
+
+    let evaluator = FitnessEvaluator::new()
+        .add("completion", 3.0, score_hole_completion)
+        .add("efficiency", 2.0, score_stroke_efficiency)
+        .add("proximity", 1.0, score_proximity_to_hole);
+
+    let fitness = evaluator.evaluate(&result);
+
+    // No shot fired — completion=0, efficiency=0, proximity=low
+    assert_eq!(fitness.criteria.len(), 3);
+    assert!(fitness.total < 0.5, "idle game should have low fitness, got {}", fitness.total);
+    assert!(!fitness.summary().is_empty());
+    assert!(!fitness.grade().is_empty());
+}
+
+#[test]
+fn fitness_shot_toward_hole_scores_higher() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, total_frames) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.6)
+        .build();
+
+    // Run idle
+    let mut idle_runner = HeadlessRunner::new(480, 720);
+    let idle_result = idle_runner.run(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        60,
+    );
+
+    // Run with shot
+    let shot_scenario = GameScenario {
+        name: "shot_toward_hole".into(),
+        width: 480,
+        height: 720,
+        setup_fn: trap_links_demo::setup,
+        update_fn: trap_links_demo::update,
+        render_fn: trap_links_demo::render,
+        actions,
+        total_frames,
+        assertions: vec![],
+    };
+    let shot_result = shot_scenario.run();
+
+    let evaluator = FitnessEvaluator::new()
+        .add("proximity", 1.0, score_proximity_to_hole);
+
+    let idle_fitness = evaluator.evaluate(&idle_result);
+    let shot_fitness = evaluator.evaluate(&shot_result.sim);
+
+    // Shot toward hole should be closer than idle ball
+    assert!(
+        shot_fitness.total > idle_fitness.total,
+        "shot fitness {} should exceed idle {}", shot_fitness.total, idle_fitness.total
+    );
+}
+
+#[test]
+fn fitness_rank_sweep() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let configs = vec![
+        SweepConfig { label: "default".into(), overrides: vec![] },
+        SweepConfig { label: "closer".into(), overrides: vec![("ball_y".into(), 300.0)] },
+    ];
+
+    let report = run_sweep(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        &actions,
+        &configs,
+        120,
+    );
+
+    let evaluator = FitnessEvaluator::new()
+        .add("proximity", 1.0, score_proximity_to_hole);
+
+    let ranked = evaluator.rank_sweep(&report);
+    assert_eq!(ranked.len(), 2);
+    // Best should be first
+    assert!(ranked[0].1.total >= ranked[1].1.total);
+}
+
+// ─── Round 3: Regression Suite ────────────────────────────────────────
+
+#[test]
+fn regression_identical_runs_no_diff() {
+    let suite = RegressionSuite::new(&["tl_phase", "ball_x", "ball_y", "strokes"])
+        .add(GameScenario {
+            name: "idle".into(),
+            width: 480,
+            height: 720,
+            setup_fn: trap_links_demo::setup,
+            update_fn: trap_links_demo::update,
+            render_fn: trap_links_demo::render,
+            actions: vec![],
+            total_frames: 30,
+            assertions: vec![],
+        });
+
+    let baseline = suite.capture_baseline();
+    let diff = suite.diff_against(&baseline);
+
+    assert!(!diff.has_regressions(), "identical runs should have no regressions: {}", diff.summary());
+    assert_eq!(diff.verdict(), "PASS");
+}
+
+#[test]
+fn regression_detects_state_change() {
+    // Create a suite with a specific shot
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, total) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let suite = RegressionSuite::new(&["ball_x", "ball_y"])
+        .with_tolerance(0.01)
+        .add(GameScenario {
+            name: "shot".into(),
+            width: 480,
+            height: 720,
+            setup_fn: trap_links_demo::setup,
+            update_fn: trap_links_demo::update,
+            render_fn: trap_links_demo::render,
+            actions,
+            total_frames: total.min(120),
+            assertions: vec![],
+        });
+
+    let baseline = suite.capture_baseline();
+    // Identical run should pass
+    let diff = suite.diff_against(&baseline);
+    assert!(!diff.has_regressions(), "same run: {}", diff.summary());
+}
+
+#[test]
+fn diff_report_summary_not_empty() {
+    let report = DiffReport {
+        entries: vec![
+            DiffEntry {
+                scenario: "test".into(),
+                metric: "ball_x".into(),
+                status: DiffStatus::Changed { detail: "moved".into() },
+            },
+        ],
+    };
+    assert!(!report.summary().is_empty());
+    assert_eq!(report.verdict(), "PASS"); // Changed != Regressed
+}

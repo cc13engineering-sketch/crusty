@@ -20,6 +20,8 @@ mod shot_builder;
 mod fb_hash;
 mod sweep;
 mod timeline;
+mod fitness;
+mod regression;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult};
@@ -27,6 +29,11 @@ pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;
 pub use sweep::{run_sweep, SweepConfig, SweepResult, SweepReport};
 pub use timeline::{record_timeline, record_timeline_with_actions, StateTimeline};
+pub use fitness::{
+    FitnessEvaluator, FitnessResult, CriterionResult,
+    score_hole_completion, score_stroke_efficiency, score_proximity_to_hole,
+};
+pub use regression::{RegressionSuite, RegressionBaseline, DiffReport, DiffEntry, DiffStatus};
 
 #[cfg(test)]
 mod tests;

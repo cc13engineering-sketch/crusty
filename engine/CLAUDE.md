@@ -41,7 +41,7 @@ Before starting proposals, spawn agents with different technical backgrounds to:
 4. **Cross-pollinate** — review agents select best ideas across all competitors
 5. **Integrate** — winning features implemented with tests
 6. **Demo** — build/update demo games showcasing new features
-7. **Changelog publish** — update CHANGELOG.md, publish changelog page to GitHub Pages
+7. **Changelog publish** — MANDATORY after every round: update CHANGELOG.md AND site/changelog/index.html, commit, push, and deploy
 
 ## Demo Game Building Process
 

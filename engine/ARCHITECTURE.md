@@ -1,13 +1,59 @@
 # Architecture
 
 ## Overview
-2D physics game engine purpose-built for the S-League minigolf RPG. Rust → WASM → shared memory framebuffer → JS canvas. Games are defined as Rust modules, not spec files.
+2D physics game engine purpose-built for the S-League monster collection RPG. Rust → WASM → shared memory framebuffer → JS canvas. Games are defined as Rust modules, not spec files.
+
+## Executive Intent
+Crusty is evolving into a:
+- General-purpose game engine core
+- Optimized for deterministic simulation
+- Designed for AI-assisted iterative development
+- With future parallelism in mind
+
+## Guiding Principles (Invariants)
+- Deterministic simulation by default
+- No hidden global mutable state
+- Hot paths avoid heap allocation
+- Engine should not become a god object
+- ECS boundaries must remain clean
+- Systems written to be parallelizable later
+- AI observability must not pollute runtime hot paths
+
+## Layer Structure
+```
+engine-core
+  ├─ ecs           (Entity, World, ComponentStore)
+  ├─ systems       (21 system modules, ordered execution)
+  ├─ components    (32 component types)
+  ├─ rendering     (framebuffer, shapes, text, particles, post-fx)
+  ├─ physics       (math, CCD, spatial grid)
+  └─ platform      (input, events, sound, diagnostics)
+
+engine-runtime (WASM/native glue — lib.rs thread-local)
+engine-tools   (headless testing, AI instrumentation)
+```
+
+## Threading Stance
+- Currently **single-threaded**
+- All systems must be **parallel-safe in design** (no hidden shared state)
+- Rendering assumed **main-thread only**
+- No thread-local global state in engine-core (thread-local ENGINE is runtime shim only)
+- The `ENGINE` thread-local in `lib.rs` is a WASM runtime shim, not core engine state
 
 ## Data Flow
 ```
 Input (JS → WASM) → Systems → Framebuffer (WASM memory → JS ImageData → Canvas)
 Sound commands queued in Rust → drained as JSON by JS
 Diagnostics/metrics → drained as JSON by JS
+```
+
+## Frame Lifecycle
+```
+1. Input arrives via WASM bindings (key_down, mouse_move, etc.)
+2. tick(dt) called from JS requestAnimationFrame
+3. Systems execute in phase order (see below)
+4. Framebuffer pixels ready for JS to blit
+5. Sound/diagnostic queues ready for JS to drain
 ```
 
 ## System Execution Order (per tick)
@@ -33,6 +79,26 @@ RenderingPrep:
   → screen_fx → transition_overlay → post_fx
   → events.clear → input.end_frame → frame_metrics
 ```
+
+## Determinism Guarantees
+- Fixed-timestep physics at 60Hz
+- Deterministic entity ID assignment (monotonic u64)
+- No wall-clock dependencies in simulation
+- Headless runner produces identical results for same inputs
+- RNG via deterministic pseudo_random(seed) functions
+
+## ECS Invariants
+- Entity(0) is reserved, never assigned
+- IDs are monotonically increasing, never recycled
+- Despawn atomically removes from all component stores
+- World::clear() resets ID counter to 1
+- Component stores are independent HashMaps (no archetype coupling)
+
+## Ownership Model
+- Engine owns World, all subsystems, and rendering state
+- Systems borrow World mutably during their phase
+- No shared ownership between systems
+- Thread-local ENGINE wrapper is runtime-only (not part of core)
 
 ## Components (32)
 Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime,
@@ -78,3 +144,14 @@ Colors: `use crate::rendering::color::Color;`
 2. Add structured comment: READS, WRITES, ORDER
 3. Add `pub mod my_system;` to `systems/mod.rs`
 4. Add call in `engine.rs` `tick()` at the correct position
+
+## Explicit "Not Yet" List
+These are premature for the current stage:
+- Full renderer abstraction layer
+- Archetype ECS rewrite
+- Job system / thread pool
+- Plugin architecture
+- Diff-based snapshots
+- Fully typed event bus
+- Editor tooling
+- Network sync layer

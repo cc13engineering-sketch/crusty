@@ -1,9 +1,9 @@
 use super::*;
-use crate::trap_links_demo;
+use crate::sleague;
 
 // All headless tests use S-League as the test game, but the headless
 // infrastructure itself is game-agnostic. The game-specific parts
-// (dispatch_action, scoring functions) live in trap_links_demo.
+// (dispatch_action, scoring functions) live in sleague.
 
 // ─── HeadlessRunner basics ──────────────────────────────────────────────
 
@@ -11,9 +11,9 @@ use crate::trap_links_demo;
 fn headless_runner_runs_frames() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         60,
     );
     assert_eq!(result.frames_run, 60);
@@ -24,9 +24,9 @@ fn headless_runner_runs_frames() {
 fn headless_runner_game_state_populated() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         1,
     );
     // After setup, ball position should be set
@@ -39,9 +39,9 @@ fn headless_runner_game_state_populated() {
 fn headless_runner_framebuffer_hash_nonzero() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         1,
     );
     assert_ne!(result.framebuffer_hash, 0, "hash should be non-zero after rendering");
@@ -52,9 +52,9 @@ fn headless_runner_deterministic() {
     let run = || {
         let mut runner = HeadlessRunner::new(480, 720);
         runner.run(
-            trap_links_demo::setup_fight_only,
-            trap_links_demo::update,
-            trap_links_demo::render,
+            sleague::setup_fight_only,
+            sleague::update,
+            sleague::render,
             30,
         )
     };
@@ -75,10 +75,10 @@ fn scenario_no_input_stays_in_aiming_phase() {
         name: "idle".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup_fight_only,
-        update_fn: trap_links_demo::update,
-        render_fn: trap_links_demo::render,
-        action_dispatch: trap_links_demo::dispatch_action,
+        setup_fn: sleague::setup_fight_only,
+        update_fn: sleague::update,
+        render_fn: sleague::render,
+        action_dispatch: sleague::dispatch_action,
         actions: vec![],
         total_frames: 60,
         assertions: vec![
@@ -108,10 +108,10 @@ fn scenario_shoot_increments_strokes() {
         name: "shoot_once".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup_fight_only,
-        update_fn: trap_links_demo::update,
-        render_fn: trap_links_demo::render,
-        action_dispatch: trap_links_demo::dispatch_action,
+        setup_fn: sleague::setup_fight_only,
+        update_fn: sleague::update,
+        render_fn: sleague::render,
+        action_dispatch: sleague::dispatch_action,
         actions: vec![
             ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
             ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
@@ -165,10 +165,10 @@ fn shot_builder_shoot_upward_moves_ball() {
         name: "shoot_upward".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup_fight_only,
-        update_fn: trap_links_demo::update,
-        render_fn: trap_links_demo::render,
-        action_dispatch: trap_links_demo::dispatch_action,
+        setup_fn: sleague::setup_fight_only,
+        update_fn: sleague::update,
+        render_fn: sleague::render,
+        action_dispatch: sleague::dispatch_action,
         actions,
         total_frames,
         assertions: vec![
@@ -209,10 +209,10 @@ fn sweep_runs_multiple_configs() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
-        trap_links_demo::dispatch_action,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
         &actions,
         &configs,
         120,
@@ -242,10 +242,10 @@ fn sweep_min_max_by_state() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
-        trap_links_demo::dispatch_action,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
         &actions,
         &configs,
         120,
@@ -263,9 +263,9 @@ fn sweep_min_max_by_state() {
 #[test]
 fn timeline_records_ball_position() {
     let tl = record_timeline(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         30,
         &["ball_x", "ball_y", "tl_phase"],
     );
@@ -287,10 +287,10 @@ fn timeline_with_shot_shows_movement() {
         .build();
 
     let tl = record_timeline_with_actions(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
-        trap_links_demo::dispatch_action,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
         &actions,
         total.min(120),
         &["ball_y", "ball_vy", "tl_phase"],
@@ -307,9 +307,9 @@ fn timeline_with_shot_shows_movement() {
 #[test]
 fn timeline_stats_work() {
     let tl = record_timeline(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         30,
         &["ball_x", "ball_y"],
     );
@@ -325,9 +325,9 @@ fn timeline_stats_work() {
 #[test]
 fn timeline_first_frame_where() {
     let tl = record_timeline(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         10,
         &["tl_phase"],
     );
@@ -343,17 +343,17 @@ fn timeline_first_frame_where() {
 fn fitness_idle_scores_low_completion() {
     let mut runner = HeadlessRunner::new(480, 720);
     let result = runner.run(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         60,
     );
 
-    // Game-specific scoring functions live in trap_links_demo
+    // Game-specific scoring functions live in sleague
     let evaluator = FitnessEvaluator::new()
-        .add("completion", 3.0, trap_links_demo::score_hole_completion)
-        .add("efficiency", 2.0, trap_links_demo::score_stroke_efficiency)
-        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
+        .add("completion", 3.0, sleague::score_hole_completion)
+        .add("efficiency", 2.0, sleague::score_stroke_efficiency)
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
 
     let fitness = evaluator.evaluate(&result);
 
@@ -375,9 +375,9 @@ fn fitness_shot_toward_hole_scores_higher() {
     // Run idle
     let mut idle_runner = HeadlessRunner::new(480, 720);
     let idle_result = idle_runner.run(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
         60,
     );
 
@@ -386,10 +386,10 @@ fn fitness_shot_toward_hole_scores_higher() {
         name: "shot_toward_hole".into(),
         width: 480,
         height: 720,
-        setup_fn: trap_links_demo::setup_fight_only,
-        update_fn: trap_links_demo::update,
-        render_fn: trap_links_demo::render,
-        action_dispatch: trap_links_demo::dispatch_action,
+        setup_fn: sleague::setup_fight_only,
+        update_fn: sleague::update,
+        render_fn: sleague::render,
+        action_dispatch: sleague::dispatch_action,
         actions,
         total_frames,
         assertions: vec![],
@@ -397,7 +397,7 @@ fn fitness_shot_toward_hole_scores_higher() {
     let shot_result = shot_scenario.run();
 
     let evaluator = FitnessEvaluator::new()
-        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
 
     let idle_fitness = evaluator.evaluate(&idle_result);
     let shot_fitness = evaluator.evaluate(&shot_result.sim);
@@ -423,17 +423,17 @@ fn fitness_rank_sweep() {
     ];
 
     let report = run_sweep(
-        trap_links_demo::setup_fight_only,
-        trap_links_demo::update,
-        trap_links_demo::render,
-        trap_links_demo::dispatch_action,
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
         &actions,
         &configs,
         120,
     );
 
     let evaluator = FitnessEvaluator::new()
-        .add("proximity", 1.0, trap_links_demo::score_proximity_to_hole);
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
 
     let ranked = evaluator.rank_sweep(&report);
     assert_eq!(ranked.len(), 2);
@@ -450,10 +450,10 @@ fn regression_identical_runs_no_diff() {
             name: "idle".into(),
             width: 480,
             height: 720,
-            setup_fn: trap_links_demo::setup_fight_only,
-            update_fn: trap_links_demo::update,
-            render_fn: trap_links_demo::render,
-            action_dispatch: trap_links_demo::dispatch_action,
+            setup_fn: sleague::setup_fight_only,
+            update_fn: sleague::update,
+            render_fn: sleague::render,
+            action_dispatch: sleague::dispatch_action,
             actions: vec![],
             total_frames: 30,
             assertions: vec![],
@@ -481,10 +481,10 @@ fn regression_detects_state_change() {
             name: "shot".into(),
             width: 480,
             height: 720,
-            setup_fn: trap_links_demo::setup_fight_only,
-            update_fn: trap_links_demo::update,
-            render_fn: trap_links_demo::render,
-            action_dispatch: trap_links_demo::dispatch_action,
+            setup_fn: sleague::setup_fight_only,
+            update_fn: sleague::update,
+            render_fn: sleague::render,
+            action_dispatch: sleague::dispatch_action,
             actions,
             total_frames: total.min(120),
             assertions: vec![],

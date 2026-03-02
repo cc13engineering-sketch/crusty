@@ -9,8 +9,8 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 **Theme: Game-agnostic decoupling**
 
 ### Breaking Changes (Game-Specific Code Removed from headless/)
-- **`scenario.rs`**: Removed hardcoded `trap_links_demo` import and `dispatch_action_pub`. `GameScenario` now requires an `action_dispatch: fn(&mut Engine, &ScheduledAction)` field — each game supplies its own input handler.
-- **`fitness.rs`**: Removed `score_hole_completion`, `score_stroke_efficiency`, `score_proximity_to_hole` from public API. Moved to `trap_links_demo` where they belong. Replaced with generic helpers: `score_distance()`, `score_state_match()`, `score_ratio()`.
+- **`scenario.rs`**: Removed hardcoded `sleague` import and `dispatch_action_pub`. `GameScenario` now requires an `action_dispatch: fn(&mut Engine, &ScheduledAction)` field — each game supplies its own input handler.
+- **`fitness.rs`**: Removed `score_hole_completion`, `score_stroke_efficiency`, `score_proximity_to_hole` from public API. Moved to `sleague` where they belong. Replaced with generic helpers: `score_distance()`, `score_state_match()`, `score_ratio()`.
 - **`sweep.rs`**: `run_sweep()` now takes an `action_dispatch` parameter. `summary()` no longer hardcodes `tl_phase`/`strokes` — shows overrides and framebuffer hash. Added `summary_with_keys()` for callers who want specific state keys displayed.
 - **`regression.rs`**: Removed hardcoded `classify_delta` that knew about "strokes" and "dist_to_hole". `RegressionSuite` now accepts a pluggable classifier via `with_classifier()`. Provides `classify_any_change` (default, marks all deltas as Changed) and `classify_lower_is_better` (generic "lower is better" for any key list).
 - **`timeline.rs`**: `record_timeline_with_actions()` now takes an `action_dispatch` parameter.
@@ -132,7 +132,7 @@ The headless testing infrastructure is now fully game-agnostic. Any game built o
 - **Old demos**: game-1, game-2, game-3, innovations-1 removed from site
 - **Stale docs**: PLAN.md, REVIEW.md, PROCESS.md, IMPLEMENTATION_PLAN.md, SPEC_*.md, SPORELINGS.md
 
-### Added — S-League Demo (`trap_links_demo.rs`)
+### Added — S-League Demo (`sleague.rs`)
 - Single minigolf hole: slingshot aim, shoot ball, sink in hole
 - TileMap course with L-shaped wall, sand traps, border walls
 - Physics: sub-stepping (4 per frame), wall collision reflection, drag, restitution
@@ -521,5 +521,5 @@ color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite,
 SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField, Headless
 
 ### Test Count: 1042+ (12 headless tests, scripting tests removed)
-### Game: S-League minigolf RPG demo (trap_links_demo.rs)
+### Game: S-League minigolf RPG demo (sleague.rs)
 ### Headless: Native `cargo test` simulation, CLI simulate, visual regression hashing

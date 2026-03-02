@@ -40,7 +40,7 @@ pub mod level_curve;
 pub mod ui_canvas;
 pub mod aim_preview;
 pub mod frame_metrics;
-pub mod trap_links_demo;
+pub mod sleague;
 pub mod headless;
 
 #[cfg(test)]
@@ -209,37 +209,37 @@ pub fn cancel_timer(name: String) {
 /// Initialize the S-League minigolf RPG demo.
 #[wasm_bindgen]
 pub fn sleague_init() {
-    with_engine(|eng| trap_links_demo::setup(eng));
+    with_engine(|eng| sleague::setup(eng));
 }
 
 /// Handle pointer down for S-League (aiming).
 #[wasm_bindgen]
 pub fn sleague_pointer_down(x: f64, y: f64) {
-    with_engine(|eng| trap_links_demo::on_pointer_down(eng, x, y));
+    with_engine(|eng| sleague::on_pointer_down(eng, x, y));
 }
 
 /// Handle pointer move for S-League (aiming).
 #[wasm_bindgen]
 pub fn sleague_pointer_move(x: f64, y: f64) {
-    with_engine(|eng| trap_links_demo::on_pointer_move(eng, x, y));
+    with_engine(|eng| sleague::on_pointer_move(eng, x, y));
 }
 
 /// Handle pointer up for S-League (shoot).
 #[wasm_bindgen]
 pub fn sleague_pointer_up(x: f64, y: f64) {
-    with_engine(|eng| trap_links_demo::on_pointer_up(eng, x, y));
+    with_engine(|eng| sleague::on_pointer_up(eng, x, y));
 }
 
 /// Run one frame of S-League game logic.
 #[wasm_bindgen]
 pub fn sleague_update(dt_ms: f64) {
-    with_engine(|eng| trap_links_demo::update(eng, dt_ms / 1000.0));
+    with_engine(|eng| sleague::update(eng, dt_ms / 1000.0));
 }
 
 /// Custom render pass for S-League.
 #[wasm_bindgen]
 pub fn sleague_render() {
-    with_engine(|eng| trap_links_demo::render(eng));
+    with_engine(|eng| sleague::render(eng));
 }
 
 // ─── Diagnostics WASM API ────────────────────────────────────────────

@@ -17,7 +17,7 @@
 ## File Conventions
 - Adding a component: create file in components/, add to components/mod.rs, add store to world.rs, add to World::new/despawn/clear, add SchemaInfo impl.
 - Adding a system: create file in systems/, add to systems/mod.rs, add call in engine.rs tick().
-- Games are defined as Rust modules (like `trap_links_demo.rs` or `mycelia.rs`), never as spec files.
+- Games are defined as Rust modules (like `sleague.rs`), never as spec files.
 
 ## Development Methodology
 

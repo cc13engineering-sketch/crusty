@@ -112,6 +112,12 @@ impl GameScenario {
     }
 }
 
+/// Dispatch a scheduled action to the S-League game demo.
+/// Public so that other headless modules (sweep, etc.) can reuse it.
+pub fn dispatch_action_pub(engine: &mut Engine, action: &ScheduledAction) {
+    dispatch_action(engine, action);
+}
+
 fn dispatch_action(engine: &mut Engine, action: &ScheduledAction) {
     use crate::trap_links_demo;
     match action {

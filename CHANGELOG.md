@@ -69,33 +69,53 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
-## Demo Game: Mycelia: Ascent
+## Engine Refactor — S-League Focus
 
-**Branch**: `claude/review-game-engine-CaUoa`
+**Major cleanup: removed scripting, old demos, mycelia; added headless testing**
 
-### Game Module (`mycelia.rs`)
-- **Procedural cave generation**: Cellular automata with carved starting chamber and surface opening
-- **Tap-to-grow mechanics**: Tap empty tiles near existing nodes to expand mycelial network
-- **Rising blight**: Time-pressure mechanic that accelerates as depth increases
-- **Energy system**: Nodes produce energy during pulse surge phases (EnvironmentClock)
-- **Nutrient collection**: Fading tile pickups that boost energy
-- **Win/lose conditions**: Reach surface to win, lose all nodes to blight to lose
-- **Custom render pipeline**: Tilemap → connections → nodes → blight overlay → particles → HUD
-- **Mobile-first**: Portrait 480x720, tap-only input, unified touch/mouse handling
-- **12 unit tests** covering setup, tap mechanics, energy, blight, and rendering
+### Removed
+- **Scripting system**: `.world` file parser (pest grammar), loader, world_lint — games are now Rust crates only
+- **Mycelia game module**: Replaced by S-League demo
+- **Old demos**: game-1, game-2, game-3, innovations-1 removed from site
+- **Stale docs**: PLAN.md, REVIEW.md, PROCESS.md, IMPLEMENTATION_PLAN.md, SPEC_*.md, SPORELINGS.md
 
-### WASM Bindings (5 new exports)
+### Added — S-League Demo (`trap_links_demo.rs`)
+- Single minigolf hole: slingshot aim, shoot ball, sink in hole
+- TileMap course with L-shaped wall, sand traps, border walls
+- Physics: sub-stepping (4 per frame), wall collision reflection, drag, restitution
+- AimPreview trajectory dots, power bar, HUD with stroke/par display
+- Mobile-first 480x720 portrait with new site/s-league/ web deployment
+
+### Added — Portability Infrastructure
+- **SystemPhase enum**: Documents canonical tick execution order (Input → Simulation → Physics → PostPhysics → RenderingPrep)
+- **FrameMetrics**: Lightweight per-frame telemetry (frame_time_ms, physics_time_ms, entity_count)
+- **ENGINE_BOUNDARIES.md**: Documents no-dependency boundary (no windowing, graphics APIs, filesystem, audio)
+- **RENDERER_FUTURE.md**: Software framebuffer today, WebGPU/wgpu migration path for later
+
+### WASM Bindings (6 new S-League exports)
 | Function | Description |
 |----------|-------------|
-| `mycelia_init(seed)` | Initialize game with random seed |
-| `mycelia_update(dt_ms)` | Update game logic |
-| `mycelia_tap(x, y)` | Handle tap input, returns restart flag |
-| `mycelia_render()` | Custom render pipeline |
-| `mycelia_get_state()` | JSON state for debugging |
+| `sleague_init()` | Initialize S-League demo |
+| `sleague_pointer_down/move/up(x, y)` | Aiming input |
+| `sleague_update(dt_ms)` | Game logic tick |
+| `sleague_render()` | Custom render pass |
+| `get_frame_metrics()` | Performance telemetry JSON |
 
-### Web Files (`innovations-1/`)
-- `index.html`: Mobile-optimized with viewport meta, touch-action: none
-- `game.js`: WASM loader, input handling, game loop, framebuffer rendering
+---
+
+## Innovation Games: Headless Testing — Round 1
+
+**Theme: Headless engine testing for AI feedback loops**
+
+### New Module: `headless/` (6 files, 12 tests)
+- **HeadlessRunner**: Wraps `Engine` for native `cargo test` simulation — no browser required
+- **GameScenario**: Declarative test cases with scheduled input injection (PointerDown/Move/Up at specific frames) and post-run assertions (StateEquals, StateInRange, FramebufferHash)
+- **ShotBuilder**: High-level API for constructing minigolf shots by angle (degrees) and power (0.0-1.0), abstracts slingshot drag math
+- **framebuffer_hash**: FNV-1a hash of pixel buffer for deterministic visual regression detection
+- **CLI `simulate` command**: `engine-cli simulate [frames] --json` outputs machine-readable game state
+
+### Value
+Claude Code can now write tests that run the full game loop natively, inject shots, assert on game state, and detect visual regressions — all via `cargo test`. The CLI command enables shell-level simulation with structured JSON output.
 
 ---
 
@@ -411,9 +431,9 @@ lifecycle, hierarchy, signal, state_machine, coroutine, behavior, tween, flash, 
 ### Rendering Modules: 12
 color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx, (HUD in renderer)
 
-### Engine Modules: 20
-SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField
+### Engine Modules: 21
+SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField, Headless
 
-### Test Count: 864 (including 22 E2E integration tests + 83 Round 6 tests + 64 Round 7 tests + 12 Mycelia tests)
-### Demo Games: 5 (bouncing balls, walker, space survival, minigolf RPG concept, Mycelia: Ascent)
-### `.world` Grammar: PEG parser supporting entities, components, templates, timers, behavior rules, state initialization
+### Test Count: 1042+ (12 headless tests, scripting tests removed)
+### Game: S-League minigolf RPG demo (trap_links_demo.rs)
+### Headless: Native `cargo test` simulation, CLI simulate, visual regression hashing

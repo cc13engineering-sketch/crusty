@@ -15,14 +15,16 @@
 /// ```
 
 mod runner;
-mod scenario;
+pub mod scenario;
 mod shot_builder;
 mod fb_hash;
+mod sweep;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult};
 pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;
+pub use sweep::{run_sweep, SweepConfig, SweepResult, SweepReport};
 
 #[cfg(test)]
 mod tests;

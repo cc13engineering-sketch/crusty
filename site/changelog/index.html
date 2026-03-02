@@ -49,12 +49,51 @@
     <div class="stats">
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
-        <span><span class="num">31</span> Engine Modules</span>
-        <span><span class="num">1094</span> Tests</span>
-        <span><span class="num">5</span> Demos</span>
+        <span><span class="num">21</span> Engine Modules</span>
+        <span><span class="num">1042+</span> Tests</span>
+        <span><span class="num">S-League</span> Demo</span>
     </div>
 
-    <h2>Round 11 — Physics &amp; Core Engine Improvements <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 1 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: AI-Driven Feedback Loops</h3>
+    <ul>
+        <li><strong>HeadlessRunner</strong> — wraps Engine for native <code>cargo test</code> simulation, no browser required</li>
+        <li><strong>GameScenario</strong> — declarative test cases with scheduled input injection (PointerDown/Move/Up at specific frames) and post-run assertions (StateEquals, StateInRange, FramebufferHash)</li>
+        <li><strong>ShotBuilder</strong> — constructs minigolf shots by angle (degrees) and power (0.0–1.0), abstracting slingshot drag math</li>
+        <li><strong>framebuffer_hash</strong> — FNV-1a hash of pixel buffer for deterministic visual regression detection</li>
+        <li><strong>CLI simulate</strong> — <code>engine-cli simulate [frames] --json</code> for machine-readable JSON output</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">6 new files, 12 new tests. Claude Code can now run the full game loop natively and iterate via cargo test.</p>
+
+    <h2>Engine Refactor — S-League Focus <span class="badge badge-new">NEW</span></h2>
+    <h3>Removed</h3>
+    <ul>
+        <li><strong>Scripting system</strong> — .world parser, loader, world_lint removed (games are Rust crates only)</li>
+        <li><strong>Mycelia game</strong> — replaced by S-League demo</li>
+        <li><strong>Old demos</strong> — game-1/2/3, innovations-1 removed from site</li>
+        <li><strong>Stale docs</strong> — PLAN.md, REVIEW.md, PROCESS.md, SPEC_*.md pruned</li>
+    </ul>
+    <h3>Added — S-League Demo</h3>
+    <ul>
+        <li><strong>Minigolf fight scene</strong> — slingshot aim, shoot ball, sink in hole</li>
+        <li><strong>TileMap course</strong> — L-shaped wall, sand traps, border walls</li>
+        <li><strong>Physics</strong> — sub-stepping (4/frame), wall reflection, drag, restitution</li>
+        <li><strong>AimPreview</strong> — trajectory ghost dots, power bar, stroke/par HUD</li>
+        <li>Mobile-first 480×720 portrait</li>
+    </ul>
+    <h3>Portability Infrastructure</h3>
+    <ul>
+        <li><strong>SystemPhase</strong> — canonical tick execution order enum</li>
+        <li><strong>FrameMetrics</strong> — per-frame telemetry (frame_time, physics_time, entity_count)</li>
+        <li><strong>ENGINE_BOUNDARIES.md</strong> — no-dependency boundary documentation</li>
+        <li><strong>RENDERER_FUTURE.md</strong> — software framebuffer → WebGPU migration path</li>
+    </ul>
+    <div class="how-to-run">
+        <h3>Play S-League</h3>
+        <p>Visit <a href="../s-league/">S-League Demo</a> — drag to aim, release to shoot. Works on mobile and desktop.</p>
+    </div>
+
+    <h2>Round 11 — Physics &amp; Core Engine Improvements</h2>
     <h3>Engine Upgrades (4)</h3>
     <ul>
         <li><strong>Restitution Override</strong> — <code>PhysicsMaterial.restitution_override</code> wired into CCD collision response, max() combination enables bumper amplification (&gt;1.0 restitution)</li>
@@ -100,24 +139,9 @@
         <li><strong>AutoJuice</strong> — declarative game-feel pipeline mapping triggers (collision, spawn, despawn, bus events) to effects (particles, shake, flash, sound, freeze frames)</li>
         <li><strong>UiCanvas</strong> — anchor-based UI widget system with data-bound labels, bars, buttons, and framebuffer hit-testing</li>
         <li><strong>DiagnosticBus</strong> — structured runtime error reporting with NaN detection, out-of-bounds checks, entity count thresholds, and JSON export</li>
-        <li><strong>WorldLint</strong> — static analysis for .world files with Levenshtein-based "did you mean?" suggestions (W001, E002, W003, E005, H006)</li>
+        <li><strong>WorldLint</strong> — <em>(removed in S-League refactor)</em> static analysis for .world files</li>
     </ul>
     <p style="color:#888; font-size:0.85rem;">90 new tests across 6 modules (864 → 954 total)</p>
-
-    <h2>Demo Game: Mycelia: Ascent</h2>
-    <ul>
-        <li><strong>Procedural cave generation</strong> via cellular automata</li>
-        <li><strong>Tap-to-grow mechanics</strong> — expand mycelial network through caves</li>
-        <li><strong>Rising blight</strong> — time-pressure mechanic that accelerates</li>
-        <li><strong>Energy system</strong> — nodes produce energy during pulse surge phases</li>
-        <li><strong>Win/lose conditions</strong> — reach surface to win, lose all nodes to lose</li>
-        <li><strong>Mobile-first</strong> — portrait 480x720, tap-only, unified touch/mouse</li>
-        <li>12 unit tests</li>
-    </ul>
-    <div class="how-to-run">
-        <h3>How to Play</h3>
-        <p>Visit <a href="../innovations-1/">Mycelia: Ascent</a> — works on mobile and desktop. Tap empty cave tiles adjacent to your network to grow upward. Reach the surface before the blight consumes you.</p>
-    </div>
 
     <h2>Round 7 — Ecosystem Infrastructure</h2>
     <h3>New Components (3)</h3>
@@ -207,7 +231,7 @@
         <li><strong>Particles</strong> — burst/continuous emitters with gravity and fade</li>
         <li><strong>HUD</strong> — score, lives, wave display</li>
         <li><strong>Post-FX</strong> — vignette, scanlines, screen shake</li>
-        <li><strong>.world DSL</strong> — PEG grammar for declarative world definition</li>
+        <li><strong>.world DSL</strong> — <em>(removed in S-League refactor)</em> PEG grammar for declarative world definition</li>
     </ul>
 
     <h2>Foundation</h2>
@@ -220,18 +244,16 @@
     </ul>
 
     <div class="how-to-run">
-        <h3>How to Run Demos</h3>
-        <ul>
-            <li><a href="../game-1/">Bouncing Balls</a> — click to freeze/unfreeze balls (desktop)</li>
-            <li><a href="../game-2/">Walker</a> — arrow keys to move (desktop)</li>
-            <li><a href="../game-3/">Space Survival</a> — arrows + space to shoot (desktop)</li>
-            <li><a href="../innovations-1/">Mycelia: Ascent</a> — tap to grow (mobile + desktop)</li>
-        </ul>
+        <h3>Play S-League</h3>
+        <p><a href="../s-league/">S-League Demo</a> — drag to aim, release to shoot. Mobile + desktop.</p>
         <h3>Build from Source</h3>
         <pre>cd engine
 wasm-pack build --target web --release crates/engine-core --out-dir ../../../_pkg
 # Copy _pkg/*.js and *.wasm to site/pkg/
 # Open site/index.html in a local server</pre>
+        <h3>Run Headless Simulation</h3>
+        <pre>cd engine
+cargo run -p engine-cli -- simulate 300 --json</pre>
     </div>
 </body>
 </html>

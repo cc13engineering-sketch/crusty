@@ -119,6 +119,19 @@ Claude Code can now write tests that run the full game loop natively, inject sho
 
 ---
 
+## Innovation Games: Headless Testing — Round 2
+
+**Theme: Game simulation for rapid prototyping**
+
+### New Headless Features (2 files, 6 new tests → 18 total)
+- **Parameter Sweep** (`sweep.rs`): Run the same scenario with different GameState overrides. `SweepConfig` specifies label + overrides, `SweepReport` provides `min_by_state()`, `max_by_state()`, and `summary()` for AI-readable results. Enables systematic physics tuning (sweep drag from 1.0 to 4.0, find which value allows par).
+- **State Timeline** (`timeline.rs`): Per-frame recording of game state keys across a simulation. `record_timeline()` and `record_timeline_with_actions()` produce a `StateTimeline` with `series()`, `stats()` (min/max/mean), and `first_frame_where()` queries. Enables trajectory analysis, velocity profiling, and phase transition detection.
+
+### Value
+Claude Code can now sweep physics parameters in batch and analyze ball trajectories frame-by-frame — turning game balance from "guess, run, check, repeat" into "search, analyze, decide."
+
+---
+
 ## Foundation (Pre-Innovation Games)
 
 **Commits**: `first` through `Add GitHub Pages deployment`

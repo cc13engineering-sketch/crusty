@@ -54,7 +54,15 @@
         <span><span class="num">S-League</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 1 <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 2 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: Game Simulation for Rapid Prototyping</h3>
+    <ul>
+        <li><strong>Parameter Sweep</strong> — run scenarios with different GameState overrides, <code>min_by_state()</code> / <code>max_by_state()</code> for batch physics tuning</li>
+        <li><strong>State Timeline</strong> — per-frame recording of game state keys with <code>series()</code>, <code>stats()</code> (min/max/mean), <code>first_frame_where()</code> queries for trajectory analysis</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">2 new files, 6 new tests (18 total headless). Enables batch parameter search and frame-by-frame ball trajectory analysis.</p>
+
+    <h2>Headless Testing — Innovation Round 1</h2>
     <h3>Theme: AI-Driven Feedback Loops</h3>
     <ul>
         <li><strong>HeadlessRunner</strong> — wraps Engine for native <code>cargo test</code> simulation, no browser required</li>

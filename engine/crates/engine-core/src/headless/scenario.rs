@@ -17,6 +17,15 @@ impl ScheduledAction {
             Self::PointerUp { frame, .. } => *frame,
         }
     }
+
+    /// Get the (x, y) coordinates of this action.
+    pub fn coords(&self) -> (f64, f64) {
+        match self {
+            Self::PointerDown { x, y, .. } => (*x, *y),
+            Self::PointerMove { x, y, .. } => (*x, *y),
+            Self::PointerUp { x, y, .. } => (*x, *y),
+        }
+    }
 }
 
 /// An assertion to check after simulation completes.

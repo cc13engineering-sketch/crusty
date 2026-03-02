@@ -34,6 +34,12 @@ pub struct AnomalyDetector {
     bounds: Option<(f64, f64)>,
 }
 
+impl Default for AnomalyDetector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AnomalyDetector {
     /// Create a detector with default settings.
     pub fn new() -> Self {

@@ -23,7 +23,7 @@ pub struct Experiment {
 }
 
 /// Result of running an experiment.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExperimentResult {
     pub name: String,
     /// The sweep report with all simulation results.

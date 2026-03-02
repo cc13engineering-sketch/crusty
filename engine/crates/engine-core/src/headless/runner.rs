@@ -18,6 +18,15 @@ pub struct SimResult {
     pub elapsed_sim_time: f64,
 }
 
+impl SimResult {
+    /// Convenience accessor for a numeric game state value.
+    ///
+    /// Shorthand for `self.game_state.get(key).and_then(|v| v.as_f64())`.
+    pub fn get_f64(&self, key: &str) -> Option<f64> {
+        self.game_state.get(key).and_then(|v| v.as_f64())
+    }
+}
+
 /// Headless simulation wrapper around Engine.
 ///
 /// Runs the full game loop (setup → tick → game_update → render) without

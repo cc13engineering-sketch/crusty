@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine — Architecture</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        a { color: #f0e060; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1 { font-size: 2rem; color: #f0e060; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 40px; }
+        h2 { color: #f0e060; margin-top: 40px; margin-bottom: 12px; font-size: 1.4rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
+        h3 { color: #c0c0e0; margin-top: 20px; margin-bottom: 8px; font-size: 1.1rem; }
+        p { margin-bottom: 12px; color: #b0b0b0; }
+        ul { padding-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 4px; color: #b0b0b0; }
+        li strong { color: #e0e0e0; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; color: #f0e060; }
+        pre { background: #1a1a28; padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 0.85rem; color: #c0c0e0; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a28; }
+        th { color: #f0e060; font-size: 0.85rem; text-transform: uppercase; }
+        td { color: #b0b0b0; font-size: 0.9rem; }
+        td code { font-size: 0.85em; }
+        .back { margin-bottom: 20px; display: inline-block; }
+        .diagram { background: #0a0a18; border: 1px solid #2a2a3a; border-radius: 8px; padding: 20px; margin: 16px 0; overflow-x: auto; }
+        .diagram pre { background: transparent; padding: 0; margin: 0; color: #a0a0d0; }
+        .stats { background: #1a1a28; border-radius: 8px; padding: 16px 20px; margin: 20px 0; }
+        .stats span { display: inline-block; margin-right: 24px; }
+        .stats .num { color: #f0e060; font-weight: bold; }
+        .layer { background: #1a1a28; border-left: 3px solid #f0e060; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+        .layer h3 { margin-top: 0; color: #f0e060; }
+    </style>
+</head>
+<body>
+    <a class="back" href="./">&larr; Back to Docs</a>
+    <h1>Headless Testing Architecture</h1>
+    <p class="subtitle">15-module infrastructure for AI-driven game testing and optimization. All via <code>cargo test</code>.</p>
+
+    <div class="stats">
+        <span><span class="num">18</span> Modules</span>
+        <span><span class="num">5</span> Layers</span>
+        <span><span class="num">1116</span> Tests</span>
+        <span><span class="num">0</span> Browser Dependencies</span>
+    </div>
+
+    <h2>Module Dependency Graph</h2>
+
+    <div class="diagram">
+<pre>                          ┌──────────────┐
+                          │  action_gen  │ Generates input sequences
+                          └──────┬───────┘
+                                 │
+     ┌────────────┐        ┌─────▼──────┐
+     │ ShotBuilder │───────►│  Scheduled │
+     └────────────┘        │  Action    │
+                           └─────┬──────┘
+                                 │
+┌────────────┐             ┌─────▼──────┐        ┌────────────┐
+│  Assertion  │────────────►│   Game     │───────►│  Headless  │
+└────────────┘             │  Scenario  │        │  Runner    │
+                           └─────┬──────┘        └─────┬──────┘
+                                 │                      │
+                           ┌─────▼──────┐        ┌─────▼──────┐
+                           │  Scenario  │        │  SimResult │
+                           │  Result    │        │  + fb_hash │
+                           └─────┬──────┘        └─────┬──────┘
+                                 │                      │
+          ┌──────────────────────┼──────────────────────┤
+          │                      │                      │
+    ┌─────▼──────┐        ┌─────▼──────┐        ┌─────▼──────┐
+    │  Fitness   │        │  Regression │        │  Timeline  │
+    │  Evaluator │        │  Suite      │        │            │
+    └─────┬──────┘        └─────┬──────┘        └────────────┘
+          │                      │
+    ┌─────▼──────────────────────▼──────┐
+    │           Experiment              │
+    └─────┬─────────────────────────────┘
+          │
+    ┌─────▼──────┐
+    │ Hill Climber│  Iterative parameter optimization
+    └────────────┘
+
+┌────────────┐     ┌────────────┐     ┌────────────┐
+│   Replay   │────►│  Compare   │     │  Anomaly   │
+│  Recording │     │  Replays   │     │  Detector  │
+└─────┬──────┘     └────────────┘     └────────────┘
+      │
+┌─────▼──────┐     ┌────────────┐     ┌────────────┐
+│  Strategy  │     │  Test      │     │  Golden    │
+│  Playbook  │     │  Harness   │     │  Test      │
+└────────────┘     └────────────┘     └────────────┘</pre>
+    </div>
+
+    <h2>Layer Architecture</h2>
+
+    <div class="layer">
+        <h3>Core Layer</h3>
+        <p><strong>HeadlessRunner</strong> &mdash; Creates an <code>Engine</code> with a viewport (480&times;720), runs the game loop for N frames, returns a <code>SimResult</code>. Game-agnostic: takes function pointers for setup/update/render.</p>
+        <p><strong>SimResult</strong> &mdash; Universal output: <code>frames_run</code>, <code>game_state</code> (HashMap), <code>framebuffer_hash</code> (FNV-1a), <code>elapsed_sim_time</code>. New: <code>get_f64()</code> convenience accessor.</p>
+        <p><strong>ScheduledAction</strong> &mdash; Timed input events: <code>PointerDown</code>, <code>PointerMove</code>, <code>PointerUp</code> at specific frames.</p>
+        <p><strong>GameScenario / ScenarioBuilder</strong> &mdash; Declarative tests with assertions. Builder reduces boilerplate for multiple scenarios.</p>
+        <p><strong>ShotBuilder</strong> &mdash; High-level slingshot input builder. Angle + power &rarr; drag vector.</p>
+    </div>
+
+    <div class="layer">
+        <h3>Analysis Layer</h3>
+        <p><strong>Parameter Sweep</strong> &mdash; <code>run_sweep()</code> runs the same scenario with different state overrides. <code>SweepReport</code> supports <code>min_by_state()</code>, <code>max_by_state()</code>, and summaries.</p>
+        <p><strong>State Timeline</strong> &mdash; <code>record_timeline()</code> captures specific keys at every frame. Query with <code>series()</code>, <code>stats()</code>, <code>first_frame_where()</code>.</p>
+        <p><strong>Fitness Evaluator</strong> &mdash; Composable weighted scoring. Each criterion maps SimResult &rarr; [0, 1]. Produces letter grades (A+ through F) and can rank sweeps.</p>
+        <p><strong>Regression Suite</strong> &mdash; Capture baselines, diff future runs. Pluggable classifiers for domain-aware improvement/regression detection.</p>
+    </div>
+
+    <div class="layer">
+        <h3>Snapshot &amp; Replay Layer</h3>
+        <p><strong>Snapshots</strong> &mdash; <code>run_with_snapshots()</code> captures full game state at specific frames. Best for debugging specific moments.</p>
+        <p><strong>Replay</strong> &mdash; <code>record_replay()</code> captures tracked keys at every frame. Lightweight. Supports <code>series()</code>, <code>get()</code>, <code>first_frame_where()</code>.</p>
+        <p><strong>Comparison</strong> &mdash; <code>compare_replays()</code> produces per-key <code>max_delta</code>, <code>mean_delta</code>, <code>first_divergence</code>, and visual divergence detection.</p>
+        <p><strong>Anomaly Detection</strong> &mdash; <code>AnomalyDetector</code> scans for spikes (sudden jumps), plateaus (stuck values), and out-of-bounds values.</p>
+    </div>
+
+    <div class="layer">
+        <h3>Optimization Layer</h3>
+        <p><strong>Experiment</strong> &mdash; Combines sweep + fitness + optional regression into <code>Experiment::new().with_*().run()</code>. Returns rankings, verdicts, summaries.</p>
+        <p><strong>Hill Climber</strong> &mdash; Coordinate-descent optimizer. Given <code>ParamRange</code> definitions, tries &plusmn;step for each parameter. Shrinks step when stuck. Returns best params and convergence history.</p>
+        <p><strong>Action Generator</strong> &mdash; Programmatic input: <code>grid_shots()</code> for systematic exploration, <code>random_shots()</code> for PRNG-based coverage, <code>tap_sequence()</code> for UI testing, <code>drag()</code> for gestures.</p>
+    </div>
+
+    <div class="layer">
+        <h3>Orchestration Layer</h3>
+        <p><strong>Strategy</strong> &mdash; Multi-step playbooks: chain Record &rarr; Compare &rarr; DetectAnomalies &rarr; AssertState steps. Each step operates on named replays.</p>
+        <p><strong>Test Harness</strong> &mdash; Battery testing: multiple scenarios with optional fitness. Produces <code>HarnessReport</code> with pass/fail counts and average fitness.</p>
+        <p><strong>Golden Test</strong> &mdash; Reference replay comparison. Record golden when correct, diff future runs. The headless equivalent of visual regression testing.</p>
+    </div>
+
+    <h2>Data Flow: A Typical AI Iteration</h2>
+
+    <pre>1. Claude reads game code, identifies physics parameters
+2. Creates SweepConfig[] with parameter variations
+3. Runs Experiment with fitness evaluator
+4. Inspects ExperimentResult.rankings &mdash; finds best config
+5. Uses HillClimber to fine-tune the best parameters
+6. Records golden replay of improved behavior
+7. Modifies game code with optimized values
+8. Runs GoldenTest to verify no regressions
+9. Runs TestHarness for comprehensive quality check
+10. Commits with structured test evidence</pre>
+
+    <h2>Game Integration</h2>
+
+    <p>Every headless module is game-agnostic. Games integrate by providing 4 function pointers:</p>
+
+    <pre>fn setup(engine: &amp;mut Engine)                              // Initialize state
+fn update(engine: &amp;mut Engine, dt: f64)                     // Game logic per frame
+fn render(engine: &amp;mut Engine)                              // Draw to framebuffer
+fn action_dispatch(engine: &amp;mut Engine, action: &amp;ScheduledAction)  // Route inputs</pre>
+
+    <p>The S-League demo provides: <code>sleague::setup_fight_only</code>, <code>sleague::update</code>, <code>sleague::render</code>, <code>sleague::dispatch_action</code>.</p>
+
+    <h2>File Inventory</h2>
+
+    <table>
+        <thead>
+            <tr><th>File</th><th>Module</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+            <tr><td><code>runner.rs</code></td><td>Core</td><td>HeadlessRunner, SimResult</td></tr>
+            <tr><td><code>scenario.rs</code></td><td>Core</td><td>GameScenario, Assertion, ScenarioBuilder</td></tr>
+            <tr><td><code>shot_builder.rs</code></td><td>Core</td><td>ShotBuilder</td></tr>
+            <tr><td><code>fb_hash.rs</code></td><td>Core</td><td>FNV-1a framebuffer hashing</td></tr>
+            <tr><td><code>sweep.rs</code></td><td>Analysis</td><td>Parameter sweep</td></tr>
+            <tr><td><code>timeline.rs</code></td><td>Analysis</td><td>Per-frame state recording</td></tr>
+            <tr><td><code>fitness.rs</code></td><td>Analysis</td><td>Weighted scoring, ranking</td></tr>
+            <tr><td><code>regression.rs</code></td><td>Analysis</td><td>Baseline diff, classifiers</td></tr>
+            <tr><td><code>snapshot.rs</code></td><td>Snapshot</td><td>Mid-simulation state capture</td></tr>
+            <tr><td><code>replay.rs</code></td><td>Replay</td><td>Full per-frame recording</td></tr>
+            <tr><td><code>compare.rs</code></td><td>Replay</td><td>Side-by-side diff</td></tr>
+            <tr><td><code>anomaly.rs</code></td><td>Replay</td><td>Spike/plateau/OOB detection</td></tr>
+            <tr><td><code>experiment.rs</code></td><td>Optimization</td><td>Sweep + fitness + regression</td></tr>
+            <tr><td><code>hill_climb.rs</code></td><td>Optimization</td><td>Coordinate descent optimizer</td></tr>
+            <tr><td><code>action_gen.rs</code></td><td>Optimization</td><td>Input sequence generation</td></tr>
+            <tr><td><code>strategy.rs</code></td><td>Orchestration</td><td>Multi-step playbooks</td></tr>
+            <tr><td><code>harness.rs</code></td><td>Orchestration</td><td>Battery testing</td></tr>
+            <tr><td><code>golden.rs</code></td><td>Orchestration</td><td>Reference replay comparison</td></tr>
+            <tr><td><code>tests.rs</code></td><td>Testing</td><td>1116 tests covering all modules</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>

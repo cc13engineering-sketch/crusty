@@ -41,6 +41,11 @@ impl Replay {
         self.frames.len()
     }
 
+    /// True if the replay contains no frames.
+    pub fn is_empty(&self) -> bool {
+        self.frames.is_empty()
+    }
+
     /// Get the value of a state key at a specific frame.
     pub fn get(&self, frame: usize, key: &str) -> Option<f64> {
         self.frames.get(frame)?.state.get(key).copied()

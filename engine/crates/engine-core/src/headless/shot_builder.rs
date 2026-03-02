@@ -16,6 +16,12 @@ pub struct ShotBuilder {
     settle_frames: u64,
 }
 
+impl Default for ShotBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ShotBuilder {
     pub fn new() -> Self {
         Self {

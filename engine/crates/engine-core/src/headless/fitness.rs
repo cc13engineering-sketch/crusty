@@ -53,6 +53,12 @@ pub struct FitnessEvaluator {
     criteria: Vec<FitnessCriterion>,
 }
 
+impl Default for FitnessEvaluator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl FitnessEvaluator {
     pub fn new() -> Self {
         Self { criteria: Vec::new() }

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine — Getting Started</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        a { color: #f0e060; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1 { font-size: 2rem; color: #f0e060; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 40px; }
+        h2 { color: #f0e060; margin-top: 40px; margin-bottom: 12px; font-size: 1.4rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
+        h3 { color: #c0c0e0; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        p { margin-bottom: 12px; color: #b0b0b0; }
+        ul, ol { padding-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 6px; color: #b0b0b0; }
+        li strong { color: #e0e0e0; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; color: #f0e060; }
+        pre { background: #1a1a28; padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 0.82rem; color: #c0c0e0; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a28; }
+        th { color: #f0e060; font-size: 0.85rem; text-transform: uppercase; }
+        td { color: #b0b0b0; font-size: 0.9rem; }
+        td code { font-size: 0.85em; }
+        .back { margin-bottom: 20px; display: inline-block; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 40px 0; }
+        .tip { background: #0a1a0a; border: 1px solid #1a3a1a; border-radius: 8px; padding: 16px 20px; margin: 20px 0; }
+        .tip h3 { color: #60f060; margin-top: 0; }
+    </style>
+</head>
+<body>
+    <a class="back" href="./">&larr; Back to Docs</a>
+    <h1>Getting Started</h1>
+    <p class="subtitle">From zero to AI-driven game analysis in minutes. Quick-start guide for the headless testing infrastructure.</p>
+
+    <h2>Prerequisites</h2>
+
+    <pre>cd engine
+cargo test  # Verify everything compiles and 1116 tests pass</pre>
+
+    <p>Headless modules live in <code>engine/crates/engine-core/src/headless/</code>. Tests are in <code>headless/tests.rs</code>.</p>
+
+    <h2>Your First Headless Test</h2>
+
+    <p>The simplest test: run the game idle for 60 frames and check initialization.</p>
+
+    <pre>use crate::headless::*;
+use crate::sleague;
+
+#[test]
+fn game_initializes_correctly() {
+    let result = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .run(
+        "init check",
+        vec![],  // no input
+        60,      // 1 second at 60fps
+        vec![
+            Assertion::StateEquals {
+                key: "stroke_count".into(),
+                expected: 0.0,
+                tolerance: 0.1,
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}</pre>
+
+    <div class="tip">
+        <h3>Key Concept</h3>
+        <p>Every headless test provides 4 function pointers: <code>setup</code>, <code>update</code>, <code>render</code>, <code>action_dispatch</code>. The infrastructure is completely game-agnostic &mdash; swap these pointers to test any game.</p>
+    </div>
+
+    <h2>Simulating Player Input</h2>
+
+    <p>Use <code>ShotBuilder</code> for slingshot-style drag-and-release:</p>
+
+    <pre>#[test]
+fn shot_moves_ball() {
+    let (actions, frames) = ShotBuilder::new()
+        .aim_and_shoot(240.0, 500.0, 270.0, 0.8) // aim up, 80% power
+        .build();
+
+    let result = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .run("shot moves ball", actions, frames, vec![
+        Assertion::StateGreaterThan {
+            key: "stroke_count".into(),
+            threshold: 0.0,
+        },
+    ]);
+
+    assert!(result.all_passed());
+}</pre>
+
+    <p>Angle convention: 0=right, 90=down, 180=left, 270=up. The slingshot drag is computed as the opposite direction.</p>
+
+    <h2>Recording Trajectories</h2>
+
+    <pre>#[test]
+fn ball_trajectory_analysis() {
+    let (actions, frames) = ShotBuilder::new()
+        .aim_and_shoot(240.0, 500.0, 270.0, 0.8)
+        .build();
+
+    let timeline = record_timeline_with_actions(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &amp;actions, frames,
+        &amp;["ball_x", "ball_y"],
+    );
+
+    let (min_y, max_y, _mean) = timeline.stats("ball_y").unwrap();
+    assert!(min_y &lt; max_y, "Ball should move vertically");
+
+    let peak = timeline.first_frame_where("ball_y", |y| y &lt; 300.0);
+    // Ball reached y &lt; 300 at frame: {:?}
+}</pre>
+
+    <h2>Detecting Physics Anomalies</h2>
+
+    <pre>#[test]
+fn no_physics_anomalies() {
+    let (actions, frames) = ShotBuilder::new()
+        .aim_and_shoot(240.0, 500.0, 270.0, 1.0)
+        .build();
+
+    let replay = record_replay(
+        "physics_check",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &amp;actions, frames,
+        &amp;["ball_x", "ball_y"],
+    );
+
+    let anomalies = AnomalyDetector::new()
+        .with_spike_threshold(50.0)  // flag jumps &gt; 50px
+        .with_bounds(0.0, 720.0)     // ball should stay on screen
+        .scan(&amp;replay, &amp;["ball_x", "ball_y"]);
+
+    let spikes: Vec&lt;_&gt; = anomalies.iter()
+        .filter(|a| a.kind == AnomalyKind::Spike)
+        .collect();
+    assert!(spikes.is_empty(), "Physics spikes detected");</pre>
+
+    <h2>Parameter Optimization</h2>
+
+    <pre>#[test]
+fn optimize_drag() {
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(240.0, 500.0, 270.0, 0.8)
+        .build();
+
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        |sim| {
+            let dist = sim.get_f64("dist_to_hole").unwrap_or(999.0);
+            (1.0 - dist / 500.0).max(0.0)
+        },
+    )
+        .with_actions(actions)
+        .with_frames(300)
+        .with_param(ParamRange::new("drag", 0.5, 5.0, 0.5))
+        .with_max_iterations(10)
+        .run();
+
+    assert!(result.best.fitness &gt; 0.0);
+}</pre>
+
+    <h2>Quality Gate</h2>
+
+    <pre>#[test]
+fn quality_gate() {
+    let report = TestHarness::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .add("idle_stable", vec![], 60, vec![
+        Assertion::StateEquals {
+            key: "stroke_count".into(),
+            expected: 0.0,
+            tolerance: 0.1,
+        },
+    ])
+    .add("shot_registers", {
+        let (a, _) = ShotBuilder::new()
+            .aim_and_shoot(240.0, 500.0, 270.0, 0.8).build();
+        a
+    }, 300, vec![
+        Assertion::StateGreaterThan {
+            key: "stroke_count".into(),
+            threshold: 0.0,
+        },
+    ])
+    .run();
+
+    assert!(report.all_passed());
+}</pre>
+
+    <hr>
+
+    <h2>Module Cheat Sheet</h2>
+
+    <table>
+        <thead><tr><th>Task</th><th>Module</th><th>One-liner</th></tr></thead>
+        <tbody>
+            <tr><td>Run N frames</td><td><code>HeadlessRunner</code></td><td><code>runner.run(s, u, r, 60)</code></td></tr>
+            <tr><td>Declarative test</td><td><code>GameScenario</code></td><td><code>scenario.run()</code></td></tr>
+            <tr><td>Multiple tests</td><td><code>ScenarioBuilder</code></td><td><code>builder.run(name, acts, 120, asserts)</code></td></tr>
+            <tr><td>Slingshot input</td><td><code>ShotBuilder</code></td><td><code>ShotBuilder::new().aim_and_shoot(...)</code></td></tr>
+            <tr><td>Parameter sweep</td><td><code>run_sweep</code></td><td><code>run_sweep(s, u, r, d, &amp;a, &amp;cfgs, 120)</code></td></tr>
+            <tr><td>Trajectory data</td><td><code>StateTimeline</code></td><td><code>record_timeline(s, u, r, 120, &amp;keys)</code></td></tr>
+            <tr><td>Quality scoring</td><td><code>FitnessEvaluator</code></td><td><code>evaluator.evaluate(&amp;sim)</code></td></tr>
+            <tr><td>Regression check</td><td><code>RegressionSuite</code></td><td><code>suite.diff_against(&amp;baselines)</code></td></tr>
+            <tr><td>Snapshot frames</td><td><code>run_with_snapshots</code></td><td><code>run_with_snapshots(s,u,r,d,&amp;a,120,&amp;[30])</code></td></tr>
+            <tr><td>Full replay</td><td><code>record_replay</code></td><td><code>record_replay(n,s,u,r,d,&amp;a,120,&amp;keys)</code></td></tr>
+            <tr><td>Compare replays</td><td><code>compare_replays</code></td><td><code>compare_replays(&amp;a, &amp;b, &amp;keys, 0.01)</code></td></tr>
+            <tr><td>Anomaly scan</td><td><code>AnomalyDetector</code></td><td><code>detector.scan(&amp;replay, &amp;keys)</code></td></tr>
+            <tr><td>Sweep + fitness</td><td><code>Experiment</code></td><td><code>experiment.run()</code></td></tr>
+            <tr><td>Hill climbing</td><td><code>HillClimber</code></td><td><code>climber.run()</code></td></tr>
+            <tr><td>Generate shots</td><td><code>action_gen</code></td><td><code>grid_shots(...)</code>, <code>random_shots(...)</code></td></tr>
+            <tr><td>Multi-step flow</td><td><code>Strategy</code></td><td><code>strategy.record().compare().run()</code></td></tr>
+            <tr><td>Battery test</td><td><code>TestHarness</code></td><td><code>harness.add(...).run()</code></td></tr>
+            <tr><td>Golden file</td><td><code>GoldenTest</code></td><td><code>test.record_golden() / compare_against()</code></td></tr>
+        </tbody>
+    </table>
+</body>
+</html>

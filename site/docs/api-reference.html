@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine — API Reference</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        a { color: #f0e060; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1 { font-size: 2rem; color: #f0e060; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 40px; }
+        h2 { color: #f0e060; margin-top: 40px; margin-bottom: 12px; font-size: 1.4rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
+        h3 { color: #c0c0e0; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        p { margin-bottom: 12px; color: #b0b0b0; }
+        ul, ol { padding-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 4px; color: #b0b0b0; }
+        li strong, li code { color: #e0e0e0; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; color: #f0e060; }
+        pre { background: #1a1a28; padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 0.82rem; color: #c0c0e0; line-height: 1.5; }
+        pre .kw { color: #c586c0; }
+        pre .fn { color: #dcdcaa; }
+        pre .str { color: #ce9178; }
+        pre .cmt { color: #6a9955; }
+        pre .num { color: #b5cea8; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a28; }
+        th { color: #f0e060; font-size: 0.85rem; text-transform: uppercase; }
+        td { color: #b0b0b0; font-size: 0.9rem; }
+        .back { margin-bottom: 20px; display: inline-block; }
+        .sig { background: #0a0a18; border: 1px solid #2a2a3a; border-radius: 6px; padding: 12px 16px; margin: 8px 0; font-family: monospace; font-size: 0.85rem; color: #c0c0e0; overflow-x: auto; }
+        .method { margin-left: 16px; margin-bottom: 8px; }
+        .method code { background: transparent; padding: 0; color: #dcdcaa; }
+        .method .ret { color: #4ec9b0; }
+        .method .desc { color: #888; font-size: 0.85rem; margin-left: 8px; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <a class="back" href="./">&larr; Back to Docs</a>
+    <h1>API Reference</h1>
+    <p class="subtitle">Complete API for all 18 headless testing modules. Every type, function, and method.</p>
+
+    <!-- TOC -->
+    <h2>Contents</h2>
+    <ul>
+        <li><a href="#core">Core Layer</a> &mdash; HeadlessRunner, SimResult, ScheduledAction, GameScenario, ScenarioBuilder, ShotBuilder</li>
+        <li><a href="#analysis">Analysis Layer</a> &mdash; run_sweep, StateTimeline, FitnessEvaluator, RegressionSuite</li>
+        <li><a href="#replay">Snapshot &amp; Replay Layer</a> &mdash; run_with_snapshots, Replay, compare_replays, AnomalyDetector</li>
+        <li><a href="#optimization">Optimization Layer</a> &mdash; Experiment, HillClimber, action_gen</li>
+        <li><a href="#orchestration">Orchestration Layer</a> &mdash; Strategy, TestHarness, GoldenTest</li>
+    </ul>
+
+    <hr>
+
+    <h2 id="core">Core Layer</h2>
+
+    <h3>HeadlessRunner</h3>
+    <p>The foundation. Wraps an <code>Engine</code> instance and drives the game loop without a browser.</p>
+    <pre>let mut runner = HeadlessRunner::new(480, 720);
+let result = runner.run(setup_fn, update_fn, render_fn, 120);
+
+// With per-frame callback (receives frame number and dt)
+let result = runner.run_with_frame_cb(
+    |engine| { /* setup */ },
+    |engine, frame, dt| { /* per-frame logic */ },
+    120,
+);</pre>
+    <p class="method"><code>new(width: u32, height: u32)</code> <span class="ret">&rarr; Self</span></p>
+    <p class="method"><code>run(setup, update, render, frames)</code> <span class="ret">&rarr; SimResult</span></p>
+    <p class="method"><code>run_with_frame_cb(setup, per_frame, frames)</code> <span class="ret">&rarr; SimResult</span></p>
+
+    <h3>SimResult</h3>
+    <p>Universal output of every simulation run.</p>
+    <pre>pub struct SimResult {
+    pub frames_run: u64,
+    pub final_metrics: FrameMetrics,
+    pub game_state: HashMap&lt;String, StateValue&gt;,
+    pub framebuffer_hash: u64,        // FNV-1a hash
+    pub elapsed_sim_time: f64,
+}</pre>
+    <p class="method"><code>get_f64(key: &amp;str)</code> <span class="ret">&rarr; Option&lt;f64&gt;</span> <span class="desc">Convenience accessor for numeric state values</span></p>
+
+    <h3>ScheduledAction</h3>
+    <pre>pub enum ScheduledAction {
+    PointerDown { frame: u64, x: f64, y: f64 },
+    PointerMove { frame: u64, x: f64, y: f64 },
+    PointerUp   { frame: u64, x: f64, y: f64 },
+}</pre>
+    <p class="method"><code>frame()</code> <span class="ret">&rarr; u64</span> <span class="desc">Get the frame number</span></p>
+    <p class="method"><code>coords()</code> <span class="ret">&rarr; (f64, f64)</span> <span class="desc">Get the (x, y) coordinates</span></p>
+
+    <h3>GameScenario</h3>
+    <p>Declarative test: setup + actions + frame count + assertions = structured result.</p>
+    <pre>let scenario = GameScenario {
+    name: "my test".into(),
+    width: 480, height: 720,
+    setup_fn, update_fn, render_fn, action_dispatch,
+    actions: vec![...],
+    total_frames: 120,
+    assertions: vec![
+        Assertion::StateEquals { key: "score".into(), expected: 1.0, tolerance: 0.1 },
+    ],
+};
+let result = scenario.run();
+assert!(result.all_passed(), "{}", result.failure_report());</pre>
+
+    <h3>Assertion Types</h3>
+    <table>
+        <thead><tr><th>Variant</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>StateEquals { key, expected, tolerance }</code></td><td>f64 value equals expected (&plusmn;tolerance)</td></tr>
+            <tr><td><code>StateInRange { key, min, max }</code></td><td>f64 value within [min, max]</td></tr>
+            <tr><td><code>StateGreaterThan { key, threshold }</code></td><td>f64 value &gt; threshold</td></tr>
+            <tr><td><code>StateLessThan { key, threshold }</code></td><td>f64 value &lt; threshold</td></tr>
+            <tr><td><code>FramebufferHash { expected }</code></td><td>Exact framebuffer hash match</td></tr>
+            <tr><td><code>FramebufferChanged { previous }</code></td><td>Framebuffer hash differs from previous</td></tr>
+        </tbody>
+    </table>
+
+    <h3>ScenarioBuilder</h3>
+    <pre>let builder = ScenarioBuilder::new(setup_fn, update_fn, render_fn, dispatch_fn);
+let result = builder.run("test name", actions, 120, assertions);
+let baseline = builder.run_idle("baseline", 60);</pre>
+
+    <h3>ShotBuilder</h3>
+    <p>High-level builder for slingshot-style input sequences. Angle: 0=right, 90=down, 180=left, 270=up.</p>
+    <pre>let (actions, total_frames) = ShotBuilder::new()
+    .with_drag_scale(120.0)      // pixels per power=1.0
+    .with_settle_frames(180)     // 3 seconds settle time
+    .aim_and_shoot(240.0, 500.0, 270.0, 0.8)
+    .wait(60)
+    .build();</pre>
+
+    <hr>
+
+    <h2 id="analysis">Analysis Layer</h2>
+
+    <h3>run_sweep()</h3>
+    <p>Run the same scenario with different parameter configurations.</p>
+    <pre>let configs = vec![
+    SweepConfig { label: "low".into(), overrides: vec![("drag".into(), 1.0)] },
+    SweepConfig { label: "high".into(), overrides: vec![("drag".into(), 3.0)] },
+];
+let report = run_sweep(setup_fn, update_fn, render_fn, dispatch_fn,
+    &amp;actions, &amp;configs, 120);
+
+report.min_by_state("dist_to_hole");  // best config
+report.summary_with_keys(&amp;["dist_to_hole", "ball_x"]);</pre>
+
+    <h3>StateTimeline</h3>
+    <pre>let timeline = record_timeline_with_actions(
+    setup_fn, update_fn, render_fn, dispatch_fn,
+    &amp;actions, 120, &amp;["ball_x", "ball_y"],
+);
+let x_series = timeline.series("ball_x").unwrap();
+let (min, max, mean) = timeline.stats("ball_x").unwrap();
+let frame = timeline.first_frame_where("ball_vy", |vy| vy &gt;= 0.0);</pre>
+
+    <h3>FitnessEvaluator</h3>
+    <pre>let evaluator = FitnessEvaluator::new()
+    .add("proximity", 3.0, |sim| {
+        score_distance("ball_x", "ball_y", "hole_x", "hole_y", 300.0, sim)
+    })
+    .add("completion", 2.0, |sim| {
+        score_state_match("in_hole", 1.0, 0.5, sim)
+    });
+
+let fitness = evaluator.evaluate(&amp;sim_result);
+// fitness.grade() =&gt; "A+", "A", "B", "C", "D", "F"
+// fitness.summary() =&gt; "total=0.85 | proximity=0.90(x3) completion=0.75(x2)"</pre>
+
+    <p><strong>Scoring helpers:</strong></p>
+    <ul>
+        <li><code>score_distance(x1, y1, x2, y2, max_dist, sim)</code> &mdash; 1.0 at distance 0, 0.0 at max_dist</li>
+        <li><code>score_state_match(key, target, tol, sim)</code> &mdash; 1.0 if value equals target</li>
+        <li><code>score_ratio(key, target, sim)</code> &mdash; target/actual, capped at 1.0</li>
+    </ul>
+
+    <h3>RegressionSuite</h3>
+    <pre>let suite = RegressionSuite::new(&amp;["ball_x", "stroke_count"])
+    .with_tolerance(0.5)
+    .add(scenario);
+
+let baselines = suite.capture_baseline();
+// ... make changes ...
+let diff = suite.diff_against(&amp;baselines);
+assert!(!diff.has_regressions());</pre>
+
+    <hr>
+
+    <h2 id="replay">Snapshot &amp; Replay Layer</h2>
+
+    <h3>run_with_snapshots()</h3>
+    <pre>let result = run_with_snapshots(
+    setup_fn, update_fn, render_fn, dispatch_fn,
+    &amp;actions, 120, &amp;[0, 30, 60, 90],
+);
+let snap = result.at_frame(30).unwrap();
+let ball_x = snap.get_f64("ball_x").unwrap();
+let changed = result.value_changed("ball_x", 0, 60).unwrap();</pre>
+
+    <h3>Replay &amp; record_replay()</h3>
+    <pre>let replay = record_replay("baseline",
+    setup_fn, update_fn, render_fn, dispatch_fn,
+    &amp;actions, 120, &amp;["ball_x", "ball_y"]);
+
+replay.series("ball_x");           // Vec&lt;f64&gt; all frames
+replay.get(30, "ball_x");          // Option&lt;f64&gt; at frame 30
+replay.at(30);                     // Option&lt;&amp;ReplayFrame&gt;
+replay.first_frame_where("ball_vy", |vy| vy &gt;= 0.0);
+replay.len();
+replay.is_empty();</pre>
+
+    <h3>compare_replays()</h3>
+    <pre>let cmp = compare_replays(&amp;replay_a, &amp;replay_b, &amp;["ball_x", "ball_y"], 0.01);
+cmp.is_identical(0.01);                    // all keys match?
+let diff = cmp.key_diff("ball_x").unwrap();
+// diff.max_delta, diff.max_delta_frame, diff.mean_delta, diff.first_divergence
+cmp.first_visual_divergence;               // framebuffer hash divergence</pre>
+
+    <h3>AnomalyDetector</h3>
+    <pre>let anomalies = AnomalyDetector::new()
+    .with_spike_threshold(50.0)       // max frame-to-frame delta
+    .with_plateau_min_frames(20)      // min frames for plateau
+    .with_bounds(0.0, 720.0)          // expected range
+    .scan(&amp;replay, &amp;["ball_x", "ball_y"]);
+
+// anomaly.kind: AnomalyKind::Spike | Plateau | OutOfBounds
+// anomaly.frame, anomaly.key, anomaly.detail</pre>
+
+    <hr>
+
+    <h2 id="optimization">Optimization Layer</h2>
+
+    <h3>Experiment</h3>
+    <pre>let result = Experiment::new("test", setup_fn, update_fn, render_fn, dispatch_fn)
+    .with_actions(actions)
+    .with_configs(configs)
+    .with_frames(120)
+    .with_fitness(evaluator)
+    .with_baseline(baseline, &amp;["ball_x"])
+    .run();
+
+let (label, fitness) = result.best().unwrap();
+result.regression_ok();  // no regressions?
+result.summary();</pre>
+
+    <h3>HillClimber</h3>
+    <pre>let result = HillClimber::new(setup_fn, update_fn, render_fn, dispatch_fn, fitness_fn)
+    .with_actions(actions)
+    .with_frames(120)
+    .with_param(ParamRange::new("drag", 0.5, 5.0, 0.5))
+    .with_param(ParamRange::new("restitution", 0.1, 0.9, 0.1))
+    .with_max_iterations(20)
+    .with_min_step(0.01)
+    .run();
+
+result.best.params;      // Vec&lt;(String, f64)&gt;
+result.best.fitness;     // f64
+result.improved();       // fitness improved?
+result.evaluations;      // total sims run
+result.summary();</pre>
+
+    <h3>Action Generators</h3>
+    <pre>// Systematic grid search
+let shots = action_gen::grid_shots(240.0, 500.0,
+    200.0, 340.0, 8,   // angle: min, max, steps
+    0.3, 1.0, 5);      // power: min, max, steps
+
+// Random exploration (deterministic PRNG)
+let shots = action_gen::random_shots(240.0, 500.0, 20, 42);
+
+// UI taps: (frame, x, y)
+let (actions, frames) = action_gen::tap_sequence(&amp;[(10, 240.0, 360.0)]);
+
+// Drag gesture
+let (actions, frames) = action_gen::drag(5, 100.0, 500.0, 300.0, 200.0, 15);</pre>
+
+    <hr>
+
+    <h2 id="orchestration">Orchestration Layer</h2>
+
+    <h3>Strategy</h3>
+    <pre>let result = Strategy::new("physics check", setup_fn, update_fn, render_fn, dispatch_fn)
+    .record("baseline", vec![], 120, &amp;["ball_x", "ball_y"])
+    .record("with_shot", actions, 120, &amp;["ball_x", "ball_y"])
+    .compare("baseline", "with_shot", &amp;["ball_x"], 0.01)
+    .detect_anomalies("with_shot", &amp;["ball_x", "ball_y"], 50.0, 30)
+    .assert_state("with_shot", "stroke_count", StatePredicate::GreaterThan(0.0))
+    .run();
+
+result.all_passed();
+result.failures();
+result.summary();</pre>
+
+    <p><strong>Predicates:</strong> <code>GreaterThan(f64)</code>, <code>LessThan(f64)</code>, <code>Equals(expected, tolerance)</code>, <code>InRange(min, max)</code></p>
+
+    <h3>TestHarness</h3>
+    <pre>let report = TestHarness::new(setup_fn, update_fn, render_fn, dispatch_fn)
+    .add("idle", vec![], 60, vec![...assertions...])
+    .add_with_fitness("quality", actions, 120, vec![], evaluator)
+    .run();
+
+report.all_passed();
+report.passed();           // count
+report.failed();           // count
+report.avg_fitness();      // Option&lt;f64&gt;
+report.summary();</pre>
+
+    <h3>GoldenTest</h3>
+    <pre>let test = GoldenTest::new(setup_fn, update_fn, render_fn, dispatch_fn)
+    .with_actions(actions)
+    .with_frames(120)
+    .with_keys(&amp;["ball_x", "ball_y"])
+    .with_tolerance(0.01);
+
+// Record reference
+let golden = test.record_golden("v1");
+
+// Compare against reference
+let result = test.compare_against(&amp;golden);
+assert!(result.matches, "{}", result.summary());</pre>
+
+    <hr>
+
+    <h2>Game Integration Contract</h2>
+    <p>Every module takes 4 function pointers. Games provide:</p>
+    <pre>fn setup(engine: &amp;mut Engine)                              // Initialize state
+fn update(engine: &amp;mut Engine, dt: f64)                     // Game logic
+fn render(engine: &amp;mut Engine)                              // Draw to framebuffer
+fn action_dispatch(engine: &amp;mut Engine, a: &amp;ScheduledAction) // Route inputs</pre>
+    <p>S-League provides: <code>sleague::setup_fight_only</code>, <code>sleague::update</code>, <code>sleague::render</code>, <code>sleague::dispatch_action</code></p>
+</body>
+</html>

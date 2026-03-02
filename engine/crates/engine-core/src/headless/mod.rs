@@ -5,14 +5,19 @@
 /// input sequences, run N frames, and inspect the results — all via `cargo test`
 /// or the CLI `simulate` subcommand.
 ///
-/// # Architecture
+/// # Architecture (18 modules across 5 layers)
 ///
 /// ```text
-///  ShotBuilder ─┐
-///               ├─► GameScenario ─► HeadlessRunner ─► SimResult
-///  ScheduledAction ┘                     │
-///                                  framebuffer_hash()
+/// Core:          HeadlessRunner, SimResult, GameScenario, ScenarioBuilder,
+///                ShotBuilder, ScheduledAction, framebuffer_hash
+/// Analysis:      run_sweep, StateTimeline, FitnessEvaluator, RegressionSuite
+/// Snapshot:      run_with_snapshots, Replay, compare_replays, AnomalyDetector
+/// Optimization:  Experiment, HillClimber, action_gen (grid/random/tap/drag)
+/// Orchestration: Strategy, TestHarness, GoldenTest
 /// ```
+///
+/// All modules are game-agnostic: games integrate by providing function
+/// pointers for setup, update, render, and action dispatch.
 
 mod runner;
 pub mod scenario;

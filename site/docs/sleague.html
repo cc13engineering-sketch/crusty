@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine — S-League Game</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            line-height: 1.6;
+            padding: 40px 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        a { color: #f0e060; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        h1 { font-size: 2rem; color: #f0e060; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 40px; }
+        h2 { color: #f0e060; margin-top: 40px; margin-bottom: 12px; font-size: 1.4rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 8px; }
+        h3 { color: #c0c0e0; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        p { margin-bottom: 12px; color: #b0b0b0; }
+        ul, ol { padding-left: 24px; margin-bottom: 12px; }
+        li { margin-bottom: 4px; color: #b0b0b0; }
+        li strong { color: #e0e0e0; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; color: #f0e060; }
+        pre { background: #1a1a28; padding: 16px 20px; border-radius: 6px; overflow-x: auto; margin: 12px 0; font-size: 0.82rem; color: #c0c0e0; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+        th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #1a1a28; }
+        th { color: #f0e060; font-size: 0.85rem; text-transform: uppercase; }
+        td { color: #b0b0b0; font-size: 0.9rem; }
+        td code { font-size: 0.85em; }
+        .back { margin-bottom: 20px; display: inline-block; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 40px 0; }
+        .layer { background: #1a1a28; border-left: 3px solid #f0e060; padding: 12px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+        .layer h3 { margin-top: 0; color: #f0e060; }
+        .monster { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <a class="back" href="./">&larr; Back to Docs</a>
+    <h1>S-League Game Module</h1>
+    <p class="subtitle">Minigolf RPG demo. Pokemon-style overworld with random encounter minigolf fights. 480&times;720 portrait, touch + mouse.</p>
+
+    <h2>Overview</h2>
+
+    <p>S-League is a two-mode game: a top-down <strong>overworld</strong> where you walk through grass and trigger encounters, and a <strong>fight screen</strong> where you play minigolf against monsters. Sink the ball in par or less to win XP and level up.</p>
+
+    <p>The entire game is a single Rust module (<code>sleague.rs</code>, ~1100 lines) that integrates with the engine via function pointers. No ECS entities are used &mdash; all game state lives in <code>engine.global_state</code> (a key-value store).</p>
+
+    <h2>Game Modes</h2>
+
+    <div class="layer">
+        <h3>Overworld (mode = 0.0)</h3>
+        <p>30&times;37 tilemap. Tap to move one tile at a time (cardinal directions). Walk through wild grass for a 25% encounter chance per step. Town center with buildings and paths. Water and trees block movement.</p>
+    </div>
+
+    <div class="layer">
+        <h3>Fight / Minigolf (mode = 1.0)</h3>
+        <p>Slingshot aiming: drag away from ball, release to launch. Ball bounces off walls with 0.65 restitution. Sand tiles triple drag. Sink the ball before max strokes to win. 4 physics substeps per frame.</p>
+    </div>
+
+    <h2>Monsters</h2>
+
+    <table>
+        <thead><tr><th>ID</th><th>Name</th><th>Par</th><th>Max Strokes</th><th>Course</th></tr></thead>
+        <tbody>
+            <tr><td>0</td><td><span class="monster" style="background:#8b5a2b"></span>Mole</td><td>3</td><td>6</td><td>L-shaped walls + sand trap</td></tr>
+            <tr><td>1</td><td><span class="monster" style="background:#c8c8c8"></span>Rabbit</td><td>2</td><td>5</td><td>Two small wall blocks</td></tr>
+            <tr><td>2</td><td><span class="monster" style="background:#b43c3c"></span>Scorpion</td><td>4</td><td>7</td><td>Corridor walls with gaps + large sand traps</td></tr>
+            <tr><td>3</td><td><span class="monster" style="background:#50b450"></span>Slime</td><td>3</td><td>6</td><td>Single vertical wall</td></tr>
+        </tbody>
+    </table>
+
+    <h2>Physics</h2>
+
+    <table>
+        <thead><tr><th>Constant</th><th>Value</th><th>Purpose</th></tr></thead>
+        <tbody>
+            <tr><td><code>BALL_RADIUS</code></td><td>5.0 px</td><td>Collision radius</td></tr>
+            <tr><td><code>HOLE_RADIUS</code></td><td>8.0 px</td><td>Sink detection radius</td></tr>
+            <tr><td><code>MAX_POWER</code></td><td>400.0 px/s</td><td>Maximum launch velocity</td></tr>
+            <tr><td><code>DRAG</code></td><td>1.8</td><td>Drag coefficient (3&times; on sand)</td></tr>
+            <tr><td><code>RESTITUTION</code></td><td>0.65</td><td>Wall bounce energy retention</td></tr>
+            <tr><td><code>STOP_THRESHOLD</code></td><td>8.0 px/s</td><td>Speed below which ball stops</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Physics Loop (per frame)</h3>
+    <ol>
+        <li>4 substeps per frame (sub_dt = dt/4)</li>
+        <li>Read tile under ball &mdash; sand tiles multiply drag by 3</li>
+        <li>Apply drag: <code>vx -= vx * drag * sub_dt</code></li>
+        <li>Compute new position: <code>new_x = bx + vx * sub_dt</code></li>
+        <li>Check 5 collision points (center + 4 cardinal offsets by BALL_RADIUS) against tilemap solids</li>
+        <li>Resolve: reverse velocity component(s) &times; RESTITUTION</li>
+        <li>Wall bounce: screen shake proportional to impact speed, increment bounce counter</li>
+        <li>Hole check: if distance &lt; HOLE_RADIUS and speed &lt; 250, ball sinks (win)</li>
+    </ol>
+
+    <h2>Scoring &amp; Progression</h2>
+
+    <h3>XP Multiplier (based on strokes vs par)</h3>
+    <table>
+        <thead><tr><th>Strokes vs Par</th><th>Multiplier</th><th>Label</th></tr></thead>
+        <tbody>
+            <tr><td>&le; -2 (eagle)</td><td>3&times;</td><td>+1 HP</td></tr>
+            <tr><td>-1 (birdie)</td><td>2&times;</td><td>&mdash;</td></tr>
+            <tr><td>0 (par)</td><td>1&times;</td><td>&mdash;</td></tr>
+            <tr><td>+1 (bogey)</td><td>0.5&times;</td><td>-1 HP</td></tr>
+            <tr><td>&gt;+1</td><td>0.25&times;</td><td>-1 to -3 HP</td></tr>
+        </tbody>
+    </table>
+
+    <p>Level up when <code>XP &ge; level&sup2; &times; 50</code>. Even levels increase max HP by 1. Failed fights (too many strokes) cost 3 HP. Mercy heal restores full HP when HP drops to 0.</p>
+
+    <h2>State Keys</h2>
+
+    <h3>Mode &amp; Common</h3>
+    <table>
+        <thead><tr><th>Key</th><th>Type</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>game_mode</code></td><td>f64</td><td>0.0 = overworld, 1.0 = fight</td></tr>
+            <tr><td><code>player_hp</code></td><td>f64</td><td>Current hit points</td></tr>
+            <tr><td><code>player_max_hp</code></td><td>f64</td><td>Maximum HP (grows on level up)</td></tr>
+            <tr><td><code>player_level</code></td><td>f64</td><td>Player level (starts at 1)</td></tr>
+            <tr><td><code>player_xp</code></td><td>f64</td><td>Accumulated experience</td></tr>
+            <tr><td><code>encounters_won</code></td><td>f64</td><td>Total fight victories</td></tr>
+            <tr><td><code>steps</code></td><td>f64</td><td>Total tiles walked</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Overworld</h3>
+    <table>
+        <thead><tr><th>Key</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>player_tx</code> / <code>player_ty</code></td><td>Current tile coordinates</td></tr>
+            <tr><td><code>player_wx</code> / <code>player_wy</code></td><td>Interpolated world pixel position</td></tr>
+            <tr><td><code>player_target_tx</code> / <code>player_target_ty</code></td><td>Move target tile</td></tr>
+            <tr><td><code>player_moving</code></td><td>1.0 if mid-move animation</td></tr>
+            <tr><td><code>player_move_t</code></td><td>Move animation progress</td></tr>
+        </tbody>
+    </table>
+
+    <h3>Fight / Ball</h3>
+    <table>
+        <thead><tr><th>Key</th><th>Description</th></tr></thead>
+        <tbody>
+            <tr><td><code>ball_x</code> / <code>ball_y</code></td><td>Ball world pixel position</td></tr>
+            <tr><td><code>ball_vx</code> / <code>ball_vy</code></td><td>Ball velocity (px/sec)</td></tr>
+            <tr><td><code>strokes</code></td><td>Shots taken this fight</td></tr>
+            <tr><td><code>tl_phase</code></td><td>0=aiming, 1=moving, 2=sunk(win), 3=fail</td></tr>
+            <tr><td><code>hole_x</code> / <code>hole_y</code></td><td>Hole position</td></tr>
+            <tr><td><code>start_x</code> / <code>start_y</code></td><td>Ball start position</td></tr>
+            <tr><td><code>aim_x</code> / <code>aim_y</code></td><td>Current drag target</td></tr>
+            <tr><td><code>aim_active</code></td><td>1.0 while finger is held down</td></tr>
+            <tr><td><code>monster_id</code></td><td>Which monster (0-3)</td></tr>
+            <tr><td><code>result_timer</code></td><td>Seconds since fight ended</td></tr>
+            <tr><td><code>dist_to_hole</code></td><td>Current ball-to-hole distance (AI metric)</td></tr>
+            <tr><td><code>best_dist</code></td><td>Best distance achieved (AI metric)</td></tr>
+            <tr><td><code>wall_bounces</code></td><td>Wall bounce count (AI metric)</td></tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <h2>Public API</h2>
+
+    <pre>// Setup
+pub fn setup(engine: &amp;mut Engine)            // Full game, starts in overworld
+pub fn setup_fight_only(engine: &amp;mut Engine)  // Fight only (headless/CLI)
+
+// Game loop
+pub fn update(engine: &amp;mut Engine, dt: f64)
+pub fn render(engine: &amp;mut Engine)
+
+// Input routing
+pub fn on_pointer_down(engine: &amp;mut Engine, x: f64, y: f64)
+pub fn on_pointer_move(engine: &amp;mut Engine, x: f64, y: f64)
+pub fn on_pointer_up(engine: &amp;mut Engine, x: f64, y: f64)
+
+// Headless action dispatch
+pub fn dispatch_action(engine: &amp;mut Engine, action: &amp;ScheduledAction)
+
+// AI scoring functions (operate on SimResult, not Engine)
+pub fn score_hole_completion(sim: &amp;SimResult) -&gt; f64   // 1.0 if sunk
+pub fn score_stroke_efficiency(sim: &amp;SimResult) -&gt; f64  // par/strokes
+pub fn score_proximity_to_hole(sim: &amp;SimResult) -&gt; f64  // 1 - dist/500</pre>
+
+    <h2>Headless Testing Integration</h2>
+
+    <p>S-League provides all 4 function pointers needed by the headless infrastructure:</p>
+
+    <pre>ScenarioBuilder::new(
+    sleague::setup_fight_only,   // setup
+    sleague::update,             // update
+    sleague::render,             // render
+    sleague::dispatch_action,    // action dispatch
+)</pre>
+
+    <p>The three scoring functions (<code>score_hole_completion</code>, <code>score_stroke_efficiency</code>, <code>score_proximity_to_hole</code>) plug directly into <code>FitnessEvaluator</code> for AI-driven optimization.</p>
+
+    <p>The fight-specific state keys (<code>dist_to_hole</code>, <code>best_dist</code>, <code>wall_bounces</code>) were added specifically for AI observability, enabling anomaly detection and trajectory analysis.</p>
+</body>
+</html>

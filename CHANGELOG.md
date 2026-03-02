@@ -4,6 +4,39 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Documentation & Code Quality — Round 10
+
+**Theme: Comprehensive documentation, public-facing HTML docs, codebase polish**
+
+### Documentation (6 Pages)
+- **Engine Architecture** (`engine.html`) — ECS core (32 components, 21 systems), 5-phase tick pipeline, rendering subsystem (12 modules), physics, camera, WASM API
+- **S-League Game** (`sleague.html`) — Two-mode game module, 4 monsters, minigolf physics, scoring/XP system, overworld mechanics, full state key reference
+- **Headless Architecture** (`architecture.html`) — 18-module infrastructure across 5 layers, module dependency graph, integration patterns
+- **API Reference** (`api-reference.html`) — Complete public API for all 18 headless modules with code examples
+- **AI Iteration Guide** (`ai-iteration.html`) — Philosophy of AI-driven game development, feedback loop design, concrete S-League walkthrough
+- **Getting Started** (`getting-started.html`) — Quick-start tutorial from first scenario to full experiment
+
+### Public HTML Site (`site/docs/`)
+- All 6 docs published as styled HTML at `/docs/` matching site theme
+- Hub page with card navigation across Engine, Game, and Headless sections
+- Main site index updated with Documentation card
+
+### Codebase Improvements (7 Fixes)
+- **`SimResult::get_f64()`** — convenience accessor to reduce `.get().and_then()` boilerplate
+- **`Replay::is_empty()`** — Clippy lint fix (has `len()` without `is_empty()`)
+- **`ScheduledAction::coords()`** — extract (x, y) without match boilerplate
+- **`Default` impls** — added for `ShotBuilder`, `AnomalyDetector`, `FitnessEvaluator`
+- **`ExperimentResult` Clone** — added `Clone` derive for consistency with other result types
+- **`mod.rs` architecture comment** — updated from outdated 4-module diagram to 18-module description
+
+### Source Docs (`docs/`)
+- `engine.md`, `sleague.md`, `architecture.md`, `api-reference.md`, `ai-iteration.md`, `getting-started.md`
+
+### Tests
+- All 1116 tests passing (no new tests this round — focus was documentation and polish)
+
+---
+
 ## Innovation Games: AI-Driven Game Improvement — Round 9
 
 **Theme: Use headless tools to analyze and improve S-League**

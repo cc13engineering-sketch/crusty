@@ -510,3 +510,340 @@ fn diff_report_summary_not_empty() {
     assert!(!report.summary().is_empty());
     assert_eq!(report.verdict(), "PASS"); // Changed != Regressed
 }
+
+// ─── Round 5: ScenarioBuilder ─────────────────────────────────────────
+
+#[test]
+fn scenario_builder_idle_run() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run_idle("builder_idle", 30);
+    assert_eq!(result.sim.frames_run, 30);
+    assert!(result.all_passed()); // no assertions = all pass
+}
+
+#[test]
+fn scenario_builder_with_assertions() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "builder_assertions",
+        vec![],
+        60,
+        vec![
+            Assertion::StateEquals {
+                key: "tl_phase".into(),
+                expected: 0.0,
+                tolerance: 0.0,
+            },
+            Assertion::StateGreaterThan {
+                key: "ball_x".into(),
+                threshold: 0.0,
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+#[test]
+fn scenario_builder_with_shot() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "builder_shot",
+        vec![
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        120,
+        vec![
+            Assertion::StateEquals {
+                key: "strokes".into(),
+                expected: 1.0,
+                tolerance: 0.0,
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+#[test]
+fn scenario_builder_noop_dispatch() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        dispatch_noop,
+    );
+
+    let result = builder.run_idle("noop_dispatch", 10);
+    assert_eq!(result.sim.frames_run, 10);
+}
+
+// ─── Round 5: New Assertion Types ─────────────────────────────────────
+
+#[test]
+fn assertion_state_greater_than() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "greater_than",
+        vec![],
+        10,
+        vec![
+            Assertion::StateGreaterThan {
+                key: "ball_x".into(),
+                threshold: 0.0,
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+#[test]
+fn assertion_state_less_than() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "less_than",
+        vec![],
+        10,
+        vec![
+            Assertion::StateLessThan {
+                key: "ball_x".into(),
+                threshold: 10000.0,
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+#[test]
+fn assertion_state_greater_than_fails_correctly() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "greater_than_fail",
+        vec![],
+        10,
+        vec![
+            Assertion::StateGreaterThan {
+                key: "ball_x".into(),
+                threshold: 99999.0,
+            },
+        ],
+    );
+
+    assert!(!result.all_passed(), "should fail: ball_x is not > 99999");
+}
+
+#[test]
+fn assertion_framebuffer_changed() {
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run(
+        "fb_changed",
+        vec![],
+        10,
+        vec![
+            Assertion::FramebufferChanged {
+                previous: 0x0, // hash should differ from zero
+            },
+        ],
+    );
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+#[test]
+fn assertion_framebuffer_changed_fails_for_same_hash() {
+    // First, capture the actual hash
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let baseline = builder.run_idle("baseline_for_fb", 10);
+    let actual_hash = baseline.sim.framebuffer_hash;
+
+    // Now assert it changed from its own value — should fail
+    let result = builder.run(
+        "fb_same",
+        vec![],
+        10,
+        vec![
+            Assertion::FramebufferChanged {
+                previous: actual_hash,
+            },
+        ],
+    );
+
+    assert!(!result.all_passed(), "should fail: hash equals previous");
+}
+
+// ─── Round 5: Mid-Simulation Snapshots ────────────────────────────────
+
+#[test]
+fn snapshot_captures_at_frames() {
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        60,
+        &[0, 29, 59],
+    );
+
+    assert_eq!(result.snapshots.len(), 3);
+    assert_eq!(result.snapshots[0].frame, 0);
+    assert_eq!(result.snapshots[1].frame, 29);
+    assert_eq!(result.snapshots[2].frame, 59);
+    assert_eq!(result.sim.frames_run, 60);
+}
+
+#[test]
+fn snapshot_at_frame_lookup() {
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &[10, 20],
+    );
+
+    assert!(result.at_frame(10).is_some());
+    assert!(result.at_frame(20).is_some());
+    assert!(result.at_frame(15).is_none()); // not captured
+}
+
+#[test]
+fn snapshot_state_values_accessible() {
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &[0],
+    );
+
+    let snap = result.at_frame(0).unwrap();
+    let ball_x = snap.get_f64("ball_x");
+    assert!(ball_x.is_some(), "should have ball_x in snapshot");
+    assert!(ball_x.unwrap() > 0.0);
+}
+
+#[test]
+fn snapshot_series_tracks_state() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        60,
+        &[0, 10, 20, 30, 40, 50],
+    );
+
+    let series = result.series("ball_y");
+    assert_eq!(series.len(), 6);
+    // After shot at frame 5, ball_y should change
+    let y_at_0 = series[0].1;
+    let y_at_30 = series[3].1;
+    assert!(
+        (y_at_0 - y_at_30).abs() > 1.0,
+        "ball should move after shot: frame0={}, frame30={}", y_at_0, y_at_30
+    );
+}
+
+#[test]
+fn snapshot_value_changed_detects_movement() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[
+            ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+        ],
+        60,
+        &[0, 30],
+    );
+
+    let changed = result.value_changed("ball_y", 0, 30);
+    assert_eq!(changed, Some(true), "ball_y should differ between frame 0 and 30");
+}
+
+#[test]
+fn snapshot_no_actions_ball_stationary() {
+    let result = run_with_snapshots(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        &[],
+        30,
+        &[0, 29],
+    );
+
+    let changed = result.value_changed("ball_y", 0, 29);
+    assert_eq!(changed, Some(false), "ball should be stationary without input");
+}

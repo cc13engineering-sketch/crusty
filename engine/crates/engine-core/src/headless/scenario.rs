@@ -26,8 +26,14 @@ pub enum Assertion {
     StateEquals { key: String, expected: f64, tolerance: f64 },
     /// Assert a game state f64 is within a range.
     StateInRange { key: String, min: f64, max: f64 },
+    /// Assert a game state f64 is greater than a threshold.
+    StateGreaterThan { key: String, threshold: f64 },
+    /// Assert a game state f64 is less than a threshold.
+    StateLessThan { key: String, threshold: f64 },
     /// Assert the framebuffer hash matches exactly.
     FramebufferHash { expected: u64 },
+    /// Assert the framebuffer hash differs from a previous value.
+    FramebufferChanged { previous: u64 },
 }
 
 /// Outcome of a single assertion.
@@ -121,6 +127,85 @@ impl GameScenario {
 /// No-op action dispatcher for scenarios without input.
 pub fn dispatch_noop(_engine: &mut Engine, _action: &ScheduledAction) {}
 
+/// Builder pattern for GameScenario to reduce boilerplate.
+///
+/// Requires game functions (setup, update, render, action_dispatch) to be set
+/// once, then allows building multiple scenarios with different inputs and
+/// assertions without repeating the function pointers.
+pub struct ScenarioBuilder {
+    width: u32,
+    height: u32,
+    setup_fn: fn(&mut Engine),
+    update_fn: fn(&mut Engine, f64),
+    render_fn: fn(&mut Engine),
+    action_dispatch: fn(&mut Engine, &ScheduledAction),
+}
+
+impl ScenarioBuilder {
+    /// Create a builder with game function pointers.
+    pub fn new(
+        setup_fn: fn(&mut Engine),
+        update_fn: fn(&mut Engine, f64),
+        render_fn: fn(&mut Engine),
+        action_dispatch: fn(&mut Engine, &ScheduledAction),
+    ) -> Self {
+        Self {
+            width: 480,
+            height: 720,
+            setup_fn,
+            update_fn,
+            render_fn,
+            action_dispatch,
+        }
+    }
+
+    /// Override viewport dimensions (default 480x720).
+    pub fn viewport(mut self, width: u32, height: u32) -> Self {
+        self.width = width;
+        self.height = height;
+        self
+    }
+
+    /// Build a scenario with the given name, actions, frames, and assertions.
+    pub fn build(
+        &self,
+        name: &str,
+        actions: Vec<ScheduledAction>,
+        total_frames: u64,
+        assertions: Vec<Assertion>,
+    ) -> GameScenario {
+        GameScenario {
+            name: name.into(),
+            width: self.width,
+            height: self.height,
+            setup_fn: self.setup_fn,
+            update_fn: self.update_fn,
+            render_fn: self.render_fn,
+            action_dispatch: self.action_dispatch,
+            actions,
+            total_frames,
+            assertions,
+        }
+    }
+
+    /// Build and immediately run a scenario. Returns the ScenarioResult.
+    pub fn run(
+        &self,
+        name: &str,
+        actions: Vec<ScheduledAction>,
+        total_frames: u64,
+        assertions: Vec<Assertion>,
+    ) -> ScenarioResult {
+        self.build(name, actions, total_frames, assertions).run()
+    }
+
+    /// Build and run an idle scenario (no input, no assertions).
+    /// Useful for capturing baselines.
+    pub fn run_idle(&self, name: &str, total_frames: u64) -> ScenarioResult {
+        self.build(name, vec![], total_frames, vec![]).run()
+    }
+}
+
 fn evaluate(assertion: &Assertion, sim: &super::runner::SimResult) -> AssertionOutcome {
     match assertion {
         Assertion::StateEquals { key, expected, tolerance } => {
@@ -151,6 +236,34 @@ fn evaluate(assertion: &Assertion, sim: &super::runner::SimResult) -> AssertionO
                 ),
             }
         }
+        Assertion::StateGreaterThan { key, threshold } => {
+            let actual = sim.game_state.get(key)
+                .and_then(|v| v.as_f64())
+                .unwrap_or(f64::NAN);
+            let passed = actual > *threshold;
+            AssertionOutcome {
+                assertion: assertion.clone(),
+                passed,
+                detail: format!(
+                    "StateGreaterThan(\"{}\") threshold={} actual={}",
+                    key, threshold, actual
+                ),
+            }
+        }
+        Assertion::StateLessThan { key, threshold } => {
+            let actual = sim.game_state.get(key)
+                .and_then(|v| v.as_f64())
+                .unwrap_or(f64::NAN);
+            let passed = actual < *threshold;
+            AssertionOutcome {
+                assertion: assertion.clone(),
+                passed,
+                detail: format!(
+                    "StateLessThan(\"{}\") threshold={} actual={}",
+                    key, threshold, actual
+                ),
+            }
+        }
         Assertion::FramebufferHash { expected } => {
             let passed = sim.framebuffer_hash == *expected;
             AssertionOutcome {
@@ -159,6 +272,17 @@ fn evaluate(assertion: &Assertion, sim: &super::runner::SimResult) -> AssertionO
                 detail: format!(
                     "FramebufferHash expected={:#x} actual={:#x}",
                     expected, sim.framebuffer_hash
+                ),
+            }
+        }
+        Assertion::FramebufferChanged { previous } => {
+            let passed = sim.framebuffer_hash != *previous;
+            AssertionOutcome {
+                assertion: assertion.clone(),
+                passed,
+                detail: format!(
+                    "FramebufferChanged previous={:#x} actual={:#x}",
+                    previous, sim.framebuffer_hash
                 ),
             }
         }

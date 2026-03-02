@@ -50,11 +50,20 @@
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
         <span><span class="num">21</span> Engine Modules</span>
-        <span><span class="num">1054</span> Tests</span>
+        <span><span class="num">1069</span> Tests</span>
         <span><span class="num">S-League RPG</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 4 <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 5 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: Reduce Boilerplate, Add Generic Features</h3>
+    <ul>
+        <li><strong>ScenarioBuilder</strong> — set game functions once, build multiple scenarios without repeating function pointers. Methods: <code>new()</code>, <code>viewport()</code>, <code>build()</code>, <code>run()</code>, <code>run_idle()</code></li>
+        <li><strong>New assertion types</strong> — <code>StateGreaterThan</code>, <code>StateLessThan</code>, <code>FramebufferChanged</code> for more expressive scenario checks</li>
+        <li><strong>Mid-simulation snapshots</strong> — <code>run_with_snapshots()</code> captures full game state at specific frames. <code>SnapshotResult</code> with <code>at_frame()</code>, <code>series()</code>, <code>value_changed()</code> queries</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">1 new file (snapshot.rs), 15 new tests. Total: 1069 tests passing.</p>
+
+    <h2>Headless Testing — Innovation Round 4</h2>
     <h3>Theme: Game-Agnostic Decoupling</h3>
     <ul>
         <li><strong>Action dispatch callback</strong> — <code>GameScenario</code>, <code>run_sweep</code>, <code>record_timeline_with_actions</code> now accept a game-supplied <code>action_dispatch</code> function instead of hardcoding S-League input handlers</li>

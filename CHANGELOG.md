@@ -4,6 +4,34 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Headless Testing — Round 5
+
+**Theme: Reduce boilerplate, add generic features**
+
+### ScenarioBuilder
+- New `ScenarioBuilder` struct for building and running scenarios with less boilerplate
+- Set game functions once (`setup_fn`, `update_fn`, `render_fn`, `action_dispatch`), then build multiple scenarios without repeating pointers
+- Builder methods: `new()`, `viewport()`, `build()`, `run()`, `run_idle()`
+- Default viewport: 480x720 (configurable)
+
+### New Assertion Types
+- `StateGreaterThan { key, threshold }` — assert game state value exceeds threshold
+- `StateLessThan { key, threshold }` — assert game state value is below threshold
+- `FramebufferChanged { previous }` — assert framebuffer hash differs from a known value
+
+### Mid-Simulation Snapshots
+- New `snapshot.rs` module with `run_with_snapshots()` function
+- Capture full game state and framebuffer hash at specific frames during simulation
+- `FrameSnapshot` — per-frame state capture with `get_f64()`, `get_str()` helpers
+- `SnapshotResult` — final result plus all captured snapshots, with `at_frame()`, `series()`, `value_changed()` queries
+- Useful for debugging state transitions, verifying intermediate states, and analyzing trajectories
+
+### Tests
+- 15 new tests covering ScenarioBuilder, new assertions, and snapshot functionality
+- Total: 1069 tests passing
+
+---
+
 ## Innovation Games: Headless Testing — Round 4
 
 **Theme: Game-agnostic decoupling**

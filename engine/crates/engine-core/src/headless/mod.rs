@@ -22,9 +22,10 @@ mod sweep;
 mod timeline;
 mod fitness;
 mod regression;
+mod snapshot;
 
 pub use runner::{HeadlessRunner, SimResult};
-pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, dispatch_noop};
+pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
 pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;
 pub use sweep::{run_sweep, SweepConfig, SweepResult, SweepReport};
@@ -37,6 +38,7 @@ pub use regression::{
     RegressionSuite, RegressionBaseline, DiffReport, DiffEntry, DiffStatus,
     classify_any_change, classify_lower_is_better,
 };
+pub use snapshot::{run_with_snapshots, FrameSnapshot, SnapshotResult};
 
 #[cfg(test)]
 mod tests;

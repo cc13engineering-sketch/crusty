@@ -31,6 +31,98 @@ use crate::camera_director::CameraDirector;
 use crate::level_curve::LevelCurve;
 use crate::ui_canvas::UiCanvas;
 use crate::color_palette::ColorPalette;
+use crate::frame_metrics::FrameMetrics;
+
+/// Defines the canonical execution phases within a single engine tick.
+///
+/// Systems are grouped into phases that run in a fixed order every frame.
+/// This enum exists to document and lock down that order for portability
+/// and stability -- changing the sequence of phases (or moving a system
+/// between phases) is a deliberate, breaking decision.
+///
+/// The phases execute in the order of their discriminant values:
+///
+/// | Phase          | Purpose                                                         |
+/// |----------------|-----------------------------------------------------------------|
+/// | `Input`        | Gather and pre-process player input, gestures, debug toggles.   |
+/// | `Simulation`   | Logical world update: lifecycle, AI, animation, state machines. |
+/// | `Physics`      | Fixed-timestep physics: forces, integration, collision, joints. |
+/// | `PostPhysics`  | Gameplay reactions, spawning, particles, camera, game-over.     |
+/// | `RenderingPrep`| All drawing: background, entities, HUD, post-fx, cleanup.      |
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SystemPhase {
+    /// Phase 0 -- Runs once at the start of `tick()`.
+    ///
+    /// Systems:
+    /// - Debug-mode toggle (KeyD)
+    /// - `GestureRecognizer::update` -- advance gesture timers
+    /// - Drain recognized gestures and publish to `EventBus`
+    Input = 0,
+
+    /// Phase 1 -- Variable-dt logical update.
+    ///
+    /// Systems (in order):
+    /// - `lifecycle::run`       -- spawns, despawns, lifetimes, timers, behavior rules
+    /// - `hierarchy::run`       -- parent-to-child transform propagation
+    /// - `signal::run`          -- wire emitters to receivers
+    /// - `state_machine::run`   -- tick elapsed time, check transitions
+    /// - `coroutine::run`       -- advance async behavior steps
+    /// - Drain coroutine-queued spawns into engine `SpawnQueue`
+    /// - `EnvironmentClock::tick` -- day/night cycle, seasons
+    /// - `FlowNetwork::solve`   -- transfer resources along edges
+    /// - `sprite_animator::run` -- advance sprite frame timers
+    /// - `behavior::run`        -- AI movement (chase, flee, patrol, etc.)
+    /// - `tween::run`           -- easing-curve property animation
+    /// - `flash::run`           -- hit flash, blink, color pulse
+    /// - `waypoint::run`        -- path-following movement
+    Simulation = 1,
+
+    /// Phase 2 -- Fixed-timestep physics loop (`FIXED_DT = 1/60 s`).
+    ///
+    /// Runs zero or more times per tick depending on the accumulator.
+    /// Each iteration executes:
+    /// - `force_accumulator::run` -- sum external forces
+    /// - `integrator::run`        -- semi-implicit Euler integration
+    /// - `collision::run`         -- broadphase + narrowphase, emit collision events
+    /// - `physics_joint::run`     -- distance, spring, rope, hinge constraints
+    Physics = 2,
+
+    /// Phase 3 -- Runs once after physics, still at variable dt.
+    ///
+    /// Systems (in order):
+    /// - `gameplay::run`          -- collision reactions, scoring, damage
+    /// - `event_processor::run`   -- legacy non-gameplay event triggers
+    /// - `input_gameplay::run`    -- input-driven gameplay actions
+    /// - `run_spawners`           -- wave spawner, fire cooldown, player shooting
+    /// - `ghost_trail::run`       -- capture position snapshots for trails
+    /// - `ParticlePool::update`   -- tick particle lifetimes and positions
+    /// - `TransitionManager::update` -- advance scene transitions
+    /// - `DialogueQueue::tick`    -- advance dialogue message timers
+    /// - `check_game_over`        -- detect player death
+    /// - `Camera::update`         -- follow target, smooth, clamp to bounds
+    PostPhysics = 3,
+
+    /// Phase 4 -- All rendering and end-of-frame cleanup.
+    ///
+    /// Rendering (in order):
+    /// - `Framebuffer::clear`     -- fill with background color
+    /// - `Starfield::render`      -- optional parallax starfield
+    /// - `renderer::run_entities_only` -- draw all visible entities
+    /// - `ParticlePool::render`   -- draw particles
+    /// - `debug_render::run`      -- debug overlays (when `debug_mode` is on)
+    /// - `render_hud`             -- HUD bars, score, ammo, dialogue, game-over overlay
+    /// - `ScreenFxStack::tick` + `apply` -- screen-wide tint, desaturate, flash
+    /// - `TransitionManager::apply` -- scene transition overlay
+    /// - `post_fx::apply`         -- CRT scanlines, shake, bloom, etc.
+    ///
+    /// Cleanup:
+    /// - `EventQueue::clear`      -- drain frame events
+    /// - `EventBus::clear`        -- drain bus events
+    /// - `Input::end_frame`       -- reset per-frame input state
+    /// - `DiagnosticBus::clear` + `run_checks` -- runtime diagnostics
+    /// - Advance `time` and `frame` counters
+    RenderingPrep = 4,
+}
 
 #[derive(Clone, Debug)]
 pub struct WorldConfig {
@@ -224,6 +316,9 @@ pub struct Engine {
 
     // UiCanvas: declarative UI widget overlay
     pub ui_canvas: UiCanvas,
+
+    // Performance telemetry
+    pub frame_metrics: FrameMetrics,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -277,6 +372,7 @@ impl Engine {
             level_curve: LevelCurve::new(),
             color_palette: ColorPalette::default(),
             ui_canvas: UiCanvas::new(),
+            frame_metrics: FrameMetrics::new(),
         }
     }
 
@@ -304,6 +400,69 @@ impl Engine {
         self.ui_canvas.clear();
     }
 
+    /// Advance the engine by one frame.
+    ///
+    /// `dt` is the wall-clock delta in seconds since the last call (clamped
+    /// internally to [`MAX_FRAME_DT`]).
+    ///
+    /// # System execution order
+    ///
+    /// The tick is split into five sequential phases (see [`SystemPhase`] for
+    /// the authoritative reference). Changing this order is a breaking change.
+    ///
+    /// ```text
+    /// Phase 0  Input
+    ///   |- debug toggle (KeyD)
+    ///   |- GestureRecognizer::update
+    ///   '- drain gestures -> EventBus
+    ///
+    /// Phase 1  Simulation  (variable dt)
+    ///   |- lifecycle::run        (spawns, despawns, lifetimes, timers, rules)
+    ///   |- hierarchy::run        (parent->child transforms)
+    ///   |- signal::run           (emitter->receiver wiring)
+    ///   |- state_machine::run    (FSM transitions)
+    ///   |- coroutine::run        (async behavior steps)
+    ///   |- drain coroutine spawns
+    ///   |- EnvironmentClock::tick (day/night, seasons)
+    ///   |- FlowNetwork::solve    (resource transfer)
+    ///   |- sprite_animator::run  (frame timers)
+    ///   |- behavior::run         (AI movement)
+    ///   |- tween::run            (easing animation)
+    ///   |- flash::run            (hit flash, blink)
+    ///   '- waypoint::run         (path following)
+    ///
+    /// Phase 2  Physics  (fixed dt, 0..N iterations)
+    ///   |- force_accumulator::run
+    ///   |- integrator::run
+    ///   |- collision::run
+    ///   '- physics_joint::run
+    ///
+    /// Phase 3  PostPhysics  (variable dt)
+    ///   |- gameplay::run         (collision reactions, scoring, damage)
+    ///   |- event_processor::run  (legacy event triggers)
+    ///   |- input_gameplay::run   (input-driven actions)
+    ///   |- run_spawners          (wave spawner, fire cooldown)
+    ///   |- ghost_trail::run      (position snapshots)
+    ///   |- ParticlePool::update
+    ///   |- TransitionManager::update
+    ///   |- DialogueQueue::tick
+    ///   |- check_game_over
+    ///   '- Camera::update        (follow, smooth, clamp)
+    ///
+    /// Phase 4  RenderingPrep
+    ///   |- Framebuffer::clear
+    ///   |- Starfield::render
+    ///   |- renderer::run_entities_only
+    ///   |- ParticlePool::render
+    ///   |- debug_render::run     (if debug_mode)
+    ///   |- render_hud
+    ///   |- ScreenFxStack tick + apply
+    ///   |- TransitionManager::apply
+    ///   |- post_fx::apply
+    ///   |- EventQueue::clear + EventBus::clear + Input::end_frame
+    ///   |- DiagnosticBus clear + run_checks
+    ///   '- advance time + frame
+    /// ```
     pub fn tick(&mut self, dt: f64) {
         let dt = dt.min(MAX_FRAME_DT);
         self.accumulator += dt;
@@ -410,11 +569,13 @@ impl Engine {
         // Waypoint system (path-following movement)
         crate::systems::waypoint::run(&mut self.world, dt);
 
+        let mut physics_steps: u32 = 0;
         while self.accumulator >= FIXED_DT {
             self.physics_step(FIXED_DT);
             // Physics joints (distance, spring, rope, hinge) — after integrator, within physics step
             crate::systems::physics_joint::run(&mut self.world, FIXED_DT);
             self.accumulator -= FIXED_DT;
+            physics_steps += 1;
         }
 
         // Game logic: collision reactions, scoring, damage
@@ -498,6 +659,12 @@ impl Engine {
         // Runtime diagnostics: clear previous frame and run checks
         self.diagnostic_bus.clear();
         self.diagnostic_bus.run_checks(&self.world, self.config.bounds, self.frame);
+
+        // Update performance telemetry
+        self.frame_metrics.frame_time_ms = dt * 1000.0;
+        self.frame_metrics.physics_time_ms = physics_steps as f64 * FIXED_DT * 1000.0;
+        self.frame_metrics.entity_count = self.world.entity_count();
+        self.frame_metrics.frame_number = self.frame;
 
         self.time += dt;
         self.frame += 1;

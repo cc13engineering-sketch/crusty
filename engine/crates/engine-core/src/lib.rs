@@ -39,6 +39,7 @@ pub mod camera_director;
 pub mod level_curve;
 pub mod ui_canvas;
 pub mod aim_preview;
+pub mod frame_metrics;
 pub mod trap_links_demo;
 
 #[cfg(test)]
@@ -246,6 +247,14 @@ pub fn sleague_render() {
 #[wasm_bindgen]
 pub fn get_diagnostics() -> String {
     with_engine(|eng| eng.diagnostic_bus.to_json())
+}
+
+// ─── Frame Metrics WASM API ──────────────────────────────────────────
+
+/// Get lightweight per-frame performance telemetry as a JSON string.
+#[wasm_bindgen]
+pub fn get_frame_metrics() -> String {
+    with_engine(|eng| eng.frame_metrics.to_json())
 }
 
 // ─── Sound WASM API ─────────────────────────────────────────────────

@@ -653,6 +653,13 @@ const K_WALL_BOUNCES: &str = "wall_bounces";
 const K_EFFECTIVENESS: &str = "effectiveness"; // last hit effectiveness
 const K_BATTLE_MSG: &str = "battle_msg"; // 0=none, 1=super effective, 2=not effective
 const K_MSG_TIMER: &str = "msg_timer";
+const K_DMG_POPUP: &str = "dmg_popup"; // damage number to display
+const K_DMG_POPUP_X: &str = "dmg_popup_x";
+const K_DMG_POPUP_Y: &str = "dmg_popup_y";
+const K_DMG_POPUP_TIMER: &str = "dmg_popup_timer";
+const K_DMG_CRIT: &str = "dmg_crit"; // 1.0 if last hit was critical
+const K_COMBO: &str = "combo"; // consecutive hits in a row
+const K_ENEMY_SHAKE: &str = "enemy_shake"; // shake timer on hit
 
 // Dialogue
 const K_DLG_ID: &str = "dlg_id";
@@ -717,7 +724,7 @@ fn rng(engine: &Engine) -> f64 {
     ((seed * 12345.6789).sin() * 43758.5453).fract().abs()
 }
 
-fn _rng_range(engine: &Engine, min: f64, max: f64) -> f64 {
+fn rng_range(engine: &Engine, min: f64, max: f64) -> f64 {
     min + rng(engine) * (max - min)
 }
 
@@ -746,11 +753,11 @@ fn calc_spd(base: f64, level: f64) -> f64 {
 }
 
 fn xp_for_level(level: f64) -> f64 {
-    (level * level * 15.0).floor()
+    (level * level * 25.0).floor()  // Steeper curve to slow progression
 }
 
 fn xp_reward(enemy_level: f64) -> f64 {
-    (enemy_level * 8.0 + 10.0).floor()
+    (enemy_level * 6.0 + 8.0).floor()  // Slightly reduced to match steeper curve
 }
 
 /// Set team slot stats from species + level
@@ -1267,6 +1274,64 @@ fn get_dialogue(id: u32) -> &'static [&'static str] {
             "grow stronger when you",
             "battle with them!",
         ],
+        // Zone-specific hints
+        7 => &[
+            "The tall grass hides",
+            "many creatures. Walk",
+            "through it to find them!",
+            "Each zone has unique",
+            "species to collect.",
+        ],
+        8 => &[
+            "Fire creatures dwell in",
+            "Ember Hollow. They fear",
+            "Water-type attacks.",
+            "Type advantages deal",
+            "much more damage!",
+        ],
+        9 => &[
+            "I heard there's a rare",
+            "creature deep in the",
+            "caves. It only appears",
+            "to strong trainers!",
+        ],
+        10 => &[
+            "The Guardian of each",
+            "zone guards a Badge.",
+            "You can't flee from a",
+            "Guardian battle!",
+            "Come prepared!",
+        ],
+        11 => &[
+            "Spirit Orbs are used to",
+            "catch wild creatures.",
+            "Ultra Orbs have a much",
+            "higher catch rate!",
+        ],
+        12 => &[
+            "The Crystal Spire is",
+            "the final challenge.",
+            "Only those with all",
+            "five Badges may enter.",
+        ],
+        13 => &[
+            "When your creatures",
+            "faint, visit a Spirit",
+            "Center to heal them.",
+            "Potions can also help!",
+        ],
+        14 => &[
+            "Hit the enemy with",
+            "speed! Faster impacts",
+            "deal more damage.",
+            "Aim for critical hits!",
+        ],
+        15 => &[
+            "Your Sproutail will",
+            "evolve into Thornvine",
+            "at level 16! Keep",
+            "battling to grow!",
+        ],
         _ => &["..."],
     }
 }
@@ -1483,6 +1548,78 @@ fn play_hit_sound(engine: &mut Engine) {
     engine.sound_queue.push(SoundCommand::PlayNoise {
         duration: 0.08, volume: 0.25, filter_freq: 2000.0,
     });
+}
+
+fn play_element_hit_sound(engine: &mut Engine, elem: Element, is_crit: bool) {
+    let base_vol = if is_crit { 0.5 } else { 0.35 };
+    match elem {
+        Element::Fire => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 180.0, duration: 0.15, volume: base_vol,
+                waveform: Waveform::Sawtooth, attack: 0.005, decay: 0.12,
+            });
+            engine.sound_queue.push(SoundCommand::PlayNoise {
+                duration: 0.1, volume: 0.3, filter_freq: 3000.0,
+            });
+        }
+        Element::Water => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 300.0, duration: 0.2, volume: base_vol,
+                waveform: Waveform::Sine, attack: 0.01, decay: 0.15,
+            });
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 450.0, duration: 0.1, volume: base_vol * 0.5,
+                waveform: Waveform::Sine, attack: 0.05, decay: 0.05,
+            });
+        }
+        Element::Electric => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 800.0, duration: 0.08, volume: base_vol,
+                waveform: Waveform::Square, attack: 0.002, decay: 0.06,
+            });
+            engine.sound_queue.push(SoundCommand::PlayNoise {
+                duration: 0.05, volume: 0.4, filter_freq: 6000.0,
+            });
+        }
+        Element::Ice => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 600.0, duration: 0.15, volume: base_vol,
+                waveform: Waveform::Triangle, attack: 0.005, decay: 0.12,
+            });
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 900.0, duration: 0.1, volume: base_vol * 0.4,
+                waveform: Waveform::Sine, attack: 0.03, decay: 0.07,
+            });
+        }
+        Element::Shadow => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 80.0, duration: 0.2, volume: base_vol,
+                waveform: Waveform::Sawtooth, attack: 0.01, decay: 0.18,
+            });
+            engine.sound_queue.push(SoundCommand::PlayNoise {
+                duration: 0.15, volume: 0.2, filter_freq: 800.0,
+            });
+        }
+        Element::Light => {
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 1047.0, duration: 0.12, volume: base_vol,
+                waveform: Waveform::Sine, attack: 0.005, decay: 0.1,
+            });
+            engine.sound_queue.push(SoundCommand::PlayTone {
+                frequency: 1319.0, duration: 0.1, volume: base_vol * 0.6,
+                waveform: Waveform::Sine, attack: 0.02, decay: 0.08,
+            });
+        }
+        _ => {
+            play_hit_sound(engine);
+        }
+    }
+    if is_crit {
+        engine.sound_queue.push(SoundCommand::PlayTone {
+            frequency: 523.0, duration: 0.1, volume: 0.3,
+            waveform: Waveform::Triangle, attack: 0.005, decay: 0.08,
+        });
+    }
 }
 
 fn play_super_effective_sound(engine: &mut Engine) {
@@ -2210,6 +2347,18 @@ fn update_battle(engine: &mut Engine, dt: f64) {
         ss(engine, K_MSG_TIMER, (msg_t - dt).max(0.0));
     }
 
+    // Update damage popup timer
+    let popup_t = gs(engine, K_DMG_POPUP_TIMER);
+    if popup_t > 0.0 {
+        ss(engine, K_DMG_POPUP_TIMER, (popup_t - dt).max(0.0));
+    }
+
+    // Update enemy shake timer
+    let shake_t = gs(engine, K_ENEMY_SHAKE);
+    if shake_t > 0.0 {
+        ss(engine, K_ENEMY_SHAKE, (shake_t - dt).max(0.0));
+    }
+
     if bphase == BPHASE_INTRO {
         if timer > 1.5 {
             ss(engine, K_BPHASE, BPHASE_PLAYER_AIM);
@@ -2311,23 +2460,59 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
         let speed = (vx * vx + vy * vy).sqrt();
         let speed_mult = (speed / 200.0).min(2.0).max(0.5);
 
-        let raw_dmg = (atk * 2.0 - def * 0.8) * eff * speed_mult;
+        // Critical hit: 15% chance, 1.5x damage
+        let crit_roll = rng(engine);
+        let is_crit = crit_roll < 0.15;
+        let crit_mult = if is_crit { 1.5 } else { 1.0 };
+
+        // Damage variance: ±15%
+        let variance = 0.85 + rng(engine) * 0.30;
+
+        let raw_dmg = (atk * 2.0 - def * 0.8) * eff * speed_mult * crit_mult * variance;
         let damage = raw_dmg.max(1.0).floor();
 
         let enemy_hp = gs(engine, K_ENEMY_HP);
         let new_hp = (enemy_hp - damage).max(0.0);
         ss(engine, K_ENEMY_HP, new_hp);
 
-        play_hit_sound(engine);
+        // Damage popup
+        ss(engine, K_DMG_POPUP, damage);
+        ss(engine, K_DMG_POPUP_X, bx);
+        ss(engine, K_DMG_POPUP_Y, by);
+        ss(engine, K_DMG_POPUP_TIMER, 1.0);
+        ss(engine, K_DMG_CRIT, if is_crit { 1.0 } else { 0.0 });
+
+        // Combo tracking
+        let combo = gs(engine, K_COMBO) + 1.0;
+        ss(engine, K_COMBO, combo);
+
+        // Enemy shake on hit
+        ss(engine, K_ENEMY_SHAKE, 0.3);
+
+        // Sound varies by element
+        play_element_hit_sound(engine, atk_elem, is_crit);
 
         // Show effectiveness message
-        if eff > 1.0 {
+        if is_crit && eff > 1.0 {
+            ss(engine, K_BATTLE_MSG, 5.0); // "Critical! Super effective!"
+            ss(engine, K_MSG_TIMER, 2.0);
+            play_super_effective_sound(engine);
+            engine.screen_fx.push(ScreenEffect::Flash {
+                color: atk_elem.color(), intensity: 0.6,
+            }, 0.4);
+        } else if eff > 1.0 {
             ss(engine, K_BATTLE_MSG, 1.0);
             ss(engine, K_MSG_TIMER, 1.5);
             play_super_effective_sound(engine);
             engine.screen_fx.push(ScreenEffect::Flash {
                 color: atk_elem.color(), intensity: 0.4,
             }, 0.3);
+        } else if is_crit {
+            ss(engine, K_BATTLE_MSG, 6.0); // "Critical hit!"
+            ss(engine, K_MSG_TIMER, 1.5);
+            engine.screen_fx.push(ScreenEffect::Flash {
+                color: COL_WHITE, intensity: 0.3,
+            }, 0.2);
         } else if eff < 1.0 {
             ss(engine, K_BATTLE_MSG, 2.0);
             ss(engine, K_MSG_TIMER, 1.5);
@@ -2352,6 +2537,7 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
     let speed = (vx * vx + vy * vy).sqrt();
     if speed < 5.0 {
         ss(engine, K_BALL_ACTIVE, 0.0);
+        ss(engine, K_COMBO, 0.0); // Reset combo on miss
         // Missed - enemy turn
         ss(engine, K_BPHASE, BPHASE_ENEMY_TURN);
         ss(engine, K_BATTLE_TIMER, 0.0);
@@ -2376,18 +2562,37 @@ fn do_enemy_attack(engine: &mut Engine) {
     let active = gs(engine, K_ACTIVE_MON) as usize;
     let def = gs_team(engine, active, "def");
 
-    let raw_dmg = (enemy_atk * 1.5 - def * 0.6).max(1.0);
-    let damage = raw_dmg.floor();
+    // Element effectiveness for enemy attacks too
+    let enemy_species = gs(engine, K_ENEMY_SPECIES) as u8;
+    let active_species = gs_team(engine, active, "species") as u8;
+    let atk_elem = get_species(enemy_species).element;
+    let def_elem = get_species(active_species).element;
+    let eff = type_effectiveness(atk_elem, def_elem);
+
+    // Damage variance ±15%
+    let variance = rng_range(engine, 0.85, 1.15);
+
+    let raw_dmg = (enemy_atk * 1.5 - def * 0.6) * eff * variance;
+    let damage = raw_dmg.max(1.0).floor();
 
     let hp = gs_team(engine, active, "hp");
     let new_hp = (hp - damage).max(0.0);
     ss_team(engine, active, "hp", new_hp);
 
-    play_hit_sound(engine);
+    play_element_hit_sound(engine, atk_elem, false);
     engine.screen_fx.push(ScreenEffect::Flash {
-        color: Color { r: 255, g: 60, b: 60, a: 255 },
+        color: atk_elem.color().with_alpha(200),
         intensity: 0.3,
     }, 0.2);
+
+    // Show enemy effectiveness message
+    if eff > 1.0 {
+        ss(engine, K_BATTLE_MSG, 1.0);
+        ss(engine, K_MSG_TIMER, 1.0);
+    } else if eff < 1.0 {
+        ss(engine, K_BATTLE_MSG, 2.0);
+        ss(engine, K_MSG_TIMER, 1.0);
+    }
 
     if new_hp <= 0.0 {
         // Current monster fainted - find next alive
@@ -2741,6 +2946,13 @@ fn render_battle(engine: &mut Engine) {
     let battle_msg = gs(engine, K_BATTLE_MSG) as u32;
     let msg_timer = gs(engine, K_MSG_TIMER);
     let orb_count = gs_inv(engine, ITEM_SPIRIT_ORB) as u32 + gs_inv(engine, ITEM_ULTRA_ORB) as u32;
+    let dmg_popup = gs(engine, K_DMG_POPUP);
+    let dmg_popup_x = gs(engine, K_DMG_POPUP_X);
+    let dmg_popup_y = gs(engine, K_DMG_POPUP_Y);
+    let dmg_popup_timer = gs(engine, K_DMG_POPUP_TIMER);
+    let dmg_crit = gs(engine, K_DMG_CRIT) == 1.0;
+    let combo = gs(engine, K_COMBO) as u32;
+    let enemy_shake_timer = gs(engine, K_ENEMY_SHAKE);
 
     // Render tilemap
     if let Some(ref tm) = engine.tilemap {
@@ -2749,10 +2961,14 @@ fn render_battle(engine: &mut Engine) {
 
     let fb = &mut engine.framebuffer;
 
-    // Enemy monster
+    // Enemy monster with hit shake
     let target_cx = 240.0;
     let target_cy = 7.0 * TILE_SIZE;
-    let shake = if bphase == BPHASE_ENEMY_TURN { (timer * 30.0).sin() * 3.0 } else { 0.0 };
+    let shake = if enemy_shake_timer > 0.0 {
+        (enemy_shake_timer * 60.0).sin() * 6.0 * enemy_shake_timer
+    } else if bphase == BPHASE_ENEMY_TURN {
+        (timer * 20.0).sin() * 2.0
+    } else { 0.0 };
     let bob = (time * 2.0).sin() * 3.0;
     render_monster_sprite(fb, target_cx + shake, target_cy + bob, &sp, false);
 
@@ -2774,20 +2990,32 @@ fn render_battle(engine: &mut Engine) {
         text::draw_text_centered(fb, target_cx as i32, (bar_y - 38.0) as i32, "GUARDIAN", COL_BOSS_TILE, 2);
     }
 
-    // Energy orb
+    // Energy orb with enhanced trail
     let orb_col = active_sp.element.color();
     if ball_active {
         let screen_x = ball_x - TILEMAP_CAM_X + WIDTH / 2.0;
         let screen_y = ball_y - TILEMAP_CAM_Y + HEIGHT / 2.0;
-        shapes::fill_circle(fb, screen_x, screen_y, 8.0, Color { r: 255, g: 255, b: 255, a: 100 });
-        shapes::fill_circle(fb, screen_x, screen_y, 6.0, orb_col);
-        shapes::fill_circle(fb, screen_x, screen_y, 3.0, COL_WHITE);
         let speed = (ball_vx * ball_vx + ball_vy * ball_vy).sqrt();
-        if speed > 50.0 {
-            let trail_x = screen_x - ball_vx * 0.02;
-            let trail_y = screen_y - ball_vy * 0.02;
-            shapes::fill_circle(fb, trail_x, trail_y, 4.0, orb_col.with_alpha(100));
+
+        // Multi-segment trail
+        if speed > 30.0 {
+            let norm = speed.max(1.0);
+            let nvx = ball_vx / norm;
+            let nvy = ball_vy / norm;
+            for i in 1..=5 {
+                let t = i as f64 * 3.0;
+                let tx = screen_x - nvx * t;
+                let ty = screen_y - nvy * t;
+                let alpha = (180.0 - i as f64 * 30.0).max(20.0) as u8;
+                let r = (5.0 - i as f64 * 0.6).max(1.0);
+                shapes::fill_circle(fb, tx, ty, r, orb_col.with_alpha(alpha));
+            }
         }
+
+        // Glow
+        shapes::fill_circle(fb, screen_x, screen_y, 10.0, orb_col.with_alpha(60));
+        shapes::fill_circle(fb, screen_x, screen_y, 7.0, orb_col);
+        shapes::fill_circle(fb, screen_x, screen_y, 3.0, COL_WHITE);
     } else if bphase == BPHASE_PLAYER_AIM {
         let screen_x = ball_x - TILEMAP_CAM_X + WIDTH / 2.0;
         let screen_y = ball_y - TILEMAP_CAM_Y + HEIGHT / 2.0;
@@ -2799,15 +3027,22 @@ fn render_battle(engine: &mut Engine) {
             let dy = aim_sy - aim_y;
             let dist = (dx * dx + dy * dy).sqrt();
             if dist > 5.0 {
-                let power = (dist * 2.5).min(600.0);
+                let power = (dist * 12.0).min(1800.0);
                 let angle = dy.atan2(dx);
-                let arrow_len = (power / 600.0 * 80.0).min(80.0);
+                let arrow_len = (power / 1800.0 * 80.0).min(80.0);
                 let ax2 = screen_x + angle.cos() * arrow_len;
                 let ay2 = screen_y + angle.sin() * arrow_len;
-                shapes::draw_line_thick(fb, screen_x, screen_y, ax2, ay2, 3.0, COL_UI_HIGHLIGHT);
-                let power_pct = (power / 600.0 * 100.0) as u32;
+
+                // Color shifts from yellow to red with power
+                let power_ratio = power / 1800.0;
+                let arrow_col = Color {
+                    r: 255, g: (220.0 * (1.0 - power_ratio * 0.7)) as u8,
+                    b: (80.0 * (1.0 - power_ratio)) as u8, a: 255,
+                };
+                shapes::draw_line_thick(fb, screen_x, screen_y, ax2, ay2, 3.0, arrow_col);
+                let power_pct = (power_ratio * 100.0) as u32;
                 let pow_text = format!("{}%", power_pct);
-                text::draw_text(fb, (screen_x + 15.0) as i32, (screen_y - 10.0) as i32, &pow_text, COL_UI_HIGHLIGHT, 1);
+                text::draw_text(fb, (screen_x + 15.0) as i32, (screen_y - 10.0) as i32, &pow_text, arrow_col, 1);
             }
         }
     }
@@ -2876,11 +3111,40 @@ fn render_battle(engine: &mut Engine) {
             2 => ("Not very effective...", Color { r: 120, g: 120, b: 140, a: alpha }),
             3 => ("Can't catch Guardians!", Color { r: 255, g: 100, b: 100, a: alpha }),
             4 => ("Can't run from Guardian!", Color { r: 255, g: 100, b: 100, a: alpha }),
+            5 => ("CRITICAL! Super effective!", Color { r: 255, g: 160, b: 40, a: alpha }),
+            6 => ("Critical hit!", Color { r: 255, g: 255, b: 200, a: alpha }),
             _ => ("", COL_UI_TEXT),
         };
         if !msg_text.is_empty() {
             text::draw_text_centered(fb, 240, 280, msg_text, msg_col, 2);
         }
+    }
+
+    // Damage popup (floating number)
+    if dmg_popup_timer > 0.0 && dmg_popup > 0.0 {
+        let screen_x = dmg_popup_x - TILEMAP_CAM_X + WIDTH / 2.0;
+        let screen_y = dmg_popup_y - TILEMAP_CAM_Y + HEIGHT / 2.0;
+        let float_offset = (1.0 - dmg_popup_timer) * 40.0;
+        let alpha = (dmg_popup_timer * 255.0).min(255.0) as u8;
+        let dmg_text = format!("{}", dmg_popup as u32);
+        let scale = if dmg_crit { 3 } else { 2 };
+        let col = if dmg_crit {
+            Color { r: 255, g: 220, b: 60, a: alpha }
+        } else {
+            Color { r: 255, g: 255, b: 255, a: alpha }
+        };
+        text::draw_text_centered(fb, screen_x as i32, (screen_y - float_offset) as i32, &dmg_text, col, scale);
+        if dmg_crit {
+            text::draw_text_centered(fb, screen_x as i32, (screen_y - float_offset - 20.0) as i32, "CRIT!", Color { r: 255, g: 180, b: 40, a: alpha }, 1);
+        }
+    }
+
+    // Combo counter
+    if combo >= 2 {
+        let combo_text = format!("{} HIT COMBO!", combo);
+        let pulse = (time * 4.0).sin() * 0.3 + 0.7;
+        let alpha = (pulse * 255.0) as u8;
+        text::draw_text_centered(fb, 240, 220, &combo_text, Color { r: 255, g: 200, b: 100, a: alpha }, 2);
     }
 
     // Victory overlay

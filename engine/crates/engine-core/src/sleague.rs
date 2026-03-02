@@ -40,6 +40,8 @@ const MODE_SHOP: f64 = 6.0;
 const MODE_HEAL: f64 = 7.0;
 const MODE_CATCH_ANIM: f64 = 8.0;
 const MODE_TRANSITION: f64 = 9.0;
+const MODE_STARTER: f64 = 10.0;    // Starter monster choice screen
+const MODE_BATTLE_ITEMS: f64 = 11.0; // Item sub-menu in battle
 
 // Battle sub-phases
 const BPHASE_INTRO: f64 = 0.0;
@@ -47,6 +49,12 @@ const BPHASE_PLAYER_AIM: f64 = 1.0;
 const BPHASE_PLAYER_SHOT: f64 = 2.0;
 const BPHASE_ENEMY_TURN: f64 = 3.0;
 const _BPHASE_CATCH: f64 = 4.0;
+
+// Shot types for attack variety
+const SHOT_NORMAL: f64 = 0.0;
+const SHOT_POWER: f64 = 1.0;
+const SHOT_CURVE: f64 = 2.0;
+const SHOT_SPLIT: f64 = 3.0;
 
 // Tile custom IDs for overworld
 const TILE_GRASS: u16 = 0;
@@ -686,6 +694,32 @@ const K_ENCOUNTER_CD: &str = "encounter_cd";
 const K_TITLE_TIMER: &str = "title_timer";
 const K_TITLE_SEL: &str = "title_sel";
 
+// Starter choice
+const K_STARTER_SEL: &str = "starter_sel";
+
+// Shot type (attack variety)
+const K_SHOT_TYPE: &str = "shot_type";
+const K_CURVE_FORCE: &str = "curve_force";
+const K_BALL2_X: &str = "ball2_x";
+const K_BALL2_Y: &str = "ball2_y";
+const K_BALL2_VX: &str = "ball2_vx";
+const K_BALL2_VY: &str = "ball2_vy";
+const K_BALL2_ACTIVE: &str = "ball2_active";
+const K_SPLIT_DONE: &str = "split_done";
+const K_SHOT_DIST: &str = "shot_dist";
+
+// Transition guard
+const K_TRANS_SWAPPED: &str = "trans_swapped";
+
+// Arpeggio BGM
+const K_ARP_STEP: &str = "arp_step";
+const K_ARP_TIMER: &str = "arp_timer";
+const K_BATTLE_ARP_STEP: &str = "barp_step";
+const K_BATTLE_ARP_TIMER: &str = "barp_timer";
+
+// RNG sequence counter (fixes same-value-per-frame bug)
+const K_RNG_SEQ: &str = "_rng_seq";
+
 // ═══════════════════════════════════════════════════════════════════════
 // HELPER: State access shortcuts
 // ═══════════════════════════════════════════════════════════════════════
@@ -718,17 +752,19 @@ fn ss_inv(engine: &mut Engine, item: u8, val: f64) {
     engine.global_state.set_f64(&key, val);
 }
 
-/// Simple pseudo-random using engine time + frame
-fn rng(engine: &Engine) -> f64 {
-    let seed = engine.time * 1000.0 + engine.frame as f64 * 7.13;
+/// Pseudo-random with per-call sequence to avoid same-value-per-frame bug.
+fn rng(engine: &mut Engine) -> f64 {
+    let seq = engine.global_state.get_f64(K_RNG_SEQ).unwrap_or(0.0);
+    engine.global_state.set_f64(K_RNG_SEQ, seq + 1.0);
+    let seed = engine.time * 1000.0 + engine.frame as f64 * 7.13 + seq * 31.37;
     ((seed * 12345.6789).sin() * 43758.5453).fract().abs()
 }
 
-fn rng_range(engine: &Engine, min: f64, max: f64) -> f64 {
+fn rng_range(engine: &mut Engine, min: f64, max: f64) -> f64 {
     min + rng(engine) * (max - min)
 }
 
-fn _rng_seeded(seed: f64) -> f64 {
+fn rng_seeded(seed: f64) -> f64 {
     ((seed * 12345.6789).sin() * 43758.5453).fract().abs()
 }
 
@@ -1401,7 +1437,7 @@ fn check_zone_exit(zone: Zone, px: f64, py: f64, badges: u32) -> Option<(Zone, f
                 return Some((Zone::VerdantPath, 15.0 * TILE_SIZE, (MAP_H as f64 - 3.0) * TILE_SIZE));
             }
             if tx >= MAP_W - 2 && ty >= 21 && ty <= 23 {
-                if badges >= 1 { // Need Ember badge
+                if badges.count_ones() >= 1 { // Need Ember badge
                     return Some((Zone::DeepCave, 2.0 * TILE_SIZE, 20.0 * TILE_SIZE));
                 }
             }
@@ -1411,7 +1447,7 @@ fn check_zone_exit(zone: Zone, px: f64, py: f64, badges: u32) -> Option<(Zone, f
                 return Some((Zone::VerdantPath, (MAP_W as f64 - 3.0) * TILE_SIZE, 22.0 * TILE_SIZE));
             }
             if ty >= MAP_H - 2 && tx >= 13 && tx <= 16 {
-                if badges >= 2 { // Need Coral badge
+                if badges.count_ones() >= 2 { // Need Coral badge
                     return Some((Zone::Sparkridge, 15.0 * TILE_SIZE, 2.0 * TILE_SIZE));
                 }
             }
@@ -1477,9 +1513,8 @@ pub fn setup(engine: &mut Engine) {
     ss(engine, K_BADGES, 0.0);
     ss(engine, K_STEP_COUNT, 0.0);
 
-    // Give starter monster: Sproutail Lv5
-    ss(engine, K_TEAM_SIZE, 1.0);
-    set_team_monster(engine, 0, 0, 5);
+    // Team starts empty - starter chosen after intro dialogue
+    ss(engine, K_TEAM_SIZE, 0.0);
 
     // Starting inventory
     ss_inv(engine, ITEM_SPIRIT_ORB, 5.0);
@@ -1487,12 +1522,6 @@ pub fn setup(engine: &mut Engine) {
 
     // Build initial map
     engine.tilemap = Some(build_zone_map(Zone::PebbleTown));
-
-    // Play intro dialogue
-    ss(engine, K_MODE, MODE_DIALOGUE);
-    ss(engine, K_DLG_ID, 0.0);
-    ss(engine, K_DLG_LINE, 0.0);
-    ss(engine, K_DLG_TIMER, 0.0);
 
     // Title music
     engine.sound_queue.push(SoundCommand::StartLoop {
@@ -1907,6 +1936,8 @@ pub fn on_pointer_up(engine: &mut Engine, x: f64, y: f64) {
 }
 
 fn start_new_game(engine: &mut Engine) {
+    // Stop title BGM
+    engine.sound_queue.push(SoundCommand::StopLoop { id: "bgm".to_string(), fade_out: 0.5 });
     ss(engine, K_MODE, MODE_DIALOGUE);
     ss(engine, K_DLG_ID, 0.0);
     ss(engine, K_DLG_LINE, 0.0);
@@ -2176,21 +2207,21 @@ fn check_wild_encounter(engine: &mut Engine, px: f64, py: f64) {
     let tile_x = (px / TILE_SIZE) as usize;
     let tile_y = (py / TILE_SIZE) as usize;
 
-    if let Some(ref tm) = engine.tilemap {
+    // Extract tile type before calling rng() to avoid borrow conflict
+    let is_wild = if let Some(ref tm) = engine.tilemap {
         if tile_x < MAP_W && tile_y < MAP_H {
             if let Some(tile) = tm.get(tile_x, tile_y) {
-            if let TileType::Custom(id) = tile.tile_type {
-                if id == TILE_WILD {
-                    // Random encounter chance
-                    let r = rng(engine);
-                    if r < 0.02 { // ~2% per movement check
-                        let table = zone.encounter_table();
-                        if !table.is_empty() {
-                            start_wild_encounter(engine, zone);
-                        }
-                    }
-                }
-            }
+                matches!(tile.tile_type, TileType::Custom(id) if id == TILE_WILD)
+            } else { false }
+        } else { false }
+    } else { false };
+
+    if is_wild {
+        let r = rng(engine);
+        if r < 0.02 { // ~2% per movement check
+            let table = zone.encounter_table();
+            if !table.is_empty() {
+                start_wild_encounter(engine, zone);
             }
         }
     }
@@ -2330,6 +2361,7 @@ fn start_zone_transition(engine: &mut Engine, target: Zone, spawn_x: f64, spawn_
     stop_zone_bgm(engine);
     ss(engine, K_MODE, MODE_TRANSITION);
     ss(engine, K_TRANS_TIMER, 0.0);
+    ss(engine, K_TRANS_SWAPPED, 0.0);
     ss(engine, K_TRANS_TARGET, zone_to_f64(target));
     ss(engine, K_TRANS_MODE, MODE_OVERWORLD);
     ss(engine, K_PLAYER_TX, spawn_x);
@@ -2346,8 +2378,9 @@ fn update_transition(engine: &mut Engine, dt: f64) {
     let t = gs(engine, K_TRANS_TIMER) + dt;
     ss(engine, K_TRANS_TIMER, t);
 
-    if t > 0.3 {
-        // Halfway through - swap the map
+    if t > 0.3 && gs(engine, K_TRANS_SWAPPED) == 0.0 {
+        // Halfway through - swap the map (once only)
+        ss(engine, K_TRANS_SWAPPED, 1.0);
         let target = zone_from_f64(gs(engine, K_TRANS_TARGET));
         ss(engine, K_ZONE, zone_to_f64(target));
         engine.tilemap = Some(build_zone_map(target));
@@ -2447,8 +2480,9 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
     let mut vx = gs(engine, K_BALL_VX);
     let mut vy = gs(engine, K_BALL_VY);
 
-    // Physics step
-    let friction = 0.98;
+    // Physics step (dt-corrected exponential friction)
+    let friction_per_sec: f64 = 0.3;
+    let friction = friction_per_sec.powf(dt);
     vx *= friction;
     vy *= friction;
 

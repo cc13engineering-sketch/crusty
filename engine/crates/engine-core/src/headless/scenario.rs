@@ -10,7 +10,7 @@ pub enum ScheduledAction {
 }
 
 impl ScheduledAction {
-    fn frame(&self) -> u64 {
+    pub fn frame(&self) -> u64 {
         match self {
             Self::PointerDown { frame, .. } => *frame,
             Self::PointerMove { frame, .. } => *frame,

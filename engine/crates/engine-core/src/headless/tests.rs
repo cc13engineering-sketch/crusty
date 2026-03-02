@@ -179,3 +179,150 @@ fn shot_builder_shoot_upward_moves_ball() {
     let final_y = result.sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap();
     assert!(final_y < ball_y, "ball should have moved up, was {} now {}", ball_y, final_y);
 }
+
+// ─── Round 2: Parameter Sweep ─────────────────────────────────────────
+
+#[test]
+fn sweep_runs_multiple_configs() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let configs = vec![
+        SweepConfig {
+            label: "default".into(),
+            overrides: vec![],
+        },
+        SweepConfig {
+            label: "low_ball_y".into(),
+            overrides: vec![("ball_y".into(), 400.0)],
+        },
+    ];
+
+    let report = run_sweep(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        &actions,
+        &configs,
+        120,
+    );
+
+    assert_eq!(report.results.len(), 2);
+    assert!(!report.summary().is_empty());
+}
+
+#[test]
+fn sweep_min_max_by_state() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let configs = vec![
+        SweepConfig {
+            label: "default".into(),
+            overrides: vec![],
+        },
+        SweepConfig {
+            label: "moved_ball".into(),
+            overrides: vec![("ball_y".into(), 300.0)],
+        },
+    ];
+
+    let report = run_sweep(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        &actions,
+        &configs,
+        120,
+    );
+
+    let min = report.min_by_state("ball_y").unwrap();
+    let max = report.max_by_state("ball_y").unwrap();
+    let min_y = min.sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap();
+    let max_y = max.sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap();
+    assert!(min_y < max_y, "min_y={} should be < max_y={}", min_y, max_y);
+}
+
+// ─── Round 2: State Timeline ──────────────────────────────────────────
+
+#[test]
+fn timeline_records_ball_position() {
+    let tl = record_timeline(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        30,
+        &["ball_x", "ball_y", "tl_phase"],
+    );
+
+    assert_eq!(tl.len(), 30);
+    assert_eq!(tl.keys.len(), 3);
+
+    // Ball should be stationary (no shot fired), so all values should be the same
+    let bx_series = tl.series("ball_x").unwrap();
+    assert!(bx_series.iter().all(|v| (*v - bx_series[0]).abs() < 0.01));
+}
+
+#[test]
+fn timeline_with_shot_shows_movement() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, total) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.6)
+        .build();
+
+    let tl = record_timeline_with_actions(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        &actions,
+        total.min(120),
+        &["ball_y", "ball_vy", "tl_phase"],
+    );
+
+    assert!(tl.len() > 0);
+
+    // Ball should move upward (decreasing Y) after the shot
+    let by_series = tl.series("ball_y").unwrap();
+    let min_y = by_series.iter().cloned().fold(f64::INFINITY, f64::min);
+    assert!(min_y < ball_y, "ball should move upward from {}, min was {}", ball_y, min_y);
+}
+
+#[test]
+fn timeline_stats_work() {
+    let tl = record_timeline(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        30,
+        &["ball_x", "ball_y"],
+    );
+
+    let (min, max, mean) = tl.stats("ball_x").unwrap();
+    assert!(min > 0.0);
+    assert!(max > 0.0);
+    assert!(mean > 0.0);
+    // Stationary ball: min ≈ max ≈ mean
+    assert!((min - max).abs() < 1.0);
+}
+
+#[test]
+fn timeline_first_frame_where() {
+    let tl = record_timeline(
+        trap_links_demo::setup,
+        trap_links_demo::update,
+        trap_links_demo::render,
+        10,
+        &["tl_phase"],
+    );
+
+    // Phase should be 0 (aiming) from the start
+    let frame = tl.first_frame_where("tl_phase", |v| v == 0.0);
+    assert_eq!(frame, Some(0));
+}

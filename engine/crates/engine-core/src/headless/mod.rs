@@ -19,12 +19,14 @@ pub mod scenario;
 mod shot_builder;
 mod fb_hash;
 mod sweep;
+mod timeline;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult};
 pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;
 pub use sweep::{run_sweep, SweepConfig, SweepResult, SweepReport};
+pub use timeline::{record_timeline, record_timeline_with_actions, StateTimeline};
 
 #[cfg(test)]
 mod tests;

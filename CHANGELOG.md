@@ -132,6 +132,26 @@ Claude Code can now sweep physics parameters in batch and analyze ball trajector
 
 ---
 
+## Innovation Games: Headless Testing — Round 3
+
+**Theme: AI-driven iterative refinement pipeline**
+
+### New Headless Features (2 files, 6 new tests → 24 total)
+- **FitnessEvaluator** (`fitness.rs`): Composable weighted scoring system. Add named criteria (`score_hole_completion`, `score_stroke_efficiency`, `score_proximity_to_hole`) with weights, call `evaluate()` for a single SimResult or `rank_sweep()` to sort an entire SweepReport by fitness. Returns `FitnessResult` with `total` (0.0-1.0), `grade()` (A+ through F), and `summary()` for AI parsing.
+- **RegressionSuite** (`regression.rs`): Capture baselines from known-good runs, then `diff_against()` after code changes. Domain-aware classification: `strokes` increasing = Regressed, decreasing = Improved. `DiffReport` with `verdict()` (PASS/FAIL), `regressions()`, `improvements()`, and structured `summary()`.
+
+### The Complete AI Iteration Loop
+```
+FitnessEvaluator → "How good is the game?" (objective function)
+RegressionSuite  → "Did my change break anything?" (safety net)
+```
+Together they enable: sweep parameters → score candidates → pick best → verify no regressions → commit → repeat.
+
+### Value
+The feedback loop is now closed. Claude Code has an objective function (fitness score) to optimize and a safety net (regression diff) to prevent collateral damage. This enables autonomous iterative game refinement.
+
+---
+
 ## Foundation (Pre-Innovation Games)
 
 **Commits**: `first` through `Add GitHub Pages deployment`

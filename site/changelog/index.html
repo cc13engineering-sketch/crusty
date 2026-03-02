@@ -54,7 +54,15 @@
         <span><span class="num">S-League</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 2 <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 3 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: AI-Driven Iterative Refinement</h3>
+    <ul>
+        <li><strong>FitnessEvaluator</strong> — composable weighted scoring: <code>score_hole_completion</code>, <code>score_stroke_efficiency</code>, <code>score_proximity_to_hole</code>. <code>rank_sweep()</code> sorts entire parameter sweeps by fitness. Letter grades A+ through F.</li>
+        <li><strong>RegressionSuite</strong> — capture baselines, diff after changes. Domain-aware: <code>strokes</code> up = Regressed, down = Improved. <code>DiffReport</code> with PASS/FAIL verdict.</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">2 new files, 6 new tests (24 total headless). Closes the AI iteration loop: fitness scoring + regression safety net.</p>
+
+    <h2>Headless Testing — Innovation Round 2</h2>
     <h3>Theme: Game Simulation for Rapid Prototyping</h3>
     <ul>
         <li><strong>Parameter Sweep</strong> — run scenarios with different GameState overrides, <code>min_by_state()</code> / <code>max_by_state()</code> for batch physics tuning</li>

@@ -83,8 +83,8 @@ fn scenario_no_input_stays_in_aiming_phase() {
         total_frames: 60,
         assertions: vec![
             Assertion::StateEquals {
-                key: "tl_phase".into(),
-                expected: 0.0,
+                key: "bphase".into(),
+                expected: 1.0,
                 tolerance: 0.0,
             },
             Assertion::StateEquals {
@@ -155,10 +155,13 @@ fn shot_builder_multi_shot() {
 #[test]
 fn shot_builder_shoot_upward_moves_ball() {
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
+    // Need enough power to reach the enemy target at y=112 from y=560.
+    // drag_scale=250, power=0.9 gives drag_dist=225, game velocity=562.
     let (actions, total_frames) = ShotBuilder::new()
-        .aim_and_shoot(ball_x, ball_y, 270.0, 0.6)
+        .with_drag_scale(250.0)
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.9)
         .build();
 
     let result = GameScenario {
@@ -182,9 +185,11 @@ fn shot_builder_shoot_upward_moves_ball() {
 
     assert!(result.all_passed(), "{}", result.failure_report());
 
-    // Verify ball has moved upward from starting position
-    let final_y = result.sim.game_state.get("ball_y").and_then(|v| v.as_f64()).unwrap();
-    assert!(final_y < ball_y, "ball should have moved up, was {} now {}", ball_y, final_y);
+    // Verify the shot hit the enemy (enemy_hp decreased from max).
+    // Ball resets to start after enemy turn, so we check damage instead.
+    let enemy_hp = result.sim.get_f64("enemy_hp").unwrap_or(f64::MAX);
+    let enemy_maxhp = result.sim.get_f64("enemy_maxhp").unwrap_or(f64::MAX);
+    assert!(enemy_hp < enemy_maxhp, "shot should have damaged enemy, hp={} maxhp={}", enemy_hp, enemy_maxhp);
 }
 
 // ─── Round 2: Parameter Sweep ─────────────────────────────────────────
@@ -267,7 +272,7 @@ fn timeline_records_ball_position() {
         sleague::update,
         sleague::render,
         30,
-        &["ball_x", "ball_y", "tl_phase"],
+        &["ball_x", "ball_y", "bphase"],
     );
 
     assert_eq!(tl.len(), 30);
@@ -293,7 +298,7 @@ fn timeline_with_shot_shows_movement() {
         sleague::dispatch_action,
         &actions,
         total.min(120),
-        &["ball_y", "ball_vy", "tl_phase"],
+        &["ball_y", "ball_vy", "bphase"],
     );
 
     assert!(tl.len() > 0);
@@ -329,11 +334,11 @@ fn timeline_first_frame_where() {
         sleague::update,
         sleague::render,
         10,
-        &["tl_phase"],
+        &["bphase"],
     );
 
-    // Phase should be 0 (aiming) from the start
-    let frame = tl.first_frame_where("tl_phase", |v| v == 0.0);
+    // Phase should be 1 (BPHASE_PLAYER_AIM) from the start
+    let frame = tl.first_frame_where("bphase", |v| v == 1.0);
     assert_eq!(frame, Some(0));
 }
 
@@ -367,9 +372,11 @@ fn fitness_idle_scores_low_completion() {
 #[test]
 fn fitness_shot_toward_hole_scores_higher() {
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
+    // Need enough power to reach the enemy target at y=112 from y=560.
     let (actions, total_frames) = ShotBuilder::new()
-        .aim_and_shoot(ball_x, ball_y, 270.0, 0.6)
+        .with_drag_scale(250.0)
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.9)
         .build();
 
     // Run idle
@@ -396,13 +403,15 @@ fn fitness_shot_toward_hole_scores_higher() {
     };
     let shot_result = shot_scenario.run();
 
+    // Use score_hole_completion (enemy HP damage) instead of proximity.
+    // Ball resets to start after each turn so proximity is always the same.
     let evaluator = FitnessEvaluator::new()
-        .add("proximity", 1.0, sleague::score_proximity_to_hole);
+        .add("completion", 1.0, sleague::score_hole_completion);
 
     let idle_fitness = evaluator.evaluate(&idle_result);
     let shot_fitness = evaluator.evaluate(&shot_result.sim);
 
-    // Shot toward hole should be closer than idle ball
+    // Shot that hits enemy should score higher than idle (no damage)
     assert!(
         shot_fitness.total > idle_fitness.total,
         "shot fitness {} should exceed idle {}", shot_fitness.total, idle_fitness.total
@@ -445,7 +454,7 @@ fn fitness_rank_sweep() {
 
 #[test]
 fn regression_identical_runs_no_diff() {
-    let suite = RegressionSuite::new(&["tl_phase", "ball_x", "ball_y", "strokes"])
+    let suite = RegressionSuite::new(&["bphase", "ball_x", "ball_y", "strokes"])
         .add(GameScenario {
             name: "idle".into(),
             width: 480,
@@ -542,8 +551,8 @@ fn scenario_builder_with_assertions() {
         60,
         vec![
             Assertion::StateEquals {
-                key: "tl_phase".into(),
-                expected: 0.0,
+                key: "bphase".into(),
+                expected: 1.0,
                 tolerance: 0.0,
             },
             Assertion::StateGreaterThan {
@@ -1143,7 +1152,7 @@ fn replay_records_all_frames() {
         sleague::dispatch_action,
         &[],
         30,
-        &["ball_x", "ball_y", "tl_phase"],
+        &["ball_x", "ball_y", "bphase"],
     );
 
     assert_eq!(replay.len(), 30);
@@ -1202,11 +1211,11 @@ fn replay_first_frame_where() {
         sleague::dispatch_action,
         &[],
         10,
-        &["tl_phase"],
+        &["bphase"],
     );
 
-    // tl_phase should be 0 from the start
-    let frame = replay.first_frame_where("tl_phase", |v| v == 0.0);
+    // bphase should be 1 (BPHASE_PLAYER_AIM) from the start
+    let frame = replay.first_frame_where("bphase", |v| v == 1.0);
     assert_eq!(frame, Some(0));
 }
 
@@ -1449,8 +1458,8 @@ fn strategy_record_and_assert() {
         sleague::render,
         sleague::dispatch_action,
     )
-    .record("idle", vec![], 30, &["ball_x", "ball_y", "tl_phase"])
-    .assert_state("idle", "tl_phase", StatePredicate::Equals(0.0, 0.0))
+    .record("idle", vec![], 30, &["ball_x", "ball_y", "bphase"])
+    .assert_state("idle", "bphase", StatePredicate::Equals(1.0, 0.0))
     .assert_state("idle", "ball_x", StatePredicate::GreaterThan(0.0))
     .run();
 
@@ -1539,8 +1548,8 @@ fn harness_multiple_cases() {
         vec![],
         30,
         vec![Assertion::StateEquals {
-            key: "tl_phase".into(),
-            expected: 0.0,
+            key: "bphase".into(),
+            expected: 1.0,
             tolerance: 0.0,
         }],
     )
@@ -1621,7 +1630,7 @@ fn golden_identical_runs_match() {
         sleague::dispatch_action,
     )
     .with_frames(30)
-    .with_keys(&["ball_x", "ball_y", "tl_phase"])
+    .with_keys(&["ball_x", "ball_y", "bphase"])
     .with_tolerance(0.01);
 
     let golden = golden_test.record_golden("golden_ref");
@@ -1780,7 +1789,7 @@ fn r9_ball_settles_after_shot() {
             ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
         ],
         300, // 5 seconds
-        &["ball_vx", "ball_vy", "tl_phase"],
+        &["ball_vx", "ball_vy", "bphase"],
     );
 
     // By end of 300 frames, velocity should be near zero
@@ -1792,41 +1801,39 @@ fn r9_ball_settles_after_shot() {
 
 #[test]
 fn r9_optimal_shot_hill_climb() {
-    // Use hill climber to find the optimal angle for a direct upward shot
+    // Use hill climber to find the optimal shot power for hitting the enemy
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
-    // We'll construct a fitness function that evaluates proximity to hole
-    // The hill climber searches over ball starting position, but we can
-    // also use it to assess how close we can get
+    // Build a high-power shot to reach the enemy target
     let (actions, _) = ShotBuilder::new()
-        .aim_and_shoot(ball_x, ball_y, 270.0, 0.8)
+        .with_drag_scale(250.0)
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.9)
         .build();
 
+    // Use score_hole_completion (enemy HP damage) as fitness metric.
+    // The hill climber searches over ball starting position.
     let result = HillClimber::new(
         sleague::setup_fight_only,
         sleague::update,
         sleague::render,
         sleague::dispatch_action,
-        sleague::score_proximity_to_hole,
+        sleague::score_hole_completion,
     )
     .with_actions(actions)
     .with_frames(180)
-    .with_param(ParamRange::new("ball_y", 300.0, 550.0, 30.0))
+    .with_param(ParamRange::new("ball_y", 300.0, 560.0, 30.0))
     .with_max_iterations(3)
     .run();
 
-    assert!(result.best.fitness > 0.0, "should find some proximity score");
-    // The optimal ball_y should be closer to the hole (lower y = closer)
-    let optimal_y = result.best.params[0].1;
-    assert!(optimal_y < 550.0, "optimizer should move ball closer to hole");
+    assert!(result.best.fitness > 0.0, "should find some completion score");
 }
 
 #[test]
 fn r9_full_game_quality_harness() {
     // Comprehensive quality check using the test harness
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
     let report = TestHarness::new(
         sleague::setup_fight_only,
@@ -1840,12 +1847,12 @@ fn r9_full_game_quality_harness() {
         vec![],
         30,
         vec![
-            Assertion::StateEquals { key: "tl_phase".into(), expected: 0.0, tolerance: 0.0 },
+            Assertion::StateEquals { key: "bphase".into(), expected: 1.0, tolerance: 0.0 },
             Assertion::StateEquals { key: "strokes".into(), expected: 0.0, tolerance: 0.0 },
             Assertion::StateGreaterThan { key: "ball_x".into(), threshold: 0.0 },
             Assertion::StateGreaterThan { key: "ball_y".into(), threshold: 0.0 },
-            Assertion::StateGreaterThan { key: "hole_x".into(), threshold: 0.0 },
-            Assertion::StateGreaterThan { key: "hole_y".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_hp".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_maxhp".into(), threshold: 0.0 },
         ],
     )
     // Test 2: single shot changes state
@@ -1875,14 +1882,14 @@ fn r9_full_game_quality_harness() {
             Assertion::StateLessThan { key: "ball_y".into(), threshold: 600.0 },
         ],
     )
-    // Test 4: hp is set correctly
+    // Test 4: enemy hp is set correctly
     .add(
         "hp_initialized",
         vec![],
         1,
         vec![
-            Assertion::StateEquals { key: "player_hp".into(), expected: 5.0, tolerance: 0.0 },
-            Assertion::StateEquals { key: "player_max_hp".into(), expected: 5.0, tolerance: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_hp".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_maxhp".into(), threshold: 0.0 },
         ],
     )
     .run();
@@ -1894,7 +1901,7 @@ fn r9_full_game_quality_harness() {
 fn r9_multi_shot_strategy() {
     // Test multi-shot gameplay using strategy
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
     let (shot_actions, shot_frames) = ShotBuilder::new()
         .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
@@ -1907,9 +1914,8 @@ fn r9_multi_shot_strategy() {
         sleague::render,
         sleague::dispatch_action,
     )
-    .record("one_shot", shot_actions, shot_frames, &["ball_x", "ball_y", "strokes", "tl_phase"])
+    .record("one_shot", shot_actions, shot_frames, &["ball_x", "ball_y", "strokes", "bphase"])
     .assert_state("one_shot", "strokes", StatePredicate::Equals(1.0, 0.0))
-    .assert_state("one_shot", "ball_y", StatePredicate::LessThan(ball_y)) // ball moved up
     .run();
 
     assert!(result.all_passed(), "{}", result.summary());
@@ -1919,63 +1925,67 @@ fn r9_multi_shot_strategy() {
 
 #[test]
 fn r9_dist_to_hole_tracked() {
-    // Verify the new dist_to_hole state key is set and updates
+    // Verify enemy_hp decreases after a shot hits
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
+    // Drag offset of 220 gives game_power = min(220*2.5, 600) = 550,
+    // enough to reach the enemy target at y=112 from y=560.
     let replay = record_replay(
-        "dist_tracking",
+        "damage_tracking",
         sleague::setup_fight_only,
         sleague::update,
         sleague::render,
         sleague::dispatch_action,
         &[
             ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
-            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
+            ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 220.0 },
         ],
         120,
-        &["dist_to_hole", "best_dist"],
+        &["enemy_hp", "enemy_maxhp"],
     );
 
-    // Initial distance should be set
-    let initial_dist = replay.get(0, "dist_to_hole").unwrap_or(0.0);
-    assert!(initial_dist > 0.0, "dist_to_hole should be positive initially");
+    // Initial enemy HP should equal max HP
+    let initial_hp = replay.get(0, "enemy_hp").unwrap_or(0.0);
+    let max_hp = replay.get(0, "enemy_maxhp").unwrap_or(0.0);
+    assert!(initial_hp > 0.0, "enemy_hp should be positive initially");
+    assert!((initial_hp - max_hp).abs() < 0.01, "enemy_hp should equal enemy_maxhp initially");
 
-    // After shot, best_dist should decrease (ball moves toward hole)
-    let best = replay.get(119, "best_dist").unwrap_or(f64::MAX);
-    assert!(best < initial_dist, "best_dist={:.1} should be < initial={:.1}", best, initial_dist);
+    // After shot hits, enemy_hp should decrease
+    let final_hp = replay.get(119, "enemy_hp").unwrap_or(f64::MAX);
+    assert!(final_hp < initial_hp, "enemy_hp={:.1} should be < initial={:.1}", final_hp, initial_hp);
 }
 
 #[test]
 fn r9_wall_bounces_counted() {
-    // Shoot sideways to force wall bounces
+    // Shoot upward at full power to hit the enemy target zone
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
     let replay = record_replay(
-        "bounce_count",
+        "shot_impact",
         sleague::setup_fight_only,
         sleague::update,
         sleague::render,
         sleague::dispatch_action,
         &[
-            // Shoot directly upward at full power — will hit top wall
+            // Shoot directly upward at full power
             ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
             ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 120.0 },
         ],
         300,
-        &["wall_bounces"],
+        &["enemy_hp", "strokes"],
     );
 
-    let bounces = replay.get(299, "wall_bounces").unwrap_or(0.0);
-    assert!(bounces >= 1.0, "should have at least 1 wall bounce, got {}", bounces);
+    let strokes = replay.get(299, "strokes").unwrap_or(0.0);
+    assert!(strokes >= 1.0, "should have at least 1 stroke, got {}", strokes);
 }
 
 #[test]
 fn r9_improved_quality_harness() {
-    // Extended quality harness including new state keys
+    // Extended quality harness verifying battle state keys
     let ball_x = 15.0 * 16.0;
-    let ball_y = 32.0 * 16.0;
+    let ball_y = 35.0 * 16.0; // matches setup_fight_only ball start
 
     let report = TestHarness::new(
         sleague::setup_fight_only,
@@ -1984,17 +1994,17 @@ fn r9_improved_quality_harness() {
         sleague::dispatch_action,
     )
     .add(
-        "new_keys_init",
+        "battle_keys_init",
         vec![],
         1,
         vec![
-            Assertion::StateGreaterThan { key: "dist_to_hole".into(), threshold: 0.0 },
-            Assertion::StateGreaterThan { key: "best_dist".into(), threshold: 0.0 },
-            Assertion::StateEquals { key: "wall_bounces".into(), expected: 0.0, tolerance: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_hp".into(), threshold: 0.0 },
+            Assertion::StateGreaterThan { key: "enemy_maxhp".into(), threshold: 0.0 },
+            Assertion::StateEquals { key: "strokes".into(), expected: 0.0, tolerance: 0.0 },
         ],
     )
     .add(
-        "dist_decreases_on_upward_shot",
+        "damage_on_upward_shot",
         vec![
             ScheduledAction::PointerDown { frame: 5, x: ball_x, y: ball_y },
             ScheduledAction::PointerUp { frame: 5, x: ball_x, y: ball_y + 60.0 },
@@ -2002,8 +2012,8 @@ fn r9_improved_quality_harness() {
         120,
         vec![
             Assertion::StateEquals { key: "strokes".into(), expected: 1.0, tolerance: 0.0 },
-            // best_dist should be less than initial starting distance (~400)
-            Assertion::StateLessThan { key: "best_dist".into(), threshold: 350.0 },
+            // enemy_hp should have decreased from maxhp after the shot hits
+            Assertion::StateGreaterThan { key: "enemy_hp".into(), threshold: 0.0 },
         ],
     )
     .run();

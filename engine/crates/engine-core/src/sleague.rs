@@ -46,7 +46,7 @@ const BPHASE_INTRO: f64 = 0.0;
 const BPHASE_PLAYER_AIM: f64 = 1.0;
 const BPHASE_PLAYER_SHOT: f64 = 2.0;
 const BPHASE_ENEMY_TURN: f64 = 3.0;
-const BPHASE_CATCH: f64 = 4.0;
+const _BPHASE_CATCH: f64 = 4.0;
 
 // Tile custom IDs for overworld
 const TILE_GRASS: u16 = 0;
@@ -68,7 +68,7 @@ const TILE_BOSS: u16 = 15;
 
 // Battle arena tile IDs
 const TILE_ARENA: u16 = 50;
-const TILE_WALL: u16 = 51;
+const _TILE_WALL: u16 = 51;
 const TILE_HOLE: u16 = 52;
 const TILE_BUMPER: u16 = 53;
 
@@ -78,14 +78,14 @@ const TILE_BUMPER: u16 = 53;
 
 const COL_BG: Color = Color { r: 20, g: 12, b: 28, a: 255 };
 const COL_GRASS: Color = Color { r: 56, g: 128, b: 56, a: 255 };
-const COL_DARK_GRASS: Color = Color { r: 38, g: 92, b: 38, a: 255 };
+const _COL_DARK_GRASS: Color = Color { r: 38, g: 92, b: 38, a: 255 };
 const COL_PATH: Color = Color { r: 194, g: 178, b: 128, a: 255 };
 const COL_WILD: Color = Color { r: 34, g: 120, b: 34, a: 255 };
 const COL_WILD_ACCENT: Color = Color { r: 50, g: 160, b: 50, a: 255 };
 const COL_WATER: Color = Color { r: 48, g: 96, b: 180, a: 255 };
 const COL_BUILDING: Color = Color { r: 140, g: 120, b: 100, a: 255 };
 const COL_DOOR: Color = Color { r: 120, g: 72, b: 40, a: 255 };
-const COL_TREE_TRUNK: Color = Color { r: 100, g: 70, b: 40, a: 255 };
+const _COL_TREE_TRUNK: Color = Color { r: 100, g: 70, b: 40, a: 255 };
 const COL_TREE_TOP: Color = Color { r: 30, g: 100, b: 30, a: 255 };
 const COL_FLOWER: Color = Color { r: 220, g: 80, b: 120, a: 255 };
 const COL_SAND: Color = Color { r: 220, g: 200, b: 140, a: 255 };
@@ -106,7 +106,7 @@ const COL_HP_BAR: Color = Color { r: 80, g: 200, b: 80, a: 255 };
 const COL_HP_BG: Color = Color { r: 60, g: 30, b: 30, a: 255 };
 const COL_XP_BAR: Color = Color { r: 80, g: 120, b: 220, a: 255 };
 const COL_PLAYER: Color = Color { r: 80, g: 180, b: 255, a: 255 };
-const COL_ENERGY_ORB: Color = Color { r: 255, g: 200, b: 60, a: 255 };
+const _COL_ENERGY_ORB: Color = Color { r: 255, g: 200, b: 60, a: 255 };
 const COL_WHITE: Color = Color::WHITE;
 const COL_BLACK: Color = Color::BLACK;
 
@@ -203,6 +203,7 @@ fn type_effectiveness(attacker: Element, defender: Element) -> f64 {
 // ═══════════════════════════════════════════════════════════════════════
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct MonsterSpecies {
     id: u8,
     name: &'static str,
@@ -525,15 +526,18 @@ impl Zone {
         }
     }
 
+    #[allow(dead_code)]
     fn has_heal(self) -> bool {
         matches!(self, Zone::PebbleTown | Zone::DeepCave | Zone::Frostpeak)
     }
 
+    #[allow(dead_code)]
     fn has_shop(self) -> bool {
         matches!(self, Zone::PebbleTown | Zone::CoralShore | Zone::Frostpeak)
     }
 
     /// Min level for wild encounters (for level scaling)
+    #[allow(dead_code)]
     fn min_wild_level(self) -> u8 {
         match self {
             Zone::PebbleTown => 1,
@@ -552,7 +556,7 @@ impl Zone {
 // Zone layout on a 3x3 grid for the overworld
 // Each zone is 30x45 tiles but we pack them into one big map
 // Actually, we use a single zone at a time with transitions
-const ALL_ZONES: [Zone; 9] = [
+const _ALL_ZONES: [Zone; 9] = [
     Zone::PebbleTown,
     Zone::VerdantPath,
     Zone::EmberHollow,
@@ -643,6 +647,9 @@ const K_AIMING: &str = "aiming";
 const K_AIM_START_X: &str = "aim_sx";
 const K_AIM_START_Y: &str = "aim_sy";
 const K_STROKES: &str = "strokes";
+const K_DIST_TO_HOLE: &str = "dist_to_hole";
+const K_BEST_DIST: &str = "best_dist";
+const K_WALL_BOUNCES: &str = "wall_bounces";
 const K_EFFECTIVENESS: &str = "effectiveness"; // last hit effectiveness
 const K_BATTLE_MSG: &str = "battle_msg"; // 0=none, 1=super effective, 2=not effective
 const K_MSG_TIMER: &str = "msg_timer";
@@ -654,7 +661,7 @@ const K_DLG_TIMER: &str = "dlg_timer";
 
 // Shop/Heal
 const K_SHOP_SEL: &str = "shop_sel";
-const K_MENU_SEL: &str = "menu_sel";
+const _K_MENU_SEL: &str = "menu_sel";
 
 // Transition
 const K_TRANS_TIMER: &str = "trans_timer";
@@ -710,11 +717,11 @@ fn rng(engine: &Engine) -> f64 {
     ((seed * 12345.6789).sin() * 43758.5453).fract().abs()
 }
 
-fn rng_range(engine: &Engine, min: f64, max: f64) -> f64 {
+fn _rng_range(engine: &Engine, min: f64, max: f64) -> f64 {
     min + rng(engine) * (max - min)
 }
 
-fn rng_seeded(seed: f64) -> f64 {
+fn _rng_seeded(seed: f64) -> f64 {
     ((seed * 12345.6789).sin() * 43758.5453).fract().abs()
 }
 
@@ -1451,6 +1458,16 @@ pub fn setup_fight_only(engine: &mut Engine) {
     ss(engine, K_BALL_ACTIVE, 0.0);
     ss(engine, K_STROKES, 0.0);
 
+    // Distance tracking for headless tests
+    let target_cx = 15.0 * TILE_SIZE;
+    let target_cy = 7.0 * TILE_SIZE;
+    let dx = 15.0 * TILE_SIZE - target_cx;
+    let dy = 35.0 * TILE_SIZE - target_cy;
+    let initial_dist = (dx * dx + dy * dy).sqrt();
+    ss(engine, K_DIST_TO_HOLE, initial_dist);
+    ss(engine, K_BEST_DIST, initial_dist);
+    ss(engine, K_WALL_BOUNCES, 0.0);
+
     build_battle_arena(engine, sp.element);
 }
 
@@ -1675,7 +1692,7 @@ pub fn on_pointer_up(engine: &mut Engine, x: f64, y: f64) {
         let dy = sy - y;
         let dist = (dx * dx + dy * dy).sqrt();
         if dist > 15.0 {
-            let power = (dist * 2.5).min(600.0);
+            let power = (dist * 12.0).min(1800.0);
             let angle = dy.atan2(dx);
             let vx = angle.cos() * power;
             let vy = angle.sin() * power;
@@ -1835,6 +1852,10 @@ fn use_potion(engine: &mut Engine) {
 // ═══════════════════════════════════════════════════════════════════════
 
 pub fn update(engine: &mut Engine, dt: f64) {
+    // Normalize dt to seconds: headless runner passes seconds (~0.017),
+    // browser JS passes milliseconds (~16.7) from performance.now() deltas.
+    let dt = if dt > 1.0 { dt / 1000.0 } else { dt };
+
     let mode = gs(engine, K_MODE);
 
     if mode == MODE_TITLE {
@@ -2234,10 +2255,10 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
     let min_y = 2.0 * TILE_SIZE;
     let max_y = (MAP_H as f64 - 2.0) * TILE_SIZE;
 
-    if bx < min_x { bx = min_x; vx = -vx * 0.8; play_wall_bounce(engine); }
-    if bx > max_x { bx = max_x; vx = -vx * 0.8; play_wall_bounce(engine); }
-    if by < min_y { by = min_y; vy = -vy * 0.8; play_wall_bounce(engine); }
-    if by > max_y { by = max_y; vy = -vy * 0.8; play_wall_bounce(engine); }
+    if bx < min_x { bx = min_x; vx = -vx * 0.8; play_wall_bounce(engine); let wb = gs(engine, K_WALL_BOUNCES); ss(engine, K_WALL_BOUNCES, wb + 1.0); }
+    if bx > max_x { bx = max_x; vx = -vx * 0.8; play_wall_bounce(engine); let wb = gs(engine, K_WALL_BOUNCES); ss(engine, K_WALL_BOUNCES, wb + 1.0); }
+    if by < min_y { by = min_y; vy = -vy * 0.8; play_wall_bounce(engine); let wb = gs(engine, K_WALL_BOUNCES); ss(engine, K_WALL_BOUNCES, wb + 1.0); }
+    if by > max_y { by = max_y; vy = -vy * 0.8; play_wall_bounce(engine); let wb = gs(engine, K_WALL_BOUNCES); ss(engine, K_WALL_BOUNCES, wb + 1.0); }
 
     // Bumper collision
     if let Some(ref tm) = engine.tilemap {
@@ -2260,13 +2281,18 @@ fn update_ball_physics(engine: &mut Engine, dt: f64) {
         }
     }
 
-    // Check if hit the target zone (enemy)
+    // Track distance to target for headless testing
     let target_cx = 15.0 * TILE_SIZE;
     let target_cy = 7.0 * TILE_SIZE;
-    let hit_radius = 2.5 * TILE_SIZE;
     let dx = bx - target_cx;
     let dy = by - target_cy;
     let dist = (dx * dx + dy * dy).sqrt();
+    ss(engine, K_DIST_TO_HOLE, dist);
+    let best = gs(engine, K_BEST_DIST);
+    if dist < best { ss(engine, K_BEST_DIST, dist); }
+
+    // Check if hit the target zone (enemy)
+    let hit_radius = 2.5 * TILE_SIZE;
 
     if dist < hit_radius {
         // HIT! Calculate damage
@@ -2513,7 +2539,6 @@ pub fn render(engine: &mut Engine) {
 
 fn render_title(engine: &mut Engine) {
     let t = gs(engine, K_TITLE_TIMER);
-    let time = engine.time;
     let fb = &mut engine.framebuffer;
 
     for y in 0..HEIGHT as i32 {

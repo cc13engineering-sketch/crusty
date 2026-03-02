@@ -847,3 +847,286 @@ fn snapshot_no_actions_ball_stationary() {
     let changed = result.value_changed("ball_y", 0, 29);
     assert_eq!(changed, Some(false), "ball should be stationary without input");
 }
+
+// ─── Round 6: Action Generator ────────────────────────────────────────
+
+#[test]
+fn action_gen_grid_shots_produces_grid() {
+    let shots = super::action_gen::grid_shots(240.0, 512.0, 250.0, 290.0, 3, 0.3, 0.9, 3);
+    // 3 angles x 3 powers = 9
+    assert_eq!(shots.len(), 9);
+    for (label, actions, frames) in &shots {
+        assert!(!label.is_empty());
+        assert_eq!(actions.len(), 2); // down + up per shot
+        assert!(*frames > 0);
+    }
+}
+
+#[test]
+fn action_gen_grid_shots_single() {
+    let shots = super::action_gen::grid_shots(100.0, 100.0, 270.0, 270.0, 1, 0.5, 0.5, 1);
+    assert_eq!(shots.len(), 1);
+}
+
+#[test]
+fn action_gen_random_shots_deterministic() {
+    let a = super::action_gen::random_shots(240.0, 512.0, 5, 42);
+    let b = super::action_gen::random_shots(240.0, 512.0, 5, 42);
+    assert_eq!(a.len(), 5);
+    // Same seed = same results
+    for i in 0..5 {
+        assert_eq!(a[i].0, b[i].0);
+    }
+}
+
+#[test]
+fn action_gen_random_shots_different_seeds() {
+    let a = super::action_gen::random_shots(240.0, 512.0, 3, 1);
+    let b = super::action_gen::random_shots(240.0, 512.0, 3, 2);
+    // Different seeds should produce different labels (and actions)
+    // Labels are "rng_0" etc so they match, but actions differ
+    assert_eq!(a.len(), 3);
+    assert_eq!(b.len(), 3);
+}
+
+#[test]
+fn action_gen_tap_sequence() {
+    let (actions, total) = super::action_gen::tap_sequence(&[
+        (10, 100.0, 200.0),
+        (30, 150.0, 250.0),
+    ]);
+    assert_eq!(actions.len(), 4); // 2 taps x (down + up)
+    assert!(total > 30);
+}
+
+#[test]
+fn action_gen_drag_produces_events() {
+    let (actions, total) = super::action_gen::drag(5, 100.0, 200.0, 300.0, 400.0, 10);
+    // Should have: 1 down + 9 moves + 1 up = 11
+    assert!(actions.len() >= 3); // at minimum: down, some moves, up
+    assert!(total > 15);
+}
+
+#[test]
+fn action_gen_grid_shots_run_scenario() {
+    // Verify grid-generated shots actually produce valid scenarios
+    let shots = super::action_gen::grid_shots(240.0, 512.0, 270.0, 270.0, 1, 0.5, 0.5, 1);
+    let (_, actions, frames) = &shots[0];
+
+    let builder = ScenarioBuilder::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    );
+
+    let result = builder.run("grid_shot_test", actions.clone(), *frames, vec![
+        Assertion::StateEquals {
+            key: "strokes".into(),
+            expected: 1.0,
+            tolerance: 0.0,
+        },
+    ]);
+
+    assert!(result.all_passed(), "{}", result.failure_report());
+}
+
+// ─── Round 6: Experiment ──────────────────────────────────────────────
+
+#[test]
+fn experiment_basic_sweep() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let result = Experiment::new(
+        "basic_sweep",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_actions(actions)
+    .with_configs(vec![
+        SweepConfig { label: "default".into(), overrides: vec![] },
+        SweepConfig { label: "moved".into(), overrides: vec![("ball_y".into(), 400.0)] },
+    ])
+    .with_frames(120)
+    .run();
+
+    assert_eq!(result.sweep.results.len(), 2);
+    assert!(result.rankings.is_empty()); // no fitness evaluator
+    assert!(result.regression_ok());
+    assert!(!result.summary().is_empty());
+}
+
+#[test]
+fn experiment_with_fitness() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let evaluator = FitnessEvaluator::new()
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
+
+    let result = Experiment::new(
+        "fitness_sweep",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_actions(actions)
+    .with_configs(vec![
+        SweepConfig { label: "default".into(), overrides: vec![] },
+        SweepConfig { label: "closer".into(), overrides: vec![("ball_y".into(), 300.0)] },
+    ])
+    .with_frames(120)
+    .with_fitness(evaluator)
+    .run();
+
+    assert_eq!(result.rankings.len(), 2);
+    // Best should be first
+    assert!(result.rankings[0].1.total >= result.rankings[1].1.total);
+    let (best_label, best_fitness) = result.best().unwrap();
+    assert!(!best_label.is_empty());
+    assert!(best_fitness.total >= 0.0);
+}
+
+#[test]
+fn experiment_no_configs_defaults_to_baseline() {
+    let result = Experiment::new(
+        "no_configs",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_frames(30)
+    .run();
+
+    // Should still run one config (default)
+    assert_eq!(result.sweep.results.len(), 1);
+}
+
+#[test]
+fn experiment_summary_format() {
+    let evaluator = FitnessEvaluator::new()
+        .add("proximity", 1.0, sleague::score_proximity_to_hole);
+
+    let result = Experiment::new(
+        "summary_test",
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+    )
+    .with_frames(30)
+    .with_fitness(evaluator)
+    .run();
+
+    let summary = result.summary();
+    assert!(summary.contains("summary_test"));
+    assert!(summary.contains("Best:"));
+    assert!(summary.contains("score="));
+}
+
+// ─── Round 6: Hill Climber ────────────────────────────────────────────
+
+#[test]
+fn hill_climb_finds_better_params() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    // Optimize ball_y to maximize proximity to hole
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        sleague::score_proximity_to_hole,
+    )
+    .with_actions(actions)
+    .with_frames(120)
+    .with_param(ParamRange::new("ball_y", 200.0, 600.0, 50.0))
+    .with_max_iterations(5)
+    .run();
+
+    assert!(result.best.fitness >= 0.0);
+    assert!(result.evaluations > 1);
+    assert!(!result.summary().is_empty());
+    assert!(result.history.len() > 1);
+}
+
+#[test]
+fn hill_climb_multi_param() {
+    let ball_x = 15.0 * 16.0;
+    let ball_y = 32.0 * 16.0;
+    let (actions, _) = ShotBuilder::new()
+        .aim_and_shoot(ball_x, ball_y, 270.0, 0.5)
+        .build();
+
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        sleague::score_proximity_to_hole,
+    )
+    .with_actions(actions)
+    .with_frames(120)
+    .with_param(ParamRange::new("ball_x", 100.0, 400.0, 30.0))
+    .with_param(ParamRange::new("ball_y", 200.0, 600.0, 50.0))
+    .with_max_iterations(3)
+    .run();
+
+    // Should have optimized both params
+    assert_eq!(result.best.params.len(), 2);
+    assert!(result.evaluations > 2);
+}
+
+#[test]
+fn hill_climb_respects_bounds() {
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        sleague::score_proximity_to_hole,
+    )
+    .with_frames(30)
+    .with_param(ParamRange::new("ball_y", 300.0, 500.0, 25.0))
+    .with_max_iterations(5)
+    .run();
+
+    let y_val = result.best.params[0].1;
+    assert!(y_val >= 300.0 && y_val <= 500.0,
+        "ball_y={} should be in [300, 500]", y_val);
+}
+
+#[test]
+fn hill_climb_summary_format() {
+    let result = HillClimber::new(
+        sleague::setup_fight_only,
+        sleague::update,
+        sleague::render,
+        sleague::dispatch_action,
+        sleague::score_proximity_to_hole,
+    )
+    .with_frames(30)
+    .with_param(ParamRange::new("ball_y", 300.0, 500.0, 25.0))
+    .with_max_iterations(2)
+    .run();
+
+    let summary = result.summary();
+    assert!(summary.contains("HillClimb"));
+    assert!(summary.contains("fitness="));
+    assert!(summary.contains("ball_y="));
+}

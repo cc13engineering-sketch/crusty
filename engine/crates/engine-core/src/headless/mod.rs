@@ -23,6 +23,9 @@ mod timeline;
 mod fitness;
 mod regression;
 mod snapshot;
+mod experiment;
+mod hill_climb;
+pub mod action_gen;
 
 pub use runner::{HeadlessRunner, SimResult};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -39,6 +42,8 @@ pub use regression::{
     classify_any_change, classify_lower_is_better,
 };
 pub use snapshot::{run_with_snapshots, FrameSnapshot, SnapshotResult};
+pub use experiment::{Experiment, ExperimentResult};
+pub use hill_climb::{HillClimber, ParamRange, ClimbResult, Candidate};
 
 #[cfg(test)]
 mod tests;

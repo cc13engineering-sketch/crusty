@@ -50,11 +50,20 @@
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
         <span><span class="num">21</span> Engine Modules</span>
-        <span><span class="num">1069</span> Tests</span>
+        <span><span class="num">1084</span> Tests</span>
         <span><span class="num">S-League RPG</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 5 <span class="badge badge-new">NEW</span></h2>
+    <h2>Headless Testing — Innovation Round 6 <span class="badge badge-new">NEW</span></h2>
+    <h3>Theme: AI Iteration Loop</h3>
+    <ul>
+        <li><strong>Experiment runner</strong> — <code>Experiment</code> combines sweep + fitness + regression into a single declarative call. <code>ExperimentResult</code> with <code>best()</code>, <code>worst()</code>, <code>regression_ok()</code>, <code>summary()</code></li>
+        <li><strong>Hill climber</strong> — <code>HillClimber</code> iterative optimizer: define <code>ParamRange</code> search spaces, supply fitness function, get optimized parameters. Coordinate descent with shrinking steps</li>
+        <li><strong>Action generators</strong> — <code>grid_shots()</code> for systematic angle/power exploration, <code>random_shots()</code> with deterministic PRNG, <code>tap_sequence()</code> for UI testing, <code>drag()</code> for gesture generation</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">3 new files (experiment.rs, hill_climb.rs, action_gen.rs), 15 new tests. Total: 1084 tests passing.</p>
+
+    <h2>Headless Testing — Innovation Round 5</h2>
     <h3>Theme: Reduce Boilerplate, Add Generic Features</h3>
     <ul>
         <li><strong>ScenarioBuilder</strong> — set game functions once, build multiple scenarios without repeating function pointers. Methods: <code>new()</code>, <code>viewport()</code>, <code>build()</code>, <code>run()</code>, <code>run_idle()</code></li>

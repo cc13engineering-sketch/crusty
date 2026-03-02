@@ -4,6 +4,35 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## Innovation Games: Headless Testing — Round 6
+
+**Theme: AI iteration loop — experiment, optimize, generate**
+
+### Experiment Runner (`experiment.rs`)
+- `Experiment` struct combines sweep + fitness + regression into a single declarative call
+- Builder pattern: `with_actions()`, `with_configs()`, `with_frames()`, `with_fitness()`, `with_baseline()`
+- `ExperimentResult` with `best()`, `worst()`, `regression_ok()`, `summary()` for AI consumption
+- One call to run a complete A/B test with verdict
+
+### Hill Climber (`hill_climb.rs`)
+- `HillClimber` — iterative coordinate-descent optimizer for game parameters
+- `ParamRange` defines search space per parameter (key, min, max, step)
+- Algorithm: tries +/-step for each parameter, keeps improvements, shrinks step when stuck
+- `ClimbResult` with `best` candidate, convergence `history`, `improved()` check, `summary()`
+- Multi-parameter support: optimize ball position, physics constants, etc. simultaneously
+
+### Action Generator (`action_gen.rs`)
+- `grid_shots()` — systematic grid over angle/power space, produces labeled (actions, frames) tuples
+- `random_shots()` — deterministic PRNG-based random exploration with seed
+- `tap_sequence()` — generates PointerDown+PointerUp pairs for UI testing
+- `drag()` — interpolated drag gesture from point A to B over N frames
+
+### Tests
+- 15 new tests covering all three modules
+- Total: 1084 tests passing
+
+---
+
 ## Innovation Games: Headless Testing — Round 5
 
 **Theme: Reduce boilerplate, add generic features**

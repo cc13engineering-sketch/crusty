@@ -2824,18 +2824,39 @@ fn render_title(engine: &mut Engine) {
     text::draw_text_centered(fb, 240, 180, "S - L E A G U E", COL_UI_HIGHLIGHT, 4);
     text::draw_text_centered(fb, 240, 230, "Spirit Collection RPG", COL_UI_TEXT, 2);
 
+    // Show three showcase monsters with proper sprites
     let bob = (t * 2.0).sin() * 5.0;
-    shapes::fill_circle(fb, 160.0, 320.0 + bob, 25.0, Color { r: 80, g: 200, b: 80, a: 200 });
-    shapes::fill_circle(fb, 240.0, 310.0 - bob, 25.0, Color { r: 240, g: 100, b: 60, a: 200 });
-    shapes::fill_circle(fb, 320.0, 320.0 + bob, 25.0, Color { r: 80, g: 160, b: 240, a: 200 });
+    let bob2 = (t * 2.0 + 1.0).sin() * 5.0;
+    let leaf_sp = get_species(0);
+    let fire_sp = get_species(2);
+    let water_sp = get_species(4);
+    render_monster_sprite(fb, 130.0, 320.0 + bob, &leaf_sp, false);
+    render_monster_sprite(fb, 240.0, 310.0 + bob2, &fire_sp, false);
+    render_monster_sprite(fb, 350.0, 320.0 + bob, &water_sp, false);
 
-    let btn_y = 420.0;
-    shapes::fill_rect(fb, 140.0, btn_y, 200.0, 40.0, COL_UI_BG);
-    shapes::draw_rect(fb, 140.0, btn_y, 200.0, 40.0, COL_UI_HIGHLIGHT);
-    text::draw_text_centered(fb, 240, (btn_y + 14.0) as i32, "NEW GAME", COL_UI_HIGHLIGHT, 2);
+    // Monster names
+    text::draw_text_centered(fb, 130, 355, leaf_sp.name, leaf_sp.element.color(), 1);
+    text::draw_text_centered(fb, 240, 345, fire_sp.name, fire_sp.element.color(), 1);
+    text::draw_text_centered(fb, 350, 355, water_sp.name, water_sp.element.color(), 1);
 
-    text::draw_text_centered(fb, 240, 650, "Tap to begin!", COL_UI_TEXT, 1);
-    text::draw_text_centered(fb, 240, 680, "Built with Crusty Engine", Color { r: 120, g: 120, b: 140, a: 255 }, 1);
+    // Subtitle
+    text::draw_text_centered(fb, 240, 390, "Collect. Battle. Evolve.", Color { r: 180, g: 160, b: 200, a: 255 }, 1);
+
+    let btn_y = 430.0;
+    let blink = (t * 3.0).sin() > 0.0;
+    let btn_col = if blink { COL_UI_HIGHLIGHT } else { Color { r: 200, g: 180, b: 60, a: 255 } };
+    shapes::fill_rect(fb, 140.0, btn_y, 200.0, 45.0, COL_UI_BG);
+    shapes::draw_rect(fb, 140.0, btn_y, 200.0, 45.0, btn_col);
+    text::draw_text_centered(fb, 240, (btn_y + 14.0) as i32, "NEW GAME", btn_col, 2);
+
+    // Feature list
+    text::draw_text_centered(fb, 240, 510, "24 Spirit Creatures to collect", Color { r: 160, g: 160, b: 180, a: 255 }, 1);
+    text::draw_text_centered(fb, 240, 530, "9 Unique zones to explore", Color { r: 160, g: 160, b: 180, a: 255 }, 1);
+    text::draw_text_centered(fb, 240, 550, "5 Guardian bosses to defeat", Color { r: 160, g: 160, b: 180, a: 255 }, 1);
+    text::draw_text_centered(fb, 240, 570, "9 Element types & advantages", Color { r: 160, g: 160, b: 180, a: 255 }, 1);
+
+    text::draw_text_centered(fb, 240, 650, "Tap NEW GAME to begin!", COL_UI_TEXT, 1);
+    text::draw_text_centered(fb, 240, 680, "Built with Crusty Engine", Color { r: 100, g: 100, b: 120, a: 255 }, 1);
 }
 
 fn render_overworld(engine: &mut Engine) {
@@ -2905,14 +2926,37 @@ fn render_player(engine: &mut Engine, cam_x: f64, cam_y: f64) {
     let sy = py - cam_y + HEIGHT / 2.0;
     let bob = if moving == 1.0 { (anim * 8.0).sin() * 2.0 } else { 0.0 };
 
-    shapes::fill_circle(fb, sx, sy - 4.0 + bob, 7.0, COL_PLAYER);
-    shapes::fill_circle(fb, sx, sy - 12.0 + bob, 5.0, Color { r: 255, g: 220, b: 180, a: 255 });
+    // Shadow
+    shapes::fill_circle(fb, sx, sy + 4.0, 6.0, Color { r: 0, g: 0, b: 0, a: 60 });
 
+    // Body
+    shapes::fill_circle(fb, sx, sy - 3.0 + bob, 7.0, COL_PLAYER);
+    // Belt/waist detail
+    shapes::draw_line(fb, sx - 5.0, sy - 1.0 + bob, sx + 5.0, sy - 1.0 + bob, Color { r: 40, g: 100, b: 180, a: 255 });
+
+    // Head (skin color)
+    shapes::fill_circle(fb, sx, sy - 12.0 + bob, 5.5, Color { r: 255, g: 220, b: 180, a: 255 });
+    // Hair
+    shapes::fill_circle(fb, sx, sy - 15.0 + bob, 4.0, Color { r: 60, g: 40, b: 30, a: 255 });
+
+    // Eyes based on direction
     let (ex, ey) = match dir {
-        0 => (0.0, 2.0), 1 => (0.0, -2.0), 2 => (-2.0, 0.0), 3 => (2.0, 0.0), _ => (0.0, 2.0),
+        0 => (0.0, 1.5), 1 => (0.0, -1.5), 2 => (-1.5, 0.0), 3 => (1.5, 0.0), _ => (0.0, 1.5),
     };
-    shapes::fill_circle(fb, sx + ex - 1.5, sy - 12.0 + ey + bob, 1.0, COL_BLACK);
-    shapes::fill_circle(fb, sx + ex + 1.5, sy - 12.0 + ey + bob, 1.0, COL_BLACK);
+    shapes::fill_circle(fb, sx + ex - 2.0, sy - 12.0 + ey + bob, 1.2, COL_WHITE);
+    shapes::fill_circle(fb, sx + ex + 2.0, sy - 12.0 + ey + bob, 1.2, COL_WHITE);
+    shapes::fill_circle(fb, sx + ex - 1.8, sy - 12.0 + ey + bob, 0.7, COL_BLACK);
+    shapes::fill_circle(fb, sx + ex + 1.8, sy - 12.0 + ey + bob, 0.7, COL_BLACK);
+
+    // Walking legs
+    if moving == 1.0 {
+        let leg_offset = (anim * 8.0).sin() * 3.0;
+        shapes::fill_circle(fb, sx - 2.5, sy + 4.0 + leg_offset, 2.5, Color { r: 50, g: 120, b: 200, a: 255 });
+        shapes::fill_circle(fb, sx + 2.5, sy + 4.0 - leg_offset, 2.5, Color { r: 50, g: 120, b: 200, a: 255 });
+    } else {
+        shapes::fill_circle(fb, sx - 2.5, sy + 4.0, 2.5, Color { r: 50, g: 120, b: 200, a: 255 });
+        shapes::fill_circle(fb, sx + 2.5, sy + 4.0, 2.5, Color { r: 50, g: 120, b: 200, a: 255 });
+    }
 }
 
 fn render_zone_banner(engine: &mut Engine) {

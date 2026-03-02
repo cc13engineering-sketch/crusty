@@ -4,6 +4,34 @@ All notable changes to the Crusty game engine, organized by Innovation Games rou
 
 ---
 
+## S-League RPG Overworld Expansion
+
+**Demo rewrite: 258 → 1052 lines, full RPG with overworld + monster encounters**
+
+### Overworld Mode
+- **Tile-based world**: 30x37 tile map with town center (path tiles, buildings), 4 routes (N/S/E/W) with wild grass, northeast pond, tree clusters and borders
+- **Tap-to-move**: Mobile-first movement — tap determines cardinal direction relative to player. Smooth eased animation over 0.15s
+- **Encounter system**: 25% chance on wild grass tiles using deterministic pseudo-random. Screen flash transition into fight mode
+- **RPG HUD**: HP pips, level/XP display, encounter wins counter, step tracker
+
+### Monster Fights
+- **3 monster types**: Mole (par 3, L-shaped walls), Rabbit (par 2, open course), Scorpion (par 4, corridors + heavy sand)
+- **Monster-themed HUD**: Color pip, name, par display, score vs par (eagle/birdie/bogey), HP bar
+- **Performance scoring**: Under-par = heal + bonus XP, over-par = HP damage, max strokes = fail (-3HP)
+- **Fight end**: XP gain scaled by performance, level-up system with HP max increases, roguelike mercy (0 HP = full heal)
+
+### RPG Progression
+- HP / Max HP system with damage and healing from fight outcomes
+- XP with level-up curve (level^2 * 50), Max HP +1 every even level
+- Encounter wins and step counters
+- Position preservation across overworld ↔ fight transitions
+
+### Test Infrastructure
+- Added `setup_fight_only()` for headless tests and CLI — enters fight mode directly
+- All 21 headless tests updated to use fight-only setup, all pass (1054 total)
+
+---
+
 ## Round 11 — Physics & Core Engine Improvements
 
 **4 engine upgrades, 31 new tests (1063 → 1094 total)**

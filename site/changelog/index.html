@@ -50,11 +50,23 @@
         <span><span class="num">32</span> Components</span>
         <span><span class="num">21</span> Systems</span>
         <span><span class="num">21</span> Engine Modules</span>
-        <span><span class="num">1042+</span> Tests</span>
-        <span><span class="num">S-League</span> Demo</span>
+        <span><span class="num">1054</span> Tests</span>
+        <span><span class="num">S-League RPG</span> Demo</span>
     </div>
 
-    <h2>Headless Testing — Innovation Round 3 <span class="badge badge-new">NEW</span></h2>
+    <h2>S-League RPG Overworld Expansion <span class="badge badge-new">NEW</span></h2>
+    <h3>Full RPG: Overworld + Monster Encounters</h3>
+    <ul>
+        <li><strong>Tile-based overworld</strong> — 30x37 map with town center, 4 routes (N/S/E/W), wild grass encounter zones, pond, tree borders</li>
+        <li><strong>Tap-to-move</strong> — mobile-first: tap determines cardinal direction relative to player, smooth eased animation</li>
+        <li><strong>Encounter system</strong> — 25% chance on wild grass, deterministic pseudo-random, screen flash transition</li>
+        <li><strong>3 monster types</strong> — Mole (par 3, L-walls), Rabbit (par 2, open), Scorpion (par 4, corridors + sand)</li>
+        <li><strong>RPG progression</strong> — HP/XP/levels, performance-based fight outcomes (eagle heals, bogey damages), level-up HP increases</li>
+        <li><strong>Monster-themed HUD</strong> — color pips, par display, score vs par, HP bar in both overworld and fight modes</li>
+    </ul>
+    <p style="color:#888; font-size:0.85rem;">Demo rewrite: 258 → 1052 lines. Two game modes with full RPG loop. All 1054 tests pass.</p>
+
+    <h2>Headless Testing — Innovation Round 3</h2>
     <h3>Theme: AI-Driven Iterative Refinement</h3>
     <ul>
         <li><strong>FitnessEvaluator</strong> — composable weighted scoring: <code>score_hole_completion</code>, <code>score_stroke_efficiency</code>, <code>score_proximity_to_hole</code>. <code>rank_sweep()</code> sorts entire parameter sweeps by fitness. Letter grades A+ through F.</li>
@@ -81,7 +93,7 @@
     </ul>
     <p style="color:#888; font-size:0.85rem;">6 new files, 12 new tests. Claude Code can now run the full game loop natively and iterate via cargo test.</p>
 
-    <h2>Engine Refactor — S-League Focus <span class="badge badge-new">NEW</span></h2>
+    <h2>Engine Refactor — S-League Focus</h2>
     <h3>Removed</h3>
     <ul>
         <li><strong>Scripting system</strong> — .world parser, loader, world_lint removed (games are Rust crates only)</li>

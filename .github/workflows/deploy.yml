@@ -64,6 +64,9 @@ jobs:
           # Copy changelog
           cp site/changelog/index.html _site/changelog/
 
+          # Copy docs
+          cp -r site/docs _site/docs
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

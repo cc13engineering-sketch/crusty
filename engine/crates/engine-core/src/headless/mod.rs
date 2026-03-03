@@ -37,6 +37,7 @@ mod anomaly;
 mod strategy;
 mod harness;
 mod golden;
+pub mod playthrough;
 
 pub use runner::{HeadlessRunner, SimResult, RunConfig};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -61,6 +62,7 @@ pub use anomaly::{AnomalyDetector, Anomaly, AnomalyKind};
 pub use strategy::{Strategy, StrategyResult, StepOutcome, StatePredicate};
 pub use harness::{TestHarness, HarnessReport, HarnessEntry};
 pub use golden::{GoldenTest, GoldenResult};
+pub use playthrough::PlaythroughFile;
 
 #[cfg(test)]
 mod tests;

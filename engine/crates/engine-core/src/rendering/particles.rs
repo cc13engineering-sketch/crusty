@@ -2,6 +2,7 @@ use super::color::Color;
 use super::framebuffer::Framebuffer;
 use super::shapes;
 use crate::engine::Camera;
+use crate::rng::SeededRng;
 
 #[derive(Clone, Debug)]
 pub struct Particle {
@@ -42,7 +43,7 @@ impl ParticlePool {
         color_start: Color, color_end: Color,
         seed: u64,
     ) {
-        let mut rng = SimpleRng::new(seed);
+        let mut rng = SeededRng::new(seed);
         for _ in 0..count {
             let angle = rng.next_f64() * std::f64::consts::TAU;
             let speed = speed_min + rng.next_f64() * (speed_max - speed_min);
@@ -89,27 +90,5 @@ impl ParticlePool {
 
     pub fn count(&self) -> usize {
         self.particles.len()
-    }
-}
-
-/// Simple deterministic PRNG (xorshift64).
-pub struct SimpleRng {
-    state: u64,
-}
-
-impl SimpleRng {
-    pub fn new(seed: u64) -> Self {
-        Self { state: seed.max(1) }
-    }
-
-    pub fn next_u64(&mut self) -> u64 {
-        self.state ^= self.state << 13;
-        self.state ^= self.state >> 7;
-        self.state ^= self.state << 17;
-        self.state
-    }
-
-    pub fn next_f64(&mut self) -> f64 {
-        (self.next_u64() % 10000) as f64 / 10000.0
     }
 }

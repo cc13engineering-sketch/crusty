@@ -32,6 +32,7 @@ use crate::level_curve::LevelCurve;
 use crate::ui_canvas::UiCanvas;
 use crate::color_palette::ColorPalette;
 use crate::frame_metrics::FrameMetrics;
+use crate::rng::SeededRng;
 
 /// Defines the canonical execution phases within a single engine tick.
 ///
@@ -316,6 +317,9 @@ pub struct Engine {
 
     // Performance telemetry
     pub frame_metrics: FrameMetrics,
+
+    // Canonical deterministic RNG
+    pub rng: SeededRng,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -367,6 +371,7 @@ impl Engine {
             color_palette: ColorPalette::default(),
             ui_canvas: UiCanvas::new(),
             frame_metrics: FrameMetrics::new(),
+            rng: SeededRng::new(42),
         }
     }
 

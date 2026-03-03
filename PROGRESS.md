@@ -1,6 +1,8 @@
 # Crusty Engine — Implementation Progress
 
-## Current Phase: Phase 1 — Clean Slate
+## Current Phase: Phase 2 — Deterministic Core
+
+## Phase 1 — Clean Slate — COMPLETE
 
 ### Phase 1.1: Remove Dead Code — DONE
 - [x] Delete `game-concept/DESIGN.md`
@@ -20,14 +22,17 @@
 - [ ] Delete `ShotBuilder` (headless/shot_builder.rs)
 - [ ] Note: `HeadlessRunner`, `GameScenario`, `ScheduledAction`, `record_replay` use function pointers. These will be replaced by the Simulation trait in Phase 3. For now, keep them — they are still used by surviving headless modules. Will be rewritten in Phase 3/4.
 
-### Phase 1.3: Consolidate RNG — TODO
-- [ ] Move `SeededRng` from `procedural_gen.rs` to new `rng.rs` module
-- [ ] Add `pub rng: SeededRng` field to Engine
-- [ ] Seed in `Engine::new()` with default seed 42
-- [ ] Delete `SimpleRng` from `rendering/particles.rs`
-- [ ] Update `particles.rs` and `starfield.rs` to use `SeededRng`
+### Phase 1.3: Consolidate RNG — DONE
+- [x] Created `rng.rs` module with `SeededRng` (xorshift64) + tests
+- [x] Added `pub rng: SeededRng` field to Engine, seeded with 42
+- [x] Updated `procedural_gen.rs` to re-export from `rng.rs`
+- [x] Deleted `SimpleRng` from `rendering/particles.rs`
+- [x] Updated `particles.rs` and `starfield.rs` to use `SeededRng`
+- [x] All 1037 tests pass
 
-## Phase 2 — Deterministic Core — TODO
+## Phase 1 COMPLETE. Moving to Phase 2.
+
+## Phase 2 — Deterministic Core — IN PROGRESS
 
 ### Phase 2.1: State Hashing
 - [ ] Implement `Engine::state_hash() -> u64`

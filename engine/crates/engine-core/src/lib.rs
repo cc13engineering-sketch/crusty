@@ -40,6 +40,7 @@ pub mod level_curve;
 pub mod ui_canvas;
 pub mod aim_preview;
 pub mod frame_metrics;
+pub mod rng;
 pub mod headless;
 
 #[cfg(test)]

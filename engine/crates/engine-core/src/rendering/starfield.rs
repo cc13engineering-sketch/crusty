@@ -1,7 +1,7 @@
 use super::color::Color;
 use super::framebuffer::Framebuffer;
 use super::shapes;
-use super::particles::SimpleRng;
+use crate::rng::SeededRng;
 use crate::engine::Camera;
 
 pub struct Star {
@@ -21,7 +21,7 @@ pub struct Starfield {
 impl Starfield {
     pub fn generate(seed: u64, world_w: f64, world_h: f64, density: u32) -> Self {
         let mut stars = Vec::new();
-        let mut rng = SimpleRng::new(seed);
+        let mut rng = SeededRng::new(seed);
 
         // Layer 1: Far (dim, single pixel)
         for _ in 0..density {

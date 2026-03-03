@@ -22,7 +22,6 @@
             border: 1px solid #2a2a3a;
             image-rendering: pixelated;
             cursor: crosshair;
-            max-width: 95vw;
         }
         .info {
             color: #888;
@@ -70,12 +69,12 @@
         const scoreEl = document.getElementById('score');
         const launchesEl = document.getElementById('launches');
 
-        // Scale canvas for retina but keep logical size
+        // Scale canvas to fit viewport while preserving aspect ratio
         function fitCanvas() {
             const maxW = window.innerWidth * 0.95;
-            const scale = Math.min(2, Math.floor(maxW / W)) || 1;
-            canvas.style.width = (W * scale) + 'px';
-            canvas.style.height = (H * scale) + 'px';
+            const scale = Math.min(maxW / W, 2);
+            canvas.style.width = Math.round(W * scale) + 'px';
+            canvas.style.height = Math.round(H * scale) + 'px';
         }
         fitCanvas();
         window.addEventListener('resize', fitCanvas);

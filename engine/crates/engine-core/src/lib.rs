@@ -85,14 +85,16 @@ pub fn tick(dt_ms: f64) {
     ENGINE.with(|e| {
         let mut borrow = e.borrow_mut();
         let eng = borrow.as_mut().expect("Engine not initialized");
-        eng.tick(dt_ms / 1000.0);
+        // Run simulation step BEFORE eng.tick() so the game logic sees
+        // current-frame input (mouse_buttons_pressed, keys_pressed, etc.)
+        // before eng.tick() calls input.end_frame() which clears them.
         SIM.with(|s| {
             let mut sim_borrow = s.borrow_mut();
             if let Some(sim) = sim_borrow.as_mut() {
                 sim.step(eng);
-                sim.render(eng);
             }
         });
+        eng.tick(dt_ms / 1000.0);
     });
 }
 

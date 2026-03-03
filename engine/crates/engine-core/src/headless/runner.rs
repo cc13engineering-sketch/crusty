@@ -1,6 +1,7 @@
 use crate::engine::Engine;
 use crate::frame_metrics::FrameMetrics;
 use crate::input_frame::InputFrame;
+use crate::policy::Policy;
 use crate::simulation::Simulation;
 use std::collections::HashMap;
 use crate::game_state::StateValue;
@@ -129,6 +130,52 @@ impl HeadlessRunner {
             // via end_frame), so that sim.step() sees fresh input.
             let input = inputs.get(i as usize).unwrap_or(&empty);
             self.engine.apply_input(input);
+            sim.step(&mut self.engine);
+            if !config.turbo {
+                sim.render(&mut self.engine);
+            }
+            if config.capture_state_hashes {
+                state_hashes.push(self.engine.state_hash());
+            }
+        }
+
+        self.snapshot(frames, state_hashes)
+    }
+
+    /// Run a simulation driven by a policy for a fixed number of frames.
+    ///
+    /// Each frame: tick → observe → policy.next_input → apply_input → step → render.
+    /// The policy sees the observation *before* its input is applied,
+    /// matching how a real agent would perceive-then-act.
+    pub fn run_with_policy<S: Simulation, P: Policy>(
+        &mut self,
+        sim: &mut S,
+        policy: &mut P,
+        seed: u64,
+        frames: u64,
+        config: RunConfig,
+    ) -> SimResult {
+        let dt = 1.0 / 60.0;
+        self.engine.reset(seed);
+        sim.setup(&mut self.engine);
+
+        let mut state_hashes = if config.capture_state_hashes {
+            Vec::with_capacity(frames as usize)
+        } else {
+            Vec::new()
+        };
+
+        for _ in 0..frames {
+            self.engine.tick(dt);
+
+            let obs = if config.turbo {
+                self.engine.observe_turbo()
+            } else {
+                self.engine.observe()
+            };
+            let input = policy.next_input(&obs);
+            self.engine.apply_input(&input);
+
             sim.step(&mut self.engine);
             if !config.turbo {
                 sim.render(&mut self.engine);

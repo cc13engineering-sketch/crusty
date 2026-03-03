@@ -46,7 +46,7 @@ use crate::rng::SeededRng;
 /// | Phase          | Purpose                                                         |
 /// |----------------|-----------------------------------------------------------------|
 /// | `Input`        | Gather and pre-process player input, gestures, debug toggles.   |
-/// | `Simulation`   | Logical world update: lifecycle, AI, animation, state machines. |
+/// | `Simulation`   | Fixed-dt logical update: lifecycle, AI, animation, state machines. |
 /// | `Physics`      | Fixed-timestep physics: forces, integration, collision, joints. |
 /// | `PostPhysics`  | Gameplay reactions, spawning, particles, camera, game-over.     |
 /// | `RenderingPrep`| All drawing: background, entities, HUD, post-fx, cleanup.      |
@@ -60,7 +60,7 @@ pub enum SystemPhase {
     /// - Drain recognized gestures and publish to `EventBus`
     Input = 0,
 
-    /// Phase 1 -- Variable-dt logical update.
+    /// Phase 1 -- Fixed-dt logical update (FIXED_DT = 1/60s).
     ///
     /// Systems (in order):
     /// - `lifecycle::run`       -- spawns, despawns, lifetimes, timers, behavior rules
@@ -88,7 +88,7 @@ pub enum SystemPhase {
     /// - `physics_joint::run`     -- distance, spring, rope, hinge constraints
     Physics = 2,
 
-    /// Phase 3 -- Runs once after physics, still at variable dt.
+    /// Phase 3 -- Runs once after physics. Gameplay uses FIXED_DT; rendering uses variable dt.
     ///
     /// Systems (in order):
     /// - `gameplay::run`          -- collision reactions, scoring, damage
@@ -510,7 +510,7 @@ impl Engine {
     ///   |- GestureRecognizer::update
     ///   '- drain gestures -> EventBus
     ///
-    /// Phase 1  Simulation  (variable dt)
+    /// Phase 1  Simulation  (FIXED_DT)
     ///   |- lifecycle::run        (spawns, despawns, lifetimes, timers, rules)
     ///   |- hierarchy::run        (parent->child transforms)
     ///   |- signal::run           (emitter->receiver wiring)
@@ -531,7 +531,7 @@ impl Engine {
     ///   |- collision::run
     ///   '- physics_joint::run
     ///
-    /// Phase 3  PostPhysics  (variable dt)
+    /// Phase 3  PostPhysics  (FIXED_DT for gameplay, variable dt for rendering)
     ///   |- gameplay::run         (collision reactions, scoring, damage)
     ///   |- event_processor::run  (legacy event triggers)
     ///   |- input_gameplay::run   (input-driven actions)
@@ -629,10 +629,10 @@ impl Engine {
         crate::systems::signal::run(&mut self.world);
 
         // State machine system (tick elapsed, check transitions)
-        crate::systems::state_machine::run(&mut self.world, dt);
+        crate::systems::state_machine::run(&mut self.world, FIXED_DT);
 
         // Coroutine system (advance async behavior steps)
-        crate::systems::coroutine::run(&mut self.world, dt);
+        crate::systems::coroutine::run(&mut self.world, FIXED_DT);
 
         // Drain coroutine-queued spawns into engine spawn queue
         let queued_spawns: Vec<_> = self.world.spawn_queue.spawns.drain(..).collect();
@@ -641,25 +641,25 @@ impl Engine {
         }
 
         // Environment clock (day/night, seasons)
-        self.environment_clock.tick(dt);
+        self.environment_clock.tick(FIXED_DT);
 
         // Resource flow network (transfer resources along edges)
-        self.flow_network.solve(&mut self.world, dt);
+        self.flow_network.solve(&mut self.world, FIXED_DT);
 
         // Sprite animation system (advance frame timers)
-        crate::systems::sprite_animator::run(&mut self.world, dt);
+        crate::systems::sprite_animator::run(&mut self.world, FIXED_DT);
 
         // Behavior system (AI movement)
-        crate::systems::behavior::run(&mut self.world, dt);
+        crate::systems::behavior::run(&mut self.world, FIXED_DT);
 
         // Tween system (easing-curve property animation)
-        crate::systems::tween::run(&mut self.world, dt);
+        crate::systems::tween::run(&mut self.world, FIXED_DT);
 
         // Flash system (hit flash, blink, color pulse)
-        crate::systems::flash::run(&mut self.world, dt);
+        crate::systems::flash::run(&mut self.world, FIXED_DT);
 
         // Waypoint system (path-following movement)
-        crate::systems::waypoint::run(&mut self.world, dt);
+        crate::systems::waypoint::run(&mut self.world, FIXED_DT);
 
         let mut physics_steps: u32 = 0;
         while self.accumulator >= FIXED_DT {
@@ -683,7 +683,7 @@ impl Engine {
         crate::systems::input_gameplay::run(&mut self.world, &self.input, &mut self.events);
 
         // Ghost trail system (capture position snapshots)
-        crate::systems::ghost_trail::run(&mut self.world, dt);
+        crate::systems::ghost_trail::run(&mut self.world, FIXED_DT);
 
         // Update particles
         self.particles.update(dt);

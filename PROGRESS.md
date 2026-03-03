@@ -42,10 +42,15 @@
 - [x] 5 tests: deterministic, changes-after-tick, differs-with-state, differs-with-entities, sensitive-to-rng
 - [x] All 1042 tests pass
 
-### Phase 2.2: Fixed DT Everywhere
-- [ ] All simulation-phase systems receive FIXED_DT instead of variable dt
-- [ ] Affected: state_machine, coroutine, sprite_animator, behavior, tween, flash, waypoint
-- [ ] Also: EnvironmentClock::tick, FlowNetwork::solve
+### Phase 2.2: Fixed DT Everywhere — DONE
+- [x] Changed all simulation-phase systems from variable `dt` to `FIXED_DT`:
+  - state_machine, coroutine, sprite_animator, behavior, tween, flash, waypoint
+  - EnvironmentClock::tick, FlowNetwork::solve
+  - ghost_trail (was already FIXED_DT)
+  - lifecycle (was already FIXED_DT)
+- [x] Rendering/UI systems keep variable dt: particles, transition, dialogue, camera, screen_fx, post_fx
+- [x] Updated SystemPhase and tick() doc comments to reflect fixed-dt simulation
+- [x] All 1042 tests pass
 
 ### Phase 2.3: Engine::reset(seed)
 - [ ] Replace `reset_game_state()` with `reset(seed: u64)`

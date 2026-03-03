@@ -47,6 +47,7 @@ pub mod observation;
 pub mod policy;
 pub mod demo_ball;
 pub mod headless;
+pub mod feel_preset;
 
 #[cfg(test)]
 mod tests;

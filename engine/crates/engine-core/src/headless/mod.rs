@@ -37,6 +37,9 @@ mod strategy;
 mod harness;
 mod golden;
 pub mod playthrough;
+pub mod death_classify;
+pub mod death_report;
+pub mod divergence;
 
 pub use runner::{HeadlessRunner, SimResult, RunConfig};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -61,6 +64,13 @@ pub use strategy::{Strategy, StrategyResult, StepOutcome, StatePredicate};
 pub use harness::{TestHarness, HarnessReport, HarnessEntry};
 pub use golden::{GoldenTest, GoldenResult};
 pub use playthrough::PlaythroughFile;
+pub use death_classify::{DeathClass, DeathClassification, ClassifierConfig, classify};
+pub use death_report::{DeathReport, RunClassification, classify_batch};
+pub use divergence::{
+    compare_hash_sequences, compare_sweep_outcomes,
+    DivergenceReport, DivergenceContext, ContextFrame,
+    SweepDivergenceReport, SeedDivergence, DivergenceSummary,
+};
 
 #[cfg(test)]
 mod tests;

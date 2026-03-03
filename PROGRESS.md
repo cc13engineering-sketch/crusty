@@ -1,6 +1,6 @@
 # Crusty Engine — Implementation Progress
 
-## Current Phase: Phase 2 — Deterministic Core
+## Current Phase: Phase 8 — Documentation (remaining)
 
 ## Phase 1 — Clean Slate — COMPLETE
 
@@ -8,6 +8,7 @@
 - [x] Delete `game-concept/DESIGN.md`
 - [x] Rewrite `engine/CLAUDE.md` for simulation-platform identity
 - [x] Update `engine/ARCHITECTURE.md` overview
+- [x] Remove S-League game (archived in prior commits)
 
 ### Phase 1.2b: Remove Leaked Game Logic from engine.rs — DONE
 - [x] Remove `game_over`, `spawn_timer`, `fire_cooldown` fields from Engine struct
@@ -18,10 +19,6 @@
 - [x] Update tick() doc comments
 - [x] All 1036 tests pass
 
-### Phase 1.2: Remove Legacy Function-Pointer APIs — IN PROGRESS
-- [ ] Delete `ShotBuilder` (headless/shot_builder.rs)
-- [ ] Note: `HeadlessRunner`, `GameScenario`, `ScheduledAction`, `record_replay` use function pointers. These will be replaced by the Simulation trait in Phase 3. For now, keep them — they are still used by surviving headless modules. Will be rewritten in Phase 3/4.
-
 ### Phase 1.3: Consolidate RNG — DONE
 - [x] Created `rng.rs` module with `SeededRng` (xorshift64) + tests
 - [x] Added `pub rng: SeededRng` field to Engine, seeded with 42
@@ -30,9 +27,7 @@
 - [x] Updated `particles.rs` and `starfield.rs` to use `SeededRng`
 - [x] All 1037 tests pass
 
-## Phase 1 COMPLETE. Moving to Phase 2.
-
-## Phase 2 — Deterministic Core — IN PROGRESS
+## Phase 2 — Deterministic Core — COMPLETE
 
 ### Phase 2.1: State Hashing — DONE
 - [x] Added `PartialOrd, Ord` derives to Entity for deterministic sorted iteration
@@ -43,29 +38,71 @@
 - [x] All 1042 tests pass
 
 ### Phase 2.2: Fixed DT Everywhere — DONE
-- [x] Changed all simulation-phase systems from variable `dt` to `FIXED_DT`:
-  - state_machine, coroutine, sprite_animator, behavior, tween, flash, waypoint
-  - EnvironmentClock::tick, FlowNetwork::solve
-  - ghost_trail (was already FIXED_DT)
-  - lifecycle (was already FIXED_DT)
+- [x] Changed all simulation-phase systems from variable `dt` to `FIXED_DT`
 - [x] Rendering/UI systems keep variable dt: particles, transition, dialogue, camera, screen_fx, post_fx
 - [x] Updated SystemPhase and tick() doc comments to reflect fixed-dt simulation
 - [x] All 1042 tests pass
 
 ### Phase 2.3: Engine::reset(seed) — DONE
 - [x] Replaced `reset_game_state()` with `reset(seed: u64)`
-- [x] Clears all world state (entities, components)
-- [x] Clears all subsystems (particles, global_state, timers, rules, dialogue, transition, screen_fx, event_bus, flow_network, environment_clock, sound_queue, diagnostic_bus, auto_juice, game_flow, camera_director, level_curve, color_palette, ui_canvas, spawn_queue, events, input, scene_manager, gestures, camera)
-- [x] Reseeds `self.rng` with the given seed
-- [x] Resets `self.frame` to 0, `self.time` to 0.0, `self.accumulator` to 0.0
-- [x] Updated `camera_director.rs` doc comment reference
-- [x] 7 new tests: reset_clears_entities, reset_clears_global_state, reset_reseeds_rng, reset_different_seeds_produce_different_rng, reset_zeroes_frame_and_time, reset_produces_same_state_hash_as_fresh_engine, reset_clears_accumulator
+- [x] Clears all world state, subsystems, reseeds RNG, resets frame/time/accumulator
+- [x] 7 new tests
 - [x] All 1049 tests pass
 
-## Phase 2 COMPLETE. Moving to Phase 3.
+## Phase 3 — Simulation Trait and InputFrame — COMPLETE
 
-## Phases 3-8 — Not Yet Started
-See main implementation plan for details.
+### Phase 3.1-3.2: InputFrame and Simulation trait — DONE
+- [x] `InputFrame` struct with keys_pressed, keys_released, keys_held, pointer events
+- [x] `Engine::apply_input(&mut self, input: &InputFrame)` implemented
+- [x] `Simulation` trait defined (setup, step, render)
+
+### Phase 3.3: HeadlessRunner rewrite — DONE
+- [x] HeadlessRunner rewritten with `run_sim`, `run_sim_frames`, `run_with_policy`
+- [x] RunConfig and SimResult with state hash capture
+
+### Phase 3.4: demo_ball minimal game — DONE
+- [x] `DemoBall` implements `Simulation`
+- [x] Ball bouncing, tap-to-launch, score tracking
+- [x] 5 tests: deterministic, different seeds diverge, tap launches, turbo mode, state hash capture
+
+## Phase 4 — Replay and Golden Tests — COMPLETE
+
+### Phase 4.1: PlaythroughFile — DONE
+- [x] Serializable replay format with seed, inputs, hashes, metadata
+
+### Phase 4.2: Clean up legacy — DONE
+- [x] Delete ShotBuilder, clean up action_gen
+
+### Phase 4.3: Golden replay test CI gate — DONE
+- [x] Golden test stored and verified in CI
+
+## Phase 5 — Observation and Policy — COMPLETE
+
+- [x] Observation struct and `Engine::observe()`
+- [x] Policy trait with NullPolicy, RandomPolicy, ScriptedPolicy
+- [x] Policy-driven simulation runner
+
+## Phase 6 — CLI as Control Surface — COMPLETE
+
+- [x] `engine-cli record`, `replay`, `batch`, `sweep`, `golden`, `info` commands
+- [x] JSONL output format
+
+## Phase 7 — Determinism Hardening — COMPLETE
+
+- [x] Fuzz tests for determinism
+- [x] RNG lint in CI
+
+## Phase 8 — Documentation — IN PROGRESS
+
+- [ ] Update site for new architecture (bouncing ball demo, remove S-League references)
+- [ ] Deploy workflow fixed for GitHub Pages
+
+## GitHub Pages Deployment — IN PROGRESS
+
+- [x] WASM bindings for demo_ball (`setup_demo_ball` + sim step/render in tick)
+- [x] `site/demo-ball/index.html` — interactive bouncing ball demo
+- [x] `site/index.html` — updated landing page (Crusty Engine, no S-League)
+- [x] `deploy.yml` — fixed: removed s-league references, added demo-ball
 
 ## Risk Mitigation Follow-Ups (after Definition of Done)
 - Follow-Up A: Validation Game

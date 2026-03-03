@@ -48,7 +48,7 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/pkg _site/s-league _site/changelog
+          mkdir -p _site/pkg _site/demo-ball _site/changelog
 
           # Copy WASM build artifacts
           cp _pkg/engine_core.js _site/pkg/
@@ -57,9 +57,8 @@ jobs:
           # Copy site pages
           cp site/index.html _site/
 
-          # Copy S-League demo
-          cp site/s-league/index.html _site/s-league/
-          cp site/s-league/game.js _site/s-league/
+          # Copy bouncing ball demo
+          cp site/demo-ball/index.html _site/demo-ball/
 
           # Copy changelog
           cp site/changelog/index.html _site/changelog/

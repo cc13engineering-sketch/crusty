@@ -52,9 +52,12 @@ pub mod headless;
 mod tests;
 
 use engine::Engine;
+use demo_ball::DemoBall;
+use simulation::Simulation;
 
 thread_local! {
     static ENGINE: std::cell::RefCell<Option<Engine>> = std::cell::RefCell::new(None);
+    static SIM: std::cell::RefCell<Option<DemoBall>> = std::cell::RefCell::new(None);
 }
 
 fn with_engine<F, R>(f: F) -> R
@@ -77,7 +80,18 @@ pub fn init(width: u32, height: u32) {
 
 #[wasm_bindgen]
 pub fn tick(dt_ms: f64) {
-    with_engine(|eng| eng.tick(dt_ms / 1000.0));
+    ENGINE.with(|e| {
+        let mut borrow = e.borrow_mut();
+        let eng = borrow.as_mut().expect("Engine not initialized");
+        eng.tick(dt_ms / 1000.0);
+        SIM.with(|s| {
+            let mut sim_borrow = s.borrow_mut();
+            if let Some(sim) = sim_borrow.as_mut() {
+                sim.step(eng);
+                sim.render(eng);
+            }
+        });
+    });
 }
 
 #[wasm_bindgen]
@@ -232,4 +246,22 @@ pub fn get_frame_metrics() -> String {
 #[wasm_bindgen]
 pub fn drain_sound_commands() -> String {
     with_engine(|eng| eng.sound_queue.drain_json())
+}
+
+// ─── Demo Ball WASM API ─────────────────────────────────────────────
+
+/// Set up the bouncing ball demo. Call after `init()`.
+/// Resets the engine with seed 42 and spawns the demo ball.
+#[wasm_bindgen]
+pub fn setup_demo_ball() {
+    ENGINE.with(|e| {
+        let mut borrow = e.borrow_mut();
+        let eng = borrow.as_mut().expect("Engine not initialized");
+        eng.reset(42);
+        let mut sim = DemoBall::new();
+        sim.setup(eng);
+        SIM.with(|s| {
+            *s.borrow_mut() = Some(sim);
+        });
+    });
 }

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+    <title>Bouncing Ball Demo — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            gap: 16px;
+        }
+        h1 { font-size: 1.4rem; color: #f0e060; }
+        #game-canvas {
+            border: 1px solid #2a2a3a;
+            image-rendering: pixelated;
+            cursor: crosshair;
+            max-width: 95vw;
+        }
+        .info {
+            color: #888;
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .info strong { color: #f0e060; }
+        #hud {
+            font-size: 0.9rem;
+            color: #ccc;
+            display: flex;
+            gap: 24px;
+        }
+        #hud span { color: #f0e060; }
+        a { color: #f0e060; }
+    </style>
+</head>
+<body>
+    <h1>Bouncing Ball Demo</h1>
+    <div id="hud">
+        Score: <span id="score">0</span>
+        &nbsp;&nbsp;
+        Launches: <span id="launches">0</span>
+    </div>
+    <canvas id="game-canvas" width="480" height="270"></canvas>
+    <p class="info">
+        <strong>Click or tap</strong> to launch the ball toward the pointer.<br>
+        Powered by <a href="../">Crusty Engine</a> (Rust &rarr; WASM).
+    </p>
+
+    <script type="module">
+        import initWasm, {
+            init, tick,
+            framebuffer_ptr, framebuffer_len,
+            mouse_move, mouse_down, mouse_up,
+            touch_start, touch_move, touch_end,
+            get_game_state_f64,
+            setup_demo_ball
+        } from '../pkg/engine_core.js';
+
+        const W = 480, H = 270;
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const launchesEl = document.getElementById('launches');
+
+        // Scale canvas for retina but keep logical size
+        function fitCanvas() {
+            const maxW = window.innerWidth * 0.95;
+            const scale = Math.min(2, Math.floor(maxW / W)) || 1;
+            canvas.style.width = (W * scale) + 'px';
+            canvas.style.height = (H * scale) + 'px';
+        }
+        fitCanvas();
+        window.addEventListener('resize', fitCanvas);
+
+        // Convert page coords to engine coords
+        function toEngine(pageX, pageY) {
+            const r = canvas.getBoundingClientRect();
+            return [
+                (pageX - r.left) / r.width * W,
+                (pageY - r.top) / r.height * H
+            ];
+        }
+
+        // Mouse events
+        canvas.addEventListener('mousemove', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_move(x, y);
+        });
+        canvas.addEventListener('mousedown', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_down(x, y, e.button);
+        });
+        canvas.addEventListener('mouseup', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_up(x, y, e.button);
+        });
+
+        // Touch events
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_start(t.identifier, x, y);
+            }
+        }, { passive: false });
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_move(t.identifier, x, y);
+            }
+        }, { passive: false });
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_end(t.identifier, x, y);
+            }
+        }, { passive: false });
+
+        async function main() {
+            const wasm = await initWasm();
+            const memory = wasm.memory;
+
+            init(W, H);
+            setup_demo_ball();
+
+            const imageData = ctx.createImageData(W, H);
+            let last = performance.now();
+
+            function frame(now) {
+                const dt = now - last;
+                last = now;
+
+                tick(dt);
+
+                // Read framebuffer from WASM memory
+                const ptr = framebuffer_ptr();
+                const len = framebuffer_len();
+                const pixels = new Uint8ClampedArray(memory.buffer, ptr, len);
+                imageData.data.set(pixels);
+                ctx.putImageData(imageData, 0, 0);
+
+                // Update HUD
+                scoreEl.textContent = Math.floor(get_game_state_f64('score'));
+                launchesEl.textContent = Math.floor(get_game_state_f64('launches'));
+
+                requestAnimationFrame(frame);
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        main();
+    </script>
+</body>
+</html>

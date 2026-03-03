@@ -12,7 +12,7 @@ use crate::components::renderable::Visual;
 use crate::rendering::color::Color;
 use crate::ecs::Entity;
 
-const BALL_RADIUS: f64 = 12.0;
+const BALL_RADIUS: f64 = 8.0;
 const LAUNCH_SPEED: f64 = 200.0;
 const FRICTION: f64 = 0.98;
 const BOUNCE_DAMPING: f64 = 0.8;
@@ -59,7 +59,7 @@ impl Simulation for DemoBall {
         engine.world.renderables.insert(ball, Renderable {
             visual: Visual::Circle {
                 radius: BALL_RADIUS,
-                color: Color::from_rgba(50, 200, 255, 255),
+                color: Color::from_rgba(255, 200, 50, 255),
                 filled: true,
             },
             layer: 0,

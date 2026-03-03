@@ -87,11 +87,13 @@ impl FeelPreset {
     }
 
     /// Serialize this preset to a TOML string.
+    #[cfg(feature = "toml-presets")]
     pub fn to_toml(&self) -> Result<String, toml::ser::Error> {
         toml::to_string_pretty(self)
     }
 
     /// Deserialize a preset from a TOML string.
+    #[cfg(feature = "toml-presets")]
     pub fn from_toml(s: &str) -> Result<Self, toml::de::Error> {
         toml::from_str(s)
     }
@@ -235,6 +237,7 @@ impl FeelPresetLibrary {
 
     /// Load a preset from a TOML string and add it to the library.
     /// Returns the preset name on success, or an error message on failure.
+    #[cfg(feature = "toml-presets")]
     pub fn load_toml(&mut self, toml_str: &str) -> Result<String, String> {
         match FeelPreset::from_toml(toml_str) {
             Ok(preset) => {
@@ -299,6 +302,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "toml-presets")]
     fn preset_toml_roundtrip() {
         let lib = FeelPresetLibrary::with_builtins();
         let original = lib.get("floaty_astronaut").unwrap();
@@ -381,6 +385,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "toml-presets")]
     fn load_toml_adds_to_library() {
         let mut lib = FeelPresetLibrary::new();
         assert!(lib.is_empty());

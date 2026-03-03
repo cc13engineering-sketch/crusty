@@ -7,9 +7,10 @@ PKG="$ROOT/_pkg"
 SITE_SRC="$ROOT/site"
 SITE_OUT="$ROOT/_site"
 
-echo "==> Building WASM..."
+echo "==> Building WASM (no toml-presets for smaller binary)..."
 cd "$ENGINE"
-wasm-pack build crates/engine-core --target web --out-dir "$PKG"
+wasm-pack build crates/engine-core --target web --out-dir "$PKG" \
+  -- --no-default-features
 
 echo "==> Assembling site..."
 mkdir -p "$SITE_OUT/pkg"
@@ -26,4 +27,11 @@ WASM_HASH=$(sha256sum "$PKG/engine_core_bg.wasm" | cut -c1-12)
 echo "==> WASM hash: $WASM_HASH"
 find "$SITE_OUT" -name '*.html' -exec sed -i "s/__WASM_HASH__/$WASM_HASH/g" {} +
 
-echo "==> Done. Site ready at $SITE_OUT/"
+# Precompress for servers that support it (nginx gzip_static, etc.)
+if command -v gzip >/dev/null 2>&1; then
+    gzip -9 -k -f "$SITE_OUT/pkg/engine_core_bg.wasm"
+    echo "==> Precompressed: $(ls -lh "$SITE_OUT/pkg/engine_core_bg.wasm.gz" | awk '{print $5}') gzipped"
+fi
+
+RAW_SIZE=$(ls -lh "$SITE_OUT/pkg/engine_core_bg.wasm" | awk '{print $5}')
+echo "==> Done. Site ready at $SITE_OUT/ (WASM: $RAW_SIZE raw)"

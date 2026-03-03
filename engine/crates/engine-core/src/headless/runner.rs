@@ -124,9 +124,11 @@ impl HeadlessRunner {
 
         let empty = InputFrame::default();
         for i in 0..frames {
+            self.engine.tick(dt);
+            // Apply input AFTER tick (which clears previous transient input
+            // via end_frame), so that sim.step() sees fresh input.
             let input = inputs.get(i as usize).unwrap_or(&empty);
             self.engine.apply_input(input);
-            self.engine.tick(dt);
             sim.step(&mut self.engine);
             if !config.turbo {
                 sim.render(&mut self.engine);

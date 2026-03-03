@@ -521,14 +521,11 @@ impl Engine {
     ///
     /// This is the bridge between the serializable `InputFrame` (used by
     /// replays, policies, and headless runs) and the engine's live `Input`
-    /// struct. Call this once per frame, before `tick()`.
-    ///
-    /// The method first calls `end_frame()` to clear per-frame transient state,
-    /// then applies the new frame's events.
+    /// struct. Call this AFTER `tick()` and before `Simulation::step()`,
+    /// because `tick()` calls `end_frame()` at the end which clears
+    /// transient input. This method sets up fresh input for the game's
+    /// `step()` to consume.
     pub fn apply_input(&mut self, frame: &crate::input_frame::InputFrame) {
-        // Clear previous frame's transient state
-        self.input.end_frame();
-
         // Apply held keys: set the held set to match the frame
         self.input.keys_held.clear();
         for key in &frame.keys_held {
@@ -1030,7 +1027,7 @@ mod tests {
     }
 
     #[test]
-    fn apply_input_clears_previous_frame() {
+    fn apply_input_after_tick_clears_previous_frame() {
         let mut engine = Engine::new(100, 100);
         // Frame 1: press Space
         let frame1 = crate::input_frame::InputFrame {
@@ -1039,6 +1036,9 @@ mod tests {
         };
         engine.apply_input(&frame1);
         assert!(engine.input.keys_pressed.contains("Space"));
+
+        // tick() calls end_frame() at the end, clearing transient state
+        engine.tick(1.0 / 60.0);
 
         // Frame 2: empty input — Space should no longer be in pressed
         let frame2 = crate::input_frame::InputFrame::default();

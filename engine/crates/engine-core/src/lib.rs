@@ -43,6 +43,7 @@ pub mod frame_metrics;
 pub mod rng;
 pub mod input_frame;
 pub mod simulation;
+pub mod demo_ball;
 pub mod headless;
 
 #[cfg(test)]

@@ -2,7 +2,7 @@ use crate::components::*;
 
 pub fn generate_schema() -> String {
     let schema = serde_json::json!({
-        "engine": "sling-rpg",
+        "engine": "crusty",
         "version": "0.2.0",
         "components": [
             { "name": Transform::schema_name(), "schema": Transform::schema() },
@@ -42,7 +42,6 @@ pub fn generate_schema() -> String {
             "lifecycle", "hierarchy", "signal", "state_machine", "coroutine",
             "sprite_animator", "behavior", "tween", "flash", "ghost_trail", "waypoint",
             "force_accumulator", "integrator", "physics_joint", "collision",
-            "gameplay", "event_processor", "input_gameplay",
             "renderer", "debug_render"
         ],
         "engine_state": [

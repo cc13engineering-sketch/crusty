@@ -98,14 +98,19 @@
     </p>
 
     <script type="module">
-        import initWasm, {
+        // __WASM_HASH__ is replaced by build-site.sh with a content hash
+        const WASM_VER = '__WASM_HASH__';
+        const cacheBust = WASM_VER.startsWith('__') ? '' : `?v=${WASM_VER}`;
+
+        const { default: initWasm, ...api } = await import(`../pkg/engine_core.js${cacheBust}`);
+        const {
             init, tick,
             framebuffer_ptr, framebuffer_len,
             mouse_move, mouse_down, mouse_up,
             touch_start, touch_move, touch_end,
             get_game_state_f64,
             setup_demo_ball
-        } from '../pkg/engine_core.js';
+        } = api;
 
         const W = 480, H = 270;
         const canvas = document.getElementById('game-canvas');

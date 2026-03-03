@@ -21,4 +21,9 @@ cp -r "$SITE_SRC"/* "$SITE_OUT/"
 cp "$PKG/engine_core.js" "$SITE_OUT/pkg/"
 cp "$PKG/engine_core_bg.wasm" "$SITE_OUT/pkg/"
 
+# Cache-bust: stamp HTML files with a hash of the WASM binary
+WASM_HASH=$(sha256sum "$PKG/engine_core_bg.wasm" | cut -c1-12)
+echo "==> WASM hash: $WASM_HASH"
+find "$SITE_OUT" -name '*.html' -exec sed -i "s/__WASM_HASH__/$WASM_HASH/g" {} +
+
 echo "==> Done. Site ready at $SITE_OUT/"

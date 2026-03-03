@@ -62,7 +62,7 @@ See `SystemPhase` enum in engine.rs for authoritative documentation.
 Input:
   debug toggle, gesture recognition, gesture→EventBus
 
-Simulation (variable dt):
+Simulation (fixed dt):
   lifecycle → hierarchy → signal → state_machine → coroutine
   → environment_clock → flow_network → sprite_animator
   → behavior → tween → flash → waypoint

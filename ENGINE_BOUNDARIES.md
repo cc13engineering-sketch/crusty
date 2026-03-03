@@ -10,11 +10,12 @@ Explicit separation rules to prevent platform bleed and hidden coupling.
 - Network sockets or HTTP
 
 ## All host interaction goes through thin interfaces:
-- **Input**: `Input` struct receives key/mouse/touch events from WASM bindings
+- **Input**: `InputFrame` applied via `Engine::apply_input()`, or raw key/mouse/touch events via WASM bindings
 - **Output**: `Framebuffer` pixel buffer read by JS via shared memory
 - **Sound**: `SoundCommandQueue` drained as JSON by JS
 - **Diagnostics**: `DiagnosticBus` drained as JSON by JS
 - **State**: `GameState` read/written via WASM string APIs
+- **Simulation**: Games implement the `Simulation` trait (`setup`, `step`, `render`). The engine owns timing, input application, and determinism.
 
 ## Why this matters
 When engines become painful to port, it is almost always because this boundary eroded quietly. These rules ensure that adding a new platform (native, mobile, console) requires only a new host layer — not surgery on engine-core.

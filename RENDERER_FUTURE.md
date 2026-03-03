@@ -4,7 +4,7 @@ Current state and planned direction for the rendering layer.
 
 ## Current Architecture
 - **Software framebuffer**: CPU-side RGBA pixel buffer, blitted to HTML canvas via `putImageData`
-- **Resolution**: 480x720 portrait (S-League), configurable per game
+- **Resolution**: Configurable per game (e.g., 480x720 portrait)
 - **Drawing primitives**: fill_rect, fill_circle, draw_line, draw_text (5x7 bitmap font)
 - **Layers**: RenderLayerStack with parallax support
 - **Effects**: Post-FX (vignette, scanlines, shake), ScreenFxStack (flash, tint)
@@ -13,7 +13,7 @@ Current state and planned direction for the rendering layer.
 - **Particles**: Dense Vec pool, not ECS
 
 ## Target Entity Count Ceiling
-- ~100-300 active entities for S-League RPG
+- ~100-300 active entities per game
 - Particles use dense Vec (not ECS) — can handle thousands
 - TileMap tiles are not entities — grid-based, viewport-culled
 

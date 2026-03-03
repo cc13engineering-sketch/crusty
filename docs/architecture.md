@@ -2,189 +2,252 @@
 
 ## Overview
 
-The Crusty Engine headless testing system is a 15-module infrastructure that enables AI agents (Claude Code) to autonomously run, analyze, optimize, and improve games — all without a browser, display, or human intervention. It runs entirely via `cargo test` and the CLI `simulate` subcommand.
+The Crusty Engine headless testing system is a 22-module infrastructure that enables AI agents to autonomously run, analyze, optimize, and improve games — all without a browser, display, or human intervention. It runs entirely via `cargo test` and the `engine-cli` tool.
 
 This document covers the technical architecture: how the modules compose, what data flows between them, and how to extend the system for new games.
+
+## Core Abstractions
+
+### Simulation Trait
+
+The contract between a game and the engine. Games implement `setup`, `step`, and `render`:
+
+```rust
+pub trait Simulation {
+    fn setup(&mut self, engine: &mut Engine);
+    fn step(&mut self, engine: &mut Engine);
+    fn render(&self, engine: &mut Engine);
+    fn variants(&self) -> Vec<ParamSet> { vec![] }
+}
+```
+
+### InputFrame
+
+The canonical representation of one frame of player input:
+
+```rust
+pub struct InputFrame {
+    pub keys_pressed: Vec<String>,
+    pub keys_released: Vec<String>,
+    pub keys_held: Vec<String>,
+    pub pointer: Option<(f64, f64)>,
+    pub pointer_down: Option<(f64, f64)>,
+    pub pointer_up: Option<(f64, f64)>,
+}
+```
+
+### Policy Trait
+
+A pluggable input generator. Takes an `Observation`, produces an `InputFrame`:
+
+```rust
+pub trait Policy {
+    fn next_input(&mut self, obs: &Observation) -> InputFrame;
+}
+```
+
+Built-in implementations: `NullPolicy`, `RandomPolicy`, `ScriptedPolicy`.
+
+### Observation
+
+A lightweight view into engine state after each frame:
+
+```rust
+pub struct Observation<'a> {
+    pub frame: u64,
+    pub state_hash: u64,
+    pub game_state: &'a GameState,
+    pub entity_count: usize,
+    pub framebuffer: Option<&'a [u8]>,
+}
+```
 
 ## Module Dependency Graph
 
 ```
-                              ┌──────────────┐
-                              │  action_gen  │ Generates input sequences
-                              └──────┬───────┘
-                                     │
-         ┌────────────┐        ┌─────▼──────┐
-         │ ShotBuilder │───────►│  Scheduled │
-         └────────────┘        │  Action    │
-                               └─────┬──────┘
-                                     │
-    ┌────────────┐             ┌─────▼──────┐        ┌────────────┐
-    │  Assertion  │────────────►│   Game     │───────►│  Headless  │
-    └────────────┘             │  Scenario  │        │  Runner    │
-                               └─────┬──────┘        └─────┬──────┘
-                                     │                      │
-                               ┌─────▼──────┐        ┌─────▼──────┐
-                               │  Scenario  │        │  SimResult │
-                               │  Result    │        │  + fb_hash │
-                               └─────┬──────┘        └─────┬──────┘
-                                     │                      │
-              ┌──────────────────────┼──────────────────────┤
-              │                      │                      │
-        ┌─────▼──────┐        ┌─────▼──────┐        ┌─────▼──────┐
-        │  Fitness   │        │  Regression │        │  Timeline  │
-        │  Evaluator │        │  Suite      │        │            │
-        └─────┬──────┘        └─────┬──────┘        └────────────┘
-              │                      │
-              │                      │
-        ┌─────▼──────────────────────▼──────┐
-        │           Experiment              │  Combines sweep + fitness + regression
-        └─────┬─────────────────────────────┘
-              │
-        ┌─────▼──────┐
-        │ Hill Climber│  Iterative parameter optimization
-        └────────────┘
+                        ┌──────────────┐
+                        │  InputFrame  │  Canonical input
+                        └──────┬───────┘
+                               │
+                         ┌─────▼──────┐        ┌────────────┐
+                         │  Headless  │◄───────│  Policy    │
+                         │  Runner    │        │  Trait     │
+                         └─────┬──────┘        └────────────┘
+                               │
+                         ┌─────▼──────┐
+                         │  SimResult │  state_hash, game_state, fb_hash
+                         └─────┬──────┘
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        │                      │                      │
+  ┌─────▼──────┐        ┌─────▼──────┐        ┌─────▼──────┐
+  │  Fitness   │        │  Regression │        │  Replay    │
+  │  Evaluator │        │  Suite      │        │  Recording │
+  └─────┬──────┘        └─────┬──────┘        └─────┬──────┘
+        │                      │                      │
+        │                      │               ┌─────▼──────┐
+  ┌─────▼──────────────────────▼──────┐        │  Compare   │
+  │           Experiment              │        │  Replays   │
+  └─────┬─────────────────────────────┘        └────────────┘
+        │
+  ┌─────▼──────┐     ┌────────────┐     ┌────────────┐
+  │ Hill Climber│     │  Anomaly   │     │  Divergence│
+  └────────────┘     │  Detector  │     │  Replay    │
+                     └────────────┘     └────────────┘
 
-    ┌────────────┐     ┌────────────┐     ┌────────────┐
-    │   Replay   │────►│  Compare   │     │  Anomaly   │
-    │  Recording │     │  Replays   │     │  Detector  │
-    └─────┬──────┘     └────────────┘     └────────────┘
-          │
-    ┌─────▼──────┐     ┌────────────┐     ┌────────────┐
-    │  Strategy  │     │  Test      │     │  Golden    │
-    │  Playbook  │     │  Harness   │     │  Test      │
-    └────────────┘     └────────────┘     └────────────┘
+  ┌────────────┐     ┌────────────┐     ┌────────────┐
+  │  Strategy  │     │  Test      │     │  Golden    │
+  │  Playbook  │     │  Harness   │     │  Test      │
+  └────────────┘     └────────────┘     └────────────┘
+
+  ┌────────────┐     ┌────────────┐     ┌────────────┐
+  │  Death     │     │  Highlights│     │  Ablation  │
+  │  Classify  │     │  Scanner   │     │  Study     │
+  └────────────┘     └────────────┘     └────────────┘
+
+                     ┌────────────┐
+                     │  Dashboard │  Integrates all above
+                     └────────────┘
 ```
 
-## Core Layer (Rounds 1-2)
+## Core Layer
 
 ### HeadlessRunner
-The foundation. Creates an `Engine` instance with a specified viewport (default 480x720), runs the game loop (tick → update → render) for N frames, and returns a `SimResult`.
+
+The foundation. Creates an `Engine` instance with a specified viewport, runs simulations via the `Simulation` trait, and returns a `SimResult`.
 
 ```rust
 let mut runner = HeadlessRunner::new(480, 720);
-let result = runner.run(setup, update, render, 60);
-// result.frames_run, result.game_state, result.framebuffer_hash
+
+// Run with fixed inputs
+let result = runner.run_sim(&mut sim, seed, &inputs, config);
+
+// Run with a policy
+let result = runner.run_with_policy(&mut sim, &mut policy, seed, frames, config);
 ```
 
-**Key insight**: The runner is game-agnostic. It takes function pointers for setup/update/render, so any game module can plug in.
-
 ### SimResult
+
 The universal output of every simulation:
-- `frames_run: u64` — how many frames were simulated
-- `game_state: HashMap<String, StateValue>` — all key-value game state at final frame
-- `framebuffer_hash: u64` — FNV-1a hash of the rendered pixels
-- `elapsed_sim_time: f64` — total simulated time in seconds
+- `frames_run: u64`
+- `game_state: HashMap<String, StateValue>`
+- `framebuffer_hash: u64`
+- `state_hash: u64`
+- `state_hashes: Vec<u64>` (optional per-frame)
+- `elapsed_sim_time: f64`
 
-### ScheduledAction
-Timed input events injected during simulation:
-- `PointerDown { frame, x, y }`
-- `PointerMove { frame, x, y }`
-- `PointerUp { frame, x, y }`
+### PlaythroughFile
 
-These are dispatched to the game via an `action_dispatch: fn(&mut Engine, &ScheduledAction)` callback.
+Serializable replay format:
+- Seed, inputs, frame count, final state/framebuffer hashes
+- Per-frame state hashes for determinism verification
+- Metadata key-value pairs
 
-### GameScenario
-Declarative test: setup + actions + frame count + assertions = structured result.
-
-### ShotBuilder
-High-level builder for constructing shot input sequences from angle + power.
-
-## Analysis Layer (Rounds 2-3)
+## Analysis Layer
 
 ### Parameter Sweep
-`run_sweep()` runs the same scenario with different `SweepConfig` overrides (game state modifications applied after setup). Returns a `SweepReport` that can be queried for min/max by any state key.
+`run_sweep()` runs the same scenario with different parameter configurations. Returns a `SweepReport` that can be queried for min/max by any state key.
 
 ### State Timeline
 `record_timeline()` captures specific state keys at every frame. `StateTimeline` supports `series()`, `stats()`, and `first_frame_where()` queries.
 
 ### Fitness Evaluator
-Composable weighted scoring: define criteria like proximity, efficiency, completion. Each criterion is a `fn(&SimResult) -> f64` mapping to [0, 1]. The evaluator produces a `FitnessResult` with letter grades (A+ through F) and can rank entire sweeps.
+Composable weighted scoring: define criteria like proximity, efficiency, completion. Each criterion maps to [0, 1]. The evaluator produces a `FitnessResult` with letter grades (A+ through F) and can rank entire sweeps.
 
 ### Regression Suite
 Capture baselines, diff against future runs. Pluggable classifiers determine what counts as regression vs. improvement.
 
-## Snapshot & Replay Layer (Rounds 5, 7)
-
-### Snapshots
-`run_with_snapshots()` captures full game state at specific frames (vs timeline which captures specific keys at all frames). Best for debugging specific moments.
+## Replay Layer
 
 ### Replay
-`record_replay()` captures specified state keys at every frame. More lightweight than snapshots (only f64 values, not full StateValue). Supports `series()`, `get()`, `first_frame_where()`.
+`record_replay()` captures specified state keys at every frame. Lightweight and efficient for full-run analysis.
 
 ### Comparison
-`compare_replays()` produces a structured diff: per-key `max_delta`, `mean_delta`, `first_divergence`, and full delta series. Also detects visual (framebuffer hash) divergence.
+`compare_replays()` produces a structural diff: per-key `max_delta`, `mean_delta`, `first_divergence`, and full delta series.
 
 ### Anomaly Detection
-`AnomalyDetector` scans replay series for three anomaly types:
-- **Spike**: sudden large change between consecutive frames
-- **Plateau**: value stuck constant for too many frames
-- **OutOfBounds**: value outside expected range
+`AnomalyDetector` scans replay series for spikes, plateaus, and out-of-bounds values.
 
-## Optimization Layer (Round 6)
+## Optimization Layer
 
 ### Experiment
-Combines sweep + fitness + optional regression into a single `Experiment::new().with_*().run()` call. Returns rankings, regression verdicts, and summaries.
+Combines sweep + fitness + optional regression into a single declarative call.
 
 ### Hill Climber
-Coordinate-descent optimizer. Given `ParamRange` definitions (key, min, max, step), tries +/-step for each parameter, keeps improvements, shrinks step when stuck. Returns best parameters, convergence history, and total evaluations.
+Coordinate-descent optimizer for game parameters. Tries +/-step for each parameter, keeps improvements, shrinks step when stuck.
 
 ### Action Generator
-Programmatic input generation:
-- `grid_shots()` — systematic angle/power grid
-- `random_shots()` — deterministic PRNG exploration
-- `tap_sequence()` — UI interaction testing
-- `drag()` — interpolated drag gestures
+Programmatic input generation: `grid_shots()`, `random_shots()`, `tap_sequence()`, `drag()`.
 
-## Orchestration Layer (Round 8)
+## Orchestration Layer
 
 ### Strategy
-Multi-step playbook: chain Record → Compare → DetectAnomalies → AssertState steps. Each step operates on named replays captured in earlier steps.
+Multi-step playbook: chain Record, Compare, DetectAnomalies, and AssertState steps.
 
 ### Test Harness
-Battery testing: run multiple scenarios with optional fitness evaluation, produce a consolidated `HarnessReport` with pass/fail counts and average fitness.
+Battery testing: run multiple scenarios, produce a consolidated report with pass/fail counts and average fitness.
 
 ### Golden Test
-Reference replay comparison: record a "golden" replay when behavior is correct, then diff future runs against it. The headless equivalent of visual regression testing.
+Reference replay comparison. Record a golden replay when behavior is correct, then diff future runs against it.
+
+## Design Acceleration Layer
+
+### Death Classification
+Classifies terminal states by trajectory shape: CloseCall, Blowout, Cliff, Attrition, Unclassified. Pure math — slope and variance calculations on the last N frames.
+
+### Divergence Replay
+Compares two runs frame-by-frame via state hash comparison. Finds the exact frame where behavior diverges.
+
+### Feel Presets
+Library of named physics profiles (tight_platformer, floaty_astronaut, heavy_tank, snappy_cursor, underwater, ice_skating). Applied via `global_state`. TOML format for custom presets.
+
+### Variant Branching
+Games declare parameter variants via `Simulation::variants()`. The engine can sweep all variants across seed ranges and compare outcomes.
+
+### Interesting Moment Detection
+Scans batch runs for notable events: spikes, drops, near-death experiences, milestones. Produces ranked highlight reports.
+
+### Mechanic Ablation
+Runs baseline vs. mechanic-disabled sweeps, computes impact deltas, and ranks mechanics by contribution.
+
+### Dashboard
+Generates structured JSON combining sweep stats, death classification, highlights, ablation results, and golden test status. Static HTML frontend renders the data.
 
 ## Game Integration
 
-Every headless module is game-agnostic. Games integrate by providing:
+Every headless module is game-agnostic. Games integrate by implementing the `Simulation` trait:
 
-1. `setup_fn: fn(&mut Engine)` — initialize game state, tilemap, entities
-2. `update_fn: fn(&mut Engine, f64)` — game logic per frame
-3. `render_fn: fn(&mut Engine)` — draw to framebuffer
-4. `action_dispatch: fn(&mut Engine, &ScheduledAction)` — route inputs to game handlers
+```rust
+pub struct MyGame { ... }
 
-The S-League demo provides these as:
-- `sleague::setup_fight_only` / `sleague::setup`
-- `sleague::update`
-- `sleague::render`
-- `sleague::dispatch_action`
+impl Simulation for MyGame {
+    fn setup(&mut self, engine: &mut Engine) { /* initialize */ }
+    fn step(&mut self, engine: &mut Engine) { /* game logic */ }
+    fn render(&self, engine: &mut Engine) { /* draw */ }
+}
+```
 
-Game-specific scoring functions (`score_hole_completion`, etc.) live in the game module, not the engine.
+The built-in `DemoBall` demo (`demo_ball.rs`) validates the full pipeline.
 
 ## Data Flow: A Typical AI Iteration
 
 ```
-1. Claude reads game code, identifies physics parameters
-2. Creates SweepConfig[] with parameter variations
-3. Runs Experiment with fitness evaluator
-4. Inspects ExperimentResult.rankings — finds best config
-5. Uses HillClimber to fine-tune the best parameters
-6. Records golden replay of improved behavior
-7. Modifies game code with optimized values
-8. Runs GoldenTest to verify no regressions
-9. Runs TestHarness for comprehensive quality check
-10. Commits with structured test evidence
+1. Create Simulation implementation
+2. Run sweep across seed range with policy
+3. Evaluate fitness, classify deaths
+4. Use hill climber to fine-tune parameters
+5. Record golden replay of improved behavior
+6. Verify no regressions against golden baseline
+7. Run highlights to find interesting moments
+8. Commit with structured test evidence
 ```
 
 ## File Inventory
 
-| File | Module | Purpose |
-|------|--------|---------|
+| File | Layer | Purpose |
+|------|-------|---------|
 | `runner.rs` | Core | HeadlessRunner, SimResult |
-| `scenario.rs` | Core | GameScenario, Assertion, ScenarioBuilder |
-| `shot_builder.rs` | Core | ShotBuilder |
+| `scenario.rs` | Core | GameScenario, ScheduledAction, ScenarioBuilder |
 | `fb_hash.rs` | Core | FNV-1a framebuffer hashing |
 | `sweep.rs` | Analysis | Parameter sweep |
 | `timeline.rs` | Analysis | Per-frame state recording |
@@ -200,4 +263,12 @@ Game-specific scoring functions (`score_hole_completion`, etc.) live in the game
 | `strategy.rs` | Orchestration | Multi-step playbooks |
 | `harness.rs` | Orchestration | Battery testing |
 | `golden.rs` | Orchestration | Reference replay comparison |
-| `tests.rs` | Testing | 1116 tests covering all modules |
+| `death_classify.rs` | Acceleration | Terminal state classification |
+| `death_report.rs` | Acceleration | Batch death classification |
+| `divergence.rs` | Acceleration | Run comparison/diffing |
+| `highlights.rs` | Acceleration | Interesting moment detection |
+| `ablation.rs` | Acceleration | Mechanic ablation study |
+| `dashboard.rs` | Acceleration | Dashboard data generation |
+| `variant_runner.rs` | Acceleration | Variant sweep runner |
+| `variant_rewind.rs` | Acceleration | Replay-based rewind + branch |
+| `tests.rs` | Testing | Tests covering all modules |

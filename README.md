@@ -1,319 +1,146 @@
 # Crusty Engine
 
-Experimental Rust game engine focused on fast iteration, deterministic simulation, and AI-assisted development.
+Deterministic simulation engine in Rust, designed for AI-driven game development.
 
 ---
 
-## What This Project Is
+## What This Is
 
-Crusty is a modular Rust game engine designed to:
+Crusty is a modular Rust game engine built around:
 
-- Run deterministic simulations
-- Support AI-driven iteration and testing
-- Keep the core engine small and composable
-- Enable both headless simulation and visual rendering
-- Make experimentation cheap and fast
+- **Deterministic simulation** — same seed + same inputs = identical state, always
+- **Headless-first execution** — thousands of runs in seconds, no browser needed
+- **AI-driven iteration** — structured observation, sweep analysis, and automated optimization
+- **The Simulation trait** — clean boundary between engine and game logic
 
-This repository contains the engine core, CLI tooling, documentation, and a small web demo.
-
----
-
-## Who This Is For
-
-You will get value from this project if you are:
-
-- New to the codebase and want orientation
-- Interested in ECS-based engines
-- Experimenting with AI-assisted game development
-- Building simulation-heavy or deterministic games
-- Comfortable (or learning) Rust
-
-If you are looking for a beginner game engine to ship a commercial title quickly, this project is still early-stage.
+Games implement `setup`, `step`, and `render`. The engine owns timing, input, RNG, and determinism.
 
 ---
 
-## High-Level Architecture
+## Repository Structure
 
-    engine/
-      crates/
-        engine-core/   ← main engine logic
-        engine-cli/    ← command-line runner
-    docs/              ← deep technical docs
-    site/              ← static docs site + demo
-    game-concept/      ← design notes
-
-### Core Principles
-
-- ECS-first architecture
-- Deterministic simulation
-- Headless-friendly
-- AI iteration loops
-- Data-oriented design
+```
+engine/
+  crates/
+    engine-core/     Main engine (ECS, physics, rendering, headless)
+    engine-cli/      CLI tool (14 commands)
+docs/                Technical documentation
+site/                Static site + web demo
+```
 
 ---
 
-## Key Concepts (Newcomer Friendly)
+## Quick Start
 
-### ECS (Entity Component System)
-
-Crusty uses an ECS model:
-
-- **Entity** → just an ID
-- **Component** → data attached to entities
-- **System** → logic that processes components
-
-Core ECS implementation lives in:
-
-    engine-core/src/ecs/
-
-Start with:
-
-- `world.rs`
-- `entity.rs`
-- `component_store.rs`
+```bash
+cd engine
+cargo test              # 1157+ tests
+cargo run -p engine-cli -- info
+cargo run -p engine-cli -- batch --seed-range 0..10 --frames 600 --turbo
+```
 
 ---
 
-## Engine Core
+## Core Architecture
 
-The heart of the runtime is:
+- **ECS**: 32 component types, 21 systems, fixed execution order
+- **Physics**: Fixed 60Hz timestep, CCD, spatial grid broadphase
+- **Rendering**: Software framebuffer (shapes, text, particles, post-fx)
+- **RNG**: Single `SeededRng` (xorshift64) owned by engine
+- **State hashing**: `Engine::state_hash()` for determinism verification
 
-    engine-core/src/engine.rs
+### Simulation Trait
 
-This coordinates:
+```rust
+pub trait Simulation {
+    fn setup(&mut self, engine: &mut Engine);
+    fn step(&mut self, engine: &mut Engine);
+    fn render(&self, engine: &mut Engine);
+}
+```
 
-- Systems
-- Physics
-- Rendering
-- Game state
+### Headless Infrastructure (22 modules)
 
-If you want to understand the frame loop, start here.
+Replay recording, golden tests, parameter sweeps, fitness evaluation, hill climbing, anomaly detection, death classification, divergence replay, interesting moment detection, mechanic ablation, variant branching, dashboard generation.
 
----
+### CLI Commands
 
-## Systems Layer
+```
+record / replay / batch / sweep / golden / deaths / divergence
+preset / variants / variant-sweep / highlights / ablation
+dashboard-data / info / schema
+```
 
-Gameplay behavior is implemented as systems:
-
-    engine-core/src/systems/
-
-Examples:
-
-- `collision.rs`
-- `gameplay.rs`
-- `force_accumulator.rs`
-- `behavior.rs`
-
-Think of systems as the "game logic pipeline."
-
----
-
-## Physics
-
-Physics utilities live in:
-
-    engine-core/src/physics/
-
-Includes:
-
-- Spatial grid
-- Math helpers
-- Continuous collision detection (CCD)
+All data-producing commands emit JSON/JSONL.
 
 ---
 
-## Rendering
+## Documentation
 
-Rendering is intentionally modular:
-
-    engine-core/src/rendering/
-
-Includes:
-
-- Framebuffer
-- Particles
-- Post FX
-- Starfield
-- Sprite and shapes
-
-The renderer is designed to evolve independently from simulation.
-
----
-
-## Headless + AI Iteration (Important)
-
-One of the more distinctive parts of this engine is:
-
-    engine-core/src/headless/
-
-This supports:
-
-- Automated experiments
-- Fitness evaluation
-- Hill climbing
-- Golden comparisons
-- Action generation
-
-If your interest is AI-driven gameplay iteration, start here.
-
----
-
-## Getting Started
-
-### 1. Prerequisites
-
-You need:
-
-- Rust (stable recommended)
-- Cargo
-
-Verify:
-
-    rustc --version
-    cargo --version
-
----
-
-### 2. Build the Engine
-
-From the repo root:
-
-    cd engine
-    cargo build
-
----
-
-### 3. Run the CLI
-
-    cargo run -p engine-cli
-
-This will execute the default engine entry point.
-
----
-
-### 4. Explore the Docs
-
-Recommended reading order:
-
-1. `docs/getting-started.md`
-2. `docs/architecture.md`
-3. `docs/engine.md`
-4. `docs/ai-iteration.md`
-5. `docs/api-reference.md`
-
----
-
-## Web Demo
-
-There is a small browser demo under:
-
-    site/
-
-Open locally:
-
-    cd site
-    python -m http.server 8000
-
-Then visit:
-
-    http://localhost:8000
+| Document | Contents |
+|----------|----------|
+| `docs/getting-started.md` | Quick-start tutorial |
+| `docs/architecture.md` | Headless testing architecture |
+| `docs/engine.md` | Engine technical reference |
+| `docs/ai-iteration.md` | AI-driven development guide |
+| `docs/api-reference.md` | API reference |
+| `engine/ARCHITECTURE.md` | Engine internals (for contributors) |
+| `engine/CLAUDE.md` | Conventions for AI code generation |
+| `ENGINE_BOUNDARIES.md` | Platform separation rules |
+| `RENDERER_FUTURE.md` | Rendering layer roadmap |
 
 ---
 
 ## Project Status
 
-Reality check: this is an experimental engine.
+**What is solid:**
 
-**What is relatively solid:**
+- ECS foundation (32 components, 21 systems)
+- Deterministic simulation (seeded RNG, fixed dt, state hashing)
+- Simulation trait boundary (InputFrame, Policy, Observation)
+- Headless infrastructure (22 modules, 14 CLI commands)
+- 1157+ passing tests
+- WASM builds for browser deployment
 
-- ECS foundation
-- Deterministic simulation direction
-- Headless experimentation tooling
-- Modular structure
+**What is evolving:**
 
-**What is still evolving:**
-
-- Public API stability
-- Renderer maturity
-- Tooling polish
-- Cross-platform packaging
+- Validation games beyond DemoBall
+- Declarative game definition format
+- Cross-platform determinism (native vs WASM)
 - Production ergonomics
-
-Treat this as a research engine, not a finished product.
-
----
-
-## Where New Contributors Should Start
-
-If you are trying to ramp up quickly:
-
-**First pass (30–60 min)**
-
-- `docs/architecture.md`
-- `engine-core/src/ecs/world.rs`
-- `engine-core/src/engine.rs`
-
-**Second pass**
-
-- `systems/`
-- `physics/`
-- `headless/`
-
-**Advanced**
-
-- Rendering pipeline
-- AI iteration loops
-- CLI integration
 
 ---
 
 ## Design Goals
 
-The engine is optimizing for:
+Optimizing for:
 
-- Fast iteration cycles
-- AI-assisted development workflows
 - Deterministic reproducibility
+- AI-assisted development workflows
+- Fast iteration cycles
 - Clear system boundaries
-- Minimal hidden magic
 
-It is **not** currently optimizing for:
+Not optimizing for:
 
-- AAA graphics
+- GPU rendering
 - Editor tooling
-- Beginner friendliness
-- Large asset pipelines
+- Network multiplayer
+- Asset pipelines
 
 ---
 
 ## Contributing
 
-Before making large changes:
+Before making changes:
 
-1. Read `ENGINE_BOUNDARIES.md`
-2. Read `ARCHITECTURE.md`
-3. Prefer small, composable additions
-4. Preserve determinism where possible
-
----
-
-## Roadmap (Likely Directions)
-
-Based on current structure, high-leverage future work includes:
-
-- Platform abstraction layer
-- Asset pipeline
-- Save/load snapshots
-- Better debug tooling
-- Renderer decoupling
-- Multiplayer determinism support
+1. Read `engine/CLAUDE.md` (coding conventions)
+2. Read `engine/ARCHITECTURE.md` (system architecture)
+3. Read `ENGINE_BOUNDARIES.md` (platform separation)
+4. Preserve determinism — use `Engine.rng`, not external RNG
+5. All simulation-phase systems use `FIXED_DT`
 
 ---
 
 ## License
 
 Check the repository root for license details.
-
----
-
-If you are trying to extend the engine and want a targeted reading path, say what area you care about (rendering, ECS, AI iteration, etc.) and I will give you a focused onboarding map.

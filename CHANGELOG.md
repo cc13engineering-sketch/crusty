@@ -681,6 +681,7 @@ color, framebuffer, shapes, text, particles, starfield, post_fx, layers, sprite,
 ### Engine Modules: 21
 SceneManager, GameState (global), Timers, Templates, Behavior Rules, DialogueQueue, SpawnQueue, Camera, TileMap, Raycast, SpatialHashGrid, EntityPool, EventBus, InputMap, Pathfinding, Save/Load, FlowNetwork, ProceduralGen, EnvironmentClock, DensityField, Headless
 
-### Test Count: 1042+ (12 headless tests, scripting tests removed)
-### Game: S-League minigolf RPG demo (sleague.rs)
-### Headless: Native `cargo test` simulation, CLI simulate, visual regression hashing
+### Test Count: 1157+
+### Demo Game: DemoBall (demo_ball.rs) — implements Simulation trait
+### Headless: 22 modules — simulation, policy, replay, sweep, golden tests, death classification, divergence, highlights, ablation, dashboard
+### CLI: 14 commands — record, replay, batch, sweep, golden, deaths, divergence, preset, variants, variant-sweep, highlights, ablation, dashboard-data, info

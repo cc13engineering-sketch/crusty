@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-2D physics game engine purpose-built for the S-League monster collection RPG. Rust → WASM → shared memory framebuffer → JS canvas. Games are defined as Rust modules, not spec files.
+2D deterministic simulation engine. Rust → WASM → shared memory framebuffer → JS canvas. Games implement the `Simulation` trait.
 
 ## Executive Intent
 Crusty is evolving into a:

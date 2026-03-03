@@ -52,9 +52,17 @@
 - [x] Updated SystemPhase and tick() doc comments to reflect fixed-dt simulation
 - [x] All 1042 tests pass
 
-### Phase 2.3: Engine::reset(seed)
-- [ ] Replace `reset_game_state()` with `reset(seed: u64)`
-- [ ] Clear all state, reseed rng, reset frame/time to 0
+### Phase 2.3: Engine::reset(seed) — DONE
+- [x] Replaced `reset_game_state()` with `reset(seed: u64)`
+- [x] Clears all world state (entities, components)
+- [x] Clears all subsystems (particles, global_state, timers, rules, dialogue, transition, screen_fx, event_bus, flow_network, environment_clock, sound_queue, diagnostic_bus, auto_juice, game_flow, camera_director, level_curve, color_palette, ui_canvas, spawn_queue, events, input, scene_manager, gestures, camera)
+- [x] Reseeds `self.rng` with the given seed
+- [x] Resets `self.frame` to 0, `self.time` to 0.0, `self.accumulator` to 0.0
+- [x] Updated `camera_director.rs` doc comment reference
+- [x] 7 new tests: reset_clears_entities, reset_clears_global_state, reset_reseeds_rng, reset_different_seeds_produce_different_rng, reset_zeroes_frame_and_time, reset_produces_same_state_hash_as_fresh_engine, reset_clears_accumulator
+- [x] All 1049 tests pass
+
+## Phase 2 COMPLETE. Moving to Phase 3.
 
 ## Phases 3-8 — Not Yet Started
 See main implementation plan for details.

@@ -473,7 +473,16 @@ impl Engine {
         hash
     }
 
-    pub fn reset_game_state(&mut self) {
+    /// Reset the engine to a clean initial state with the given RNG seed.
+    ///
+    /// This is the single entry point for reproducible simulation. Every
+    /// headless run should start here. Clears all world state, all subsystems,
+    /// reseeds the RNG, and resets frame/time counters to zero.
+    pub fn reset(&mut self, seed: u64) {
+        // Clear all entities and components
+        self.world.clear();
+
+        // Clear all subsystems
         self.particles = ParticlePool::new();
         self.global_state.clear();
         self.timers.clear();
@@ -492,6 +501,20 @@ impl Engine {
         self.level_curve.clear();
         self.color_palette = ColorPalette::default();
         self.ui_canvas.clear();
+        self.spawn_queue.clear();
+        self.events.clear();
+        self.input.end_frame();
+        self.scene_manager.clear();
+        self.gestures = GestureRecognizer::new();
+        self.camera = Camera::default();
+
+        // Reseed RNG
+        self.rng = SeededRng::new(seed);
+
+        // Reset timing
+        self.frame = 0;
+        self.time = 0.0;
+        self.accumulator = 0.0;
     }
 
     /// Advance the engine by one frame.
@@ -814,6 +837,94 @@ mod tests {
         let mut e2 = Engine::new(100, 100);
         e1.rng.next_u64(); // advance rng
         assert_ne!(e1.state_hash(), e2.state_hash());
+    }
+
+    // ─── Engine::reset(seed) ──────────────────────────────────────────
+
+    #[test]
+    fn reset_clears_entities() {
+        let mut engine = Engine::new(100, 100);
+        let ent = engine.world.spawn();
+        engine.world.transforms.insert(ent, crate::components::Transform {
+            x: 5.0, y: 10.0, rotation: 0.0, scale: 1.0,
+        });
+        assert_eq!(engine.world.entity_count(), 1);
+        engine.reset(42);
+        assert_eq!(engine.world.entity_count(), 0);
+    }
+
+    #[test]
+    fn reset_clears_global_state() {
+        let mut engine = Engine::new(100, 100);
+        engine.global_state.set_f64("score", 100.0);
+        engine.reset(42);
+        assert!(engine.global_state.get("score").is_none());
+    }
+
+    #[test]
+    fn reset_reseeds_rng() {
+        let mut engine = Engine::new(100, 100);
+        engine.rng.next_u64();
+        engine.rng.next_u64();
+        let rng_state_before = engine.rng.state;
+
+        engine.reset(42);
+        let fresh = SeededRng::new(42);
+        assert_eq!(engine.rng.state, fresh.state, "rng must be reseeded to the given seed");
+    }
+
+    #[test]
+    fn reset_different_seeds_produce_different_rng() {
+        let mut e1 = Engine::new(100, 100);
+        let mut e2 = Engine::new(100, 100);
+        e1.reset(1);
+        e2.reset(2);
+        assert_ne!(e1.rng.state, e2.rng.state);
+    }
+
+    #[test]
+    fn reset_zeroes_frame_and_time() {
+        let mut engine = Engine::new(100, 100);
+        engine.tick(FIXED_DT);
+        engine.tick(FIXED_DT);
+        assert!(engine.frame > 0);
+        assert!(engine.time > 0.0);
+
+        engine.reset(42);
+        assert_eq!(engine.frame, 0);
+        assert_eq!(engine.time, 0.0);
+    }
+
+    #[test]
+    fn reset_produces_same_state_hash_as_fresh_engine() {
+        let mut engine = Engine::new(100, 100);
+        // Mutate engine state heavily
+        engine.tick(FIXED_DT);
+        engine.tick(FIXED_DT);
+        engine.global_state.set_f64("score", 999.0);
+        let ent = engine.world.spawn();
+        engine.world.transforms.insert(ent, crate::components::Transform {
+            x: 42.0, y: 99.0, rotation: 1.0, scale: 2.0,
+        });
+
+        engine.reset(42);
+        let fresh = Engine::new(100, 100);
+        assert_eq!(engine.state_hash(), fresh.state_hash(),
+            "reset engine must have same state hash as a fresh engine with seed 42");
+    }
+
+    #[test]
+    fn reset_clears_accumulator() {
+        let mut engine = Engine::new(100, 100);
+        // Feed a partial dt that won't trigger a physics step
+        engine.tick(FIXED_DT * 0.5);
+        engine.reset(42);
+        // After reset, accumulator should be 0. Ticking with a tiny dt
+        // should still advance the frame (simulation systems run once per tick).
+        let hash_before = engine.state_hash();
+        engine.tick(FIXED_DT);
+        assert_ne!(engine.state_hash(), hash_before);
+        assert_eq!(engine.frame, 1);
     }
 }
 

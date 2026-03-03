@@ -102,7 +102,7 @@ pub struct CameraRule {
 /// 2. Call [`update`] once per frame (after gameplay, before rendering).
 /// 3. The director modifies `camera.x`, `camera.y`, `camera.zoom` in-place.
 /// 4. Call [`apply_letterbox`] after the main render pass to draw cinematic bars.
-/// 5. Call [`clear`] (or let `Engine::reset_game_state` do so) between levels.
+/// 5. Call [`clear`] (or let `Engine::reset` do so) between levels.
 #[derive(Clone, Debug, Default)]
 pub struct CameraDirector {
     /// Active mode stack. Each entry is `(mode, elapsed_seconds)`.

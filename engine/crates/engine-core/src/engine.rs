@@ -2,7 +2,6 @@ use crate::ecs::World;
 use crate::rendering::framebuffer::Framebuffer;
 use crate::rendering::color::Color;
 use crate::rendering::particles::ParticlePool;
-use crate::rendering::starfield::Starfield;
 use crate::rendering::post_fx::PostFxConfig;
 use crate::rendering::layers::RenderLayerStack;
 use crate::rendering::sprite::SpriteSheet;
@@ -88,18 +87,13 @@ pub enum SystemPhase {
     /// - `physics_joint::run`     -- distance, spring, rope, hinge constraints
     Physics = 2,
 
-    /// Phase 3 -- Runs once after physics. Gameplay uses FIXED_DT; rendering uses variable dt.
+    /// Phase 3 -- Runs once after physics. Uses variable dt for rendering subsystems.
     ///
     /// Systems (in order):
-    /// - `gameplay::run`          -- collision reactions, scoring, damage
-    /// - `event_processor::run`   -- legacy non-gameplay event triggers
-    /// - `input_gameplay::run`    -- input-driven gameplay actions
-    /// - (game logic)             -- game-specific spawners, cooldowns (via Simulation trait)
     /// - `ghost_trail::run`       -- capture position snapshots for trails
     /// - `ParticlePool::update`   -- tick particle lifetimes and positions
     /// - `TransitionManager::update` -- advance scene transitions
     /// - `DialogueQueue::tick`    -- advance dialogue message timers
-    /// - `check_game_over`        -- detect player death
     /// - `Camera::update`         -- follow target, smooth, clamp to bounds
     PostPhysics = 3,
 
@@ -107,11 +101,9 @@ pub enum SystemPhase {
     ///
     /// Rendering (in order):
     /// - `Framebuffer::clear`     -- fill with background color
-    /// - `Starfield::render`      -- optional parallax starfield
     /// - `renderer::run_entities_only` -- draw all visible entities
     /// - `ParticlePool::render`   -- draw particles
     /// - `debug_render::run`      -- debug overlays (when `debug_mode` is on)
-    /// - `render_hud`             -- HUD bars, score, ammo, dialogue, game-over overlay
     /// - `ScreenFxStack::tick` + `apply` -- screen-wide tint, desaturate, flash
     /// - `TransitionManager::apply` -- scene transition overlay
     /// - `post_fx::apply`         -- CRT scanlines, shake, bloom, etc.
@@ -254,7 +246,6 @@ pub struct Engine {
     // Innovation features
     pub spawn_queue: SpawnQueue,
     pub particles: ParticlePool,
-    pub starfield: Option<Starfield>,
     pub post_fx: PostFxConfig,
 
     // Entity Lifecycle & Runtime Dynamics (Innovation Agent 4)
@@ -342,7 +333,6 @@ impl Engine {
             accumulator: 0.0,
             spawn_queue: SpawnQueue::default(),
             particles: ParticlePool::new(),
-            starfield: None,
             post_fx: PostFxConfig::default(),
             global_state: GlobalGameState::new(),
             timers: TimerQueue::new(),
@@ -382,7 +372,7 @@ impl Engine {
     /// (sorted by key), frame counter, and rng state.
     ///
     /// Deliberately excludes rendering state (framebuffer, particles,
-    /// starfield, post_fx) so the hash reflects simulation truth only.
+    /// post_fx) so the hash reflects simulation truth only.
     pub fn state_hash(&self) -> u64 {
         const FNV_OFFSET: u64 = 0xcbf29ce484222325;
         const FNV_PRIME: u64 = 0x100000001b3;
@@ -598,11 +588,7 @@ impl Engine {
     ///   |- collision::run
     ///   '- physics_joint::run
     ///
-    /// Phase 3  PostPhysics  (FIXED_DT for gameplay, variable dt for rendering)
-    ///   |- gameplay::run         (collision reactions, scoring, damage)
-    ///   |- event_processor::run  (legacy event triggers)
-    ///   |- input_gameplay::run   (input-driven actions)
-    ///   |- (game-specific logic via Simulation trait)
+    /// Phase 3  PostPhysics  (variable dt for rendering subsystems)
     ///   |- ghost_trail::run      (position snapshots)
     ///   |- ParticlePool::update
     ///   |- TransitionManager::update
@@ -611,7 +597,6 @@ impl Engine {
     ///
     /// Phase 4  RenderingPrep
     ///   |- Framebuffer::clear
-    ///   |- Starfield::render
     ///   |- renderer::run_entities_only
     ///   |- ParticlePool::render
     ///   |- debug_render::run     (if debug_mode)
@@ -737,18 +722,6 @@ impl Engine {
             physics_steps += 1;
         }
 
-        // Game logic: collision reactions, scoring, damage
-        crate::systems::gameplay::run(
-            &mut self.world, &self.events, &mut self.spawn_queue,
-            &mut self.post_fx, &mut self.particles, self.frame,
-        );
-
-        // Legacy event processor (for non-gameplay triggers like goal/pickup messages)
-        crate::systems::event_processor::run(&mut self.world, &self.events);
-
-        // Input & gameplay
-        crate::systems::input_gameplay::run(&mut self.world, &self.input, &mut self.events);
-
         // Ghost trail system (capture position snapshots)
         crate::systems::ghost_trail::run(&mut self.world, FIXED_DT);
 
@@ -770,11 +743,7 @@ impl Engine {
         );
 
         // --- RENDERING ---
-        // Background + starfield
         self.framebuffer.clear(self.config.background);
-        if let Some(ref starfield) = self.starfield {
-            starfield.render(&mut self.framebuffer, &self.camera, self.frame);
-        }
 
         // Entity rendering
         crate::systems::renderer::run_entities_only(

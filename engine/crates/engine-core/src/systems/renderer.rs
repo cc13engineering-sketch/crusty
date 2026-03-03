@@ -1,7 +1,7 @@
 /// SYSTEM: renderer
 /// READS: Transform, Renderable, Collider (for auto-visuals)
 /// WRITES: Framebuffer
-/// ORDER: runs once per frame after input_gameplay
+/// ORDER: runs once per frame during rendering phase
 
 use crate::ecs::World;
 use crate::rendering::framebuffer::Framebuffer;
@@ -12,7 +12,7 @@ use crate::engine::{WorldConfig, Camera};
 use crate::input::Input;
 use crate::components::{Visual, ColliderShape};
 
-/// Render entities only (no framebuffer clear). Called by engine after starfield.
+/// Render entities only (no framebuffer clear). Called by engine after background clear.
 pub fn run_entities_only(
     world: &World,
     fb: &mut Framebuffer,

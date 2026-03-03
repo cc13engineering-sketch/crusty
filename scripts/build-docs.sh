@@ -60,6 +60,7 @@ html_head() {
     <a href="api-reference.html">API</a>
     <a href="getting-started.html">Getting Started</a>
     <a href="ai-iteration.html">AI Iteration</a>
+    <a href="codebase-explainer.html">Codebase Explainer</a>
 </nav>
 HEADER
 }
@@ -244,6 +245,7 @@ cat > "$OUT_DIR/index.html" <<'INDEX'
     <li><a href="architecture.html">Headless Testing Architecture</a><p>22-module infrastructure for AI-driven game testing.</p></li>
     <li><a href="api-reference.html">API Reference</a><p>Core types, headless modules, CLI commands.</p></li>
     <li><a href="ai-iteration.html">AI Iteration Guide</a><p>How AI agents use the engine to build and test games.</p></li>
+    <li><a href="codebase-explainer.html">Codebase Explainer</a><p>Complete walkthrough of the engine for senior TypeScript engineers new to Rust and game dev.</p></li>
 </ul>
 </body>
 </html>

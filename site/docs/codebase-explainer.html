@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Crusty Engine — A Complete Codebase Walkthrough — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            line-height: 1.7;
+        }
+        h1 { color: #f0e060; margin-bottom: 8px; font-size: 1.8rem; }
+        h2 { color: #f0e060; margin-top: 32px; margin-bottom: 12px; font-size: 1.3rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+        h3 { color: #e0d050; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        a { color: #f0e060; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1a1a28; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 12px 0; border: 1px solid #2a2a3a; }
+        pre code { background: none; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+        th, td { border: 1px solid #2a2a3a; padding: 8px 12px; text-align: left; }
+        th { background: #1a1a28; color: #f0e060; }
+        ul, ol { margin: 8px 0 8px 24px; }
+        li { margin: 4px 0; }
+        blockquote { border-left: 3px solid #f0e060; padding-left: 16px; color: #999; margin: 12px 0; }
+        p { margin: 8px 0; }
+        strong { color: #e0e0e0; }
+        .nav { margin-bottom: 32px; }
+        .nav a { margin-right: 16px; font-size: 0.9rem; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 24px 0; }
+    </style>
+</head>
+<body>
+<nav class="nav">
+    <a href="../">&larr; Home</a>
+    <a href="./">Docs</a>
+    <a href="engine.html">Engine</a>
+    <a href="architecture.html">Architecture</a>
+    <a href="api-reference.html">API</a>
+    <a href="getting-started.html">Getting Started</a>
+    <a href="ai-iteration.html">AI Iteration</a>
+    <a href="codebase-explainer.html">Codebase Explainer</a>
+</nav>
+<h1>The Crusty Engine — A Complete Codebase Walkthrough</h1>
+
+<p>This document explains the entire Crusty engine codebase for senior engineers coming from TypeScript who may be unfamiliar with Rust or game engine development. It covers what every layer does, why it&#x27;s designed that way, and how the pieces connect.</p>
+
+<h2>What Is This Thing?</h2>
+
+<p>Crusty is a deterministic 2D simulation engine written in Rust that compiles to WebAssembly. It&#x27;s designed so that AI agents can build, test, and iterate on games without a human in the loop. The key properties are:</p>
+
+<ul>
+<li><strong>Deterministic</strong>: Given the same seed and inputs, the engine produces the exact same output every time, on every platform.</li>
+<li><strong>Headless-first</strong>: The engine can run thousands of simulations without rendering a single pixel.</li>
+<li><strong>AI-observable</strong>: Every aspect of game state can be inspected, recorded, and compared programmatically.</li>
+</ul>
+
+<p>Think of it as a game engine where testing and automation are first-class features, not afterthoughts.</p>
+
+<h2>Rust for TypeScript Engineers</h2>
+
+<p>Before diving into the codebase, here are the Rust concepts you&#x27;ll encounter mapped to TypeScript equivalents.</p>
+
+<h3>Ownership and Borrowing</h3>
+
+<p>In TypeScript, every object is reference-counted and garbage-collected. In Rust, every value has exactly one owner, and when the owner goes out of scope, the value is destroyed. You can lend a value out temporarily via references:</p>
+
+<ul>
+<li><code>&amp;T</code> — a shared (read-only) reference. Like <code>Readonly&lt;T&gt;</code> but enforced at compile time.</li>
+<li><code>&amp;mut T</code> — an exclusive (read-write) reference. Only one <code>&amp;mut</code> can exist at a time. This prevents data races by construction.</li>
+</ul>
+
+<p>The borrow checker (Rust&#x27;s compiler) guarantees at compile time that you never have a dangling reference or a data race. There&#x27;s no garbage collector and no runtime cost.</p>
+
+<h3>Structs and Enums</h3>
+
+<p>Rust structs are like TypeScript interfaces with concrete fields:</p>
+
+<pre><code>
+// Rust                          // TypeScript equivalent
+struct Transform {               interface Transform {
+    x: f64,                          x: number;
+    y: f64,                          y: number;
+}                                }
+</code></pre>
+
+<p>Rust enums are tagged unions — like TypeScript discriminated unions but enforced by the compiler:</p>
+
+<pre><code>
+// Rust                          // TypeScript equivalent
+enum ColliderShape {             type ColliderShape =
+    Circle { radius: f64 },          | { kind: &#x27;circle&#x27;; radius: number }
+    Rect { half_w: f64 },            | { kind: &#x27;rect&#x27;; half_w: number };
+}
+</code></pre>
+
+<p>The compiler forces you to handle every variant. You cannot forget one.</p>
+
+<h3>Traits</h3>
+
+<p>Traits are Rust&#x27;s version of interfaces, but they can also provide default implementations:</p>
+
+<pre><code>
+// Rust                          // TypeScript equivalent
+trait Simulation {               interface Simulation {
+    fn setup(&amp;mut self, e: &amp;mut Engine);    setup(e: Engine): void;
+    fn step(&amp;mut self, e: &amp;mut Engine);     step(e: Engine): void;
+    fn render(&amp;self, e: &amp;mut Engine);       render(e: Engine): void;
+}                                }
+</code></pre>
+
+<h3>Generics</h3>
+
+<p>Work the same as TypeScript generics. <code>ComponentStore&lt;T&gt;</code> is like <code>Map&lt;Entity, T&gt;</code>.</p>
+
+<h3>Macros</h3>
+
+<p>Rust macros are compile-time code generators. They take source code as input and produce source code as output. Think of them as sophisticated template literals that run during compilation. The codebase uses one key macro (<code>component_stores!</code>) to eliminate boilerplate — explained in detail below.</p>
+
+<h3>Option and Result</h3>
+
+<p>Rust has no <code>null</code> or <code>undefined</code>. Instead, it uses <code>Option&lt;T&gt;</code> (either <code>Some(value)</code> or <code>None</code>) and <code>Result&lt;T, E&gt;</code> (either <code>Ok(value)</code> or <code>Err(error)</code>). The compiler forces you to handle both cases. This eliminates null pointer exceptions by design.</p>
+
+<h3>cfg(test) and cfg(target_arch)</h3>
+
+<p>The <code>#[cfg(...)]</code> attribute is conditional compilation. <code>#[cfg(test)]</code> means &quot;only compile this code when running tests&quot; — test code is literally absent from production builds. <code>#[cfg(target_arch = &quot;wasm32&quot;)]</code> means &quot;only compile this for WebAssembly.&quot;</p>
+
+<h2>Architecture Overview</h2>
+
+<p>The codebase is a Cargo workspace with two crates:</p>
+
+<pre><code>
+engine/
+  crates/
+    engine-core/     The engine library (compiles to WASM + native)
+    engine-cli/      Command-line tool for headless analysis (native only)
+</code></pre>
+
+<p>Engine-core is structured in layers:</p>
+
+<pre><code>
+ECS Core          Entity, ComponentStore, World
+Components        32 data types (Transform, RigidBody, Collider, ...)
+Systems           21 functions that process components each frame
+Physics           Vec2 math, continuous collision detection, spatial grid
+Rendering         Software framebuffer, shapes, text, particles, post-fx
+Platform          Input, events, sound commands, logging
+Game Framework    Timers, templates, behavior rules, game flow, camera
+Headless          22 modules for testing, analysis, and AI optimization
+WASM Bridge       lib.rs — the thin glue between JavaScript and Rust
+</code></pre>
+
+<h2>The ECS Core</h2>
+
+<p>ECS stands for Entity-Component-System. It&#x27;s an alternative to object-oriented inheritance that game engines use because it&#x27;s faster and more flexible.</p>
+
+<p>In OOP, you&#x27;d have a class hierarchy: <code>GameObject &gt; PhysicsObject &gt; Enemy</code>. In ECS, there are no classes. Instead:</p>
+
+<ul>
+<li>An <strong>Entity</strong> is just a numeric ID — a handle, not an object.</li>
+<li><strong>Components</strong> are plain data structs attached to entities. An entity&#x27;s &quot;type&quot; is defined by which components it has.</li>
+<li><strong>Systems</strong> are functions that process entities with specific component combinations.</li>
+</ul>
+
+<p>This means you can create an entity with <code>Transform + Collider</code> (a wall), or <code>Transform + RigidBody + Collider + Renderable</code> (a bouncing ball), or <code>Transform + Behavior + StateMachine</code> (an NPC) — all without any class hierarchy.</p>
+
+<h3>Entity (ecs/entity.rs)</h3>
+
+<pre><code>
+pub struct Entity(pub u64);
+</code></pre>
+
+<p>An entity is a 64-bit integer wrapped in a named type for type safety. It derives <code>Copy</code> (free to pass around — no ownership transfer), <code>Hash</code> (usable as a HashMap key), <code>Eq</code> (comparable), <code>Ord</code> (sortable for determinism), and <code>Serialize/Deserialize</code> (JSON-compatible for replays).</p>
+
+<p>Entity IDs start at 1 and never get recycled. Entity(0) is reserved as a sentinel. This prevents a class of bugs where a despawned entity&#x27;s old ID accidentally references a newly-spawned entity.</p>
+
+<h3>ComponentStore (ecs/component_store.rs)</h3>
+
+<pre><code>
+pub struct ComponentStore&lt;T&gt; {
+    data: HashMap&lt;Entity, T&gt;,
+}
+</code></pre>
+
+<p>A generic container mapping entities to components. One store per component type. The API is intentionally minimal: <code>insert</code>, <code>get</code>, <code>get_mut</code>, <code>remove</code>, <code>has</code>, <code>iter</code>, <code>iter_mut</code>, <code>len</code>, <code>clear</code>, plus <code>sorted_entities()</code> which returns entity IDs in sorted order for deterministic iteration (HashMap order is random).</p>
+
+<p>The trait implementations are manual rather than derived. This is a deliberate Rust pattern: <code>impl&lt;T: Clone&gt; Clone for ComponentStore&lt;T&gt;</code> means &quot;you can clone this store, but only if the component type is cloneable.&quot; A derived <code>Clone</code> would require <code>T: Clone</code> always, even when you never clone the store. Manual impls keep the type constraints minimal.</p>
+
+<h3>World (ecs/world.rs)</h3>
+
+<p>The World struct holds all entities and all 31 component stores. It&#x27;s the single source of truth for the simulation.</p>
+
+<p>The key innovation here is the <code>component_stores!</code> macro. Without it, adding a new component type required editing four places: the struct definition, the constructor, the <code>despawn()</code> method, and the <code>clear()</code> method. With the macro, you add one line:</p>
+
+<pre><code>
+component_stores! {
+    transforms: Transform,
+    rigidbodies: RigidBody,
+    colliders: Collider,
+    // ... 31 total — one line each
+}
+</code></pre>
+
+<p>The macro expands this single list into the struct fields, the <code>new()</code> initializations, a <code>despawn_components()</code> method that calls <code>.remove(entity)</code> on every store, and a <code>clear_components()</code> method that calls <code>.clear()</code> on every store. It&#x27;s code generation at compile time — zero runtime cost.</p>
+
+<p>The World also includes a NameMap for bidirectional name-to-entity lookups (like a phonebook) and a SpawnQueue for deferred entity creation.</p>
+
+<h2>The Engine (engine.rs)</h2>
+
+<p>The Engine struct is the central orchestrator. It owns:</p>
+
+<ul>
+<li>The <strong>World</strong> (all entities and components)</li>
+<li>A <strong>Framebuffer</strong> (the pixel array that becomes the canvas)</li>
+<li><strong>Input</strong> state (keyboard, mouse, touch)</li>
+<li><strong>30+ subsystems</strong> (timers, templates, particles, camera, sound queue, diagnostics, etc.)</li>
+<li>A <strong>SeededRng</strong> (the single source of randomness)</li>
+</ul>
+
+<h3>The Tick Loop</h3>
+
+<p>Every frame, JavaScript calls <code>tick(dt)</code> where <code>dt</code> is the wall-clock time since the last frame (typically ~16ms at 60fps). The engine then executes five phases in a fixed order:</p>
+
+<p><strong>Phase 0 — Input</strong>: Process debug toggles, advance gesture recognition timers, drain recognized gestures (tap, swipe, pinch) and publish them to the EventBus.</p>
+
+<p><strong>Phase 1 — Simulation (fixed dt = 1/60s)</strong>: Run 13 systems in strict order: lifecycle (spawn/despawn/timers/behavior rules), hierarchy (parent-child transforms), signals (emitter-receiver wiring), state machines (FSM transitions), coroutines (async step sequences), environment clock, flow network, sprite animation, behavior AI (chase/flee/orbit), tweens (easing curves), flash effects, and waypoint path-following.</p>
+
+<p><strong>Phase 2 — Physics (fixed dt, 0-N iterations)</strong>: Uses a physics accumulator to decouple physics from frame rate. Each iteration runs: force accumulation, semi-implicit Euler integration, collision detection (broadphase spatial grid + narrowphase CCD), and joint constraints.</p>
+
+<p><strong>Phase 3 — PostPhysics</strong>: Ghost trail capture, particle updates, scene transitions, dialogue timers, and camera follow/smooth/clamp.</p>
+
+<p><strong>Phase 4 — RenderingPrep</strong>: Clear framebuffer, draw entities by layer, draw particles, draw debug overlays, apply screen effects (tint, flash, desaturate), apply transitions, apply post-processing (CRT, scanlines), then clean up (clear events, reset per-frame input, advance counters).</p>
+
+<h3>Fixed Timestep (Why It Matters)</h3>
+
+<p>The physics accumulator is a pattern that prevents a subtle but devastating bug. If you just multiply velocity by <code>dt</code>, then on a slow frame (33ms) the ball moves twice as far as on a fast frame (16ms). Worse, it might skip past a wall entirely. The accumulator ensures physics always advances in fixed 1/60s steps, regardless of frame rate.</p>
+
+<h3>Determinism</h3>
+
+<p><code>Engine::reset(seed)</code> is the single entry point for reproducible simulation. It clears all world state, resets all subsystems, and reseeds the RNG. <code>Engine::state_hash()</code> computes a deterministic FNV-1a hash of the simulation state (transforms, rigidbodies, global state, frame counter, RNG state) — deliberately excluding rendering state so the hash reflects simulation truth only. Two runs with the same seed and inputs produce the same hash on every platform.</p>
+
+<h2>The Simulation Trait</h2>
+
+<p>Games implement the <code>Simulation</code> trait to plug into the engine:</p>
+
+<pre><code>
+pub trait Simulation {
+    fn setup(&amp;mut self, engine: &amp;mut Engine);   // Initialize game state
+    fn step(&amp;mut self, engine: &amp;mut Engine);    // Advance one frame of logic
+    fn render(&amp;self, engine: &amp;mut Engine);      // Draw into framebuffer
+    fn variants(&amp;self) -&gt; Vec&lt;ParamSet&gt;;        // Declare tuning variants
+}
+</code></pre>
+
+<p>The engine owns timing, input application, and determinism. The game provides the three hooks. <code>render</code> is separated from <code>step</code> so that turbo mode (headless, no rendering) can skip it entirely while still advancing the simulation.</p>
+
+<p><code>DemoBall</code> is the reference implementation — a bouncing ball demo that implements <code>Simulation</code> in about 300 lines.</p>
+
+<h2>Physics</h2>
+
+<h3>Vec2 Math (physics/math.rs)</h3>
+
+<p>Vectors are represented as <code>(f64, f64)</code> tuples, not a custom struct. Functions like <code>add</code>, <code>sub</code>, <code>scale</code>, <code>dot</code>, <code>length</code>, <code>normalize</code>, <code>perpendicular</code>, and <code>rotate</code> operate on these tuples. This is intentionally simple — no operator overloading, no methods, just functions. Everything uses <code>f64</code> (never <code>f32</code>) for precision consistency across platforms.</p>
+
+<h3>Continuous Collision Detection (physics/ccd.rs)</h3>
+
+<p>Standard collision detection checks if objects overlap each frame. But a fast-moving bullet can pass straight through a thin wall between frames — the &quot;tunneling&quot; problem. CCD solves this by sweeping the moving circle&#x27;s path and finding the exact moment of first contact.</p>
+
+<p>Three sweep functions handle all cases: circle-vs-circle, circle-vs-line-segment (used for rectangle edges), and circle-vs-AABB (axis-aligned bounding box, which decomposes into 4 edges + 4 corners).</p>
+
+<h3>Spatial Grid (physics/spatial_grid.rs)</h3>
+
+<p>Checking every entity against every other entity for collisions is O(n^2). The spatial grid divides the world into cells and only checks entities in the same or neighboring cells. This is the broadphase — it quickly eliminates pairs that can&#x27;t possibly collide before the expensive narrowphase CCD runs.</p>
+
+<h2>Rendering</h2>
+
+<h3>Framebuffer (rendering/framebuffer.rs)</h3>
+
+<p>There is no GPU. The engine renders directly to a pixel array in memory — a flat <code>Vec&lt;u8&gt;</code> of RGBA values (4 bytes per pixel). The <code>ptr()</code> method exposes the raw memory address so JavaScript can create an <code>ImageData</code> from it and blit it to a canvas. This is the WASM shared memory bridge: Rust writes pixels, JavaScript reads them, zero copies.</p>
+
+<h3>Software Rendering</h3>
+
+<p>The rendering module implements everything from scratch: filled and stroked rectangles, circles (Bresenham&#x27;s algorithm), lines (with thickness), text (using a built-in bitmap font), particles, sprites from sprite sheets, a layer system for depth sorting, screen-wide effects (tint, flash, desaturate), scene transition overlays (fade, wipe), and post-processing (CRT scanlines, chromatic aberration, vignette).</p>
+
+<p>All drawing functions operate on the Framebuffer&#x27;s pixel array with manual alpha blending. There&#x27;s no WebGL, no Canvas 2D API — just direct pixel manipulation. This makes the rendering entirely deterministic and platform-independent.</p>
+
+<h2>Components (32 Types)</h2>
+
+<p>Components are plain data structs. Here are the key ones:</p>
+
+<p><strong>Transform</strong> — Position (x, y). Rotation and scale fields exist but are reserved for v2.</p>
+
+<p><strong>RigidBody</strong> — Physics state: mass, velocity (vx, vy), acceleration (ax, ay), restitution (bounciness), damping, and a <code>is_static</code> flag for immovable objects.</p>
+
+<p><strong>Collider</strong> — Shape (Circle or Rect) plus an <code>is_trigger</code> flag. Triggers detect overlaps without physics response — useful for pickup zones and event areas.</p>
+
+<p><strong>Renderable</strong> — Visual representation: Circle, Rect, Line, or Sprite, plus layer depth and visibility.</p>
+
+<p><strong>Lifetime</strong> — Auto-despawn countdown. Tracks <code>duration</code> and <code>remaining</code>, provides <code>fraction_elapsed()</code> for fade effects.</p>
+
+<p><strong>StateMachine</strong> — Finite state machine with condition-based transitions. Conditions include <code>After(seconds)</code>, <code>OnSignal(channel)</code>, <code>StateCheck { key, op, value }</code>, and <code>Always</code>. Tracks current state, elapsed time in state, and <code>just_entered</code> flag for one-shot enter logic.</p>
+
+<p><strong>Coroutine</strong> — Sequential async behavior as a step queue. Steps include <code>WaitSeconds</code>, <code>WaitSignal</code>, <code>WaitUntil { key, op, value }</code>, <code>SetState</code>, <code>AddState</code>, <code>SpawnTemplate</code>, and <code>Log</code>. Non-wait steps cascade in a single frame; wait steps block until satisfied. This is like an async function expressed as data.</p>
+
+<p><strong>Behavior</strong> — Autonomous movement modes: Drift, Chase, Flee, Seek, Orbit. Each mode takes parameters (speed, target tag, orbit radius) and the behavior system updates velocity accordingly.</p>
+
+<p><strong>SignalEmitter / SignalReceiver</strong> — Cross-entity event channels. An emitter broadcasts on a named channel; receivers listen. The signal system wires them together each frame.</p>
+
+<p><strong>Parent / Children / WorldTransform</strong> — Scene hierarchy. The hierarchy system propagates parent transforms to children, computing world-space positions.</p>
+
+<p><strong>PropertyTween</strong> — Easing-curve animation for numeric properties. Supports Linear, EaseIn, EaseOut, EaseInOut, Bounce, and Elastic easing functions.</p>
+
+<p>Other components: Tags, Role, GameState (per-entity key-value), PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection.</p>
+
+<h2>Systems (21 Functions)</h2>
+
+<p>Systems are stateless functions that process components. Each system declares what it reads and writes, runs in a fixed position in the tick order, and operates on the World by iterating component stores.</p>
+
+<p>The execution order matters. For example, <code>lifecycle</code> runs before <code>hierarchy</code> because newly-spawned entities need to exist before parent-child transforms are propagated. <code>force_accumulator</code> runs before <code>integrator</code> because forces must be summed before velocity is updated. This ordering is locked down in the <code>SystemPhase</code> enum and documented extensively.</p>
+
+<p>Key systems:</p>
+
+<p><strong>lifecycle</strong> — Processes the spawn queue, ticks Lifetime components (despawning expired entities), ticks timers, and evaluates behavior rules (condition-action pairs).</p>
+
+<p><strong>collision</strong> — Builds a spatial grid, runs broadphase to find candidate pairs, runs CCD narrowphase, resolves collisions (reflect velocity, separate positions), and emits collision events.</p>
+
+<p><strong>integrator</strong> — Semi-implicit Euler: <code>velocity += acceleration * dt</code>, then <code>position += velocity * dt</code>. Simple, stable, fast.</p>
+
+<p><strong>renderer</strong> — Sorts entities by Renderable layer, converts world coordinates to screen coordinates via the camera, and draws each entity&#x27;s visual into the framebuffer.</p>
+
+<p><strong>state_machine</strong> — Ticks elapsed time, checks transition conditions in priority order, fires the first matching transition. Tracks <code>just_entered</code> for one-frame enter logic.</p>
+
+<p><strong>coroutine</strong> — Pops steps from the queue. Wait steps block; action steps (SetState, SpawnTemplate) execute and cascade to the next step in the same frame.</p>
+
+<h2>Input and Events</h2>
+
+<h3>Input (input.rs)</h3>
+
+<p>Tracks keyboard state (<code>keys_held</code>, <code>keys_pressed</code>, <code>keys_released</code> per frame), mouse position, mouse button state, and drag detection. <code>end_frame()</code> clears the per-frame sets at the end of each tick.</p>
+
+<h3>InputFrame (input_frame.rs)</h3>
+
+<p>A serializable snapshot of one frame&#x27;s input: <code>keys_held</code>, <code>keys_pressed</code>, <code>keys_released</code>, <code>pointer</code> position, <code>pointer_down</code>, <code>pointer_up</code>. This is the canonical format for replays and policy-driven simulation.</p>
+
+<h3>EventQueue (events.rs)</h3>
+
+<p>Frame-local events emitted by systems (e.g., <code>Collision { entity_a, entity_b }</code>). Cleared every frame. Used by the lifecycle system to trigger behavior rules.</p>
+
+<h3>EventBus (event_bus.rs)</h3>
+
+<p>A named-channel publish-subscribe system. Events carry typed payloads (<code>f64</code>, <code>bool</code>, <code>str</code>, <code>entity</code>). Systems publish events; other systems and the behavior rule engine subscribe. This decouples systems that need to communicate without direct references.</p>
+
+<h2>Game Framework</h2>
+
+<h3>Timers (timers.rs)</h3>
+
+<p>One-shot and repeating timers. Ticked each frame; fires are detected by the lifecycle system and can trigger behavior rules.</p>
+
+<h3>Templates (templates.rs)</h3>
+
+<p>Entity blueprints. A template defines which components an entity should have (position, collider shape, visual style, etc.) with 23 optional fields. <code>TemplateRegistry</code> stores named templates; <code>spawn()</code> instantiates them.</p>
+
+<h3>BehaviorRules (behavior.rs)</h3>
+
+<p>A declarative rule engine. Rules have a condition (collision, trigger enter, timer fired, state check, key pressed, always) and a list of actions (despawn, set state, spawn template, start timer, log). Rules are evaluated each frame; the first matching rule fires. One-shot rules disable after firing.</p>
+
+<h3>GameFlow (game_flow.rs)</h3>
+
+<p>Top-level game state machine: Title, Playing, Paused, GameOver, Victory, Custom. Transitions are condition-driven (state reaches threshold, event fires, button tapped, timer expires). Pausing freezes elapsed time and condition evaluation.</p>
+
+<h3>CameraDirector (camera_director.rs)</h3>
+
+<p>Stack-based camera control: Follow (track an entity by tag), Pan (smooth move to a point), Zoom (scale with easing), Shake (procedural screen shake), Letterbox (cinematic bars). Effects layer on top of each other and auto-pop after their duration.</p>
+
+<h3>AutoJuice (auto_juice.rs)</h3>
+
+<p>One-stop game feel system. Register trigger-effect pairs: &quot;on collision between ball and wall, play particles + screen shake + sound.&quot; Triggers fire automatically; you define them once.</p>
+
+<h3>Sound (sound.rs)</h3>
+
+<p>Command buffer pattern. Rust enqueues sound commands (PlayTone, PlayNoise, StartLoop, StopLoop, SetVolume); JavaScript drains them as JSON each frame and executes them via Web Audio. The engine never touches audio hardware directly.</p>
+
+<h2>Headless Testing Infrastructure</h2>
+
+<p>This is the most distinctive part of the engine — 22 modules for running simulations without a display.</p>
+
+<h3>HeadlessRunner (headless/runner.rs)</h3>
+
+<p>Runs a Simulation with a given seed and input sequence, returns a <code>SimResult</code> containing: frames run, final metrics, game state snapshot, framebuffer hash, state hash, and optional per-frame state hashes. Two modes: replay-driven (fixed input sequence) and policy-driven (an AI decides each frame&#x27;s input).</p>
+
+<h3>Policy Trait (policy.rs)</h3>
+
+<p>The AI interface. A Policy receives an <code>Observation</code> (read-only view of the engine state) and returns an <code>InputFrame</code> (what buttons to press). Built-in policies: <code>NullPolicy</code> (no input), <code>RandomPolicy</code> (random keys from a given set, seeded for determinism), <code>ReplayPolicy</code> (replays a recorded input sequence).</p>
+
+<h3>PlaythroughFile (headless/playthrough.rs)</h3>
+
+<p>Records a complete simulation run: seed, inputs, frame count, final state hash, optional per-frame hashes. Can be serialized to JSON, stored on disk, and verified later. This is snapshot testing for game runs.</p>
+
+<h3>Parameter Sweeps (headless/sweep.rs)</h3>
+
+<p>Vary game state parameters (gravity, friction, speed) across multiple configurations, run each, compare outcomes. Used for tuning and sensitivity analysis.</p>
+
+<h3>FitnessEvaluator (headless/fitness.rs)</h3>
+
+<p>Score simulation outcomes against weighted criteria. Produces grades (A+, A, B, C, D, F). Used by the hill climber and the dashboard.</p>
+
+<h3>GoldenTest (headless/golden.rs)</h3>
+
+<p>Record a &quot;golden&quot; baseline of correct behavior. After code changes, replay and compare against the golden. If the hashes diverge, the test fails. This catches unintended behavior regressions.</p>
+
+<h3>HillClimber (headless/hill_climb.rs)</h3>
+
+<p>Automated parameter optimization. Defines ranges for game parameters, runs simulations, evaluates fitness, and hill-climbs toward better outcomes.</p>
+
+<h3>Other Headless Modules</h3>
+
+<ul>
+<li><strong>Anomaly Detection</strong> — Flags statistical outliers across batches of runs.</li>
+<li><strong>Death Classification</strong> — Categorizes how entities die (timeout, collision, out-of-bounds).</li>
+<li><strong>Divergence Analysis</strong> — Compares two runs frame-by-frame to find exactly when they diverge.</li>
+<li><strong>Ablation Study</strong> — Disables game mechanics one at a time to measure their individual impact.</li>
+<li><strong>Highlight Detection</strong> — Finds &quot;interesting moments&quot; (score spikes, near-deaths, combos).</li>
+<li><strong>Variant Runner</strong> — Sweeps across parameter variants declared by the Simulation trait.</li>
+<li><strong>Dashboard Data</strong> — Generates JSON for the web dashboard visualization.</li>
+</ul>
+
+<h2>The WASM Bridge (lib.rs)</h2>
+
+<p><code>lib.rs</code> is the thin glue layer between JavaScript and Rust. It uses <code>thread_local!</code> to store the Engine and Simulation instances (WASM is single-threaded), and exposes <code>#[wasm_bindgen]</code> functions that JavaScript calls:</p>
+
+<ul>
+<li><code>init(width, height)</code> — Create the engine.</li>
+<li><code>setup_demo_ball()</code> — Initialize the demo game.</li>
+<li><code>tick(dt_ms)</code> — Advance one frame.</li>
+<li><code>framebuffer_ptr()</code> / <code>framebuffer_len()</code> — Get the raw pixel array for <code>ImageData</code>.</li>
+<li><code>key_down(code)</code> / <code>key_up(code)</code> / <code>mouse_move(x, y)</code> / <code>mouse_down(x, y, btn)</code> / <code>mouse_up(x, y, btn)</code> — Forward input events.</li>
+<li><code>touch_start(id, x, y)</code> / <code>touch_move(id, x, y)</code> / <code>touch_end(id, x, y)</code> — Forward touch events (routed through gesture recognition).</li>
+<li><code>get_game_state()</code> / <code>set_game_state_f64(key, value)</code> — Read/write global state as JSON.</li>
+<li><code>spawn_template(name, x, y)</code> — Spawn an entity from a template.</li>
+<li><code>drain_sound_commands()</code> — Get queued sound commands as JSON.</li>
+<li><code>get_diagnostics()</code> / <code>get_frame_metrics()</code> — Performance telemetry as JSON.</li>
+<li>Timer management functions.</li>
+</ul>
+
+<p>The pattern is: JavaScript owns the animation loop and the DOM. Rust owns the simulation and rendering. They communicate through shared WASM memory (the framebuffer) and JSON strings (sound, diagnostics, game state).</p>
+
+<h2>The CLI (engine-cli)</h2>
+
+<p>A native binary with 15 commands for headless analysis. All output is JSON/JSONL for piping into analysis tools:</p>
+
+<ul>
+<li><code>schema</code> — Dump the engine&#x27;s type schema.</li>
+<li><code>record</code> / <code>replay</code> — Record and verify playthroughs.</li>
+<li><code>batch</code> — Run simulations across a seed range.</li>
+<li><code>sweep</code> — Parameter sweep with policy-driven input.</li>
+<li><code>golden</code> — Golden baseline recording and verification.</li>
+<li><code>deaths</code> — Classify terminal states.</li>
+<li><code>divergence</code> — Find where two runs diverge.</li>
+<li><code>ablation</code> — Mechanic ablation study.</li>
+<li><code>variants</code> / <code>variant-sweep</code> — Variant declaration and sweeping.</li>
+<li><code>highlights</code> — Detect interesting moments.</li>
+<li><code>dashboard-data</code> — Generate visualization JSON.</li>
+<li><code>preset</code> — Manage physics feel presets (loaded from TOML).</li>
+<li><code>info</code> — Print engine information.</li>
+</ul>
+
+<h2>Build and Deploy</h2>
+
+<h3>Compilation</h3>
+
+<p>The engine compiles to two targets: WASM (for the browser) via <code>wasm-pack build --target web</code>, and native (for the CLI) via <code>cargo build</code>. Dependencies are minimal: <code>wasm-bindgen</code>, <code>serde</code>, <code>serde_json</code>, optional <code>toml</code> for presets, and WASM-only <code>console_error_panic_hook</code> and <code>web-sys</code>.</p>
+
+<h3>Site Build</h3>
+
+<p><code>scripts/build-docs.sh</code> converts <code>docs/*.md</code> to HTML using a Python-based markdown converter that produces dark-themed pages with navigation. <code>build-site.sh</code> assembles the final <code>_site/</code> directory: copies site pages, WASM artifacts, and generated docs. A SHA256 hash of the WASM binary is stamped into HTML for cache busting.</p>
+
+<h3>CI/CD</h3>
+
+<p>GitHub Actions (<code>.github/workflows/deploy.yml</code>) triggers on pushes to <code>main</code> or <code>claude/<strong></code> branches. It installs Rust, builds WASM, generates HTML docs, assembles the site, and deploys to GitHub Pages.</p>
+
+<h2>Why This Design?</h2>
+
+<p></strong>Why ECS instead of OOP?<strong> Cache-friendly data layout, easy composition (no diamond inheritance), and systems can be trivially parallelized later since they operate on disjoint data.</p>
+
+<p></strong>Why a fixed timestep?<strong> Reproducibility. Variable timesteps make simulations non-deterministic — the same game plays differently at 30fps vs 60fps. Fixed timesteps guarantee identical behavior.</p>
+
+<p></strong>Why software rendering?<strong> Determinism again. GPU rendering varies by driver and hardware. A CPU framebuffer produces identical pixels everywhere. It also means headless runs need no display server.</p>
+
+<p></strong>Why command buffers for sound?<strong> The engine runs in WASM where there&#x27;s no direct audio hardware access. Queueing commands as JSON and letting JavaScript execute them via Web Audio is the cleanest cross-boundary pattern.</p>
+
+<p></strong>Why a single RNG?<strong> One canonical <code>SeededRng</code> (xorshift64) owned by the Engine means every random decision is reproducible from the seed. No thread-local RNGs, no OS entropy, no non-determinism.</p>
+
+<p></strong>Why no unsafe code?** The codebase has zero <code>unsafe</code> blocks. Rust&#x27;s safe abstractions (bounds-checked array access, reference counting, the borrow checker) provide sufficient performance for a 2D simulation engine. Avoiding <code>unsafe</code> means the entire codebase benefits from Rust&#x27;s memory safety guarantees.</p>
+
+</body>
+</html>

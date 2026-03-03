@@ -517,6 +517,53 @@ impl Engine {
         self.accumulator = 0.0;
     }
 
+    /// Apply an [`InputFrame`] to the engine's internal [`Input`] state.
+    ///
+    /// This is the bridge between the serializable `InputFrame` (used by
+    /// replays, policies, and headless runs) and the engine's live `Input`
+    /// struct. Call this once per frame, before `tick()`.
+    ///
+    /// The method first calls `end_frame()` to clear per-frame transient state,
+    /// then applies the new frame's events.
+    pub fn apply_input(&mut self, frame: &crate::input_frame::InputFrame) {
+        // Clear previous frame's transient state
+        self.input.end_frame();
+
+        // Apply held keys: set the held set to match the frame
+        self.input.keys_held.clear();
+        for key in &frame.keys_held {
+            self.input.keys_held.insert(key.clone());
+        }
+
+        // Apply pressed keys
+        for key in &frame.keys_pressed {
+            self.input.keys_pressed.insert(key.clone());
+            self.input.keys_held.insert(key.clone());
+        }
+
+        // Apply released keys
+        for key in &frame.keys_released {
+            self.input.keys_released.insert(key.clone());
+            self.input.keys_held.remove(key);
+        }
+
+        // Apply pointer position
+        if let Some((x, y)) = frame.pointer {
+            self.input.mouse_x = x;
+            self.input.mouse_y = y;
+        }
+
+        // Apply pointer down (button 0)
+        if let Some((x, y)) = frame.pointer_down {
+            self.input.on_mouse_down(x, y, 0);
+        }
+
+        // Apply pointer up (button 0)
+        if let Some((x, y)) = frame.pointer_up {
+            self.input.on_mouse_up(x, y, 0);
+        }
+    }
+
     /// Advance the engine by one frame.
     ///
     /// `dt` is the wall-clock delta in seconds since the last call (clamped
@@ -925,6 +972,78 @@ mod tests {
         engine.tick(FIXED_DT);
         assert_ne!(engine.state_hash(), hash_before);
         assert_eq!(engine.frame, 1);
+    }
+
+    // ─── Engine::apply_input ──────────────────────────────────────────
+
+    #[test]
+    fn apply_input_sets_keys_pressed() {
+        let mut engine = Engine::new(100, 100);
+        let frame = crate::input_frame::InputFrame {
+            keys_pressed: vec!["Space".into()],
+            ..Default::default()
+        };
+        engine.apply_input(&frame);
+        assert!(engine.input.keys_pressed.contains("Space"));
+        assert!(engine.input.keys_held.contains("Space"));
+    }
+
+    #[test]
+    fn apply_input_sets_keys_released() {
+        let mut engine = Engine::new(100, 100);
+        // First frame: press key
+        engine.input.keys_held.insert("KeyA".into());
+        let frame = crate::input_frame::InputFrame {
+            keys_released: vec!["KeyA".into()],
+            ..Default::default()
+        };
+        engine.apply_input(&frame);
+        assert!(engine.input.keys_released.contains("KeyA"));
+        assert!(!engine.input.keys_held.contains("KeyA"));
+    }
+
+    #[test]
+    fn apply_input_sets_pointer_down() {
+        let mut engine = Engine::new(100, 100);
+        let frame = crate::input_frame::InputFrame {
+            pointer_down: Some((50.0, 75.0)),
+            ..Default::default()
+        };
+        engine.apply_input(&frame);
+        assert!(engine.input.mouse_buttons_pressed.contains(&0));
+        assert!(engine.input.mouse_buttons_held.contains(&0));
+        assert_eq!(engine.input.mouse_x, 50.0);
+        assert_eq!(engine.input.mouse_y, 75.0);
+    }
+
+    #[test]
+    fn apply_input_sets_pointer_up() {
+        let mut engine = Engine::new(100, 100);
+        engine.input.mouse_buttons_held.insert(0);
+        let frame = crate::input_frame::InputFrame {
+            pointer_up: Some((100.0, 200.0)),
+            ..Default::default()
+        };
+        engine.apply_input(&frame);
+        assert!(engine.input.mouse_buttons_released.contains(&0));
+        assert!(!engine.input.mouse_buttons_held.contains(&0));
+    }
+
+    #[test]
+    fn apply_input_clears_previous_frame() {
+        let mut engine = Engine::new(100, 100);
+        // Frame 1: press Space
+        let frame1 = crate::input_frame::InputFrame {
+            keys_pressed: vec!["Space".into()],
+            ..Default::default()
+        };
+        engine.apply_input(&frame1);
+        assert!(engine.input.keys_pressed.contains("Space"));
+
+        // Frame 2: empty input — Space should no longer be in pressed
+        let frame2 = crate::input_frame::InputFrame::default();
+        engine.apply_input(&frame2);
+        assert!(!engine.input.keys_pressed.contains("Space"));
     }
 }
 

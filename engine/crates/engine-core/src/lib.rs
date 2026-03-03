@@ -41,6 +41,8 @@ pub mod ui_canvas;
 pub mod aim_preview;
 pub mod frame_metrics;
 pub mod rng;
+pub mod input_frame;
+pub mod simulation;
 pub mod headless;
 
 #[cfg(test)]

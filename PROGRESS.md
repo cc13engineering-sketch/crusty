@@ -34,9 +34,13 @@
 
 ## Phase 2 — Deterministic Core — IN PROGRESS
 
-### Phase 2.1: State Hashing
-- [ ] Implement `Engine::state_hash() -> u64`
-- [ ] Hash: entity count, transforms, rigidbodies, global_state, frame counter, rng state
+### Phase 2.1: State Hashing — DONE
+- [x] Added `PartialOrd, Ord` derives to Entity for deterministic sorted iteration
+- [x] Implemented `Engine::state_hash() -> u64` using FNV-1a
+- [x] Hashes: entity count, transforms (x,y,rotation,scale), rigidbodies (vx,vy,mass), global_state (sorted by key with type tags), frame counter, rng state
+- [x] Excludes rendering state (framebuffer, particles, starfield) — simulation truth only
+- [x] 5 tests: deterministic, changes-after-tick, differs-with-state, differs-with-entities, sensitive-to-rng
+- [x] All 1042 tests pass
 
 ### Phase 2.2: Fixed DT Everywhere
 - [ ] All simulation-phase systems receive FIXED_DT instead of variable dt

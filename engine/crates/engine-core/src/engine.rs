@@ -375,6 +375,104 @@ impl Engine {
         }
     }
 
+    /// Compute a deterministic hash of the simulation state (FNV-1a).
+    ///
+    /// Hashes: entity count, all transforms (sorted by entity ID),
+    /// all rigidbodies (sorted by entity ID), global_state contents
+    /// (sorted by key), frame counter, and rng state.
+    ///
+    /// Deliberately excludes rendering state (framebuffer, particles,
+    /// starfield, post_fx) so the hash reflects simulation truth only.
+    pub fn state_hash(&self) -> u64 {
+        const FNV_OFFSET: u64 = 0xcbf29ce484222325;
+        const FNV_PRIME: u64 = 0x100000001b3;
+
+        let mut hash = FNV_OFFSET;
+
+        // Helper: fold a u64 into the hash
+        macro_rules! hash_u64 {
+            ($val:expr) => {{
+                let bytes = ($val).to_le_bytes();
+                for &b in &bytes {
+                    hash ^= b as u64;
+                    hash = hash.wrapping_mul(FNV_PRIME);
+                }
+            }};
+        }
+
+        // Helper: fold an f64 into the hash via its bit pattern
+        macro_rules! hash_f64 {
+            ($val:expr) => {
+                hash_u64!(($val).to_bits())
+            };
+        }
+
+        // Entity count
+        hash_u64!(self.world.transforms.len() as u64);
+
+        // Transforms (sorted by entity ID for determinism)
+        let sorted_t = self.world.transforms.sorted_entities();
+        for e in &sorted_t {
+            hash_u64!(e.0);
+            if let Some(t) = self.world.transforms.get(*e) {
+                hash_f64!(t.x);
+                hash_f64!(t.y);
+                hash_f64!(t.rotation);
+                hash_f64!(t.scale);
+            }
+        }
+
+        // RigidBodies (sorted by entity ID for determinism)
+        hash_u64!(self.world.rigidbodies.len() as u64);
+        let sorted_rb = self.world.rigidbodies.sorted_entities();
+        for e in &sorted_rb {
+            hash_u64!(e.0);
+            if let Some(rb) = self.world.rigidbodies.get(*e) {
+                hash_f64!(rb.vx);
+                hash_f64!(rb.vy);
+                hash_f64!(rb.mass);
+            }
+        }
+
+        // Global state (sorted by key for determinism)
+        let mut keys: Vec<&str> = self.global_state.iter().map(|(k, _)| k).collect();
+        keys.sort();
+        hash_u64!(keys.len() as u64);
+        for key in &keys {
+            for &b in key.as_bytes() {
+                hash ^= b as u64;
+                hash = hash.wrapping_mul(FNV_PRIME);
+            }
+            if let Some(val) = self.global_state.get(key) {
+                match val {
+                    crate::game_state::StateValue::F64(v) => {
+                        hash_u64!(0u64); // type tag
+                        hash_f64!(*v);
+                    }
+                    crate::game_state::StateValue::Bool(v) => {
+                        hash_u64!(1u64);
+                        hash_u64!(if *v { 1u64 } else { 0u64 });
+                    }
+                    crate::game_state::StateValue::Str(v) => {
+                        hash_u64!(2u64);
+                        for &b in v.as_bytes() {
+                            hash ^= b as u64;
+                            hash = hash.wrapping_mul(FNV_PRIME);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Frame counter
+        hash_u64!(self.frame);
+
+        // RNG state
+        hash_u64!(self.rng.state);
+
+        hash
+    }
+
     pub fn reset_game_state(&mut self) {
         self.particles = ParticlePool::new();
         self.global_state.clear();
@@ -661,6 +759,61 @@ impl Engine {
         crate::systems::collision::run(&mut self.world, &mut self.events, dt);
     }
 
+}
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn state_hash_deterministic() {
+        let e1 = Engine::new(100, 100);
+        let e2 = Engine::new(100, 100);
+        assert_eq!(e1.state_hash(), e2.state_hash());
+    }
+
+    #[test]
+    fn state_hash_changes_after_tick() {
+        let mut engine = Engine::new(100, 100);
+        let h1 = engine.state_hash();
+        engine.tick(FIXED_DT);
+        let h2 = engine.state_hash();
+        assert_ne!(h1, h2, "hash must change after a tick (frame counter advances)");
+    }
+
+    #[test]
+    fn state_hash_differs_with_different_state() {
+        let mut e1 = Engine::new(100, 100);
+        let e2 = Engine::new(100, 100);
+        e1.global_state.set_f64("score", 10.0);
+        // e2 has no score set — different state
+        assert_ne!(e1.state_hash(), e2.state_hash());
+    }
+
+    #[test]
+    fn state_hash_differs_with_entity_changes() {
+        let mut e1 = Engine::new(100, 100);
+        let mut e2 = Engine::new(100, 100);
+        let ent = e1.world.spawn();
+        e1.world.transforms.insert(ent, crate::components::Transform {
+            x: 10.0, y: 20.0, rotation: 0.0, scale: 1.0,
+        });
+        assert_ne!(e1.state_hash(), e2.state_hash());
+
+        // Add same entity+transform to e2 — hashes should match
+        let ent2 = e2.world.spawn();
+        e2.world.transforms.insert(ent2, crate::components::Transform {
+            x: 10.0, y: 20.0, rotation: 0.0, scale: 1.0,
+        });
+        assert_eq!(e1.state_hash(), e2.state_hash());
+    }
+
+    #[test]
+    fn state_hash_sensitive_to_rng_state() {
+        let mut e1 = Engine::new(100, 100);
+        let mut e2 = Engine::new(100, 100);
+        e1.rng.next_u64(); // advance rng
+        assert_ne!(e1.state_hash(), e2.state_hash());
+    }
 }
 

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine Architecture — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            line-height: 1.7;
+        }
+        h1 { color: #f0e060; margin-bottom: 8px; font-size: 1.8rem; }
+        h2 { color: #f0e060; margin-top: 32px; margin-bottom: 12px; font-size: 1.3rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+        h3 { color: #e0d050; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        a { color: #f0e060; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1a1a28; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 12px 0; border: 1px solid #2a2a3a; }
+        pre code { background: none; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+        th, td { border: 1px solid #2a2a3a; padding: 8px 12px; text-align: left; }
+        th { background: #1a1a28; color: #f0e060; }
+        ul, ol { margin: 8px 0 8px 24px; }
+        li { margin: 4px 0; }
+        blockquote { border-left: 3px solid #f0e060; padding-left: 16px; color: #999; margin: 12px 0; }
+        p { margin: 8px 0; }
+        strong { color: #e0e0e0; }
+        .nav { margin-bottom: 32px; }
+        .nav a { margin-right: 16px; font-size: 0.9rem; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 24px 0; }
+    </style>
+</head>
+<body>
+<nav class="nav">
+    <a href="../">&larr; Home</a>
+    <a href="./">Docs</a>
+    <a href="engine.html">Engine</a>
+    <a href="architecture.html">Architecture</a>
+    <a href="api-reference.html">API</a>
+    <a href="getting-started.html">Getting Started</a>
+    <a href="ai-iteration.html">AI Iteration</a>
+</nav>
+<h1>Crusty Engine Architecture</h1>
+
+<p>Complete technical reference for the Crusty Engine: ECS, rendering, physics, systems, and runtime.</p>
+
+<h2>Overview</h2>
+
+<p>Crusty Engine is a Rust-native deterministic simulation engine that compiles to WebAssembly (browser) and native targets (headless testing, CLI). Features a custom ECS, software framebuffer renderer, fixed-timestep physics (60Hz), seeded RNG, and a 5-phase system execution pipeline.</p>
+
+<p>All math uses <code>f64</code>. The framebuffer is a flat <code>Vec&lt;u8&gt;</code> in RGBA format, shared with JavaScript via WASM linear memory (zero-copy).</p>
+
+<h2>Workspace</h2>
+
+<pre><code>
+/engine
+  /crates
+    /engine-core    cdylib + rlib (WASM + native)
+    /engine-cli     Native binary (14 CLI commands)
+  Cargo.toml        Workspace root (opt-level=&quot;s&quot;, lto=true)
+</code></pre>
+
+<h2>The Engine Struct</h2>
+
+<p>Central object. Every subsystem is a field:</p>
+
+<ul>
+<li><strong>Core</strong>: <code>world</code> (ECS), <code>framebuffer</code>, <code>input</code>, <code>events</code>, <code>config</code>, <code>camera</code>, <code>time</code>, <code>frame</code>, <code>rng</code> (SeededRng)</li>
+<li><strong>Rendering</strong>: <code>particles</code>, <code>post_fx</code>, <code>layers</code>, <code>sprite_sheets</code>, <code>screen_fx</code>, <code>transition</code></li>
+<li><strong>Gameplay</strong>: <code>global_state</code>, <code>timers</code>, <code>templates</code>, <code>rules</code>, <code>game_flow</code>, <code>scene_manager</code></li>
+<li><strong>Spatial</strong>: <code>tilemap</code>, <code>pool_registry</code></li>
+<li><strong>Events/Input</strong>: <code>event_bus</code>, <code>input_map</code>, <code>gestures</code></li>
+<li><strong>Advanced</strong>: <code>flow_network</code>, <code>environment_clock</code>, <code>sound_queue</code>, <code>auto_juice</code>, <code>camera_director</code>, <code>level_curve</code>, <code>color_palette</code>, <code>ui_canvas</code>, <code>diagnostic_bus</code>, <code>frame_metrics</code></li>
+</ul>
+
+<h2>Simulation Trait</h2>
+
+<p>Games implement the <code>Simulation</code> trait — the formal boundary between engine and game logic:</p>
+
+<pre><code>
+pub trait Simulation {
+    fn setup(&amp;mut self, engine: &amp;mut Engine);
+    fn step(&amp;mut self, engine: &amp;mut Engine);
+    fn render(&amp;self, engine: &amp;mut Engine);
+    fn variants(&amp;self) -&gt; Vec&lt;ParamSet&gt; { vec![] }
+}
+</code></pre>
+
+<p>The engine owns timing, input application, RNG, and determinism. Games read <code>engine.input</code> and <code>engine.global_state</code> during <code>step()</code>.</p>
+
+<h2>5-Phase Tick Loop</h2>
+
+<table>
+<tr><th>Phase</th><th>Name</th><th>Runs</th><th>Key Systems</th></tr>
+<tr><td>0</td><td>Input</td><td>Once</td><td>Debug toggle, gesture recognition, gesture -&gt; EventBus</td></tr>
+<tr><td>1</td><td>Simulation</td><td>Fixed dt</td><td>lifecycle, hierarchy, signal, state_machine, coroutine, environment_clock, flow_network, sprite_animator, behavior, tween, flash, waypoint</td></tr>
+<tr><td>2</td><td>Physics</td><td>Fixed 60Hz</td><td>force_accumulator, integrator, collision, physics_joint</td></tr>
+<tr><td>3</td><td>PostPhysics</td><td>Once</td><td>ghost_trail, particles, transition, dialogue, camera</td></tr>
+<tr><td>4</td><td>RenderingPrep</td><td>Once</td><td>clear, entities, particles, debug, screen_fx, transition, post_fx, cleanup</td></tr>
+</table>
+
+<p>All simulation-phase systems receive <code>FIXED_DT</code> (1/60s). Variable dt from the host is used only for the physics accumulator.</p>
+
+<h2>ECS</h2>
+
+<ul>
+<li><code>Entity</code> — <code>u64</code> newtype, <code>Entity(0)</code> is null</li>
+<li><code>ComponentStore&lt;T&gt;</code> — <code>HashMap&lt;Entity, T&gt;</code> with ergonomic API</li>
+<li><code>World</code> — holds all entities + 32 component stores</li>
+</ul>
+
+<h3>32 Components</h3>
+
+<p>Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection</p>
+
+<h3>17 Systems</h3>
+
+<p>lifecycle, hierarchy, signal, state_machine, coroutine, sprite_animator, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, physics_joint, renderer, debug_render</p>
+
+<h2>Rendering (10 modules)</h2>
+
+<p>Pure software. No GPU. Modules: framebuffer, color, shapes, text, particles, post_fx, layers, sprite, transition, screen_fx.</p>
+
+<p>Post-processing: vignette, CRT scanlines, screen shake, bloom.</p>
+
+<h2>Physics</h2>
+
+<p>Fixed timestep at 60Hz. Semi-implicit Euler. Circle-circle and circle-rect collision. Continuous collision detection (CCD). Spatial grid broadphase. Joint constraints: distance, spring, rope, hinge.</p>
+
+<h2>Key Subsystems</h2>
+
+<ul>
+<li><strong>GameState</strong> — <code>HashMap&lt;String, StateValue&gt;</code> (F64/Bool/Str). Primary game-testing interface.</li>
+<li><strong>EventBus</strong> — Frame-scoped pub/sub. Central integration point for cross-system communication.</li>
+<li><strong>Sound</strong> — Command-buffer pattern. Rust queues, JS polls via <code>drain_sound_commands()</code>.</li>
+<li><strong>Tilemap</strong> — Multi-layer grid. Tile types: Empty, Solid, Platform, Custom(u16).</li>
+<li><strong>GameFlow</strong> — Declarative lifecycle FSM (Title, Playing, Paused, GameOver, Victory).</li>
+<li><strong>AutoJuice</strong> — Trigger-based automatic game feel (particles, shake, flash, sound on collision/spawn/despawn).</li>
+<li><strong>CameraDirector</strong> — Stack-based cinematic camera (Follow, Pan, Zoom, Shake, Letterbox).</li>
+<li><strong>GestureRecognizer</strong> — Touch gesture recognition (Tap, DoubleTap, LongPress, Swipe, Pinch).</li>
+</ul>
+
+<h2>Determinism</h2>
+
+<ul>
+<li><strong>SeededRng</strong> (xorshift64) owned by Engine — the single canonical RNG</li>
+<li><strong>State hashing</strong> via <code>Engine::state_hash()</code> — deterministic u64 independent of rendering</li>
+<li><strong>Seeded reset</strong> via <code>Engine::reset(seed)</code> — single entry point for reproducible simulation</li>
+<li><strong>Fixed DT</strong> for all simulation systems</li>
+<li><strong>InputFrame</strong> as canonical input representation for replays and policies</li>
+</ul>
+
+<h2>WASM API</h2>
+
+<p>Thread-local <code>Engine</code> singleton. Key exports: <code>init</code>, <code>tick</code>, <code>framebuffer_ptr/len</code>, keyboard/mouse/touch input, <code>setup_demo_ball</code>, <code>get_game_state</code>, <code>drain_sound_commands</code>, <code>get_diagnostics</code>, <code>get_frame_metrics</code>.</p>
+
+<h2>Design Decisions</h2>
+
+<ul>
+<li>Single cdylib+rlib crate — same code for WASM and native</li>
+<li>Zero-copy framebuffer — JS reads directly from WASM linear memory</li>
+<li>All f64 math — no f32 anywhere</li>
+<li>Sound as JSON drain — no JS callbacks from Rust</li>
+<li>Fixed 60Hz physics — deterministic, independent of display rate</li>
+<li>Simulation trait boundary — games implement setup/step/render, engine owns timing and input</li>
+<li>Deferred mutation — SpawnQueue, SoundQueue, EventBus stage changes for phase boundaries</li>
+<li>EventBus as integration point — nearly all cross-system communication flows through it</li>
+</ul>
+
+</body>
+</html>

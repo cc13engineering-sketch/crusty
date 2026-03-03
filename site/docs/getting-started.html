@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started with Crusty Engine — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            line-height: 1.7;
+        }
+        h1 { color: #f0e060; margin-bottom: 8px; font-size: 1.8rem; }
+        h2 { color: #f0e060; margin-top: 32px; margin-bottom: 12px; font-size: 1.3rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+        h3 { color: #e0d050; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        a { color: #f0e060; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1a1a28; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 12px 0; border: 1px solid #2a2a3a; }
+        pre code { background: none; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+        th, td { border: 1px solid #2a2a3a; padding: 8px 12px; text-align: left; }
+        th { background: #1a1a28; color: #f0e060; }
+        ul, ol { margin: 8px 0 8px 24px; }
+        li { margin: 4px 0; }
+        blockquote { border-left: 3px solid #f0e060; padding-left: 16px; color: #999; margin: 12px 0; }
+        p { margin: 8px 0; }
+        strong { color: #e0e0e0; }
+        .nav { margin-bottom: 32px; }
+        .nav a { margin-right: 16px; font-size: 0.9rem; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 24px 0; }
+    </style>
+</head>
+<body>
+<nav class="nav">
+    <a href="../">&larr; Home</a>
+    <a href="./">Docs</a>
+    <a href="engine.html">Engine</a>
+    <a href="architecture.html">Architecture</a>
+    <a href="api-reference.html">API</a>
+    <a href="getting-started.html">Getting Started</a>
+    <a href="ai-iteration.html">AI Iteration</a>
+</nav>
+<h1>Getting Started with Crusty Engine</h1>
+
+<p>From zero to running your first simulation and headless analysis.</p>
+
+<h2>Prerequisites</h2>
+
+<pre><code>
+cd /home/user/crusty/engine
+cargo test  # Verify everything compiles and passes
+</code></pre>
+
+<p>The engine lives in <code>engine/crates/engine-core/</code>. The CLI is in <code>engine/crates/engine-cli/</code>.</p>
+
+<h2>Writing a Simulation</h2>
+
+<p>Games implement the <code>Simulation</code> trait:</p>
+
+<pre><code>
+use crate::engine::Engine;
+use crate::simulation::Simulation;
+
+pub struct MyGame {
+    score: f64,
+}
+
+impl Simulation for MyGame {
+    fn setup(&amp;mut self, engine: &amp;mut Engine) {
+        engine.reset(42);
+        // Create entities, set initial state
+        engine.global_state.set_f64(&quot;score&quot;, 0.0);
+    }
+
+    fn step(&amp;mut self, engine: &amp;mut Engine) {
+        // Game logic runs every fixed tick (1/60s)
+        // Read input from engine.input
+        // Update entities via engine.world
+    }
+
+    fn render(&amp;self, engine: &amp;mut Engine) {
+        // Draw to engine.framebuffer
+    }
+}
+</code></pre>
+
+<p>The built-in <code>DemoBall</code> (<code>demo_ball.rs</code>) is a minimal reference implementation.</p>
+
+<h2>Running Headless</h2>
+
+<p>Use <code>HeadlessRunner</code> to drive simulations without a browser:</p>
+
+<pre><code>
+use crate::headless::runner::{HeadlessRunner, RunConfig};
+use crate::demo_ball::DemoBall;
+
+let mut runner = HeadlessRunner::new(480, 720);
+let mut sim = DemoBall::new();
+let config = RunConfig { turbo: true, capture_state_hashes: true };
+
+// Run with no input for 120 frames
+let result = runner.run_sim(&amp;mut sim, 42, &amp;[], config);
+println!(&quot;Frames: {}, State hash: {}&quot;, result.frames_run, result.state_hash);
+</code></pre>
+
+<h2>Using Policies</h2>
+
+<p>Policies generate input automatically:</p>
+
+<pre><code>
+use crate::policy::{RandomPolicy, NullPolicy};
+
+// Random input exploration
+let mut policy = RandomPolicy::new(123);
+let result = runner.run_with_policy(&amp;mut sim, &amp;mut policy, 42, 600, config);
+
+// No input (idle baseline)
+let mut null = NullPolicy;
+let result = runner.run_with_policy(&amp;mut sim, &amp;mut null, 42, 60, config);
+</code></pre>
+
+<h2>CLI Commands</h2>
+
+<p>The <code>engine-cli</code> tool exposes all headless capabilities:</p>
+
+<pre><code>
+# Record a playthrough
+cargo run -p engine-cli -- record --seed 42 --frames 600 --out play.json
+
+# Replay and verify determinism
+cargo run -p engine-cli -- replay play.json --verify
+
+# Batch run across seeds
+cargo run -p engine-cli -- batch --seed-range 0..100 --frames 600 --turbo
+
+# Policy-driven sweep
+cargo run -p engine-cli -- sweep --policy random --seed-range 0..1000 --frames 600 --turbo
+
+# Golden test
+cargo run -p engine-cli -- golden record --seed 42 --frames 600 --out golden.json
+cargo run -p engine-cli -- golden check golden.json
+
+# Death classification
+cargo run -p engine-cli -- deaths --seed-range 0..100 --frames 600 --metric score
+
+# Interesting moments
+cargo run -p engine-cli -- highlights --seed-range 0..100 --frames 600
+
+# Mechanic ablation
+cargo run -p engine-cli -- ablation --seeds 50 --frames 600
+
+# Dashboard data
+cargo run -p engine-cli -- dashboard-data --seeds 100 --frames 600
+
+# Engine info
+cargo run -p engine-cli -- info
+</code></pre>
+
+<h2>Determinism Verification</h2>
+
+<p>Every simulation with the same seed + inputs produces identical state hashes:</p>
+
+<pre><code>
+let r1 = runner.run_sim(&amp;mut DemoBall::new(), 42, &amp;inputs, config);
+let r2 = runner.run_sim(&amp;mut DemoBall::new(), 42, &amp;inputs, config);
+assert_eq!(r1.state_hash, r2.state_hash);
+assert_eq!(r1.state_hashes, r2.state_hashes);
+</code></pre>
+
+<h2>Module Cheat Sheet</h2>
+
+<table>
+<tr><th>Task</th><th>Module</th><th>One-liner</th></tr>
+<tr><td>Run N frames</td><td><code>HeadlessRunner</code></td><td><code>runner.run_sim(&amp;mut sim, seed, &amp;inputs, config)</code></td></tr>
+<tr><td>Policy-driven run</td><td><code>HeadlessRunner</code></td><td><code>runner.run_with_policy(&amp;mut sim, &amp;mut policy, seed, frames, config)</code></td></tr>
+<tr><td>Parameter sweep</td><td><code>run_sweep</code></td><td><code>run_sweep(configs, ...)</code></td></tr>
+<tr><td>Quality scoring</td><td><code>FitnessEvaluator</code></td><td><code>evaluator.evaluate(&amp;sim_result)</code></td></tr>
+<tr><td>Regression check</td><td><code>RegressionSuite</code></td><td><code>suite.diff_against(&amp;baselines)</code></td></tr>
+<tr><td>Full replay</td><td><code>record_replay</code></td><td><code>record_replay(...)</code></td></tr>
+<tr><td>Compare replays</td><td><code>compare_replays</code></td><td><code>compare_replays(&amp;a, &amp;b, &amp;keys, tolerance)</code></td></tr>
+<tr><td>Anomaly scan</td><td><code>AnomalyDetector</code></td><td><code>detector.scan(&amp;replay, &amp;keys)</code></td></tr>
+<tr><td>Hill climbing</td><td><code>HillClimber</code></td><td><code>climber.run()</code></td></tr>
+<tr><td>Golden file</td><td><code>GoldenTest</code></td><td><code>test.record_golden() / test.compare_against()</code></td></tr>
+<tr><td>Death classification</td><td><code>classify_batch</code></td><td><code>classify_batch(results, config)</code></td></tr>
+<tr><td>Interesting moments</td><td><code>HighlightScanner</code></td><td><code>scanner.scan(...)</code></td></tr>
+<tr><td>Mechanic ablation</td><td><code>run_ablation_study</code></td><td><code>run_ablation_study(...)</code></td></tr>
+<tr><td>Variant sweep</td><td><code>sweep_variants</code></td><td><code>sweep_variants(...)</code></td></tr>
+</table>
+
+</body>
+</html>

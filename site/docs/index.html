@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            line-height: 1.7;
+        }
+        h1 { color: #f0e060; margin-bottom: 24px; }
+        a { color: #f0e060; }
+        .doc-list { list-style: none; padding: 0; }
+        .doc-list li {
+            margin: 12px 0;
+            padding: 16px 20px;
+            background: #1a1a28;
+            border: 1px solid #2a2a3a;
+            border-radius: 6px;
+        }
+        .doc-list li:hover { border-color: #f0e060; }
+        .doc-list a { text-decoration: none; font-size: 1.1rem; }
+        .doc-list p { color: #888; font-size: 0.9rem; margin-top: 4px; }
+        .nav { margin-bottom: 32px; }
+        .nav a { margin-right: 16px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+<nav class="nav"><a href="../">&larr; Home</a></nav>
+<h1>Crusty Engine Documentation</h1>
+<ul class="doc-list">
+    <li><a href="getting-started.html">Getting Started</a><p>From zero to running simulations and headless analysis.</p></li>
+    <li><a href="engine.html">Engine Architecture</a><p>ECS, 5-phase tick loop, rendering, physics, determinism.</p></li>
+    <li><a href="architecture.html">Headless Testing Architecture</a><p>22-module infrastructure for AI-driven game testing.</p></li>
+    <li><a href="api-reference.html">API Reference</a><p>Core types, headless modules, CLI commands.</p></li>
+    <li><a href="ai-iteration.html">AI Iteration Guide</a><p>How AI agents use the engine to build and test games.</p></li>
+</ul>
+</body>
+</html>

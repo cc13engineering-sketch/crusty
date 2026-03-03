@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crusty Engine: Headless Testing Architecture — Crusty Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0d0d14;
+            color: #d0d0d0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 24px;
+            line-height: 1.7;
+        }
+        h1 { color: #f0e060; margin-bottom: 8px; font-size: 1.8rem; }
+        h2 { color: #f0e060; margin-top: 32px; margin-bottom: 12px; font-size: 1.3rem; border-bottom: 1px solid #2a2a3a; padding-bottom: 6px; }
+        h3 { color: #e0d050; margin-top: 24px; margin-bottom: 8px; font-size: 1.1rem; }
+        a { color: #f0e060; }
+        code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }
+        pre { background: #1a1a28; padding: 16px; border-radius: 6px; overflow-x: auto; margin: 12px 0; border: 1px solid #2a2a3a; }
+        pre code { background: none; padding: 0; }
+        table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+        th, td { border: 1px solid #2a2a3a; padding: 8px 12px; text-align: left; }
+        th { background: #1a1a28; color: #f0e060; }
+        ul, ol { margin: 8px 0 8px 24px; }
+        li { margin: 4px 0; }
+        blockquote { border-left: 3px solid #f0e060; padding-left: 16px; color: #999; margin: 12px 0; }
+        p { margin: 8px 0; }
+        strong { color: #e0e0e0; }
+        .nav { margin-bottom: 32px; }
+        .nav a { margin-right: 16px; font-size: 0.9rem; }
+        hr { border: none; border-top: 1px solid #2a2a3a; margin: 24px 0; }
+    </style>
+</head>
+<body>
+<nav class="nav">
+    <a href="../">&larr; Home</a>
+    <a href="./">Docs</a>
+    <a href="engine.html">Engine</a>
+    <a href="architecture.html">Architecture</a>
+    <a href="api-reference.html">API</a>
+    <a href="getting-started.html">Getting Started</a>
+    <a href="ai-iteration.html">AI Iteration</a>
+</nav>
+<h1>Crusty Engine: Headless Testing Architecture</h1>
+
+<h2>Overview</h2>
+
+<p>The Crusty Engine headless testing system is a 22-module infrastructure that enables AI agents to autonomously run, analyze, optimize, and improve games — all without a browser, display, or human intervention. It runs entirely via <code>cargo test</code> and the <code>engine-cli</code> tool.</p>
+
+<p>This document covers the technical architecture: how the modules compose, what data flows between them, and how to extend the system for new games.</p>
+
+<h2>Core Abstractions</h2>
+
+<h3>Simulation Trait</h3>
+
+<p>The contract between a game and the engine. Games implement <code>setup</code>, <code>step</code>, and <code>render</code>:</p>
+
+<pre><code>
+pub trait Simulation {
+    fn setup(&amp;mut self, engine: &amp;mut Engine);
+    fn step(&amp;mut self, engine: &amp;mut Engine);
+    fn render(&amp;self, engine: &amp;mut Engine);
+    fn variants(&amp;self) -&gt; Vec&lt;ParamSet&gt; { vec![] }
+}
+</code></pre>
+
+<h3>InputFrame</h3>
+
+<p>The canonical representation of one frame of player input:</p>
+
+<pre><code>
+pub struct InputFrame {
+    pub keys_pressed: Vec&lt;String&gt;,
+    pub keys_released: Vec&lt;String&gt;,
+    pub keys_held: Vec&lt;String&gt;,
+    pub pointer: Option&lt;(f64, f64)&gt;,
+    pub pointer_down: Option&lt;(f64, f64)&gt;,
+    pub pointer_up: Option&lt;(f64, f64)&gt;,
+}
+</code></pre>
+
+<h3>Policy Trait</h3>
+
+<p>A pluggable input generator. Takes an <code>Observation</code>, produces an <code>InputFrame</code>:</p>
+
+<pre><code>
+pub trait Policy {
+    fn next_input(&amp;mut self, obs: &amp;Observation) -&gt; InputFrame;
+}
+</code></pre>
+
+<p>Built-in implementations: <code>NullPolicy</code>, <code>RandomPolicy</code>, <code>ScriptedPolicy</code>.</p>
+
+<h3>Observation</h3>
+
+<p>A lightweight view into engine state after each frame:</p>
+
+<pre><code>
+pub struct Observation&lt;&#x27;a&gt; {
+    pub frame: u64,
+    pub state_hash: u64,
+    pub game_state: &amp;&#x27;a GameState,
+    pub entity_count: usize,
+    pub framebuffer: Option&lt;&amp;&#x27;a [u8]&gt;,
+}
+</code></pre>
+
+<h2>Module Dependency Graph</h2>
+
+<pre><code>
+                        ┌──────────────┐
+                        │  InputFrame  │  Canonical input
+                        └──────┬───────┘
+                               │
+                         ┌─────▼──────┐        ┌────────────┐
+                         │  Headless  │◄───────│  Policy    │
+                         │  Runner    │        │  Trait     │
+                         └─────┬──────┘        └────────────┘
+                               │
+                         ┌─────▼──────┐
+                         │  SimResult │  state_hash, game_state, fb_hash
+                         └─────┬──────┘
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        │                      │                      │
+  ┌─────▼──────┐        ┌─────▼──────┐        ┌─────▼──────┐
+  │  Fitness   │        │  Regression │        │  Replay    │
+  │  Evaluator │        │  Suite      │        │  Recording │
+  └─────┬──────┘        └─────┬──────┘        └─────┬──────┘
+        │                      │                      │
+        │                      │               ┌─────▼──────┐
+  ┌─────▼──────────────────────▼──────┐        │  Compare   │
+  │           Experiment              │        │  Replays   │
+  └─────┬─────────────────────────────┘        └────────────┘
+        │
+  ┌─────▼──────┐     ┌────────────┐     ┌────────────┐
+  │ Hill Climber│     │  Anomaly   │     │  Divergence│
+  └────────────┘     │  Detector  │     │  Replay    │
+                     └────────────┘     └────────────┘
+
+  ┌────────────┐     ┌────────────┐     ┌────────────┐
+  │  Strategy  │     │  Test      │     │  Golden    │
+  │  Playbook  │     │  Harness   │     │  Test      │
+  └────────────┘     └────────────┘     └────────────┘
+
+  ┌────────────┐     ┌────────────┐     ┌────────────┐
+  │  Death     │     │  Highlights│     │  Ablation  │
+  │  Classify  │     │  Scanner   │     │  Study     │
+  └────────────┘     └────────────┘     └────────────┘
+
+                     ┌────────────┐
+                     │  Dashboard │  Integrates all above
+                     └────────────┘
+</code></pre>
+
+<h2>Core Layer</h2>
+
+<h3>HeadlessRunner</h3>
+
+<p>The foundation. Creates an <code>Engine</code> instance with a specified viewport, runs simulations via the <code>Simulation</code> trait, and returns a <code>SimResult</code>.</p>
+
+<pre><code>
+let mut runner = HeadlessRunner::new(480, 720);
+
+// Run with fixed inputs
+let result = runner.run_sim(&amp;mut sim, seed, &amp;inputs, config);
+
+// Run with a policy
+let result = runner.run_with_policy(&amp;mut sim, &amp;mut policy, seed, frames, config);
+</code></pre>
+
+<h3>SimResult</h3>
+
+<p>The universal output of every simulation:</p>
+<ul>
+<li><code>frames_run: u64</code></li>
+<li><code>game_state: HashMap&lt;String, StateValue&gt;</code></li>
+<li><code>framebuffer_hash: u64</code></li>
+<li><code>state_hash: u64</code></li>
+<li><code>state_hashes: Vec&lt;u64&gt;</code> (optional per-frame)</li>
+<li><code>elapsed_sim_time: f64</code></li>
+</ul>
+
+<h3>PlaythroughFile</h3>
+
+<p>Serializable replay format:</p>
+<ul>
+<li>Seed, inputs, frame count, final state/framebuffer hashes</li>
+<li>Per-frame state hashes for determinism verification</li>
+<li>Metadata key-value pairs</li>
+</ul>
+
+<h2>Analysis Layer</h2>
+
+<h3>Parameter Sweep</h3>
+<p><code>run_sweep()</code> runs the same scenario with different parameter configurations. Returns a <code>SweepReport</code> that can be queried for min/max by any state key.</p>
+
+<h3>State Timeline</h3>
+<p><code>record_timeline()</code> captures specific state keys at every frame. <code>StateTimeline</code> supports <code>series()</code>, <code>stats()</code>, and <code>first_frame_where()</code> queries.</p>
+
+<h3>Fitness Evaluator</h3>
+<p>Composable weighted scoring: define criteria like proximity, efficiency, completion. Each criterion maps to [0, 1]. The evaluator produces a <code>FitnessResult</code> with letter grades (A+ through F) and can rank entire sweeps.</p>
+
+<h3>Regression Suite</h3>
+<p>Capture baselines, diff against future runs. Pluggable classifiers determine what counts as regression vs. improvement.</p>
+
+<h2>Replay Layer</h2>
+
+<h3>Replay</h3>
+<p><code>record_replay()</code> captures specified state keys at every frame. Lightweight and efficient for full-run analysis.</p>
+
+<h3>Comparison</h3>
+<p><code>compare_replays()</code> produces a structural diff: per-key <code>max_delta</code>, <code>mean_delta</code>, <code>first_divergence</code>, and full delta series.</p>
+
+<h3>Anomaly Detection</h3>
+<p><code>AnomalyDetector</code> scans replay series for spikes, plateaus, and out-of-bounds values.</p>
+
+<h2>Optimization Layer</h2>
+
+<h3>Experiment</h3>
+<p>Combines sweep + fitness + optional regression into a single declarative call.</p>
+
+<h3>Hill Climber</h3>
+<p>Coordinate-descent optimizer for game parameters. Tries +/-step for each parameter, keeps improvements, shrinks step when stuck.</p>
+
+<h3>Action Generator</h3>
+<p>Programmatic input generation: <code>grid_shots()</code>, <code>random_shots()</code>, <code>tap_sequence()</code>, <code>drag()</code>.</p>
+
+<h2>Orchestration Layer</h2>
+
+<h3>Strategy</h3>
+<p>Multi-step playbook: chain Record, Compare, DetectAnomalies, and AssertState steps.</p>
+
+<h3>Test Harness</h3>
+<p>Battery testing: run multiple scenarios, produce a consolidated report with pass/fail counts and average fitness.</p>
+
+<h3>Golden Test</h3>
+<p>Reference replay comparison. Record a golden replay when behavior is correct, then diff future runs against it.</p>
+
+<h2>Design Acceleration Layer</h2>
+
+<h3>Death Classification</h3>
+<p>Classifies terminal states by trajectory shape: CloseCall, Blowout, Cliff, Attrition, Unclassified. Pure math — slope and variance calculations on the last N frames.</p>
+
+<h3>Divergence Replay</h3>
+<p>Compares two runs frame-by-frame via state hash comparison. Finds the exact frame where behavior diverges.</p>
+
+<h3>Feel Presets</h3>
+<p>Library of named physics profiles (tight_platformer, floaty_astronaut, heavy_tank, snappy_cursor, underwater, ice_skating). Applied via <code>global_state</code>. TOML format for custom presets.</p>
+
+<h3>Variant Branching</h3>
+<p>Games declare parameter variants via <code>Simulation::variants()</code>. The engine can sweep all variants across seed ranges and compare outcomes.</p>
+
+<h3>Interesting Moment Detection</h3>
+<p>Scans batch runs for notable events: spikes, drops, near-death experiences, milestones. Produces ranked highlight reports.</p>
+
+<h3>Mechanic Ablation</h3>
+<p>Runs baseline vs. mechanic-disabled sweeps, computes impact deltas, and ranks mechanics by contribution.</p>
+
+<h3>Dashboard</h3>
+<p>Generates structured JSON combining sweep stats, death classification, highlights, ablation results, and golden test status. Static HTML frontend renders the data.</p>
+
+<h2>Game Integration</h2>
+
+<p>Every headless module is game-agnostic. Games integrate by implementing the <code>Simulation</code> trait:</p>
+
+<pre><code>
+pub struct MyGame { ... }
+
+impl Simulation for MyGame {
+    fn setup(&amp;mut self, engine: &amp;mut Engine) { /* initialize */ }
+    fn step(&amp;mut self, engine: &amp;mut Engine) { /* game logic */ }
+    fn render(&amp;self, engine: &amp;mut Engine) { /* draw */ }
+}
+</code></pre>
+
+<p>The built-in <code>DemoBall</code> demo (<code>demo_ball.rs</code>) validates the full pipeline.</p>
+
+<h2>Data Flow: A Typical AI Iteration</h2>
+
+<pre><code>
+1. Create Simulation implementation
+2. Run sweep across seed range with policy
+3. Evaluate fitness, classify deaths
+4. Use hill climber to fine-tune parameters
+5. Record golden replay of improved behavior
+6. Verify no regressions against golden baseline
+7. Run highlights to find interesting moments
+8. Commit with structured test evidence
+</code></pre>
+
+<h2>File Inventory</h2>
+
+<table>
+<tr><th>File</th><th>Layer</th><th>Purpose</th></tr>
+<tr><td><code>runner.rs</code></td><td>Core</td><td>HeadlessRunner, SimResult</td></tr>
+<tr><td><code>scenario.rs</code></td><td>Core</td><td>GameScenario, ScheduledAction, ScenarioBuilder</td></tr>
+<tr><td><code>fb_hash.rs</code></td><td>Core</td><td>FNV-1a framebuffer hashing</td></tr>
+<tr><td><code>sweep.rs</code></td><td>Analysis</td><td>Parameter sweep</td></tr>
+<tr><td><code>timeline.rs</code></td><td>Analysis</td><td>Per-frame state recording</td></tr>
+<tr><td><code>fitness.rs</code></td><td>Analysis</td><td>Weighted scoring, ranking</td></tr>
+<tr><td><code>regression.rs</code></td><td>Analysis</td><td>Baseline diff, classifiers</td></tr>
+<tr><td><code>snapshot.rs</code></td><td>Snapshot</td><td>Mid-simulation state capture</td></tr>
+<tr><td><code>replay.rs</code></td><td>Replay</td><td>Full per-frame recording</td></tr>
+<tr><td><code>compare.rs</code></td><td>Replay</td><td>Side-by-side diff</td></tr>
+<tr><td><code>anomaly.rs</code></td><td>Replay</td><td>Spike/plateau/OOB detection</td></tr>
+<tr><td><code>experiment.rs</code></td><td>Optimization</td><td>Sweep + fitness + regression</td></tr>
+<tr><td><code>hill_climb.rs</code></td><td>Optimization</td><td>Coordinate descent optimizer</td></tr>
+<tr><td><code>action_gen.rs</code></td><td>Optimization</td><td>Input sequence generation</td></tr>
+<tr><td><code>strategy.rs</code></td><td>Orchestration</td><td>Multi-step playbooks</td></tr>
+<tr><td><code>harness.rs</code></td><td>Orchestration</td><td>Battery testing</td></tr>
+<tr><td><code>golden.rs</code></td><td>Orchestration</td><td>Reference replay comparison</td></tr>
+<tr><td><code>death_classify.rs</code></td><td>Acceleration</td><td>Terminal state classification</td></tr>
+<tr><td><code>death_report.rs</code></td><td>Acceleration</td><td>Batch death classification</td></tr>
+<tr><td><code>divergence.rs</code></td><td>Acceleration</td><td>Run comparison/diffing</td></tr>
+<tr><td><code>highlights.rs</code></td><td>Acceleration</td><td>Interesting moment detection</td></tr>
+<tr><td><code>ablation.rs</code></td><td>Acceleration</td><td>Mechanic ablation study</td></tr>
+<tr><td><code>dashboard.rs</code></td><td>Acceleration</td><td>Dashboard data generation</td></tr>
+<tr><td><code>variant_runner.rs</code></td><td>Acceleration</td><td>Variant sweep runner</td></tr>
+<tr><td><code>variant_rewind.rs</code></td><td>Acceleration</td><td>Replay-based rewind + branch</td></tr>
+<tr><td><code>tests.rs</code></td><td>Testing</td><td>Tests covering all modules</td></tr>
+</table>
+
+</body>
+</html>

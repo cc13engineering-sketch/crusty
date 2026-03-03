@@ -23,7 +23,7 @@ All math uses `f64`. The framebuffer is a flat `Vec<u8>` in RGBA format, shared 
 Central object. Every subsystem is a field:
 
 - **Core**: `world` (ECS), `framebuffer`, `input`, `events`, `config`, `camera`, `time`, `frame`, `rng` (SeededRng)
-- **Rendering**: `particles`, `starfield`, `post_fx`, `layers`, `sprite_sheets`, `screen_fx`, `transition`
+- **Rendering**: `particles`, `post_fx`, `layers`, `sprite_sheets`, `screen_fx`, `transition`
 - **Gameplay**: `global_state`, `timers`, `templates`, `rules`, `game_flow`, `scene_manager`
 - **Spatial**: `tilemap`, `pool_registry`
 - **Events/Input**: `event_bus`, `input_map`, `gestures`
@@ -51,8 +51,8 @@ The engine owns timing, input application, RNG, and determinism. Games read `eng
 | 0 | Input | Once | Debug toggle, gesture recognition, gesture -> EventBus |
 | 1 | Simulation | Fixed dt | lifecycle, hierarchy, signal, state_machine, coroutine, environment_clock, flow_network, sprite_animator, behavior, tween, flash, waypoint |
 | 2 | Physics | Fixed 60Hz | force_accumulator, integrator, collision, physics_joint |
-| 3 | PostPhysics | Once | gameplay, event_processor, input_gameplay, spawners, ghost_trail, particles, transition, dialogue, camera |
-| 4 | RenderingPrep | Once | clear, starfield, entities, particles, debug, HUD, screen_fx, transition, post_fx, cleanup |
+| 3 | PostPhysics | Once | ghost_trail, particles, transition, dialogue, camera |
+| 4 | RenderingPrep | Once | clear, entities, particles, debug, screen_fx, transition, post_fx, cleanup |
 
 All simulation-phase systems receive `FIXED_DT` (1/60s). Variable dt from the host is used only for the physics accumulator.
 
@@ -66,13 +66,13 @@ All simulation-phase systems receive `FIXED_DT` (1/60s). Variable dt from the ho
 
 Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection
 
-### 21 Systems
+### 17 Systems
 
-lifecycle, hierarchy, signal, state_machine, coroutine, sprite_animator, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, physics_joint, gameplay, event_processor, input_gameplay, renderer, debug_render
+lifecycle, hierarchy, signal, state_machine, coroutine, sprite_animator, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, physics_joint, renderer, debug_render
 
-## Rendering (12 modules)
+## Rendering (10 modules)
 
-Pure software. No GPU. Modules: framebuffer, color, shapes, text, particles, starfield, post_fx, layers, sprite, transition, screen_fx.
+Pure software. No GPU. Modules: framebuffer, color, shapes, text, particles, post_fx, layers, sprite, transition, screen_fx.
 
 Post-processing: vignette, CRT scanlines, screen shake, bloom.
 

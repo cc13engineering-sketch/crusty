@@ -45,91 +45,84 @@ impl NameMap {
     }
 }
 
-/// The world holds all entities and all component stores.
-#[derive(Clone, Debug)]
-pub struct World {
-    next_id: u64,
-    pub alive: HashSet<Entity>,
-    pub names: NameMap,
+/// Declares all component stores in World once. The macro generates:
+/// - struct fields (`pub $field: ComponentStore<$Type>`)
+/// - `new()` initialization (`$field: ComponentStore::new()`)
+/// - `despawn()` removal (`self.$field.remove(entity)`)
+/// - `clear()` clearing (`self.$field.clear()`)
+///
+/// Adding a new component store requires only a single line here instead of
+/// updating three separate methods (new, despawn, clear).
+macro_rules! component_stores {
+    ($($field:ident : $Type:ty),* $(,)?) => {
+        /// The world holds all entities and all component stores.
+        #[derive(Clone, Debug)]
+        pub struct World {
+            next_id: u64,
+            pub alive: HashSet<Entity>,
+            pub names: NameMap,
+            $(pub $field: ComponentStore<$Type>,)*
+            pub spawn_queue: crate::spawn_queue::SpawnQueue,
+        }
 
-    pub transforms: ComponentStore<Transform>,
-    pub rigidbodies: ComponentStore<RigidBody>,
-    pub colliders: ComponentStore<Collider>,
-    pub renderables: ComponentStore<Renderable>,
-    pub force_fields: ComponentStore<ForceField>,
-    pub tags: ComponentStore<Tags>,
-    pub roles: ComponentStore<Role>,
-    pub lifetimes: ComponentStore<Lifetime>,
-    pub game_states: ComponentStore<GameState>,
-    pub behaviors: ComponentStore<Behavior>,
-    pub physics_materials: ComponentStore<PhysicsMaterial>,
-    pub impulses: ComponentStore<Impulse>,
-    pub motion_constraints: ComponentStore<MotionConstraint>,
-    pub zone_effects: ComponentStore<ZoneEffect>,
-    pub property_tweens: ComponentStore<PropertyTween>,
-    pub entity_flashes: ComponentStore<EntityFlash>,
-    pub ghost_trails: ComponentStore<GhostTrail>,
-    pub time_scales: ComponentStore<TimeScale>,
-    pub actives: ComponentStore<Active>,
-    pub waypoint_paths: ComponentStore<WaypointPath>,
-    pub signal_emitters: ComponentStore<SignalEmitter>,
-    pub signal_receivers: ComponentStore<SignalReceiver>,
-    pub parents: ComponentStore<Parent>,
-    pub children: ComponentStore<Children>,
-    pub world_transforms: ComponentStore<WorldTransform>,
-    pub state_machines: ComponentStore<StateMachine>,
-    pub coroutines: ComponentStore<Coroutine>,
-    pub sprite_animators: ComponentStore<SpriteAnimator>,
-    pub physics_joints: ComponentStore<PhysicsJoint>,
-    pub resource_inventories: ComponentStore<ResourceInventory>,
-    pub graph_nodes: ComponentStore<GraphNode>,
-    pub visual_connections: ComponentStore<VisualConnection>,
+        impl World {
+            pub fn new() -> Self {
+                Self {
+                    next_id: 1, // Entity(0) is reserved
+                    alive: HashSet::new(),
+                    names: NameMap::default(),
+                    $($field: ComponentStore::new(),)*
+                    spawn_queue: crate::spawn_queue::SpawnQueue::new(),
+                }
+            }
 
-    pub spawn_queue: crate::spawn_queue::SpawnQueue,
+            fn despawn_components(&mut self, entity: Entity) {
+                $(self.$field.remove(entity);)*
+            }
+
+            fn clear_components(&mut self) {
+                $(self.$field.clear();)*
+            }
+        }
+    };
+}
+
+component_stores! {
+    transforms: Transform,
+    rigidbodies: RigidBody,
+    colliders: Collider,
+    renderables: Renderable,
+    force_fields: ForceField,
+    tags: Tags,
+    roles: Role,
+    lifetimes: Lifetime,
+    game_states: GameState,
+    behaviors: Behavior,
+    physics_materials: PhysicsMaterial,
+    impulses: Impulse,
+    motion_constraints: MotionConstraint,
+    zone_effects: ZoneEffect,
+    property_tweens: PropertyTween,
+    entity_flashes: EntityFlash,
+    ghost_trails: GhostTrail,
+    time_scales: TimeScale,
+    actives: Active,
+    waypoint_paths: WaypointPath,
+    signal_emitters: SignalEmitter,
+    signal_receivers: SignalReceiver,
+    parents: Parent,
+    children: Children,
+    world_transforms: WorldTransform,
+    state_machines: StateMachine,
+    coroutines: Coroutine,
+    sprite_animators: SpriteAnimator,
+    physics_joints: PhysicsJoint,
+    resource_inventories: ResourceInventory,
+    graph_nodes: GraphNode,
+    visual_connections: VisualConnection,
 }
 
 impl World {
-    pub fn new() -> Self {
-        Self {
-            next_id: 1, // Entity(0) is reserved
-            alive: HashSet::new(),
-            names: NameMap::default(),
-            transforms: ComponentStore::new(),
-            rigidbodies: ComponentStore::new(),
-            colliders: ComponentStore::new(),
-            renderables: ComponentStore::new(),
-            force_fields: ComponentStore::new(),
-            tags: ComponentStore::new(),
-            roles: ComponentStore::new(),
-            lifetimes: ComponentStore::new(),
-            game_states: ComponentStore::new(),
-            behaviors: ComponentStore::new(),
-            physics_materials: ComponentStore::new(),
-            impulses: ComponentStore::new(),
-            motion_constraints: ComponentStore::new(),
-            zone_effects: ComponentStore::new(),
-            property_tweens: ComponentStore::new(),
-            entity_flashes: ComponentStore::new(),
-            ghost_trails: ComponentStore::new(),
-            time_scales: ComponentStore::new(),
-            actives: ComponentStore::new(),
-            waypoint_paths: ComponentStore::new(),
-            signal_emitters: ComponentStore::new(),
-            signal_receivers: ComponentStore::new(),
-            parents: ComponentStore::new(),
-            children: ComponentStore::new(),
-            world_transforms: ComponentStore::new(),
-            state_machines: ComponentStore::new(),
-            coroutines: ComponentStore::new(),
-            sprite_animators: ComponentStore::new(),
-            physics_joints: ComponentStore::new(),
-            resource_inventories: ComponentStore::new(),
-            graph_nodes: ComponentStore::new(),
-            visual_connections: ComponentStore::new(),
-            spawn_queue: crate::spawn_queue::SpawnQueue::new(),
-        }
-    }
-
     pub fn spawn(&mut self) -> Entity {
         let id = self.next_id;
         self.next_id += 1;
@@ -147,38 +140,7 @@ impl World {
     pub fn despawn(&mut self, entity: Entity) {
         self.alive.remove(&entity);
         self.names.remove_entity(entity);
-        self.transforms.remove(entity);
-        self.rigidbodies.remove(entity);
-        self.colliders.remove(entity);
-        self.renderables.remove(entity);
-        self.force_fields.remove(entity);
-        self.tags.remove(entity);
-        self.roles.remove(entity);
-        self.lifetimes.remove(entity);
-        self.game_states.remove(entity);
-        self.behaviors.remove(entity);
-        self.physics_materials.remove(entity);
-        self.impulses.remove(entity);
-        self.motion_constraints.remove(entity);
-        self.zone_effects.remove(entity);
-        self.property_tweens.remove(entity);
-        self.entity_flashes.remove(entity);
-        self.ghost_trails.remove(entity);
-        self.time_scales.remove(entity);
-        self.actives.remove(entity);
-        self.waypoint_paths.remove(entity);
-        self.signal_emitters.remove(entity);
-        self.signal_receivers.remove(entity);
-        self.parents.remove(entity);
-        self.children.remove(entity);
-        self.world_transforms.remove(entity);
-        self.state_machines.remove(entity);
-        self.coroutines.remove(entity);
-        self.sprite_animators.remove(entity);
-        self.physics_joints.remove(entity);
-        self.resource_inventories.remove(entity);
-        self.graph_nodes.remove(entity);
-        self.visual_connections.remove(entity);
+        self.despawn_components(entity);
     }
 
     pub fn is_alive(&self, entity: Entity) -> bool {
@@ -192,38 +154,7 @@ impl World {
     pub fn clear(&mut self) {
         self.alive.clear();
         self.names.clear();
-        self.transforms.clear();
-        self.rigidbodies.clear();
-        self.colliders.clear();
-        self.renderables.clear();
-        self.force_fields.clear();
-        self.tags.clear();
-        self.roles.clear();
-        self.lifetimes.clear();
-        self.game_states.clear();
-        self.behaviors.clear();
-        self.physics_materials.clear();
-        self.impulses.clear();
-        self.motion_constraints.clear();
-        self.zone_effects.clear();
-        self.property_tweens.clear();
-        self.entity_flashes.clear();
-        self.ghost_trails.clear();
-        self.time_scales.clear();
-        self.actives.clear();
-        self.waypoint_paths.clear();
-        self.signal_emitters.clear();
-        self.signal_receivers.clear();
-        self.parents.clear();
-        self.children.clear();
-        self.world_transforms.clear();
-        self.state_machines.clear();
-        self.coroutines.clear();
-        self.sprite_animators.clear();
-        self.physics_joints.clear();
-        self.resource_inventories.clear();
-        self.graph_nodes.clear();
-        self.visual_connections.clear();
+        self.clear_components();
         self.spawn_queue.clear();
         self.next_id = 1;
     }

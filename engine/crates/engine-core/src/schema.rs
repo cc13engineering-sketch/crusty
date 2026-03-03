@@ -51,5 +51,8 @@ pub fn generate_schema() -> String {
             "flow_network", "procedural_gen", "environment_clock", "density_field"
         ]
     });
-    serde_json::to_string_pretty(&schema).unwrap()
+    serde_json::to_string_pretty(&schema).unwrap_or_else(|e| {
+        crate::log::error(&format!("schema serialization failed: {}", e));
+        "{}".to_string()
+    })
 }

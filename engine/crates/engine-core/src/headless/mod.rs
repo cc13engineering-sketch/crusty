@@ -38,7 +38,7 @@ mod strategy;
 mod harness;
 mod golden;
 
-pub use runner::{HeadlessRunner, SimResult};
+pub use runner::{HeadlessRunner, SimResult, RunConfig};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
 pub use shot_builder::ShotBuilder;
 pub use fb_hash::framebuffer_hash;

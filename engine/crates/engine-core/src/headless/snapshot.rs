@@ -120,6 +120,8 @@ pub fn run_with_snapshots(
             .collect(),
         framebuffer_hash: super::framebuffer_hash(&runner.engine.framebuffer),
         elapsed_sim_time: runner.engine.time,
+        state_hash: runner.engine.state_hash(),
+        state_hashes: Vec::new(),
     };
 
     SnapshotResult { sim, snapshots }

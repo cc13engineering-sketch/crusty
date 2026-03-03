@@ -6,6 +6,7 @@
 
 use crate::engine::Engine;
 use crate::simulation::Simulation;
+use crate::variant::ParamSet;
 use crate::components::{Transform, Renderable, RigidBody, Collider, ColliderShape};
 use crate::components::renderable::Visual;
 use crate::rendering::color::Color;
@@ -17,6 +18,7 @@ const FRICTION: f64 = 0.98;
 const BOUNCE_DAMPING: f64 = 0.8;
 
 /// Minimal demo game: a bouncing ball on a bounded surface.
+#[derive(Clone)]
 pub struct DemoBall {
     ball: Option<Entity>,
     prev_x: f64,
@@ -78,6 +80,11 @@ impl Simulation for DemoBall {
             None => return,
         };
 
+        // Read tunable parameters from global_state, falling back to constants
+        let launch_speed = engine.global_state.get_f64("ball_speed").unwrap_or(LAUNCH_SPEED);
+        let friction = engine.global_state.get_f64("ball_friction").unwrap_or(FRICTION);
+        let bounce_damp = engine.global_state.get_f64("ball_bounce").unwrap_or(BOUNCE_DAMPING);
+
         // Handle tap/click: launch ball toward pointer
         if engine.input.mouse_buttons_pressed.contains(&0) {
             if let Some(t) = engine.world.transforms.get(ball) {
@@ -90,8 +97,8 @@ impl Simulation for DemoBall {
                     // Add a small random perturbation for variety
                     let jitter = (engine.rng.next_f64() - 0.5) * 20.0;
                     if let Some(rb) = engine.world.rigidbodies.get_mut(ball) {
-                        rb.vx = nx * LAUNCH_SPEED + jitter;
-                        rb.vy = ny * LAUNCH_SPEED + jitter;
+                        rb.vx = nx * launch_speed + jitter;
+                        rb.vy = ny * launch_speed + jitter;
                     }
                     let launches = engine.global_state.get_f64("launches").unwrap_or(0.0);
                     engine.global_state.set_f64("launches", launches + 1.0);
@@ -101,8 +108,8 @@ impl Simulation for DemoBall {
 
         // Apply friction
         if let Some(rb) = engine.world.rigidbodies.get_mut(ball) {
-            rb.vx *= FRICTION;
-            rb.vy *= FRICTION;
+            rb.vx *= friction;
+            rb.vy *= friction;
             // Stop tiny velocities
             if rb.vx.abs() < 0.1 && rb.vy.abs() < 0.1 {
                 rb.vx = 0.0;
@@ -126,8 +133,8 @@ impl Simulation for DemoBall {
 
             if bounce_x || bounce_y {
                 if let Some(rb) = engine.world.rigidbodies.get_mut(ball) {
-                    if bounce_x { rb.vx = -rb.vx * BOUNCE_DAMPING; }
-                    if bounce_y { rb.vy = -rb.vy * BOUNCE_DAMPING; }
+                    if bounce_x { rb.vx = -rb.vx * bounce_damp; }
+                    if bounce_y { rb.vy = -rb.vy * bounce_damp; }
                 }
                 if let Some(t) = engine.world.transforms.get_mut(ball) {
                     t.x = nx;
@@ -151,6 +158,23 @@ impl Simulation for DemoBall {
     fn render(&self, _engine: &mut Engine) {
         // Entity rendering is handled by the engine's renderer system in tick().
         // Nothing extra needed for this simple demo.
+    }
+
+    fn variants(&self) -> Vec<ParamSet> {
+        vec![
+            ParamSet::new()
+                .named("default"),
+            ParamSet::new()
+                .named("fast")
+                .with("ball_speed", 400.0)
+                .with("ball_friction", 0.99)
+                .with("ball_bounce", 0.95),
+            ParamSet::new()
+                .named("slow")
+                .with("ball_speed", 80.0)
+                .with("ball_friction", 0.90)
+                .with("ball_bounce", 0.5),
+        ]
     }
 }
 

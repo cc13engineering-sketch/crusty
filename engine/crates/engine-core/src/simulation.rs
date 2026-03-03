@@ -21,4 +21,13 @@ pub trait Simulation {
 
     /// Render the current state into the engine's framebuffer.
     fn render(&self, engine: &mut Engine);
+
+    /// Declare named parameter variants for this simulation.
+    ///
+    /// Returns a list of `ParamSet`s that represent interesting tuning
+    /// configurations. The headless variant runner uses these to sweep
+    /// across parameter space. Default: empty (no variants declared).
+    fn variants(&self) -> Vec<crate::variant::ParamSet> {
+        vec![]
+    }
 }

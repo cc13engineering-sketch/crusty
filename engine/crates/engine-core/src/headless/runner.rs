@@ -188,6 +188,60 @@ impl HeadlessRunner {
         self.snapshot(frames, state_hashes)
     }
 
+    /// Run a simulation for a specific number of frames, capturing
+    /// specified game-state keys at every frame.
+    ///
+    /// Returns `(SimResult, captured)` where `captured` is a `Vec` with
+    /// one entry per frame. Each entry is a `Vec<(String, f64)>` of the
+    /// requested keys and their values at that frame (keys that are
+    /// missing or non-numeric are omitted from that frame's entry).
+    pub fn run_with_capture<S: Simulation>(
+        &mut self,
+        sim: &mut S,
+        seed: u64,
+        inputs: &[InputFrame],
+        frames: u64,
+        config: RunConfig,
+        capture_keys: &[String],
+    ) -> (SimResult, Vec<Vec<(String, f64)>>) {
+        let dt = 1.0 / 60.0;
+        self.engine.reset(seed);
+        sim.setup(&mut self.engine);
+
+        let mut state_hashes = if config.capture_state_hashes {
+            Vec::with_capacity(frames as usize)
+        } else {
+            Vec::new()
+        };
+
+        let mut captured: Vec<Vec<(String, f64)>> = Vec::with_capacity(frames as usize);
+
+        let empty = InputFrame::default();
+        for i in 0..frames {
+            self.engine.tick(dt);
+            let input = inputs.get(i as usize).unwrap_or(&empty);
+            self.engine.apply_input(input);
+            sim.step(&mut self.engine);
+            if !config.turbo {
+                sim.render(&mut self.engine);
+            }
+            if config.capture_state_hashes {
+                state_hashes.push(self.engine.state_hash());
+            }
+
+            // Capture requested keys from global game state
+            let mut frame_capture = Vec::with_capacity(capture_keys.len());
+            for key in capture_keys {
+                if let Some(val) = self.engine.global_state.get_f64(key) {
+                    frame_capture.push((key.clone(), val));
+                }
+            }
+            captured.push(frame_capture);
+        }
+
+        (self.snapshot(frames, state_hashes), captured)
+    }
+
     // ─── Legacy function-pointer API ─────────────────────────────────
 
     /// Run a complete simulation (legacy API).

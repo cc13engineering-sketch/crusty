@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Crusty Engine Dashboard</title>
+<style>
+  :root {
+    --bg: #1a1a2e; --card: #16213e; --accent: #0f3460;
+    --text: #e0e0e0; --dim: #888; --green: #4ecca3;
+    --red: #e74c3c; --blue: #3498db; --yellow: #f39c12;
+    --orange: #e67e22; --purple: #9b59b6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+    background: var(--bg); color: var(--text);
+    padding: 20px; max-width: 1200px; margin: 0 auto;
+  }
+  h1 { color: var(--green); font-size: 24px; margin-bottom: 4px; }
+  .subtitle { color: var(--dim); font-size: 13px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--card); border-radius: 8px; padding: 16px;
+    border: 1px solid var(--accent);
+  }
+  .card h2 { color: var(--blue); font-size: 15px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; }
+  .stat-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #1a1a2e; }
+  .stat-label { color: var(--dim); }
+  .stat-value { color: var(--green); font-weight: bold; }
+  .bar-chart { margin-top: 8px; }
+  .bar-row { display: flex; align-items: center; margin: 3px 0; }
+  .bar-label { width: 120px; font-size: 12px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar-track { flex: 1; height: 18px; background: var(--bg); border-radius: 3px; margin: 0 8px; position: relative; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+  .bar-value { width: 60px; font-size: 12px; text-align: right; }
+  canvas { width: 100%; height: 150px; display: block; margin-top: 8px; }
+  .highlight-list { max-height: 300px; overflow-y: auto; }
+  .highlight-item { padding: 6px 0; border-bottom: 1px solid #1a1a2e; font-size: 12px; }
+  .highlight-kind { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 11px; font-weight: bold; margin-right: 6px; }
+  .kind-spike { background: var(--green); color: #000; }
+  .kind-drop { background: var(--red); color: #fff; }
+  .kind-neardeath { background: var(--orange); color: #000; }
+  .kind-milestone { background: var(--blue); color: #fff; }
+  .kind-other { background: var(--purple); color: #fff; }
+  .death-pie { display: flex; gap: 8px; flex-wrap: wrap; }
+  .death-slice { text-align: center; padding: 8px 12px; border-radius: 6px; min-width: 80px; }
+  .death-count { font-size: 24px; font-weight: bold; }
+  .death-label { font-size: 11px; color: var(--dim); }
+  .status-ok { color: var(--green); }
+  .status-warn { color: var(--yellow); }
+  .no-data { color: var(--dim); font-style: italic; padding: 20px; text-align: center; }
+  #error { color: var(--red); padding: 20px; display: none; }
+  .full-width { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<h1>Crusty Engine Dashboard</h1>
+<div class="subtitle" id="meta">Loading dashboard.json...</div>
+<div id="error"></div>
+<div class="grid" id="dashboard" style="display:none;">
+
+  <!-- Sweep Summary -->
+  <div class="card">
+    <h2>Sweep Summary</h2>
+    <div id="sweep-stats"></div>
+  </div>
+
+  <!-- Death Classification -->
+  <div class="card">
+    <h2>Death Classification</h2>
+    <div id="death-chart" class="death-pie"></div>
+  </div>
+
+  <!-- Score Distribution -->
+  <div class="card full-width">
+    <h2>Score Distribution</h2>
+    <canvas id="histogram-canvas"></canvas>
+  </div>
+
+  <!-- Top Highlights -->
+  <div class="card">
+    <h2>Top Highlights</h2>
+    <div id="highlights-list" class="highlight-list"></div>
+  </div>
+
+  <!-- Ablation Ranking -->
+  <div class="card">
+    <h2>Ablation Impact</h2>
+    <div id="ablation-chart" class="bar-chart"></div>
+  </div>
+
+</div>
+
+<script>
+(async function() {
+  const errorEl = document.getElementById('error');
+  const metaEl = document.getElementById('meta');
+  const dashEl = document.getElementById('dashboard');
+
+  try {
+    const resp = await fetch('dashboard.json');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    const data = await resp.json();
+    render(data);
+  } catch (e) {
+    errorEl.textContent = `Failed to load dashboard.json: ${e.message}. Run "engine-cli dashboard-data --out site/dashboard/dashboard.json" first.`;
+    errorEl.style.display = 'block';
+  }
+
+  function render(data) {
+    metaEl.textContent = `v${data.engine_version} | Generated: ${data.generated_at} | ${data.sweep.total_seeds} seeds x ${data.sweep.frames_per_run} frames`;
+    dashEl.style.display = 'grid';
+
+    // Sweep stats
+    const sw = data.sweep;
+    document.getElementById('sweep-stats').innerHTML = [
+      stat('Metric', sw.metric_key),
+      stat('Seeds', sw.total_seeds),
+      stat('Mean', sw.mean.toFixed(2)),
+      stat('Median', sw.median.toFixed(2)),
+      stat('Min', sw.min.toFixed(2)),
+      stat('Max', sw.max.toFixed(2)),
+      stat('Std Dev', sw.stddev.toFixed(2)),
+    ].join('');
+
+    // Deaths
+    const d = data.deaths;
+    const deathData = [
+      { label: 'Close Call', count: d.close_call, color: 'var(--yellow)' },
+      { label: 'Blowout', count: d.blowout, color: 'var(--red)' },
+      { label: 'Cliff', count: d.cliff, color: 'var(--orange)' },
+      { label: 'Attrition', count: d.attrition, color: 'var(--purple)' },
+      { label: 'Unclassified', count: d.unclassified, color: 'var(--dim)' },
+    ];
+    document.getElementById('death-chart').innerHTML = deathData.map(dd =>
+      `<div class="death-slice" style="background:${dd.color}20;border:1px solid ${dd.color}">
+        <div class="death-count" style="color:${dd.color}">${dd.count}</div>
+        <div class="death-label">${dd.label}</div>
+      </div>`
+    ).join('');
+
+    // Histogram
+    if (data.histogram && data.histogram.length > 0) {
+      drawHistogram(data.histogram);
+    }
+
+    // Highlights
+    const hlEl = document.getElementById('highlights-list');
+    if (data.highlights.length === 0) {
+      hlEl.innerHTML = '<div class="no-data">No highlights detected</div>';
+    } else {
+      hlEl.innerHTML = data.highlights.slice(0, 15).map(h => {
+        const kindClass = kindToClass(h.kind);
+        return `<div class="highlight-item">
+          <span class="highlight-kind ${kindClass}">${h.kind}</span>
+          Seed ${h.seed} frame ${h.frame}: ${h.value.toFixed(1)} (delta ${h.delta >= 0 ? '+' : ''}${h.delta.toFixed(1)})
+        </div>`;
+      }).join('');
+    }
+
+    // Ablation
+    const abEl = document.getElementById('ablation-chart');
+    if (!data.ablation) {
+      abEl.innerHTML = '<div class="no-data">No ablation data. Use --with-ablation flag.</div>';
+    } else {
+      const ab = data.ablation;
+      const maxDelta = Math.max(...ab.ablations.map(a => Math.abs(a.delta_percent)), 1);
+      abEl.innerHTML = ab.ablations.map(a => {
+        const pct = Math.abs(a.delta_percent) / maxDelta * 100;
+        const color = a.delta_percent >= 0 ? 'var(--green)' : 'var(--red)';
+        const sign = a.delta_percent >= 0 ? '+' : '';
+        return `<div class="bar-row">
+          <span class="bar-label">${a.name}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
+          <span class="bar-value" style="color:${color}">${sign}${a.delta_percent.toFixed(1)}%</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  function stat(label, value) {
+    return `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-value">${value}</span></div>`;
+  }
+
+  function kindToClass(kind) {
+    const k = kind.toLowerCase();
+    if (k.includes('spike')) return 'kind-spike';
+    if (k.includes('drop')) return 'kind-drop';
+    if (k.includes('death')) return 'kind-neardeath';
+    if (k.includes('milestone')) return 'kind-milestone';
+    return 'kind-other';
+  }
+
+  function drawHistogram(bins) {
+    const canvas = document.getElementById('histogram-canvas');
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    const pad = { top: 10, right: 10, bottom: 30, left: 50 };
+    const plotW = w - pad.left - pad.right;
+    const plotH = h - pad.top - pad.bottom;
+    const maxCount = Math.max(...bins.map(b => b.count), 1);
+    const barW = plotW / bins.length;
+
+    // Bars
+    bins.forEach((bin, i) => {
+      const barH = (bin.count / maxCount) * plotH;
+      const x = pad.left + i * barW;
+      const y = pad.top + plotH - barH;
+      ctx.fillStyle = '#4ecca3';
+      ctx.fillRect(x + 1, y, barW - 2, barH);
+    });
+
+    // Axes
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + plotH);
+    ctx.lineTo(pad.left + plotW, pad.top + plotH);
+    ctx.stroke();
+
+    // Labels
+    ctx.fillStyle = '#888';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    const step = Math.max(1, Math.floor(bins.length / 5));
+    for (let i = 0; i < bins.length; i += step) {
+      const x = pad.left + i * barW + barW / 2;
+      ctx.fillText(bins[i].low.toFixed(0), x, pad.top + plotH + 15);
+    }
+
+    // Y-axis labels
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= 4; i++) {
+      const val = Math.round(maxCount * i / 4);
+      const y = pad.top + plotH - (plotH * i / 4);
+      ctx.fillText(val.toString(), pad.left - 5, y + 4);
+    }
+  }
+})();
+</script>
+</body>
+</html>

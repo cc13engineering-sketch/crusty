@@ -66,6 +66,10 @@ jobs:
           # Copy docs
           cp -r site/docs _site/docs
 
+          # Copy dashboard
+          mkdir -p _site/dashboard
+          cp site/dashboard/index.html _site/dashboard/
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -40,6 +40,11 @@ pub mod playthrough;
 pub mod death_classify;
 pub mod death_report;
 pub mod divergence;
+pub mod ablation;
+pub mod highlights;
+pub mod variant_runner;
+pub mod variant_rewind;
+pub mod dashboard;
 
 pub use runner::{HeadlessRunner, SimResult, RunConfig};
 pub use scenario::{GameScenario, ScheduledAction, Assertion, ScenarioResult, ScenarioBuilder, dispatch_noop};
@@ -70,6 +75,26 @@ pub use divergence::{
     compare_hash_sequences, compare_sweep_outcomes,
     DivergenceReport, DivergenceContext, ContextFrame,
     SweepDivergenceReport, SeedDivergence, DivergenceSummary,
+};
+pub use ablation::{
+    AblationConfig, Ablation, AblationResult, AblationReport,
+    run_ablation_study,
+};
+pub use highlights::{
+    HighlightKind, Highlight, HighlightConfig, HighlightReport,
+    scan_for_highlights, scan_for_highlights_report, rolling_mean_stddev,
+};
+pub use variant_runner::{
+    VariantResult, VariantSweepReport,
+    run_variant as run_variant_sim, sweep_variants,
+};
+pub use variant_rewind::{
+    BranchResult, rewind_and_branch, multi_branch,
+};
+pub use dashboard::{
+    DashboardData, DashboardConfig, SweepSummary, DeathSummary,
+    HighlightEntry, AblationSummary, AblationEntry, HistogramBin,
+    compute_stats, build_histogram, generate_dashboard_data,
 };
 
 #[cfg(test)]

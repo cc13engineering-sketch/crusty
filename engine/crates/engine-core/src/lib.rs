@@ -45,6 +45,7 @@ pub mod input_frame;
 pub mod simulation;
 pub mod observation;
 pub mod policy;
+pub mod variant;
 pub mod demo_ball;
 pub mod headless;
 pub mod feel_preset;

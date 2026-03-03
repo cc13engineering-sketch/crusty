@@ -3,9 +3,14 @@ use engine_core::feel_preset::FeelPresetLibrary;
 use engine_core::headless::playthrough::PlaythroughFile;
 use engine_core::headless::{HeadlessRunner, RunConfig};
 use engine_core::headless::{compare_hash_sequences, compare_sweep_outcomes, classify_batch, ClassifierConfig};
+use engine_core::headless::{AblationConfig, Ablation, run_ablation_study};
+use engine_core::headless::{sweep_variants, VariantSweepReport};
+use engine_core::headless::{scan_for_highlights_report, HighlightConfig};
+use engine_core::headless::{DashboardConfig, generate_dashboard_data};
 use engine_core::input_frame::InputFrame;
 use engine_core::policy::{NullPolicy, RandomPolicy};
-use std::collections::HashMap;
+use engine_core::simulation::Simulation;
+use std::collections::{HashMap, BTreeMap};
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -19,6 +24,11 @@ fn main() {
         Some("deaths") => cmd_deaths(&args[2..]),
         Some("divergence") => cmd_divergence(&args[2..]),
         Some("preset") => cmd_preset(&args[2..]),
+        Some("ablation") => cmd_ablation(&args[2..]),
+        Some("variants") => cmd_variants(),
+        Some("variant-sweep") => cmd_variant_sweep(&args[2..]),
+        Some("highlights") => cmd_highlights(&args[2..]),
+        Some("dashboard-data") => cmd_dashboard_data(&args[2..]),
         Some("info") => cmd_info(),
         _ => print_usage(),
     }
@@ -36,6 +46,11 @@ fn print_usage() {
     eprintln!("  deaths    Classify terminal states from simulation runs");
     eprintln!("  divergence Compare two runs or sweeps to find divergence");
     eprintln!("  preset    Manage physics feel presets");
+    eprintln!("  ablation  Run mechanic ablation study");
+    eprintln!("  variants  List declared game variants");
+    eprintln!("  variant-sweep  Sweep across variants and seeds");
+    eprintln!("  highlights  Detect interesting moments in simulations");
+    eprintln!("  dashboard-data  Generate dashboard JSON");
     eprintln!("  info      Print engine information");
     eprintln!("  schema    Generate engine JSON schema");
     eprintln!();
@@ -664,5 +679,383 @@ fn cmd_preset_apply(args: &[String]) {
     println!("Parameters set ({}):", preset.params.len());
     for (key, value) in &preset.params {
         println!("  {:<30} = {}", key, value);
+    }
+}
+
+// ─── Ablation Command ───────────────────────────────────────────────
+
+fn cmd_ablation(args: &[String]) {
+    if has_flag(args, "--help") {
+        eprintln!("Usage: engine-cli ablation [--seed-range S..E] [--frames N] [--metric KEY] [--out FILE] [--pretty]");
+        eprintln!();
+        eprintln!("Run a mechanic ablation study on DemoBall.");
+        eprintln!();
+        eprintln!("Tests what happens when specific mechanics are disabled or modified.");
+        eprintln!("Default ablations: no_gravity, double_speed, half_speed, no_bounce.");
+        eprintln!();
+        eprintln!("Options:");
+        eprintln!("  --seed-range S..E   Seed range (default: 0..10)");
+        eprintln!("  --frames N          Frames per run (default: 600)");
+        eprintln!("  --metric KEY        Metric to measure (default: score)");
+        eprintln!("  --out FILE          Write JSON output to file");
+        eprintln!("  --pretty            Pretty-print JSON output");
+        return;
+    }
+
+    let (seed_start, seed_end) = if let Some(range_str) = get_arg(args, "--seed-range") {
+        if let Some((a, b)) = range_str.split_once("..") {
+            let start = a.parse().unwrap_or(0);
+            let end = b.parse().unwrap_or(10);
+            (start, end)
+        } else {
+            (0, 10)
+        }
+    } else {
+        (0, 10)
+    };
+    let frames = get_arg(args, "--frames")
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(600);
+    let metric_key = get_arg(args, "--metric").unwrap_or_else(|| "score".into());
+    let out_file = get_arg(args, "--out");
+    let pretty = has_flag(args, "--pretty");
+
+    // Build default ablations using global_state keys that DemoBall may read.
+    let mut no_gravity = BTreeMap::new();
+    no_gravity.insert("gravity".to_string(), 0.0);
+
+    let mut double_speed = BTreeMap::new();
+    double_speed.insert("speed_mult".to_string(), 2.0);
+
+    let mut half_speed = BTreeMap::new();
+    half_speed.insert("speed_mult".to_string(), 0.5);
+
+    let mut no_bounce = BTreeMap::new();
+    no_bounce.insert("bounce_damping".to_string(), 0.0);
+
+    let config = AblationConfig {
+        baseline_params: BTreeMap::new(),
+        ablations: vec![
+            Ablation { name: "no_gravity".to_string(), params: no_gravity },
+            Ablation { name: "double_speed".to_string(), params: double_speed },
+            Ablation { name: "half_speed".to_string(), params: half_speed },
+            Ablation { name: "no_bounce".to_string(), params: no_bounce },
+        ],
+        seed_range: (seed_start, seed_end),
+        frames,
+        metric_key,
+    };
+
+    let total_seeds = seed_end - seed_start;
+    let total_configs = 1 + config.ablations.len() as u64;
+    eprintln!("Ablation: {} seeds ({}..{}), {} frames each, {} configurations ({} total runs)",
+        total_seeds, seed_start, seed_end, frames, total_configs,
+        total_seeds * total_configs);
+
+    let report = run_ablation_study(
+        || HeadlessRunner::new(480, 270),
+        DemoBall::new,
+        &config,
+    );
+
+    eprintln!("{}", report.summary());
+
+    let json = if pretty {
+        serde_json::to_string_pretty(&report).expect("Failed to serialize")
+    } else {
+        serde_json::to_string(&report).expect("Failed to serialize")
+    };
+
+    if let Some(path) = out_file {
+        std::fs::write(&path, &json).expect("Failed to write output");
+        eprintln!("Report written to {}", path);
+    } else {
+        println!("{}", json);
+    }
+}
+
+// ─── Variants Command ──────────────────────────────────────────────
+
+fn cmd_variants() {
+    let game = DemoBall::new();
+    let variants = game.variants();
+
+    if variants.is_empty() {
+        println!("No variants declared by DemoBall.");
+        return;
+    }
+
+    println!("DemoBall variants ({}):", variants.len());
+    println!();
+    for variant in &variants {
+        println!("  {}", variant.display_name());
+        for (key, value) in variant.iter() {
+            println!("    {:<30} = {}", key, value);
+        }
+    }
+}
+
+// ─── Variant Sweep Command ─────────────────────────────────────────
+
+fn cmd_variant_sweep(args: &[String]) {
+    if has_flag(args, "--help") {
+        eprintln!("Usage: engine-cli variant-sweep [--seed-range S..E] [--frames N] [--turbo] [--out FILE] [--pretty]");
+        eprintln!();
+        eprintln!("Sweep across all declared DemoBall variants and seeds.");
+        eprintln!();
+        eprintln!("Options:");
+        eprintln!("  --seed-range S..E   Seed range (default: 0..10)");
+        eprintln!("  --frames N          Frames per run (default: 600)");
+        eprintln!("  --turbo             Skip rendering");
+        eprintln!("  --out FILE          Write output to file");
+        eprintln!("  --pretty            Pretty-print JSON output");
+        return;
+    }
+
+    let (seed_start, seed_end) = if let Some(range_str) = get_arg(args, "--seed-range") {
+        if let Some((a, b)) = range_str.split_once("..") {
+            (a.parse().unwrap_or(0u64), b.parse().unwrap_or(10u64))
+        } else { (0, 10) }
+    } else { (0, 10) };
+    let frames = get_arg(args, "--frames").and_then(|s| s.parse().ok()).unwrap_or(600u64);
+    let turbo = has_flag(args, "--turbo");
+    let out_file = get_arg(args, "--out");
+    let pretty = has_flag(args, "--pretty");
+
+    let game = DemoBall::new();
+    let variants = game.variants();
+    if variants.is_empty() {
+        eprintln!("No variants declared. Nothing to sweep.");
+        return;
+    }
+
+    let seeds: Vec<u64> = (seed_start..seed_end).collect();
+    let config = RunConfig { turbo, capture_state_hashes: false };
+
+    let total_runs = variants.len() * seeds.len();
+    eprintln!("Variant sweep: {} variants x {} seeds = {} runs, {} frames each",
+        variants.len(), seeds.len(), total_runs, frames);
+
+    let results = sweep_variants(&|| DemoBall::new(), &seeds, frames, config, &variants);
+    let report = VariantSweepReport::new(results);
+
+    eprintln!("{}", report.summary());
+
+    let mut lines = Vec::new();
+    for vr in &report.results {
+        let entry = serde_json::json!({
+            "variant": vr.variant_name,
+            "frames": vr.result.frames_run,
+            "state_hash": format!("{:#018x}", vr.result.state_hash),
+            "score": vr.result.get_f64("score").unwrap_or(0.0),
+            "elapsed": vr.result.elapsed_sim_time,
+        });
+        lines.push(if pretty {
+            serde_json::to_string_pretty(&entry).unwrap()
+        } else {
+            serde_json::to_string(&entry).unwrap()
+        });
+    }
+    let output = lines.join("\n");
+
+    if let Some(path) = out_file {
+        std::fs::write(&path, &output).expect("Failed to write output");
+        eprintln!("Written {} results to {}", report.results.len(), path);
+    } else {
+        println!("{}", output);
+    }
+}
+
+// ─── Highlights Command ────────────────────────────────────────────
+
+fn cmd_highlights(args: &[String]) {
+    if has_flag(args, "--help") {
+        eprintln!("Usage: engine-cli highlights [--seed-range S..E] [--frames N] [--metric KEY] [--window N] [--out FILE] [--pretty]");
+        eprintln!();
+        eprintln!("Detect interesting moments (spikes, drops, milestones, near-death) in DemoBall runs.");
+        eprintln!();
+        eprintln!("Options:");
+        eprintln!("  --seed-range S..E   Seed range (default: 0..10)");
+        eprintln!("  --frames N          Frames per run (default: 600)");
+        eprintln!("  --metric KEY        Metric to track (default: score)");
+        eprintln!("  --window N          Rolling window size (default: 30)");
+        eprintln!("  --out FILE          Write JSON output to file");
+        eprintln!("  --pretty            Pretty-print JSON output");
+        return;
+    }
+
+    let (seed_start, seed_end) = if let Some(range_str) = get_arg(args, "--seed-range") {
+        if let Some((a, b)) = range_str.split_once("..") {
+            (a.parse().unwrap_or(0u64), b.parse().unwrap_or(10u64))
+        } else { (0, 10) }
+    } else { (0, 10) };
+    let frames = get_arg(args, "--frames").and_then(|s| s.parse().ok()).unwrap_or(600u64);
+    let metric_key = get_arg(args, "--metric").unwrap_or_else(|| "score".into());
+    let window: usize = get_arg(args, "--window").and_then(|s| s.parse().ok()).unwrap_or(30);
+    let out_file = get_arg(args, "--out");
+    let pretty = has_flag(args, "--pretty");
+
+    let total = seed_end - seed_start;
+    eprintln!("Highlights: {} seeds ({}..{}), {} frames each, tracking '{}'",
+        total, seed_start, seed_end, frames, metric_key);
+
+    let capture_keys = vec![metric_key.clone()];
+    let run_config = RunConfig { turbo: true, capture_state_hashes: false };
+
+    let highlight_config = HighlightConfig {
+        spike_threshold: 2.0,
+        near_death_threshold: 5.0,
+        milestone_values: vec![100.0, 500.0, 1000.0],
+        tracked_metrics: vec![metric_key.clone()],
+        window_size: window,
+    };
+
+    let mut all_reports = Vec::new();
+    for seed in seed_start..seed_end {
+        let mut runner = HeadlessRunner::new(480, 270);
+        let mut game = DemoBall::new();
+        let inputs: Vec<InputFrame> = vec![InputFrame::default(); frames as usize];
+
+        let (_result, captured) = runner.run_with_capture(
+            &mut game, seed, &inputs, frames, run_config.clone(), &capture_keys,
+        );
+
+        let frame_values: Vec<(u64, f64)> = captured.iter().enumerate().map(|(i, row)| {
+            let val = row.iter()
+                .find(|(k, _)| k == &metric_key)
+                .map(|(_, v)| *v)
+                .unwrap_or(0.0);
+            (i as u64, val)
+        }).collect();
+
+        let report = scan_for_highlights_report(&metric_key, &frame_values, &highlight_config);
+        if !report.highlights.is_empty() {
+            all_reports.push(serde_json::json!({
+                "seed": seed,
+                "total_frames": report.total_frames,
+                "highlight_count": report.highlights.len(),
+                "summary": report.summary(),
+                "highlights": report.highlights,
+            }));
+        }
+    }
+
+    eprintln!("Found highlights in {} of {} seeds", all_reports.len(), total);
+
+    let output = if pretty {
+        serde_json::to_string_pretty(&all_reports).expect("Failed to serialize")
+    } else {
+        all_reports.iter()
+            .map(|r| serde_json::to_string(r).unwrap())
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
+    if let Some(path) = out_file {
+        std::fs::write(&path, &output).expect("Failed to write output");
+        eprintln!("Report written to {}", path);
+    } else {
+        println!("{}", output);
+    }
+}
+
+// ─── Dashboard Data Command ────────────────────────────────────────
+
+fn cmd_dashboard_data(args: &[String]) {
+    if has_flag(args, "--help") {
+        eprintln!("Usage: engine-cli dashboard-data [--seed-range S..E] [--frames N] [--metric KEY] [--out FILE]");
+        eprintln!();
+        eprintln!("Generate dashboard JSON by running sweep, death classification,");
+        eprintln!("highlight detection, and optional ablation analysis.");
+        eprintln!();
+        eprintln!("Options:");
+        eprintln!("  --seed-range S..E   Seed range (default: 0..100)");
+        eprintln!("  --frames N          Frames per run (default: 600)");
+        eprintln!("  --metric KEY        Metric to track (default: score)");
+        eprintln!("  --with-ablation     Include ablation analysis (slower)");
+        eprintln!("  --out FILE          Output file (default: dashboard.json)");
+        return;
+    }
+
+    let (seed_start, seed_end) = if let Some(range_str) = get_arg(args, "--seed-range") {
+        if let Some((a, b)) = range_str.split_once("..") {
+            (a.parse().unwrap_or(0u64), b.parse().unwrap_or(100u64))
+        } else { (0, 100) }
+    } else { (0, 100) };
+    let frames = get_arg(args, "--frames").and_then(|s| s.parse().ok()).unwrap_or(600u64);
+    let metric_key = get_arg(args, "--metric").unwrap_or_else(|| "score".into());
+    let out = get_arg(args, "--out").unwrap_or_else(|| "dashboard.json".into());
+    let with_ablation = has_flag(args, "--with-ablation");
+
+    let total = seed_end - seed_start;
+    eprintln!("Dashboard: {} seeds ({}..{}), {} frames each, tracking '{}'",
+        total, seed_start, seed_end, frames, metric_key);
+
+    let ablation_config = if with_ablation {
+        let mut no_gravity = BTreeMap::new();
+        no_gravity.insert("gravity".to_string(), 0.0);
+        let mut double_speed = BTreeMap::new();
+        double_speed.insert("speed_mult".to_string(), 2.0);
+        let mut no_bounce = BTreeMap::new();
+        no_bounce.insert("bounce_damping".to_string(), 0.0);
+        Some(AblationConfig {
+            baseline_params: BTreeMap::new(),
+            ablations: vec![
+                Ablation { name: "no_gravity".into(), params: no_gravity },
+                Ablation { name: "double_speed".into(), params: double_speed },
+                Ablation { name: "no_bounce".into(), params: no_bounce },
+            ],
+            seed_range: (seed_start, seed_end.min(seed_start + 20)), // cap ablation seeds
+            frames,
+            metric_key: metric_key.clone(),
+        })
+    } else {
+        None
+    };
+
+    let config = DashboardConfig {
+        seed_range: (seed_start, seed_end),
+        frames,
+        metric_key,
+        ablation_config,
+    };
+
+    let mut data = generate_dashboard_data(
+        || HeadlessRunner::new(480, 270),
+        DemoBall::new,
+        &config,
+    );
+    data.generated_at = chrono_iso_now();
+
+    let json = serde_json::to_string_pretty(&data).expect("Failed to serialize");
+
+    if let Some(parent) = std::path::Path::new(&out).parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent).ok();
+        }
+    }
+    std::fs::write(&out, &json).expect("Failed to write dashboard data");
+
+    eprintln!("Dashboard data written to {}", out);
+    eprintln!("  Seeds: {}, Frames: {}", data.sweep.total_seeds, data.sweep.frames_per_run);
+    eprintln!("  Score: mean={:.2}, median={:.2}, min={:.2}, max={:.2}",
+        data.sweep.mean, data.sweep.median, data.sweep.min, data.sweep.max);
+    eprintln!("  Deaths: {} total ({} close-call, {} blowout, {} cliff, {} attrition)",
+        data.deaths.total, data.deaths.close_call, data.deaths.blowout,
+        data.deaths.cliff, data.deaths.attrition);
+    eprintln!("  Highlights: {}", data.highlights.len());
+    if data.ablation.is_some() {
+        eprintln!("  Ablation: included");
+    }
+}
+
+/// Simple ISO 8601 timestamp without requiring the chrono crate.
+fn chrono_iso_now() -> String {
+    // Use a deterministic placeholder since we don't have chrono.
+    // In production the CLI would use std::time::SystemTime.
+    use std::time::SystemTime;
+    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(d) => format!("{}s-since-epoch", d.as_secs()),
+        Err(_) => "unknown".to_string(),
     }
 }

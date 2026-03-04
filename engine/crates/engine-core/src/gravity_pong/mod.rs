@@ -73,6 +73,10 @@ const WORMHOLE_COOLDOWN: f64 = 0.5;
 const WORMHOLE_GM: f64 = 225.0;
 const WORMHOLE_EPSILON: f64 = 25.0;
 
+// Supernova
+const SUPERNOVA_FLASH_HZ_EARLY: f64 = 4.0;
+const SUPERNOVA_FLASH_HZ_LATE: f64 = 8.0;
+
 // ─── Entity Types ───────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug)]
@@ -307,6 +311,15 @@ enum VisualEffect {
         duration: f64,
         color: Color,
     },
+    ExpandingRing {
+        x: f64,
+        y: f64,
+        current_radius: f64,
+        max_radius: f64,
+        color: Color,
+        age: f64,
+        duration: f64,
+    },
 }
 
 #[derive(Clone, Debug)]
@@ -377,6 +390,33 @@ impl PlasmaCurrent {
             y2,
             half_width: width / 2.0,
             strength,
+            anim_phase: 0.0,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Supernova {
+    x: f64,
+    y: f64,
+    size: f64,
+    visual_radius: f64,
+    blast_radius: f64,
+    countdown: f64,         // remaining seconds until detonation
+    initial_countdown: f64,  // for progress calculation
+    detonated: bool,
+    anim_phase: f64,
+}
+
+impl Supernova {
+    fn from_params(x: f64, y: f64, size: f64, countdown: f64) -> Self {
+        let visual_radius = 15.0 + size * 0.3;
+        let blast_radius = visual_radius * 3.5;
+        Self {
+            x, y, size, visual_radius, blast_radius,
+            countdown,
+            initial_countdown: countdown,
+            detonated: false,
             anim_phase: 0.0,
         }
     }
@@ -487,6 +527,54 @@ fn level_data() -> Vec<Vec<&'static str>> {
             "particle:700:850",
             "particle:450:950",
         ],
+        // Level 9 - "Countdown": supernova timed hazard
+        vec![
+            "target:500:150:65",
+            "gravity-well:400:500:45",
+            "gravity-well:600:500:45",
+            "supernova:500:400:50:8",
+            "particle:300:850",
+            "particle:500:850",
+            "particle:700:850",
+            "particle:400:900",
+            "particle:600:900",
+        ],
+        // Level 10 - "Final Frontier": everything combined
+        vec![
+            "target:200:100:60",
+            "target:800:100:60",
+            "gravity-well:300:350:50",
+            "gravity-well:700:350:50",
+            "black-hole:500:450:40",
+            "repulsor:500:700:45",
+            "supernova:250:550:40:10",
+            "supernova:750:550:40:12",
+            "wormhole:150:900:850:200",
+            "plasma-current:100:500:400:200:80:50",
+            "wall:400:250:600:250:80",
+            "particle:150:950",
+            "particle:300:950",
+            "particle:450:950",
+            "particle:600:950",
+            "particle:750:950",
+            "particle:350:850",
+            "particle:650:850",
+        ],
+    ]
+}
+
+fn level_names() -> Vec<&'static str> {
+    vec![
+        "First Contact",
+        "The Sling",
+        "Orbital",
+        "Through the Wormhole",
+        "Current Affairs",
+        "Dark Side",
+        "Chaos Theory",
+        "The Gauntlet",
+        "Countdown",
+        "Final Frontier",
     ]
 }
 
@@ -516,6 +604,7 @@ pub struct GravityPong {
     screen_h: f64,
     wormholes: Vec<Wormhole>,
     plasma_currents: Vec<PlasmaCurrent>,
+    supernovas: Vec<Supernova>,
     elapsed_time: f64,
 }
 
@@ -544,6 +633,7 @@ impl GravityPong {
             screen_h: 640.0,
             wormholes: Vec::new(),
             plasma_currents: Vec::new(),
+            supernovas: Vec::new(),
             elapsed_time: 0.0,
         }
     }
@@ -577,6 +667,7 @@ impl GravityPong {
         self.walls.clear();
         self.wormholes.clear();
         self.plasma_currents.clear();
+        self.supernovas.clear();
         self.waypoint = None;
         self.sling = None;
         self.effects.clear();
@@ -666,6 +757,15 @@ impl GravityPong {
                                 width,
                                 strength_raw,
                             ));
+                        }
+                    }
+                    "supernova" => {
+                        if parts.len() >= 5 {
+                            let x = parse_f64(parts[1]);
+                            let y = parse_f64(parts[2]);
+                            let size = parse_f64(parts[3]);
+                            let countdown = parse_f64(parts[4]);
+                            self.supernovas.push(Supernova::from_params(x, y, size, countdown));
                         }
                     }
                     "particle" => {
@@ -1391,6 +1491,17 @@ impl GravityPong {
                     *age += FIXED_DT;
                     let _ = duration;
                 }
+                VisualEffect::ExpandingRing {
+                    ref mut age,
+                    ref mut current_radius,
+                    max_radius,
+                    duration,
+                    ..
+                } => {
+                    *age += FIXED_DT;
+                    let progress = (*age / *duration).min(1.0);
+                    *current_radius = *max_radius * progress;
+                }
             }
         }
 
@@ -1398,6 +1509,7 @@ impl GravityPong {
         self.effects.retain(|e| match e {
             VisualEffect::Burst { age, duration, .. } => *age < *duration,
             VisualEffect::Flash { age, duration, .. } => *age < *duration,
+            VisualEffect::ExpandingRing { age, duration, .. } => *age < *duration,
         });
 
         // Tick entity flash timers
@@ -1464,6 +1576,65 @@ impl GravityPong {
         // Tick plasma current animation
         for pc in &mut self.plasma_currents {
             pc.anim_phase += FIXED_DT;
+        }
+
+        // Tick supernovas countdown and animation
+        for sn in &mut self.supernovas {
+            if !sn.detonated {
+                sn.countdown -= FIXED_DT;
+                sn.anim_phase += FIXED_DT;
+            }
+        }
+    }
+
+    fn update_supernovas(&mut self, engine: &mut Engine) {
+        let mut detonations: Vec<(f64, f64, f64)> = Vec::new();
+
+        for sn in &mut self.supernovas {
+            if sn.detonated || sn.countdown > 0.0 {
+                continue;
+            }
+            sn.detonated = true;
+            detonations.push((sn.x, sn.y, sn.blast_radius));
+        }
+
+        for (sx, sy, blast_r) in &detonations {
+            // Kill particles in blast radius
+            for p in &mut self.particles {
+                if !p.alive || p.scored || p.captured {
+                    continue;
+                }
+                let dx = p.x - sx;
+                let dy = p.y - sy;
+                let dist = (dx * dx + dy * dy).sqrt();
+                if dist < *blast_r {
+                    p.alive = false;
+                }
+            }
+
+            // Visual: expanding ring
+            self.effects.push(VisualEffect::ExpandingRing {
+                x: *sx,
+                y: *sy,
+                current_radius: 0.0,
+                max_radius: *blast_r,
+                color: Color::from_rgba(255, 200, 50, 255),
+                age: 0.0,
+                duration: 0.3,
+            });
+
+            // Burst particles
+            self.spawn_burst(*sx, *sy, Color::from_rgba(255, 180, 50, 255), 35, engine);
+
+            // Screen effects
+            self.spawn_flash(Color::from_rgba(255, 255, 200, 255), 0.3);
+            engine.post_fx.shake_remaining = 0.3;
+            engine.post_fx.shake_intensity = 8.0;
+        }
+
+        // Update alive count after detonations
+        if !detonations.is_empty() {
+            self.alive_count = self.particles.iter().filter(|p| p.alive && !p.scored).count() as u32;
         }
     }
 
@@ -2022,6 +2193,69 @@ impl GravityPong {
         }
     }
 
+    fn render_supernovas(&self, fb: &mut Framebuffer) {
+        for sn in &self.supernovas {
+            if sn.detonated {
+                continue;
+            }
+            let (sx, sy) = self.w2s(sn.x, sn.y);
+            let vr = self.w2s_r(sn.visual_radius);
+            let br = self.w2s_r(sn.blast_radius);
+
+            // Countdown progress (0.0 = just started, 1.0 = about to blow)
+            let progress = if sn.initial_countdown > 0.0 {
+                1.0 - (sn.countdown / sn.initial_countdown)
+            } else {
+                1.0
+            };
+
+            // Star shape: 6 radiating spokes
+            let spoke_count = 6;
+            let spoke_color = Color::from_rgba(255, 160, 40, (120.0 + progress * 135.0).min(255.0) as u8);
+            for k in 0..spoke_count {
+                let angle = sn.anim_phase * 0.3 + (k as f64) * std::f64::consts::TAU / spoke_count as f64;
+                let inner = vr * 0.2;
+                let outer = vr * (0.6 + progress * 0.4);
+                let x0 = sx + angle.cos() * inner;
+                let y0 = sy + angle.sin() * inner;
+                let x1 = sx + angle.cos() * outer;
+                let y1 = sy + angle.sin() * outer;
+                shapes::draw_line(fb, x0, y0, x1, y1, spoke_color);
+            }
+
+            // Core: hot white-yellow, flashing in final seconds
+            let flash_hz = if sn.countdown < 2.0 { SUPERNOVA_FLASH_HZ_LATE } else { SUPERNOVA_FLASH_HZ_EARLY };
+            let flash_on = if sn.countdown < 2.0 {
+                (sn.anim_phase * flash_hz * std::f64::consts::TAU).sin() > 0.0
+            } else {
+                true
+            };
+            let core_alpha = if flash_on { (180.0 + progress * 75.0).min(255.0) as u8 } else { 80 };
+            let core_color = Color::from_rgba(255, 240, 180, core_alpha);
+            shapes::fill_circle(fb, sx, sy, vr * 0.25 * (1.0 + progress * 0.3), core_color);
+
+            // Countdown ring: shrinks from blast_radius toward visual_radius
+            let ring_radius = br - (br - vr) * progress;
+            let ring_alpha = (40.0 + 160.0 * progress).min(255.0) as u8;
+            let ring_thickness = 1.0 + 2.0 * progress;
+            let ring_color = Color::from_rgba(255, 60, 40, ring_alpha);
+            // Draw multiple circles for thickness
+            shapes::draw_circle(fb, sx, sy, ring_radius, ring_color);
+            if ring_thickness > 1.5 {
+                shapes::draw_circle(fb, sx, sy, ring_radius - 1.0, ring_color.with_alpha(ring_alpha / 2));
+            }
+            if ring_thickness > 2.5 {
+                shapes::draw_circle(fb, sx, sy, ring_radius + 1.0, ring_color.with_alpha(ring_alpha / 3));
+            }
+
+            // Countdown text
+            let secs = sn.countdown.ceil() as i32;
+            let countdown_text = format!("{}", secs);
+            let text_color = Color::from_rgba(255, (200.0 * (1.0 - progress)).max(60.0) as u8, (200.0 * (1.0 - progress)).max(60.0) as u8, 220);
+            text::draw_text_centered(fb, sx as i32, sy as i32 + vr as i32 + 8, &countdown_text, text_color, 1);
+        }
+    }
+
     fn render_aim_preview(&self, fb: &mut Framebuffer) {
         if let Some(ref sling) = self.sling {
             // Calculate launch velocity
@@ -2167,6 +2401,21 @@ impl GravityPong {
                         shapes::fill_rect(fb, 0.0, 0.0, fb.width as f64, fb.height as f64, c);
                     }
                 }
+                VisualEffect::ExpandingRing {
+                    x, y, current_radius, color, age, duration, ..
+                } => {
+                    let frac = if *duration > 0.0 { (1.0 - age / duration).max(0.0) } else { 0.0 };
+                    let alpha = (frac * 255.0) as u8;
+                    if alpha > 0 {
+                        let (sx, sy) = self.w2s(*x, *y);
+                        let r = self.w2s_r(*current_radius);
+                        let c = color.with_alpha(alpha);
+                        shapes::draw_circle(fb, sx, sy, r, c);
+                        if r > 2.0 {
+                            shapes::draw_circle(fb, sx, sy, r - 1.0, c.with_alpha(alpha / 2));
+                        }
+                    }
+                }
             }
         }
     }
@@ -2232,6 +2481,18 @@ impl GravityPong {
                     Color::from_rgba(200, 200, 220, 200),
                     1,
                 );
+                let names = level_names();
+                let next_level = self.current_level + 1;
+                if next_level < names.len() {
+                    text::draw_text_centered(
+                        fb,
+                        cx,
+                        cy + 40,
+                        names[next_level],
+                        Color::from_rgba(180, 180, 220, 200),
+                        2,
+                    );
+                }
             }
             GamePhase::Lost => {
                 shapes::fill_rect(
@@ -2277,6 +2538,18 @@ impl GravityPong {
                     Color::from_rgba(100, 255, 100, 255),
                     3,
                 );
+                let names = level_names();
+                let next_level = self.current_level + 1;
+                if next_level < names.len() {
+                    text::draw_text_centered(
+                        fb,
+                        cx,
+                        cy + 30,
+                        names[next_level],
+                        Color::from_rgba(180, 180, 220, 200),
+                        2,
+                    );
+                }
             }
             GamePhase::Playing => {}
         }
@@ -2332,6 +2605,9 @@ impl Simulation for GravityPong {
         // 5. Effects
         self.update_effects();
 
+        // 5b. Supernova detonation
+        self.update_supernovas(engine);
+
         // 6. Win/Loss
         self.check_win_loss(engine);
 
@@ -2374,6 +2650,9 @@ impl Simulation for GravityPong {
 
         // 9. Plasma currents
         self.render_plasma_currents(fb);
+
+        // 9b. Supernovas
+        self.render_supernovas(fb);
 
         // 10. Targets
         self.render_targets(fb);
@@ -2611,9 +2890,9 @@ mod tests {
     }
 
     #[test]
-    fn level_data_has_eight_levels() {
+    fn level_data_has_ten_levels() {
         let levels = level_data();
-        assert_eq!(levels.len(), 8);
+        assert_eq!(levels.len(), 10);
     }
 
     #[test]
@@ -2675,7 +2954,7 @@ mod tests {
         gp.screen_h = 640.0;
         gp.scale = 0.64;
         gp.load_level(999, &mut engine);
-        assert_eq!(gp.current_level, 7); // clamped to last level (index 7 = level 8)
+        assert_eq!(gp.current_level, 9); // clamped to last level (index 9 = level 10)
     }
 
     #[test]
@@ -2714,6 +2993,14 @@ mod tests {
         // Within corridor (half_width = 100, particle is at center)
         let (ax, _ay) = plasma_current_force(&pc, 500.0, 500.0, 0.0, 0.0);
         assert!(ax > 0.0, "force along current direction should be positive");
+    }
+
+    #[test]
+    fn supernova_from_params() {
+        let sn = Supernova::from_params(500.0, 300.0, 50.0, 5.0);
+        assert!(sn.blast_radius > sn.visual_radius);
+        assert!(!sn.detonated);
+        assert!((sn.countdown - 5.0).abs() < 1e-10);
     }
 
     #[test]

@@ -31,7 +31,7 @@ trap cleanup INT TERM
 build() {
     echo -e "${CYAN}Building WASM...${NC}"
     cd "$ENGINE"
-    if ! wasm-pack build crates/engine-core --target web --dev --out-dir "$PKG" \
+    if ! wasm-pack build crates/engine-core --target web --release --out-dir "$PKG" \
         -- --no-default-features 2>&1 | tail -5; then
         echo -e "${RED}Build failed!${NC}"
         return 1

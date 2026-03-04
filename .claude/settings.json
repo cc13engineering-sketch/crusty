@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push *)"
+      "Bash",
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "WebSearch",
+      "NotebookEdit"
+    ],
+    "deny": [
+      "Bash(rm -rf *)"
     ]
   }
 }

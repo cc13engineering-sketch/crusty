@@ -49,7 +49,7 @@ const WAYPOINT_TRAVEL_SPEED: f64 = 12.0;
 const WAYPOINT_TIMEOUT_FRAMES: u32 = 180;
 
 // Sling
-const SLING_MAX_SPEED: f64 = 350.0;
+const SLING_MAX_SPEED: f64 = 420.0;
 const SLING_MAX_PULL: f64 = 150.0;
 const SLING_DECAY_RATE: f64 = 2.5;
 

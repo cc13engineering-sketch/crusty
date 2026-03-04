@@ -77,6 +77,9 @@ const WORMHOLE_EPSILON: f64 = 25.0;
 const SUPERNOVA_FLASH_HZ_EARLY: f64 = 4.0;
 const SUPERNOVA_FLASH_HZ_LATE: f64 = 8.0;
 
+// Field visualization grid
+const FIELD_GRID_RES: usize = 50;
+
 // ─── Entity Types ───────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug)]
@@ -606,6 +609,8 @@ pub struct GravityPong {
     plasma_currents: Vec<PlasmaCurrent>,
     supernovas: Vec<Supernova>,
     elapsed_time: f64,
+    field_grid: Vec<f64>,
+    waypoint_preview: Option<(f64, f64)>,
 }
 
 impl GravityPong {
@@ -635,6 +640,8 @@ impl GravityPong {
             plasma_currents: Vec::new(),
             supernovas: Vec::new(),
             elapsed_time: 0.0,
+            field_grid: Vec::new(),
+            waypoint_preview: None,
         }
     }
 
@@ -788,6 +795,9 @@ impl GravityPong {
 
         // Initialise dust motes
         self.init_dust(engine);
+
+        // Precompute gravitational field visualization
+        self.compute_field_grid();
     }
 
     fn init_dust(&mut self, engine: &mut Engine) {
@@ -806,6 +816,48 @@ impl GravityPong {
                 age: engine.rng.range_f64(0.0, lifetime),
                 alpha,
             });
+        }
+    }
+
+    fn compute_field_grid(&mut self) {
+        let cell_count = FIELD_GRID_RES * FIELD_GRID_RES;
+        self.field_grid.clear();
+        self.field_grid.resize(cell_count, 0.0);
+        let cell_size = WORLD_SIZE / FIELD_GRID_RES as f64;
+
+        for gy in 0..FIELD_GRID_RES {
+            for gx in 0..FIELD_GRID_RES {
+                let wx = (gx as f64 + 0.5) * cell_size;
+                let wy = (gy as f64 + 0.5) * cell_size;
+                let mut potential = 0.0_f64;
+
+                for well in &self.gravity_wells {
+                    if !well.active { continue; }
+                    let dx = wx - well.x;
+                    let dy = wy - well.y;
+                    let r_sq = dx * dx + dy * dy;
+                    let eps_sq = well.epsilon * well.epsilon;
+                    potential += well.gm / (r_sq + eps_sq).sqrt();
+                }
+                for rep in &self.repulsors {
+                    if !rep.active { continue; }
+                    let dx = wx - rep.x;
+                    let dy = wy - rep.y;
+                    let r_sq = dx * dx + dy * dy;
+                    let eps_sq = rep.epsilon * rep.epsilon;
+                    potential -= rep.gm / (r_sq + eps_sq).sqrt();
+                }
+                for bh in &self.black_holes {
+                    if !bh.active { continue; }
+                    let dx = wx - bh.x;
+                    let dy = wy - bh.y;
+                    let r_sq = dx * dx + dy * dy;
+                    let eps_sq = bh.epsilon * bh.epsilon;
+                    potential += bh.gm / (r_sq + eps_sq).sqrt();
+                }
+
+                self.field_grid[gy * FIELD_GRID_RES + gx] = potential;
+            }
         }
     }
 
@@ -838,6 +890,25 @@ impl GravityPong {
 
     // ─── Input handling ─────────────────────────────────────────────────
 
+    fn place_waypoint(&mut self, wx: f64, wy: f64) {
+        // Release particles from old waypoint before replacing
+        if let Some(old_wp) = self.waypoint.take() {
+            for &idx in &old_wp.captured_ids {
+                if let Some(p) = self.particles.get_mut(idx) {
+                    p.captured = false;
+                    p.locked = false;
+                    p.scale = 1.0;
+                }
+            }
+        }
+        self.waypoint = Some(Waypoint {
+            x: wx,
+            y: wy,
+            remaining_frames: WAYPOINT_TIMEOUT_FRAMES,
+            captured_ids: Vec::new(),
+        });
+    }
+
     fn handle_input(&mut self, engine: &mut Engine) {
         let frame = engine.frame;
 
@@ -846,74 +917,80 @@ impl GravityPong {
             self.mouse_down_frame = Some(frame);
             self.mouse_down_pos = Some((engine.input.mouse_x, engine.input.mouse_y));
 
-            // Check if clicking on a locked particle to start sling
-            let (mx_w, my_w) = self.s2w(engine.input.mouse_x, engine.input.mouse_y);
-            let mut closest_locked: Option<(usize, f64)> = None;
+            // If any locked particle exists, start sling from anywhere (minigolf style)
+            let mut locked_idx: Option<usize> = None;
             for (i, p) in self.particles.iter().enumerate() {
-                if !p.alive || p.scored || !p.locked {
-                    continue;
-                }
-                let dx = p.x - mx_w;
-                let dy = p.y - my_w;
-                let dist = (dx * dx + dy * dy).sqrt();
-                if dist < 30.0 {
-                    match closest_locked {
-                        Some((_, best_d)) if dist < best_d => {
-                            closest_locked = Some((i, dist));
-                        }
-                        None => {
-                            closest_locked = Some((i, dist));
-                        }
-                        _ => {}
-                    }
+                if p.alive && !p.scored && p.locked {
+                    locked_idx = Some(i);
+                    break;
                 }
             }
 
-            if let Some((idx, _)) = closest_locked {
+            if let Some(idx) = locked_idx {
                 let p = &self.particles[idx];
                 self.sling = Some(SlingDrag {
                     particle_idx: idx,
                     anchor_x: p.x,
                     anchor_y: p.y,
-                    pull_x: p.x,
+                    pull_x: p.x, // Start at particle (zero pull distance)
                     pull_y: p.y,
                 });
             }
         }
 
-        // Mouse held - update sling drag
+        // Mouse held — update sling via drag delta, or show waypoint preview
         if engine.input.mouse_buttons_held.contains(&0) {
             let scale = self.scale;
-            let mouse_world = if scale > 0.0 {
-                (engine.input.mouse_x / scale, engine.input.mouse_y / scale)
-            } else {
-                (engine.input.mouse_x, engine.input.mouse_y)
+            let s2w = |sx: f64, sy: f64| -> (f64, f64) {
+                if scale > 0.0 { (sx / scale, sy / scale) } else { (sx, sy) }
             };
+
             if let Some(ref mut sling) = self.sling {
-                let (mx_w, my_w) = mouse_world;
-                let dx = mx_w - sling.anchor_x;
-                let dy = my_w - sling.anchor_y;
-                let dist = (dx * dx + dy * dy).sqrt();
-                let max_pull_w = SLING_MAX_PULL / self.scale;
-                if dist > max_pull_w && dist > 0.0 {
-                    sling.pull_x = sling.anchor_x + dx / dist * max_pull_w;
-                    sling.pull_y = sling.anchor_y + dy / dist * max_pull_w;
-                } else {
-                    sling.pull_x = mx_w;
-                    sling.pull_y = my_w;
+                // Delta-based sling: pull offset = mouse delta from press point
+                if let Some((start_sx, start_sy)) = self.mouse_down_pos {
+                    let (start_wx, start_wy) = s2w(start_sx, start_sy);
+                    let (curr_wx, curr_wy) =
+                        s2w(engine.input.mouse_x, engine.input.mouse_y);
+                    let delta_wx = curr_wx - start_wx;
+                    let delta_wy = curr_wy - start_wy;
+
+                    let target_x = sling.anchor_x + delta_wx;
+                    let target_y = sling.anchor_y + delta_wy;
+                    let dx = target_x - sling.anchor_x;
+                    let dy = target_y - sling.anchor_y;
+                    let dist = (dx * dx + dy * dy).sqrt();
+                    let max_pull_w = SLING_MAX_PULL / scale;
+
+                    if dist > max_pull_w && dist > 0.0 {
+                        sling.pull_x = sling.anchor_x + dx / dist * max_pull_w;
+                        sling.pull_y = sling.anchor_y + dy / dist * max_pull_w;
+                    } else {
+                        sling.pull_x = target_x;
+                        sling.pull_y = target_y;
+                    }
+                }
+                self.waypoint_preview = None;
+            } else {
+                // No sling active — show waypoint capture radius preview
+                let (mx_w, my_w) = s2w(engine.input.mouse_x, engine.input.mouse_y);
+                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE {
+                    self.waypoint_preview = Some((mx_w, my_w));
                 }
             }
         }
 
         // Mouse released this frame
         if engine.input.mouse_buttons_released.contains(&0) {
-            // Check for sling launch
+            self.waypoint_preview = None;
+
             if let Some(sling) = self.sling.take() {
                 let dx = sling.anchor_x - sling.pull_x;
                 let dy = sling.anchor_y - sling.pull_y;
                 let pull_dist = (dx * dx + dy * dy).sqrt();
-                if pull_dist > 5.0 {
-                    // Launch the particle
+                let min_pull = 15.0 / self.scale;
+
+                if pull_dist > min_pull {
+                    // Significant pull → LAUNCH particle
                     let max_pull_w = SLING_MAX_PULL / self.scale;
                     let power = (pull_dist / max_pull_w).min(1.0);
                     let launch_speed = SLING_MAX_SPEED * power;
@@ -926,17 +1003,23 @@ impl GravityPong {
                             p.captured = false;
                             p.sling_immunity = 1.0;
                             p.sling_launch_speed = launch_speed;
-                            p.scale = 1.0; // Snap back from locked 1.5x
+                            p.scale = 1.0;
                             p.flash_timer = 0.08;
+
+                            // Remove launched particle from waypoint
+                            if let Some(ref mut wp) = self.waypoint {
+                                wp.captured_ids.retain(|&id| id != sling.particle_idx);
+                            }
 
                             // Micro-shake on launch
                             engine.post_fx.shake_remaining = 0.04;
                             engine.post_fx.shake_intensity = 2.0;
 
-                            // Backward spray particles (pull direction)
+                            // Backward spray particles
                             let spray_dx = sling.pull_x - sling.anchor_x;
                             let spray_dy = sling.pull_y - sling.anchor_y;
-                            let spray_len = (spray_dx * spray_dx + spray_dy * spray_dy).sqrt();
+                            let spray_len =
+                                (spray_dx * spray_dx + spray_dy * spray_dy).sqrt();
                             if spray_len > 0.01 {
                                 let ndx = spray_dx / spray_len;
                                 let ndy = spray_dy / spray_len;
@@ -947,7 +1030,12 @@ impl GravityPong {
                                     let sin_a = angle_offset.sin();
                                     let svx = (ndx * cos_a - ndy * sin_a) * 80.0;
                                     let svy = (ndx * sin_a + ndy * cos_a) * 80.0;
-                                    spray.push((sling.anchor_x, sling.anchor_y, svx, svy));
+                                    spray.push((
+                                        sling.anchor_x,
+                                        sling.anchor_y,
+                                        svx,
+                                        svy,
+                                    ));
                                 }
                                 self.effects.push(VisualEffect::Burst {
                                     x: sling.anchor_x,
@@ -960,24 +1048,21 @@ impl GravityPong {
                             }
                         }
                     }
+                } else {
+                    // Tiny pull → place waypoint instead
+                    let (mx_w, my_w) =
+                        self.s2w(engine.input.mouse_x, engine.input.mouse_y);
+                    if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE
+                    {
+                        self.place_waypoint(mx_w, my_w);
+                    }
                 }
             } else {
-                // Quick tap -> place waypoint
-                let held_frames = match self.mouse_down_frame {
-                    Some(df) => frame.saturating_sub(df),
-                    None => 0,
-                };
-                if held_frames < 10 {
-                    let (mx_w, my_w) = self.s2w(engine.input.mouse_x, engine.input.mouse_y);
-                    // Only place waypoint if within world bounds
-                    if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE {
-                        self.waypoint = Some(Waypoint {
-                            x: mx_w,
-                            y: my_w,
-                            remaining_frames: WAYPOINT_TIMEOUT_FRAMES,
-                            captured_ids: Vec::new(),
-                        });
-                    }
+                // No sling (no locked particle) → place waypoint on release
+                let (mx_w, my_w) =
+                    self.s2w(engine.input.mouse_x, engine.input.mouse_y);
+                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE {
+                    self.place_waypoint(mx_w, my_w);
                 }
             }
 
@@ -995,18 +1080,29 @@ impl GravityPong {
             } else {
                 wp.remaining_frames = wp.remaining_frames.saturating_sub(1);
 
-                // Capture nearby non-locked particles
-                let capture_r = WAYPOINT_CAPTURE_RADIUS;
-                let capture_r_sq = capture_r * capture_r;
-                for i in 0..self.particles.len() {
-                    let p = &self.particles[i];
-                    if !p.alive || p.scored || p.locked {
-                        continue;
+                // Capture only the closest particle (one at a time)
+                if wp.captured_ids.is_empty() {
+                    let capture_r_sq =
+                        WAYPOINT_CAPTURE_RADIUS * WAYPOINT_CAPTURE_RADIUS;
+                    let mut closest_idx: Option<usize> = None;
+                    let mut closest_dist_sq = f64::MAX;
+                    for i in 0..self.particles.len() {
+                        let p = &self.particles[i];
+                        if !p.alive || p.scored || p.locked || p.captured
+                            || p.sling_immunity > 0.0
+                        {
+                            continue;
+                        }
+                        let dx = p.x - wp.x;
+                        let dy = p.y - wp.y;
+                        let dist_sq = dx * dx + dy * dy;
+                        if dist_sq < capture_r_sq && dist_sq < closest_dist_sq {
+                            closest_dist_sq = dist_sq;
+                            closest_idx = Some(i);
+                        }
                     }
-                    let dx = p.x - wp.x;
-                    let dy = p.y - wp.y;
-                    if dx * dx + dy * dy < capture_r_sq && !wp.captured_ids.contains(&i) {
-                        wp.captured_ids.push(i);
+                    if let Some(idx) = closest_idx {
+                        wp.captured_ids.push(idx);
                     }
                 }
 
@@ -1731,6 +1827,69 @@ impl GravityPong {
 
     // ─── Rendering helpers ──────────────────────────────────────────────
 
+    fn render_field_grid(&self, fb: &mut Framebuffer) {
+        if self.field_grid.is_empty() {
+            return;
+        }
+        let cell_size_screen = (WORLD_SIZE / FIELD_GRID_RES as f64) * self.scale;
+
+        // Find max absolute potential for normalization
+        let mut max_pot = 0.0_f64;
+        for &pot in &self.field_grid {
+            let abs_pot = pot.abs();
+            if abs_pot > max_pot {
+                max_pot = abs_pot;
+            }
+        }
+        if max_pot < 1.0 {
+            return;
+        }
+
+        for gy in 0..FIELD_GRID_RES {
+            for gx in 0..FIELD_GRID_RES {
+                let pot = self.field_grid[gy * FIELD_GRID_RES + gx];
+                let normalized = pot / max_pot;
+                let abs_n = normalized.abs();
+                if abs_n < 0.03 {
+                    continue;
+                }
+
+                let sx = gx as f64 * cell_size_screen;
+                let sy = gy as f64 * cell_size_screen;
+
+                let alpha = (abs_n * 55.0).min(50.0) as u8;
+                let color = if pot > 0.0 {
+                    // Attractive field: blue-cyan gradient
+                    let t = abs_n.min(1.0);
+                    Color::from_rgba(
+                        (20.0 + 30.0 * t) as u8,
+                        (40.0 + 80.0 * t) as u8,
+                        (120.0 + 120.0 * t) as u8,
+                        alpha,
+                    )
+                } else {
+                    // Repulsive field: amber-yellow gradient
+                    let t = abs_n.min(1.0);
+                    Color::from_rgba(
+                        (180.0 + 60.0 * t) as u8,
+                        (100.0 + 80.0 * t) as u8,
+                        (10.0 + 30.0 * t) as u8,
+                        alpha,
+                    )
+                };
+
+                shapes::fill_rect(
+                    fb,
+                    sx,
+                    sy,
+                    cell_size_screen + 1.0,
+                    cell_size_screen + 1.0,
+                    color,
+                );
+            }
+        }
+    }
+
     fn render_dust(&self, fb: &mut Framebuffer) {
         for mote in &self.dust_motes {
             let life_frac = if mote.lifetime > 0.0 {
@@ -2153,6 +2312,21 @@ impl GravityPong {
             // Pull dot
             let dot_color = Color::from_rgba(255, 220, 120, 220);
             shapes::fill_circle(fb, pull_sx, pull_sy, 4.0, dot_color);
+        }
+    }
+
+    fn render_waypoint_preview(&self, fb: &mut Framebuffer) {
+        if let Some((wx, wy)) = self.waypoint_preview {
+            let (sx, sy) = self.w2s(wx, wy);
+            let capture_r = self.w2s_r(WAYPOINT_CAPTURE_RADIUS);
+
+            // Outlined circle showing capture radius
+            let preview_color = Color::from_rgba(255, 255, 100, 80);
+            shapes::draw_dashed_circle(fb, sx, sy, capture_r, preview_color, 6.0);
+
+            // Center crosshair
+            let dot_color = Color::from_rgba(255, 255, 100, 120);
+            shapes::fill_circle(fb, sx, sy, 3.0, dot_color);
         }
     }
 
@@ -2649,7 +2823,7 @@ impl GravityPong {
 
 impl Simulation for GravityPong {
     fn setup(&mut self, engine: &mut Engine) {
-        engine.config.bounds = (640.0, 640.0);
+        engine.config.bounds = (800.0, 800.0);
         engine.config.background = Color::from_rgba(10, 10, 20, 255);
         engine.debug_mode = false;
 
@@ -2723,6 +2897,9 @@ impl Simulation for GravityPong {
         // 2. Vignette
         post_fx::vignette(fb, 0.3);
 
+        // 2b. Field contour visualization
+        self.render_field_grid(fb);
+
         // 3. Dust motes
         self.render_dust(fb);
 
@@ -2755,6 +2932,9 @@ impl Simulation for GravityPong {
         // 13. Sling UI
         self.render_sling(fb);
 
+        // 13b. Waypoint placement preview
+        self.render_waypoint_preview(fb);
+
         // 14. Aim preview trajectory
         self.render_aim_preview(fb);
 
@@ -2777,7 +2957,7 @@ impl Simulation for GravityPong {
                 fb,
                 cx,
                 fb.height as i32 - 50,
-                "Tap to place waypoint  |  Drag locked particle to sling",
+                "Tap to place waypoint  |  Drag anywhere to aim & shoot",
                 hint_color,
                 1,
             );

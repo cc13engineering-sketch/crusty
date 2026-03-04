@@ -926,6 +926,38 @@ impl GravityPong {
                             p.captured = false;
                             p.sling_immunity = 1.0;
                             p.sling_launch_speed = launch_speed;
+                            p.scale = 1.0; // Snap back from locked 1.5x
+                            p.flash_timer = 0.08;
+
+                            // Micro-shake on launch
+                            engine.post_fx.shake_remaining = 0.04;
+                            engine.post_fx.shake_intensity = 2.0;
+
+                            // Backward spray particles (pull direction)
+                            let spray_dx = sling.pull_x - sling.anchor_x;
+                            let spray_dy = sling.pull_y - sling.anchor_y;
+                            let spray_len = (spray_dx * spray_dx + spray_dy * spray_dy).sqrt();
+                            if spray_len > 0.01 {
+                                let ndx = spray_dx / spray_len;
+                                let ndy = spray_dy / spray_len;
+                                let mut spray = Vec::with_capacity(4);
+                                for k in 0..4 {
+                                    let angle_offset = (k as f64 - 1.5) * 0.3;
+                                    let cos_a = angle_offset.cos();
+                                    let sin_a = angle_offset.sin();
+                                    let svx = (ndx * cos_a - ndy * sin_a) * 80.0;
+                                    let svy = (ndx * sin_a + ndy * cos_a) * 80.0;
+                                    spray.push((sling.anchor_x, sling.anchor_y, svx, svy));
+                                }
+                                self.effects.push(VisualEffect::Burst {
+                                    x: sling.anchor_x,
+                                    y: sling.anchor_y,
+                                    particles: spray,
+                                    color: Color::from_rgba(255, 255, 200, 200),
+                                    age: 0.0,
+                                    duration: 0.3,
+                                });
+                            }
                         }
                     }
                 }
@@ -1010,6 +1042,8 @@ impl GravityPong {
                 for idx in newly_locked {
                     if let Some(p) = self.particles.get_mut(idx) {
                         p.locked = true;
+                        p.scale = 1.5; // Enlarge to signal "ready to sling"
+                        p.flash_timer = 0.1;
                     }
                 }
 
@@ -1037,6 +1071,7 @@ impl GravityPong {
 
     fn update_physics(&mut self, engine: &mut Engine) {
         let num_particles = self.particles.len();
+        let mut wall_hit_indices: Vec<usize> = Vec::new();
 
         for i in 0..num_particles {
             // Skip particles that are not active for physics
@@ -1209,7 +1244,7 @@ impl GravityPong {
 
             // Wall collision (done once after full substeps)
             let p = &mut self.particles[i];
-            for wall in &self.walls {
+            for (wi, wall) in self.walls.iter().enumerate() {
                 let (collided, new_vx, new_vy, new_x, new_y) =
                     wall_collision(p.x, p.y, p.vx, p.vy, PARTICLE_WORLD_RADIUS, wall);
                 if collided {
@@ -1217,6 +1252,7 @@ impl GravityPong {
                     p.y = new_y;
                     p.vx = new_vx;
                     p.vy = new_vy;
+                    wall_hit_indices.push(wi);
                 }
             }
 
@@ -1225,6 +1261,13 @@ impl GravityPong {
             p.trail.push((p.x, p.y));
             if p.trail.len() > MAX_TRAIL_LEN {
                 p.trail.remove(0);
+            }
+        }
+
+        // Flash walls that were hit
+        for wi in wall_hit_indices {
+            if let Some(wall) = self.walls.get_mut(wi) {
+                wall.flash_timer = 0.1;
             }
         }
 
@@ -1553,6 +1596,11 @@ impl GravityPong {
                 if p.flash_timer < 0.0 {
                     p.flash_timer = 0.0;
                 }
+            }
+            // Locked particles pulse gently at 1.5x scale
+            if p.locked {
+                let pulse = (self.elapsed_time * std::f64::consts::TAU).sin() * 0.05;
+                p.scale = 1.5 + pulse;
             }
         }
 
@@ -2351,12 +2399,53 @@ impl GravityPong {
                 sim_x = sim_x.clamp(0.0, WORLD_SIZE);
                 sim_y = sim_y.clamp(0.0, WORLD_SIZE);
 
+                // Check for black hole kill zone hit
+                let mut hit_bh = false;
+                for bh in &self.black_holes {
+                    if !bh.active { continue; }
+                    let bdx = sim_x - bh.x;
+                    let bdy = sim_y - bh.y;
+                    if bdx * bdx + bdy * bdy < bh.kill_radius * bh.kill_radius {
+                        hit_bh = true;
+                        break;
+                    }
+                }
+
+                // Check for target hit
+                let mut hit_target = false;
+                for target in &self.targets {
+                    if !target.active { continue; }
+                    let tdx = sim_x - target.x;
+                    let tdy = sim_y - target.y;
+                    if tdx * tdx + tdy * tdy < target.hit_radius * target.hit_radius {
+                        hit_target = true;
+                        break;
+                    }
+                }
+
                 // Draw dot every 3 steps
                 if step % 3 == 0 {
                     let alpha = (200.0 * (1.0 - step as f64 / steps as f64)) as u8;
                     let (sx, sy) = self.w2s(sim_x, sim_y);
                     let c = Color::from_rgba(255, 255, 200, alpha);
                     shapes::fill_circle(fb, sx, sy, 1.5, c);
+                }
+
+                // Draw danger/success markers and stop
+                if hit_bh {
+                    let (sx, sy) = self.w2s(sim_x, sim_y);
+                    let red = Color::from_rgba(255, 60, 60, 220);
+                    // Red X
+                    shapes::draw_line(fb, sx - 5.0, sy - 5.0, sx + 5.0, sy + 5.0, red);
+                    shapes::draw_line(fb, sx + 5.0, sy - 5.0, sx - 5.0, sy + 5.0, red);
+                    break;
+                }
+                if hit_target {
+                    let (sx, sy) = self.w2s(sim_x, sim_y);
+                    let green = Color::from_rgba(80, 255, 80, 200);
+                    shapes::draw_circle(fb, sx, sy, 6.0, green);
+                    shapes::draw_circle(fb, sx, sy, 4.0, green);
+                    break;
                 }
             }
         }
@@ -2675,7 +2764,26 @@ impl Simulation for GravityPong {
         // 16. HUD
         self.render_hud(fb);
 
-        // 17. Phase overlays
+        // 17. Tutorial hint (first level, first few seconds)
+        if self.current_level == 0 && self.elapsed_time < 6.0 && self.phase == GamePhase::Playing {
+            let cx = fb.width as i32 / 2;
+            let alpha = if self.elapsed_time < 4.0 {
+                180
+            } else {
+                (180.0 * (1.0 - (self.elapsed_time - 4.0) / 2.0)).max(0.0) as u8
+            };
+            let hint_color = Color::from_rgba(200, 200, 230, alpha);
+            text::draw_text_centered(
+                fb,
+                cx,
+                fb.height as i32 - 50,
+                "Tap to place waypoint  |  Drag locked particle to sling",
+                hint_color,
+                1,
+            );
+        }
+
+        // 18. Phase overlays
         self.render_phase_overlay(fb);
     }
 }

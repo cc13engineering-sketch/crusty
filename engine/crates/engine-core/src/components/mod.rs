@@ -32,7 +32,7 @@ pub use transform::Transform;
 pub use rigidbody::RigidBody;
 pub use collider::{Collider, ColliderShape};
 pub use renderable::{Renderable, Visual};
-pub use force_field::{ForceField, FieldType, Falloff};
+pub use force_field::{ForceField, FieldType, Falloff, ContinuousDrag, EdgeBounce};
 pub use tags::Tags;
 pub use role::Role;
 pub use lifetime::Lifetime;

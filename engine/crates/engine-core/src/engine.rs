@@ -793,6 +793,7 @@ impl Engine {
         crate::systems::force_accumulator::run(&mut self.world);
         crate::systems::integrator::run(&mut self.world, dt);
         crate::systems::collision::run(&mut self.world, &mut self.events, dt);
+        crate::systems::integrator::run_edge_bounce(&mut self.world, self.config.bounds);
     }
 
 }

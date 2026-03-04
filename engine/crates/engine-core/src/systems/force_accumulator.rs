@@ -57,16 +57,31 @@ pub fn run(world: &mut World) {
         // --- ForceField accumulation ---
         for (src_pos, ff, min_dist) in &sources {
             let diff = math::sub(pos, *src_pos);
-            let mut dist = math::length(diff);
-            if dist > ff.radius {
+            let raw_dist = math::length(diff);
+
+            // Plummer falloff extends to infinity (no radius cutoff needed);
+            // other falloffs cut off at the configured radius.
+            let is_plummer = matches!(ff.falloff, Falloff::Plummer { .. });
+            if !is_plummer && raw_dist > ff.radius {
                 continue;
             }
-            dist = dist.max(*min_dist);
 
             let magnitude = match ff.falloff {
                 Falloff::Constant => ff.strength,
-                Falloff::Linear => ff.strength * (1.0 - dist / ff.radius),
-                Falloff::InverseSquare => ff.strength / (dist * dist),
+                Falloff::Linear => {
+                    let dist = raw_dist.max(*min_dist);
+                    ff.strength * (1.0 - dist / ff.radius)
+                }
+                Falloff::InverseSquare => {
+                    let dist = raw_dist.max(*min_dist);
+                    ff.strength / (dist * dist)
+                }
+                Falloff::Plummer { epsilon } => {
+                    // F(r) = strength * r / (r^2 + epsilon^2)^(3/2)
+                    // Smooth everywhere, zero at center, peaks at r = epsilon/sqrt(2)
+                    let r2_eps2 = raw_dist * raw_dist + epsilon * epsilon;
+                    ff.strength * raw_dist / (r2_eps2 * r2_eps2.sqrt())
+                }
             };
 
             let dir: Vec2 = match &ff.field_type {

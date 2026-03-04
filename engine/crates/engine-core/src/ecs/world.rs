@@ -120,6 +120,8 @@ component_stores! {
     resource_inventories: ResourceInventory,
     graph_nodes: GraphNode,
     visual_connections: VisualConnection,
+    continuous_drags: ContinuousDrag,
+    edge_bounces: EdgeBounce,
 }
 
 impl World {

@@ -67,6 +67,12 @@ const WORLD_SIZE: f64 = 1000.0;
 // Particle collision radius in world units
 const PARTICLE_WORLD_RADIUS: f64 = 8.0;
 
+// Wormhole
+const WORMHOLE_CAPTURE_RADIUS: f64 = 25.0;
+const WORMHOLE_COOLDOWN: f64 = 0.5;
+const WORMHOLE_GM: f64 = 225.0;
+const WORMHOLE_EPSILON: f64 = 25.0;
+
 // ─── Entity Types ───────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug)]
@@ -320,11 +326,67 @@ enum GamePhase {
     LevelTransition(f64),
 }
 
+#[derive(Clone, Debug)]
+struct Wormhole {
+    x1: f64,
+    y1: f64, // mouth A position
+    x2: f64,
+    y2: f64, // mouth B position
+    capture_radius: f64,
+    cooldown1: f64, // remaining cooldown for mouth A (seconds)
+    cooldown2: f64, // remaining cooldown for mouth B (seconds)
+    anim_phase: f64,
+    color: Color,
+}
+
+impl Wormhole {
+    fn from_params(x1: f64, y1: f64, x2: f64, y2: f64) -> Self {
+        Self {
+            x1,
+            y1,
+            x2,
+            y2,
+            capture_radius: WORMHOLE_CAPTURE_RADIUS,
+            cooldown1: 0.0,
+            cooldown2: 0.0,
+            anim_phase: 0.0,
+            color: Color::from_rgba(160, 80, 255, 220),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct PlasmaCurrent {
+    x1: f64,
+    y1: f64, // start of corridor
+    x2: f64,
+    y2: f64, // end of corridor
+    half_width: f64, // corridor half-width
+    strength: f64,   // force strength
+    anim_phase: f64,
+}
+
+impl PlasmaCurrent {
+    fn from_params(x1: f64, y1: f64, x2: f64, y2: f64, width: f64, strength_raw: f64) -> Self {
+        // Strength mapping: value 1 -> 30.0, value 100 -> 200.0
+        let strength = 30.0 + (200.0 - 30.0) * (strength_raw - 1.0) / 99.0;
+        Self {
+            x1,
+            y1,
+            x2,
+            y2,
+            half_width: width / 2.0,
+            strength,
+            anim_phase: 0.0,
+        }
+    }
+}
+
 // ─── Level Data ─────────────────────────────────────────────────────────────
 
 fn level_data() -> Vec<Vec<&'static str>> {
     vec![
-        // Level 1 - Tutorial
+        // Level 1 - "First Contact" (tutorial): simple direct path
         vec![
             "target:500:200:70",
             "gravity-well:500:550:40",
@@ -332,23 +394,51 @@ fn level_data() -> Vec<Vec<&'static str>> {
             "particle:500:850",
             "particle:650:850",
         ],
-        // Level 2 - Wall Barrier
+        // Level 2 - "The Sling": must use waypoint+sling
         vec![
-            "target:500:150:60",
-            "gravity-well:500:500:55",
-            "wall:200:350:800:350:80",
-            "particle:300:850",
-            "particle:400:850",
-            "particle:500:850",
-            "particle:600:850",
-            "particle:700:850",
+            "target:500:100:60",
+            "particle:350:800",
+            "particle:500:800",
+            "particle:650:800",
         ],
-        // Level 3 - Danger Zone
+        // Level 3 - "Orbital": two gravity wells, wall barrier
+        vec![
+            "target:500:120:60",
+            "gravity-well:300:450:55",
+            "gravity-well:700:450:55",
+            "wall:200:320:800:320:80",
+            "particle:250:850",
+            "particle:400:850",
+            "particle:600:850",
+            "particle:750:850",
+        ],
+        // Level 4 - "Through the Wormhole": target behind wall, wormhole bypass
+        vec![
+            "target:500:120:65",
+            "wall:100:400:900:400:80",
+            "wormhole:500:700:500:270",
+            "particle:300:850",
+            "particle:500:850",
+            "particle:700:850",
+            "particle:400:850",
+        ],
+        // Level 5 - "Current Affairs": plasma currents as wind tunnel
+        vec![
+            "target:850:200:65",
+            "plasma-current:100:800:900:200:120:60",
+            "plasma-current:100:600:600:100:80:40",
+            "particle:150:850",
+            "particle:250:900",
+            "particle:350:880",
+            "particle:200:750",
+            "particle:300:800",
+        ],
+        // Level 6 - "Dark Side": two wells, black hole guarding target
         vec![
             "target:500:100:50",
             "gravity-well:300:450:50",
             "gravity-well:700:450:50",
-            "black-hole:500:300:40",
+            "black-hole:500:280:40",
             "wall:100:200:100:800:80",
             "wall:900:200:900:800:80",
             "particle:250:850",
@@ -356,6 +446,46 @@ fn level_data() -> Vec<Vec<&'static str>> {
             "particle:550:850",
             "particle:700:850",
             "particle:850:850",
+        ],
+        // Level 7 - "Chaos Theory": full complexity
+        vec![
+            "target:150:150:65",
+            "target:850:150:65",
+            "gravity-well:300:500:50",
+            "gravity-well:700:500:50",
+            "gravity-well:500:300:35",
+            "repulsor:500:600:40",
+            "black-hole:500:200:35",
+            "wormhole:200:800:800:800",
+            "particle:200:900",
+            "particle:350:900",
+            "particle:500:900",
+            "particle:650:900",
+            "particle:800:900",
+            "particle:300:850",
+            "particle:700:850",
+        ],
+        // Level 8 - "The Gauntlet": maximum challenge
+        vec![
+            "target:200:150:65",
+            "target:800:150:65",
+            "gravity-well:350:400:55",
+            "gravity-well:650:400:55",
+            "black-hole:500:500:45",
+            "black-hole:200:600:35",
+            "wall:300:300:700:300:80",
+            "wall:100:600:400:600:80",
+            "wall:600:600:900:600:80",
+            "plasma-current:100:900:900:100:100:55",
+            "wormhole:150:750:850:750",
+            "particle:200:900",
+            "particle:350:900",
+            "particle:500:900",
+            "particle:650:900",
+            "particle:800:900",
+            "particle:300:850",
+            "particle:700:850",
+            "particle:450:950",
         ],
     ]
 }
@@ -384,6 +514,9 @@ pub struct GravityPong {
     mouse_down_pos: Option<(f64, f64)>,
     screen_w: f64,
     screen_h: f64,
+    wormholes: Vec<Wormhole>,
+    plasma_currents: Vec<PlasmaCurrent>,
+    elapsed_time: f64,
 }
 
 impl GravityPong {
@@ -409,6 +542,9 @@ impl GravityPong {
             mouse_down_pos: None,
             screen_w: 640.0,
             screen_h: 640.0,
+            wormholes: Vec::new(),
+            plasma_currents: Vec::new(),
+            elapsed_time: 0.0,
         }
     }
 
@@ -439,6 +575,8 @@ impl GravityPong {
         self.black_holes.clear();
         self.targets.clear();
         self.walls.clear();
+        self.wormholes.clear();
+        self.plasma_currents.clear();
         self.waypoint = None;
         self.sling = None;
         self.effects.clear();
@@ -447,6 +585,7 @@ impl GravityPong {
         self.phase = GamePhase::Playing;
         self.mouse_down_frame = None;
         self.mouse_down_pos = None;
+        self.elapsed_time = 0.0;
 
         let levels = level_data();
         let clamped_idx = if level_idx < levels.len() { level_idx } else { levels.len() - 1 };
@@ -500,6 +639,33 @@ impl GravityPong {
                             let y2 = parse_f64(parts[4]);
                             let rest = parse_f64(parts[5]);
                             self.walls.push(Wall::from_params(x1, y1, x2, y2, rest));
+                        }
+                    }
+                    "wormhole" => {
+                        if parts.len() >= 5 {
+                            let x1 = parse_f64(parts[1]);
+                            let y1 = parse_f64(parts[2]);
+                            let x2 = parse_f64(parts[3]);
+                            let y2 = parse_f64(parts[4]);
+                            self.wormholes.push(Wormhole::from_params(x1, y1, x2, y2));
+                        }
+                    }
+                    "plasma-current" => {
+                        if parts.len() >= 7 {
+                            let x1 = parse_f64(parts[1]);
+                            let y1 = parse_f64(parts[2]);
+                            let x2 = parse_f64(parts[3]);
+                            let y2 = parse_f64(parts[4]);
+                            let width = parse_f64(parts[5]);
+                            let strength_raw = parse_f64(parts[6]);
+                            self.plasma_currents.push(PlasmaCurrent::from_params(
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                width,
+                                strength_raw,
+                            ));
                         }
                     }
                     "particle" => {
@@ -787,13 +953,20 @@ impl GravityPong {
 
             let px;
             let py;
+            let pvx;
+            let pvy;
             let immunity;
             {
                 let p = &self.particles[i];
                 px = p.x;
                 py = p.y;
+                pvx = p.vx;
+                pvy = p.vy;
                 immunity = p.sling_immunity;
             }
+
+            // Count attractors for this particle
+            let mut attractor_count = 0u32;
 
             // Gravity wells
             for well in &self.gravity_wells {
@@ -803,6 +976,13 @@ impl GravityPong {
                 let (fax, fay) = plummer_force(well.x, well.y, well.gm, well.epsilon, px, py);
                 ax += fax;
                 ay += fay;
+                // Count as attractor if meaningfully close
+                let dx = well.x - px;
+                let dy = well.y - py;
+                let dist_sq = dx * dx + dy * dy;
+                if dist_sq < (well.visual_radius * 8.0) * (well.visual_radius * 8.0) {
+                    attractor_count += 1;
+                }
             }
 
             // Repulsors (negate direction)
@@ -823,7 +1003,35 @@ impl GravityPong {
                 let (fax, fay) = plummer_force(bh.x, bh.y, bh.gm, bh.epsilon, px, py);
                 ax += fax;
                 ay += fay;
+                let dx = bh.x - px;
+                let dy = bh.y - py;
+                let dist_sq = dx * dx + dy * dy;
+                if dist_sq < (bh.visual_radius * 8.0) * (bh.visual_radius * 8.0) {
+                    attractor_count += 1;
+                }
             }
+
+            // Wormhole attraction (weak Plummer from each mouth)
+            for wh in &self.wormholes {
+                let (fax1, fay1) =
+                    plummer_force(wh.x1, wh.y1, WORMHOLE_GM, WORMHOLE_EPSILON, px, py);
+                ax += fax1;
+                ay += fay1;
+                let (fax2, fay2) =
+                    plummer_force(wh.x2, wh.y2, WORMHOLE_GM, WORMHOLE_EPSILON, px, py);
+                ax += fax2;
+                ay += fay2;
+            }
+
+            // Plasma current forces
+            for pc in &self.plasma_currents {
+                let (pax, pay) = plasma_current_force(pc, px, py, pvx, pvy);
+                ax += pax;
+                ay += pay;
+            }
+
+            // Store attractor count
+            self.particles[i].attractor_count = attractor_count;
 
             // Apply sling immunity (dampens field forces)
             let field_factor = 1.0 - immunity;
@@ -917,6 +1125,74 @@ impl GravityPong {
             p.trail.push((p.x, p.y));
             if p.trail.len() > MAX_TRAIL_LEN {
                 p.trail.remove(0);
+            }
+        }
+
+        // Wormhole teleportation pass
+        for i in 0..num_particles {
+            {
+                let p = &self.particles[i];
+                if !p.alive || p.scored || p.captured {
+                    continue;
+                }
+            }
+
+            let num_wormholes = self.wormholes.len();
+            for wh_idx in 0..num_wormholes {
+                let px = self.particles[i].x;
+                let py = self.particles[i].y;
+                let pvx = self.particles[i].vx;
+                let pvy = self.particles[i].vy;
+
+                // Check mouth A
+                let dx1 = px - self.wormholes[wh_idx].x1;
+                let dy1 = py - self.wormholes[wh_idx].y1;
+                let dist1 = (dx1 * dx1 + dy1 * dy1).sqrt();
+                if dist1 < self.wormholes[wh_idx].capture_radius
+                    && self.wormholes[wh_idx].cooldown1 <= 0.0
+                {
+                    let dest_x = self.wormholes[wh_idx].x2;
+                    let dest_y = self.wormholes[wh_idx].y2;
+                    let cap_r = self.wormholes[wh_idx].capture_radius;
+                    let p = &mut self.particles[i];
+                    let speed = (pvx * pvx + pvy * pvy).sqrt();
+                    if speed > 0.01 {
+                        p.x = dest_x + (pvx / speed) * (cap_r + PARTICLE_WORLD_RADIUS + 1.0);
+                        p.y = dest_y + (pvy / speed) * (cap_r + PARTICLE_WORLD_RADIUS + 1.0);
+                    } else {
+                        p.x = dest_x;
+                        p.y = dest_y;
+                    }
+                    p.trail.clear();
+                    p.flash_timer = 0.15;
+                    self.wormholes[wh_idx].cooldown2 = WORMHOLE_COOLDOWN;
+                    break;
+                }
+
+                // Check mouth B
+                let dx2 = px - self.wormholes[wh_idx].x2;
+                let dy2 = py - self.wormholes[wh_idx].y2;
+                let dist2 = (dx2 * dx2 + dy2 * dy2).sqrt();
+                if dist2 < self.wormholes[wh_idx].capture_radius
+                    && self.wormholes[wh_idx].cooldown2 <= 0.0
+                {
+                    let dest_x = self.wormholes[wh_idx].x1;
+                    let dest_y = self.wormholes[wh_idx].y1;
+                    let cap_r = self.wormholes[wh_idx].capture_radius;
+                    let p = &mut self.particles[i];
+                    let speed = (pvx * pvx + pvy * pvy).sqrt();
+                    if speed > 0.01 {
+                        p.x = dest_x + (pvx / speed) * (cap_r + PARTICLE_WORLD_RADIUS + 1.0);
+                        p.y = dest_y + (pvy / speed) * (cap_r + PARTICLE_WORLD_RADIUS + 1.0);
+                    } else {
+                        p.x = dest_x;
+                        p.y = dest_y;
+                    }
+                    p.trail.clear();
+                    p.flash_timer = 0.15;
+                    self.wormholes[wh_idx].cooldown1 = WORMHOLE_COOLDOWN;
+                    break;
+                }
             }
         }
 
@@ -1039,7 +1315,8 @@ impl GravityPong {
                 if !well.active {
                     continue;
                 }
-                let (fax, fay) = plummer_force(well.x, well.y, well.gm * 0.3, well.epsilon, mote.x, mote.y);
+                let (fax, fay) =
+                    plummer_force(well.x, well.y, well.gm * 0.3, well.epsilon, mote.x, mote.y);
                 ax += fax;
                 ay += fay;
             }
@@ -1047,7 +1324,8 @@ impl GravityPong {
                 if !bh.active {
                     continue;
                 }
-                let (fax, fay) = plummer_force(bh.x, bh.y, bh.gm * 0.2, bh.epsilon, mote.x, mote.y);
+                let (fax, fay) =
+                    plummer_force(bh.x, bh.y, bh.gm * 0.2, bh.epsilon, mote.x, mote.y);
                 ax += fax;
                 ay += fay;
             }
@@ -1055,7 +1333,8 @@ impl GravityPong {
                 if !rep.active {
                     continue;
                 }
-                let (fax, fay) = plummer_force(rep.x, rep.y, rep.gm * 0.3, rep.epsilon, mote.x, mote.y);
+                let (fax, fay) =
+                    plummer_force(rep.x, rep.y, rep.gm * 0.3, rep.epsilon, mote.x, mote.y);
                 ax -= fax;
                 ay -= fay;
             }
@@ -1164,6 +1443,28 @@ impl GravityPong {
                 }
             }
         }
+
+        // Tick wormhole cooldowns and animation
+        for wh in &mut self.wormholes {
+            if wh.cooldown1 > 0.0 {
+                wh.cooldown1 -= FIXED_DT;
+                if wh.cooldown1 < 0.0 {
+                    wh.cooldown1 = 0.0;
+                }
+            }
+            if wh.cooldown2 > 0.0 {
+                wh.cooldown2 -= FIXED_DT;
+                if wh.cooldown2 < 0.0 {
+                    wh.cooldown2 = 0.0;
+                }
+            }
+            wh.anim_phase += FIXED_DT;
+        }
+
+        // Tick plasma current animation
+        for pc in &mut self.plasma_currents {
+            pc.anim_phase += FIXED_DT;
+        }
     }
 
     // ─── Win/Loss check ─────────────────────────────────────────────────
@@ -1223,7 +1524,53 @@ impl GravityPong {
                 continue;
             }
             let (sx, sy) = self.w2s(mote.x, mote.y);
-            let color = Color::from_rgba(180, 180, 220, alpha);
+
+            // Tint dust by nearby fields
+            let mut r_tint = 180u16;
+            let mut g_tint = 180u16;
+            let mut b_tint = 220u16;
+
+            for well in &self.gravity_wells {
+                if !well.active {
+                    continue;
+                }
+                let dx = mote.x - well.x;
+                let dy = mote.y - well.y;
+                let dist = (dx * dx + dy * dy).sqrt();
+                let influence = (1.0 - (dist / (well.visual_radius * 6.0)).min(1.0)).max(0.0);
+                if influence > 0.05 {
+                    b_tint = (b_tint + (60.0 * influence) as u16).min(255);
+                }
+            }
+            for rep in &self.repulsors {
+                if !rep.active {
+                    continue;
+                }
+                let dx = mote.x - rep.x;
+                let dy = mote.y - rep.y;
+                let dist = (dx * dx + dy * dy).sqrt();
+                let influence = (1.0 - (dist / (rep.visual_radius * 6.0)).min(1.0)).max(0.0);
+                if influence > 0.05 {
+                    r_tint = (r_tint + (50.0 * influence) as u16).min(255);
+                    g_tint = (g_tint + (30.0 * influence) as u16).min(255);
+                }
+            }
+            for bh in &self.black_holes {
+                if !bh.active {
+                    continue;
+                }
+                let dx = mote.x - bh.x;
+                let dy = mote.y - bh.y;
+                let dist = (dx * dx + dy * dy).sqrt();
+                let influence = (1.0 - (dist / (bh.visual_radius * 8.0)).min(1.0)).max(0.0);
+                if influence > 0.05 {
+                    r_tint = (r_tint + (60.0 * influence) as u16).min(255);
+                    g_tint = g_tint.saturating_sub((40.0 * influence) as u16);
+                    b_tint = b_tint.saturating_sub((30.0 * influence) as u16);
+                }
+            }
+
+            let color = Color::from_rgba(r_tint as u8, g_tint as u8, b_tint as u8, alpha);
             fb.set_pixel_blended(sx.round() as i32, sy.round() as i32, color);
         }
     }
@@ -1283,7 +1630,8 @@ impl GravityPong {
             let spoke_color = Color::from_rgba(255, 220, 80, 120);
             let spoke_count = 6;
             for k in 0..spoke_count {
-                let angle = rep.anim_phase * 0.5 + (k as f64) * std::f64::consts::TAU / spoke_count as f64;
+                let angle = rep.anim_phase * 0.5
+                    + (k as f64) * std::f64::consts::TAU / spoke_count as f64;
                 let inner = r * 0.35;
                 let outer = r * 0.7;
                 let x0 = sx + angle.cos() * inner;
@@ -1388,17 +1736,53 @@ impl GravityPong {
     }
 
     fn render_particles(&self, fb: &mut Framebuffer) {
+        // Find nearest black hole for tidal stretching reference
+        let has_bh = !self.black_holes.is_empty();
+
         for p in &self.particles {
             if !p.alive {
                 continue;
             }
+
+            // Determine if near a black hole (tidal stretching indicator)
+            let mut nearest_bh_dist = f64::MAX;
+            let mut nearest_bh_dx = 0.0_f64;
+            let mut nearest_bh_dy = 0.0_f64;
+            if has_bh {
+                for bh in &self.black_holes {
+                    if !bh.active {
+                        continue;
+                    }
+                    let dx = p.x - bh.x;
+                    let dy = p.y - bh.y;
+                    let dist = (dx * dx + dy * dy).sqrt();
+                    if dist < nearest_bh_dist {
+                        nearest_bh_dist = dist;
+                        nearest_bh_dx = dx;
+                        nearest_bh_dy = dy;
+                    }
+                }
+            }
+
+            // Determine trail color (gold/orange tint for three-body)
+            let trail_color_base = if p.attractor_count >= 2 {
+                // Three-body indicator: gold/orange tint
+                Color::from_rgba(
+                    ((p.color.r as u16 + 200).min(255)) as u8,
+                    ((p.color.g as u16 + 140).min(255) / 2) as u8,
+                    (p.color.b as u16 / 3) as u8,
+                    255,
+                )
+            } else {
+                p.color
+            };
 
             // Draw trail
             let trail_len = p.trail.len();
             if trail_len > 1 {
                 for t in 0..trail_len - 1 {
                     let alpha = ((t as f64 / trail_len as f64) * 80.0) as u8;
-                    let trail_color = p.color.with_alpha(alpha);
+                    let trail_color = trail_color_base.with_alpha(alpha);
                     let (sx0, sy0) = self.w2s(p.trail[t].0, p.trail[t].1);
                     let (sx1, sy1) = self.w2s(p.trail[t + 1].0, p.trail[t + 1].1);
                     shapes::draw_line(fb, sx0, sy0, sx1, sy1, trail_color);
@@ -1409,25 +1793,53 @@ impl GravityPong {
             let (sx, sy) = self.w2s(p.x, p.y);
             let radius = PARTICLE_RADIUS * p.scale;
 
-            // Glow
-            let glow_color = p.color.with_alpha(40);
-            shapes::fill_circle(fb, sx, sy, radius * 2.0, glow_color);
-
-            // Main body
-            if p.flash_timer > 0.0 {
-                shapes::fill_circle(fb, sx, sy, radius, Color::WHITE);
+            // Tidal stretching: elongate particle toward nearest black hole
+            if has_bh && nearest_bh_dist < 300.0 {
+                let stretch_factor =
+                    1.0 + 2.5 * (1.0 - (nearest_bh_dist / 300.0).min(1.0)).max(0.0);
+                // Draw elongated as an oval approximation (multiple overlapping circles along radial)
+                let bh_dist_nonzero = nearest_bh_dist.max(1.0);
+                let norm_dx = nearest_bh_dx / bh_dist_nonzero;
+                let norm_dy = nearest_bh_dy / bh_dist_nonzero;
+                let elongated_r = radius * 0.6;
+                let stretch_len = radius * stretch_factor;
+                let steps = 5;
+                for s in 0..steps {
+                    let t = (s as f64 / (steps - 1) as f64) - 0.5;
+                    let ox = norm_dx * t * stretch_len;
+                    let oy = norm_dy * t * stretch_len;
+                    let glow_c = p.color.with_alpha(30);
+                    shapes::fill_circle(fb, sx + ox, sy + oy, elongated_r * 1.8, glow_c);
+                }
+                let body_c = if p.flash_timer > 0.0 { Color::WHITE } else { p.color };
+                for s in 0..steps {
+                    let t = (s as f64 / (steps - 1) as f64) - 0.5;
+                    let ox = norm_dx * t * stretch_len;
+                    let oy = norm_dy * t * stretch_len;
+                    shapes::fill_circle(fb, sx + ox, sy + oy, elongated_r, body_c);
+                }
             } else {
-                shapes::fill_circle(fb, sx, sy, radius, p.color);
-            }
+                // Normal rendering
+                // Glow
+                let glow_color = p.color.with_alpha(40);
+                shapes::fill_circle(fb, sx, sy, radius * 2.0, glow_color);
 
-            // Rim highlight
-            let rim_color = Color::from_rgba(
-                (p.color.r as u16 + 60).min(255) as u8,
-                (p.color.g as u16 + 60).min(255) as u8,
-                (p.color.b as u16 + 60).min(255) as u8,
-                180,
-            );
-            shapes::draw_circle(fb, sx, sy, radius, rim_color);
+                // Main body
+                if p.flash_timer > 0.0 {
+                    shapes::fill_circle(fb, sx, sy, radius, Color::WHITE);
+                } else {
+                    shapes::fill_circle(fb, sx, sy, radius, p.color);
+                }
+
+                // Rim highlight
+                let rim_color = Color::from_rgba(
+                    (p.color.r as u16 + 60).min(255) as u8,
+                    (p.color.g as u16 + 60).min(255) as u8,
+                    (p.color.b as u16 + 60).min(255) as u8,
+                    180,
+                );
+                shapes::draw_circle(fb, sx, sy, radius, rim_color);
+            }
 
             // Locked indicator (small diamond)
             if p.locked {
@@ -1525,6 +1937,197 @@ impl GravityPong {
         }
     }
 
+    fn render_wormholes(&self, fb: &mut Framebuffer) {
+        for wh in &self.wormholes {
+            let (sx1, sy1) = self.w2s(wh.x1, wh.y1);
+            let (sx2, sy2) = self.w2s(wh.x2, wh.y2);
+            let r = self.w2s_r(wh.capture_radius);
+
+            // Dashed connection line between mouths
+            let line_color = wh.color.with_alpha(60);
+            shapes::draw_dashed_circle(fb, sx1, sy1, r * 0.3, line_color, 4.0);
+            shapes::draw_line(fb, sx1, sy1, sx2, sy2, line_color);
+
+            // Mouth A: spinning double circles (counter-rotating)
+            let phase_a = wh.anim_phase * 2.0;
+            let phase_b = -wh.anim_phase * 1.5;
+            let inner_r = r * 0.55;
+            let outer_r = r * 0.9;
+
+            let core_color = wh.color.with_alpha(180);
+            let rim_color = wh.color.with_alpha(100);
+
+            // Outer glow mouth A
+            let glow_a = wh.color.with_alpha(40);
+            shapes::fill_circle(fb, sx1, sy1, r, glow_a);
+            // Inner circle (rotating dashes simulated as circle)
+            shapes::draw_dashed_circle(fb, sx1, sy1, inner_r, core_color, 5.0 + phase_a.sin());
+            // Outer ring
+            shapes::draw_dashed_circle(fb, sx1, sy1, outer_r, rim_color, 5.0 + phase_b.sin());
+            // Center dot
+            shapes::fill_circle(fb, sx1, sy1, 3.0, core_color);
+
+            // Mouth B: same but opposite phase
+            let phase_a2 = -wh.anim_phase * 2.0;
+            let phase_b2 = wh.anim_phase * 1.5;
+            let glow_b = wh.color.with_alpha(40);
+            shapes::fill_circle(fb, sx2, sy2, r, glow_b);
+            shapes::draw_dashed_circle(fb, sx2, sy2, inner_r, core_color, 5.0 + phase_a2.sin());
+            shapes::draw_dashed_circle(fb, sx2, sy2, outer_r, rim_color, 5.0 + phase_b2.sin());
+            shapes::fill_circle(fb, sx2, sy2, 3.0, core_color);
+        }
+    }
+
+    fn render_plasma_currents(&self, fb: &mut Framebuffer) {
+        for pc in &self.plasma_currents {
+            let dx = pc.x2 - pc.x1;
+            let dy = pc.y2 - pc.y1;
+            let len = (dx * dx + dy * dy).sqrt();
+            if len < 1.0 {
+                continue;
+            }
+
+            let nx = dx / len;
+            let ny = dy / len;
+            // Perpendicular
+            let px = -ny;
+            let py = nx;
+            let hw = pc.half_width;
+
+            // Boundary lines in dim cyan
+            let boundary_color = Color::from_rgba(0, 180, 200, 60);
+            let (bx1a, by1a) = self.w2s(pc.x1 + px * hw, pc.y1 + py * hw);
+            let (bx2a, by2a) = self.w2s(pc.x2 + px * hw, pc.y2 + py * hw);
+            let (bx1b, by1b) = self.w2s(pc.x1 - px * hw, pc.y1 - py * hw);
+            let (bx2b, by2b) = self.w2s(pc.x2 - px * hw, pc.y2 - py * hw);
+            shapes::draw_line(fb, bx1a, by1a, bx2a, by2a, boundary_color);
+            shapes::draw_line(fb, bx1b, by1b, bx2b, by2b, boundary_color);
+
+            // Animated flow dots moving from start to end
+            let dot_spacing = 60.0;
+            let num_dots = ((len / dot_spacing) as usize).max(1).min(20);
+            let anim_offset = (pc.anim_phase * 0.4) % 1.0;
+            let flow_color = Color::from_rgba(0, 220, 255, 120);
+
+            for k in 0..num_dots {
+                let t = ((k as f64 / num_dots as f64) + anim_offset) % 1.0;
+                let wx = pc.x1 + nx * len * t;
+                let wy = pc.y1 + ny * len * t;
+                let (sdx, sdy) = self.w2s(wx, wy);
+                let fade = (1.0 - (t - 0.5).abs() * 2.0).max(0.0);
+                let dot_alpha = (120.0 * fade) as u8;
+                let dc = flow_color.with_alpha(dot_alpha);
+                shapes::fill_circle(fb, sdx, sdy, 2.0, dc);
+            }
+        }
+    }
+
+    fn render_aim_preview(&self, fb: &mut Framebuffer) {
+        if let Some(ref sling) = self.sling {
+            // Calculate launch velocity
+            let dx = sling.anchor_x - sling.pull_x;
+            let dy = sling.anchor_y - sling.pull_y;
+            let pull_dist = (dx * dx + dy * dy).sqrt();
+            if pull_dist < 5.0 {
+                return;
+            }
+
+            let max_pull_w = SLING_MAX_PULL / self.scale;
+            let power = (pull_dist / max_pull_w).min(1.0);
+            let launch_speed = SLING_MAX_SPEED * power;
+
+            if pull_dist < 0.01 {
+                return;
+            }
+            let mut sim_vx = dx / pull_dist * launch_speed;
+            let mut sim_vy = dy / pull_dist * launch_speed;
+            let mut sim_x = sling.anchor_x;
+            let mut sim_y = sling.anchor_y;
+
+            let steps = 120;
+            let sim_dt = FIXED_DT;
+
+            for step in 0..steps {
+                // Accumulate gravity
+                let mut ax = 0.0_f64;
+                let mut ay = 0.0_f64;
+                for well in &self.gravity_wells {
+                    if !well.active {
+                        continue;
+                    }
+                    let (fax, fay) =
+                        plummer_force(well.x, well.y, well.gm, well.epsilon, sim_x, sim_y);
+                    ax += fax;
+                    ay += fay;
+                }
+                for rep in &self.repulsors {
+                    if !rep.active {
+                        continue;
+                    }
+                    let (fax, fay) =
+                        plummer_force(rep.x, rep.y, rep.gm, rep.epsilon, sim_x, sim_y);
+                    ax -= fax;
+                    ay -= fay;
+                }
+                for bh in &self.black_holes {
+                    if !bh.active {
+                        continue;
+                    }
+                    let (fax, fay) =
+                        plummer_force(bh.x, bh.y, bh.gm, bh.epsilon, sim_x, sim_y);
+                    ax += fax;
+                    ay += fay;
+                }
+                // Add plasma current forces
+                for pc in &self.plasma_currents {
+                    let (pax, pay) = plasma_current_force(pc, sim_x, sim_y, sim_vx, sim_vy);
+                    ax += pax;
+                    ay += pay;
+                }
+
+                sim_vx += ax * sim_dt;
+                sim_vy += ay * sim_dt;
+                // Drag
+                let speed = (sim_vx * sim_vx + sim_vy * sim_vy).sqrt();
+                let effective_drag = BASE_DRAG + SPEED_DRAG * speed;
+                let factor = (-effective_drag * sim_dt).exp();
+                sim_vx *= factor;
+                sim_vy *= factor;
+
+                sim_x += sim_vx * sim_dt;
+                sim_y += sim_vy * sim_dt;
+
+                // Edge bounce
+                if sim_x < 0.0 {
+                    sim_x = -sim_x;
+                    sim_vx = -sim_vx * EDGE_RESTITUTION;
+                }
+                if sim_x > WORLD_SIZE {
+                    sim_x = 2.0 * WORLD_SIZE - sim_x;
+                    sim_vx = -sim_vx * EDGE_RESTITUTION;
+                }
+                if sim_y < 0.0 {
+                    sim_y = -sim_y;
+                    sim_vy = -sim_vy * EDGE_RESTITUTION;
+                }
+                if sim_y > WORLD_SIZE {
+                    sim_y = 2.0 * WORLD_SIZE - sim_y;
+                    sim_vy = -sim_vy * EDGE_RESTITUTION;
+                }
+                sim_x = sim_x.clamp(0.0, WORLD_SIZE);
+                sim_y = sim_y.clamp(0.0, WORLD_SIZE);
+
+                // Draw dot every 3 steps
+                if step % 3 == 0 {
+                    let alpha = (200.0 * (1.0 - step as f64 / steps as f64)) as u8;
+                    let (sx, sy) = self.w2s(sim_x, sim_y);
+                    let c = Color::from_rgba(255, 255, 200, alpha);
+                    shapes::fill_circle(fb, sx, sy, 1.5, c);
+                }
+            }
+        }
+    }
+
     fn render_effects(&self, fb: &mut Framebuffer) {
         for effect in &self.effects {
             match effect {
@@ -1570,10 +2173,7 @@ impl GravityPong {
 
     fn render_hud(&self, fb: &mut Framebuffer) {
         // Score counter
-        let score_text = format!(
-            "{}/{}",
-            self.total_scored, self.goal_target
-        );
+        let score_text = format!("{}/{}", self.total_scored, self.goal_target);
         let hud_color = Color::from_rgba(220, 220, 240, 220);
         text::draw_text(fb, 10, 10, &score_text, hud_color, 2);
 
@@ -1737,6 +2337,17 @@ impl Simulation for GravityPong {
 
         // 7. Phase transitions
         self.update_phase(engine);
+
+        // 8. Elapsed time (only during active play)
+        if self.phase == GamePhase::Playing {
+            self.elapsed_time += FIXED_DT;
+        }
+
+        // 9. HUD state for JS
+        engine.global_state.set_f64("scored", self.total_scored as f64);
+        engine.global_state.set_f64("goal", self.goal_target as f64);
+        engine.global_state.set_f64("level", (self.current_level + 1) as f64);
+        engine.global_state.set_f64("time", self.elapsed_time);
     }
 
     fn render(&self, engine: &mut Engine) {
@@ -1758,25 +2369,34 @@ impl Simulation for GravityPong {
         // 7. Walls
         self.render_walls(fb);
 
-        // 8. Targets
+        // 8. Wormholes
+        self.render_wormholes(fb);
+
+        // 9. Plasma currents
+        self.render_plasma_currents(fb);
+
+        // 10. Targets
         self.render_targets(fb);
 
-        // 9. Particles (with trails)
+        // 11. Particles (with trails)
         self.render_particles(fb);
 
-        // 10. Waypoint UI
+        // 12. Waypoint UI
         self.render_waypoint(fb);
 
-        // 11. Sling UI
+        // 13. Sling UI
         self.render_sling(fb);
 
-        // 12. Visual effects
+        // 14. Aim preview trajectory
+        self.render_aim_preview(fb);
+
+        // 15. Visual effects
         self.render_effects(fb);
 
-        // 13. HUD
+        // 16. HUD
         self.render_hud(fb);
 
-        // 14. Phase overlays
+        // 17. Phase overlays
         self.render_phase_overlay(fb);
     }
 }
@@ -1803,6 +2423,65 @@ fn plummer_force(
     let ax = gm * dx / denom;
     let ay = gm * dy / denom;
     (ax, ay)
+}
+
+/// Plasma current force: returns (ax, ay) acceleration for a particle in the corridor.
+fn plasma_current_force(
+    pc: &PlasmaCurrent,
+    px: f64,
+    py: f64,
+    vx: f64,
+    vy: f64,
+) -> (f64, f64) {
+    let dx = pc.x2 - pc.x1;
+    let dy = pc.y2 - pc.y1;
+    let len_sq = dx * dx + dy * dy;
+    if len_sq < 1e-10 {
+        return (0.0, 0.0);
+    }
+    let len = len_sq.sqrt();
+
+    // Project particle onto line
+    let t = ((px - pc.x1) * dx + (py - pc.y1) * dy) / len_sq;
+
+    // Only apply force if within the segment
+    if t < 0.0 || t > 1.0 {
+        return (0.0, 0.0);
+    }
+
+    // Closest point on line
+    let closest_x = pc.x1 + t * dx;
+    let closest_y = pc.y1 + t * dy;
+
+    // Perpendicular distance
+    let perp_dx = px - closest_x;
+    let perp_dy = py - closest_y;
+    let perp_dist = (perp_dx * perp_dx + perp_dy * perp_dy).sqrt();
+
+    // Only apply within corridor half-width
+    if perp_dist > pc.half_width {
+        return (0.0, 0.0);
+    }
+
+    // Gaussian falloff
+    let sigma = pc.half_width / 2.0;
+    let ratio = perp_dist / sigma;
+    let factor = (-ratio * ratio).exp();
+
+    // Force direction = normalize(end - start)
+    let dir_x = dx / len;
+    let dir_y = dy / len;
+
+    // Velocity-dependent coupling
+    let v_len = (vx * vx + vy * vy).sqrt();
+    let dot = if v_len > 1e-10 {
+        (vx / v_len) * dir_x + (vy / v_len) * dir_y
+    } else {
+        0.0
+    };
+    let effective = pc.strength * (1.0 - 0.5 * dot);
+
+    (dir_x * effective * factor, dir_y * effective * factor)
 }
 
 /// Wall collision: returns (collided, new_vx, new_vy, new_x, new_y).
@@ -1861,11 +2540,11 @@ fn parse_f64(s: &str) -> f64 {
 fn particle_color(idx: u32) -> Color {
     match idx % 6 {
         0 => Color::from_rgba(255, 120, 80, 255),  // warm orange
-        1 => Color::from_rgba(80, 200, 255, 255),   // sky blue
-        2 => Color::from_rgba(255, 80, 160, 255),   // pink
-        3 => Color::from_rgba(120, 255, 120, 255),  // lime
-        4 => Color::from_rgba(200, 140, 255, 255),  // lavender
-        5 => Color::from_rgba(255, 220, 80, 255),   // gold
+        1 => Color::from_rgba(80, 200, 255, 255),  // sky blue
+        2 => Color::from_rgba(255, 80, 160, 255),  // pink
+        3 => Color::from_rgba(120, 255, 120, 255), // lime
+        4 => Color::from_rgba(200, 140, 255, 255), // lavender
+        5 => Color::from_rgba(255, 220, 80, 255),  // gold
         _ => Color::WHITE,
     }
 }
@@ -1932,9 +2611,9 @@ mod tests {
     }
 
     #[test]
-    fn level_data_has_three_levels() {
+    fn level_data_has_eight_levels() {
         let levels = level_data();
-        assert_eq!(levels.len(), 3);
+        assert_eq!(levels.len(), 8);
     }
 
     #[test]
@@ -1996,6 +2675,62 @@ mod tests {
         gp.screen_h = 640.0;
         gp.scale = 0.64;
         gp.load_level(999, &mut engine);
-        assert_eq!(gp.current_level, 2); // clamped to last level
+        assert_eq!(gp.current_level, 7); // clamped to last level (index 7 = level 8)
+    }
+
+    #[test]
+    fn wormhole_from_params() {
+        let wh = Wormhole::from_params(100.0, 200.0, 800.0, 700.0);
+        assert!((wh.x1 - 100.0).abs() < 1e-10);
+        assert!((wh.y1 - 200.0).abs() < 1e-10);
+        assert!((wh.x2 - 800.0).abs() < 1e-10);
+        assert!((wh.y2 - 700.0).abs() < 1e-10);
+        assert!((wh.capture_radius - WORMHOLE_CAPTURE_RADIUS).abs() < 1e-10);
+        assert_eq!(wh.cooldown1, 0.0);
+        assert_eq!(wh.cooldown2, 0.0);
+    }
+
+    #[test]
+    fn plasma_current_from_params_maps_strength() {
+        let pc = PlasmaCurrent::from_params(0.0, 0.0, 1000.0, 0.0, 100.0, 1.0);
+        assert!((pc.strength - 30.0).abs() < 1e-6, "strength=1 maps to 30.0");
+        let pc2 = PlasmaCurrent::from_params(0.0, 0.0, 1000.0, 0.0, 100.0, 100.0);
+        assert!((pc2.strength - 200.0).abs() < 1e-6, "strength=100 maps to 200.0");
+        assert!((pc.half_width - 50.0).abs() < 1e-10);
+    }
+
+    #[test]
+    fn plasma_current_force_zero_outside_corridor() {
+        let pc = PlasmaCurrent::from_params(0.0, 500.0, 1000.0, 500.0, 100.0, 50.0);
+        // Far outside half-width (half_width = 50, particle is 200 away)
+        let (ax, ay) = plasma_current_force(&pc, 500.0, 300.0, 0.0, 0.0);
+        assert_eq!(ax, 0.0);
+        assert_eq!(ay, 0.0);
+    }
+
+    #[test]
+    fn plasma_current_force_nonzero_inside_corridor() {
+        let pc = PlasmaCurrent::from_params(0.0, 500.0, 1000.0, 500.0, 200.0, 50.0);
+        // Within corridor (half_width = 100, particle is at center)
+        let (ax, _ay) = plasma_current_force(&pc, 500.0, 500.0, 0.0, 0.0);
+        assert!(ax > 0.0, "force along current direction should be positive");
+    }
+
+    #[test]
+    fn elapsed_time_initialises_zero() {
+        let gp = GravityPong::new();
+        assert_eq!(gp.elapsed_time, 0.0);
+    }
+
+    #[test]
+    fn load_level_resets_elapsed_time() {
+        let mut gp = GravityPong::new();
+        let mut engine = Engine::new(640, 640);
+        gp.screen_w = 640.0;
+        gp.screen_h = 640.0;
+        gp.scale = 0.64;
+        gp.elapsed_time = 99.0;
+        gp.load_level(0, &mut engine);
+        assert_eq!(gp.elapsed_time, 0.0);
     }
 }

@@ -75,7 +75,7 @@
         #game-canvas {
             border: 1px solid #1a1a30;
             border-radius: 6px;
-            image-rendering: pixelated;
+            image-rendering: auto;
             cursor: crosshair;
             box-shadow:
                 0 0 20px rgba(64, 255, 192, 0.08),
@@ -126,15 +126,15 @@
             <span class="hud-value" id="time">0s</span>
         </div>
     </div>
-    <canvas id="game-canvas" width="640" height="640"></canvas>
+    <canvas id="game-canvas" width="800" height="800"></canvas>
     <p class="info">
         <strong>Tap</strong> to place a waypoint (captures nearby particles).
-        <strong>Drag</strong> a locked particle to sling it toward the target.
+        <strong>Drag anywhere</strong> to aim &amp; shoot a locked particle.
         Preview trajectory shows where your particle will fly.<br>
         10 levels with gravity wells, black holes, wormholes, plasma currents, and supernovas.<br>
         Powered by <a href="../">Crusty Engine</a> (Rust &rarr; WASM).
     </p>
-    <div class="version">v4</div>
+    <div class="version">v5</div>
 
     <script type="module">
         // __WASM_HASH__ is replaced by build-site.sh with a content hash
@@ -152,7 +152,7 @@
             setup_gravity_pong
         } = api;
 
-        const W = 640, H = 640;
+        const W = 800, H = 800;
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
         const scoredEl = document.getElementById('scored');

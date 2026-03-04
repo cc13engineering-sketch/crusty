@@ -1282,9 +1282,10 @@ impl GravityPong {
                 p.vx += ax * sub_dt;
                 p.vy += ay * sub_dt;
 
-                // Apply drag
+                // Apply drag (reduced while sling immunity active)
                 let speed = (p.vx * p.vx + p.vy * p.vy).sqrt();
-                let effective_drag = BASE_DRAG + SPEED_DRAG * speed;
+                let drag_scale = 1.0 - 0.8 * p.sling_immunity;
+                let effective_drag = (BASE_DRAG + SPEED_DRAG * speed) * drag_scale;
                 let factor = (-effective_drag * sub_dt).exp();
                 p.vx *= factor;
                 p.vy *= factor;
@@ -1293,9 +1294,11 @@ impl GravityPong {
                     p.vy = 0.0;
                 }
 
-                // Clamp speed
+                // Clamp speed (sling immunity allows higher speeds)
                 let speed_after = (p.vx * p.vx + p.vy * p.vy).sqrt();
-                let max_speed_w = MAX_SPEED / self.scale;
+                let base_max = MAX_SPEED / self.scale;
+                let max_speed_w = base_max
+                    + (SLING_MAX_SPEED - base_max) * p.sling_immunity;
                 if speed_after > max_speed_w && speed_after > 0.0 {
                     let s = max_speed_w / speed_after;
                     p.vx *= s;

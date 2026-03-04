@@ -2217,14 +2217,58 @@ impl GravityPong {
                 shapes::draw_circle(fb, sx, sy, radius, rim_color);
             }
 
-            // Locked indicator (small diamond)
+            // Locked particle: dramatic "READY TO SHOOT" state
             if p.locked {
-                let diamond_color = Color::from_rgba(255, 255, 200, 200);
-                let ds = 3.0;
-                shapes::draw_line(fb, sx - ds, sy, sx, sy - ds, diamond_color);
-                shapes::draw_line(fb, sx, sy - ds, sx + ds, sy, diamond_color);
-                shapes::draw_line(fb, sx + ds, sy, sx, sy + ds, diamond_color);
-                shapes::draw_line(fb, sx, sy + ds, sx - ds, sy, diamond_color);
+                let t = self.elapsed_time;
+
+                // Large pulsing outer halo
+                let halo_pulse = (t * 3.0).sin() * 0.3 + 1.0;
+                let halo_r = radius * 4.0 * halo_pulse;
+                let halo_color = p.color.with_alpha(30);
+                shapes::fill_circle(fb, sx, sy, halo_r, halo_color);
+                let halo_color2 = p.color.with_alpha(50);
+                shapes::draw_circle(fb, sx, sy, halo_r, halo_color2);
+
+                // Spinning crosshair lines (4 cardinal + 4 diagonal)
+                let spin = t * 1.5;
+                let arm_len = radius * 5.0;
+                let arm_inner = radius * 1.8;
+                for k in 0..8 {
+                    let angle = spin + (k as f64) * std::f64::consts::TAU / 8.0;
+                    let alpha = if k % 2 == 0 { 120 } else { 60 };
+                    let line_color = Color::from_rgba(255, 255, 200, alpha);
+                    let x0 = sx + angle.cos() * arm_inner;
+                    let y0 = sy + angle.sin() * arm_inner;
+                    let x1 = sx + angle.cos() * arm_len;
+                    let y1 = sy + angle.sin() * arm_len;
+                    shapes::draw_line(fb, x0, y0, x1, y1, line_color);
+                }
+
+                // Concentric expanding rings (2 rings at different phases)
+                for ring_i in 0..2 {
+                    let phase = (t * 2.0 + ring_i as f64 * 0.5) % 1.0;
+                    let ring_r = radius * 2.0 + phase * radius * 6.0;
+                    let ring_alpha = ((1.0 - phase) * 100.0) as u8;
+                    let ring_color = Color::from_rgba(255, 255, 180, ring_alpha);
+                    shapes::draw_circle(fb, sx, sy, ring_r, ring_color);
+                }
+
+                // "DRAG TO SHOOT" text below
+                let text_alpha = ((t * 2.5).sin() * 0.3 + 0.7).max(0.0);
+                let text_color = Color::from_rgba(
+                    255,
+                    255,
+                    180,
+                    (text_alpha * 220.0) as u8,
+                );
+                text::draw_text_centered(
+                    fb,
+                    sx as i32,
+                    sy as i32 + radius as i32 + 18,
+                    "DRAG TO SHOOT",
+                    text_color,
+                    1,
+                );
             }
         }
     }

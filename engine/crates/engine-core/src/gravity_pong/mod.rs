@@ -17,41 +17,41 @@ use crate::simulation::Simulation;
 const FIXED_DT: f64 = 1.0 / 60.0;
 
 // Gravity wells
-const WELL_MIN_STRENGTH: f64 = 2000.0;
-const WELL_MAX_STRENGTH: f64 = 15000.0;
-const WELL_EPSILON_FACTOR: f64 = 0.7;
+const WELL_MIN_STRENGTH: f64 = 100_000.0;
+const WELL_MAX_STRENGTH: f64 = 800_000.0;
+const WELL_EPSILON_FACTOR: f64 = 0.4;
 const WELL_CIRC_RATE: f64 = 0.03;
 
 // Black holes
-const BLACK_HOLE_GRAVITY: f64 = 25000.0;
+const BLACK_HOLE_GRAVITY: f64 = 1_500_000.0;
 const BLACK_HOLE_EPSILON_FACTOR: f64 = 1.2;
 const BLACK_HOLE_CIRC_RATE: f64 = 0.08;
 
 // Repulsors
-const REPULSOR_MIN_STRENGTH: f64 = 2000.0;
-const REPULSOR_MAX_STRENGTH: f64 = 15000.0;
-const REPULSOR_EPSILON_FACTOR: f64 = 0.5;
+const REPULSOR_MIN_STRENGTH: f64 = 100_000.0;
+const REPULSOR_MAX_STRENGTH: f64 = 800_000.0;
+const REPULSOR_EPSILON_FACTOR: f64 = 0.3;
 
 // Drag
-const BASE_DRAG: f64 = 0.08;
-const SPEED_DRAG: f64 = 0.003;
-const REST_THRESHOLD: f64 = 0.1;
+const BASE_DRAG: f64 = 0.12;
+const SPEED_DRAG: f64 = 0.0;
+const REST_THRESHOLD: f64 = 0.5;
 
 // Physics
-const EDGE_RESTITUTION: f64 = 0.85;
-const MAX_SPEED: f64 = 80.0;
+const EDGE_RESTITUTION: f64 = 0.9;
+const MAX_SPEED: f64 = 500.0;
 const MAX_SUBSTEPS: u32 = 8;
 const MAX_BOUNCES: u32 = 5;
 
 // Waypoint
 const WAYPOINT_CAPTURE_RADIUS: f64 = 150.0;
-const WAYPOINT_TRAVEL_SPEED: f64 = 15.0;
+const WAYPOINT_TRAVEL_SPEED: f64 = 40.0;
 const WAYPOINT_TIMEOUT_FRAMES: u32 = 180;
 
 // Sling
-const SLING_MAX_SPEED: f64 = 200.0;
+const SLING_MAX_SPEED: f64 = 2000.0;
 const SLING_MAX_PULL: f64 = 150.0;
-const SLING_DECAY_RATE: f64 = 3.0;
+const SLING_DECAY_RATE: f64 = 2.0;
 
 // Visual
 const FIELD_DUST_COUNT: usize = 300;
@@ -59,7 +59,7 @@ const FIELD_DUST_DAMPING: f64 = 0.85;
 const PARTICLE_RADIUS: f64 = 5.0;
 
 // Trail
-const MAX_TRAIL_LEN: usize = 30;
+const MAX_TRAIL_LEN: usize = 60;
 
 // World size
 const WORLD_SIZE: f64 = 1000.0;
@@ -70,7 +70,7 @@ const PARTICLE_WORLD_RADIUS: f64 = 8.0;
 // Wormhole
 const WORMHOLE_CAPTURE_RADIUS: f64 = 25.0;
 const WORMHOLE_COOLDOWN: f64 = 0.5;
-const WORMHOLE_GM: f64 = 500.0;
+const WORMHOLE_GM: f64 = 15_000.0;
 const WORMHOLE_EPSILON: f64 = 25.0;
 
 // Supernova

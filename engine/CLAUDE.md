@@ -29,3 +29,22 @@ This is a deterministic simulation platform. Games implement the `Simulation` tr
 - **State hashing**: `Engine::state_hash()` produces a deterministic u64 independent of rendering.
 - **Seeded reset**: `Engine::reset(seed)` is the single entry point for reproducible simulation.
 - **InputFrame**: Canonical input representation for replays and policy-driven simulation.
+
+## Autonomy Level
+
+The assistant operates on an autonomy scale from 1–10 that controls how often it asks for human input vs. making decisions independently:
+
+| Level | Behavior |
+|-------|----------|
+| 10 | Fully autonomous — never asks for feedback, makes all decisions |
+| 9 | Near-full autonomy — only asks when a decision is truly irreversible and high-risk |
+| 8 | Minimal questions — asks only for major architectural or scope-changing decisions |
+| 7 | **Default** — assumes autonomy in grey areas, asks when genuinely uncertain about intent |
+| 6 | Moderate — checks in on ambiguous requirements but handles implementation details solo |
+| 5 | Balanced — asks about approach before starting, then executes independently |
+| 4 | Collaborative — frequent check-ins on direction and approach |
+| 3 | Cautious — asks before most non-trivial decisions |
+| 2 | Very cautious — asks before nearly every action |
+| 1 | Full confirmation — asks about everything |
+
+**Default: 7.** The user can override by saying e.g. "autonomy 9" or "set autonomy to 4" at any point in the session. In grey areas — where the right call isn't obvious — the assistant should bias toward acting over asking, unless the current level is 5 or below.

@@ -45,11 +45,11 @@ const MAX_BOUNCES: u32 = 5;
 
 // Waypoint
 const WAYPOINT_CAPTURE_RADIUS: f64 = 150.0;
-const WAYPOINT_TRAVEL_SPEED: f64 = 30.0;
+const WAYPOINT_TRAVEL_SPEED: f64 = 12.0;
 const WAYPOINT_TIMEOUT_FRAMES: u32 = 180;
 
 // Sling
-const SLING_MAX_SPEED: f64 = 333.0;
+const SLING_MAX_SPEED: f64 = 250.0;
 const SLING_MAX_PULL: f64 = 150.0;
 const SLING_DECAY_RATE: f64 = 2.5;
 
@@ -2110,32 +2110,9 @@ impl GravityPong {
     }
 
     fn render_particles(&self, fb: &mut Framebuffer) {
-        // Find nearest black hole for tidal stretching reference
-        let has_bh = !self.black_holes.is_empty();
-
         for p in &self.particles {
             if !p.alive {
                 continue;
-            }
-
-            // Determine if near a black hole (tidal stretching indicator)
-            let mut nearest_bh_dist = f64::MAX;
-            let mut nearest_bh_dx = 0.0_f64;
-            let mut nearest_bh_dy = 0.0_f64;
-            if has_bh {
-                for bh in &self.black_holes {
-                    if !bh.active {
-                        continue;
-                    }
-                    let dx = p.x - bh.x;
-                    let dy = p.y - bh.y;
-                    let dist = (dx * dx + dy * dy).sqrt();
-                    if dist < nearest_bh_dist {
-                        nearest_bh_dist = dist;
-                        nearest_bh_dx = dx;
-                        nearest_bh_dy = dy;
-                    }
-                }
             }
 
             // Determine trail color (gold/orange tint for three-body)
@@ -2167,33 +2144,7 @@ impl GravityPong {
             let (sx, sy) = self.w2s(p.x, p.y);
             let radius = PARTICLE_RADIUS * p.scale;
 
-            // Tidal stretching: elongate particle toward nearest black hole
-            if has_bh && nearest_bh_dist < 300.0 {
-                let stretch_factor =
-                    1.0 + 2.5 * (1.0 - (nearest_bh_dist / 300.0).min(1.0)).max(0.0);
-                // Draw elongated as an oval approximation (multiple overlapping circles along radial)
-                let bh_dist_nonzero = nearest_bh_dist.max(1.0);
-                let norm_dx = nearest_bh_dx / bh_dist_nonzero;
-                let norm_dy = nearest_bh_dy / bh_dist_nonzero;
-                let elongated_r = radius * 0.6;
-                let stretch_len = radius * stretch_factor;
-                let steps = 5;
-                for s in 0..steps {
-                    let t = (s as f64 / (steps - 1) as f64) - 0.5;
-                    let ox = norm_dx * t * stretch_len;
-                    let oy = norm_dy * t * stretch_len;
-                    let glow_c = p.color.with_alpha(30);
-                    shapes::fill_circle(fb, sx + ox, sy + oy, elongated_r * 1.8, glow_c);
-                }
-                let body_c = if p.flash_timer > 0.0 { Color::WHITE } else { p.color };
-                for s in 0..steps {
-                    let t = (s as f64 / (steps - 1) as f64) - 0.5;
-                    let ox = norm_dx * t * stretch_len;
-                    let oy = norm_dy * t * stretch_len;
-                    shapes::fill_circle(fb, sx + ox, sy + oy, elongated_r, body_c);
-                }
-            } else {
-                // Normal rendering
+            {
                 // Glow
                 let glow_color = p.color.with_alpha(40);
                 shapes::fill_circle(fb, sx, sy, radius * 2.0, glow_color);
@@ -2544,46 +2495,8 @@ impl GravityPong {
             let sim_dt = FIXED_DT;
 
             for step in 0..steps {
-                // Accumulate gravity
-                let mut ax = 0.0_f64;
-                let mut ay = 0.0_f64;
-                for well in &self.gravity_wells {
-                    if !well.active {
-                        continue;
-                    }
-                    let (fax, fay) =
-                        plummer_force(well.x, well.y, well.gm, well.epsilon, sim_x, sim_y);
-                    ax += fax;
-                    ay += fay;
-                }
-                for rep in &self.repulsors {
-                    if !rep.active {
-                        continue;
-                    }
-                    let (fax, fay) =
-                        plummer_force(rep.x, rep.y, rep.gm, rep.epsilon, sim_x, sim_y);
-                    ax -= fax;
-                    ay -= fay;
-                }
-                for bh in &self.black_holes {
-                    if !bh.active {
-                        continue;
-                    }
-                    let (fax, fay) =
-                        plummer_force(bh.x, bh.y, bh.gm, bh.epsilon, sim_x, sim_y);
-                    ax += fax;
-                    ay += fay;
-                }
-                // Add plasma current forces
-                for pc in &self.plasma_currents {
-                    let (pax, pay) = plasma_current_force(pc, sim_x, sim_y, sim_vx, sim_vy);
-                    ax += pax;
-                    ay += pay;
-                }
-
-                sim_vx += ax * sim_dt;
-                sim_vy += ay * sim_dt;
-                // Drag
+                // No gravity in preview — player must read the field and guess the bend
+                // Drag only
                 let speed = (sim_vx * sim_vx + sim_vy * sim_vy).sqrt();
                 let effective_drag = BASE_DRAG + SPEED_DRAG * speed;
                 let factor = (-effective_drag * sim_dt).exp();

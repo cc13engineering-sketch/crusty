@@ -6,49 +6,36 @@
     <title>Gravity Pong — Crusty Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
         body {
             background: #060612;
-            background-image:
-                radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4), transparent),
-                radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.3), transparent),
-                radial-gradient(1px 1px at 40% 30%, rgba(255,255,255,0.25), transparent),
-                radial-gradient(1px 1px at 55% 80%, rgba(255,255,255,0.35), transparent),
-                radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.3), transparent),
-                radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.2), transparent),
-                radial-gradient(1px 1px at 90% 75%, rgba(255,255,255,0.3), transparent),
-                radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.25), transparent),
-                radial-gradient(1px 1px at 50% 50%, rgba(255,255,255,0.15), transparent),
-                radial-gradient(1px 1px at 65% 35%, rgba(255,255,255,0.3), transparent),
-                radial-gradient(1px 1px at 35% 70%, rgba(255,255,255,0.2), transparent),
-                radial-gradient(1px 1px at 80% 90%, rgba(255,255,255,0.25), transparent),
-                radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.3), transparent),
-                radial-gradient(1px 1px at 95% 20%, rgba(255,255,255,0.2), transparent),
-                radial-gradient(1px 1px at 45% 5%, rgba(255,255,255,0.35), transparent),
-                radial-gradient(
-                    ellipse at 50% 45%,
-                    rgba(0, 255, 200, 0.02) 0%,
-                    transparent 60%
-                );
             color: #e0e0e0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            gap: 16px;
+            height: 100vh;
+            height: 100dvh;
         }
         h1 {
-            font-size: 1.4rem;
-            color: #40ffc0;
-            letter-spacing: 0.06em;
-            text-shadow: 0 0 30px rgba(64, 255, 192, 0.25);
+            display: none;
         }
         #hud {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
             display: flex;
-            gap: 12px;
+            gap: 8px;
             flex-wrap: wrap;
             justify-content: center;
+            pointer-events: none;
         }
         .hud-stat {
             display: flex;
@@ -73,38 +60,27 @@
             min-width: 3ch;
         }
         #game-canvas {
-            border: 1px solid #1a1a30;
-            border-radius: 6px;
             image-rendering: auto;
             cursor: crosshair;
-            box-shadow:
-                0 0 20px rgba(64, 255, 192, 0.08),
-                0 0 60px rgba(64, 255, 192, 0.04),
-                0 0 120px rgba(0, 200, 255, 0.02);
-            transition: box-shadow 0.3s ease;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
-        #game-canvas:active {
-            box-shadow:
-                0 0 25px rgba(64, 255, 192, 0.18),
-                0 0 80px rgba(64, 255, 192, 0.08),
-                0 0 140px rgba(0, 200, 255, 0.04);
-        }
-        .info {
-            color: #777;
-            font-size: 0.82rem;
-            text-align: center;
-            line-height: 1.6;
-            max-width: 520px;
-        }
-        .info strong { color: #40ffc0; }
+        .info { display: none; }
         a { color: #40ffc0; }
         .version {
             position: fixed;
-            bottom: 10px;
-            right: 14px;
+            bottom: 6px;
+            right: 10px;
             color: #333;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             letter-spacing: 0.05em;
+            z-index: 10;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -152,25 +128,16 @@
             setup_gravity_pong
         } = api;
 
-        const W = 800, H = 800;
+        // Internal render resolution — CSS stretches to fullscreen
+        const W = 600, H = 900;
         const canvas = document.getElementById('game-canvas');
+        canvas.width = W;
+        canvas.height = H;
         const ctx = canvas.getContext('2d');
         const scoredEl = document.getElementById('scored');
         const goalEl   = document.getElementById('goal');
         const levelEl  = document.getElementById('level');
         const timeEl   = document.getElementById('time');
-
-        // Scale canvas to fit viewport while preserving square aspect ratio
-        function fitCanvas() {
-            const maxW = window.innerWidth * 0.92;
-            const maxH = (window.innerHeight - 180) * 0.92;
-            const scale = Math.min(maxW / W, maxH / H, 2);
-            const size = Math.round(W * scale);
-            canvas.style.width  = size + 'px';
-            canvas.style.height = size + 'px';
-        }
-        fitCanvas();
-        window.addEventListener('resize', fitCanvas);
 
         // Convert page coords to engine coords
         function toEngine(pageX, pageY) {

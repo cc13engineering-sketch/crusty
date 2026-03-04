@@ -1079,11 +1079,18 @@ impl GravityPong {
                         WAYPOINT_CAPTURE_RADIUS * WAYPOINT_CAPTURE_RADIUS;
                     let mut closest_idx: Option<usize> = None;
                     let mut closest_dist_sq = f64::MAX;
+                    // Minimum speed below which a particle is "at rest" and can be captured
+                    const WAYPOINT_MIN_SPEED: f64 = 5.0;
                     for i in 0..self.particles.len() {
                         let p = &self.particles[i];
                         if !p.alive || p.scored || p.locked || p.captured
                             || p.sling_immunity > 0.0
                         {
+                            continue;
+                        }
+                        // Skip particles still in flight
+                        let speed_sq = p.vx * p.vx + p.vy * p.vy;
+                        if speed_sq > WAYPOINT_MIN_SPEED * WAYPOINT_MIN_SPEED {
                             continue;
                         }
                         let dx = p.x - wp.x;

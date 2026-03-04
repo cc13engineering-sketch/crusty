@@ -1049,13 +1049,8 @@ impl GravityPong {
                         }
                     }
                 } else {
-                    // Tiny pull → place waypoint instead
-                    let (mx_w, my_w) =
-                        self.s2w(engine.input.mouse_x, engine.input.mouse_y);
-                    if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE
-                    {
-                        self.place_waypoint(mx_w, my_w);
-                    }
+                    // Tiny pull → just cancel sling, don't place waypoint
+                    // (particle stays locked, user can try again)
                 }
             } else {
                 // No sling (no locked particle) → place waypoint on release

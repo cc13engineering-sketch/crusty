@@ -33,7 +33,7 @@ const REPULSOR_MAX_STRENGTH: f64 = 1_200_000.0;
 const REPULSOR_EPSILON_FACTOR: f64 = 0.3;
 
 // Drag
-const BASE_DRAG: f64 = 0.25;
+const BASE_DRAG: f64 = 0.35;
 const SPEED_DRAG: f64 = 0.0;
 const REST_THRESHOLD: f64 = 0.5;
 
@@ -49,7 +49,7 @@ const WAYPOINT_TRAVEL_SPEED: f64 = 30.0;
 const WAYPOINT_TIMEOUT_FRAMES: u32 = 180;
 
 // Sling
-const SLING_MAX_SPEED: f64 = 1000.0;
+const SLING_MAX_SPEED: f64 = 333.0;
 const SLING_MAX_PULL: f64 = 150.0;
 const SLING_DECAY_RATE: f64 = 2.5;
 

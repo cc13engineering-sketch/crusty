@@ -47,6 +47,7 @@ pub mod observation;
 pub mod policy;
 pub mod variant;
 pub mod demo_ball;
+pub mod gravity_pong;
 pub mod headless;
 pub mod feel_preset;
 
@@ -55,11 +56,12 @@ mod tests;
 
 use engine::Engine;
 use demo_ball::DemoBall;
+use gravity_pong::GravityPong;
 use simulation::Simulation;
 
 thread_local! {
     static ENGINE: std::cell::RefCell<Option<Engine>> = std::cell::RefCell::new(None);
-    static SIM: std::cell::RefCell<Option<DemoBall>> = std::cell::RefCell::new(None);
+    static SIM: std::cell::RefCell<Option<Box<dyn Simulation>>> = std::cell::RefCell::new(None);
 }
 
 fn with_engine<F, R>(f: F) -> R
@@ -95,6 +97,14 @@ pub fn tick(dt_ms: f64) {
             }
         });
         eng.tick(dt_ms / 1000.0);
+        // Render game AFTER eng.tick() clears framebuffer and draws engine entities.
+        // The game draws its own visuals on top of the cleared buffer.
+        SIM.with(|s| {
+            let sim_borrow = s.borrow();
+            if let Some(sim) = sim_borrow.as_ref() {
+                sim.render(eng);
+            }
+        });
     });
 }
 
@@ -265,7 +275,25 @@ pub fn setup_demo_ball() {
         let mut sim = DemoBall::new();
         sim.setup(eng);
         SIM.with(|s| {
-            *s.borrow_mut() = Some(sim);
+            *s.borrow_mut() = Some(Box::new(sim));
+        });
+    });
+}
+
+// ─── Gravity Pong WASM API ─────────────────────────────────────────
+
+/// Set up the Gravity Pong game. Call after `init()`.
+/// Resets the engine with seed 42 and initializes the first level.
+#[wasm_bindgen]
+pub fn setup_gravity_pong() {
+    ENGINE.with(|e| {
+        let mut borrow = e.borrow_mut();
+        let eng = borrow.as_mut().expect("Engine not initialized");
+        eng.reset(42);
+        let mut sim = GravityPong::new();
+        sim.setup(eng);
+        SIM.with(|s| {
+            *s.borrow_mut() = Some(Box::new(sim));
         });
     });
 }

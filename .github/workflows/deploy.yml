@@ -63,8 +63,8 @@ jobs:
           # Copy bouncing ball demo
           cp site/demo-ball/index.html _site/demo-ball/
 
-          # Copy all game demos (gravity-pong, etc.)
-          for demo_dir in site/gravity-pong*; do
+          # Copy all game demos (gravity-pong, vocaloid, etc.)                                                                                                                                    
+          for demo_dir in site/gravity-pong* site/vocaloid; do
             [ -d "$demo_dir" ] || continue
             name=$(basename "$demo_dir")
             mkdir -p "_site/$name"

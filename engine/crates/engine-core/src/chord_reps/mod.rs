@@ -702,102 +702,44 @@ impl ChordRepsSim {
             self.difficulty += 1;
         }
 
-        // Play the answer
+        // Flash correct answer keys and set insight text
         match &self.challenge.concept {
             MusicConcept::ScaleDegree => {
                 let deg = self.challenge.answer;
                 let midi = degree_to_midi(self.challenge.key_root, deg);
-                engine.sound_queue.push(SoundCommand::PlayNote {
-                    note: midi,
-                    duration: 0.5,
-                    volume: 0.7,
-                    instrument: 0,
-                });
                 self.flash_key(midi, CORRECT_COLOR);
-
                 self.current_insight = degree_insight(deg).to_string();
             }
             MusicConcept::RomanNumeral => {
                 let deg = self.challenge.answer;
                 let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
-                let intervals = chord_intervals(deg);
-                for (i, &interval) in intervals.iter().enumerate() {
-                    let midi = root + interval;
-                    engine.sound_queue.push(SoundCommand::PlayNote {
-                        note: midi,
-                        duration: 0.5,
-                        volume: 0.5 - i as f64 * 0.1,
-                        instrument: 0,
-                    });
-                    self.flash_key(midi, CORRECT_COLOR);
+                for &interval in &chord_intervals(deg) {
+                    self.flash_key(root + interval, CORRECT_COLOR);
                 }
-
                 self.current_insight = numeral_insight(deg).to_string();
             }
             MusicConcept::IntervalRecognition => {
-                if self.challenge.sequence.len() >= 2 {
-                    let base = self.challenge.sequence[0];
-                    let top = self.challenge.sequence[1];
-                    engine.sound_queue.push(SoundCommand::PlayNote {
-                        note: base,
-                        duration: 0.3,
-                        volume: 0.6,
-                        instrument: 0,
-                    });
-                    self.schedule_note(ScheduledNote {
-                        play_at: self.total_time + 0.3,
-                note: top,
-                duration: 0.4,
-                volume: 0.6,
-                instrument: 0,
-                    });
-                    self.flash_key(base, CORRECT_COLOR);
-                    self.flash_key(top, CORRECT_COLOR);
-
-                    self.current_insight = interval_insight(self.challenge.answer).to_string();
+                let seq = self.challenge.sequence.clone();
+                for &midi in &seq {
+                    self.flash_key(midi, CORRECT_COLOR);
                 }
+                self.current_insight = interval_insight(self.challenge.answer).to_string();
             }
             MusicConcept::ChordQuality => {
-                // Replay the chord with correct answer flash
-                let root = self.challenge.quality_root;
+                let seq = self.challenge.sequence.clone();
+                for &midi in &seq {
+                    self.flash_key(midi, CORRECT_COLOR);
+                }
                 if let Some(q) = self.challenge.quality {
-                    let intervals = quality_intervals(q);
-                    for &iv in &intervals {
-                        let midi = root + iv;
-                        engine.sound_queue.push(SoundCommand::PlayNote {
-                            note: midi,
-                            duration: 0.5,
-                            volume: 0.45,
-                            instrument: 0,
-                        });
-                        self.flash_key(midi, CORRECT_COLOR);
-                    }
-    
                     self.current_insight = quality_insight(q).to_string();
                 }
             }
             MusicConcept::Cadence => {
-                // Replay the cadence chords
-                if self.challenge.sequence.len() >= 2 {
-                    let setup_deg = self.challenge.sequence[0];
-                    let resolve_deg = self.challenge.sequence[1];
-                    // Flash setup chord
-                    let sr = self.challenge.key_root + MAJOR_SCALE[(setup_deg % 7) as usize];
-                    for &iv in &chord_intervals(setup_deg) {
-                        self.flash_key(sr + iv, CORRECT_COLOR);
+                for &deg in &self.challenge.sequence.clone() {
+                    let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    for &iv in &chord_intervals(deg) {
+                        self.flash_key(root + iv, CORRECT_COLOR);
                     }
-                    // Flash resolve chord
-                    let rr = self.challenge.key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
-                    for &iv in &chord_intervals(resolve_deg) {
-                        engine.sound_queue.push(SoundCommand::PlayNote {
-                            note: rr + iv,
-                            duration: 0.5,
-                            volume: 0.45,
-                            instrument: 0,
-                        });
-                        self.flash_key(rr + iv, CORRECT_COLOR);
-                    }
-
                 }
                 let ci = self.challenge.answer as usize;
                 if ci < CADENCE_TYPES.len() {
@@ -805,6 +747,9 @@ impl ChordRepsSim {
                 }
             }
         }
+
+        // Replay the full challenge so the player hears the complete sequence
+        self.replay_challenge(engine);
 
         // Select enriched content (fun fact + optional product) from CONTENT_DB
         let content_seed = engine.rng.next_u64();
@@ -1621,13 +1566,7 @@ impl Simulation for ChordRepsSim {
         } else {
             None
         };
-        if hovered != self.last_hovered_option
-            && self.feedback == FeedbackState::Neutral
-            && !self.challenge.solved
-        {
-            if let Some(idx) = hovered {
-                self.play_option_preview(idx, engine);
-            }
+        if hovered != self.last_hovered_option {
             self.last_hovered_option = hovered;
         }
         // Clear stale hover state after mobile tap

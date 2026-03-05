@@ -100,10 +100,10 @@ pub fn cadence_chords(c: CadenceType) -> (u8, u8) {
 /// Insight text for a correctly identified cadence type.
 pub fn cadence_insight(c: CadenceType) -> &'static str {
     match c {
-        CadenceType::Authentic => "V to I -- the strongest resolution. The leading tone pulls up to tonic.",
-        CadenceType::Plagal    => "IV to I -- the 'Amen' cadence. Warm, settled, hymn-like resolution.",
-        CadenceType::Half      => "Ending on V -- a musical question mark. Tension left unresolved.",
-        CadenceType::Deceptive => "V to vi -- the great surprise. You expect I but get its emotional twin.",
+        CadenceType::Authentic => "V to I -- the strongest resolution in tonal music. The leading tone (7th degree) pulls up a half step to the tonic, while the 5th of V drops to the root. This is the musical equivalent of a full stop. Nearly every classical piece ends this way.",
+        CadenceType::Plagal    => "IV to I -- the 'Amen' cadence, heard at the end of hymns for centuries. The warm subdominant settles gently onto the tonic without the urgency of V. Common in gospel, folk, and rock. The Beatles loved it.",
+        CadenceType::Half      => "Ending on V -- a musical question mark. The phrase pauses on the dominant, leaving maximum tension. It demands a continuation. Composers use half cadences mid-phrase to keep the listener engaged and anticipating resolution.",
+        CadenceType::Deceptive => "V to vi -- the great harmonic bait-and-switch. Your ear expects the tonic but lands on its relative minor instead. The surprise creates emotional depth. Beethoven and Radiohead both use deceptive cadences to subvert expectations.",
     }
 }
 
@@ -148,13 +148,13 @@ pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
 /// Insight text for a correctly identified scale degree.
 pub fn degree_insight(degree: u8) -> &'static str {
     match degree % 7 {
-        0 => "Tonic (I) -- home base. All melody gravitates back here.",
-        1 => "Supertonic (ii) -- one step above home. Pre-dominant function.",
-        2 => "Mediant (iii) -- the bridge between tonic and dominant.",
-        3 => "Subdominant (IV) -- the plagal sound. Think 'Amen' cadence.",
-        4 => "Dominant (V) -- maximum tension. Yearns to resolve to I.",
-        5 => "Submediant (vi) -- the relative minor. Emotional twin of I.",
-        6 => "Leading tone (vii) -- most unstable degree. Pulls up to I.",
+        0 => "Tonic (1st) -- home base. Every melody wants to come back here. It is the gravitational center of the key. When you hear a song 'end,' it almost always lands on the tonic.",
+        1 => "Supertonic (2nd) -- one step above home. It has a 'pre-dominant' function, meaning it naturally leads toward the dominant. The ii-V-I progression is the backbone of jazz.",
+        2 => "Mediant (3rd) -- the bridge between tonic and dominant. It defines whether the key sounds major (bright) or minor (dark). This single note shapes the entire mood.",
+        3 => "Subdominant (4th) -- the plagal sound. Think of the 'Amen' at the end of a hymn. It creates gentle motion away from the tonic without the urgency of the dominant.",
+        4 => "Dominant (5th) -- maximum tension, maximum pull. It yearns to resolve back to the tonic. The V-I motion is the most fundamental harmonic relationship in Western music.",
+        5 => "Submediant (6th) -- the emotional twin of the tonic. It is the relative minor's root, so shifting to vi gives a bittersweet shadow of the major key. Pop songs use the I-V-vi-IV loop constantly.",
+        6 => "Leading tone (7th) -- the most unstable degree, just a half step below tonic. It pulls upward with an almost physical urgency. Without it, dominant chords would lose their drive.",
         _ => "",
     }
 }
@@ -162,13 +162,13 @@ pub fn degree_insight(degree: u8) -> &'static str {
 /// Insight text for a correctly identified Roman numeral chord.
 pub fn numeral_insight(degree: u8) -> &'static str {
     match degree % 7 {
-        0 => "I -- the tonic chord. The harmonic center of gravity.",
-        1 => "ii -- supertonic minor. Classic setup for V (the ii-V-I).",
-        2 => "iii -- mediant minor. Shares two notes with both I and V.",
-        3 => "IV -- subdominant major. Foundation of plagal cadences.",
-        4 => "V -- dominant major. Creates the strongest pull to I.",
-        5 => "vi -- submediant minor. Gateway to the relative minor key.",
-        6 => "vii* -- leading-tone diminished. Maximum harmonic instability.",
+        0 => "I -- the tonic triad. The harmonic center of gravity. Every progression eventually resolves here. It is stable, restful, and final. Major key songs often begin and end on I.",
+        1 => "ii -- supertonic minor. The classic setup chord for V in the ii-V-I turnaround. Jazz musicians call it the 'predominant.' Its minor quality adds a touch of tension before the dominant.",
+        2 => "iii -- mediant minor. It shares two notes with I and two with V, making it a chameleon chord. It can substitute for I or V depending on context. Relatively rare in pop, common in classical.",
+        3 => "IV -- subdominant major. Foundation of plagal (IV-I) cadences and the four-chord pop loop. It provides harmonic motion without the intensity of V. Think of it as gentle departure from home.",
+        4 => "V -- the dominant major. Creates the strongest gravitational pull back to I. Its major third is the leading tone of the key, which resolves up by half step. The engine of tonal harmony.",
+        5 => "vi -- submediant minor. The gateway to the relative minor key. Starting a progression on vi instead of I gives a melancholic flavor. The 'sad' version of the I-V-vi-IV loop starts here.",
+        6 => "vii* -- the leading-tone diminished triad. Both intervals are minor thirds, creating instability from every angle. It naturally resolves to I and often functions as a rootless V7 chord.",
         _ => "",
     }
 }
@@ -176,19 +176,19 @@ pub fn numeral_insight(degree: u8) -> &'static str {
 /// Insight text for a correctly identified interval.
 pub fn interval_insight(semitones: u8) -> &'static str {
     match semitones {
-        0  => "Unison (P1) -- the same pitch. Think 'Stayin' Alive' repeated notes.",
-        1  => "Minor 2nd -- a half step. The 'Jaws' theme interval. Maximum tension.",
-        2  => "Major 2nd -- a whole step. 'Happy Birthday' starts here.",
-        3  => "Minor 3rd -- the minor chord interval. 'Greensleeves' opens with this.",
-        4  => "Major 3rd -- the major chord interval. 'When the Saints Go Marching In.'",
-        5  => "Perfect 4th -- 'Here Comes the Bride.' Open and stable.",
-        6  => "Tritone -- 'Maria' from West Side Story. The devil in music.",
-        7  => "Perfect 5th -- 'Star Wars' opening. Most consonant after the octave.",
-        8  => "Minor 6th -- 'The Entertainer' by Joplin. Bittersweet and poignant.",
-        9  => "Major 6th -- 'My Bonnie Lies Over the Ocean.' Warm and lyrical.",
-        10 => "Minor 7th -- 'Somewhere' from West Side Story. Bluesy tension.",
-        11 => "Major 7th -- 'Take On Me' by a-ha. Dreamy, one step from the octave.",
-        12 => "Octave (P8) -- 'Somewhere Over the Rainbow.' The purest doubling.",
+        0  => "Unison (P1) -- the same pitch. Two voices on the same note create power through unity. Gregorian chant and unison riffs in rock both rely on this raw, reinforcing effect.",
+        1  => "Minor 2nd (m2) -- one half step. The 'Jaws' theme interval. It is the most dissonant interval, creating grinding tension. In melody, it drives chromatic approach tones and suspense.",
+        2  => "Major 2nd (M2) -- one whole step. 'Happy Birthday' starts with this. It is the basic building block of scales. Two whole steps in a row form the major sound; the lack of one signals minor.",
+        3  => "Minor 3rd (m3) -- the interval that defines minor chords and minor keys. 'Greensleeves' opens with this leap. It sounds darker and more introspective than its major cousin.",
+        4  => "Major 3rd (M3) -- the interval that defines major chords. 'When the Saints Go Marching In' opens with this bright, confident leap. The difference between m3 and M3 is just one half step, but it changes everything.",
+        5  => "Perfect 4th (P4) -- 'Here Comes the Bride.' Perfectly consonant and open. It is the inversion of the perfect 5th. In medieval music it was considered a consonance; in common practice, context matters.",
+        6  => "Tritone (A4/d5) -- historically called 'diabolus in musica.' 'Maria' from West Side Story starts here. Exactly half an octave, it divides the scale symmetrically. It creates the tension in dominant 7th chords.",
+        7  => "Perfect 5th (P5) -- 'Star Wars' theme opening. The most consonant interval after unison and octave. Power chords in rock are just root and fifth. It is the foundation of the overtone series.",
+        8  => "Minor 6th (m6) -- 'The Entertainer' by Joplin. A wide, bittersweet leap. It is the inversion of the major 3rd. In a minor key, this interval appears naturally between the root and the 6th degree.",
+        9  => "Major 6th (M6) -- 'My Bonnie Lies Over the Ocean.' Warm, lyrical, and open. It is the inversion of the minor 3rd. Jazz musicians love added 6th chords for their smooth, mellow quality.",
+        10 => "Minor 7th (m7) -- 'Somewhere' from West Side Story. This bluesy interval is the heart of dominant 7th and minor 7th chords. It adds soulful tension without the extreme pull of the major 7th.",
+        11 => "Major 7th (M7) -- 'Take On Me' by a-ha. Just one half step short of an octave, it creates a dreamy, floating dissonance. Major 7th chords are the signature sound of jazz ballads and bossa nova.",
+        12 => "Octave (P8) -- 'Somewhere Over the Rainbow.' The purest interval besides unison. The frequency ratio is exactly 2:1. Every note in every octave shares the same letter name for this reason.",
         _  => "",
     }
 }
@@ -196,10 +196,10 @@ pub fn interval_insight(semitones: u8) -> &'static str {
 /// Insight text for a correctly identified chord quality.
 pub fn quality_insight(q: ChordQuality) -> &'static str {
     match q {
-        ChordQuality::Major      => "Major: root + M3 + P5. Bright, stable, resolved.",
-        ChordQuality::Minor      => "Minor: root + m3 + P5. Darker, introspective, emotional.",
-        ChordQuality::Diminished => "Diminished: root + m3 + dim5. Tense, unstable, wants to move.",
-        ChordQuality::Augmented  => "Augmented: root + M3 + aug5. Mysterious, dreamlike, unresolved.",
+        ChordQuality::Major      => "Major triad: root + major 3rd + perfect 5th. The bright, stable, 'happy' sound. It appears naturally on scale degrees I, IV, and V in any major key. The foundation of Western harmony.",
+        ChordQuality::Minor      => "Minor triad: root + minor 3rd + perfect 5th. The darker, more introspective sound. Only one note differs from major (the 3rd is lowered by a half step), but the emotional shift is dramatic.",
+        ChordQuality::Diminished => "Diminished triad: root + minor 3rd + diminished 5th. Two stacked minor thirds create maximum instability. It naturally occurs on the 7th degree of major keys and desperately wants to resolve outward.",
+        ChordQuality::Augmented  => "Augmented triad: root + major 3rd + augmented 5th. Two stacked major thirds create a symmetrical, dreamlike chord. It divides the octave into three equal parts, making it tonally ambiguous and mysterious.",
     }
 }
 

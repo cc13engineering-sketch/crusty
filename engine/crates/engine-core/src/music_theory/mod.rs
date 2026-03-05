@@ -210,6 +210,8 @@ pub struct MusicTheorySim {
     screen_h: f64,
     /// Educational insight shown after a correct answer.
     current_insight: String,
+    /// Whether the player has tapped to begin (ensures AudioContext exists).
+    started: bool,
 }
 
 impl MusicTheorySim {
@@ -257,6 +259,7 @@ impl MusicTheorySim {
             screen_w: 600.0,
             screen_h: 900.0,
             current_insight: String::new(),
+            started: false,
         }
     }
 
@@ -810,18 +813,7 @@ impl MusicTheorySim {
             decay: 0.1,
         });
 
-        // Streak milestone sparkle burst every 5
-        if self.streak > 0 && self.streak % 5 == 0 {
-            for x_off in 0..6 {
-                let bx = 50.0 + x_off as f64 * 100.0;
-                self.spawn_sparkles(bx, self.sy(OPTIONS_Y), 8, ACCENT_PINK, engine);
-            }
-        }
-
         self.combo_pulse = 1.0;
-
-        // Spawn sparkles
-        self.spawn_sparkles(self.screen_w / 2.0, self.sy(OPTIONS_Y + OPTIONS_H / 2.0), 25, ACCENT_CYAN, engine);
     }
 
     fn on_wrong(&mut self, _selected: u8, engine: &mut Engine) {
@@ -870,8 +862,6 @@ impl MusicTheorySim {
             decay: 0.1,
         });
 
-        // Sad sparkles
-        self.spawn_sparkles(self.screen_w / 2.0, self.sy(OPTIONS_Y + OPTIONS_H / 2.0), 8, WRONG_COLOR, engine);
     }
 
     // ─── Helpers ─────────────────────────────────────────────
@@ -1402,7 +1392,7 @@ impl Simulation for MusicTheorySim {
         engine.config.bounds = (self.screen_w, self.screen_h);
         engine.config.background = BG_COLOR;
         self.init_background_stars(engine);
-        self.generate_challenge(engine);
+        // Don't generate_challenge() here — wait for first tap so AudioContext exists
         engine.global_state.set_f64("score", 0.0);
         engine.global_state.set_f64("streak", 0.0);
         engine.global_state.set_f64("difficulty", 1.0);
@@ -1412,6 +1402,24 @@ impl Simulation for MusicTheorySim {
         let dt = 1.0 / 60.0;
         self.total_time += dt;
         self.pulse_time += dt;
+
+        // "Tap to Begin" gate — wait for first tap so AudioContext is initialized
+        if !self.started {
+            if engine.input.mouse_buttons_pressed.contains(&0)
+                || !engine.input.keys_pressed.is_empty()
+            {
+                self.started = true;
+                self.generate_challenge(engine);
+            }
+            // Still update background stars while waiting
+            for star in self.background_stars.iter_mut() {
+                star.y -= star.speed * dt;
+                if star.y < -10.0 {
+                    star.y = self.screen_h + 10.0;
+                }
+            }
+            return;
+        }
 
         // Process scheduled sounds and samples
         let sound_count_before = engine.sound_queue.len();
@@ -1434,13 +1442,10 @@ impl Simulation for MusicTheorySim {
             }
         }
 
-        // Update feedback timer
-        if self.feedback_timer > 0.0 {
+        // Update feedback timer — only auto-dismiss Wrong; Correct stays until "Next"
+        if self.feedback_timer > 0.0 && self.feedback == FeedbackState::Wrong {
             self.feedback_timer -= dt;
             if self.feedback_timer <= 0.0 {
-                if self.feedback == FeedbackState::Correct {
-                    self.generate_challenge(engine);
-                }
                 self.feedback = FeedbackState::Neutral;
                 self.feedback_timer = 0.0;
             }
@@ -1495,6 +1500,30 @@ impl Simulation for MusicTheorySim {
         }
 
         if engine.input.mouse_buttons_pressed.contains(&0) && !self.slider_dragging {
+            // "Next" button — advance after correct feedback
+            if self.feedback == FeedbackState::Correct {
+                let btn_w = 160.0;
+                let btn_h = 50.0;
+                let btn_x = (self.screen_w - btn_w) / 2.0;
+                let btn_y = self.sy(FEEDBACK_Y + FEEDBACK_H - 10.0);
+                if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
+                    self.feedback = FeedbackState::Neutral;
+                    self.feedback_timer = 0.0;
+                    self.generate_challenge(engine);
+                }
+            }
+
+            // "Replay" button
+            if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
+                let btn_w = 120.0;
+                let btn_h = 40.0;
+                let btn_x = (self.screen_w - btn_w) / 2.0;
+                let btn_y = self.sy(CHALLENGE_Y + 200.0);
+                if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
+                    self.replay_challenge(engine);
+                }
+            }
+
             if let Some(idx) = self.check_option_click(mx, my) {
                 self.handle_option_click(idx, engine);
             }
@@ -1538,6 +1567,9 @@ impl Simulation for MusicTheorySim {
             let phase = self.rhythm_timer % cycle;
             let now_on = phase < RHYTHM_ON_DUR;
             if now_on && !self.rhythm_on {
+                // Spike sound energy so background stars pulse with the beat
+                let toggled_count = self.toggled_keys.iter().filter(|&&t| t).count();
+                self.sound_energy = (self.sound_energy + 0.3 + toggled_count as f64 * 0.1).min(1.0);
                 // Transition to ON — play all toggled keys
                 for k in 0..NUM_NOTES {
                     if self.toggled_keys[k] {
@@ -1609,13 +1641,21 @@ impl Simulation for MusicTheorySim {
             self.handle_option_click(3, engine);
         }
 
-        // Replay challenge (Space or R)
-        if engine.input.keys_pressed.contains("Space")
-            || engine.input.keys_pressed.contains("KeyR")
+        // "Next" shortcut (Space or Enter) when showing correct feedback
+        if self.feedback == FeedbackState::Correct
+            && (engine.input.keys_pressed.contains("Space")
+                || engine.input.keys_pressed.contains("Enter"))
         {
-            if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
-                self.replay_challenge(engine);
-            }
+            self.feedback = FeedbackState::Neutral;
+            self.feedback_timer = 0.0;
+            self.generate_challenge(engine);
+        }
+        // Replay challenge (Space or R) — only when neutral and unsolved
+        else if !self.challenge.solved && self.feedback == FeedbackState::Neutral
+            && (engine.input.keys_pressed.contains("Space")
+                || engine.input.keys_pressed.contains("KeyR"))
+        {
+            self.replay_challenge(engine);
         }
 
         // Spike sound energy based on new sounds queued this frame
@@ -1633,11 +1673,26 @@ impl Simulation for MusicTheorySim {
     }
 
     fn render(&self, engine: &mut Engine) {
+        let fb = &mut engine.framebuffer;
+
+        // "Tap to Begin" screen
+        if !self.started {
+            self.render_background_stars(fb);
+            self.render_border_glow(fb);
+            let cx = (self.screen_w / 2.0) as i32;
+            let cy = (self.screen_h / 2.0) as i32;
+            text::draw_text_centered(fb, cx, cy - 40, "MUSIC THEORY", ACCENT_TEAL, 3);
+            text::draw_text_centered(fb, cx, cy, "Interactive Ear Training", ACCENT_PINK, 2);
+            let blink = ((self.pulse_time * 2.5).sin() * 0.3 + 0.7) * 255.0;
+            text::draw_text_centered(fb, cx, cy + 50, "Tap to Begin",
+                Color::WHITE.with_alpha(blink as u8), 2);
+            return;
+        }
+
         // Use hover position for visual hover effects (works on desktop + touch)
         let hx = if engine.input.hover_active { engine.input.hover_x } else { -1000.0 };
         let hy = if engine.input.hover_active { engine.input.hover_y } else { -1000.0 };
         let is_mobile = engine.browser_state.is_touch_device();
-        let fb = &mut engine.framebuffer;
 
         self.render_background_stars(fb);
         self.render_border_glow(fb);
@@ -1753,6 +1808,18 @@ impl MusicTheorySim {
                 text::draw_text_centered(fb, cx, cy(170.0), "Listen: I chord, then two-chord cadence", DIM_TEXT, 1);
             }
         }
+
+        // Replay button — shown when challenge is active and unsolved
+        if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
+            let btn_w = 120.0;
+            let btn_h = 40.0;
+            let btn_x = (self.screen_w - btn_w) / 2.0;
+            let btn_y = self.sy(CHALLENGE_Y + 200.0);
+            shapes::fill_rect(fb, btn_x, btn_y, btn_w, btn_h, OPTION_BG);
+            shapes::draw_rect(fb, btn_x, btn_y, btn_w, btn_h, ACCENT_TEAL);
+            text::draw_text_centered(fb, cx, (btn_y + btn_h / 2.0 - 5.0) as i32,
+                "Replay", ACCENT_TEAL, 2);
+        }
     }
 
     fn render_options(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
@@ -1815,26 +1882,29 @@ impl MusicTheorySim {
             text::draw_text_centered(fb, cx, cy, msg, color, 2);
         }
 
-        // Show educational insight on correct answers
+        // Show educational insight on correct answers — word-wrapped
         if self.feedback == FeedbackState::Correct && !self.current_insight.is_empty() {
-            // Wrap long insight text by splitting at a reasonable point
-            let insight = &self.current_insight;
-            if text::text_width(insight, 1) < self.screen_w as i32 - 40 {
-                text::draw_text_centered(fb, cx, cy + 22, insight,
-                    ACCENT_TEAL.with_alpha(220), 1);
-            } else {
-                // Split at the first "--" or midpoint space
-                let split = insight.find("--").or_else(|| {
-                    let mid = insight.len() / 2;
-                    insight[mid..].find(' ').map(|p| mid + p)
-                }).unwrap_or(insight.len());
-                let (line1, line2) = insight.split_at(split);
-                let line2 = line2.trim_start_matches("--").trim_start_matches(' ').trim_start_matches('-').trim();
-                text::draw_text_centered(fb, cx, cy + 18, line1.trim(),
-                    ACCENT_TEAL.with_alpha(220), 1);
-                text::draw_text_centered(fb, cx, cy + 32, line2,
-                    ACCENT_TEAL.with_alpha(180), 1);
+            let max_w = self.screen_w as i32 - 40;
+            let lines = wrap_text(&self.current_insight, max_w, 1);
+            let line_h = 14;
+            let start_y = cy + 20;
+            for (i, line) in lines.iter().enumerate() {
+                let alpha = if i == 0 { 220u8 } else { 180 };
+                text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
+                    ACCENT_TEAL.with_alpha(alpha), 1);
             }
+        }
+
+        // "Next" button — shown during correct feedback so player can read the insight
+        if self.feedback == FeedbackState::Correct {
+            let btn_w = 160.0;
+            let btn_h = 50.0;
+            let btn_x = (self.screen_w - btn_w) / 2.0;
+            let btn_y = self.sy(FEEDBACK_Y + FEEDBACK_H - 10.0);
+            shapes::fill_rect(fb, btn_x, btn_y, btn_w, btn_h, OPTION_BG);
+            shapes::draw_rect(fb, btn_x, btn_y, btn_w, btn_h, CORRECT_COLOR);
+            text::draw_text_centered(fb, cx, (btn_y + btn_h / 2.0 - 5.0) as i32,
+                "Next", CORRECT_COLOR, 2);
         }
 
         // Decorative accents
@@ -2158,4 +2228,29 @@ impl MusicTheorySim {
         text::draw_text_centered(fb, cx + 1, combo_y + 1, &combo_str, glow_color, 2);
         text::draw_text_centered(fb, cx, combo_y, &combo_str, color.with_alpha(alpha), 2);
     }
+}
+
+/// Word-wrap text to fit within `max_w` pixels at the given scale.
+fn wrap_text(s: &str, max_w: i32, scale: u32) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut current = String::new();
+    for word in s.split_whitespace() {
+        let candidate = if current.is_empty() {
+            word.to_string()
+        } else {
+            format!("{} {}", current, word)
+        };
+        if text::text_width(&candidate, scale) <= max_w {
+            current = candidate;
+        } else {
+            if !current.is_empty() {
+                lines.push(current);
+            }
+            current = word.to_string();
+        }
+    }
+    if !current.is_empty() {
+        lines.push(current);
+    }
+    lines
 }

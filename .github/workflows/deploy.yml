@@ -66,8 +66,8 @@ jobs:
           # Copy shared JS modules                                                              
           cp site/browser-state.js _site/
 
-          # Copy all game demos (gravity-pong, music-theory, etc.)                                                                                                                                    
-          for demo_dir in site/gravity-pong* site/music-theory; do
+          # Copy all game demos (gravity-pong, chord-reps, etc.)                                                                                                                                    
+          for demo_dir in site/gravity-pong* site/chord-reps; do
             [ -d "$demo_dir" ] || continue
             name=$(basename "$demo_dir")
             mkdir -p "_site/$name"

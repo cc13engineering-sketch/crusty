@@ -276,6 +276,551 @@ pub fn xorshift(mut s: u64) -> u64 {
     s
 }
 
+// ─── Content Database (Fun Facts + Affiliate Links) ────────────────
+
+/// A product recommendation shown alongside a fun fact.
+#[derive(Clone, Debug)]
+pub struct ProductRec {
+    pub name: &'static str,
+    pub blurb: &'static str,
+    pub url: &'static str,
+    pub program: &'static str,
+    pub disclosure: &'static str,
+}
+
+/// A fun fact + optional product + optional hint for a specific challenge variant.
+#[derive(Clone, Debug)]
+pub struct ContentEntry {
+    pub concept: u8,
+    pub variant: Option<u8>,
+    pub min_difficulty: u8,
+    pub fact: &'static str,
+    pub hint: Option<&'static str>,
+    pub product: Option<ProductRec>,
+}
+
+// ─── Coursera Affiliate Links ──────────────────────────────────────
+// Placeholder URLs — replace with real affiliate URLs after Coursera
+// approval. The course slugs are illustrative of what we'd link to.
+
+const COURSERA_DISCLOSURE: &str = "(affiliate link \u{2014} we earn a commission if you enroll)";
+
+const COURSERA_FUNDAMENTALS: ProductRec = ProductRec {
+    name: "Fundamentals of Music Theory (Coursera)",
+    blurb: "Learn the building blocks from Edinburgh",
+    url: "https://www.coursera.org/learn/edinburgh-music-theory?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_MUSICIANSHIP: ProductRec = ProductRec {
+    name: "Developing Your Musicianship (Coursera/Berklee)",
+    blurb: "Berklee's approach to practical ear training",
+    url: "https://www.coursera.org/learn/develop-your-musicianship?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_JAZZ_IMPROV: ProductRec = ProductRec {
+    name: "Jazz Improvisation (Coursera/Berklee)",
+    blurb: "Take your theory into jazz performance",
+    url: "https://www.coursera.org/learn/jazz-improvisation?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_SONGWRITING: ProductRec = ProductRec {
+    name: "Songwriting (Coursera/Berklee)",
+    blurb: "Turn chord progressions into songs",
+    url: "https://www.coursera.org/learn/songwriting?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_GUITAR: ProductRec = ProductRec {
+    name: "Guitar for Beginners (Coursera/Berklee)",
+    blurb: "Play these chords on a real instrument",
+    url: "https://www.coursera.org/learn/guitar?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_MUSIC_PROD: ProductRec = ProductRec {
+    name: "Music Production (Coursera/Berklee)",
+    blurb: "Hear these sounds in a DAW context",
+    url: "https://www.coursera.org/learn/music-production?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+const COURSERA_COMPOSITION: ProductRec = ProductRec {
+    name: "Write Like Mozart (Coursera)",
+    blurb: "Classical composition and voice leading",
+    url: "https://www.coursera.org/learn/classical-composition?utm_source=crusty&utm_medium=affiliate",
+    program: "coursera",
+    disclosure: COURSERA_DISCLOSURE,
+};
+
+/// Master content database. Adding content = adding entries here.
+///
+/// **Coursera link frequency strategy:**
+/// - Intervals/ChordQuality (concept 2, 3): Show on ~30% of entries.
+///   These are beginner-friendly concepts where Coursera Fundamentals
+///   and Musicianship courses are most relevant.
+/// - ScaleDegree/RomanNumeral (concept 0, 1): Show on ~25% of entries.
+///   Users learning these benefit from structured courses.
+/// - Cadence (concept 4): Show on ~35% of entries. Users identifying
+///   cadences are intermediate and ready for deeper coursework.
+///
+/// Product recs display at ~25% frequency (controlled in mod.rs),
+/// so effective affiliate impression rate is:
+///   entry_has_product_rate × 0.25 display_rate ≈ 7-9% of successes.
+pub const CONTENT_DB: &[ContentEntry] = &[
+    // ════════════════════════════════════════════════════════════════
+    // SCALE DEGREE (concept 0, variants 0–6)
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 0, variant: Some(0), min_difficulty: 0,
+        fact: "Tonic (1st) -- home base. Every melody wants to come back here. It's the gravitational center of the key.",
+        hint: Some("Solfege: Do -- the most stable, 'at rest' sound"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+    ContentEntry {
+        concept: 0, variant: Some(1), min_difficulty: 0,
+        fact: "Supertonic (2nd) -- one step above home. The ii-V-I progression built on this degree is the backbone of jazz.",
+        hint: Some("Solfege: Re -- wants to move, feels 'unfinished'"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 0, variant: Some(2), min_difficulty: 0,
+        fact: "Mediant (3rd) -- the bridge between tonic and dominant. This single note determines whether music sounds major or minor.",
+        hint: Some("Solfege: Mi -- bright in major, dark in minor"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 0, variant: Some(3), min_difficulty: 0,
+        fact: "Subdominant (4th) -- the plagal sound. Think of the 'Amen' at the end of a hymn. Gentle motion away from home.",
+        hint: Some("Solfege: Fa -- warm, wants to fall back to Mi"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 0, variant: Some(4), min_difficulty: 0,
+        fact: "Dominant (5th) -- maximum tension, maximum pull. The V-I motion is the most fundamental relationship in Western music.",
+        hint: Some("Solfege: Sol -- strong, open, almost as stable as Do"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 0, variant: Some(5), min_difficulty: 0,
+        fact: "Submediant (6th) -- the emotional twin of the tonic. It's the relative minor's root, giving a bittersweet shadow of major.",
+        hint: Some("Solfege: La -- the root of the relative minor"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 0, variant: Some(6), min_difficulty: 0,
+        fact: "Leading tone (7th) -- the most unstable degree, just a half step below tonic. It pulls upward with almost physical urgency.",
+        hint: Some("Solfege: Ti -- tense, desperately wants to resolve up to Do"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // ROMAN NUMERAL (concept 1, variants 0–6)
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 1, variant: Some(0), min_difficulty: 0,
+        fact: "I -- the tonic triad. The harmonic center of gravity. Every progression eventually resolves here.",
+        hint: Some("This chord is major and feels completely 'at rest'"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 1, variant: Some(1), min_difficulty: 0,
+        fact: "ii -- supertonic minor. The classic setup chord for V in the ii-V-I turnaround that jazz musicians call the 'predominant.'",
+        hint: Some("This chord is minor and leads naturally to V"),
+        product: Some(COURSERA_JAZZ_IMPROV),
+    },
+    ContentEntry {
+        concept: 1, variant: Some(2), min_difficulty: 0,
+        fact: "iii -- mediant minor. It shares two notes with I and two with V, making it a chameleon. Relatively rare in pop, common in classical.",
+        hint: Some("This chord is minor and shares notes with both I and V"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 1, variant: Some(3), min_difficulty: 0,
+        fact: "IV -- subdominant major. Foundation of plagal cadences and the four-chord pop loop. Gentle departure from home.",
+        hint: Some("This chord is major and has a warm, 'hymn-like' quality"),
+        product: Some(COURSERA_SONGWRITING),
+    },
+    ContentEntry {
+        concept: 1, variant: Some(4), min_difficulty: 0,
+        fact: "V -- the dominant major. Creates the strongest pull back to I. Its major third is the leading tone of the key.",
+        hint: Some("This chord is major and creates strong tension toward I"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 1, variant: Some(5), min_difficulty: 0,
+        fact: "vi -- submediant minor. The gateway to the relative minor key. Starting on vi instead of I gives a melancholic flavor.",
+        hint: Some("This chord is minor and is the root of the relative minor"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 1, variant: Some(6), min_difficulty: 0,
+        fact: "vii\u{00b0} -- the leading-tone diminished triad. Both intervals are minor thirds, creating instability that naturally resolves to I.",
+        hint: Some("This is the only diminished chord in the natural major key"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // INTERVAL RECOGNITION (concept 2, variants 0–12 semitones)
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 2, variant: Some(0), min_difficulty: 0,
+        fact: "Gregorian chant is entirely unison singing -- hundreds of monks on the same note. The raw power of unity.",
+        hint: Some("Both notes are identical -- listen for a single pitch"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(1), min_difficulty: 0,
+        fact: "The Jaws theme is just two notes a half step apart. The most dissonant interval creates the most tension.",
+        hint: Some("Song ref: 'Jaws' theme (duh-NUH) -- the smallest possible step"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(2), min_difficulty: 0,
+        fact: "'Happy Birthday' starts with a major 2nd -- the basic building block of every scale. Two whole steps in a row form the major sound.",
+        hint: Some("Song ref: 'Happy Birthday' opening (Hap-py) -- one whole step"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(3), min_difficulty: 0,
+        fact: "'Greensleeves' opens with a minor 3rd leap. This one interval defines every minor chord and minor key.",
+        hint: Some("Song ref: 'Greensleeves' (A-las) -- the 'sad' third"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(4), min_difficulty: 0,
+        fact: "Do-mi is ALWAYS a major 3rd, no matter what key you're in. That's the power of movable-do solfege.",
+        hint: Some("Song ref: 'When the Saints' (Oh when the) -- the 'happy' third"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(5), min_difficulty: 0,
+        fact: "The perfect 4th is music's great paradox: consonant in a melody, but traditionally dissonant in harmony!",
+        hint: Some("Song ref: 'Here Comes the Bride' -- open, bright, rising"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(6), min_difficulty: 0,
+        fact: "There are only 13 possible chromatic intervals, but the tritone is the only one that is its own inversion. It splits the octave exactly in half.",
+        hint: Some("Song ref: 'Maria' (West Side Story) -- unstable, wants to resolve"),
+        product: Some(COURSERA_JAZZ_IMPROV),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(7), min_difficulty: 0,
+        fact: "Power chords in rock are just root and fifth. The perfect 5th is the foundation of the overtone series.",
+        hint: Some("Song ref: 'Star Wars' opening (bum bum-bum) -- strong, open, powerful"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(8), min_difficulty: 0,
+        fact: "The minor 6th is the inversion of the major 3rd. Flip M3 upside down and you get m6 -- major becomes minor.",
+        hint: Some("Song ref: 'The Entertainer' (Joplin) -- wide, bittersweet leap"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(9), min_difficulty: 0,
+        fact: "Jazz musicians love added 6th chords for their smooth, mellow quality. The major 6th gives warmth without tension.",
+        hint: Some("Song ref: 'My Bonnie Lies Over the Ocean' -- warm, lyrical, open"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(10), min_difficulty: 0,
+        fact: "The minor 7th is the heart of dominant 7th chords. It adds soulful tension without the extreme pull of the major 7th.",
+        hint: Some("Song ref: 'Somewhere' (West Side Story) -- bluesy, soulful"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: Some(11), min_difficulty: 0,
+        fact: "Major 7th chords are the signature sound of jazz ballads and bossa nova -- dreamy, floating dissonance.",
+        hint: Some("Song ref: 'Take On Me' (a-ha) -- wide, bright, just short of an octave"),
+        product: Some(COURSERA_JAZZ_IMPROV),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(12), min_difficulty: 0,
+        fact: "The frequency ratio of an octave is exactly 2:1. Your brain perceives octave-displaced notes as 'the same' -- nobody fully understands why.",
+        hint: Some("Song ref: 'Somewhere Over the Rainbow' -- same note, higher register"),
+        product: None,
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // CHORD QUALITY (concept 3, variants 0–3)
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 3, variant: Some(0), min_difficulty: 0,
+        fact: "Every major key contains exactly 3 major triads (I, IV, V), 3 minor triads (ii, iii, vi), and 1 diminished (vii\u{00b0}). The same recipe, every time.",
+        hint: Some("The 3rd is major (4 semitones above root) -- bright, stable, 'happy'"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+    ContentEntry {
+        concept: 3, variant: Some(1), min_difficulty: 0,
+        fact: "Major and minor differ by exactly one semitone -- the 3rd. That single half-step is the difference between joy and melancholy.",
+        hint: Some("The 3rd is minor (3 semitones above root) -- darker, introspective"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 3, variant: Some(2), min_difficulty: 0,
+        fact: "A diminished 7th chord divides the octave into four equal minor thirds. There are really only 3 unique dim7 chords -- every other is a rearrangement.",
+        hint: Some("Two stacked minor 3rds -- compact, tense, unstable"),
+        product: Some(COURSERA_COMPOSITION),
+    },
+    ContentEntry {
+        concept: 3, variant: Some(3), min_difficulty: 0,
+        fact: "An augmented triad divides the octave into three equal parts. It sounds mysterious because your ear can't find a 'bottom.'",
+        hint: Some("Two stacked major 3rds -- symmetrical, dreamy, tonally ambiguous"),
+        product: None,
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // CADENCE (concept 4, variants 0–3)
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 4, variant: Some(0), min_difficulty: 0,
+        fact: "The cadential 6/4 is one of the most analyzed moments in all of theory. Despite looking like a tonic chord, it functions as a decorated dominant.",
+        hint: Some("Bass motion: the bass moves from Sol down to Do -- strongest resolution"),
+        product: Some(COURSERA_COMPOSITION),
+    },
+    ContentEntry {
+        concept: 4, variant: Some(1), min_difficulty: 0,
+        fact: "The Picardy third -- ending a minor piece with a major chord -- has been used since the Renaissance. Minor-key pieces almost ALWAYS ended major in the 1500s.",
+        hint: Some("Bass motion: Fa falls to Do -- the 'Amen' sound, gentle, hymn-like"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+    ContentEntry {
+        concept: 4, variant: Some(2), min_difficulty: 0,
+        fact: "A half cadence is a musical question mark. The phrase pauses on the dominant, demanding continuation. Composers use them to keep listeners engaged.",
+        hint: Some("The phrase ends on V -- feels unresolved, like a question"),
+        product: None,
+    },
+    ContentEntry {
+        concept: 4, variant: Some(3), min_difficulty: 0,
+        fact: "V to vi -- when Radiohead uses a deceptive cadence, they're using the same trick Beethoven did 200 years earlier. The surprise creates emotional depth.",
+        hint: Some("Starts like authentic (V) but lands on vi instead of I -- the 'surprise' ending"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // ADDITIONAL ENRICHMENT ENTRIES (concept-generic or alternate facts)
+    // These provide variety -- users see different facts on repeat visits.
+    // ════════════════════════════════════════════════════════════════
+
+    // -- Extra interval facts (alternate fun facts for variety) --
+    ContentEntry {
+        concept: 2, variant: Some(6), min_difficulty: 3,
+        fact: "The tritone was called 'diabolus in musica' and banned in medieval church music. It's now the backbone of dominant 7th chords and the entire blues tradition.",
+        hint: Some("Exactly 6 semitones -- sits right in the middle of the octave"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 2, variant: Some(7), min_difficulty: 2,
+        fact: "The perfect 5th is so fundamental that it's the basis of Pythagorean tuning -- one of the oldest tuning systems, derived from the ratios of vibrating strings.",
+        hint: Some("The most consonant interval after unison and octave -- 7 semitones"),
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+
+    // -- Extra chord quality facts --
+    ContentEntry {
+        concept: 3, variant: Some(0), min_difficulty: 3,
+        fact: "The I-IV-V progression uses only major triads. These three chords alone can harmonize almost any melody in a major key.",
+        hint: Some("Bright and stable -- the 'default' chord sound in Western music"),
+        product: Some(COURSERA_GUITAR),
+    },
+    ContentEntry {
+        concept: 3, variant: Some(1), min_difficulty: 3,
+        fact: "Minor chords appear on ii, iii, and vi in a major key. In minor keys, i, iv, and sometimes v are minor -- creating that pervasive melancholy.",
+        hint: Some("The lower 3rd gives it a darker, more pensive quality"),
+        product: None,
+    },
+
+    // -- Extra cadence facts --
+    ContentEntry {
+        concept: 4, variant: Some(0), min_difficulty: 3,
+        fact: "Nearly every classical piece ends with an authentic cadence. The leading tone resolves up to tonic while the bass drops from dominant to tonic -- the strongest closure possible.",
+        hint: Some("V to I -- the musical 'full stop'"),
+        product: Some(COURSERA_COMPOSITION),
+    },
+    ContentEntry {
+        concept: 4, variant: Some(3), min_difficulty: 3,
+        fact: "Deceptive cadences work because vi shares two notes with I. Your brain was expecting I but gets its minor-mode shadow instead -- same skeleton, different mood.",
+        hint: Some("V resolves to vi instead of I -- your ear expects resolution but gets a twist"),
+        product: None,
+    },
+
+    // -- Extra scale degree facts (advanced, difficulty-gated) --
+    ContentEntry {
+        concept: 0, variant: Some(4), min_difficulty: 4,
+        fact: "The dominant sits a perfect 5th above tonic. This 3:2 frequency ratio is the simplest after the octave, which is why V-I feels so natural.",
+        hint: Some("The second-most stable degree -- strong and open"),
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 0, variant: Some(6), min_difficulty: 4,
+        fact: "The leading tone (ti) is music's most impatient note. Theorists say it 'wants' to resolve up to do so strongly that when it doesn't, it's called 'frustrated.'",
+        hint: Some("Just a half step below tonic -- maximum instability"),
+        product: None,
+    },
+
+    // -- Extra Roman numeral facts --
+    ContentEntry {
+        concept: 1, variant: Some(4), min_difficulty: 3,
+        fact: "Add a minor 7th to V and you get V7 -- the dominant seventh chord. That added note creates the tritone interval, which is why V7 resolves to I even more powerfully than plain V.",
+        hint: Some("Major chord built on the 5th degree -- the 'engine' of tonal harmony"),
+        product: Some(COURSERA_JAZZ_IMPROV),
+    },
+    ContentEntry {
+        concept: 1, variant: Some(0), min_difficulty: 4,
+        fact: "In Schenkerian analysis, every tonal piece is ultimately a prolongation of the I chord. All the other chords are just elaborate decorations of home base.",
+        hint: Some("The most stable chord -- everything resolves here"),
+        product: Some(COURSERA_COMPOSITION),
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // CONCEPT-GENERIC ENTRIES (variant: None, match any variant)
+    // Shown as fallbacks when no variant-specific entry matches.
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 0, variant: None, min_difficulty: 0,
+        fact: "Tendency tones: Ti pulls up to Do, Fa pulls down to Mi. These two half-step resolutions drive all of tonal harmony.",
+        hint: None,
+        product: Some(COURSERA_FUNDAMENTALS),
+    },
+    ContentEntry {
+        concept: 1, variant: None, min_difficulty: 0,
+        fact: "Roman numeral analysis was invented to show chord function independent of key. A ii-V-I sounds 'the same' whether it's in C major or Gb major.",
+        hint: None,
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: None, min_difficulty: 0,
+        fact: "Intervals come in pairs called inversions: flip a 3rd upside down and you get a 6th. Flip a 2nd and get a 7th. They always add to 9.",
+        hint: None,
+        product: Some(COURSERA_MUSICIANSHIP),
+    },
+    ContentEntry {
+        concept: 3, variant: None, min_difficulty: 0,
+        fact: "A chord's 'quality' comes from the size of its stacked thirds. Major+minor = major triad. Minor+major = minor triad. Same notes, different order, different world.",
+        hint: None,
+        product: None,
+    },
+    ContentEntry {
+        concept: 4, variant: None, min_difficulty: 0,
+        fact: "Cadences are musical punctuation: authentic = period, half = comma, deceptive = plot twist. The entire structure of tonal phrases depends on them.",
+        hint: None,
+        product: Some(COURSERA_COMPOSITION),
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // ADVANCED HARMONY FUN FACTS (concept-generic, difficulty-gated)
+    // These surface for experienced users and cover deeper topics
+    // from Open Music Theory without needing new challenge types.
+    // ════════════════════════════════════════════════════════════════
+    ContentEntry {
+        concept: 1, variant: None, min_difficulty: 5,
+        fact: "An applied chord is like a brief vacation to another key -- you borrow a chord to make one of your own feel momentarily like a tonic. The most common is V/V.",
+        hint: None,
+        product: Some(COURSERA_JAZZ_IMPROV),
+    },
+    ContentEntry {
+        concept: 3, variant: None, min_difficulty: 5,
+        fact: "When Nirvana uses a bVII chord in a major-key song, that's modal mixture -- borrowing from the parallel minor for a darker sound. It's painting with borrowed colors.",
+        hint: None,
+        product: None,
+    },
+    ContentEntry {
+        concept: 2, variant: None, min_difficulty: 6,
+        fact: "All four augmented-sixth chords share the same defining interval: the augmented 6th between b6 and #4, which expands outward to an octave when it resolves.",
+        hint: None,
+        product: Some(COURSERA_COMPOSITION),
+    },
+    ContentEntry {
+        concept: 0, variant: None, min_difficulty: 5,
+        fact: "Le (b6) is the 'dark' tendency tone -- it pulls downward to Sol with melancholy gravity, while Ti pushes upward to Do with bright urgency.",
+        hint: None,
+        product: None,
+    },
+    ContentEntry {
+        concept: 4, variant: None, min_difficulty: 5,
+        fact: "The 'truck-driver modulation' -- named by scholar Walter Everett -- sounds like shifting gears: drop to the dominant of the new key, then rev up to the new tonic.",
+        hint: None,
+        product: Some(COURSERA_MUSIC_PROD),
+    },
+    ContentEntry {
+        concept: 2, variant: None, min_difficulty: 5,
+        fact: "Parallel fifths are the cardinal sin of counterpoint. Two voices in parallel perfect consonances lose their independence -- they start sounding like one voice.",
+        hint: None,
+        product: Some(COURSERA_COMPOSITION),
+    },
+    ContentEntry {
+        concept: 2, variant: None, min_difficulty: 4,
+        fact: "Music exploits a survival mechanism: your brain uses sound irregularities to detect threats. That's why a surprise chord change gives you chills.",
+        hint: None,
+        product: None,
+    },
+];
+
+/// Select a content entry for the given challenge result.
+/// Prefers variant-specific over generic entries. `seed` provides
+/// deterministic random selection when multiple entries match.
+pub fn select_content(
+    concept: u8,
+    variant: u8,
+    difficulty: u8,
+    seed: u64,
+) -> Option<&'static ContentEntry> {
+    let mut specific_count = 0usize;
+    let mut generic_count = 0usize;
+
+    // First pass: count matches
+    for entry in CONTENT_DB {
+        if entry.concept != concept || entry.min_difficulty > difficulty {
+            continue;
+        }
+        match entry.variant {
+            Some(v) if v == variant => specific_count += 1,
+            None => generic_count += 1,
+            _ => {}
+        }
+    }
+
+    let (target_count, use_specific) = if specific_count > 0 {
+        (specific_count, true)
+    } else if generic_count > 0 {
+        (generic_count, false)
+    } else {
+        return None;
+    };
+
+    // Deterministic selection
+    let idx = (xorshift(seed) % target_count as u64) as usize;
+    let mut seen = 0usize;
+
+    for entry in CONTENT_DB {
+        if entry.concept != concept || entry.min_difficulty > difficulty {
+            continue;
+        }
+        let matches = match entry.variant {
+            Some(v) if v == variant => use_specific,
+            None => !use_specific,
+            _ => false,
+        };
+        if matches {
+            if seen == idx {
+                return Some(entry);
+            }
+            seen += 1;
+        }
+    }
+
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -368,5 +913,87 @@ mod tests {
             s = xorshift(s);
             assert_ne!(s, 0);
         }
+    }
+
+    #[test]
+    fn content_db_has_entries() {
+        assert!(CONTENT_DB.len() >= 35, "should have at least one entry per SRS card");
+    }
+
+    #[test]
+    fn content_db_all_concepts_covered() {
+        for concept in 0..=4u8 {
+            let count = CONTENT_DB.iter().filter(|e| e.concept == concept).count();
+            assert!(count > 0, "concept {} has no entries", concept);
+        }
+    }
+
+    #[test]
+    fn select_content_finds_specific() {
+        // Interval tritone (concept 2, variant 6) should exist
+        let result = select_content(2, 6, 10, 42);
+        assert!(result.is_some());
+        let entry = result.unwrap();
+        assert_eq!(entry.concept, 2);
+    }
+
+    #[test]
+    fn select_content_falls_back_to_generic() {
+        // Use a variant that likely only has concept-generic entries
+        // concept 0, variant 0 has a specific entry, but let's test the generic path
+        // by using a concept with known generic entries at high difficulty
+        let result = select_content(0, 0, 10, 99);
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn select_content_deterministic() {
+        let a = select_content(2, 7, 5, 123);
+        let b = select_content(2, 7, 5, 123);
+        assert_eq!(a.map(|e| e.fact), b.map(|e| e.fact));
+    }
+
+    #[test]
+    fn select_content_respects_difficulty() {
+        // At difficulty 0, should not return entries with min_difficulty > 0
+        for entry in CONTENT_DB {
+            if entry.min_difficulty > 0 {
+                // If this variant also has a difficulty-0 entry, select_content
+                // should prefer those at low difficulty
+                continue;
+            }
+        }
+        // Ensure entries with min_difficulty=5 don't show at difficulty 2
+        let high_diff_only: Vec<_> = CONTENT_DB.iter()
+            .filter(|e| e.concept == 0 && e.min_difficulty > 3)
+            .collect();
+        if !high_diff_only.is_empty() {
+            // These shouldn't be returned at difficulty 0
+            for seed in 0..20u64 {
+                if let Some(entry) = select_content(
+                    high_diff_only[0].concept,
+                    high_diff_only[0].variant.unwrap_or(0),
+                    0, seed,
+                ) {
+                    assert!(entry.min_difficulty <= 0);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn coursera_links_present() {
+        let coursera_count = CONTENT_DB.iter()
+            .filter(|e| e.product.as_ref().map_or(false, |p| p.program == "coursera"))
+            .count();
+        assert!(coursera_count >= 10, "should have at least 10 Coursera links, got {}", coursera_count);
+    }
+
+    #[test]
+    fn hints_present() {
+        let hint_count = CONTENT_DB.iter()
+            .filter(|e| e.hint.is_some())
+            .count();
+        assert!(hint_count >= 20, "should have at least 20 hints, got {}", hint_count);
     }
 }

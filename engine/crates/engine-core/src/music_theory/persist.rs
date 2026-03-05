@@ -11,6 +11,8 @@
 pub enum PersistCommand {
     /// Store a key-value pair in persistent storage.
     Store { key: String, value: String },
+    /// Open a URL in a new browser tab (for affiliate links).
+    OpenUrl { url: String },
 }
 
 impl PersistCommand {
@@ -21,6 +23,12 @@ impl PersistCommand {
                     "{{\"type\":\"Store\",\"key\":\"{}\",\"value\":\"{}\"}}",
                     escape_json(key),
                     escape_json(value)
+                )
+            }
+            PersistCommand::OpenUrl { url } => {
+                format!(
+                    "{{\"type\":\"OpenUrl\",\"url\":\"{}\"}}",
+                    escape_json(url)
                 )
             }
         }

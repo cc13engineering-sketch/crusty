@@ -18,7 +18,7 @@ use crate::sound::{SoundCommand, Waveform};
 use persist::PersistCommand;
 use srs::SrsState;
 
-use theory::*;
+use theory::{*, select_content, ContentEntry};
 
 // ─── Layout Constants ───────────────────────────────────────────────
 // Reference design: 600×900. Actual screen_w/screen_h come from the
@@ -205,6 +205,9 @@ pub struct MusicTheorySim {
     // Hint system
     hint_used: bool,
     eliminated_options: [bool; 4],
+    // Content / affiliate system
+    current_content: Option<&'static ContentEntry>,
+    show_product: bool,
 }
 
 impl MusicTheorySim {
@@ -250,6 +253,8 @@ impl MusicTheorySim {
             srs: SrsState::new(),
             hint_used: false,
             eliminated_options: [false; 4],
+            current_content: None,
+            show_product: false,
         }
     }
 
@@ -273,6 +278,8 @@ impl MusicTheorySim {
         self.current_insight.clear();
         self.hint_used = false;
         self.eliminated_options = [false; 4];
+        self.current_content = None;
+        self.show_product = false;
 
         let key_roots = [48u8, 50, 52, 53, 55, 57];
         let key_root = key_roots[engine.rng.range_i32(0, key_roots.len() as i32 - 1) as usize];
@@ -838,6 +845,23 @@ impl MusicTheorySim {
                     self.current_insight = cadence_insight(CADENCE_TYPES[ci]).to_string();
                 }
             }
+        }
+
+        // Select enriched content (fun fact + optional product) from CONTENT_DB
+        let content_seed = engine.rng.next_u64();
+        let concept_for_content = self.concept_idx();
+        let variant_for_content = self.challenge.answer;
+        if let Some(entry) = select_content(concept_for_content, variant_for_content, self.difficulty, content_seed) {
+            self.current_insight = entry.fact.to_string();
+            // Show product ~25% of the time when one exists
+            self.show_product = entry.product.is_some()
+                && engine.rng.next_u64() % 4 == 0;
+            self.current_content = Some(entry);
+            // Use enriched hint if available (for future hint presses on similar cards)
+        } else {
+            self.current_content = None;
+            self.show_product = false;
+            // Keep the existing insight from degree_insight/etc. as fallback
         }
 
         // Correct chime
@@ -1573,6 +1597,28 @@ impl Simulation for MusicTheorySim {
                     self.feedback_timer = 0.0;
                     self.generate_challenge(engine);
                 }
+
+                // Affiliate product tap zone (product name area)
+                if self.show_product {
+                    if let Some(entry) = self.current_content {
+                        if let Some(product) = &entry.product {
+                            // Match the layout from render_feedback:
+                            // Insight capped at 4 lines when product shown
+                            let max_w_px = self.screen_w as i32 - 40;
+                            let all_lines = wrap_text(&self.current_insight, max_w_px, 2);
+                            let n_lines = all_lines.len().min(4);
+                            let start_y = self.sy(OPTIONS_Y + 40.0);
+                            let prod_top = start_y + (n_lines as f64) * 18.0 + 4.0;
+                            let prod_bot = prod_top + 52.0; // blurb + name + disclosure
+                            // Full-width tap zone
+                            if my >= prod_top && my <= prod_bot {
+                                engine.persist_queue.push(PersistCommand::OpenUrl {
+                                    url: product.url.to_string(),
+                                });
+                            }
+                        }
+                    }
+                }
             }
 
             // "Replay" and "Hint" tap zones (in challenge area)
@@ -1882,6 +1928,25 @@ impl MusicTheorySim {
                 text::draw_text_centered(fb, cx + 50, btn_y,
                     "[ Hint ]", DIM_TEXT.with_alpha(80), 1);
             }
+
+            // Show content hint text when hint was used
+            if self.hint_used {
+                let concept_for_hint = self.concept_idx();
+                let variant_for_hint = self.challenge.answer;
+                // Try to find a content entry with a hint for this card
+                if let Some(entry) = select_content(concept_for_hint, variant_for_hint, self.difficulty, 0) {
+                    if let Some(hint_text) = entry.hint {
+                        let hint_y = btn_y + 18;
+                        let max_w = self.screen_w as i32 - 60;
+                        let lines = wrap_text(hint_text, max_w, 1);
+                        // Cap at 2 lines to avoid overlapping the options zone
+                        for (li, line) in lines.iter().take(2).enumerate() {
+                            text::draw_text_centered(fb, cx, hint_y + (li as i32) * 12, line,
+                                ACCENT_GOLD.with_alpha(180), 1);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -1967,13 +2032,40 @@ impl MusicTheorySim {
             // Insight text below the message
             if !self.current_insight.is_empty() {
                 let max_w = self.screen_w as i32 - 40;
-                let lines = wrap_text(&self.current_insight, max_w, 2);
+                let all_lines = wrap_text(&self.current_insight, max_w, 2);
                 let line_h = 18;
                 let start_y = self.sy(OPTIONS_Y + 40.0) as i32;
+                // Limit insight lines when product is shown to avoid overflow
+                let max_lines = if self.show_product { 4 } else { 8 };
+                let lines: Vec<_> = all_lines.into_iter().take(max_lines).collect();
                 for (i, line) in lines.iter().enumerate() {
                     let alpha = if i == 0 { 220u8 } else { 180 };
                     text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
                         ACCENT_TEAL.with_alpha(alpha), 2);
+                }
+
+                // Affiliate recommendation (below insight, above [ Next ])
+                if self.show_product {
+                    if let Some(entry) = self.current_content {
+                        if let Some(product) = &entry.product {
+                            let prod_y = start_y + (lines.len() as i32) * line_h + 10;
+
+                            // Blurb line (scale 1, gold)
+                            text::draw_text_centered(fb, cx, prod_y,
+                                product.blurb, ACCENT_GOLD, 1);
+
+                            // Product name — use scale 1 on narrow screens
+                            let name_scale = if self.screen_w < 500.0 { 1 } else { 2 };
+                            let name_y = prod_y + 14;
+                            text::draw_text_centered(fb, cx, name_y,
+                                product.name, ACCENT_CYAN, name_scale);
+
+                            // FTC disclosure (scale 1, dim)
+                            let disc_y = name_y + if name_scale == 2 { 20 } else { 12 };
+                            text::draw_text_centered(fb, cx, disc_y,
+                                product.disclosure, DIM_TEXT, 1);
+                        }
+                    }
                 }
             }
 

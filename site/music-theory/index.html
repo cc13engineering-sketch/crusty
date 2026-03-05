@@ -284,6 +284,8 @@
         for (const cmd of cmds) {
             if (cmd.type === 'Store') {
                 localStorage.setItem('crusty_mt_' + cmd.key, cmd.value);
+            } else if (cmd.type === 'OpenUrl') {
+                window.open(cmd.url, '_blank', 'noopener');
             }
         }
     }

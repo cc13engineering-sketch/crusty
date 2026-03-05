@@ -361,7 +361,10 @@ pub fn setup_chord_reps() {
     ENGINE.with(|e| {
         let mut borrow = e.borrow_mut();
         let eng = borrow.as_mut().expect("Engine not initialized");
+        // Preserve browser-set state (SRS data, current_day) across reset
+        let saved_state = eng.global_state.clone();
         eng.reset(42);
+        eng.global_state = saved_state;
         let mut sim = ChordRepsSim::new();
         sim.setup(eng);
         SIM.with(|s| {

@@ -96,6 +96,9 @@
         drain_sound_commands,
         drain_persist_commands,
         set_game_state_str,
+        get_game_state_str,
+        get_game_state_f64,
+        clear_game_state,
         setup_chord_reps,
         set_url_param,
         browser_state_ptr, browser_state_len
@@ -190,9 +193,21 @@
         for (const cmd of cmds) {
             if (cmd.type === 'Store') {
                 localStorage.setItem('crusty_mt_' + cmd.key, cmd.value);
-            } else if (cmd.type === 'OpenUrl') {
-                window.open(cmd.url, '_blank', 'noopener');
             }
+            // OpenUrl is handled via pending_url in click handlers (user gesture context)
+        }
+    }
+
+    // Open affiliate link if click lands in the link hit-zone.
+    // Must run inside a user gesture handler (mousedown/touchstart)
+    // so window.open is not blocked by the browser's popup blocker.
+    function tryOpenLink(engineY) {
+        const url = get_game_state_str('link_url');
+        if (!url) return;
+        const top = get_game_state_f64('link_top');
+        const bot = get_game_state_f64('link_bot');
+        if (engineY >= top && engineY <= bot) {
+            window.open(url, '_blank', 'noopener');
         }
     }
 
@@ -495,6 +510,7 @@
     });
     canvas.addEventListener('mousedown', e => {
         const [x, y] = toEngine(e.clientX, e.clientY);
+        tryOpenLink(y);
         mouse_down(x, y, e.button);
     });
     canvas.addEventListener('mouseup', e => {
@@ -506,6 +522,7 @@
         e.preventDefault();
         for (const t of e.changedTouches) {
             const [x, y] = toEngine(t.clientX, t.clientY);
+            tryOpenLink(y);
             touch_start(t.identifier, x, y);
         }
     }, { passive: false });

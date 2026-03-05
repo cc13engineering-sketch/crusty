@@ -295,6 +295,18 @@ pub fn set_game_state_str(key: String, value: String) {
     with_engine(|eng| eng.global_state.set_str(&key, &value));
 }
 
+/// Get a string value from global game state. Returns empty string if not found.
+#[wasm_bindgen]
+pub fn get_game_state_str(key: String) -> String {
+    with_engine(|eng| eng.global_state.get_str(&key).unwrap_or("").to_string())
+}
+
+/// Remove a key from global game state.
+#[wasm_bindgen]
+pub fn clear_game_state(key: String) {
+    with_engine(|eng| { eng.global_state.remove(&key); });
+}
+
 // ─── URL Params WASM API ─────────────────────────────────────────
 
 /// Set a URL query parameter. Call after `init()` but before `setup_*()`.

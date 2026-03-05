@@ -1447,24 +1447,8 @@ impl Simulation for ChordRepsSim {
                     self.generate_challenge(engine);
                 }
 
-                // Course link tap zone (single line below insight)
-                if self.show_product {
-                    if let Some(entry) = self.current_content {
-                        if let Some(product) = &entry.product {
-                            let max_w_px = self.screen_w as i32 - 40;
-                            let all_lines = wrap_text(&self.current_insight, max_w_px, 2);
-                            let n_lines = all_lines.len().min(4);
-                            let start_y = self.sy(OPTIONS_Y + 40.0);
-                            let link_top = start_y + (n_lines as f64) * 18.0 + 8.0;
-                            let link_bot = link_top + 20.0;
-                            if my >= link_top && my <= link_bot {
-                                engine.persist_queue.push(PersistCommand::OpenUrl {
-                                    url: product.url.to_string(),
-                                });
-                            }
-                        }
-                    }
-                }
+                // Course link clicks are handled by JS (openPendingUrl)
+                // using link bounds exported via global_state each frame.
             }
 
             // "Replay" and "Hint" tap zones (in challenge area)
@@ -1627,6 +1611,25 @@ impl Simulation for ChordRepsSim {
         engine.global_state.set_f64("streak", self.streak as f64);
         engine.global_state.set_f64("difficulty", self.difficulty as f64);
         engine.global_state.set_f64("challenges_completed", self.challenges_completed as f64);
+
+        // Export link hit-zone for JS click handler (user gesture context)
+        if self.show_product && self.challenge.solved {
+            if let Some(entry) = self.current_content {
+                if let Some(product) = &entry.product {
+                    let max_w_px = self.screen_w as i32 - 40;
+                    let all_lines = wrap_text(&self.current_insight, max_w_px, 2);
+                    let n_lines = all_lines.len().min(4);
+                    let start_y = self.sy(OPTIONS_Y + 40.0);
+                    let link_top = start_y + (n_lines as f64) * 18.0 + 8.0;
+                    let link_bot = link_top + 20.0;
+                    engine.global_state.set_str("link_url", product.url);
+                    engine.global_state.set_f64("link_top", link_top);
+                    engine.global_state.set_f64("link_bot", link_bot);
+                }
+            }
+        } else {
+            engine.global_state.remove("link_url");
+        }
     }
 
     fn render(&self, engine: &mut Engine) {
@@ -1920,9 +1923,13 @@ impl ChordRepsSim {
                     if let Some(entry) = self.current_content {
                         if let Some(product) = &entry.product {
                             let link_y = start_y + (lines.len() as i32) * line_h + 14;
-                            let link_text = format!("Learn more about {} >>", product.topic);
-                            text::draw_text_centered(fb, cx, link_y,
-                                &link_text, DIM_TEXT, 2);
+                            let link_text = format!("{} >>", product.topic);
+                            // Wrap to fit screen width
+                            let link_lines = wrap_text(&link_text, max_w, 1);
+                            for (i, ll) in link_lines.iter().take(2).enumerate() {
+                                text::draw_text_centered(fb, cx,
+                                    link_y + (i as i32) * 14, ll, DIM_TEXT, 1);
+                            }
                         }
                     }
                 }

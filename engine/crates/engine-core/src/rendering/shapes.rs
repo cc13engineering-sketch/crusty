@@ -185,6 +185,43 @@ pub fn draw_dashed_circle(
     let _ = circumference; // suppress unused warning
 }
 
+/// Fill a pill / stadium shape (rounded rectangle with semicircle caps).
+/// Anti-aliased edges via signed-distance-field, same approach as `fill_circle`.
+pub fn fill_pill(fb: &mut Framebuffer, x: f64, y: f64, w: f64, h: f64, color: Color) {
+    if w <= 0.0 || h <= 0.0 {
+        return;
+    }
+    let r = h / 2.0;
+    let feather = 1.0;
+    let outer = r + feather;
+    let x0 = (x - feather).floor() as i32;
+    let y0 = (y - feather).floor() as i32;
+    let x1 = (x + w + feather).ceil() as i32;
+    let y1 = (y + h + feather).ceil() as i32;
+    let cy = y + r;
+    let left_cx = x + r;
+    let right_cx = x + w - r;
+    for py in y0..=y1 {
+        let dy = py as f64 + 0.5 - cy;
+        for px in x0..=x1 {
+            let pxf = px as f64 + 0.5;
+            // SDF for stadium: clamp x to the straight segment, then circle distance
+            let nearest_x = pxf.max(left_cx).min(right_cx);
+            let dx = pxf - nearest_x;
+            let dist = (dx * dx + dy * dy).sqrt();
+            if dist <= r {
+                draw_px(fb, px, py, color);
+            } else if dist < outer {
+                let t = 1.0 - (dist - r) / feather;
+                let aa_alpha = (color.a as f64 * t).round() as u8;
+                if aa_alpha > 0 {
+                    draw_px(fb, px, py, color.with_alpha(aa_alpha));
+                }
+            }
+        }
+    }
+}
+
 /// Fill a triangle defined by three vertices with a solid color (AA edges).
 pub fn fill_triangle(
     fb: &mut Framebuffer,

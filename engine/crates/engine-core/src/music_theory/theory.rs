@@ -107,42 +107,6 @@ pub fn cadence_insight(c: CadenceType) -> &'static str {
     }
 }
 
-// ─── Learning Resources ─────────────────────────────────────────────
-
-/// A learning resource link for a music theory concept.
-pub struct LearnLink {
-    pub label: &'static str,
-    pub url: &'static str,
-}
-
-/// Learning resources keyed by challenge concept index:
-/// 0 = Scale Degree, 1 = Roman Numeral, 2 = Intervals, 3 = Chord Quality, 4 = Cadences
-pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
-    match concept_idx {
-        0 => &[
-            LearnLink { label: "musictheory.net: Scale Degrees", url: "https://www.musictheory.net/lessons/21" },
-            LearnLink { label: "Open Music Theory: Scales", url: "https://viva.pressbooks.pub/openmusictheory/chapter/scales-and-scale-degrees/" },
-        ],
-        1 => &[
-            LearnLink { label: "musictheory.net: Diatonic Chords", url: "https://www.musictheory.net/lessons/43" },
-            LearnLink { label: "Open Music Theory: Harmony", url: "https://viva.pressbooks.pub/openmusictheory/chapter/introduction-to-harmony-chords-and-basic-tonal-progressions/" },
-        ],
-        2 => &[
-            LearnLink { label: "musictheory.net: Intervals", url: "https://www.musictheory.net/lessons/30" },
-            LearnLink { label: "teoria.com: Interval Ear Training", url: "https://www.teoria.com/en/exercises/ie.php" },
-        ],
-        3 => &[
-            LearnLink { label: "musictheory.net: Triads", url: "https://www.musictheory.net/lessons/40" },
-            LearnLink { label: "Open Music Theory: Triads", url: "https://viva.pressbooks.pub/openmusictheory/chapter/triads/" },
-        ],
-        4 => &[
-            LearnLink { label: "musictheory.net: Cadences", url: "https://www.musictheory.net/lessons/55" },
-            LearnLink { label: "Open Music Theory: Cadences", url: "https://viva.pressbooks.pub/openmusictheory/chapter/cadences/" },
-        ],
-        _ => &[],
-    }
-}
-
 // ─── Educational Insights ──────────────────────────────────────────
 
 /// Insight text for a correctly identified scale degree.

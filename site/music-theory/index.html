@@ -92,6 +92,8 @@
         touch_start, touch_move, touch_end,
         key_down, key_up,
         drain_sound_commands,
+        drain_persist_commands,
+        set_game_state_str,
         setup_music_theory,
         browser_state_ptr, browser_state_len
     } = api;
@@ -164,6 +166,7 @@
 
     // --- Web Audio + Sample Engine ---
     let audioCtx = null;
+    let masterCompressor = null;
     const sampleBuffers = {};   // name → AudioBuffer
     let samplesLoaded = false;
 
@@ -219,6 +222,13 @@
     function ensureAudio() {
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            masterCompressor = audioCtx.createDynamicsCompressor();
+            masterCompressor.threshold.value = -12;
+            masterCompressor.knee.value = 10;
+            masterCompressor.ratio.value = 4;
+            masterCompressor.attack.value = 0.003;
+            masterCompressor.release.value = 0.1;
+            masterCompressor.connect(audioCtx.destination);
             loadSamples();
         }
         if (audioCtx.state === 'suspended') {
@@ -266,6 +276,18 @@
         }
     }
 
+    function handlePersistCommands() {
+        const json = drain_persist_commands();
+        if (json === '[]') return;
+        let cmds;
+        try { cmds = JSON.parse(json); } catch { return; }
+        for (const cmd of cmds) {
+            if (cmd.type === 'Store') {
+                localStorage.setItem('crusty_mt_' + cmd.key, cmd.value);
+            }
+        }
+    }
+
     function playSample(name, volume, pitch, duration) {
         try {
             const buffer = sampleBuffers[name];
@@ -286,7 +308,7 @@
             gain.gain.linearRampToValueAtTime(0, now + duration);
 
             source.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(masterCompressor || audioCtx.destination);
 
             source.start(now);
             source.stop(now + duration + 0.1);
@@ -341,7 +363,7 @@
 
             osc.connect(bp1); bp1.connect(gain1); gain1.connect(master);
             osc.connect(bp2); bp2.connect(gain2); gain2.connect(master);
-            master.connect(audioCtx.destination);
+            master.connect(masterCompressor || audioCtx.destination);
 
             osc.start(now);
             osc.stop(now + duration + 0.05);
@@ -372,17 +394,20 @@
             const gain = audioCtx.createGain();
             const now = audioCtx.currentTime;
             // Smooth ADSR: attack → peak → exponential decay
+            const fadeIn = Math.max(attack, 0.005);
             gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.linearRampToValueAtTime(volume, now + attack);
-            gain.gain.setTargetAtTime(volume * 0.3, now + attack, decay * 0.3);
-            gain.gain.setTargetAtTime(0.0001, now + attack + decay * 0.6, decay * 0.4);
+            gain.gain.exponentialRampToValueAtTime(volume, now + fadeIn);
+            gain.gain.setTargetAtTime(volume * 0.3, now + fadeIn, decay * 0.3);
+            const endTime = now + fadeIn + decay;
+            gain.gain.setTargetAtTime(0.0001, now + fadeIn + decay * 0.6, decay * 0.4);
+            gain.gain.linearRampToValueAtTime(0.0001, endTime + 0.05);
 
             osc.connect(lpf);
             lpf.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(masterCompressor || audioCtx.destination);
 
             osc.start(now);
-            osc.stop(now + attack + decay + 0.1);
+            osc.stop(endTime + 0.1);
         } catch (e) {
             // Ignore audio errors (browser restrictions, etc.)
         }
@@ -411,7 +436,7 @@
 
             source.connect(filter);
             filter.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(masterCompressor || audioCtx.destination);
 
             source.start(now);
             source.stop(now + duration + 0.05);
@@ -689,6 +714,11 @@
         const memory = wasm.memory;
 
         init(W, H);
+
+        // Restore SRS state from localStorage before setup
+        const savedSrs = localStorage.getItem('crusty_mt_srs');
+        if (savedSrs) set_game_state_str('srs_state', savedSrs);
+
         setup_music_theory();
 
         // Browser → WASM shared state (viewport, touch detection, etc.)
@@ -714,6 +744,9 @@
 
             // --- Drain Sound Commands ---
             handleSoundCommands();
+
+            // --- Drain Persist Commands ---
+            handlePersistCommands();
 
             // --- Upload WASM Framebuffer ---
             const ptr = framebuffer_ptr();

@@ -6,6 +6,8 @@
 //! synthesized tones.
 
 pub mod theory;
+pub mod srs;
+pub mod persist;
 
 use crate::engine::Engine;
 use crate::simulation::Simulation;
@@ -13,6 +15,8 @@ use crate::rendering::color::Color;
 use crate::rendering::shapes;
 use crate::rendering::text;
 use crate::sound::{SoundCommand, Waveform};
+use persist::PersistCommand;
+use srs::SrsState;
 
 use theory::*;
 
@@ -110,11 +114,6 @@ pub struct MusicChallenge {
 }
 
 #[derive(Clone, Debug)]
-pub struct PhraseNote {
-    midi: u8,
-}
-
-#[derive(Clone, Debug)]
 struct ScheduledSound {
     play_at: f64,
     frequency: f64,
@@ -173,12 +172,10 @@ struct BackgroundStar {
 // ─── MusicTheorySim ─────────────────────────────────────────────────
 
 pub struct MusicTheorySim {
-    score: u32,
     streak: u8,
     max_streak: u8,
     difficulty: u8,
     challenge: MusicChallenge,
-    phrase_notes: Vec<PhraseNote>,
     feedback: FeedbackState,
     feedback_timer: f64,
     highlighted_keys: [bool; NUM_NOTES],
@@ -188,7 +185,6 @@ pub struct MusicTheorySim {
     scheduled_sounds: Vec<ScheduledSound>,
     total_time: f64,
     challenges_completed: u32,
-    last_concept_idx: u8,
     sparkles: Vec<Sparkle>,
     background_stars: Vec<BackgroundStar>,
     scheduled_samples: Vec<ScheduledSample>,
@@ -199,25 +195,21 @@ pub struct MusicTheorySim {
     last_hovered_option: Option<usize>,
     piano_scroll: f64,
     slider_dragging: bool,
-    phrase_playing: bool,
-    phrase_play_start: f64,
-    last_hovered_phrase_note: Option<usize>,
-    /// Sound energy level (0.0–1.0). Spikes on sound events, decays smoothly.
-    /// Higher pitch sounds contribute more energy. Drives star glow intensity.
     sound_energy: f64,
-    /// Actual framebuffer dimensions — set each frame from Engine.
     screen_w: f64,
     screen_h: f64,
-    /// Educational insight shown after a correct answer.
     current_insight: String,
-    /// Whether the player has tapped to begin (ensures AudioContext exists).
     started: bool,
+    // SRS state
+    srs: SrsState,
+    // Hint system
+    hint_used: bool,
+    eliminated_options: [bool; 4],
 }
 
 impl MusicTheorySim {
     pub fn new() -> Self {
         Self {
-            score: 0,
             streak: 0,
             max_streak: 0,
             difficulty: 1,
@@ -231,7 +223,6 @@ impl MusicTheorySim {
                 quality_root: 60,
                 quality: None,
             },
-            phrase_notes: Vec::new(),
             feedback: FeedbackState::Neutral,
             feedback_timer: 0.0,
             highlighted_keys: [false; NUM_NOTES],
@@ -241,7 +232,6 @@ impl MusicTheorySim {
             scheduled_sounds: Vec::new(),
             total_time: 0.0,
             challenges_completed: 0,
-            last_concept_idx: 4, // so first challenge wraps to 0 (ScaleDegree)
             sparkles: Vec::new(),
             background_stars: Vec::new(),
             scheduled_samples: Vec::new(),
@@ -252,14 +242,14 @@ impl MusicTheorySim {
             last_hovered_option: None,
             piano_scroll: 0.0,
             slider_dragging: false,
-            phrase_playing: false,
-            phrase_play_start: 0.0,
-            last_hovered_phrase_note: None,
             sound_energy: 0.0,
             screen_w: 600.0,
             screen_h: 900.0,
             current_insight: String::new(),
             started: false,
+            srs: SrsState::new(),
+            hint_used: false,
+            eliminated_options: [false; 4],
         }
     }
 
@@ -271,7 +261,7 @@ impl MusicTheorySim {
     fn black_key_w(&self) -> f64 { self.white_key_w() * 0.6 }
     fn mobile_piano_total_w(&self) -> f64 { self.screen_w * MOBILE_ZOOM }
     fn mobile_max_scroll(&self) -> f64 { self.mobile_piano_total_w() - self.screen_w }
-    fn slider_track_y(&self) -> f64 { (PIANO_Y + WHITE_KEY_H + 6.0) * self.ys() }
+    fn slider_track_y(&self) -> f64 { (PIANO_Y + WHITE_KEY_H + 20.0) * self.ys() }
     fn opt_btn_w(&self) -> f64 { self.screen_w * 0.2 }
     fn opt_btn_gap(&self) -> f64 { self.screen_w * 0.027 }
     fn opt_total_w(&self) -> f64 { 4.0 * self.opt_btn_w() + 3.0 * self.opt_btn_gap() }
@@ -281,24 +271,62 @@ impl MusicTheorySim {
 
     fn generate_challenge(&mut self, engine: &mut Engine) {
         self.current_insight.clear();
-        self.last_concept_idx = (self.last_concept_idx + 1) % 5;
+        self.hint_used = false;
+        self.eliminated_options = [false; 4];
+
         let key_roots = [48u8, 50, 52, 53, 55, 57];
         let key_root = key_roots[engine.rng.range_i32(0, key_roots.len() as i32 - 1) as usize];
 
-        match self.last_concept_idx {
-            0 => self.generate_chord_challenge(key_root, engine),
-            1 => self.generate_note_challenge(key_root, engine),
-            2 => self.generate_interval_challenge(key_root, engine),
-            3 => self.generate_quality_challenge(engine),
-            _ => self.generate_cadence_challenge(key_root, engine),
+        // Use SRS to pick the next card
+        let seed = engine.rng.next_u64();
+        if let Some((concept, variant)) = self.srs.select_next_card(seed) {
+            match concept {
+                0 => self.generate_chord_challenge_for(key_root, variant, engine),
+                1 => self.generate_note_challenge_for(key_root, variant, engine),
+                2 => self.generate_interval_challenge_for(key_root, variant, engine),
+                3 => self.generate_quality_challenge_for(variant, engine),
+                _ => self.generate_cadence_challenge_for(key_root, variant, engine),
+            }
+        } else {
+            // Fallback: generate a random ScaleDegree challenge
+            self.generate_chord_challenge(key_root, engine);
         }
         self.update_highlights();
     }
 
+    /// Generate ScaleDegree challenge for a specific degree (SRS-driven).
+    fn generate_chord_challenge_for(&mut self, key_root: u8, degree: u8, engine: &mut Engine) {
+        // Temporarily set answer to the SRS-selected degree
+        let saved_answer = degree;
+        self.generate_chord_challenge_inner(key_root, saved_answer, engine);
+    }
+
+    /// Generate RomanNumeral challenge for a specific degree (SRS-driven).
+    fn generate_note_challenge_for(&mut self, key_root: u8, degree: u8, engine: &mut Engine) {
+        self.generate_note_challenge_inner(key_root, degree, engine);
+    }
+
+    /// Generate IntervalRecognition challenge for specific semitones (SRS-driven).
+    fn generate_interval_challenge_for(&mut self, key_root: u8, semitones: u8, engine: &mut Engine) {
+        self.generate_interval_challenge_inner(key_root, semitones, engine);
+    }
+
+    /// Generate ChordQuality challenge for specific quality index (SRS-driven).
+    fn generate_quality_challenge_for(&mut self, quality_idx: u8, engine: &mut Engine) {
+        self.generate_quality_challenge_inner(quality_idx, engine);
+    }
+
+    /// Generate Cadence challenge for specific cadence type (SRS-driven).
+    fn generate_cadence_challenge_for(&mut self, key_root: u8, cadence_idx: u8, engine: &mut Engine) {
+        self.generate_cadence_challenge_inner(key_root, cadence_idx, engine);
+    }
+
     fn generate_chord_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        // Scale Degree challenge: play tonic triad as context, then a mystery note.
-        // Player identifies which scale degree (0–6) the mystery note is.
         let answer = engine.rng.range_i32(0, 6) as u8;
+        self.generate_chord_challenge_inner(key_root, answer, engine);
+    }
+
+    fn generate_chord_challenge_inner(&mut self, key_root: u8, answer: u8, engine: &mut Engine) {
 
         let pool: Vec<u8> = if self.difficulty <= 3 {
             vec![0, 2, 4, 5] // I, iii, V, vi — easiest to distinguish
@@ -353,9 +381,11 @@ impl MusicTheorySim {
     }
 
     fn generate_note_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        // Roman Numeral challenge: play I chord as reference, then a mystery
-        // diatonic chord. Player identifies which Roman numeral (0–6) it is.
         let answer = engine.rng.range_i32(0, 6) as u8;
+        self.generate_note_challenge_inner(key_root, answer, engine);
+    }
+
+    fn generate_note_challenge_inner(&mut self, key_root: u8, answer: u8, engine: &mut Engine) {
 
         let pool: Vec<u8> = if self.difficulty <= 3 {
             vec![0, 3, 4, 5] // I, IV, V, vi — most distinct
@@ -427,20 +457,27 @@ impl MusicTheorySim {
     }
 
     fn generate_interval_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        let base_offset = engine.rng.range_i32(0, 11) as u8;
-        let base_midi = key_root + base_offset;
-
         let intervals: Vec<u8> = if self.difficulty <= 4 {
             vec![0, 2, 4, 7, 12]
         } else {
             (0..=12).collect()
         };
-
         let idx = engine.rng.range_i32(0, intervals.len() as i32 - 1) as usize;
         let interval = intervals[idx];
+        self.generate_interval_challenge_inner(key_root, interval, engine);
+    }
+
+    fn generate_interval_challenge_inner(&mut self, key_root: u8, interval: u8, engine: &mut Engine) {
+        let base_offset = engine.rng.range_i32(0, 11) as u8;
+        let base_midi = key_root + base_offset;
         let top_midi = base_midi + interval;
 
-        let options = generate_options(interval, &intervals, 4, engine.rng.next_u64());
+        let pool: Vec<u8> = if self.difficulty <= 4 {
+            vec![0, 2, 4, 7, 12]
+        } else {
+            (0..=12).collect()
+        };
+        let options = generate_options(interval, &pool, 4, engine.rng.next_u64());
 
         // Play the two notes
         self.schedule_sound(ScheduledSound {
@@ -475,13 +512,13 @@ impl MusicTheorySim {
     }
 
     fn generate_quality_challenge(&mut self, engine: &mut Engine) {
-        // Pick a random root note in the piano range
-        let root_midi = 48 + engine.rng.range_i32(0, 12) as u8;
-
-        // Pick a random chord quality
         let qi = engine.rng.range_i32(0, CHORD_QUALITIES.len() as i32 - 1) as usize;
-        let quality = CHORD_QUALITIES[qi];
-        let answer = qi as u8;
+        self.generate_quality_challenge_inner(qi as u8, engine);
+    }
+
+    fn generate_quality_challenge_inner(&mut self, answer: u8, engine: &mut Engine) {
+        let root_midi = 48 + engine.rng.range_i32(0, 12) as u8;
+        let quality = CHORD_QUALITIES[answer as usize % CHORD_QUALITIES.len()];
 
         // Options: all 4 qualities (0=Major, 1=Minor, 2=Dim, 3=Aug)
         let pool: Vec<u8> = (0..4).collect();
@@ -529,11 +566,12 @@ impl MusicTheorySim {
     }
 
     fn generate_cadence_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        // Cadence challenge: play a context chord (I), then a 2-chord cadence.
-        // Player identifies the cadence type: Authentic/Plagal/Half/Deceptive.
         let ci = engine.rng.range_i32(0, CADENCE_TYPES.len() as i32 - 1) as usize;
-        let cadence = CADENCE_TYPES[ci];
-        let answer = ci as u8;
+        self.generate_cadence_challenge_inner(key_root, ci as u8, engine);
+    }
+
+    fn generate_cadence_challenge_inner(&mut self, key_root: u8, answer: u8, engine: &mut Engine) {
+        let cadence = CADENCE_TYPES[answer as usize % CADENCE_TYPES.len()];
         let (setup_deg, resolve_deg) = cadence_chords(cadence);
 
         let pool: Vec<u8> = (0..4).collect();
@@ -676,7 +714,6 @@ impl MusicTheorySim {
         self.challenge.solved = true;
         self.feedback = FeedbackState::Correct;
         self.feedback_timer = FEEDBACK_CORRECT_DUR;
-        self.score += 10 + self.streak as u32 * 5;
         self.streak += 1;
         if self.streak > self.max_streak {
             self.max_streak = self.streak;
@@ -701,7 +738,7 @@ impl MusicTheorySim {
                     decay: 0.4,
                 });
                 self.flash_key(midi, CORRECT_COLOR);
-                self.phrase_notes.push(PhraseNote { midi });
+
                 self.current_insight = degree_insight(deg).to_string();
             }
             MusicConcept::RomanNumeral => {
@@ -720,7 +757,7 @@ impl MusicTheorySim {
                     });
                     self.flash_key(midi, CORRECT_COLOR);
                 }
-                self.phrase_notes.push(PhraseNote { midi: root });
+
                 self.current_insight = numeral_insight(deg).to_string();
             }
             MusicConcept::IntervalRecognition => {
@@ -746,7 +783,7 @@ impl MusicTheorySim {
                     });
                     self.flash_key(base, CORRECT_COLOR);
                     self.flash_key(top, CORRECT_COLOR);
-                    self.phrase_notes.push(PhraseNote { midi: top });
+
                     self.current_insight = interval_insight(self.challenge.answer).to_string();
                 }
             }
@@ -767,7 +804,7 @@ impl MusicTheorySim {
                         });
                         self.flash_key(midi, CORRECT_COLOR);
                     }
-                    self.phrase_notes.push(PhraseNote { midi: root });
+    
                     self.current_insight = quality_insight(q).to_string();
                 }
             }
@@ -794,7 +831,7 @@ impl MusicTheorySim {
                         });
                         self.flash_key(rr + iv, CORRECT_COLOR);
                     }
-                    self.phrase_notes.push(PhraseNote { midi: rr });
+
                 }
                 let ci = self.challenge.answer as usize;
                 if ci < CADENCE_TYPES.len() {
@@ -814,12 +851,41 @@ impl MusicTheorySim {
         });
 
         self.combo_pulse = 1.0;
+
+        // SRS review — determine quality
+        let quality = if self.hint_used {
+            2 // hint used
+        } else if self.streak >= 3 {
+            5 // easy (streak >= 3)
+        } else {
+            4 // good
+        };
+        let concept_idx = self.concept_idx();
+        let variant = self.challenge.answer;
+        self.srs.review_card(concept_idx, variant, quality);
+
+        // Persist SRS state
+        engine.persist_queue.push(PersistCommand::Store {
+            key: "srs_state".to_string(),
+            value: self.srs.to_json(),
+        });
     }
 
     fn on_wrong(&mut self, _selected: u8, engine: &mut Engine) {
         self.feedback = FeedbackState::Wrong;
         self.feedback_timer = FEEDBACK_WRONG_DUR;
         self.streak = 0;
+
+        // SRS review — fail
+        let concept_idx = self.concept_idx();
+        let variant = self.challenge.answer;
+        self.srs.review_card(concept_idx, variant, 1);
+
+        // Persist SRS state
+        engine.persist_queue.push(PersistCommand::Store {
+            key: "srs_state".to_string(),
+            value: self.srs.to_json(),
+        });
 
         // Flash wrong notes on piano
         match &self.challenge.concept {
@@ -862,6 +928,41 @@ impl MusicTheorySim {
             decay: 0.1,
         });
 
+    }
+
+    fn activate_hint(&mut self, engine: &mut Engine) {
+        if self.hint_used || self.challenge.solved {
+            return;
+        }
+        self.hint_used = true;
+
+        // Eliminate 2 wrong options
+        let mut wrong_indices: Vec<usize> = self.challenge.options.iter().enumerate()
+            .filter(|(_, &opt)| opt != self.challenge.answer)
+            .map(|(i, _)| i)
+            .collect();
+        // Shuffle using a simple deterministic method
+        let seed = self.pulse_time.to_bits();
+        if wrong_indices.len() > 1 {
+            let swap = (seed as usize) % wrong_indices.len();
+            wrong_indices.swap(0, swap);
+        }
+        for &idx in wrong_indices.iter().take(2) {
+            self.eliminated_options[idx] = true;
+        }
+
+        // Subtle chime
+        engine.sound_queue.push(SoundCommand::PlayTone {
+            frequency: 880.0,
+            duration: 0.1,
+            volume: 0.08,
+            waveform: Waveform::Sine,
+            attack: 0.005,
+            decay: 0.08,
+        });
+
+        // Auto-replay the challenge
+        self.replay_challenge(engine);
     }
 
     // ─── Helpers ─────────────────────────────────────────────
@@ -966,6 +1067,7 @@ impl MusicTheorySim {
 
     fn check_option_click(&self, mx: f64, my: f64) -> Option<usize> {
         for i in 0..self.challenge.options.len() {
+            if self.eliminated_options[i] { continue; }
             let (x, y, w, h) = self.option_rect(i);
             if mx >= x && mx <= x + w && my >= y && my <= y + h {
                 return Some(i);
@@ -1325,52 +1427,6 @@ impl MusicTheorySim {
         }
     }
 
-    // ─── Phrase Playback ────────────────────────────────────
-
-    fn play_phrase(&mut self, _engine: &mut Engine) {
-        if self.phrase_notes.is_empty() {
-            return;
-        }
-        self.phrase_playing = true;
-        self.phrase_play_start = self.total_time;
-        let note_spacing = 0.3;
-        for (i, note) in self.phrase_notes.iter().enumerate() {
-            let (sample, pitch) = Self::midi_to_sample(note.midi);
-            self.scheduled_samples.push(ScheduledSample {
-                play_at: self.total_time + i as f64 * note_spacing,
-                name: sample.to_string(),
-                volume: 0.5,
-                pitch,
-                duration: note_spacing * 0.9,
-            });
-        }
-    }
-
-    fn check_phrase_note_hover(&self, mx: f64, my: f64) -> Option<usize> {
-        if self.phrase_notes.is_empty() {
-            return None;
-        }
-        let tl_y = self.sy(TIMELINE_Y);
-        let tl_h = self.sy(TIMELINE_H);
-        if my < tl_y + 18.0 || my > tl_y + tl_h - 8.0 {
-            return None;
-        }
-        let note_w = 30.0_f64;
-        let total_width = self.phrase_notes.len() as f64 * note_w;
-        let x_offset = if total_width > self.screen_w - 40.0 {
-            self.screen_w - 40.0 - total_width
-        } else {
-            20.0
-        };
-        for (i, _) in self.phrase_notes.iter().enumerate() {
-            let x = x_offset + i as f64 * note_w;
-            if mx >= x && mx <= x + note_w {
-                return Some(i);
-            }
-        }
-        None
-    }
-
     /// Get the concept index for learning resource lookup.
     fn concept_idx(&self) -> u8 {
         match &self.challenge.concept {
@@ -1392,8 +1448,14 @@ impl Simulation for MusicTheorySim {
         engine.config.bounds = (self.screen_w, self.screen_h);
         engine.config.background = BG_COLOR;
         self.init_background_stars(engine);
-        // Don't generate_challenge() here — wait for first tap so AudioContext exists
-        engine.global_state.set_f64("score", 0.0);
+
+        // Restore SRS state from persisted data (set by JS before setup)
+        if let Some(json) = engine.global_state.get_str("srs_state") {
+            if let Some(restored) = SrsState::from_json(json) {
+                self.srs = restored;
+            }
+        }
+
         engine.global_state.set_f64("streak", 0.0);
         engine.global_state.set_f64("difficulty", 1.0);
     }
@@ -1513,13 +1575,31 @@ impl Simulation for MusicTheorySim {
                 }
             }
 
-            // "Replay" text tap zone
+            // "Replay" and "Hint" tap zones (in challenge area)
             if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
-                let btn_w = 100.0;
+                let cx = self.screen_w / 2.0;
+                let btn_w = 80.0;
                 let btn_h = 30.0;
-                let btn_x = (self.screen_w - btn_w) / 2.0;
                 let btn_y = self.sy(CHALLENGE_Y + 188.0);
-                if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
+                // Replay button (left)
+                let replay_x = cx - 50.0 - btn_w / 2.0;
+                if mx >= replay_x && mx <= replay_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
+                    self.replay_challenge(engine);
+                }
+                // Hint button (right)
+                if !self.hint_used {
+                    let hint_x = cx + 50.0 - btn_w / 2.0;
+                    if mx >= hint_x && mx <= hint_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
+                        self.activate_hint(engine);
+                    }
+                }
+            }
+
+            // Replay zone tap (animated wave icon area)
+            if !self.challenge.solved {
+                let zone_y = self.sy(TIMELINE_Y);
+                let zone_h = self.sy(80.0);
+                if my >= zone_y && my <= zone_y + zone_h {
                     self.replay_challenge(engine);
                 }
             }
@@ -1548,14 +1628,6 @@ impl Simulation for MusicTheorySim {
                         self.flash_key(midi, ACCENT_PINK);
                     }
                 }
-            }
-            // Timeline click → play phrase from start
-            let tl_y = self.sy(TIMELINE_Y);
-            let tl_h = self.sy(TIMELINE_H);
-            if my >= tl_y && my <= tl_y + tl_h
-                && !self.phrase_notes.is_empty()
-            {
-                self.play_phrase(engine);
             }
         }
 
@@ -1591,9 +1663,11 @@ impl Simulation for MusicTheorySim {
         }
 
         // Option hover preview (uses unified hover — works on desktop + touch)
+        // On mobile, skip hover preview when tapping to avoid overlapping sounds
+        let skip_hover_preview = is_mobile && engine.input.mouse_buttons_pressed.contains(&0);
         let hx = engine.input.hover_x;
         let hy = engine.input.hover_y;
-        let hovered = if engine.input.hover_active {
+        let hovered = if engine.input.hover_active && !skip_hover_preview {
             self.check_option_click(hx, hy)
         } else {
             None
@@ -1607,27 +1681,9 @@ impl Simulation for MusicTheorySim {
             }
             self.last_hovered_option = hovered;
         }
-
-        // Phrase note hover preview (uses unified hover)
-        let hovered_phrase = if engine.input.hover_active {
-            self.check_phrase_note_hover(hx, hy)
-        } else {
-            None
-        };
-        if hovered_phrase != self.last_hovered_phrase_note {
-            if let Some(idx) = hovered_phrase {
-                if idx < self.phrase_notes.len() {
-                    let midi = self.phrase_notes[idx].midi;
-                    let (sample, pitch) = Self::midi_to_sample(midi);
-                    engine.sound_queue.push(SoundCommand::PlaySample {
-                        name: sample.to_string(),
-                        volume: 0.35,
-                        pitch,
-                        duration: 0.3,
-                    });
-                }
-            }
-            self.last_hovered_phrase_note = hovered_phrase;
+        // Clear stale hover state after mobile tap
+        if skip_hover_preview {
+            self.last_hovered_option = None;
         }
 
         // Handle keyboard shortcuts (1-4)
@@ -1658,6 +1714,14 @@ impl Simulation for MusicTheorySim {
             self.replay_challenge(engine);
         }
 
+        // Hint shortcut (H)
+        if engine.input.keys_pressed.contains("KeyH")
+            && self.feedback == FeedbackState::Neutral
+            && !self.challenge.solved
+        {
+            self.activate_hint(engine);
+        }
+
         // Spike sound energy based on new sounds queued this frame
         let new_sounds = engine.sound_queue.len().saturating_sub(sound_count_before);
         if new_sounds > 0 {
@@ -1665,11 +1729,9 @@ impl Simulation for MusicTheorySim {
         }
 
         // Export state for JS HUD
-        engine.global_state.set_f64("score", self.score as f64);
         engine.global_state.set_f64("streak", self.streak as f64);
         engine.global_state.set_f64("difficulty", self.difficulty as f64);
         engine.global_state.set_f64("challenges_completed", self.challenges_completed as f64);
-        engine.global_state.set_f64("phrase_len", self.phrase_notes.len() as f64);
     }
 
     fn render(&self, engine: &mut Engine) {
@@ -1702,7 +1764,7 @@ impl Simulation for MusicTheorySim {
         self.render_options(fb, hx, hy);
         self.render_feedback(fb);
         self.render_piano(fb, is_mobile);
-        self.render_timeline(fb, hx, hy);
+        self.render_replay_zone(fb);
         self.render_footer(fb);
         self.render_sparkles(fb);
     }
@@ -1717,15 +1779,18 @@ impl MusicTheorySim {
         let sub = "Interactive Ear Training";
         text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
 
-        let score_str = format!("Score: {}", self.score);
-        let sw = text::text_width(&score_str, 2);
-        text::draw_text(fb, self.screen_w as i32 - sw - 16, self.sy(14.0) as i32, &score_str, Color::WHITE, 2);
+        // SRS stats (right-aligned)
+        let due = self.srs.due_count();
+        let due_str = format!("{} due", due);
+        let dw = text::text_width(&due_str, 1);
+        text::draw_text(fb, self.screen_w as i32 - dw - 16, self.sy(14.0) as i32,
+            &due_str, ACCENT_TEAL, 1);
 
-        if self.streak > 0 {
-            let stars: String = (0..self.streak.min(10)).map(|_| '*').collect();
-            let stw = text::text_width(&stars, 1);
-            text::draw_text(fb, self.screen_w as i32 - stw - 16, self.sy(38.0) as i32, &stars, ACCENT_PINK, 1);
-        }
+        let learned = self.srs.total_seen();
+        let learned_str = format!("{} learned", learned);
+        let lw = text::text_width(&learned_str, 1);
+        text::draw_text(fb, self.screen_w as i32 - lw - 16, self.sy(30.0) as i32,
+            &learned_str, DIM_TEXT, 1);
 
         shapes::draw_line(fb, 0.0, HEADER_H * ys - 1.0, self.screen_w, HEADER_H * ys - 1.0, DIVIDER);
     }
@@ -1733,14 +1798,6 @@ impl MusicTheorySim {
     fn render_challenge(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let cx = (self.screen_w / 2.0) as i32;
         let cy = |off: f64| -> i32 { self.sy(CHALLENGE_Y + off) as i32 };
-
-        // Learning resource hint
-        let resources = learning_resources(self.concept_idx());
-        if let Some(r) = resources.first() {
-            let rw = text::text_width(r.label, 1);
-            text::draw_text(fb, self.screen_w as i32 - rw - 12, cy(0.0),
-                r.label, Color::from_rgba(60, 80, 120, 255), 1);
-        }
 
         match &self.challenge.concept {
             MusicConcept::ScaleDegree => {
@@ -1809,12 +1866,22 @@ impl MusicTheorySim {
             }
         }
 
-        // Replay hint — small tappable text below challenge info
+        // Replay + Hint buttons — small tappable text below challenge info
         if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
-            let replay_y = self.sy(CHALLENGE_Y + 195.0) as i32;
+            let btn_y = self.sy(CHALLENGE_Y + 195.0) as i32;
             let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
-            text::draw_text_centered(fb, cx, replay_y,
+            // Replay button (left of center)
+            text::draw_text_centered(fb, cx - 50, btn_y,
                 "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 1);
+            // Hint button (right of center)
+            if !self.hint_used {
+                let hint_color = Color::from_rgba(180, 160, 100, (blink * 0.8) as u8);
+                text::draw_text_centered(fb, cx + 50, btn_y,
+                    "[ Hint ]", hint_color, 1);
+            } else {
+                text::draw_text_centered(fb, cx + 50, btn_y,
+                    "[ Hint ]", DIM_TEXT.with_alpha(80), 1);
+            }
         }
     }
 
@@ -1825,6 +1892,19 @@ impl MusicTheorySim {
         }
         for (i, &opt) in self.challenge.options.iter().enumerate() {
             let (x, y, w, h) = self.option_rect(i);
+
+            if self.eliminated_options[i] {
+                // Eliminated option: very dark background, ghosted text, diagonal strikethrough
+                shapes::fill_rect(fb, x, y, w, h, Color::from_rgba(15, 15, 25, 255));
+                shapes::draw_rect(fb, x, y, w, h, Color::from_rgba(30, 30, 50, 255));
+                let label = self.option_label(opt);
+                text::draw_text_centered(fb, (x + w / 2.0) as i32, (y + h / 2.0 - 5.0) as i32,
+                    &label, Color::from_rgba(50, 50, 70, 255), 2);
+                // Diagonal strikethrough
+                shapes::draw_line(fb, x + 4.0, y + h - 4.0, x + w - 4.0, y + 4.0,
+                    Color::from_rgba(80, 40, 40, 180));
+                continue;
+            }
 
             let bg = if self.challenge.solved && opt == self.challenge.answer {
                 CORRECT_COLOR
@@ -1995,24 +2075,24 @@ impl MusicTheorySim {
         shapes::draw_rect(fb, 0.0, piano_y, self.screen_w, wk_h, DIVIDER);
 
         if is_mobile {
-            let track_h = 8.0;
+            let track_h = 16.0;
             let track_y = self.slider_track_y();
-            shapes::fill_rect(fb, 12.0, track_y, self.screen_w - 24.0, track_h,
+            shapes::fill_rect(fb, 28.0, track_y, self.screen_w - 56.0, track_h,
                 Color::from_rgba(30, 30, 60, 255));
 
             let visible_ratio = self.screen_w / self.mobile_piano_total_w();
-            let track_inner = self.screen_w - 24.0;
-            let thumb_w = (visible_ratio * track_inner).max(30.0);
+            let track_inner = self.screen_w - 56.0;
+            let thumb_w = (visible_ratio * track_inner).max(40.0);
             let max_thumb_travel = track_inner - thumb_w;
             let scroll_pct = if self.mobile_max_scroll() > 0.0 {
                 self.piano_scroll / self.mobile_max_scroll()
             } else { 0.0 };
-            let thumb_x = 12.0 + scroll_pct * max_thumb_travel;
+            let thumb_x = 28.0 + scroll_pct * max_thumb_travel;
 
             shapes::fill_rect(fb, thumb_x - 2.0, track_y - 6.0,
                 thumb_w + 4.0, track_h + 12.0, ACCENT_TEAL.with_alpha(30));
             shapes::fill_rect(fb, thumb_x, track_y - 3.0,
-                thumb_w, track_h + 6.0, ACCENT_TEAL.with_alpha(200));
+                thumb_w, track_h + 8.0, ACCENT_TEAL.with_alpha(200));
         } else {
             let hint = "R / Space: replay   Click keys to loop";
             let hw = text::text_width(hint, 2);
@@ -2021,110 +2101,50 @@ impl MusicTheorySim {
         }
     }
 
-    fn render_timeline(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
-        let tl_y = self.sy(TIMELINE_Y);
-        let tl_h = self.sy(TIMELINE_H);
+    fn render_replay_zone(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        let zone_y = self.sy(TIMELINE_Y);
+        let zone_h = self.sy(80.0); // compact zone (80px ref vs old 140px)
+        let cx = self.screen_w / 2.0;
+        let cy = zone_y + zone_h / 2.0;
 
-        shapes::fill_rect(fb, 0.0, tl_y, self.screen_w, tl_h,
-            Color::from_rgba(8, 8, 24, 255));
+        // 5 animated wave bars
+        let bar_w = 4.0;
+        let bar_gap = 6.0;
+        let total_bars_w = 5.0 * bar_w + 4.0 * bar_gap;
+        let bar_start_x = cx - total_bars_w / 2.0;
 
-        let header = if self.phrase_notes.is_empty() {
-            "COMPOSED PHRASE"
-        } else {
-            "COMPOSED PHRASE (tap to play all)"
-        };
-        text::draw_text(fb, 8, (tl_y + 6.0) as i32, header, DIM_TEXT, 1);
-
-        if self.phrase_notes.is_empty() {
-            text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (tl_y + tl_h / 2.0) as i32,
-                "Complete challenges to build your phrase!",
-                Color::from_rgba(50, 50, 80, 255), 1);
-            return;
+        for i in 0..5 {
+            let phase = self.pulse_time * 2.5 + i as f64 * 0.6;
+            let wave = (phase.sin() * 0.4 + 0.6) * zone_h * 0.4;
+            let bx = bar_start_x + i as f64 * (bar_w + bar_gap);
+            let by = cy - wave / 2.0;
+            let t = i as f64 / 4.0;
+            let bar_color = Color::lerp(ACCENT_TEAL, ACCENT_PINK, t);
+            let pulse_alpha = ((self.pulse_time * 1.5).sin() * 0.2 + 0.8) * 255.0;
+            shapes::fill_rect(fb, bx, by, bar_w, wave, bar_color.with_alpha(pulse_alpha as u8));
         }
 
-        let note_w = 30.0_f64;
-        let total_width = self.phrase_notes.len() as f64 * note_w;
-        let x_offset = if total_width > self.screen_w - 40.0 {
-            self.screen_w - 40.0 - total_width
-        } else {
-            20.0
-        };
-
-        let min_midi = self.phrase_notes.iter().map(|n| n.midi).min().unwrap_or(48);
-        let max_midi = self.phrase_notes.iter().map(|n| n.midi).max().unwrap_or(72);
-        let range = (max_midi - min_midi).max(12) as f64;
-        let usable_h = tl_h - 40.0;
-
-        let hovered_idx = self.check_phrase_note_hover(mx, my);
-
-        for (i, note) in self.phrase_notes.iter().enumerate() {
-            let x = x_offset + i as f64 * note_w;
-            let y_ratio = (note.midi - min_midi) as f64 / range;
-            let y = tl_y + 22.0 + usable_h * (1.0 - y_ratio);
-
-            let is_hovered = hovered_idx == Some(i);
-
-            // Glow under (brighter on hover)
-            let glow_alpha = if is_hovered { 100 } else { 40 };
-            shapes::fill_rect(fb, x, y - 2.0, note_w - 4.0, 12.0,
-                ACCENT_TEAL.with_alpha(glow_alpha));
-
-            // Note block with color gradient
-            let t = i as f64 / self.phrase_notes.len().max(1) as f64;
-            let note_color = Color::lerp(ACCENT_TEAL, ACCENT_PINK, t);
-            let block_color = if is_hovered {
-                Color::lerp(note_color, Color::WHITE, 0.4)
-            } else {
-                note_color
-            };
-            let block_h = if is_hovered { 10.0 } else { 8.0 };
-            let block_y = if is_hovered { y - 1.0 } else { y };
-            shapes::fill_rect(fb, x + 1.0, block_y, note_w - 6.0, block_h, block_color);
-
-            // Show note name on hover
-            if is_hovered {
-                let name = note_name(note.midi);
-                let nw = text::text_width(name, 1);
-                text::draw_text(fb, (x + note_w / 2.0) as i32 - nw / 2,
-                    (y + block_h + 2.0) as i32, name, Color::WHITE, 1);
-            }
-        }
-
-        // Playhead cursor
-        let cursor_x = x_offset + self.phrase_notes.len() as f64 * note_w;
-        let blink = ((self.pulse_time * 3.0).sin() * 0.5 + 0.5) * 255.0;
-        shapes::draw_line(fb, cursor_x, tl_y + 20.0, cursor_x,
-            tl_y + tl_h - 8.0,
-            ACCENT_CYAN.with_alpha(blink as u8));
+        // "Listen Again" text below bars
+        let text_y = (cy + zone_h * 0.3) as i32;
+        let blink = ((self.pulse_time * 2.0).sin() * 0.15 + 0.85) * 255.0;
+        text::draw_text_centered(fb, cx as i32, text_y,
+            "Listen Again", ACCENT_TEAL.with_alpha(blink as u8), 1);
     }
 
     fn render_footer(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let ft_y = self.sy(FOOTER_Y);
         shapes::draw_line(fb, 0.0, ft_y, self.screen_w, ft_y, DIVIDER);
 
-        let diff_str = format!("Difficulty: {}/10", self.difficulty);
-        text::draw_text(fb, 16, (ft_y + 20.0) as i32, &diff_str, DIM_TEXT, 1);
+        let due = self.srs.due_count();
+        let learning = self.srs.learning_count();
+        let mature = self.srs.mature_count();
+        let stats = format!("Due: {}  |  Learning: {}  |  Mature: {}", due, learning, mature);
+        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 16.0) as i32,
+            &stats, DIM_TEXT, 1);
 
-        let concept_str = match &self.challenge.concept {
-            MusicConcept::ScaleDegree => "Mode: Scale Degrees",
-            MusicConcept::RomanNumeral => "Mode: Roman Numerals",
-            MusicConcept::IntervalRecognition => "Mode: Intervals",
-            MusicConcept::ChordQuality => "Mode: Chord Quality",
-            MusicConcept::Cadence => "Mode: Cadences",
-        };
-        let cw = text::text_width(concept_str, 1);
-        text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 20.0) as i32, concept_str, DIM_TEXT, 1);
-
-        let phrase_str = format!("Phrase: {} notes", self.phrase_notes.len());
-        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
-
-        // Learning resource link for current mode
-        let resources = learning_resources(self.concept_idx());
-        if let Some(r) = resources.first() {
-            let link_str = format!("Learn more: {}", r.url);
-            text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 36.0) as i32, &link_str,
-                ACCENT_TEAL.with_alpha(120), 1);
-        }
+        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 32.0) as i32,
+            "Spaced repetition: harder cards appear more often",
+            Color::from_rgba(60, 60, 90, 255), 1);
     }
 
     fn render_sparkles(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {

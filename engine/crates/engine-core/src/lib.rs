@@ -280,6 +280,21 @@ pub fn drain_sound_commands() -> String {
     with_engine(|eng| eng.sound_queue.drain_json())
 }
 
+// ─── Persist WASM API ────────────────────────────────────────────────
+
+/// Drain all queued persist commands as a JSON array string.
+/// Returns "[]" when there are no pending commands.
+#[wasm_bindgen]
+pub fn drain_persist_commands() -> String {
+    with_engine(|eng| eng.persist_queue.drain_json())
+}
+
+/// Set a string value in global game state (used by JS to restore persisted state).
+#[wasm_bindgen]
+pub fn set_game_state_str(key: String, value: String) {
+    with_engine(|eng| eng.global_state.set_str(&key, &value));
+}
+
 // ─── Demo Ball WASM API ─────────────────────────────────────────────
 
 /// Set up the bouncing ball demo. Call after `init()`.

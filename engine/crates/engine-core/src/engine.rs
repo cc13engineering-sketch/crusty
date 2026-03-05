@@ -283,6 +283,9 @@ pub struct Engine {
     pub sound_queue: crate::sound::SoundCommandQueue,
     pub sound_palette: crate::sound::SoundPalette,
 
+    // Persistence: command-buffer for JS localStorage bridge
+    pub persist_queue: crate::music_theory::persist::PersistQueue,
+
     // Diagnostics: structured runtime error reporting
     pub diagnostic_bus: DiagnosticBus,
 
@@ -356,6 +359,7 @@ impl Engine {
             environment_clock: EnvironmentClock::new(),
             sound_queue: crate::sound::SoundCommandQueue::new(),
             sound_palette: crate::sound::SoundPalette::default_palette(),
+            persist_queue: crate::music_theory::persist::PersistQueue::new(),
             diagnostic_bus: DiagnosticBus::new(),
             gestures: GestureRecognizer::new(),
             auto_juice: AutoJuiceSystem::new(),
@@ -489,6 +493,7 @@ impl Engine {
         self.flow_network.clear();
         self.environment_clock = EnvironmentClock::new();
         self.sound_queue.clear();
+        self.persist_queue = crate::music_theory::persist::PersistQueue::new();
         self.diagnostic_bus.clear();
         self.auto_juice.clear();
         self.game_flow.clear();

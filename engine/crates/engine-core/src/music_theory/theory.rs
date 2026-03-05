@@ -67,16 +67,16 @@ pub struct LearnLink {
 }
 
 /// Learning resources keyed by challenge concept index:
-/// 0 = Chord Progressions, 1 = Melody, 2 = Intervals, 3 = Chord Quality
+/// 0 = Scale Degree, 1 = Roman Numeral, 2 = Intervals, 3 = Chord Quality
 pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
     match concept_idx {
         0 => &[
-            LearnLink { label: "musictheory.net: Progressions", url: "https://www.musictheory.net/lessons/57" },
-            LearnLink { label: "Open Music Theory: Harmony", url: "https://viva.pressbooks.pub/openmusictheory/chapter/introduction-to-harmony-chords-and-basic-tonal-progressions/" },
+            LearnLink { label: "musictheory.net: Scale Degrees", url: "https://www.musictheory.net/lessons/21" },
+            LearnLink { label: "Open Music Theory: Scales", url: "https://viva.pressbooks.pub/openmusictheory/chapter/scales-and-scale-degrees/" },
         ],
         1 => &[
-            LearnLink { label: "musictheory.net: Major Scale", url: "https://www.musictheory.net/lessons/21" },
-            LearnLink { label: "Open Music Theory: Melody", url: "https://viva.pressbooks.pub/openmusictheory/chapter/melody/" },
+            LearnLink { label: "musictheory.net: Diatonic Chords", url: "https://www.musictheory.net/lessons/43" },
+            LearnLink { label: "Open Music Theory: Harmony", url: "https://viva.pressbooks.pub/openmusictheory/chapter/introduction-to-harmony-chords-and-basic-tonal-progressions/" },
         ],
         2 => &[
             LearnLink { label: "musictheory.net: Intervals", url: "https://www.musictheory.net/lessons/30" },
@@ -87,6 +87,66 @@ pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
             LearnLink { label: "Open Music Theory: Triads", url: "https://viva.pressbooks.pub/openmusictheory/chapter/triads/" },
         ],
         _ => &[],
+    }
+}
+
+// ─── Educational Insights ──────────────────────────────────────────
+
+/// Insight text for a correctly identified scale degree.
+pub fn degree_insight(degree: u8) -> &'static str {
+    match degree % 7 {
+        0 => "Tonic (I) -- home base. All melody gravitates back here.",
+        1 => "Supertonic (ii) -- one step above home. Pre-dominant function.",
+        2 => "Mediant (iii) -- the bridge between tonic and dominant.",
+        3 => "Subdominant (IV) -- the plagal sound. Think 'Amen' cadence.",
+        4 => "Dominant (V) -- maximum tension. Yearns to resolve to I.",
+        5 => "Submediant (vi) -- the relative minor. Emotional twin of I.",
+        6 => "Leading tone (vii) -- most unstable degree. Pulls up to I.",
+        _ => "",
+    }
+}
+
+/// Insight text for a correctly identified Roman numeral chord.
+pub fn numeral_insight(degree: u8) -> &'static str {
+    match degree % 7 {
+        0 => "I -- the tonic chord. The harmonic center of gravity.",
+        1 => "ii -- supertonic minor. Classic setup for V (the ii-V-I).",
+        2 => "iii -- mediant minor. Shares two notes with both I and V.",
+        3 => "IV -- subdominant major. Foundation of plagal cadences.",
+        4 => "V -- dominant major. Creates the strongest pull to I.",
+        5 => "vi -- submediant minor. Gateway to the relative minor key.",
+        6 => "vii* -- leading-tone diminished. Maximum harmonic instability.",
+        _ => "",
+    }
+}
+
+/// Insight text for a correctly identified interval.
+pub fn interval_insight(semitones: u8) -> &'static str {
+    match semitones {
+        0  => "Unison (P1) -- the same pitch. Foundation of all harmony.",
+        1  => "Minor 2nd -- a half step. Maximum melodic tension.",
+        2  => "Major 2nd -- a whole step. The basic scale building block.",
+        3  => "Minor 3rd -- defines the minor chord. The sound of pathos.",
+        4  => "Major 3rd -- defines the major chord. Bright and affirming.",
+        5  => "Perfect 4th -- open and stable. Basis of plagal cadences.",
+        6  => "Tritone -- the 'devil in music.' Exactly splits the octave.",
+        7  => "Perfect 5th -- most consonant after the octave. The power chord.",
+        8  => "Minor 6th -- bittersweet. An inverted major 3rd.",
+        9  => "Major 6th -- warm and lyrical. 'My Bonnie Lies Over the Ocean.'",
+        10 => "Minor 7th -- bluesy tension. Drives dominant 7th chords.",
+        11 => "Major 7th -- dreamy and jazzy. One half-step from resolution.",
+        12 => "Octave (P8) -- the purest doubling. Same note, higher register.",
+        _  => "",
+    }
+}
+
+/// Insight text for a correctly identified chord quality.
+pub fn quality_insight(q: ChordQuality) -> &'static str {
+    match q {
+        ChordQuality::Major      => "Major: root + M3 + P5. Bright, stable, resolved.",
+        ChordQuality::Minor      => "Minor: root + m3 + P5. Darker, introspective, emotional.",
+        ChordQuality::Diminished => "Diminished: root + m3 + dim5. Tense, unstable, wants to move.",
+        ChordQuality::Augmented  => "Augmented: root + M3 + aug5. Mysterious, dreamlike, unresolved.",
     }
 }
 

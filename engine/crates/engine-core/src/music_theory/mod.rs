@@ -89,10 +89,10 @@ const WRONG_MESSAGES: &[&str] = &[
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum MusicConcept {
-    ChordProgression,
-    NextNote,
-    IntervalRecognition,
-    ChordQuality,
+    ScaleDegree,          // Hear note in context → identify which degree
+    RomanNumeral,         // Hear chord in context → identify which numeral
+    IntervalRecognition,  // Hear two notes → name the interval
+    ChordQuality,         // Hear chord → Major/Minor/Dim/Aug
 }
 
 #[derive(Clone, Debug)]
@@ -207,6 +207,8 @@ pub struct MusicTheorySim {
     /// Actual framebuffer dimensions — set each frame from Engine.
     screen_w: f64,
     screen_h: f64,
+    /// Educational insight shown after a correct answer.
+    current_insight: String,
 }
 
 impl MusicTheorySim {
@@ -217,7 +219,7 @@ impl MusicTheorySim {
             max_streak: 0,
             difficulty: 1,
             challenge: MusicChallenge {
-                concept: MusicConcept::ChordProgression,
+                concept: MusicConcept::ScaleDegree,
                 key_root: 60,
                 sequence: vec![],
                 answer: 0,
@@ -253,6 +255,7 @@ impl MusicTheorySim {
             sound_energy: 0.0,
             screen_w: 600.0,
             screen_h: 900.0,
+            current_insight: String::new(),
         }
     }
 
@@ -273,6 +276,7 @@ impl MusicTheorySim {
     // ─── Challenge Generation ────────────────────────────────
 
     fn generate_challenge(&mut self, engine: &mut Engine) {
+        self.current_insight.clear();
         self.last_concept_idx = (self.last_concept_idx + 1) % 4;
         let key_roots = [48u8, 50, 52, 53, 55, 57];
         let key_root = key_roots[engine.rng.range_i32(0, key_roots.len() as i32 - 1) as usize];
@@ -287,46 +291,52 @@ impl MusicTheorySim {
     }
 
     fn generate_chord_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        let mut seq = vec![0u8]; // Start on I
-        for _ in 0..2 {
-            let last = *seq.last().unwrap_or(&0);
-            let nexts = likely_next_degrees(last);
-            let idx = engine.rng.range_i32(0, nexts.len() as i32 - 1) as usize;
-            seq.push(nexts[idx]);
-        }
-
-        let last = *seq.last().unwrap_or(&0);
-        let nexts = likely_next_degrees(last);
-        let idx = engine.rng.range_i32(0, nexts.len() as i32 - 1) as usize;
-        let answer = nexts[idx];
+        // Scale Degree challenge: play tonic triad as context, then a mystery note.
+        // Player identifies which scale degree (0–6) the mystery note is.
+        let answer = engine.rng.range_i32(0, 6) as u8;
 
         let pool: Vec<u8> = if self.difficulty <= 3 {
-            vec![0, 3, 4, 5]
-        } else if self.difficulty <= 7 {
-            vec![0, 1, 2, 3, 4, 5]
+            vec![0, 2, 4, 5] // I, iii, V, vi — easiest to distinguish
+        } else if self.difficulty <= 6 {
+            vec![0, 1, 3, 4, 5, 6] // add ii, IV, vii
         } else {
             (0..7).collect()
         };
 
         let options = generate_options(answer, &pool, 4, engine.rng.next_u64());
 
-        // Play the existing chord sequence
-        for (i, &deg) in seq.iter().enumerate() {
-            let root = key_root + MAJOR_SCALE[(deg % 7) as usize];
-            let freq = midi_to_freq(root);
+        // Context: ascending tonic triad (I-III-V) to establish the key
+        let context_degrees: [u8; 3] = [0, 2, 4]; // scale degrees 1, 3, 5
+        for (i, &deg) in context_degrees.iter().enumerate() {
+            let midi = degree_to_midi(key_root, deg);
             self.schedule_sound(ScheduledSound {
-                play_at: self.total_time + i as f64 * 0.5,
-                frequency: freq,
-                duration: 0.4,
-                volume: 0.5,
+                play_at: self.total_time + i as f64 * 0.3,
+                frequency: midi_to_freq(midi),
+                duration: 0.25,
+                volume: 0.45,
                 waveform: Waveform::Sine,
                 attack: 0.02,
-                decay: 0.3,
+                decay: 0.2,
             });
         }
 
+        // Mystery note after a brief pause
+        let mystery_midi = degree_to_midi(key_root, answer);
+        self.schedule_sound(ScheduledSound {
+            play_at: self.total_time + 1.2,
+            frequency: midi_to_freq(mystery_midi),
+            duration: 0.5,
+            volume: 0.7,
+            waveform: Waveform::Triangle,
+            attack: 0.01,
+            decay: 0.4,
+        });
+
+        // sequence stores context degrees + answer for replay
+        let seq = vec![0, 2, 4, answer];
+
         self.challenge = MusicChallenge {
-            concept: MusicConcept::ChordProgression,
+            concept: MusicConcept::ScaleDegree,
             key_root,
             sequence: seq,
             answer,
@@ -338,39 +348,69 @@ impl MusicTheorySim {
     }
 
     fn generate_note_challenge(&mut self, key_root: u8, engine: &mut Engine) {
-        let start_degree = engine.rng.range_i32(0, 4) as u8;
-        let mut seq = vec![start_degree];
-        for _ in 0..3 {
-            let last = *seq.last().unwrap_or(&0) as i8;
-            let step = if engine.rng.chance(0.65) { 1i8 } else { -1 };
-            let next = (last + step).max(0).min(6) as u8;
-            seq.push(next);
-        }
+        // Roman Numeral challenge: play I chord as reference, then a mystery
+        // diatonic chord. Player identifies which Roman numeral (0–6) it is.
+        let answer = engine.rng.range_i32(0, 6) as u8;
 
-        let last = *seq.last().unwrap_or(&0) as i8;
-        let prev = seq.get(seq.len().wrapping_sub(2)).copied().unwrap_or(0) as i8;
-        let direction = if last >= prev { 1i8 } else { -1 };
-        let answer = (last + direction).max(0).min(6) as u8;
+        let pool: Vec<u8> = if self.difficulty <= 3 {
+            vec![0, 3, 4, 5] // I, IV, V, vi — most distinct
+        } else if self.difficulty <= 6 {
+            vec![0, 1, 3, 4, 5]
+        } else {
+            (0..7).collect()
+        };
 
-        let pool: Vec<u8> = (0..7).collect();
         let options = generate_options(answer, &pool, 4, engine.rng.next_u64());
 
-        // Play the melody
-        for (i, &deg) in seq.iter().enumerate() {
-            let midi = degree_to_midi(key_root, deg);
+        // Reference: play I chord (arpeggiated)
+        let i_chord = chord_intervals(0);
+        for (i, &iv) in i_chord.iter().enumerate() {
+            let midi = key_root + iv;
             self.schedule_sound(ScheduledSound {
-                play_at: self.total_time + i as f64 * 0.35,
+                play_at: self.total_time + i as f64 * 0.15,
                 frequency: midi_to_freq(midi),
-                duration: 0.3,
-                volume: 0.6,
-                waveform: Waveform::Triangle,
-                attack: 0.01,
-                decay: 0.25,
+                duration: 0.4,
+                volume: 0.4,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.3,
             });
         }
 
+        // Mystery chord after a pause — play all notes together
+        let mystery_root = key_root + MAJOR_SCALE[(answer % 7) as usize];
+        let mystery_intervals = chord_intervals(answer);
+        for &iv in &mystery_intervals {
+            let midi = mystery_root + iv;
+            self.schedule_sound(ScheduledSound {
+                play_at: self.total_time + 0.8,
+                frequency: midi_to_freq(midi),
+                duration: 0.6,
+                volume: 0.5,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.5,
+            });
+        }
+        // Also arpeggiate the mystery chord for clarity
+        for (i, &iv) in mystery_intervals.iter().enumerate() {
+            let midi = mystery_root + iv;
+            self.schedule_sound(ScheduledSound {
+                play_at: self.total_time + 1.5 + i as f64 * 0.15,
+                frequency: midi_to_freq(midi),
+                duration: 0.35,
+                volume: 0.45,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.3,
+            });
+        }
+
+        // sequence = [answer degree] (for highlight/replay)
+        let seq = vec![answer];
+
         self.challenge = MusicChallenge {
-            concept: MusicConcept::NextNote,
+            concept: MusicConcept::RomanNumeral,
             key_root,
             sequence: seq,
             answer,
@@ -486,22 +526,24 @@ impl MusicTheorySim {
     fn update_highlights(&mut self) {
         self.highlighted_keys = [false; NUM_NOTES];
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
-                if let Some(&last_deg) = self.challenge.sequence.last() {
-                    let root = self.challenge.key_root + MAJOR_SCALE[(last_deg % 7) as usize];
-                    for &interval in &chord_intervals(last_deg) {
+            MusicConcept::ScaleDegree => {
+                // Highlight the mystery note (last in sequence)
+                if let Some(&deg) = self.challenge.sequence.last() {
+                    let midi = degree_to_midi(self.challenge.key_root, deg);
+                    if midi >= MIDI_LOW && midi <= MIDI_HIGH {
+                        self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
+                    }
+                }
+            }
+            MusicConcept::RomanNumeral => {
+                // Highlight the mystery chord notes
+                if let Some(&deg) = self.challenge.sequence.first() {
+                    let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    for &interval in &chord_intervals(deg) {
                         let midi = root + interval;
                         if midi >= MIDI_LOW && midi <= MIDI_HIGH {
                             self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
                         }
-                    }
-                }
-            }
-            MusicConcept::NextNote => {
-                for &deg in &self.challenge.sequence {
-                    let midi = degree_to_midi(self.challenge.key_root, deg);
-                    if midi >= MIDI_LOW && midi <= MIDI_HIGH {
-                        self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
                     }
                 }
             }
@@ -557,7 +599,22 @@ impl MusicTheorySim {
 
         // Play the answer
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
+            MusicConcept::ScaleDegree => {
+                let deg = self.challenge.answer;
+                let midi = degree_to_midi(self.challenge.key_root, deg);
+                engine.sound_queue.push(SoundCommand::PlayTone {
+                    frequency: midi_to_freq(midi),
+                    duration: 0.5,
+                    volume: 0.7,
+                    waveform: Waveform::Triangle,
+                    attack: 0.01,
+                    decay: 0.4,
+                });
+                self.flash_key(midi, CORRECT_COLOR);
+                self.phrase_notes.push(PhraseNote { midi });
+                self.current_insight = degree_insight(deg).to_string();
+            }
+            MusicConcept::RomanNumeral => {
                 let deg = self.challenge.answer;
                 let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
                 let intervals = chord_intervals(deg);
@@ -574,20 +631,7 @@ impl MusicTheorySim {
                     self.flash_key(midi, CORRECT_COLOR);
                 }
                 self.phrase_notes.push(PhraseNote { midi: root });
-            }
-            MusicConcept::NextNote => {
-                let deg = self.challenge.answer;
-                let midi = degree_to_midi(self.challenge.key_root, deg);
-                engine.sound_queue.push(SoundCommand::PlayTone {
-                    frequency: midi_to_freq(midi),
-                    duration: 0.4,
-                    volume: 0.7,
-                    waveform: Waveform::Triangle,
-                    attack: 0.01,
-                    decay: 0.3,
-                });
-                self.flash_key(midi, CORRECT_COLOR);
-                self.phrase_notes.push(PhraseNote { midi });
+                self.current_insight = numeral_insight(deg).to_string();
             }
             MusicConcept::IntervalRecognition => {
                 if self.challenge.sequence.len() >= 2 {
@@ -613,6 +657,7 @@ impl MusicTheorySim {
                     self.flash_key(base, CORRECT_COLOR);
                     self.flash_key(top, CORRECT_COLOR);
                     self.phrase_notes.push(PhraseNote { midi: top });
+                    self.current_insight = interval_insight(self.challenge.answer).to_string();
                 }
             }
             MusicConcept::ChordQuality => {
@@ -633,6 +678,7 @@ impl MusicTheorySim {
                         self.flash_key(midi, CORRECT_COLOR);
                     }
                     self.phrase_notes.push(PhraseNote { midi: root });
+                    self.current_insight = quality_insight(q).to_string();
                 }
             }
         }
@@ -668,15 +714,15 @@ impl MusicTheorySim {
 
         // Flash wrong notes on piano
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
+            MusicConcept::ScaleDegree => {
+                let midi = degree_to_midi(self.challenge.key_root, _selected);
+                self.flash_key(midi, WRONG_COLOR);
+            }
+            MusicConcept::RomanNumeral => {
                 let root = self.challenge.key_root + MAJOR_SCALE[(_selected % 7) as usize];
                 for &interval in &chord_intervals(_selected) {
                     self.flash_key(root + interval, WRONG_COLOR);
                 }
-            }
-            MusicConcept::NextNote => {
-                let midi = degree_to_midi(self.challenge.key_root, _selected);
-                self.flash_key(midi, WRONG_COLOR);
             }
             MusicConcept::ChordQuality => {
                 // Flash the chord notes with wrong color
@@ -814,12 +860,11 @@ impl MusicTheorySim {
 
     fn option_label(&self, value: u8) -> String {
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
+            MusicConcept::ScaleDegree => {
                 DEGREE_NAMES[(value % 7) as usize].to_string()
             }
-            MusicConcept::NextNote => {
-                let midi = degree_to_midi(self.challenge.key_root, value);
-                note_name(midi).to_string()
+            MusicConcept::RomanNumeral => {
+                DEGREE_NAMES[(value % 7) as usize].to_string()
             }
             MusicConcept::IntervalRecognition => {
                 if (value as usize) < INTERVAL_NAMES.len() {
@@ -880,7 +925,20 @@ impl MusicTheorySim {
         }
         let opt = self.challenge.options[idx];
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
+            MusicConcept::ScaleDegree => {
+                // Preview: play the single note for this degree
+                let midi = degree_to_midi(self.challenge.key_root, opt);
+                engine.sound_queue.push(SoundCommand::PlayTone {
+                    frequency: midi_to_freq(midi),
+                    duration: 0.3,
+                    volume: 0.35,
+                    waveform: Waveform::Triangle,
+                    attack: 0.01,
+                    decay: 0.25,
+                });
+            }
+            MusicConcept::RomanNumeral => {
+                // Preview: play the diatonic chord for this degree
                 let deg = opt;
                 let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
                 for &interval in &chord_intervals(deg) {
@@ -894,17 +952,6 @@ impl MusicTheorySim {
                         decay: 0.25,
                     });
                 }
-            }
-            MusicConcept::NextNote => {
-                let midi = degree_to_midi(self.challenge.key_root, opt);
-                engine.sound_queue.push(SoundCommand::PlayTone {
-                    frequency: midi_to_freq(midi),
-                    duration: 0.3,
-                    volume: 0.35,
-                    waveform: Waveform::Triangle,
-                    attack: 0.01,
-                    decay: 0.25,
-                });
             }
             MusicConcept::IntervalRecognition => {
                 if !self.challenge.sequence.is_empty() {
@@ -956,32 +1003,76 @@ impl MusicTheorySim {
         let concept = self.challenge.concept.clone();
         let now = self.total_time;
         match concept {
-            MusicConcept::ChordProgression => {
-                for (i, &deg) in seq.iter().enumerate() {
-                    let root = key_root + MAJOR_SCALE[(deg % 7) as usize];
+            MusicConcept::ScaleDegree => {
+                // Replay context triad (first 3 entries) then mystery note (last)
+                let context_len = seq.len().saturating_sub(1);
+                for (i, &deg) in seq[..context_len].iter().enumerate() {
+                    let midi = degree_to_midi(key_root, deg);
                     self.scheduled_sounds.push(ScheduledSound {
-                        play_at: now + i as f64 * 0.5,
-                        frequency: midi_to_freq(root),
+                        play_at: now + i as f64 * 0.3,
+                        frequency: midi_to_freq(midi),
+                        duration: 0.25,
+                        volume: 0.45,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.2,
+                    });
+                }
+                if let Some(&mystery_deg) = seq.last() {
+                    let midi = degree_to_midi(key_root, mystery_deg);
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + 1.2,
+                        frequency: midi_to_freq(midi),
+                        duration: 0.5,
+                        volume: 0.7,
+                        waveform: Waveform::Triangle,
+                        attack: 0.01,
+                        decay: 0.4,
+                    });
+                }
+            }
+            MusicConcept::RomanNumeral => {
+                // Replay I chord then mystery chord
+                let i_chord = chord_intervals(0);
+                for (i, &iv) in i_chord.iter().enumerate() {
+                    let midi = key_root + iv;
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + i as f64 * 0.15,
+                        frequency: midi_to_freq(midi),
                         duration: 0.4,
-                        volume: 0.5,
+                        volume: 0.4,
                         waveform: Waveform::Sine,
                         attack: 0.02,
                         decay: 0.3,
                     });
                 }
-            }
-            MusicConcept::NextNote => {
-                for (i, &deg) in seq.iter().enumerate() {
-                    let midi = degree_to_midi(key_root, deg);
-                    self.scheduled_sounds.push(ScheduledSound {
-                        play_at: now + i as f64 * 0.35,
-                        frequency: midi_to_freq(midi),
-                        duration: 0.3,
-                        volume: 0.6,
-                        waveform: Waveform::Triangle,
-                        attack: 0.01,
-                        decay: 0.25,
-                    });
+                if let Some(&deg) = seq.first() {
+                    let mystery_root = key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    let mystery_iv = chord_intervals(deg);
+                    for &iv in &mystery_iv {
+                        let midi = mystery_root + iv;
+                        self.scheduled_sounds.push(ScheduledSound {
+                            play_at: now + 0.8,
+                            frequency: midi_to_freq(midi),
+                            duration: 0.6,
+                            volume: 0.5,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.5,
+                        });
+                    }
+                    for (i, &iv) in mystery_iv.iter().enumerate() {
+                        let midi = mystery_root + iv;
+                        self.scheduled_sounds.push(ScheduledSound {
+                            play_at: now + 1.5 + i as f64 * 0.15,
+                            frequency: midi_to_freq(midi),
+                            duration: 0.35,
+                            volume: 0.45,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.3,
+                        });
+                    }
                 }
             }
             MusicConcept::IntervalRecognition => {
@@ -1089,8 +1180,8 @@ impl MusicTheorySim {
     /// Get the concept index for learning resource lookup.
     fn concept_idx(&self) -> u8 {
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => 0,
-            MusicConcept::NextNote => 1,
+            MusicConcept::ScaleDegree => 0,
+            MusicConcept::RomanNumeral => 1,
             MusicConcept::IntervalRecognition => 2,
             MusicConcept::ChordQuality => 3,
         }
@@ -1392,36 +1483,32 @@ impl MusicTheorySim {
         }
 
         match &self.challenge.concept {
-            MusicConcept::ChordProgression => {
-                text::draw_text_centered(fb, cx, cy(12.0), "CHORD PROGRESSION", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "What comes next?", Color::WHITE, 2);
+            MusicConcept::ScaleDegree => {
+                text::draw_text_centered(fb, cx, cy(12.0), "SCALE DEGREE", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "Which degree is this note?", Color::WHITE, 2);
 
-                let mut prog = String::new();
-                for (i, &deg) in self.challenge.sequence.iter().enumerate() {
-                    if i > 0 { prog.push_str(" > "); }
-                    prog.push_str(DEGREE_NAMES[(deg % 7) as usize]);
-                }
-                prog.push_str(" > ?");
-                text::draw_text_centered(fb, cx, cy(90.0), &prog, ACCENT_TEAL, 3);
-
-                let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
-            }
-            MusicConcept::NextNote => {
-                text::draw_text_centered(fb, cx, cy(12.0), "MELODY", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "What note comes next?", Color::WHITE, 2);
-
-                let mut melody = String::new();
-                for (i, &deg) in self.challenge.sequence.iter().enumerate() {
-                    if i > 0 { melody.push_str("  "); }
+                // Show the mystery note name
+                if let Some(&deg) = self.challenge.sequence.last() {
                     let midi = degree_to_midi(self.challenge.key_root, deg);
-                    melody.push_str(note_name(midi));
+                    let display = format!("{}  -->  ?", note_name(midi));
+                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
                 }
-                melody.push_str("  ?");
-                text::draw_text_centered(fb, cx, cy(90.0), &melody, ACCENT_TEAL, 3);
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
                 text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(170.0), "Listen: tonic triad, then mystery note", DIM_TEXT, 1);
+            }
+            MusicConcept::RomanNumeral => {
+                text::draw_text_centered(fb, cx, cy(12.0), "ROMAN NUMERAL", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "Identify this chord", Color::WHITE, 2);
+
+                // Show a ? for the mystery chord
+                let display = "I  -->  ?";
+                text::draw_text_centered(fb, cx, cy(90.0), display, ACCENT_TEAL, 3);
+
+                let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
+                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(170.0), "Listen: I chord, then mystery chord", DIM_TEXT, 1);
             }
             MusicConcept::IntervalRecognition => {
                 text::draw_text_centered(fb, cx, cy(12.0), "INTERVAL", DIM_TEXT, 1);
@@ -1504,7 +1591,29 @@ impl MusicTheorySim {
         };
 
         if !msg.is_empty() {
-            text::draw_text_centered(fb, cx, cy + 35, msg, color, 2);
+            text::draw_text_centered(fb, cx, cy, msg, color, 2);
+        }
+
+        // Show educational insight on correct answers
+        if self.feedback == FeedbackState::Correct && !self.current_insight.is_empty() {
+            // Wrap long insight text by splitting at a reasonable point
+            let insight = &self.current_insight;
+            if text::text_width(insight, 1) < self.screen_w as i32 - 40 {
+                text::draw_text_centered(fb, cx, cy + 22, insight,
+                    ACCENT_TEAL.with_alpha(220), 1);
+            } else {
+                // Split at the first "--" or midpoint space
+                let split = insight.find("--").or_else(|| {
+                    let mid = insight.len() / 2;
+                    insight[mid..].find(' ').map(|p| mid + p)
+                }).unwrap_or(insight.len());
+                let (line1, line2) = insight.split_at(split);
+                let line2 = line2.trim_start_matches("--").trim_start_matches(' ').trim_start_matches('-').trim();
+                text::draw_text_centered(fb, cx, cy + 18, line1.trim(),
+                    ACCENT_TEAL.with_alpha(220), 1);
+                text::draw_text_centered(fb, cx, cy + 32, line2,
+                    ACCENT_TEAL.with_alpha(180), 1);
+            }
         }
 
         // Decorative accents
@@ -1706,10 +1815,10 @@ impl MusicTheorySim {
         text::draw_text(fb, 16, (ft_y + 20.0) as i32, &diff_str, DIM_TEXT, 1);
 
         let concept_str = match &self.challenge.concept {
-            MusicConcept::ChordProgression => "Mode: Chords",
-            MusicConcept::NextNote => "Mode: Melody",
+            MusicConcept::ScaleDegree => "Mode: Scale Degrees",
+            MusicConcept::RomanNumeral => "Mode: Roman Numerals",
             MusicConcept::IntervalRecognition => "Mode: Intervals",
-            MusicConcept::ChordQuality => "Mode: Quality",
+            MusicConcept::ChordQuality => "Mode: Chord Quality",
         };
         let cw = text::text_width(concept_str, 1);
         text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 20.0) as i32, concept_str, DIM_TEXT, 1);

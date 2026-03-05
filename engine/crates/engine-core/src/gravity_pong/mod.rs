@@ -2847,6 +2847,41 @@ impl Simulation for GravityPong {
         engine.global_state.set_f64("goal", self.goal_target as f64);
         engine.global_state.set_f64("level", (self.current_level + 1) as f64);
         engine.global_state.set_f64("time", self.elapsed_time);
+
+        // 10. Export gravity well + black hole positions for WebGL shaders
+        let mut well_idx = 0usize;
+        let vp_w = engine.framebuffer.width as f64;
+        let vp_h = engine.framebuffer.height as f64;
+        for well in &self.gravity_wells {
+            if !well.active || well_idx >= 8 { break; }
+            let sx = well.x / WORLD_SIZE * vp_w;
+            let sy = well.y / WORLD_SIZE * vp_h;
+            let sr = well.visual_radius / WORLD_SIZE * vp_w;
+            let ss = (well.gm - WELL_MIN_STRENGTH) / (WELL_MAX_STRENGTH - WELL_MIN_STRENGTH);
+            engine.global_state.set_f64(&format!("well_{}_x", well_idx), sx);
+            engine.global_state.set_f64(&format!("well_{}_y", well_idx), sy);
+            engine.global_state.set_f64(&format!("well_{}_radius", well_idx), sr);
+            engine.global_state.set_f64(&format!("well_{}_strength", well_idx), ss.max(0.2));
+            well_idx += 1;
+        }
+        for bh in &self.black_holes {
+            if !bh.active || well_idx >= 8 { break; }
+            let sx = bh.x / WORLD_SIZE * vp_w;
+            let sy = bh.y / WORLD_SIZE * vp_h;
+            let sr = bh.visual_radius / WORLD_SIZE * vp_w * 2.0;
+            engine.global_state.set_f64(&format!("well_{}_x", well_idx), sx);
+            engine.global_state.set_f64(&format!("well_{}_y", well_idx), sy);
+            engine.global_state.set_f64(&format!("well_{}_radius", well_idx), sr);
+            engine.global_state.set_f64(&format!("well_{}_strength", well_idx), 1.5);
+            well_idx += 1;
+        }
+        // Zero out unused well slots
+        for i in well_idx..8 {
+            engine.global_state.set_f64(&format!("well_{}_x", i), 0.0);
+            engine.global_state.set_f64(&format!("well_{}_y", i), 0.0);
+            engine.global_state.set_f64(&format!("well_{}_radius", i), 0.0);
+            engine.global_state.set_f64(&format!("well_{}_strength", i), 0.0);
+        }
     }
 
     fn render(&self, engine: &mut Engine) {

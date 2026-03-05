@@ -552,7 +552,7 @@
         }
 
         // Restore SRS state from localStorage before setup
-        const savedSrs = localStorage.getItem('crusty_mt_srs');
+        const savedSrs = localStorage.getItem('crusty_mt_srs_state');
         if (savedSrs) set_game_state_str('srs_state', savedSrs);
 
         // Pass current real-world day so SRS scheduling works across sessions

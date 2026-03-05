@@ -1681,11 +1681,11 @@ impl Simulation for MusicTheorySim {
             self.render_border_glow(fb);
             let cx = (self.screen_w / 2.0) as i32;
             let cy = (self.screen_h / 2.0) as i32;
-            text::draw_text_centered(fb, cx, cy - 40, "MUSIC THEORY", ACCENT_TEAL, 3);
-            text::draw_text_centered(fb, cx, cy, "Interactive Ear Training", ACCENT_PINK, 2);
+            text::draw_text_centered(fb, cx, cy - 50, "MUSIC THEORY", ACCENT_TEAL, 4);
+            text::draw_text_centered(fb, cx, cy + 5, "Interactive Ear Training", ACCENT_PINK, 3);
             let blink = ((self.pulse_time * 2.5).sin() * 0.3 + 0.7) * 255.0;
-            text::draw_text_centered(fb, cx, cy + 50, "Tap to Begin",
-                Color::WHITE.with_alpha(blink as u8), 2);
+            text::draw_text_centered(fb, cx, cy + 60, "Tap to Begin",
+                Color::WHITE.with_alpha(blink as u8), 3);
             return;
         }
 
@@ -1713,18 +1713,18 @@ impl Simulation for MusicTheorySim {
 impl MusicTheorySim {
     fn render_header(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let ys = self.ys();
-        text::draw_text(fb, 16, self.sy(14.0) as i32, "MUSIC THEORY", ACCENT_TEAL, 2);
+        text::draw_text(fb, 16, self.sy(10.0) as i32, "MUSIC THEORY", ACCENT_TEAL, 3);
         let sub = "Interactive Ear Training";
-        text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
+        text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 2);
 
         let score_str = format!("Score: {}", self.score);
-        let sw = text::text_width(&score_str, 2);
-        text::draw_text(fb, self.screen_w as i32 - sw - 16, self.sy(14.0) as i32, &score_str, Color::WHITE, 2);
+        let sw = text::text_width(&score_str, 3);
+        text::draw_text(fb, self.screen_w as i32 - sw - 16, self.sy(10.0) as i32, &score_str, Color::WHITE, 3);
 
         if self.streak > 0 {
             let stars: String = (0..self.streak.min(10)).map(|_| '*').collect();
-            let stw = text::text_width(&stars, 1);
-            text::draw_text(fb, self.screen_w as i32 - stw - 16, self.sy(38.0) as i32, &stars, ACCENT_PINK, 1);
+            let stw = text::text_width(&stars, 2);
+            text::draw_text(fb, self.screen_w as i32 - stw - 16, self.sy(38.0) as i32, &stars, ACCENT_PINK, 2);
         }
 
         shapes::draw_line(fb, 0.0, HEADER_H * ys - 1.0, self.screen_w, HEADER_H * ys - 1.0, DIVIDER);
@@ -1737,84 +1737,84 @@ impl MusicTheorySim {
         // Learning resource hint
         let resources = learning_resources(self.concept_idx());
         if let Some(r) = resources.first() {
-            let rw = text::text_width(r.label, 1);
+            let rw = text::text_width(r.label, 2);
             text::draw_text(fb, self.screen_w as i32 - rw - 12, cy(0.0),
-                r.label, Color::from_rgba(60, 80, 120, 255), 1);
+                r.label, Color::from_rgba(60, 80, 120, 255), 2);
         }
 
         match &self.challenge.concept {
             MusicConcept::ScaleDegree => {
-                text::draw_text_centered(fb, cx, cy(12.0), "SCALE DEGREE", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "Which degree is this note?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(8.0), "SCALE DEGREE", DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(36.0), "Which degree is this note?", Color::WHITE, 3);
 
                 // Show the mystery note name
                 if let Some(&deg) = self.challenge.sequence.last() {
                     let midi = degree_to_midi(self.challenge.key_root, deg);
                     let display = format!("{}  -->  ?", note_name(midi));
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                    text::draw_text_centered(fb, cx, cy(85.0), &display, ACCENT_TEAL, 3);
                 }
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(170.0), "Listen: tonic triad, then mystery note", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(140.0), &key_str, DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(165.0), "Listen: tonic triad, then mystery note", DIM_TEXT, 2);
             }
             MusicConcept::RomanNumeral => {
-                text::draw_text_centered(fb, cx, cy(12.0), "ROMAN NUMERAL", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "Identify this chord", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(8.0), "ROMAN NUMERAL", DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(36.0), "Identify this chord", Color::WHITE, 3);
 
                 // Show a ? for the mystery chord
                 let display = "I  -->  ?";
-                text::draw_text_centered(fb, cx, cy(90.0), display, ACCENT_TEAL, 3);
+                text::draw_text_centered(fb, cx, cy(85.0), display, ACCENT_TEAL, 3);
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(170.0), "Listen: I chord, then mystery chord", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(140.0), &key_str, DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(165.0), "Listen: I chord, then mystery chord", DIM_TEXT, 2);
             }
             MusicConcept::IntervalRecognition => {
-                text::draw_text_centered(fb, cx, cy(12.0), "INTERVAL", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "Name this interval", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(8.0), "INTERVAL", DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(36.0), "Name this interval", Color::WHITE, 3);
 
                 if self.challenge.sequence.len() >= 2 {
                     let note1 = note_name(self.challenge.sequence[0]);
                     let note2 = note_name(self.challenge.sequence[1]);
                     let display = format!("{} --> {}", note1, note2);
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                    text::draw_text_centered(fb, cx, cy(85.0), &display, ACCENT_TEAL, 3);
                 }
             }
             MusicConcept::ChordQuality => {
-                text::draw_text_centered(fb, cx, cy(12.0), "CHORD QUALITY", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "What type of triad is this?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(8.0), "CHORD QUALITY", DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(36.0), "What type of triad is this?", Color::WHITE, 3);
 
                 let root_name = note_name(self.challenge.quality_root);
                 let display = format!("{} triad", root_name);
-                text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                text::draw_text_centered(fb, cx, cy(85.0), &display, ACCENT_TEAL, 3);
 
-                text::draw_text_centered(fb, cx, cy(150.0), "Listen: arpeggiated then together", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(140.0), "Listen: arpeggiated then together", DIM_TEXT, 2);
             }
             MusicConcept::Cadence => {
-                text::draw_text_centered(fb, cx, cy(12.0), "CADENCE", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(36.0), "What type of cadence is this?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(8.0), "CADENCE", DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(36.0), "What type of cadence is this?", Color::WHITE, 3);
 
                 // Show the two chords as Roman numerals
                 if self.challenge.sequence.len() >= 2 {
                     let s = DEGREE_NAMES[(self.challenge.sequence[0] % 7) as usize];
                     let r = DEGREE_NAMES[(self.challenge.sequence[1] % 7) as usize];
                     let display = format!("{}  -->  {}", s, r);
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                    text::draw_text_centered(fb, cx, cy(85.0), &display, ACCENT_TEAL, 3);
                 }
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, cy(170.0), "Listen: I chord, then two-chord cadence", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(140.0), &key_str, DIM_TEXT, 2);
+                text::draw_text_centered(fb, cx, cy(165.0), "Listen: I chord, then two-chord cadence", DIM_TEXT, 2);
             }
         }
 
-        // Replay hint — small tappable text below challenge info
+        // Replay hint — tappable text below challenge info
         if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
             let replay_y = self.sy(CHALLENGE_Y + 195.0) as i32;
             let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
             text::draw_text_centered(fb, cx, replay_y,
-                "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 1);
+                "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 2);
         }
     }
 
@@ -1856,7 +1856,7 @@ impl MusicTheorySim {
 
             // Number hint
             let num = format!("{}", i + 1);
-            text::draw_text(fb, (x + 4.0) as i32, (y + 4.0) as i32, &num, DIM_TEXT, 1);
+            text::draw_text(fb, (x + 4.0) as i32, (y + 4.0) as i32, &num, DIM_TEXT, 2);
         }
     }
 
@@ -1879,7 +1879,7 @@ impl MusicTheorySim {
         };
 
         if !msg.is_empty() {
-            text::draw_text_centered(fb, cx, cy, msg, color, 2);
+            text::draw_text_centered(fb, cx, cy, msg, color, 3);
         }
 
         // On correct: show insight text + "Next" in the options area (options hidden)
@@ -1887,13 +1887,13 @@ impl MusicTheorySim {
             // Insight text — word-wrapped, placed starting in the options zone
             if !self.current_insight.is_empty() {
                 let max_w = self.screen_w as i32 - 40;
-                let lines = wrap_text(&self.current_insight, max_w, 1);
-                let line_h = 14;
-                let start_y = cy + 20;
+                let lines = wrap_text(&self.current_insight, max_w, 2);
+                let line_h = 18;
+                let start_y = cy + 26;
                 for (i, line) in lines.iter().enumerate() {
                     let alpha = if i == 0 { 220u8 } else { 180 };
                     text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
-                        ACCENT_TEAL.with_alpha(alpha), 1);
+                        ACCENT_TEAL.with_alpha(alpha), 2);
                 }
             }
 
@@ -1901,7 +1901,7 @@ impl MusicTheorySim {
             let next_y = self.sy(PIANO_Y - 30.0) as i32;
             let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
             text::draw_text_centered(fb, cx, next_y,
-                "[ Next ]", CORRECT_COLOR.with_alpha(blink as u8), 2);
+                "[ Next ]", CORRECT_COLOR.with_alpha(blink as u8), 3);
         }
 
         // Decorative accents
@@ -1950,10 +1950,10 @@ impl MusicTheorySim {
             shapes::fill_rect(fb, x + 1.0, piano_y, key_w - 2.0, wk_h, color);
 
             let name = note_name(midi);
-            let text_scale = if is_mobile { 2 } else { 1 };
+            let text_scale: u32 = 2;
             let name_w = text::text_width(name, text_scale);
             let name_x = (x + key_w / 2.0) as i32 - name_w / 2;
-            let name_y = (piano_y + wk_h - if is_mobile { 22.0 } else { 14.0 }) as i32;
+            let name_y = (piano_y + wk_h - if is_mobile { 22.0 } else { 18.0 }) as i32;
             let key_text_color = if self.toggled_keys[note_idx] {
                 Color::WHITE
             } else {
@@ -2030,12 +2030,12 @@ impl MusicTheorySim {
         } else {
             "COMPOSED PHRASE (tap to play all)"
         };
-        text::draw_text(fb, 8, (tl_y + 6.0) as i32, header, DIM_TEXT, 1);
+        text::draw_text(fb, 8, (tl_y + 4.0) as i32, header, DIM_TEXT, 2);
 
         if self.phrase_notes.is_empty() {
             text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (tl_y + tl_h / 2.0) as i32,
                 "Complete challenges to build your phrase!",
-                Color::from_rgba(50, 50, 80, 255), 1);
+                Color::from_rgba(50, 50, 80, 255), 2);
             return;
         }
 
@@ -2081,9 +2081,9 @@ impl MusicTheorySim {
             // Show note name on hover
             if is_hovered {
                 let name = note_name(note.midi);
-                let nw = text::text_width(name, 1);
+                let nw = text::text_width(name, 2);
                 text::draw_text(fb, (x + note_w / 2.0) as i32 - nw / 2,
-                    (y + block_h + 2.0) as i32, name, Color::WHITE, 1);
+                    (y + block_h + 2.0) as i32, name, Color::WHITE, 2);
             }
         }
 
@@ -2100,7 +2100,7 @@ impl MusicTheorySim {
         shapes::draw_line(fb, 0.0, ft_y, self.screen_w, ft_y, DIVIDER);
 
         let diff_str = format!("Difficulty: {}/10", self.difficulty);
-        text::draw_text(fb, 16, (ft_y + 20.0) as i32, &diff_str, DIM_TEXT, 1);
+        text::draw_text(fb, 16, (ft_y + 14.0) as i32, &diff_str, DIM_TEXT, 2);
 
         let concept_str = match &self.challenge.concept {
             MusicConcept::ScaleDegree => "Mode: Scale Degrees",
@@ -2109,19 +2109,11 @@ impl MusicTheorySim {
             MusicConcept::ChordQuality => "Mode: Chord Quality",
             MusicConcept::Cadence => "Mode: Cadences",
         };
-        let cw = text::text_width(concept_str, 1);
-        text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 20.0) as i32, concept_str, DIM_TEXT, 1);
+        let cw = text::text_width(concept_str, 2);
+        text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 14.0) as i32, concept_str, DIM_TEXT, 2);
 
         let phrase_str = format!("Phrase: {} notes", self.phrase_notes.len());
-        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
-
-        // Learning resource link for current mode
-        let resources = learning_resources(self.concept_idx());
-        if let Some(r) = resources.first() {
-            let link_str = format!("Learn more: {}", r.url);
-            text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 36.0) as i32, &link_str,
-                ACCENT_TEAL.with_alpha(120), 1);
-        }
+        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 14.0) as i32, &phrase_str, DIM_TEXT, 2);
     }
 
     fn render_sparkles(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
@@ -2222,8 +2214,8 @@ impl MusicTheorySim {
         let glow_color = color.with_alpha(alpha / 3);
 
         let combo_y = self.sy(CHALLENGE_Y - 8.0) as i32;
-        text::draw_text_centered(fb, cx + 1, combo_y + 1, &combo_str, glow_color, 2);
-        text::draw_text_centered(fb, cx, combo_y, &combo_str, color.with_alpha(alpha), 2);
+        text::draw_text_centered(fb, cx + 1, combo_y + 1, &combo_str, glow_color, 3);
+        text::draw_text_centered(fb, cx, combo_y, &combo_str, color.with_alpha(alpha), 3);
     }
 }
 

@@ -200,56 +200,10 @@ const CHAR_W: u32 = 5;
 const CHAR_H: u32 = 7;
 const CHAR_SPACING: u32 = 1;
 
-/// Check if a font pixel is set at (row, col) within a glyph at the given offset.
-fn font_bit(offset: usize, row: u32, col: u32) -> bool {
-    if row >= CHAR_H || col >= CHAR_W { return false; }
-    FONT_DATA[offset + row as usize] & (1 << (CHAR_W - 1 - col)) != 0
-}
-
 pub fn draw_char(fb: &mut Framebuffer, x: i32, y: i32, c: char, color: Color, scale: u32) {
     let idx = c as usize;
     if idx < 32 || idx > 126 { return; }
     let offset = (idx - 32) * CHAR_H as usize;
-
-    // Anti-aliased fringe for scale >= 2: 1px soft edge around glyph outlines
-    if scale >= 2 {
-        let edge_a = (color.a as u32 * 2 / 5).min(255) as u8; // ~40%
-        let edge = Color { r: color.r, g: color.g, b: color.b, a: edge_a };
-        let corner_a = (color.a as u32 / 5).min(255) as u8; // ~20%
-        let corner = Color { r: color.r, g: color.g, b: color.b, a: corner_a };
-        for row in 0..CHAR_H {
-            for col in 0..CHAR_W {
-                if !font_bit(offset, row, col) { continue; }
-                let bx = x + (col * scale) as i32;
-                let by = y + (row * scale) as i32;
-                let s = scale as i32;
-                let has_l = font_bit(offset, row, col.wrapping_sub(1));
-                let has_r = font_bit(offset, row, col + 1);
-                let has_u = font_bit(offset, row.wrapping_sub(1), col);
-                let has_d = font_bit(offset, row + 1, col);
-                // Cardinal edges
-                if !has_l {
-                    for sy in 0..s { fb.set_pixel_blended(bx - 1, by + sy, edge); }
-                }
-                if !has_r {
-                    for sy in 0..s { fb.set_pixel_blended(bx + s, by + sy, edge); }
-                }
-                if !has_u {
-                    for sx in 0..s { fb.set_pixel_blended(bx + sx, by - 1, edge); }
-                }
-                if !has_d {
-                    for sx in 0..s { fb.set_pixel_blended(bx + sx, by + s, edge); }
-                }
-                // Diagonal corners (where both cardinal neighbors are off)
-                if !has_l && !has_u { fb.set_pixel_blended(bx - 1, by - 1, corner); }
-                if !has_r && !has_u { fb.set_pixel_blended(bx + s, by - 1, corner); }
-                if !has_l && !has_d { fb.set_pixel_blended(bx - 1, by + s, corner); }
-                if !has_r && !has_d { fb.set_pixel_blended(bx + s, by + s, corner); }
-            }
-        }
-    }
-
-    // Main solid pixels
     for row in 0..CHAR_H {
         let bits = FONT_DATA[offset + row as usize];
         for col in 0..CHAR_W {

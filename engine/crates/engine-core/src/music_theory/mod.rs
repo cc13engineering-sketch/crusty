@@ -1887,13 +1887,13 @@ impl MusicTheorySim {
             // Insight text — word-wrapped, placed starting in the options zone
             if !self.current_insight.is_empty() {
                 let max_w = self.screen_w as i32 - 40;
-                let lines = wrap_text(&self.current_insight, max_w, 1);
-                let line_h = 14;
-                let start_y = cy + 20;
+                let lines = wrap_text(&self.current_insight, max_w, 2);
+                let line_h = 18;
+                let start_y = cy + 22;
                 for (i, line) in lines.iter().enumerate() {
                     let alpha = if i == 0 { 220u8 } else { 180 };
                     text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
-                        ACCENT_TEAL.with_alpha(alpha), 1);
+                        ACCENT_TEAL.with_alpha(alpha), 2);
                 }
             }
 

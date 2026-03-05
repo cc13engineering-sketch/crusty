@@ -1150,10 +1150,13 @@ impl Simulation for VocaloidSim {
         let mx = engine.input.mouse_x;
         let my = engine.input.mouse_y;
 
-        // Mobile slider dragging
+        // Mobile slider dragging — generous 60px touch zone centered on slider
         if is_mobile {
+            let slider_center = SLIDER_TRACK_Y + 3.0;
+            let slider_hit_top = slider_center - 30.0;
+            let slider_hit_bot = slider_center + 30.0;
             if engine.input.mouse_buttons_pressed.contains(&0)
-                && my > PIANO_Y + WHITE_KEY_H && my < TIMELINE_Y
+                && my > slider_hit_top && my < slider_hit_bot
             {
                 self.slider_dragging = true;
             }
@@ -1586,14 +1589,15 @@ impl VocaloidSim {
         shapes::draw_rect(fb, 0.0, PIANO_Y, SCREEN_W, WHITE_KEY_H, DIVIDER);
 
         if is_mobile {
-            // Scroll slider
-            let track_h = 3.0;
-            shapes::fill_rect(fb, 12.0, SLIDER_TRACK_Y, SCREEN_W - 24.0, track_h,
+            // Scroll slider — chunky for easy touch
+            let track_h = 8.0;
+            let track_y = SLIDER_TRACK_Y;
+            shapes::fill_rect(fb, 12.0, track_y, SCREEN_W - 24.0, track_h,
                 Color::from_rgba(30, 30, 60, 255));
 
             let visible_ratio = SCREEN_W / MOBILE_PIANO_TOTAL_W;
             let track_inner = SCREEN_W - 24.0;
-            let thumb_w = (visible_ratio * track_inner).max(24.0);
+            let thumb_w = (visible_ratio * track_inner).max(30.0);
             let max_thumb_travel = track_inner - thumb_w;
             let scroll_pct = if MOBILE_MAX_SCROLL > 0.0 {
                 self.piano_scroll / MOBILE_MAX_SCROLL
@@ -1601,11 +1605,11 @@ impl VocaloidSim {
             let thumb_x = 12.0 + scroll_pct * max_thumb_travel;
 
             // Thumb glow
-            shapes::fill_rect(fb, thumb_x - 1.0, SLIDER_TRACK_Y - 4.0,
-                thumb_w + 2.0, track_h + 8.0, ACCENT_TEAL.with_alpha(30));
+            shapes::fill_rect(fb, thumb_x - 2.0, track_y - 6.0,
+                thumb_w + 4.0, track_h + 12.0, ACCENT_TEAL.with_alpha(30));
             // Thumb body
-            shapes::fill_rect(fb, thumb_x, SLIDER_TRACK_Y - 2.0,
-                thumb_w, track_h + 4.0, ACCENT_TEAL.with_alpha(180));
+            shapes::fill_rect(fb, thumb_x, track_y - 3.0,
+                thumb_w, track_h + 6.0, ACCENT_TEAL.with_alpha(200));
         } else {
             // Desktop hint
             let hint = "R / Space: replay   Click keys to loop";

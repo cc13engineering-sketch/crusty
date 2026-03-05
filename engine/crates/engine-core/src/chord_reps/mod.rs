@@ -757,13 +757,9 @@ impl ChordRepsSim {
         let variant_for_content = self.challenge.answer;
         if let Some(entry) = select_content(concept_for_content, variant_for_content, self.difficulty, content_seed) {
             self.current_insight = entry.fact.to_string();
-            // Gate: no links until user has engaged (5+ correct answers)
-            // Then 50% display rate once past gate
-            let has_product = entry.product.is_some();
-            let past_gate = self.challenges_completed >= 5;
-            let roll = engine.rng.next_u64() % 100;
-            let threshold = 50;
-            self.show_product = has_product && past_gate && roll < threshold;
+            // Affiliate links disabled until we have enough traffic for acceptance.
+            // TODO: re-enable once accepted by Coursera affiliate program.
+            self.show_product = false;
             self.current_content = Some(entry);
             // Use enriched hint if available (for future hint presses on similar cards)
         } else {
@@ -1684,18 +1680,30 @@ impl ChordRepsSim {
         let sub = "Anki for your ears";
         text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
 
-        // SRS stats (right-aligned)
-        let due = self.srs.due_count();
-        let due_str = format!("{} due", due);
-        let dw = text::text_width(&due_str, 1);
-        text::draw_text(fb, self.screen_w as i32 - dw - 16, self.sy(14.0) as i32,
-            &due_str, ACCENT_TEAL, 1);
+        // SRS pill badges (right-aligned): Mature → Learning → Due
+        let pill_scale = 2;
+        let pill_h = 22.0;
+        let pill_pad_x = 16.0; // horizontal text padding (total, 8 each side)
+        let pill_gap = 6.0;
+        let pill_y = self.sy(10.0);
+        let mut cursor_right = self.screen_w - 16.0;
 
-        let learned = self.srs.total_seen();
-        let learned_str = format!("{} learned", learned);
-        let lw = text::text_width(&learned_str, 1);
-        text::draw_text(fb, self.screen_w as i32 - lw - 16, self.sy(30.0) as i32,
-            &learned_str, DIM_TEXT, 1);
+        let pills: [(String, Color); 3] = [
+            (format!("{} mtr", self.srs.mature_count()), ACCENT_GOLD),
+            (format!("{} lrn", self.srs.learning_count()), ACCENT_PINK),
+            (format!("{} due", self.srs.due_count()), ACCENT_TEAL),
+        ];
+
+        for (label, color) in &pills {
+            let tw = text::text_width(label, pill_scale) as f64;
+            let pw = tw + pill_pad_x;
+            let px = cursor_right - pw;
+            let bg = Color { r: color.r, g: color.g, b: color.b, a: 128 };
+            shapes::fill_pill(fb, px, pill_y, pw, pill_h, bg);
+            text::draw_text(fb, (px + pill_pad_x / 2.0) as i32,
+                (pill_y + 4.0) as i32, label, *color, pill_scale);
+            cursor_right = px - pill_gap;
+        }
 
         shapes::draw_line(fb, 0.0, HEADER_H * ys - 1.0, self.screen_w, HEADER_H * ys - 1.0, DIVIDER);
     }
@@ -2113,14 +2121,7 @@ impl ChordRepsSim {
         let ft_y = self.sy(FOOTER_Y);
         shapes::draw_line(fb, 0.0, ft_y, self.screen_w, ft_y, DIVIDER);
 
-        let due = self.srs.due_count();
-        let learning = self.srs.learning_count();
-        let mature = self.srs.mature_count();
-        let stats = format!("Due: {}  |  Learning: {}  |  Mature: {}", due, learning, mature);
         text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 16.0) as i32,
-            &stats, DIM_TEXT, 1);
-
-        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 32.0) as i32,
             "Spaced repetition: harder cards appear more often",
             Color::from_rgba(60, 60, 90, 255), 1);
     }

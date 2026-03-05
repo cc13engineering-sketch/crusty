@@ -68,6 +68,31 @@ const OPTION_HOVER: Color = Color { r: 30, g: 50, b: 90, a: 255 };
 const DIM_TEXT: Color = Color { r: 100, g: 100, b: 136, a: 255 };
 const OPTION_BORDER: Color = Color { r: 60, g: 70, b: 120, a: 255 };
 const DIVIDER: Color = Color { r: 40, g: 40, b: 80, a: 255 };
+const ACCENT_GOLD: Color = Color { r: 255, g: 215, b: 0, a: 255 };
+
+// Teto voice sample names for celebrations
+const TETO_VOWELS: &[&str] = &["a", "i", "u", "e", "o"];
+const TETO_KA_ROW: &[&str] = &["ka", "ki", "ku", "ke", "ko"];
+const TETO_SA_ROW: &[&str] = &["sa", "shi", "su", "se", "so"];
+const TETO_TA_ROW: &[&str] = &["ta", "chi", "tsu", "te", "to"];
+const TETO_NA_ROW: &[&str] = &["na", "ni", "nu", "ne", "no"];
+const TETO_HA_ROW: &[&str] = &["ha", "hi", "fu", "he", "ho"];
+const TETO_MA_ROW: &[&str] = &["ma", "mi", "mu", "me", "mo"];
+const TETO_RA_ROW: &[&str] = &["ra", "ri", "ru", "re", "ro"];
+const TETO_CV_ROWS: &[&[&str]] = &[
+    TETO_KA_ROW, TETO_SA_ROW, TETO_TA_ROW, TETO_NA_ROW,
+    TETO_HA_ROW, TETO_MA_ROW, TETO_RA_ROW,
+];
+
+// Correct/wrong messages with Japanese expressions
+const CORRECT_MESSAGES: &[&str] = &[
+    "Correct!", "Sugoi!", "Yatta!", "Perfect!", "Subarashii!",
+    "Great!", "Kanpeki!", "Nice!", "Ii ne!",
+];
+const WRONG_MESSAGES: &[&str] = &[
+    "Try again!", "Ganbare!", "Mou ikkai!", "Not quite!",
+    "Oshii!", "Keep trying!",
+];
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -116,6 +141,14 @@ enum FeedbackState {
     Wrong,
 }
 
+#[derive(Clone, Debug, Copy, PartialEq)]
+enum SparkleShape {
+    Circle,
+    Star,
+    Heart,
+    Note,
+}
+
 #[derive(Clone, Debug)]
 struct Sparkle {
     x: f64,
@@ -125,6 +158,26 @@ struct Sparkle {
     life: f64,
     max_life: f64,
     color: Color,
+    shape: SparkleShape,
+}
+
+#[derive(Clone, Debug)]
+struct BackgroundStar {
+    x: f64,
+    y: f64,
+    speed: f64,
+    phase: f64,
+    is_note: bool,
+    size: f64,
+}
+
+#[derive(Clone, Debug)]
+struct ScheduledSample {
+    play_at: f64,
+    name: String,
+    volume: f64,
+    pitch: f64,
+    duration: f64,
 }
 
 // ─── VocaloidSim ────────────────────────────────────────────────────
@@ -147,6 +200,9 @@ pub struct VocaloidSim {
     challenges_completed: u32,
     last_concept_idx: u8,
     sparkles: Vec<Sparkle>,
+    background_stars: Vec<BackgroundStar>,
+    scheduled_samples: Vec<ScheduledSample>,
+    combo_pulse: f64,
 }
 
 impl VocaloidSim {
@@ -178,6 +234,9 @@ impl VocaloidSim {
             challenges_completed: 0,
             last_concept_idx: 3, // so first challenge wraps to 0 (ChordProgression)
             sparkles: Vec::new(),
+            background_stars: Vec::new(),
+            scheduled_samples: Vec::new(),
+            combo_pulse: 0.0,
         }
     }
 
@@ -541,8 +600,40 @@ impl VocaloidSim {
             decay: 0.1,
         });
 
-        // Spawn sparkles
-        self.spawn_sparkles(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 25, ACCENT_CYAN, engine);
+        // Teto celebration: play a random vowel sample on ALL correct answers
+        let vowel_idx = engine.rng.range_i32(0, TETO_VOWELS.len() as i32 - 1) as usize;
+        let pitch = 1.0 + (self.streak.min(20) as f64) * 0.05;
+        engine.sound_queue.push(SoundCommand::PlaySample {
+            name: TETO_VOWELS[vowel_idx].to_string(),
+            volume: 0.4,
+            pitch,
+            duration: 0.4,
+        });
+
+        // Streak milestone: every 5, play ascending CV sequence
+        if self.streak > 0 && self.streak % 5 == 0 {
+            let row_idx = engine.rng.range_i32(0, TETO_CV_ROWS.len() as i32 - 1) as usize;
+            let row = TETO_CV_ROWS[row_idx];
+            for (i, &sample) in row.iter().enumerate() {
+                self.scheduled_samples.push(ScheduledSample {
+                    play_at: self.total_time + 0.15 + i as f64 * 0.12,
+                    name: sample.to_string(),
+                    volume: 0.35,
+                    pitch: 1.0 + i as f64 * 0.08,
+                    duration: 0.3,
+                });
+            }
+            // Big sparkle burst for milestone
+            for x_off in 0..6 {
+                let bx = 50.0 + x_off as f64 * 100.0;
+                self.spawn_sparkles_shaped(bx, OPTIONS_Y, 8, ACCENT_PINK, engine);
+            }
+        }
+
+        self.combo_pulse = 1.0;
+
+        // Spawn sparkles with varied shapes
+        self.spawn_sparkles_shaped(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 25, ACCENT_CYAN, engine);
     }
 
     fn on_wrong(&mut self, _selected: u8, engine: &mut Engine) {
@@ -575,8 +666,16 @@ impl VocaloidSim {
             decay: 0.12,
         });
 
+        // Teto sad "n" sample
+        engine.sound_queue.push(SoundCommand::PlaySample {
+            name: "n".to_string(),
+            volume: 0.5,
+            pitch: 0.7,
+            duration: 0.6,
+        });
+
         // Sad sparkles
-        self.spawn_sparkles(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 8, WRONG_COLOR, engine);
+        self.spawn_sparkles_shaped(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 8, WRONG_COLOR, engine);
     }
 
     // ─── Helpers ─────────────────────────────────────────────
@@ -613,10 +712,47 @@ impl VocaloidSim {
         }
     }
 
-    fn spawn_sparkles(&mut self, cx: f64, cy: f64, count: usize, color: Color, engine: &mut Engine) {
+    fn process_scheduled_samples(&mut self, engine: &mut Engine) {
+        let now = self.total_time;
+        let mut i = 0;
+        while i < self.scheduled_samples.len() {
+            if self.scheduled_samples[i].play_at <= now {
+                let s = self.scheduled_samples.remove(i);
+                engine.sound_queue.push(SoundCommand::PlaySample {
+                    name: s.name,
+                    volume: s.volume,
+                    pitch: s.pitch,
+                    duration: s.duration,
+                });
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    fn init_background_stars(&mut self, engine: &mut Engine) {
+        self.background_stars.clear();
+        for _ in 0..22 {
+            self.background_stars.push(BackgroundStar {
+                x: engine.rng.range_f64(0.0, SCREEN_W),
+                y: engine.rng.range_f64(0.0, SCREEN_H),
+                speed: engine.rng.range_f64(8.0, 30.0),
+                phase: engine.rng.range_f64(0.0, std::f64::consts::TAU),
+                is_note: engine.rng.chance(0.3),
+                size: engine.rng.range_f64(1.5, 3.5),
+            });
+        }
+    }
+
+    fn spawn_sparkles_shaped(&mut self, cx: f64, cy: f64, count: usize, color: Color, engine: &mut Engine) {
+        let shapes = [SparkleShape::Circle, SparkleShape::Star, SparkleShape::Heart, SparkleShape::Note];
         for _ in 0..count {
             let angle = engine.rng.range_f64(0.0, std::f64::consts::TAU);
             let speed = engine.rng.range_f64(40.0, 180.0);
+            let shape_idx = engine.rng.range_i32(0, shapes.len() as i32 - 1) as usize;
+            // Teto pink/red palette variation
+            let palette = [color, ACCENT_PINK, ACCENT_RED, ACCENT_TEAL];
+            let color_idx = engine.rng.range_i32(0, palette.len() as i32 - 1) as usize;
             self.sparkles.push(Sparkle {
                 x: cx,
                 y: cy,
@@ -624,7 +760,8 @@ impl VocaloidSim {
                 vy: angle.sin() * speed,
                 life: engine.rng.range_f64(0.3, 0.8),
                 max_life: 0.8,
-                color,
+                color: palette[color_idx],
+                shape: shapes[shape_idx],
             });
         }
     }
@@ -682,6 +819,7 @@ impl Simulation for VocaloidSim {
     fn setup(&mut self, engine: &mut Engine) {
         engine.config.bounds = (SCREEN_W, SCREEN_H);
         engine.config.background = BG_COLOR;
+        self.init_background_stars(engine);
         self.generate_challenge(engine);
         engine.global_state.set_f64("score", 0.0);
         engine.global_state.set_f64("streak", 0.0);
@@ -693,8 +831,22 @@ impl Simulation for VocaloidSim {
         self.total_time += dt;
         self.pulse_time += dt;
 
-        // Process scheduled sounds
+        // Process scheduled sounds and samples
         self.process_scheduled_sounds(engine);
+        self.process_scheduled_samples(engine);
+
+        // Update combo pulse
+        if self.combo_pulse > 0.0 {
+            self.combo_pulse = (self.combo_pulse - dt * 3.0).max(0.0);
+        }
+
+        // Update background stars
+        for star in self.background_stars.iter_mut() {
+            star.y -= star.speed * dt;
+            if star.y < -10.0 {
+                star.y = SCREEN_H + 10.0;
+            }
+        }
 
         // Update feedback timer
         if self.feedback_timer > 0.0 {
@@ -763,8 +915,11 @@ impl Simulation for VocaloidSim {
         let my = engine.input.mouse_y;
         let fb = &mut engine.framebuffer;
 
+        self.render_background_stars(fb);
+        self.render_border_glow(fb);
         self.render_header(fb);
         self.render_challenge(fb);
+        self.render_combo(fb);
         self.render_options(fb, mx, my);
         self.render_character(fb);
         self.render_piano(fb);
@@ -932,28 +1087,31 @@ impl VocaloidSim {
         let cx = (SCREEN_W / 2.0) as i32;
         let cy = (CHARACTER_Y + CHARACTER_H / 2.0) as i32;
 
-        // Teto-themed character faces
-        let (face, msg, color) = match &self.feedback {
-            FeedbackState::Correct => ("(^o^)/~", "Teto says: Correct!", CORRECT_COLOR),
-            FeedbackState::Wrong => ("(>_<;)", "Teto says: Try again!", WRONG_COLOR),
-            FeedbackState::Neutral => {
-                let faces = ["(@.@)", "(^w^)", "(*v*)", "(-w-)"];
-                let idx = ((self.pulse_time * 0.5) as usize) % faces.len();
-                (faces[idx], "", ACCENT_RED)
+        // Character area is now rendered by HTML overlay (official Teto art)
+        // We only render the feedback message text below the art area
+        let (msg, color) = match &self.feedback {
+            FeedbackState::Correct => {
+                let idx = ((self.pulse_time * 2.0) as usize) % CORRECT_MESSAGES.len();
+                (CORRECT_MESSAGES[idx], CORRECT_COLOR)
             }
+            FeedbackState::Wrong => {
+                let idx = ((self.pulse_time * 2.0) as usize) % WRONG_MESSAGES.len();
+                (WRONG_MESSAGES[idx], WRONG_COLOR)
+            }
+            FeedbackState::Neutral => ("", ACCENT_RED),
         };
 
-        // Floating drill decorations (Teto's twin drills)
-        let bob = (self.pulse_time * 2.0).sin() * 5.0;
-        text::draw_text(fb, cx - 90, cy - 8 + bob as i32, "~",
-            ACCENT_RED.with_alpha(100), 2);
-        text::draw_text(fb, cx + 70, cy - 12 + (-bob) as i32, "~",
-            ACCENT_RED.with_alpha(100), 2);
-
-        text::draw_text_centered(fb, cx, cy - 5, face, color, 3);
         if !msg.is_empty() {
-            text::draw_text_centered(fb, cx, cy + 28, msg, color, 2);
+            text::draw_text_centered(fb, cx, cy + 35, msg, color, 2);
         }
+
+        // Subtle floating decorations around art area
+        let bob = (self.pulse_time * 2.0).sin() * 4.0;
+        let sparkle_alpha = ((self.pulse_time * 3.0).sin() * 0.3 + 0.5) * 255.0;
+        shapes::fill_circle(fb, 80.0, CHARACTER_Y + 20.0 + bob,
+            2.0, ACCENT_PINK.with_alpha(sparkle_alpha as u8));
+        shapes::fill_circle(fb, SCREEN_W - 80.0, CHARACTER_Y + 30.0 - bob,
+            2.0, ACCENT_RED.with_alpha(sparkle_alpha as u8));
     }
 
     fn render_piano(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
@@ -1084,6 +1242,12 @@ impl VocaloidSim {
 
         let phrase_str = format!("Phrase: {} notes", self.phrase_notes.len());
         text::draw_text_centered(fb, 300, (FOOTER_Y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
+
+        // Attribution
+        let attr = "Kasane Teto (c) TWINDRILL - kasaneteto.jp";
+        let aw = text::text_width(attr, 1);
+        text::draw_text(fb, 600 - aw - 8, (FOOTER_Y + 36.0) as i32, attr,
+            Color::from_rgba(60, 60, 80, 180), 1);
     }
 
     fn render_sparkles(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
@@ -1092,7 +1256,110 @@ impl VocaloidSim {
             let alpha = (t * 255.0) as u8;
             let size = 2.0 + t * 3.0;
             let color = s.color.with_alpha(alpha);
-            shapes::fill_circle(fb, s.x, s.y, size, color);
+            match s.shape {
+                SparkleShape::Circle => {
+                    shapes::fill_circle(fb, s.x, s.y, size, color);
+                }
+                SparkleShape::Star => {
+                    // 4-point star: two crossed lines
+                    let half = size * 1.5;
+                    shapes::draw_line(fb, s.x - half, s.y, s.x + half, s.y, color);
+                    shapes::draw_line(fb, s.x, s.y - half, s.x, s.y + half, color);
+                    shapes::fill_circle(fb, s.x, s.y, size * 0.5, color);
+                }
+                SparkleShape::Heart => {
+                    // Simple heart: two overlapping circles + triangle
+                    let r = size * 0.6;
+                    shapes::fill_circle(fb, s.x - r * 0.5, s.y - r * 0.3, r, color);
+                    shapes::fill_circle(fb, s.x + r * 0.5, s.y - r * 0.3, r, color);
+                    shapes::fill_triangle(fb,
+                        s.x - r * 1.2, s.y,
+                        s.x + r * 1.2, s.y,
+                        s.x, s.y + r * 1.5, color);
+                }
+                SparkleShape::Note => {
+                    // Music note: circle head + stem line
+                    shapes::fill_circle(fb, s.x, s.y, size * 0.7, color);
+                    shapes::draw_line(fb, s.x + size * 0.6, s.y,
+                        s.x + size * 0.6, s.y - size * 2.0, color);
+                }
+            }
         }
+    }
+
+    fn render_background_stars(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        for star in &self.background_stars {
+            let twinkle = ((self.pulse_time * 1.5 + star.phase).sin() * 0.4 + 0.6) * 255.0;
+            let alpha = twinkle.max(30.0).min(200.0) as u8;
+            if star.is_note {
+                // Music note shape
+                let color = ACCENT_PINK.with_alpha(alpha / 2);
+                shapes::fill_circle(fb, star.x, star.y, star.size * 0.8, color);
+                shapes::draw_line(fb, star.x + star.size * 0.7, star.y,
+                    star.x + star.size * 0.7, star.y - star.size * 2.5, color);
+            } else {
+                // Glowing dot
+                let color = ACCENT_TEAL.with_alpha(alpha / 3);
+                shapes::fill_circle(fb, star.x, star.y, star.size + 1.0, color);
+                let color2 = Color::WHITE.with_alpha(alpha / 2);
+                shapes::fill_circle(fb, star.x, star.y, star.size * 0.5, color2);
+            }
+        }
+    }
+
+    fn render_border_glow(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        let intensity = if self.feedback == FeedbackState::Correct {
+            0.6
+        } else if self.feedback == FeedbackState::Wrong {
+            0.4
+        } else {
+            0.15 + (self.pulse_time * 0.8).sin().abs() * 0.1
+        };
+
+        let alpha = (intensity * 255.0).min(255.0) as u8;
+        let glow_color = match &self.feedback {
+            FeedbackState::Correct => CORRECT_COLOR.with_alpha(alpha),
+            FeedbackState::Wrong => WRONG_COLOR.with_alpha(alpha / 2),
+            FeedbackState::Neutral => ACCENT_PINK.with_alpha(alpha),
+        };
+
+        let strip = 3.0;
+        // Top
+        shapes::fill_rect(fb, 0.0, 0.0, SCREEN_W, strip, glow_color);
+        // Bottom
+        shapes::fill_rect(fb, 0.0, SCREEN_H - strip, SCREEN_W, strip, glow_color);
+        // Left
+        shapes::fill_rect(fb, 0.0, 0.0, strip, SCREEN_H, glow_color);
+        // Right
+        shapes::fill_rect(fb, SCREEN_W - strip, 0.0, strip, SCREEN_H, glow_color);
+    }
+
+    fn render_combo(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        if self.streak < 3 {
+            return;
+        }
+        let cx = (SCREEN_W / 2.0) as i32;
+        let combo_str = format!("{}x COMBO", self.streak);
+
+        // Color escalation: teal (3+) → pink (5+) → gold (10+)
+        let color = if self.streak >= 10 {
+            ACCENT_GOLD
+        } else if self.streak >= 5 {
+            ACCENT_PINK
+        } else {
+            ACCENT_TEAL
+        };
+
+        // Pulsing glow effect
+        let pulse = (self.pulse_time * 4.0).sin() * 0.3 + 0.7;
+        let alpha = (pulse * 255.0) as u8;
+        let glow_color = color.with_alpha(alpha / 3);
+
+        // Draw glow behind
+        text::draw_text_centered(fb, cx + 1, (CHALLENGE_Y - 8.0) as i32 + 1,
+            &combo_str, glow_color, 2);
+        // Draw main text
+        text::draw_text_centered(fb, cx, (CHALLENGE_Y - 8.0) as i32,
+            &combo_str, color.with_alpha(alpha), 2);
     }
 }

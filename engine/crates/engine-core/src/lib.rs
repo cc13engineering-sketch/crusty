@@ -295,6 +295,15 @@ pub fn set_game_state_str(key: String, value: String) {
     with_engine(|eng| eng.global_state.set_str(&key, &value));
 }
 
+// ─── URL Params WASM API ─────────────────────────────────────────
+
+/// Set a URL query parameter. Call after `init()` but before `setup_*()`.
+/// JS should parse `window.location.search` and call this for each key/value pair.
+#[wasm_bindgen]
+pub fn set_url_param(key: String, value: String) {
+    with_engine(|eng| { eng.url_params.insert(key, value); });
+}
+
 // ─── Demo Ball WASM API ─────────────────────────────────────────────
 
 /// Set up the bouncing ball demo. Call after `init()`.

@@ -34,6 +34,8 @@ use crate::frame_metrics::FrameMetrics;
 use crate::rng::SeededRng;
 use crate::browser::BrowserState;
 
+use std::collections::HashMap;
+
 /// Defines the canonical execution phases within a single engine tick.
 ///
 /// Systems are grouped into phases that run in a fixed order every frame.
@@ -318,6 +320,9 @@ pub struct Engine {
 
     // Browser → WASM shared memory channel
     pub browser_state: BrowserState,
+
+    // URL query parameters (populated by JS before game setup)
+    pub url_params: HashMap<String, String>,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -371,7 +376,13 @@ impl Engine {
             frame_metrics: FrameMetrics::new(),
             rng: SeededRng::new(42),
             browser_state: BrowserState::new(),
+            url_params: HashMap::new(),
         }
+    }
+
+    /// Get a URL query parameter by key. Returns `None` if not set.
+    pub fn url_param(&self, key: &str) -> Option<&str> {
+        self.url_params.get(key).map(|s| s.as_str())
     }
 
     /// Compute a deterministic hash of the simulation state (FNV-1a).

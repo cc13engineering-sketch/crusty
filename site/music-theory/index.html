@@ -3,7 +3,7 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
-    <title>Music Theory — Crusty Engine (WebGL)</title>
+    <title>Chord Reps — Anki for your ears</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body {
@@ -95,6 +95,7 @@
         drain_persist_commands,
         set_game_state_str,
         setup_music_theory,
+        set_url_param,
         browser_state_ptr, browser_state_len
     } = api;
 
@@ -716,6 +717,11 @@
         const memory = wasm.memory;
 
         init(W, H);
+
+        // Push URL query parameters into the engine
+        for (const [k, v] of new URLSearchParams(location.search)) {
+            set_url_param(k, v);
+        }
 
         // Restore SRS state from localStorage before setup
         const savedSrs = localStorage.getItem('crusty_mt_srs');

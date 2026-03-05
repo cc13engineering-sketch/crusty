@@ -1,7 +1,7 @@
-//! Music Theory Simulation
+//! Chord Reps — Anki for your ears
 //!
-//! An interactive music theory learning app where players complete chord
-//! progressions, melodies, identify intervals, and classify chord qualities.
+//! An interactive ear training app where players identify chords,
+//! intervals, scale degrees, cadences, and chord qualities.
 //! Correct answers chain into a growing musical phrase played with
 //! synthesized tones.
 
@@ -1789,10 +1789,12 @@ impl Simulation for MusicTheorySim {
             self.render_border_glow(fb);
             let cx = (self.screen_w / 2.0) as i32;
             let cy = (self.screen_h / 2.0) as i32;
-            text::draw_text_centered(fb, cx, cy - 40, "MUSIC THEORY", ACCENT_TEAL, 3);
-            text::draw_text_centered(fb, cx, cy, "Interactive Ear Training", ACCENT_PINK, 2);
+            text::draw_text_centered(fb, cx, cy - 100, "CHORD REPS", ACCENT_TEAL, 3);
+            text::draw_text_centered(fb, cx, cy - 50, "Anki for your ears", ACCENT_PINK, 2);
+            text::draw_text_centered(fb, cx, cy + 5, "Miss a chord? It comes back.", Color::WHITE, 1);
+            text::draw_text_centered(fb, cx, cy + 23, "Nail it? It fades away.", Color::WHITE, 1);
             let blink = ((self.pulse_time * 2.5).sin() * 0.3 + 0.7) * 255.0;
-            text::draw_text_centered(fb, cx, cy + 50, "Tap to Begin",
+            text::draw_text_centered(fb, cx, cy + 70, "Tap to Begin",
                 Color::WHITE.with_alpha(blink as u8), 2);
             return;
         }
@@ -1821,8 +1823,8 @@ impl Simulation for MusicTheorySim {
 impl MusicTheorySim {
     fn render_header(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let ys = self.ys();
-        text::draw_text(fb, 16, self.sy(14.0) as i32, "MUSIC THEORY", ACCENT_TEAL, 2);
-        let sub = "Interactive Ear Training";
+        text::draw_text(fb, 16, self.sy(14.0) as i32, "CHORD REPS", ACCENT_TEAL, 2);
+        let sub = "Anki for your ears";
         text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
 
         // SRS stats (right-aligned)

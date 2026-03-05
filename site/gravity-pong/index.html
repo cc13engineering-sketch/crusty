@@ -125,7 +125,8 @@
             touch_start, touch_move, touch_end,
             key_down, key_up,
             get_game_state_f64,
-            setup_gravity_pong
+            setup_gravity_pong,
+            set_url_param
         } = api;
 
         // Full-screen canvas — always fills entire viewport
@@ -200,6 +201,12 @@
             const memory = wasm.memory;
 
             init(W, H);
+
+            // Push URL query parameters into the engine
+            for (const [k, v] of new URLSearchParams(location.search)) {
+                set_url_param(k, v);
+            }
+
             setup_gravity_pong();
 
             const imageData = ctx.createImageData(W, H);

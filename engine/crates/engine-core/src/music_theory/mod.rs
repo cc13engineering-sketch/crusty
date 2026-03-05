@@ -93,6 +93,7 @@ pub enum MusicConcept {
     RomanNumeral,         // Hear chord in context → identify which numeral
     IntervalRecognition,  // Hear two notes → name the interval
     ChordQuality,         // Hear chord → Major/Minor/Dim/Aug
+    Cadence,              // Hear 2-chord cadence → Authentic/Plagal/Half/Deceptive
 }
 
 #[derive(Clone, Debug)]
@@ -238,7 +239,7 @@ impl MusicTheorySim {
             scheduled_sounds: Vec::new(),
             total_time: 0.0,
             challenges_completed: 0,
-            last_concept_idx: 3, // so first challenge wraps to 0 (ChordProgression)
+            last_concept_idx: 4, // so first challenge wraps to 0 (ScaleDegree)
             sparkles: Vec::new(),
             background_stars: Vec::new(),
             scheduled_samples: Vec::new(),
@@ -277,7 +278,7 @@ impl MusicTheorySim {
 
     fn generate_challenge(&mut self, engine: &mut Engine) {
         self.current_insight.clear();
-        self.last_concept_idx = (self.last_concept_idx + 1) % 4;
+        self.last_concept_idx = (self.last_concept_idx + 1) % 5;
         let key_roots = [48u8, 50, 52, 53, 55, 57];
         let key_root = key_roots[engine.rng.range_i32(0, key_roots.len() as i32 - 1) as usize];
 
@@ -285,7 +286,8 @@ impl MusicTheorySim {
             0 => self.generate_chord_challenge(key_root, engine),
             1 => self.generate_note_challenge(key_root, engine),
             2 => self.generate_interval_challenge(key_root, engine),
-            _ => self.generate_quality_challenge(engine),
+            3 => self.generate_quality_challenge(engine),
+            _ => self.generate_cadence_challenge(key_root, engine),
         }
         self.update_highlights();
     }
@@ -523,6 +525,79 @@ impl MusicTheorySim {
         };
     }
 
+    fn generate_cadence_challenge(&mut self, key_root: u8, engine: &mut Engine) {
+        // Cadence challenge: play a context chord (I), then a 2-chord cadence.
+        // Player identifies the cadence type: Authentic/Plagal/Half/Deceptive.
+        let ci = engine.rng.range_i32(0, CADENCE_TYPES.len() as i32 - 1) as usize;
+        let cadence = CADENCE_TYPES[ci];
+        let answer = ci as u8;
+        let (setup_deg, resolve_deg) = cadence_chords(cadence);
+
+        let pool: Vec<u8> = (0..4).collect();
+        let options = generate_options(answer, &pool, 4, engine.rng.next_u64());
+
+        // Context: play I chord to establish key
+        let i_chord = chord_intervals(0);
+        for (i, &iv) in i_chord.iter().enumerate() {
+            let midi = key_root + iv;
+            self.schedule_sound(ScheduledSound {
+                play_at: self.total_time + i as f64 * 0.12,
+                frequency: midi_to_freq(midi),
+                duration: 0.5,
+                volume: 0.4,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.4,
+            });
+        }
+
+        // Setup chord of the cadence
+        let setup_root = key_root + MAJOR_SCALE[(setup_deg % 7) as usize];
+        let setup_iv = chord_intervals(setup_deg);
+        for &iv in &setup_iv {
+            let midi = setup_root + iv;
+            self.schedule_sound(ScheduledSound {
+                play_at: self.total_time + 0.8,
+                frequency: midi_to_freq(midi),
+                duration: 0.5,
+                volume: 0.5,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.4,
+            });
+        }
+
+        // Resolution chord of the cadence
+        let resolve_root = key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
+        let resolve_iv = chord_intervals(resolve_deg);
+        for &iv in &resolve_iv {
+            let midi = resolve_root + iv;
+            self.schedule_sound(ScheduledSound {
+                play_at: self.total_time + 1.5,
+                frequency: midi_to_freq(midi),
+                duration: 0.7,
+                volume: 0.5,
+                waveform: Waveform::Sine,
+                attack: 0.02,
+                decay: 0.6,
+            });
+        }
+
+        // sequence stores [setup_deg, resolve_deg] for replay
+        let seq = vec![setup_deg, resolve_deg];
+
+        self.challenge = MusicChallenge {
+            concept: MusicConcept::Cadence,
+            key_root,
+            sequence: seq,
+            answer,
+            options,
+            solved: false,
+            quality_root: 60,
+            quality: None,
+        };
+    }
+
     fn update_highlights(&mut self) {
         self.highlighted_keys = [false; NUM_NOTES];
         match &self.challenge.concept {
@@ -558,6 +633,18 @@ impl MusicTheorySim {
                 for &midi in &self.challenge.sequence {
                     if midi >= MIDI_LOW && midi <= MIDI_HIGH {
                         self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
+                    }
+                }
+            }
+            MusicConcept::Cadence => {
+                // Highlight both cadence chords
+                for &deg in &self.challenge.sequence {
+                    let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    for &interval in &chord_intervals(deg) {
+                        let midi = root + interval;
+                        if midi >= MIDI_LOW && midi <= MIDI_HIGH {
+                            self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
+                        }
                     }
                 }
             }
@@ -681,6 +768,36 @@ impl MusicTheorySim {
                     self.current_insight = quality_insight(q).to_string();
                 }
             }
+            MusicConcept::Cadence => {
+                // Replay the cadence chords
+                if self.challenge.sequence.len() >= 2 {
+                    let setup_deg = self.challenge.sequence[0];
+                    let resolve_deg = self.challenge.sequence[1];
+                    // Flash setup chord
+                    let sr = self.challenge.key_root + MAJOR_SCALE[(setup_deg % 7) as usize];
+                    for &iv in &chord_intervals(setup_deg) {
+                        self.flash_key(sr + iv, CORRECT_COLOR);
+                    }
+                    // Flash resolve chord
+                    let rr = self.challenge.key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
+                    for &iv in &chord_intervals(resolve_deg) {
+                        engine.sound_queue.push(SoundCommand::PlayTone {
+                            frequency: midi_to_freq(rr + iv),
+                            duration: 0.5,
+                            volume: 0.45,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.4,
+                        });
+                        self.flash_key(rr + iv, CORRECT_COLOR);
+                    }
+                    self.phrase_notes.push(PhraseNote { midi: rr });
+                }
+                let ci = self.challenge.answer as usize;
+                if ci < CADENCE_TYPES.len() {
+                    self.current_insight = cadence_insight(CADENCE_TYPES[ci]).to_string();
+                }
+            }
         }
 
         // Correct chime
@@ -732,6 +849,15 @@ impl MusicTheorySim {
                 }
             }
             MusicConcept::IntervalRecognition => {}
+            MusicConcept::Cadence => {
+                // Flash cadence chord notes with wrong color
+                for &deg in &self.challenge.sequence.clone() {
+                    let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    for &iv in &chord_intervals(deg) {
+                        self.flash_key(root + iv, WRONG_COLOR);
+                    }
+                }
+            }
         }
 
         // Gentle wrong sound
@@ -880,6 +1006,13 @@ impl MusicTheorySim {
                     "?".to_string()
                 }
             }
+            MusicConcept::Cadence => {
+                if (value as usize) < CADENCE_TYPES.len() {
+                    cadence_name(CADENCE_TYPES[value as usize]).to_string()
+                } else {
+                    "?".to_string()
+                }
+            }
         }
     }
 
@@ -985,6 +1118,35 @@ impl MusicTheorySim {
                         let midi = root + iv;
                         engine.sound_queue.push(SoundCommand::PlayTone {
                             frequency: midi_to_freq(midi),
+                            duration: 0.3,
+                            volume: 0.3,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.25,
+                        });
+                    }
+                }
+            }
+            MusicConcept::Cadence => {
+                // Preview: play the cadence represented by this option
+                if (opt as usize) < CADENCE_TYPES.len() {
+                    let c = CADENCE_TYPES[opt as usize];
+                    let (setup_deg, resolve_deg) = cadence_chords(c);
+                    let sr = self.challenge.key_root + MAJOR_SCALE[(setup_deg % 7) as usize];
+                    for &iv in &chord_intervals(setup_deg) {
+                        engine.sound_queue.push(SoundCommand::PlayTone {
+                            frequency: midi_to_freq(sr + iv),
+                            duration: 0.25,
+                            volume: 0.3,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.2,
+                        });
+                    }
+                    let rr = self.challenge.key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
+                    for &iv in &chord_intervals(resolve_deg) {
+                        engine.sound_queue.push(SoundCommand::PlayTone {
+                            frequency: midi_to_freq(rr + iv),
                             duration: 0.3,
                             volume: 0.3,
                             waveform: Waveform::Sine,
@@ -1128,6 +1290,48 @@ impl MusicTheorySim {
                     }
                 }
             }
+            MusicConcept::Cadence => {
+                // Replay: I chord context, then cadence (setup → resolve)
+                let i_chord = chord_intervals(0);
+                for (i, &iv) in i_chord.iter().enumerate() {
+                    let midi = key_root + iv;
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + i as f64 * 0.12,
+                        frequency: midi_to_freq(midi),
+                        duration: 0.5,
+                        volume: 0.4,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.4,
+                    });
+                }
+                if seq.len() >= 2 {
+                    let setup_root = key_root + MAJOR_SCALE[(seq[0] % 7) as usize];
+                    for &iv in &chord_intervals(seq[0]) {
+                        self.scheduled_sounds.push(ScheduledSound {
+                            play_at: now + 0.8,
+                            frequency: midi_to_freq(setup_root + iv),
+                            duration: 0.5,
+                            volume: 0.5,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.4,
+                        });
+                    }
+                    let resolve_root = key_root + MAJOR_SCALE[(seq[1] % 7) as usize];
+                    for &iv in &chord_intervals(seq[1]) {
+                        self.scheduled_sounds.push(ScheduledSound {
+                            play_at: now + 1.5,
+                            frequency: midi_to_freq(resolve_root + iv),
+                            duration: 0.7,
+                            volume: 0.5,
+                            waveform: Waveform::Sine,
+                            attack: 0.02,
+                            decay: 0.6,
+                        });
+                    }
+                }
+            }
         }
     }
 
@@ -1184,6 +1388,7 @@ impl MusicTheorySim {
             MusicConcept::RomanNumeral => 1,
             MusicConcept::IntervalRecognition => 2,
             MusicConcept::ChordQuality => 3,
+            MusicConcept::Cadence => 4,
         }
     }
 }
@@ -1531,6 +1736,22 @@ impl MusicTheorySim {
 
                 text::draw_text_centered(fb, cx, cy(150.0), "Listen: arpeggiated then together", DIM_TEXT, 1);
             }
+            MusicConcept::Cadence => {
+                text::draw_text_centered(fb, cx, cy(12.0), "CADENCE", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "What type of cadence is this?", Color::WHITE, 2);
+
+                // Show the two chords as Roman numerals
+                if self.challenge.sequence.len() >= 2 {
+                    let s = DEGREE_NAMES[(self.challenge.sequence[0] % 7) as usize];
+                    let r = DEGREE_NAMES[(self.challenge.sequence[1] % 7) as usize];
+                    let display = format!("{}  -->  {}", s, r);
+                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                }
+
+                let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
+                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(170.0), "Listen: I chord, then two-chord cadence", DIM_TEXT, 1);
+            }
         }
     }
 
@@ -1819,6 +2040,7 @@ impl MusicTheorySim {
             MusicConcept::RomanNumeral => "Mode: Roman Numerals",
             MusicConcept::IntervalRecognition => "Mode: Intervals",
             MusicConcept::ChordQuality => "Mode: Chord Quality",
+            MusicConcept::Cadence => "Mode: Cadences",
         };
         let cw = text::text_width(concept_str, 1);
         text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 20.0) as i32, concept_str, DIM_TEXT, 1);

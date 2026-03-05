@@ -58,6 +58,55 @@ pub fn quality_intervals(q: ChordQuality) -> [u8; 3] {
     }
 }
 
+// ─── Cadence Types ──────────────────────────────────────────────────
+
+/// Cadence types for the cadence identification challenge.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum CadenceType {
+    Authentic,  // V → I
+    Plagal,     // IV → I
+    Half,       // X → V
+    Deceptive,  // V → vi
+}
+
+/// All cadence types used in challenges.
+pub const CADENCE_TYPES: [CadenceType; 4] = [
+    CadenceType::Authentic,
+    CadenceType::Plagal,
+    CadenceType::Half,
+    CadenceType::Deceptive,
+];
+
+/// Display name for a cadence type.
+pub fn cadence_name(c: CadenceType) -> &'static str {
+    match c {
+        CadenceType::Authentic => "Authentic",
+        CadenceType::Plagal    => "Plagal",
+        CadenceType::Half      => "Half",
+        CadenceType::Deceptive => "Deceptive",
+    }
+}
+
+/// The two chord degrees that define a cadence (setup, resolution).
+pub fn cadence_chords(c: CadenceType) -> (u8, u8) {
+    match c {
+        CadenceType::Authentic => (4, 0),  // V → I
+        CadenceType::Plagal    => (3, 0),  // IV → I
+        CadenceType::Half      => (1, 4),  // ii → V
+        CadenceType::Deceptive => (4, 5),  // V → vi
+    }
+}
+
+/// Insight text for a correctly identified cadence type.
+pub fn cadence_insight(c: CadenceType) -> &'static str {
+    match c {
+        CadenceType::Authentic => "V to I -- the strongest resolution. The leading tone pulls up to tonic.",
+        CadenceType::Plagal    => "IV to I -- the 'Amen' cadence. Warm, settled, hymn-like resolution.",
+        CadenceType::Half      => "Ending on V -- a musical question mark. Tension left unresolved.",
+        CadenceType::Deceptive => "V to vi -- the great surprise. You expect I but get its emotional twin.",
+    }
+}
+
 // ─── Learning Resources ─────────────────────────────────────────────
 
 /// A learning resource link for a music theory concept.
@@ -67,7 +116,7 @@ pub struct LearnLink {
 }
 
 /// Learning resources keyed by challenge concept index:
-/// 0 = Scale Degree, 1 = Roman Numeral, 2 = Intervals, 3 = Chord Quality
+/// 0 = Scale Degree, 1 = Roman Numeral, 2 = Intervals, 3 = Chord Quality, 4 = Cadences
 pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
     match concept_idx {
         0 => &[
@@ -85,6 +134,10 @@ pub fn learning_resources(concept_idx: u8) -> &'static [LearnLink] {
         3 => &[
             LearnLink { label: "musictheory.net: Triads", url: "https://www.musictheory.net/lessons/40" },
             LearnLink { label: "Open Music Theory: Triads", url: "https://viva.pressbooks.pub/openmusictheory/chapter/triads/" },
+        ],
+        4 => &[
+            LearnLink { label: "musictheory.net: Cadences", url: "https://www.musictheory.net/lessons/55" },
+            LearnLink { label: "Open Music Theory: Cadences", url: "https://viva.pressbooks.pub/openmusictheory/chapter/cadences/" },
         ],
         _ => &[],
     }
@@ -123,19 +176,19 @@ pub fn numeral_insight(degree: u8) -> &'static str {
 /// Insight text for a correctly identified interval.
 pub fn interval_insight(semitones: u8) -> &'static str {
     match semitones {
-        0  => "Unison (P1) -- the same pitch. Foundation of all harmony.",
-        1  => "Minor 2nd -- a half step. Maximum melodic tension.",
-        2  => "Major 2nd -- a whole step. The basic scale building block.",
-        3  => "Minor 3rd -- defines the minor chord. The sound of pathos.",
-        4  => "Major 3rd -- defines the major chord. Bright and affirming.",
-        5  => "Perfect 4th -- open and stable. Basis of plagal cadences.",
-        6  => "Tritone -- the 'devil in music.' Exactly splits the octave.",
-        7  => "Perfect 5th -- most consonant after the octave. The power chord.",
-        8  => "Minor 6th -- bittersweet. An inverted major 3rd.",
-        9  => "Major 6th -- warm and lyrical. 'My Bonnie Lies Over the Ocean.'",
-        10 => "Minor 7th -- bluesy tension. Drives dominant 7th chords.",
-        11 => "Major 7th -- dreamy and jazzy. One half-step from resolution.",
-        12 => "Octave (P8) -- the purest doubling. Same note, higher register.",
+        0  => "Unison (P1) -- the same pitch. Think 'Stayin' Alive' repeated notes.",
+        1  => "Minor 2nd -- a half step. The 'Jaws' theme interval. Maximum tension.",
+        2  => "Major 2nd -- a whole step. 'Happy Birthday' starts here.",
+        3  => "Minor 3rd -- the minor chord interval. 'Greensleeves' opens with this.",
+        4  => "Major 3rd -- the major chord interval. 'When the Saints Go Marching In.'",
+        5  => "Perfect 4th -- 'Here Comes the Bride.' Open and stable.",
+        6  => "Tritone -- 'Maria' from West Side Story. The devil in music.",
+        7  => "Perfect 5th -- 'Star Wars' opening. Most consonant after the octave.",
+        8  => "Minor 6th -- 'The Entertainer' by Joplin. Bittersweet and poignant.",
+        9  => "Major 6th -- 'My Bonnie Lies Over the Ocean.' Warm and lyrical.",
+        10 => "Minor 7th -- 'Somewhere' from West Side Story. Bluesy tension.",
+        11 => "Major 7th -- 'Take On Me' by a-ha. Dreamy, one step from the octave.",
+        12 => "Octave (P8) -- 'Somewhere Over the Rainbow.' The purest doubling.",
         _  => "",
     }
 }

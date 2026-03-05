@@ -1,0 +1,252 @@
+/* ==========================================================================
+   Crusty UI — Modern font & component system for Crusty Engine games
+   ==========================================================================
+   Usage:  <link rel="stylesheet" href="../crusty-ui.css">
+
+   Fonts: Add to <head> BEFORE this stylesheet for Google Fonts:
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+   Or load dynamically via crusty-ui.js:
+     CrustyUI.loadGoogleFont('Inter', [400, 500, 600, 700]);
+
+   Custom fonts (TTF/OTF/WOFF/WOFF2):
+     CrustyUI.loadCustomFont('MyFont', './fonts/MyFont.woff2');
+     CrustyUI.setFont('MyFont');
+
+   Or use @font-face directly:
+     @font-face {
+       font-family: 'MyFont';
+       src: url('./fonts/MyFont.woff2') format('woff2'),
+            url('./fonts/MyFont.ttf')   format('truetype');
+       font-weight: 400;
+       font-style: normal;
+       font-display: swap;
+     }
+   ========================================================================== */
+
+
+/* ==========================================================================
+   Design Tokens
+   ========================================================================== */
+
+:root {
+  /* --- Font Stacks --- */
+  --font-system: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: 'Inter', var(--font-system);
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Cascadia Code',
+               'Consolas', monospace;
+
+  /* --- Colors (defaults — override per game via style or class) --- */
+  --color-bg:       #0d0d14;
+  --color-surface:  rgba(255, 255, 255, 0.04);
+  --color-border:   rgba(255, 255, 255, 0.12);
+  --color-text:     #e0e0e0;
+  --color-text-dim: #888;
+  --color-accent:   #f0e060;
+
+  /* --- Spacing --- */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+
+  /* --- Radii --- */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-pill: 20px;
+}
+
+
+/* ==========================================================================
+   Shared HUD Stat Pills
+   Replaces per-page .hud-stat/.hud-label/.hud-value definitions
+   ========================================================================== */
+
+.hud-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(var(--accent-rgb, 240, 224, 96), 0.06);
+  border: 1px solid rgba(var(--accent-rgb, 240, 224, 96), 0.12);
+  border-radius: var(--radius-pill);
+  padding: 6px 16px;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.hud-label {
+  color: var(--color-text-dim);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+}
+
+.hud-value {
+  color: var(--color-accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 3ch;
+}
+
+
+/* ==========================================================================
+   HUD Overlay — 9-point CSS grid for full-viewport game pages
+   ========================================================================== */
+
+.crusty-hud {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-areas:
+    "tl tc tr"
+    "cl cc cr"
+    "bl bc br";
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
+  padding: var(--space-md);
+  pointer-events: none;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.crusty-hud > * { pointer-events: auto; }
+
+.hud-tl { grid-area: tl; }
+.hud-tc { grid-area: tc; justify-self: center; }
+.hud-tr { grid-area: tr; justify-self: end; }
+.hud-cl { grid-area: cl; align-self: center; }
+.hud-cc { grid-area: cc; align-self: center; justify-self: center; }
+.hud-cr { grid-area: cr; align-self: center; justify-self: end; }
+.hud-bl { grid-area: bl; align-self: end; }
+.hud-bc { grid-area: bc; align-self: end; justify-self: center; }
+.hud-br { grid-area: br; align-self: end; justify-self: end; }
+
+
+/* ==========================================================================
+   Card Component — for hub/index pages
+   ========================================================================== */
+
+.crusty-card {
+  display: block;
+  width: 300px;
+  padding: 28px 24px;
+  background: #1a1a28;
+  border: 1px solid #2a2a3a;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  transition: border-color 0.2s, transform 0.2s;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.crusty-card:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.crusty-card h2 {
+  color: var(--color-accent);
+  margin-bottom: 8px;
+  font-size: 1.2rem;
+}
+
+.crusty-card p {
+  color: var(--color-text-dim);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+
+/* ==========================================================================
+   Button Component
+   ========================================================================== */
+
+.crusty-btn {
+  font-family: var(--font-ui);
+  font-size: clamp(0.75rem, 1.8vw, 1rem);
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.crusty-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.crusty-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.crusty-btn-primary {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.crusty-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.crusty-btn-ghost:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+
+/* ==========================================================================
+   Glass Panel
+   ========================================================================== */
+
+.crusty-panel {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.crusty-panel-solid {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(13, 13, 20, 0.85);
+}
+
+
+/* ==========================================================================
+   Typography Utilities
+   ========================================================================== */
+
+.text-xs    { font-size: clamp(0.625rem, 1.2vw, 0.75rem); }
+.text-sm    { font-size: clamp(0.7rem, 1.5vw, 0.85rem); }
+.text-base  { font-size: clamp(0.8rem, 1.8vw, 1rem); }
+.text-lg    { font-size: clamp(1rem, 2.2vw, 1.25rem); }
+.text-xl    { font-size: clamp(1.25rem, 3vw, 1.75rem); }
+.text-2xl   { font-size: clamp(1.5rem, 4vw, 2.5rem); }
+
+.font-medium { font-weight: 500; }
+.font-semi   { font-weight: 600; }
+.font-bold   { font-weight: 700; }
+.text-muted  { color: var(--color-text-dim); }
+.text-accent { color: var(--color-accent); }
+.text-mono   { font-family: var(--font-mono); }
+.tabular-nums { font-variant-numeric: tabular-nums; }

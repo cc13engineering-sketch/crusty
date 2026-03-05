@@ -4,71 +4,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta charset="utf-8">
     <title>Crusty Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="crusty-ui.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #0d0d14;
-            color: #e0e0e0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-ui);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             gap: 40px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        h1 { font-size: 2rem; color: #f0e060; }
-        .subtitle { color: #888; font-size: 0.95rem; margin-top: -24px; }
+        h1 { font-size: 2rem; color: var(--color-accent); }
+        .subtitle { color: var(--color-text-dim); font-size: 0.95rem; margin-top: -24px; }
         .games {
             display: flex;
             gap: 32px;
             flex-wrap: wrap;
             justify-content: center;
+            max-width: 1200px;
+            padding: 0 var(--space-md);
         }
-        a.card {
-            display: block;
-            width: 300px;
-            padding: 28px 24px;
-            background: #1a1a28;
-            border: 1px solid #2a2a3a;
-            border-radius: 8px;
-            text-decoration: none;
-            color: #e0e0e0;
-            transition: border-color 0.2s, transform 0.2s;
-        }
-        a.card:hover {
-            border-color: #f0e060;
-            transform: translateY(-2px);
-        }
-        a.card h2 { color: #f0e060; margin-bottom: 8px; font-size: 1.2rem; }
-        a.card p { color: #888; font-size: 0.9rem; line-height: 1.5; }
     </style>
 </head>
 <body>
     <h1>Crusty Engine</h1>
     <p class="subtitle">Deterministic simulation platform. Rust &rarr; WASM.</p>
     <div class="games">
-        <a class="card" href="chord-reps/" style="border-color: #00d4aa;">
+        <a class="crusty-card" href="chord-reps/" style="border-color: #00d4aa;">
             <h2>Chord Reps</h2>
             <p>Interactive ear training. Chord progressions, melodies, intervals, and chord quality identification. Build a growing phrase. WebGL2 + Web Audio.</p>
         </a>
-        <a class="card" href="gravity-pong/" style="border-color: #40ffc0;">
+        <a class="crusty-card" href="gravity-pong/" style="border-color: #40ffc0;">
             <h2>Gravity Pong</h2>
             <p>10-level physics puzzle with gravity wells, black holes, wormholes, and supernovas. Drag to aim, tap to place waypoints. WebGL2.</p>
         </a>
-        <a class="card" href="demo-ball/">
+        <a class="crusty-card" href="demo-ball/">
             <h2>Bouncing Ball Demo</h2>
             <p>Minimal demo validating the Simulation trait pipeline. Click to launch, ball bounces off walls. Score = distance traveled.</p>
         </a>
-        <a class="card" href="changelog/">
+        <a class="crusty-card" href="changelog/">
             <h2>Changelog</h2>
             <p>Development history and engine evolution.</p>
         </a>
-        <a class="card" href="docs/">
+        <a class="crusty-card" href="docs/">
             <h2>Documentation</h2>
             <p>Architecture, API reference, AI-driven iteration guide. Deterministic ECS with headless testing.</p>
         </a>
-        <a class="card" href="docs/codebase-explainer.html">
+        <a class="crusty-card" href="docs/codebase-explainer.html">
             <h2>Codebase Explainer</h2>
             <p>Complete engine walkthrough for senior TypeScript engineers new to Rust and game dev.</p>
         </a>

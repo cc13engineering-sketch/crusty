@@ -1681,12 +1681,12 @@ impl ChordRepsSim {
         text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
 
         // SRS pill badges (right-aligned): Mature → Learning → Due
-        let pill_scale = 2;
-        let pill_h = 22.0;
-        let pill_pad_x = 16.0; // horizontal text padding (total, 8 each side)
-        let pill_gap = 6.0;
-        let pill_y = self.sy(10.0);
-        let mut cursor_right = self.screen_w - 16.0;
+        let pill_scale = 1;
+        let pill_h = 15.0;
+        let pill_pad_x = 10.0;
+        let pill_gap = 4.0;
+        let pill_y = self.sy(20.0);
+        let mut cursor_right = self.screen_w - 12.0;
 
         let pills: [(String, Color); 3] = [
             (format!("{} mtr", self.srs.mature_count()), ACCENT_GOLD),
@@ -1697,11 +1697,12 @@ impl ChordRepsSim {
         for (label, color) in &pills {
             let tw = text::text_width(label, pill_scale) as f64;
             let pw = tw + pill_pad_x;
-            let px = cursor_right - pw;
-            let bg = Color { r: color.r, g: color.g, b: color.b, a: 128 };
+            let px = (cursor_right - pw).round();
+            let bg = Color { r: color.r, g: color.g, b: color.b, a: 80 };
             shapes::fill_pill(fb, px, pill_y, pw, pill_h, bg);
-            text::draw_text(fb, (px + pill_pad_x / 2.0) as i32,
-                (pill_y + 4.0) as i32, label, *color, pill_scale);
+            // Center text vertically: (pill_h - char_h) / 2 = (15 - 7) / 2 = 4
+            text::draw_text(fb, (px + pill_pad_x / 2.0).round() as i32,
+                (pill_y + 4.0).round() as i32, label, *color, pill_scale);
             cursor_right = px - pill_gap;
         }
 

@@ -17,10 +17,13 @@ use crate::sound::{SoundCommand, Waveform};
 use theory::*;
 
 // ─── Layout Constants ───────────────────────────────────────────────
+// Reference design: 600×900. Actual screen_w/screen_h come from the
+// framebuffer at runtime.  Y-positions are stored as fractions of the
+// reference height (900) and scaled by `ys = screen_h / 900.0`.
 
-const SCREEN_W: f64 = 600.0;
-const SCREEN_H: f64 = 900.0;
+const REF_H: f64 = 900.0;
 
+// Y-position ratios (fraction of REF_H)
 const HEADER_H: f64 = 60.0;
 const CHALLENGE_Y: f64 = 70.0;
 const OPTIONS_Y: f64 = 310.0;
@@ -36,23 +39,12 @@ const FOOTER_Y: f64 = 850.0;
 
 // Piano geometry
 const NUM_WHITE_KEYS: u8 = 15; // C3 to C5
-const WHITE_KEY_W: f64 = SCREEN_W / NUM_WHITE_KEYS as f64; // 40.0
-const BLACK_KEY_W: f64 = 24.0;
 const MIDI_LOW: u8 = 48;  // C3
 const MIDI_HIGH: u8 = 72; // C5
 const NUM_NOTES: usize = 25; // MIDI 48–72 inclusive
 
 // Mobile piano (touch devices) — zoomed keys with horizontal scrolling
 const MOBILE_ZOOM: f64 = 2.0;
-const MOBILE_PIANO_TOTAL_W: f64 = NUM_WHITE_KEYS as f64 * WHITE_KEY_W * MOBILE_ZOOM;
-const MOBILE_MAX_SCROLL: f64 = MOBILE_PIANO_TOTAL_W - SCREEN_W;
-const SLIDER_TRACK_Y: f64 = PIANO_Y + WHITE_KEY_H + 6.0;
-
-// Option button geometry
-const OPT_BTN_W: f64 = 120.0;
-const OPT_BTN_GAP: f64 = 16.0;
-const OPT_TOTAL_W: f64 = 4.0 * OPT_BTN_W + 3.0 * OPT_BTN_GAP; // 528
-const OPT_X_START: f64 = (SCREEN_W - OPT_TOTAL_W) / 2.0; // 36
 
 // Timing
 const FEEDBACK_CORRECT_DUR: f64 = 1.0;
@@ -223,6 +215,9 @@ pub struct VocaloidSim {
     /// Sound energy level (0.0–1.0). Spikes on sound events, decays smoothly.
     /// Higher pitch sounds contribute more energy. Drives star glow intensity.
     sound_energy: f64,
+    /// Actual framebuffer dimensions — set each frame from Engine.
+    screen_w: f64,
+    screen_h: f64,
 }
 
 impl VocaloidSim {
@@ -267,8 +262,24 @@ impl VocaloidSim {
             phrase_play_start: 0.0,
             last_hovered_phrase_note: None,
             sound_energy: 0.0,
+            screen_w: 600.0,
+            screen_h: 900.0,
         }
     }
+
+    // ─── Computed Layout Helpers ─────────────────────────────
+    /// Scale a reference-coordinate Y value to actual screen pixels.
+    fn sy(&self, v: f64) -> f64 { v * self.screen_h / REF_H }
+    fn ys(&self) -> f64 { self.screen_h / REF_H }
+    fn white_key_w(&self) -> f64 { self.screen_w / NUM_WHITE_KEYS as f64 }
+    fn black_key_w(&self) -> f64 { self.white_key_w() * 0.6 }
+    fn mobile_piano_total_w(&self) -> f64 { self.screen_w * MOBILE_ZOOM }
+    fn mobile_max_scroll(&self) -> f64 { self.mobile_piano_total_w() - self.screen_w }
+    fn slider_track_y(&self) -> f64 { (PIANO_Y + WHITE_KEY_H + 6.0) * self.ys() }
+    fn opt_btn_w(&self) -> f64 { self.screen_w * 0.2 }
+    fn opt_btn_gap(&self) -> f64 { self.screen_w * 0.027 }
+    fn opt_total_w(&self) -> f64 { 4.0 * self.opt_btn_w() + 3.0 * self.opt_btn_gap() }
+    fn opt_x_start(&self) -> f64 { (self.screen_w - self.opt_total_w()) / 2.0 }
 
     // ─── Challenge Generation ────────────────────────────────
 
@@ -656,14 +667,14 @@ impl VocaloidSim {
             // Big sparkle burst for milestone
             for x_off in 0..6 {
                 let bx = 50.0 + x_off as f64 * 100.0;
-                self.spawn_sparkles_shaped(bx, OPTIONS_Y, 8, ACCENT_PINK, engine);
+                self.spawn_sparkles_shaped(bx, self.sy(OPTIONS_Y), 8, ACCENT_PINK, engine);
             }
         }
 
         self.combo_pulse = 1.0;
 
         // Spawn sparkles with varied shapes
-        self.spawn_sparkles_shaped(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 25, ACCENT_CYAN, engine);
+        self.spawn_sparkles_shaped(self.screen_w / 2.0, self.sy(OPTIONS_Y + OPTIONS_H / 2.0), 25, ACCENT_CYAN, engine);
     }
 
     fn on_wrong(&mut self, _selected: u8, engine: &mut Engine) {
@@ -705,7 +716,7 @@ impl VocaloidSim {
         });
 
         // Sad sparkles
-        self.spawn_sparkles_shaped(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 8, WRONG_COLOR, engine);
+        self.spawn_sparkles_shaped(self.screen_w / 2.0, self.sy(OPTIONS_Y + OPTIONS_H / 2.0), 8, WRONG_COLOR, engine);
     }
 
     // ─── Helpers ─────────────────────────────────────────────
@@ -764,8 +775,8 @@ impl VocaloidSim {
         self.background_stars.clear();
         for _ in 0..22 {
             self.background_stars.push(BackgroundStar {
-                x: engine.rng.range_f64(0.0, SCREEN_W),
-                y: engine.rng.range_f64(0.0, SCREEN_H),
+                x: engine.rng.range_f64(0.0, self.screen_w),
+                y: engine.rng.range_f64(0.0, self.screen_h),
                 speed: engine.rng.range_f64(8.0, 30.0),
                 phase: engine.rng.range_f64(0.0, std::f64::consts::TAU),
                 is_note: engine.rng.chance(0.3),
@@ -796,14 +807,15 @@ impl VocaloidSim {
         }
     }
 
-    fn option_rect(idx: usize) -> (f64, f64, f64, f64) {
-        let x = OPT_X_START + idx as f64 * (OPT_BTN_W + OPT_BTN_GAP);
-        (x, OPTIONS_Y, OPT_BTN_W, OPTIONS_H)
+    fn option_rect(&self, idx: usize) -> (f64, f64, f64, f64) {
+        let ys = self.ys();
+        let x = self.opt_x_start() + idx as f64 * (self.opt_btn_w() + self.opt_btn_gap());
+        (x, OPTIONS_Y * ys, self.opt_btn_w(), OPTIONS_H * ys)
     }
 
     fn check_option_click(&self, mx: f64, my: f64) -> Option<usize> {
         for i in 0..self.challenge.options.len() {
-            let (x, y, w, h) = Self::option_rect(i);
+            let (x, y, w, h) = self.option_rect(i);
             if mx >= x && mx <= x + w && my >= y && my <= y + h {
                 return Some(i);
             }
@@ -845,14 +857,18 @@ impl VocaloidSim {
     // ─── Piano Interaction ──────────────────────────────────
 
     fn check_piano_click(&self, mx: f64, my: f64, zoom: f64, scroll: f64) -> Option<u8> {
-        if my < PIANO_Y || my > PIANO_Y + WHITE_KEY_H {
+        let ys = self.ys();
+        let piano_y = PIANO_Y * ys;
+        let white_key_h = WHITE_KEY_H * ys;
+        let black_key_h = BLACK_KEY_H * ys;
+        if my < piano_y || my > piano_y + white_key_h {
             return None;
         }
         let vx = mx + scroll; // virtual X in zoomed coordinate space
-        let key_w = WHITE_KEY_W * zoom;
-        let black_w = BLACK_KEY_W * zoom;
+        let key_w = self.white_key_w() * zoom;
+        let black_w = self.black_key_w() * zoom;
         // Black keys first (rendered on top, overlap whites)
-        if my < PIANO_Y + BLACK_KEY_H {
+        if my < piano_y + black_key_h {
             for i in 0..NUM_WHITE_KEYS - 1 {
                 let white_midi = white_key_to_midi(i);
                 let black_midi = white_midi + 1;
@@ -1052,13 +1068,15 @@ impl VocaloidSim {
         if self.phrase_notes.is_empty() {
             return None;
         }
-        if my < TIMELINE_Y + 18.0 || my > TIMELINE_Y + TIMELINE_H - 8.0 {
+        let tl_y = self.sy(TIMELINE_Y);
+        let tl_h = self.sy(TIMELINE_H);
+        if my < tl_y + 18.0 || my > tl_y + tl_h - 8.0 {
             return None;
         }
         let note_w = 30.0_f64;
         let total_width = self.phrase_notes.len() as f64 * note_w;
-        let x_offset = if total_width > SCREEN_W - 40.0 {
-            SCREEN_W - 40.0 - total_width
+        let x_offset = if total_width > self.screen_w - 40.0 {
+            self.screen_w - 40.0 - total_width
         } else {
             20.0
         };
@@ -1076,7 +1094,9 @@ impl VocaloidSim {
 
 impl Simulation for VocaloidSim {
     fn setup(&mut self, engine: &mut Engine) {
-        engine.config.bounds = (SCREEN_W, SCREEN_H);
+        self.screen_w = engine.framebuffer.width as f64;
+        self.screen_h = engine.framebuffer.height as f64;
+        engine.config.bounds = (self.screen_w, self.screen_h);
         engine.config.background = BG_COLOR;
         self.init_background_stars(engine);
         self.generate_challenge(engine);
@@ -1107,7 +1127,7 @@ impl Simulation for VocaloidSim {
         for star in self.background_stars.iter_mut() {
             star.y -= star.speed * dt;
             if star.y < -10.0 {
-                star.y = SCREEN_H + 10.0;
+                star.y = self.screen_h + 10.0;
             }
         }
 
@@ -1152,7 +1172,7 @@ impl Simulation for VocaloidSim {
 
         // Mobile slider dragging — generous 60px touch zone centered on slider
         if is_mobile {
-            let slider_center = SLIDER_TRACK_Y + 3.0;
+            let slider_center = self.slider_track_y() + 3.0;
             let slider_hit_top = slider_center - 30.0;
             let slider_hit_bot = slider_center + 30.0;
             if engine.input.mouse_buttons_pressed.contains(&0)
@@ -1162,8 +1182,8 @@ impl Simulation for VocaloidSim {
             }
             if self.slider_dragging {
                 if engine.input.mouse_buttons_held.contains(&0) {
-                    let ratio = (mx / SCREEN_W).max(0.0).min(1.0);
-                    self.piano_scroll = ratio * MOBILE_MAX_SCROLL;
+                    let ratio = (mx / self.screen_w).max(0.0).min(1.0);
+                    self.piano_scroll = ratio * self.mobile_max_scroll();
                 }
                 if engine.input.mouse_buttons_released.contains(&0) {
                     self.slider_dragging = false;
@@ -1198,7 +1218,9 @@ impl Simulation for VocaloidSim {
                 }
             }
             // Timeline click → play phrase from start
-            if my >= TIMELINE_Y && my <= TIMELINE_Y + TIMELINE_H
+            let tl_y = self.sy(TIMELINE_Y);
+            let tl_h = self.sy(TIMELINE_H);
+            if my >= tl_y && my <= tl_y + tl_h
                 && !self.phrase_notes.is_empty()
             {
                 self.play_phrase(engine);
@@ -1332,34 +1354,33 @@ impl Simulation for VocaloidSim {
 
 impl VocaloidSim {
     fn render_header(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
-        // Teto branding
-        text::draw_text(fb, 16, 14, "TETO THEORY", ACCENT_RED, 2);
+        let ys = self.ys();
+        text::draw_text(fb, 16, self.sy(14.0) as i32, "TETO THEORY", ACCENT_RED, 2);
         let sub = "Kasane Teto";
-        text::draw_text(fb, 16, 38, sub, ACCENT_PINK, 1);
+        text::draw_text(fb, 16, self.sy(38.0) as i32, sub, ACCENT_PINK, 1);
 
         let score_str = format!("Score: {}", self.score);
         let sw = text::text_width(&score_str, 2);
-        text::draw_text(fb, 600 - sw - 16, 14, &score_str, Color::WHITE, 2);
+        text::draw_text(fb, self.screen_w as i32 - sw - 16, self.sy(14.0) as i32, &score_str, Color::WHITE, 2);
 
         if self.streak > 0 {
             let stars: String = (0..self.streak.min(10)).map(|_| '*').collect();
             let streak_str = format!("{}", stars);
             let stw = text::text_width(&streak_str, 1);
-            text::draw_text(fb, 600 - stw - 16, 38, &streak_str, ACCENT_PINK, 1);
+            text::draw_text(fb, self.screen_w as i32 - stw - 16, self.sy(38.0) as i32, &streak_str, ACCENT_PINK, 1);
         }
 
-        shapes::draw_line(fb, 0.0, HEADER_H - 1.0, SCREEN_W, HEADER_H - 1.0, DIVIDER);
+        shapes::draw_line(fb, 0.0, HEADER_H * ys - 1.0, self.screen_w, HEADER_H * ys - 1.0, DIVIDER);
     }
 
     fn render_challenge(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
-        let cx = (SCREEN_W / 2.0) as i32;
+        let cx = (self.screen_w / 2.0) as i32;
+        let cy = |off: f64| -> i32 { self.sy(CHALLENGE_Y + off) as i32 };
 
         match &self.challenge.concept {
             MusicConcept::ChordProgression => {
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 12.0) as i32,
-                    "CHORD PROGRESSION", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 36.0) as i32,
-                    "What comes next?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(12.0), "CHORD PROGRESSION", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "What comes next?", Color::WHITE, 2);
 
                 let mut prog = String::new();
                 for (i, &deg) in self.challenge.sequence.iter().enumerate() {
@@ -1367,19 +1388,14 @@ impl VocaloidSim {
                     prog.push_str(DEGREE_NAMES[(deg % 7) as usize]);
                 }
                 prog.push_str(" > ?");
-
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 90.0) as i32,
-                    &prog, ACCENT_TEAL, 3);
+                text::draw_text_centered(fb, cx, cy(90.0), &prog, ACCENT_TEAL, 3);
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 150.0) as i32,
-                    &key_str, DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
             }
             MusicConcept::NextNote => {
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 12.0) as i32,
-                    "MELODY", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 36.0) as i32,
-                    "What note comes next?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(12.0), "MELODY", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "What note comes next?", Color::WHITE, 2);
 
                 let mut melody = String::new();
                 for (i, &deg) in self.challenge.sequence.iter().enumerate() {
@@ -1388,63 +1404,48 @@ impl VocaloidSim {
                     melody.push_str(note_name(midi));
                 }
                 melody.push_str("  ?");
-
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 90.0) as i32,
-                    &melody, ACCENT_TEAL, 3);
+                text::draw_text_centered(fb, cx, cy(90.0), &melody, ACCENT_TEAL, 3);
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 150.0) as i32,
-                    &key_str, DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
             }
             MusicConcept::IntervalRecognition => {
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 12.0) as i32,
-                    "INTERVAL", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 36.0) as i32,
-                    "Name this interval", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(12.0), "INTERVAL", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "Name this interval", Color::WHITE, 2);
 
                 if self.challenge.sequence.len() >= 2 {
                     let note1 = note_name(self.challenge.sequence[0]);
                     let note2 = note_name(self.challenge.sequence[1]);
                     let display = format!("{} --> {}", note1, note2);
-                    text::draw_text_centered(fb, cx, (CHALLENGE_Y + 90.0) as i32,
-                        &display, ACCENT_TEAL, 3);
+                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
                 }
             }
             MusicConcept::PhonemeRecognition => {
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 12.0) as i32,
-                    "TETO PHONEME", DIM_TEXT, 1);
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 36.0) as i32,
-                    "Which kana matches this sound?", Color::WHITE, 2);
+                text::draw_text_centered(fb, cx, cy(12.0), "TETO PHONEME", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(36.0), "Which kana matches this sound?", Color::WHITE, 2);
 
-                // Show romaji prompt
                 if let Some(romaji) = self.challenge.phoneme_prompt {
-                    text::draw_text_centered(fb, cx, (CHALLENGE_Y + 80.0) as i32,
-                        romaji, ACCENT_PINK, 3);
+                    text::draw_text_centered(fb, cx, cy(80.0), romaji, ACCENT_PINK, 3);
                 }
 
-                // Show consonant row hint
                 if let Some(&answer_idx) = self.challenge.sequence.first() {
                     let idx = answer_idx as usize;
                     if idx < GOJUUON.len() {
                         let row = phoneme_row(idx);
                         if row < CONSONANT_ROWS.len() {
                             let row_label = format!("Row: {}", CONSONANT_ROWS[row]);
-                            text::draw_text_centered(fb, cx, (CHALLENGE_Y + 130.0) as i32,
-                                &row_label, DIM_TEXT, 1);
+                            text::draw_text_centered(fb, cx, cy(130.0), &row_label, DIM_TEXT, 1);
                         }
                     }
                 }
-
-                // "Listen" hint
-                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 160.0) as i32,
-                    "(click to hear again)", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, cy(160.0), "(click to hear again)", DIM_TEXT, 1);
             }
         }
     }
 
     fn render_options(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
         for (i, &opt) in self.challenge.options.iter().enumerate() {
-            let (x, y, w, h) = Self::option_rect(i);
+            let (x, y, w, h) = self.option_rect(i);
 
             let bg = if self.challenge.solved && opt == self.challenge.answer {
                 CORRECT_COLOR
@@ -1483,11 +1484,11 @@ impl VocaloidSim {
     }
 
     fn render_character(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
-        let cx = (SCREEN_W / 2.0) as i32;
-        let cy = (CHARACTER_Y + CHARACTER_H / 2.0) as i32;
+        let cx = (self.screen_w / 2.0) as i32;
+        let char_y = self.sy(CHARACTER_Y);
+        let char_h = self.sy(CHARACTER_H);
+        let cy = (char_y + char_h / 2.0) as i32;
 
-        // Character area is now rendered by HTML overlay (official Teto art)
-        // We only render the feedback message text below the art area
         let (msg, color) = match &self.feedback {
             FeedbackState::Correct => {
                 let idx = ((self.pulse_time * 2.0) as usize) % CORRECT_MESSAGES.len();
@@ -1504,23 +1505,26 @@ impl VocaloidSim {
             text::draw_text_centered(fb, cx, cy + 35, msg, color, 2);
         }
 
-        // Subtle floating decorations around art area
         let bob = (self.pulse_time * 2.0).sin() * 4.0;
         let sparkle_alpha = ((self.pulse_time * 3.0).sin() * 0.3 + 0.5) * 255.0;
-        shapes::fill_circle(fb, 80.0, CHARACTER_Y + 20.0 + bob,
+        shapes::fill_circle(fb, 80.0, char_y + 20.0 + bob,
             2.0, ACCENT_PINK.with_alpha(sparkle_alpha as u8));
-        shapes::fill_circle(fb, SCREEN_W - 80.0, CHARACTER_Y + 30.0 - bob,
+        shapes::fill_circle(fb, self.screen_w - 80.0, char_y + 30.0 - bob,
             2.0, ACCENT_RED.with_alpha(sparkle_alpha as u8));
     }
 
     fn render_piano(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, is_mobile: bool) {
+        let piano_y = self.sy(PIANO_Y);
+        let wk_h = self.sy(WHITE_KEY_H);
+        let bk_h = self.sy(BLACK_KEY_H);
+
         let (zoom, scroll) = if is_mobile {
             (MOBILE_ZOOM, self.piano_scroll)
         } else {
             (1.0, 0.0)
         };
-        let key_w = WHITE_KEY_W * zoom;
-        let black_w = BLACK_KEY_W * zoom;
+        let key_w = self.white_key_w() * zoom;
+        let black_w = self.black_key_w() * zoom;
         let toggle_pulse = (self.rhythm_timer * 8.0).sin() * 0.3 + 0.7;
 
         // White keys
@@ -1528,9 +1532,7 @@ impl VocaloidSim {
             let midi = white_key_to_midi(i);
             let note_idx = (midi - MIDI_LOW) as usize;
             let x = i as f64 * key_w - scroll;
-
-            // Cull off-screen keys
-            if x + key_w < 0.0 || x > SCREEN_W { continue; }
+            if x + key_w < 0.0 || x > self.screen_w { continue; }
 
             let mut color = WHITE_KEY_CLR;
             if self.highlighted_keys[note_idx] {
@@ -1539,7 +1541,7 @@ impl VocaloidSim {
             if self.toggled_keys[note_idx] {
                 let glow_alpha = (toggle_pulse * 255.0) as u8;
                 color = Color::lerp(color, ACCENT_PINK, toggle_pulse * 0.6);
-                shapes::fill_rect(fb, x, PIANO_Y - 2.0, key_w, WHITE_KEY_H + 4.0,
+                shapes::fill_rect(fb, x, piano_y - 2.0, key_w, wk_h + 4.0,
                     ACCENT_PINK.with_alpha(glow_alpha / 4));
             }
             if self.key_flash_timers[note_idx] > 0.0 {
@@ -1547,14 +1549,13 @@ impl VocaloidSim {
                 color = Color::lerp(color, self.key_flash_colors[note_idx], t);
             }
 
-            shapes::fill_rect(fb, x + 1.0, PIANO_Y, key_w - 2.0, WHITE_KEY_H, color);
+            shapes::fill_rect(fb, x + 1.0, piano_y, key_w - 2.0, wk_h, color);
 
-            // Note name at bottom of key
             let name = note_name(midi);
             let text_scale = if is_mobile { 2 } else { 1 };
             let name_w = text::text_width(name, text_scale);
             let name_x = (x + key_w / 2.0) as i32 - name_w / 2;
-            let name_y = (PIANO_Y + WHITE_KEY_H - if is_mobile { 22.0 } else { 14.0 }) as i32;
+            let name_y = (piano_y + wk_h - if is_mobile { 22.0 } else { 14.0 }) as i32;
             text::draw_text(fb, name_x, name_y,
                 name, Color::from_rgba(80, 80, 100, 255), text_scale);
         }
@@ -1566,8 +1567,7 @@ impl VocaloidSim {
             if !is_white_key(black_midi) && black_midi <= MIDI_HIGH {
                 let note_idx = (black_midi - MIDI_LOW) as usize;
                 let x = (i as f64 + 1.0) * key_w - black_w / 2.0 - scroll;
-
-                if x + black_w < 0.0 || x > SCREEN_W { continue; }
+                if x + black_w < 0.0 || x > self.screen_w { continue; }
 
                 let mut color = BLACK_KEY_CLR;
                 if self.highlighted_keys[note_idx] {
@@ -1581,58 +1581,55 @@ impl VocaloidSim {
                     color = Color::lerp(color, self.key_flash_colors[note_idx], t);
                 }
 
-                shapes::fill_rect(fb, x, PIANO_Y, black_w, BLACK_KEY_H, color);
+                shapes::fill_rect(fb, x, piano_y, black_w, bk_h, color);
             }
         }
 
-        // Piano border
-        shapes::draw_rect(fb, 0.0, PIANO_Y, SCREEN_W, WHITE_KEY_H, DIVIDER);
+        shapes::draw_rect(fb, 0.0, piano_y, self.screen_w, wk_h, DIVIDER);
 
         if is_mobile {
-            // Scroll slider — chunky for easy touch
             let track_h = 8.0;
-            let track_y = SLIDER_TRACK_Y;
-            shapes::fill_rect(fb, 12.0, track_y, SCREEN_W - 24.0, track_h,
+            let track_y = self.slider_track_y();
+            shapes::fill_rect(fb, 12.0, track_y, self.screen_w - 24.0, track_h,
                 Color::from_rgba(30, 30, 60, 255));
 
-            let visible_ratio = SCREEN_W / MOBILE_PIANO_TOTAL_W;
-            let track_inner = SCREEN_W - 24.0;
+            let visible_ratio = self.screen_w / self.mobile_piano_total_w();
+            let track_inner = self.screen_w - 24.0;
             let thumb_w = (visible_ratio * track_inner).max(30.0);
             let max_thumb_travel = track_inner - thumb_w;
-            let scroll_pct = if MOBILE_MAX_SCROLL > 0.0 {
-                self.piano_scroll / MOBILE_MAX_SCROLL
+            let scroll_pct = if self.mobile_max_scroll() > 0.0 {
+                self.piano_scroll / self.mobile_max_scroll()
             } else { 0.0 };
             let thumb_x = 12.0 + scroll_pct * max_thumb_travel;
 
-            // Thumb glow
             shapes::fill_rect(fb, thumb_x - 2.0, track_y - 6.0,
                 thumb_w + 4.0, track_h + 12.0, ACCENT_TEAL.with_alpha(30));
-            // Thumb body
             shapes::fill_rect(fb, thumb_x, track_y - 3.0,
                 thumb_w, track_h + 6.0, ACCENT_TEAL.with_alpha(200));
         } else {
-            // Desktop hint
             let hint = "R / Space: replay   Click keys to loop";
             let hw = text::text_width(hint, 1);
-            text::draw_text(fb, (SCREEN_W as i32 - hw) / 2, (PIANO_Y + WHITE_KEY_H + 4.0) as i32,
+            text::draw_text(fb, (self.screen_w as i32 - hw) / 2, (piano_y + wk_h + 4.0) as i32,
                 hint, DIM_TEXT, 1);
         }
     }
 
     fn render_timeline(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
-        shapes::fill_rect(fb, 0.0, TIMELINE_Y, SCREEN_W, TIMELINE_H,
+        let tl_y = self.sy(TIMELINE_Y);
+        let tl_h = self.sy(TIMELINE_H);
+
+        shapes::fill_rect(fb, 0.0, tl_y, self.screen_w, tl_h,
             Color::from_rgba(8, 8, 24, 255));
 
-        // Header with play hint
         let header = if self.phrase_notes.is_empty() {
             "COMPOSED PHRASE"
         } else {
             "COMPOSED PHRASE (tap to play all)"
         };
-        text::draw_text(fb, 8, (TIMELINE_Y + 6.0) as i32, header, DIM_TEXT, 1);
+        text::draw_text(fb, 8, (tl_y + 6.0) as i32, header, DIM_TEXT, 1);
 
         if self.phrase_notes.is_empty() {
-            text::draw_text_centered(fb, 300, (TIMELINE_Y + TIMELINE_H / 2.0) as i32,
+            text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (tl_y + tl_h / 2.0) as i32,
                 "Complete challenges to build your phrase!",
                 Color::from_rgba(50, 50, 80, 255), 1);
             return;
@@ -1640,8 +1637,8 @@ impl VocaloidSim {
 
         let note_w = 30.0_f64;
         let total_width = self.phrase_notes.len() as f64 * note_w;
-        let x_offset = if total_width > SCREEN_W - 40.0 {
-            SCREEN_W - 40.0 - total_width
+        let x_offset = if total_width > self.screen_w - 40.0 {
+            self.screen_w - 40.0 - total_width
         } else {
             20.0
         };
@@ -1649,15 +1646,14 @@ impl VocaloidSim {
         let min_midi = self.phrase_notes.iter().map(|n| n.midi).min().unwrap_or(48);
         let max_midi = self.phrase_notes.iter().map(|n| n.midi).max().unwrap_or(72);
         let range = (max_midi - min_midi).max(12) as f64;
-        let usable_h = TIMELINE_H - 40.0;
+        let usable_h = tl_h - 40.0;
 
-        // Check which note is hovered
         let hovered_idx = self.check_phrase_note_hover(mx, my);
 
         for (i, note) in self.phrase_notes.iter().enumerate() {
             let x = x_offset + i as f64 * note_w;
             let y_ratio = (note.midi - min_midi) as f64 / range;
-            let y = TIMELINE_Y + 22.0 + usable_h * (1.0 - y_ratio);
+            let y = tl_y + 22.0 + usable_h * (1.0 - y_ratio);
 
             let is_hovered = hovered_idx == Some(i);
 
@@ -1701,16 +1697,17 @@ impl VocaloidSim {
         // Playhead cursor
         let cursor_x = x_offset + self.phrase_notes.len() as f64 * note_w;
         let blink = ((self.pulse_time * 3.0).sin() * 0.5 + 0.5) * 255.0;
-        shapes::draw_line(fb, cursor_x, TIMELINE_Y + 20.0, cursor_x,
-            TIMELINE_Y + TIMELINE_H - 8.0,
+        shapes::draw_line(fb, cursor_x, tl_y + 20.0, cursor_x,
+            tl_y + tl_h - 8.0,
             ACCENT_CYAN.with_alpha(blink as u8));
     }
 
     fn render_footer(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
-        shapes::draw_line(fb, 0.0, FOOTER_Y, SCREEN_W, FOOTER_Y, DIVIDER);
+        let ft_y = self.sy(FOOTER_Y);
+        shapes::draw_line(fb, 0.0, ft_y, self.screen_w, ft_y, DIVIDER);
 
         let diff_str = format!("Difficulty: {}/10", self.difficulty);
-        text::draw_text(fb, 16, (FOOTER_Y + 20.0) as i32, &diff_str, DIM_TEXT, 1);
+        text::draw_text(fb, 16, (ft_y + 20.0) as i32, &diff_str, DIM_TEXT, 1);
 
         let concept_str = match &self.challenge.concept {
             MusicConcept::ChordProgression => "Mode: Chords",
@@ -1719,14 +1716,13 @@ impl VocaloidSim {
             MusicConcept::PhonemeRecognition => "Mode: Phonemes",
         };
         let cw = text::text_width(concept_str, 1);
-        text::draw_text(fb, 600 - cw - 16, (FOOTER_Y + 20.0) as i32, concept_str, DIM_TEXT, 1);
+        text::draw_text(fb, self.screen_w as i32 - cw - 16, (ft_y + 20.0) as i32, concept_str, DIM_TEXT, 1);
 
         let phrase_str = format!("Phrase: {} notes", self.phrase_notes.len());
-        text::draw_text_centered(fb, 300, (FOOTER_Y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
+        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
 
-        // Attribution — fan tribute
         let attr = "Kasane Teto (c) TWINDRILL - kasaneteto.jp";
-        text::draw_text_centered(fb, (SCREEN_W / 2.0) as i32, (FOOTER_Y + 36.0) as i32, attr,
+        text::draw_text_centered(fb, (self.screen_w / 2.0) as i32, (ft_y + 36.0) as i32, attr,
             ACCENT_PINK.with_alpha(120), 1);
     }
 
@@ -1817,20 +1813,20 @@ impl VocaloidSim {
 
         let strip = 3.0;
         // Top
-        shapes::fill_rect(fb, 0.0, 0.0, SCREEN_W, strip, glow_color);
+        shapes::fill_rect(fb, 0.0, 0.0, self.screen_w, strip, glow_color);
         // Bottom
-        shapes::fill_rect(fb, 0.0, SCREEN_H - strip, SCREEN_W, strip, glow_color);
+        shapes::fill_rect(fb, 0.0, self.screen_h - strip, self.screen_w, strip, glow_color);
         // Left
-        shapes::fill_rect(fb, 0.0, 0.0, strip, SCREEN_H, glow_color);
+        shapes::fill_rect(fb, 0.0, 0.0, strip, self.screen_h, glow_color);
         // Right
-        shapes::fill_rect(fb, SCREEN_W - strip, 0.0, strip, SCREEN_H, glow_color);
+        shapes::fill_rect(fb, self.screen_w - strip, 0.0, strip, self.screen_h, glow_color);
     }
 
     fn render_combo(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         if self.streak < 3 {
             return;
         }
-        let cx = (SCREEN_W / 2.0) as i32;
+        let cx = (self.screen_w / 2.0) as i32;
         let combo_str = format!("{}x COMBO", self.streak);
 
         // Color escalation: teal (3+) → pink (5+) → gold (10+)
@@ -1847,11 +1843,8 @@ impl VocaloidSim {
         let alpha = (pulse * 255.0) as u8;
         let glow_color = color.with_alpha(alpha / 3);
 
-        // Draw glow behind
-        text::draw_text_centered(fb, cx + 1, (CHALLENGE_Y - 8.0) as i32 + 1,
-            &combo_str, glow_color, 2);
-        // Draw main text
-        text::draw_text_centered(fb, cx, (CHALLENGE_Y - 8.0) as i32,
-            &combo_str, color.with_alpha(alpha), 2);
+        let combo_y = self.sy(CHALLENGE_Y - 8.0) as i32;
+        text::draw_text_centered(fb, cx + 1, combo_y + 1, &combo_str, glow_color, 2);
+        text::draw_text_centered(fb, cx, combo_y, &combo_str, color.with_alpha(alpha), 2);
     }
 }

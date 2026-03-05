@@ -76,7 +76,7 @@
 </head>
 <body>
     <h1>Teto Theory</h1>
-    <canvas id="game-canvas" width="600" height="900"></canvas>
+    <canvas id="game-canvas"></canvas>
     <img id="teto-art" alt="Kasane Teto" />
     <div id="attribution">Kasane Teto &copy; TWINDRILL &mdash; Fan tribute &hearts; <a href="https://kasaneteto.jp" target="_blank" rel="noopener">kasaneteto.jp</a></div>
     <p class="info">
@@ -110,40 +110,33 @@
         browser_state_ptr, browser_state_len
     } = api;
 
-    // --- Constants ---
-    const W = 600, H = 900;
+    // --- Adaptive Resolution ---
+    // Framebuffer adapts to viewport: H=900 reference, W scales with aspect ratio.
+    // Cap total pixels to ~810K for software rendering performance.
+    const REF_H = 900;
+    const vw0 = window.innerWidth, vh0 = window.innerHeight;
+    const H = REF_H;
+    const W = Math.max(400, Math.round(H * (vw0 / vh0)));
     const canvas = document.getElementById('game-canvas');
     canvas.width = W;
     canvas.height = H;
 
-    // --- Responsive Letterboxing ---
-    const ASPECT = W / H; // 2:3
+    // --- Full-screen canvas (no letterboxing) ---
     const tetoArt = document.getElementById('teto-art');
     function resizeCanvas() {
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
-        const viewAspect = vw / vh;
-        let cw, ch;
-        if (viewAspect > ASPECT) {
-            ch = vh;
-            cw = vh * ASPECT;
-        } else {
-            cw = vw;
-            ch = vw / ASPECT;
-        }
-        canvas.style.width = cw + 'px';
-        canvas.style.height = ch + 'px';
-        canvas.style.left = ((vw - cw) / 2) + 'px';
-        canvas.style.top = ((vh - ch) / 2) + 'px';
-        // Position Teto art overlay (character area: Y=410-510 in engine coords)
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        canvas.style.left = '0';
+        canvas.style.top = '0';
+        // Position Teto art overlay (character area: Y≈410/900 of screen)
         if (tetoArt.src) {
-            const scale = ch / H;
-            const artH = 160 * scale;
+            const ch = window.innerHeight;
+            const artH = ch * 0.178;
             const artW = artH * (200 / 300);
             tetoArt.style.width = artW + 'px';
             tetoArt.style.height = artH + 'px';
-            tetoArt.style.left = (parseFloat(canvas.style.left) + cw / 2 - artW / 2) + 'px';
-            tetoArt.style.top = (parseFloat(canvas.style.top) + (385 / H) * ch) + 'px';
+            tetoArt.style.left = ((window.innerWidth - artW) / 2) + 'px';
+            tetoArt.style.top = (ch * (385 / 900)) + 'px';
         }
     }
     resizeCanvas();
@@ -530,7 +523,7 @@
         scene += bloom * uBloomIntensity;
 
         // Scanlines (subtle horizontal lines)
-        float scanline = sin(uv.y * 900.0 * 3.14159) * 0.5 + 0.5;
+        float scanline = sin(uv.y * float(${H}) * 3.14159) * 0.5 + 0.5;
         scanline = mix(1.0, scanline, uScanlineIntensity);
         scene *= scanline;
 

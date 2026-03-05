@@ -1505,7 +1505,7 @@ impl Simulation for MusicTheorySim {
                 let btn_w = 120.0;
                 let btn_h = 40.0;
                 let btn_x = (self.screen_w - btn_w) / 2.0;
-                let btn_y = self.sy(PIANO_Y - 45.0);
+                let btn_y = self.sy(PIANO_Y - 55.0);
                 if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                     self.feedback = FeedbackState::Neutral;
                     self.feedback_timer = 0.0;
@@ -1878,18 +1878,18 @@ impl MusicTheorySim {
             FeedbackState::Neutral => ("", ACCENT_TEAL),
         };
 
-        if !msg.is_empty() {
-            text::draw_text_centered(fb, cx, cy, msg, color, 2);
-        }
-
-        // On correct: show insight text + "Next" in the options area (options hidden)
         if self.feedback == FeedbackState::Correct {
-            // Insight text — word-wrapped, placed starting in the options zone
+            // Options are hidden — use the full OPTIONS_Y..PIANO_Y zone for layout.
+            // "Correct!" at top of options zone
+            let msg_y = self.sy(OPTIONS_Y + 10.0) as i32;
+            text::draw_text_centered(fb, cx, msg_y, msg, color, 2);
+
+            // Insight text below the message
             if !self.current_insight.is_empty() {
                 let max_w = self.screen_w as i32 - 40;
                 let lines = wrap_text(&self.current_insight, max_w, 2);
                 let line_h = 18;
-                let start_y = cy + 22;
+                let start_y = self.sy(OPTIONS_Y + 40.0) as i32;
                 for (i, line) in lines.iter().enumerate() {
                     let alpha = if i == 0 { 220u8 } else { 180 };
                     text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
@@ -1897,11 +1897,14 @@ impl MusicTheorySim {
                 }
             }
 
-            // "Next" text — positioned near bottom of feedback zone
-            let next_y = self.sy(PIANO_Y - 30.0) as i32;
+            // "[ Next ]" anchored above the piano
+            let next_y = self.sy(PIANO_Y - 40.0) as i32;
             let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
             text::draw_text_centered(fb, cx, next_y,
                 "[ Next ]", CORRECT_COLOR.with_alpha(blink as u8), 2);
+        } else if !msg.is_empty() {
+            // Wrong / Neutral — render in the normal feedback zone
+            text::draw_text_centered(fb, cx, cy, msg, color, 2);
         }
 
         // Decorative accents

@@ -63,6 +63,9 @@ jobs:
           # Copy bouncing ball demo
           cp site/demo-ball/index.html _site/demo-ball/
 
+          # Copy shared JS modules                                                              
+          cp site/browser-state.js _site/
+
           # Copy all game demos (gravity-pong, vocaloid, etc.)                                                                                                                                    
           for demo_dir in site/gravity-pong* site/vocaloid; do
             [ -d "$demo_dir" ] || continue

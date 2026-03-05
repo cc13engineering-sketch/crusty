@@ -1500,12 +1500,12 @@ impl Simulation for MusicTheorySim {
         }
 
         if engine.input.mouse_buttons_pressed.contains(&0) && !self.slider_dragging {
-            // "Next" button — advance after correct feedback
+            // "Next" text tap zone — advance after correct feedback
             if self.feedback == FeedbackState::Correct {
-                let btn_w = 160.0;
-                let btn_h = 50.0;
+                let btn_w = 120.0;
+                let btn_h = 40.0;
                 let btn_x = (self.screen_w - btn_w) / 2.0;
-                let btn_y = self.sy(FEEDBACK_Y + FEEDBACK_H - 10.0);
+                let btn_y = self.sy(PIANO_Y - 45.0);
                 if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                     self.feedback = FeedbackState::Neutral;
                     self.feedback_timer = 0.0;
@@ -1513,12 +1513,12 @@ impl Simulation for MusicTheorySim {
                 }
             }
 
-            // "Replay" button
+            // "Replay" text tap zone
             if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
-                let btn_w = 120.0;
-                let btn_h = 40.0;
+                let btn_w = 100.0;
+                let btn_h = 30.0;
                 let btn_x = (self.screen_w - btn_w) / 2.0;
-                let btn_y = self.sy(CHALLENGE_Y + 200.0);
+                let btn_y = self.sy(CHALLENGE_Y + 188.0);
                 if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                     self.replay_challenge(engine);
                 }
@@ -1809,20 +1809,20 @@ impl MusicTheorySim {
             }
         }
 
-        // Replay button — shown when challenge is active and unsolved
+        // Replay hint — small tappable text below challenge info
         if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
-            let btn_w = 120.0;
-            let btn_h = 40.0;
-            let btn_x = (self.screen_w - btn_w) / 2.0;
-            let btn_y = self.sy(CHALLENGE_Y + 200.0);
-            shapes::fill_rect(fb, btn_x, btn_y, btn_w, btn_h, OPTION_BG);
-            shapes::draw_rect(fb, btn_x, btn_y, btn_w, btn_h, ACCENT_TEAL);
-            text::draw_text_centered(fb, cx, (btn_y + btn_h / 2.0 - 5.0) as i32,
-                "Replay", ACCENT_TEAL, 2);
+            let replay_y = self.sy(CHALLENGE_Y + 195.0) as i32;
+            let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
+            text::draw_text_centered(fb, cx, replay_y,
+                "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 1);
         }
     }
 
     fn render_options(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
+        // Hide options during correct feedback — that space shows the insight text
+        if self.feedback == FeedbackState::Correct {
+            return;
+        }
         for (i, &opt) in self.challenge.options.iter().enumerate() {
             let (x, y, w, h) = self.option_rect(i);
 
@@ -1882,29 +1882,26 @@ impl MusicTheorySim {
             text::draw_text_centered(fb, cx, cy, msg, color, 2);
         }
 
-        // Show educational insight on correct answers — word-wrapped
-        if self.feedback == FeedbackState::Correct && !self.current_insight.is_empty() {
-            let max_w = self.screen_w as i32 - 40;
-            let lines = wrap_text(&self.current_insight, max_w, 1);
-            let line_h = 14;
-            let start_y = cy + 20;
-            for (i, line) in lines.iter().enumerate() {
-                let alpha = if i == 0 { 220u8 } else { 180 };
-                text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
-                    ACCENT_TEAL.with_alpha(alpha), 1);
-            }
-        }
-
-        // "Next" button — shown during correct feedback so player can read the insight
+        // On correct: show insight text + "Next" in the options area (options hidden)
         if self.feedback == FeedbackState::Correct {
-            let btn_w = 160.0;
-            let btn_h = 50.0;
-            let btn_x = (self.screen_w - btn_w) / 2.0;
-            let btn_y = self.sy(FEEDBACK_Y + FEEDBACK_H - 10.0);
-            shapes::fill_rect(fb, btn_x, btn_y, btn_w, btn_h, OPTION_BG);
-            shapes::draw_rect(fb, btn_x, btn_y, btn_w, btn_h, CORRECT_COLOR);
-            text::draw_text_centered(fb, cx, (btn_y + btn_h / 2.0 - 5.0) as i32,
-                "Next", CORRECT_COLOR, 2);
+            // Insight text — word-wrapped, placed starting in the options zone
+            if !self.current_insight.is_empty() {
+                let max_w = self.screen_w as i32 - 40;
+                let lines = wrap_text(&self.current_insight, max_w, 1);
+                let line_h = 14;
+                let start_y = cy + 20;
+                for (i, line) in lines.iter().enumerate() {
+                    let alpha = if i == 0 { 220u8 } else { 180 };
+                    text::draw_text_centered(fb, cx, start_y + (i as i32) * line_h, line,
+                        ACCENT_TEAL.with_alpha(alpha), 1);
+                }
+            }
+
+            // "Next" text — positioned near bottom of feedback zone
+            let next_y = self.sy(PIANO_Y - 30.0) as i32;
+            let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
+            text::draw_text_centered(fb, cx, next_y,
+                "[ Next ]", CORRECT_COLOR.with_alpha(blink as u8), 2);
         }
 
         // Decorative accents

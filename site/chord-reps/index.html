@@ -558,7 +558,8 @@
 
     // --- Main Loop ---
     async function main() {
-        const wasm = await initWasm();
+        const wasmUrl = new URL(`../pkg/engine_core_bg.wasm${cacheBust}`, import.meta.url);
+        const wasm = await initWasm(wasmUrl);
         const memory = wasm.memory;
 
         init(W, H);

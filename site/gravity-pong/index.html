@@ -169,7 +169,7 @@
         // Fullscreen triangle trick: 3 vertices cover the screen
         float x = float((gl_VertexID & 1) << 2);
         float y = float((gl_VertexID & 2) << 1);
-        vUv = vec2(x * 0.5, 1.0 - y * 0.5);
+        vUv = vec2(x * 0.5, y * 0.5);
         gl_Position = vec4(x - 1.0, y - 1.0, 0.0, 1.0);
     }`;
 
@@ -517,7 +517,7 @@
             if (!isNaN(x) && !isNaN(y) && r > 0) {
                 wells.push({
                     x: x / W,          // normalize to 0..1 UV space
-                    y: y / H,           // UVs already flipped in vertex shader
+                    y: 1.0 - y / H,     // flip Y: game Y=0 is top, GL UV.y=0 is bottom
                     radius: r / W,
                     strength: s
                 });
@@ -551,7 +551,9 @@
             const pixels = new Uint8Array(memory.buffer, ptr, len);
 
             gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
 
             // ==== PASS 1: Glow (additive bright-pixel spread) ====
             gl.bindFramebuffer(gl.FRAMEBUFFER, glowFBO);

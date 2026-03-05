@@ -14,6 +14,12 @@
 - `#[cfg(target_arch = "wasm32")]` guards on panic hook setup in init().
 - CLI must compile for native target — never reference wasm-only crates unconditionally.
 
+## Rendering Rules
+- All visual primitives MUST be anti-aliased (1px feather on edges). No hard-edged shapes.
+- Use `fill_circle` (AA), `fill_tapered_trail`, and `fill_triangle` (AA) from `shapes.rs`.
+- Trails/streaks use `fill_tapered_trail` (single-pass distance-field polyline) — never raw `draw_line`.
+- Glow effects: render a wider, low-alpha pass underneath the bright core pass.
+
 ## File Conventions
 - Adding a component: create file in components/, add to components/mod.rs, add store to world.rs, add to World::new/despawn/clear, add SchemaInfo impl.
 - Adding a system: create file in systems/, add to systems/mod.rs, add call in engine.rs tick().

@@ -60,16 +60,14 @@
             min-width: 3ch;
         }
         #game-canvas {
-            image-rendering: pixelated;
             cursor: crosshair;
-            width: 100vw;
-            height: 100vh;
-            height: 100dvh;
             display: block;
             position: fixed;
             top: 0;
             left: 0;
-            object-fit: contain;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
         }
         .info { display: none; }
         a { color: #40ffc0; }
@@ -87,7 +85,8 @@
 </head>
 <body>
     <h1>Gravity Pong</h1>
-    <div id="hud">
+    <!-- HUD hidden until JS styling is built; game state available via get_game_state_f64() -->
+    <div id="hud" style="display:none">
         <div class="hud-stat">
             <span class="hud-label">Score</span>
             <span class="hud-value" id="scored">0</span>
@@ -129,9 +128,11 @@
             setup_gravity_pong
         } = api;
 
-        // Internal render resolution — CSS stretches to fullscreen
-        const W = 600, H = 900;
+        // Full-screen canvas — always fills entire viewport
         const canvas = document.getElementById('game-canvas');
+        const dpr = Math.min(devicePixelRatio, 2); // cap at 2x to avoid huge framebuffers
+        const W = Math.round(window.innerWidth * dpr);
+        const H = Math.round(window.innerHeight * dpr);
         canvas.width = W;
         canvas.height = H;
         const ctx = canvas.getContext('2d');

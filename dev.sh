@@ -44,8 +44,10 @@ build() {
     cp "$PKG/engine_core.js" "$SITE_OUT/pkg/"
     cp "$PKG/engine_core_bg.wasm" "$SITE_OUT/pkg/"
 
-    # Replace cache-bust placeholder
-    find "$SITE_OUT" -name '*.html' -exec sed -i '' 's/__WASM_HASH__/dev/g' {} +
+    # Replace cache-bust placeholder with actual timestamp so browser never caches
+    local STAMP
+    STAMP=$(date +%s)
+    find "$SITE_OUT" -name '*.html' -exec sed -i '' "s/__WASM_HASH__/${STAMP}/g" {} +
 
     # Inject live-reload script
     local RELOAD='<script>(()=>{let l=0;setInterval(async()=>{try{const r=await fetch("/__reload");const t=await r.text();if(l\&\&t!==l)location.reload();l=t}catch(e){}},800)})()</script>'

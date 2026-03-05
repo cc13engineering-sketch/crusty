@@ -5,6 +5,7 @@
 //! normalised world space, scaled uniformly to the viewport.
 
 use crate::engine::Engine;
+use crate::log;
 use crate::rendering::color::Color;
 use crate::rendering::framebuffer::Framebuffer;
 use crate::rendering::post_fx;
@@ -32,14 +33,12 @@ const REPULSOR_MIN_STRENGTH: f64 = 200_000.0;
 const REPULSOR_MAX_STRENGTH: f64 = 1_200_000.0;
 const REPULSOR_EPSILON_FACTOR: f64 = 0.3;
 
-// Drag
-const BASE_DRAG: f64 = 0.35;
-const SPEED_DRAG: f64 = 0.0;
-const REST_THRESHOLD: f64 = 0.5;
+// Flight physics: particle flies with gravity + mild drag for 2.5 seconds,
+// then hard-stops. Sling immunity protects from gravity for ~0.5s after launch.
+const HARD_STOP_TIME: f64 = 2.5;
 
 // Physics
 const EDGE_RESTITUTION: f64 = 0.85;
-const MAX_SPEED: f64 = 350.0;
 const MAX_SUBSTEPS: u32 = 8;
 const MAX_BOUNCES: u32 = 5;
 
@@ -49,7 +48,7 @@ const WAYPOINT_TRAVEL_SPEED: f64 = 12.0;
 const WAYPOINT_TIMEOUT_FRAMES: u32 = 180;
 
 // Sling
-const SLING_MAX_SPEED: f64 = 2520.0;
+const SLING_MAX_SPEED: f64 = 2800.0;
 const SLING_MAX_PULL: f64 = 150.0;
 const SLING_DECAY_RATE: f64 = 2.5;
 
@@ -59,9 +58,10 @@ const FIELD_DUST_DAMPING: f64 = 0.85;
 const PARTICLE_RADIUS: f64 = 5.0;
 
 // Trail
-const MAX_TRAIL_LEN: usize = 60;
+const MAX_TRAIL_LEN: usize = 30;
 
-// World size
+// World width is fixed; world_h = WORLD_SIZE * (screen_h/screen_w) adapts to
+// the device aspect ratio. Levels should place elements across the full world_h.
 const WORLD_SIZE: f64 = 1000.0;
 
 // Particle collision radius in world units
@@ -100,6 +100,7 @@ struct Particle {
     scale: f64,
     flash_timer: f64,
     attractor_count: u32,
+    flight_time: f64,
 }
 
 impl Particle {
@@ -121,6 +122,7 @@ impl Particle {
             scale: 1.0,
             flash_timer: 0.0,
             attractor_count: 0,
+            flight_time: 0.0,
         }
     }
 }
@@ -566,21 +568,6 @@ fn level_data() -> Vec<Vec<&'static str>> {
     ]
 }
 
-fn level_names() -> Vec<&'static str> {
-    vec![
-        "First Contact",
-        "The Sling",
-        "Orbital",
-        "Through the Wormhole",
-        "Current Affairs",
-        "Dark Side",
-        "Chaos Theory",
-        "The Gauntlet",
-        "Countdown",
-        "Final Frontier",
-    ]
-}
-
 // ─── Main Struct ────────────────────────────────────────────────────────────
 
 #[derive(Clone, Debug)]
@@ -605,6 +592,7 @@ pub struct GravityPong {
     mouse_down_pos: Option<(f64, f64)>,
     screen_w: f64,
     screen_h: f64,
+    world_h: f64,
     wormholes: Vec<Wormhole>,
     plasma_currents: Vec<PlasmaCurrent>,
     supernovas: Vec<Supernova>,
@@ -636,6 +624,7 @@ impl GravityPong {
             mouse_down_pos: None,
             screen_w: 640.0,
             screen_h: 640.0,
+            world_h: WORLD_SIZE,
             wormholes: Vec::new(),
             plasma_currents: Vec::new(),
             supernovas: Vec::new(),
@@ -804,7 +793,7 @@ impl GravityPong {
         self.dust_motes.clear();
         for _ in 0..FIELD_DUST_COUNT {
             let x = engine.rng.range_f64(0.0, WORLD_SIZE);
-            let y = engine.rng.range_f64(0.0, WORLD_SIZE);
+            let y = engine.rng.range_f64(0.0, self.world_h);
             let lifetime = engine.rng.range_f64(2.0, 6.0);
             let alpha = engine.rng.range_f64(40.0, 60.0);
             self.dust_motes.push(DustMote {
@@ -973,7 +962,7 @@ impl GravityPong {
             } else {
                 // No sling active — show waypoint capture radius preview
                 let (mx_w, my_w) = s2w(engine.input.mouse_x, engine.input.mouse_y);
-                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE {
+                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= self.world_h {
                     self.waypoint_preview = Some((mx_w, my_w));
                 }
             }
@@ -1002,9 +991,12 @@ impl GravityPong {
                             p.locked = false;
                             p.captured = false;
                             p.sling_immunity = 1.0;
+                            p.sling_decay_rate = 2.0; // immunity lasts ~0.5s
                             p.sling_launch_speed = launch_speed;
                             p.scale = 1.0;
                             p.flash_timer = 0.08;
+                            p.flight_time = 0.0;
+                            p.trail.clear();
 
                             // Sling served its purpose — remove waypoint entirely
                             self.waypoint = None;
@@ -1054,7 +1046,7 @@ impl GravityPong {
                 // No sling (no locked particle) → place waypoint on release
                 let (mx_w, my_w) =
                     self.s2w(engine.input.mouse_x, engine.input.mouse_y);
-                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= WORLD_SIZE {
+                if mx_w >= 0.0 && mx_w <= WORLD_SIZE && my_w >= 0.0 && my_w <= self.world_h {
                     self.place_waypoint(mx_w, my_w);
                 }
             }
@@ -1080,7 +1072,7 @@ impl GravityPong {
                     let mut closest_idx: Option<usize> = None;
                     let mut closest_dist_sq = f64::MAX;
                     // Minimum speed below which a particle is "at rest" and can be captured
-                    const WAYPOINT_MIN_SPEED: f64 = 5.0;
+                    const WAYPOINT_MIN_SPEED: f64 = 0.0; // only capture fully stopped particles
                     for i in 0..self.particles.len() {
                         let p = &self.particles[i];
                         if !p.alive || p.scored || p.locked || p.captured
@@ -1115,6 +1107,9 @@ impl GravityPong {
                     if let Some(p) = self.particles.get_mut(idx) {
                         if p.locked || p.scored || !p.alive {
                             continue;
+                        }
+                        if !p.captured {
+                            p.trail.clear();
                         }
                         p.captured = true;
                         let dx = wp_x - p.x;
@@ -1277,69 +1272,88 @@ impl GravityPong {
             // Substep integration
             let p = &mut self.particles[i];
 
-            for _sub in 0..substeps {
-                // Velocity integration
-                p.vx += ax * sub_dt;
-                p.vy += ay * sub_dt;
-
-                // Apply drag (reduced while sling immunity active)
-                let speed = (p.vx * p.vx + p.vy * p.vy).sqrt();
-                let drag_scale = 1.0 - 0.8 * p.sling_immunity;
-                let effective_drag = (BASE_DRAG + SPEED_DRAG * speed) * drag_scale;
-                let factor = (-effective_drag * sub_dt).exp();
-                p.vx *= factor;
-                p.vy *= factor;
-                if speed * factor < REST_THRESHOLD {
-                    p.vx = 0.0;
-                    p.vy = 0.0;
-                }
-
-                // Clamp speed (sling immunity allows higher speeds)
-                let speed_after = (p.vx * p.vx + p.vy * p.vy).sqrt();
-                let base_max = MAX_SPEED / self.scale;
-                let max_speed_w = base_max
-                    + (SLING_MAX_SPEED - base_max) * p.sling_immunity;
-                if speed_after > max_speed_w && speed_after > 0.0 {
-                    let s = max_speed_w / speed_after;
-                    p.vx *= s;
-                    p.vy *= s;
-                }
-
-                // Position integration
-                p.x += p.vx * sub_dt;
-                p.y += p.vy * sub_dt;
-
-                // Edge bouncing
-                for _ in 0..MAX_BOUNCES {
-                    let mut bounced = false;
-                    if p.x < 0.0 {
-                        p.x = -p.x;
-                        p.vx = -p.vx * EDGE_RESTITUTION;
-                        bounced = true;
-                    }
-                    if p.x > WORLD_SIZE {
-                        p.x = 2.0 * WORLD_SIZE - p.x;
-                        p.vx = -p.vx * EDGE_RESTITUTION;
-                        bounced = true;
-                    }
-                    if p.y < 0.0 {
-                        p.y = -p.y;
-                        p.vy = -p.vy * EDGE_RESTITUTION;
-                        bounced = true;
-                    }
-                    if p.y > WORLD_SIZE {
-                        p.y = 2.0 * WORLD_SIZE - p.y;
-                        p.vy = -p.vy * EDGE_RESTITUTION;
-                        bounced = true;
-                    }
-                    if !bounced {
-                        break;
-                    }
-                }
-                // Final clamp to ensure within bounds
-                p.x = p.x.clamp(0.0, WORLD_SIZE);
-                p.y = p.y.clamp(0.0, WORLD_SIZE);
+            // Skip stationary particles that haven't been launched
+            if p.vx == 0.0 && p.vy == 0.0 && p.flight_time == 0.0 {
+                continue;
             }
+
+            // ALWAYS increment flight_time by exactly FIXED_DT per frame
+            // (do it once before substeps, not per-substep, to avoid confusion)
+            p.flight_time += FIXED_DT;
+
+            // Debug: log once per second
+            let prev_sec = ((p.flight_time - FIXED_DT) as i32).max(0);
+            let curr_sec = p.flight_time as i32;
+            if curr_sec > prev_sec {
+                let spd = (p.vx * p.vx + p.vy * p.vy).sqrt();
+                log::log(&format!(
+                    "PARTICLE flight_time={:.1}s speed={:.0} immunity={:.2}",
+                    p.flight_time, spd, p.sling_immunity
+                ));
+            }
+
+            // === HARD STOP — no exceptions ===
+            if p.flight_time >= HARD_STOP_TIME {
+                p.vx = 0.0;
+                p.vy = 0.0;
+                // don't process substeps at all
+            } else {
+                // Normal physics substeps
+                for _sub in 0..substeps {
+                    // Gravity (disabled during sling immunity via field_factor above)
+                    p.vx += ax * sub_dt;
+                    p.vy += ay * sub_dt;
+
+                    // Mild exponential drag
+                    let ds = 1.0 - 0.8 * p.sling_immunity;
+                    let factor = (-0.3 * ds * sub_dt).exp();
+                    p.vx *= factor;
+                    p.vy *= factor;
+
+                    // Speed clamp
+                    let speed_after = (p.vx * p.vx + p.vy * p.vy).sqrt();
+                    if speed_after > SLING_MAX_SPEED {
+                        let s = SLING_MAX_SPEED / speed_after;
+                        p.vx *= s;
+                        p.vy *= s;
+                    }
+
+                    // Position integration
+                    p.x += p.vx * sub_dt;
+                    p.y += p.vy * sub_dt;
+
+                    // Edge bouncing
+                    for _ in 0..MAX_BOUNCES {
+                        let mut bounced = false;
+                        if p.x < 0.0 {
+                            p.x = -p.x;
+                            p.vx = -p.vx * EDGE_RESTITUTION;
+                            bounced = true;
+                        }
+                        if p.x > WORLD_SIZE {
+                            p.x = 2.0 * WORLD_SIZE - p.x;
+                            p.vx = -p.vx * EDGE_RESTITUTION;
+                            bounced = true;
+                        }
+                        if p.y < 0.0 {
+                            p.y = -p.y;
+                            p.vy = -p.vy * EDGE_RESTITUTION;
+                            bounced = true;
+                        }
+                        if p.y > self.world_h {
+                            p.y = 2.0 * self.world_h - p.y;
+                            p.vy = -p.vy * EDGE_RESTITUTION;
+                            bounced = true;
+                        }
+                        if !bounced {
+                            break;
+                        }
+                    }
+                    // Final clamp to ensure within bounds
+                    p.x = p.x.clamp(0.0, WORLD_SIZE);
+                    p.y = p.y.clamp(0.0, self.world_h);
+                } // end substep loop
+            } // end else (not hard-stopped)
 
             // Wall collision (done once after full substeps)
             let p = &mut self.particles[i];
@@ -1541,7 +1555,7 @@ impl GravityPong {
             if mote.age >= mote.lifetime {
                 // Respawn
                 mote.x = engine.rng.range_f64(0.0, WORLD_SIZE);
-                mote.y = engine.rng.range_f64(0.0, WORLD_SIZE);
+                mote.y = engine.rng.range_f64(0.0, self.world_h);
                 mote.age = 0.0;
                 mote.lifetime = engine.rng.range_f64(2.0, 6.0);
                 mote.vx = 0.0;
@@ -1596,10 +1610,10 @@ impl GravityPong {
                 mote.x -= WORLD_SIZE;
             }
             if mote.y < 0.0 {
-                mote.y += WORLD_SIZE;
+                mote.y += self.world_h;
             }
-            if mote.y > WORLD_SIZE {
-                mote.y -= WORLD_SIZE;
+            if mote.y > self.world_h {
+                mote.y -= self.world_h;
             }
         }
     }
@@ -2135,26 +2149,47 @@ impl GravityPong {
                 p.color
             };
 
-            // Draw trail
-            let trail_len = p.trail.len();
-            if trail_len > 1 {
-                for t in 0..trail_len - 1 {
-                    let alpha = ((t as f64 / trail_len as f64) * 80.0) as u8;
-                    let trail_color = trail_color_base.with_alpha(alpha);
-                    let (sx0, sy0) = self.w2s(p.trail[t].0, p.trail[t].1);
-                    let (sx1, sy1) = self.w2s(p.trail[t + 1].0, p.trail[t + 1].1);
-                    shapes::draw_line(fb, sx0, sy0, sx1, sy1, trail_color);
-                }
-            }
-
-            // Draw particle
+            // Draw tapered trail with glow — length proportional to speed
             let (sx, sy) = self.w2s(p.x, p.y);
             let radius = PARTICLE_RADIUS * p.scale;
+            let speed = (p.vx * p.vx + p.vy * p.vy).sqrt();
+            // Show 2 points at near-rest, full trail at high speed
+            let speed_frac = (speed / 300.0).min(1.0);
+            let visible = ((p.trail.len() as f64 * speed_frac).ceil() as usize).max(2).min(p.trail.len());
+            let trail_start = p.trail.len() - visible;
+            let trail_len = visible;
+            if trail_len > 1 {
+                let head_width = (radius * 0.9) / (1.0 + speed * 0.0003);
+                let head_width = head_width.max(2.0);
+
+                // Build arrays for the whole-trail renderer
+                let mut pts: Vec<(f64, f64)> = Vec::with_capacity(trail_len);
+                let mut glow_w: Vec<f64> = Vec::with_capacity(trail_len);
+                let mut glow_a: Vec<f64> = Vec::with_capacity(trail_len);
+                let mut core_w: Vec<f64> = Vec::with_capacity(trail_len);
+                let mut core_a: Vec<f64> = Vec::with_capacity(trail_len);
+
+                for t in 0..trail_len {
+                    let frac = t as f64 / (trail_len - 1) as f64; // 0=tail, 1=head
+                    let idx = trail_start + t;
+                    pts.push(self.w2s(p.trail[idx].0, p.trail[idx].1));
+                    glow_w.push(head_width * 2.5 * frac.powf(0.5));
+                    glow_a.push(frac.powf(0.6) * 25.0);
+                    core_w.push(head_width * frac.powf(0.55));
+                    core_a.push(frac.powf(0.6) * 160.0);
+                }
+
+                // Glow pass
+                shapes::fill_tapered_trail(fb, &pts, &glow_w, &glow_a, trail_color_base);
+                // Bright core pass
+                let bright = Color::lerp(trail_color_base, Color::WHITE, 0.2);
+                shapes::fill_tapered_trail(fb, &pts, &core_w, &core_a, bright);
+            }
 
             {
                 // Glow
                 let glow_color = p.color.with_alpha(40);
-                shapes::fill_circle(fb, sx, sy, radius * 2.0, glow_color);
+                shapes::fill_circle(fb, sx, sy, radius * 2.5, glow_color);
 
                 // Main body
                 if p.flash_timer > 0.0 {
@@ -2503,12 +2538,10 @@ impl GravityPong {
 
             for step in 0..steps {
                 // No gravity in preview — player must read the field and guess the bend
-                // Drag only
-                let speed = (sim_vx * sim_vx + sim_vy * sim_vy).sqrt();
-                let effective_drag = BASE_DRAG + SPEED_DRAG * speed;
-                let factor = (-effective_drag * sim_dt).exp();
-                sim_vx *= factor;
-                sim_vy *= factor;
+                // Mild drag approximation
+                let f = (-0.06 * sim_dt).exp();
+                sim_vx *= f;
+                sim_vy *= f;
 
                 sim_x += sim_vx * sim_dt;
                 sim_y += sim_vy * sim_dt;
@@ -2526,12 +2559,12 @@ impl GravityPong {
                     sim_y = -sim_y;
                     sim_vy = -sim_vy * EDGE_RESTITUTION;
                 }
-                if sim_y > WORLD_SIZE {
-                    sim_y = 2.0 * WORLD_SIZE - sim_y;
+                if sim_y > self.world_h {
+                    sim_y = 2.0 * self.world_h - sim_y;
                     sim_vy = -sim_vy * EDGE_RESTITUTION;
                 }
                 sim_x = sim_x.clamp(0.0, WORLD_SIZE);
-                sim_y = sim_y.clamp(0.0, WORLD_SIZE);
+                sim_y = sim_y.clamp(0.0, self.world_h);
 
                 // Check for black hole kill zone hit
                 let mut hit_bh = false;
@@ -2643,140 +2676,6 @@ impl GravityPong {
         }
     }
 
-    fn render_hud(&self, fb: &mut Framebuffer) {
-        // Score counter
-        let score_text = format!("{}/{}", self.total_scored, self.goal_target);
-        let hud_color = Color::from_rgba(220, 220, 240, 220);
-        text::draw_text(fb, 10, 10, &score_text, hud_color, 2);
-
-        // Level indicator
-        let level_text = format!("Level {}", self.current_level + 1);
-        let level_w = text::text_width(&level_text, 1);
-        text::draw_text(
-            fb,
-            fb.width as i32 - level_w - 10,
-            10,
-            &level_text,
-            Color::from_rgba(180, 180, 200, 180),
-            1,
-        );
-
-        // Alive count
-        let alive_text = format!("Alive: {}", self.alive_count);
-        text::draw_text(
-            fb,
-            10,
-            fb.height as i32 - 20,
-            &alive_text,
-            Color::from_rgba(180, 180, 200, 160),
-            1,
-        );
-    }
-
-    fn render_phase_overlay(&self, fb: &mut Framebuffer) {
-        let cx = fb.width as i32 / 2;
-        let cy = fb.height as i32 / 2;
-
-        match &self.phase {
-            GamePhase::Won => {
-                // Dark overlay
-                shapes::fill_rect(
-                    fb,
-                    0.0,
-                    0.0,
-                    fb.width as f64,
-                    fb.height as f64,
-                    Color::from_rgba(0, 0, 0, 100),
-                );
-                text::draw_text_centered(
-                    fb,
-                    cx,
-                    cy - 20,
-                    "LEVEL COMPLETE!",
-                    Color::from_rgba(100, 255, 100, 255),
-                    3,
-                );
-                text::draw_text_centered(
-                    fb,
-                    cx,
-                    cy + 20,
-                    "Next level loading...",
-                    Color::from_rgba(200, 200, 220, 200),
-                    1,
-                );
-                let names = level_names();
-                let next_level = self.current_level + 1;
-                if next_level < names.len() {
-                    text::draw_text_centered(
-                        fb,
-                        cx,
-                        cy + 40,
-                        names[next_level],
-                        Color::from_rgba(180, 180, 220, 200),
-                        2,
-                    );
-                }
-            }
-            GamePhase::Lost => {
-                shapes::fill_rect(
-                    fb,
-                    0.0,
-                    0.0,
-                    fb.width as f64,
-                    fb.height as f64,
-                    Color::from_rgba(0, 0, 0, 120),
-                );
-                text::draw_text_centered(
-                    fb,
-                    cx,
-                    cy - 20,
-                    "ALL PARTICLES LOST",
-                    Color::from_rgba(255, 80, 80, 255),
-                    3,
-                );
-                text::draw_text_centered(
-                    fb,
-                    cx,
-                    cy + 20,
-                    "Click to retry",
-                    Color::from_rgba(200, 200, 220, 200),
-                    1,
-                );
-            }
-            GamePhase::LevelTransition(timer) => {
-                let alpha = ((*timer / 2.0) * 150.0).min(150.0) as u8;
-                shapes::fill_rect(
-                    fb,
-                    0.0,
-                    0.0,
-                    fb.width as f64,
-                    fb.height as f64,
-                    Color::from_rgba(0, 0, 0, alpha),
-                );
-                text::draw_text_centered(
-                    fb,
-                    cx,
-                    cy,
-                    "LEVEL COMPLETE!",
-                    Color::from_rgba(100, 255, 100, 255),
-                    3,
-                );
-                let names = level_names();
-                let next_level = self.current_level + 1;
-                if next_level < names.len() {
-                    text::draw_text_centered(
-                        fb,
-                        cx,
-                        cy + 30,
-                        names[next_level],
-                        Color::from_rgba(180, 180, 220, 200),
-                        2,
-                    );
-                }
-            }
-            GamePhase::Playing => {}
-        }
-    }
 }
 
 // ─── Simulation trait ───────────────────────────────────────────────────────
@@ -2790,6 +2689,7 @@ impl Simulation for GravityPong {
         self.screen_w = engine.width as f64;
         self.screen_h = engine.height as f64;
         self.scale = self.screen_w / WORLD_SIZE;
+        self.world_h = WORLD_SIZE * (self.screen_h / self.screen_w);
 
         self.load_level(0, engine);
     }
@@ -2842,11 +2742,18 @@ impl Simulation for GravityPong {
             self.elapsed_time += FIXED_DT;
         }
 
-        // 9. HUD state for JS
+        // 9. Game state for JS (HUD rendered by JS for native web styling)
         engine.global_state.set_f64("scored", self.total_scored as f64);
         engine.global_state.set_f64("goal", self.goal_target as f64);
         engine.global_state.set_f64("level", (self.current_level + 1) as f64);
+        engine.global_state.set_f64("alive", self.alive_count as f64);
         engine.global_state.set_f64("time", self.elapsed_time);
+        engine.global_state.set_f64("phase", match self.phase {
+            GamePhase::Playing => 0.0,
+            GamePhase::Won => 1.0,
+            GamePhase::Lost => 2.0,
+            GamePhase::LevelTransition(_) => 3.0,
+        });
     }
 
     fn render(&self, engine: &mut Engine) {
@@ -2901,30 +2808,8 @@ impl Simulation for GravityPong {
         // 15. Visual effects
         self.render_effects(fb);
 
-        // 16. HUD
-        self.render_hud(fb);
-
-        // 17. Tutorial hint (first level, first few seconds)
-        if self.current_level == 0 && self.elapsed_time < 6.0 && self.phase == GamePhase::Playing {
-            let cx = fb.width as i32 / 2;
-            let alpha = if self.elapsed_time < 4.0 {
-                180
-            } else {
-                (180.0 * (1.0 - (self.elapsed_time - 4.0) / 2.0)).max(0.0) as u8
-            };
-            let hint_color = Color::from_rgba(200, 200, 230, alpha);
-            text::draw_text_centered(
-                fb,
-                cx,
-                fb.height as i32 - 50,
-                "Tap to place waypoint  |  Drag anywhere to aim & shoot",
-                hint_color,
-                1,
-            );
-        }
-
-        // 18. Phase overlays
-        self.render_phase_overlay(fb);
+        // 16. Build indicator (green dot top-left — remove after tuning)
+        shapes::fill_circle(fb, 15.0, 15.0, 5.0, Color::from_rgba(80, 255, 120, 220));
     }
 }
 

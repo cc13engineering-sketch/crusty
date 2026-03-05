@@ -1,5 +1,3 @@
-/* @ts-self-types="./engine_core.d.ts" */
-
 /**
  * Cancel a timer by name.
  * @param {string} name
@@ -184,6 +182,14 @@ export function setup_demo_ball() {
  */
 export function setup_gravity_pong() {
     wasm.setup_gravity_pong();
+}
+
+/**
+ * Set up the Vocaloid Music Theory simulation. Call after `init()`.
+ * Resets the engine with seed 42 and generates the first challenge.
+ */
+export function setup_vocaloid() {
+    wasm.setup_vocaloid();
 }
 
 /**

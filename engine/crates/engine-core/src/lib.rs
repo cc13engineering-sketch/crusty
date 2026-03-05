@@ -48,6 +48,7 @@ pub mod policy;
 pub mod variant;
 pub mod demo_ball;
 pub mod gravity_pong;
+pub mod vocaloid;
 pub mod headless;
 pub mod feel_preset;
 
@@ -57,6 +58,7 @@ mod tests;
 use engine::Engine;
 use demo_ball::DemoBall;
 use gravity_pong::GravityPong;
+use vocaloid::VocaloidSim;
 use simulation::Simulation;
 
 thread_local! {
@@ -291,6 +293,24 @@ pub fn setup_gravity_pong() {
         let eng = borrow.as_mut().expect("Engine not initialized");
         eng.reset(42);
         let mut sim = GravityPong::new();
+        sim.setup(eng);
+        SIM.with(|s| {
+            *s.borrow_mut() = Some(Box::new(sim));
+        });
+    });
+}
+
+// ─── Vocaloid Music Theory WASM API ───────────────────────────────
+
+/// Set up the Vocaloid Music Theory simulation. Call after `init()`.
+/// Resets the engine with seed 42 and generates the first challenge.
+#[wasm_bindgen]
+pub fn setup_vocaloid() {
+    ENGINE.with(|e| {
+        let mut borrow = e.borrow_mut();
+        let eng = borrow.as_mut().expect("Engine not initialized");
+        eng.reset(42);
+        let mut sim = VocaloidSim::new();
         sim.setup(eng);
         SIM.with(|s| {
             *s.borrow_mut() = Some(Box::new(sim));

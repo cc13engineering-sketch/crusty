@@ -1,8 +1,9 @@
-//! Vocaloid Music Theory Simulation
+//! Vocaloid Music Theory Simulation — featuring Kasane Teto
 //!
 //! A music theory discovery game where players complete chord progressions,
-//! melodies, and identify intervals. Correct answers chain into a growing
-//! musical phrase played with synthesized tones.
+//! melodies, identify intervals, and learn Japanese phonemes from the
+//! Teto UTAU voicebank. Correct answers chain into a growing musical phrase
+//! played with synthesized tones and Teto vocal samples.
 
 pub mod theory;
 
@@ -57,6 +58,7 @@ const BG_COLOR: Color = Color { r: 10, g: 10, b: 30, a: 255 };
 const ACCENT_TEAL: Color = Color { r: 0, g: 212, b: 170, a: 255 };
 const ACCENT_CYAN: Color = Color { r: 0, g: 255, b: 204, a: 255 };
 const ACCENT_PINK: Color = Color { r: 255, g: 102, b: 178, a: 255 };
+const ACCENT_RED: Color = Color { r: 255, g: 80, b: 80, a: 255 };
 const CORRECT_COLOR: Color = Color { r: 0, g: 255, b: 180, a: 255 };
 const WRONG_COLOR: Color = Color { r: 255, g: 68, b: 102, a: 255 };
 const WHITE_KEY_CLR: Color = Color { r: 232, g: 232, b: 240, a: 255 };
@@ -74,6 +76,7 @@ pub enum MusicConcept {
     ChordProgression,
     NextNote,
     IntervalRecognition,
+    PhonemeRecognition,
 }
 
 #[derive(Clone, Debug)]
@@ -81,14 +84,18 @@ pub struct MusicChallenge {
     concept: MusicConcept,
     key_root: u8,      // MIDI root of the key (e.g. 48 = C3)
     sequence: Vec<u8>, // scale degrees (chords/melody) or MIDI notes (intervals)
-    answer: u8,        // correct answer (degree or semitone count)
+    answer: u8,        // correct answer (degree, semitone count, or phoneme index)
     options: Vec<u8>,  // 4 choices including answer
     solved: bool,
+    // Phoneme challenge fields
+    phoneme_prompt: Option<&'static str>, // romaji prompt for phoneme challenges
+    phoneme_options_idx: Vec<usize>,      // indices into GOJUUON for phoneme options
 }
 
 #[derive(Clone, Debug)]
 pub struct PhraseNote {
     midi: u8,
+    lyric: Option<&'static str>, // hiragana syllable from Teto voicebank
 }
 
 #[derive(Clone, Debug)]
@@ -156,6 +163,8 @@ impl VocaloidSim {
                 answer: 0,
                 options: vec![],
                 solved: false,
+                phoneme_prompt: None,
+                phoneme_options_idx: vec![],
             },
             phrase_notes: Vec::new(),
             feedback: FeedbackState::Neutral,
@@ -167,7 +176,7 @@ impl VocaloidSim {
             scheduled_sounds: Vec::new(),
             total_time: 0.0,
             challenges_completed: 0,
-            last_concept_idx: 2, // so first challenge is ChordProgression (wraps to 0)
+            last_concept_idx: 3, // so first challenge wraps to 0 (ChordProgression)
             sparkles: Vec::new(),
         }
     }
@@ -175,14 +184,15 @@ impl VocaloidSim {
     // ─── Challenge Generation ────────────────────────────────
 
     fn generate_challenge(&mut self, engine: &mut Engine) {
-        self.last_concept_idx = (self.last_concept_idx + 1) % 3;
+        self.last_concept_idx = (self.last_concept_idx + 1) % 4;
         let key_roots = [48u8, 50, 52, 53, 55, 57];
         let key_root = key_roots[engine.rng.range_i32(0, key_roots.len() as i32 - 1) as usize];
 
         match self.last_concept_idx {
             0 => self.generate_chord_challenge(key_root, engine),
             1 => self.generate_note_challenge(key_root, engine),
-            _ => self.generate_interval_challenge(key_root, engine),
+            2 => self.generate_interval_challenge(key_root, engine),
+            _ => self.generate_phoneme_challenge(engine),
         }
         self.update_highlights();
     }
@@ -233,6 +243,8 @@ impl VocaloidSim {
             answer,
             options,
             solved: false,
+            phoneme_prompt: None,
+            phoneme_options_idx: vec![],
         };
     }
 
@@ -275,6 +287,8 @@ impl VocaloidSim {
             answer,
             options,
             solved: false,
+            phoneme_prompt: None,
+            phoneme_options_idx: vec![],
         };
     }
 
@@ -321,6 +335,48 @@ impl VocaloidSim {
             answer: interval,
             options,
             solved: false,
+            phoneme_prompt: None,
+            phoneme_options_idx: vec![],
+        };
+    }
+
+    fn generate_phoneme_challenge(&mut self, engine: &mut Engine) {
+        // Pick a random phoneme from the gojuuon table
+        let max_idx = if self.difficulty <= 3 {
+            10  // vowels + ka-row only
+        } else if self.difficulty <= 6 {
+            25  // through na-row
+        } else {
+            GOJUUON.len()
+        };
+
+        let answer_idx = engine.rng.range_i32(0, max_idx as i32 - 1) as usize;
+        let phoneme = &GOJUUON[answer_idx];
+
+        // Generate 4 options (indices into GOJUUON)
+        let opts = generate_phoneme_options(answer_idx, 4, engine.rng.next_u64());
+
+        // The answer position in the options list (for the u8-based system)
+        // We'll store the answer as the position and use phoneme_options_idx for lookup
+        let answer_pos = opts.iter().position(|&i| i == answer_idx).unwrap_or(0) as u8;
+
+        // Play the Teto sample for this phoneme
+        engine.sound_queue.push(SoundCommand::PlaySample {
+            name: phoneme.sample.to_string(),
+            volume: 0.8,
+            pitch: 1.0,
+            duration: 0.5,
+        });
+
+        self.challenge = MusicChallenge {
+            concept: MusicConcept::PhonemeRecognition,
+            key_root: 60,
+            sequence: vec![answer_idx as u8],
+            answer: answer_pos,
+            options: (0..opts.len() as u8).collect(),
+            solved: false,
+            phoneme_prompt: Some(phoneme.romaji),
+            phoneme_options_idx: opts,
         };
     }
 
@@ -352,6 +408,9 @@ impl VocaloidSim {
                         self.highlighted_keys[(midi - MIDI_LOW) as usize] = true;
                     }
                 }
+            }
+            MusicConcept::PhonemeRecognition => {
+                // No piano highlights for phoneme challenges
             }
         }
     }
@@ -407,7 +466,7 @@ impl VocaloidSim {
                     });
                     self.flash_key(midi, CORRECT_COLOR);
                 }
-                self.phrase_notes.push(PhraseNote { midi: root });
+                self.phrase_notes.push(PhraseNote { midi: root, lyric: None });
             }
             MusicConcept::NextNote => {
                 let deg = self.challenge.answer;
@@ -421,7 +480,7 @@ impl VocaloidSim {
                     decay: 0.3,
                 });
                 self.flash_key(midi, CORRECT_COLOR);
-                self.phrase_notes.push(PhraseNote { midi });
+                self.phrase_notes.push(PhraseNote { midi, lyric: None });
             }
             MusicConcept::IntervalRecognition => {
                 if self.challenge.sequence.len() >= 2 {
@@ -446,7 +505,28 @@ impl VocaloidSim {
                     });
                     self.flash_key(base, CORRECT_COLOR);
                     self.flash_key(top, CORRECT_COLOR);
-                    self.phrase_notes.push(PhraseNote { midi: top });
+                    self.phrase_notes.push(PhraseNote { midi: top, lyric: None });
+                }
+            }
+            MusicConcept::PhonemeRecognition => {
+                // Play the correct Teto sample
+                if let Some(answer_global) = self.challenge.sequence.first() {
+                    let idx = *answer_global as usize;
+                    if idx < GOJUUON.len() {
+                        let p = &GOJUUON[idx];
+                        engine.sound_queue.push(SoundCommand::PlaySample {
+                            name: p.sample.to_string(),
+                            volume: 0.9,
+                            pitch: 1.0,
+                            duration: 0.5,
+                        });
+                        // Add to phrase with lyric
+                        let midi = 60 + (p.vowel as u8) * 2; // map vowel class to pitch
+                        self.phrase_notes.push(PhraseNote {
+                            midi,
+                            lyric: Some(p.kana),
+                        });
+                    }
                 }
             }
         }
@@ -465,26 +545,24 @@ impl VocaloidSim {
         self.spawn_sparkles(SCREEN_W / 2.0, OPTIONS_Y + OPTIONS_H / 2.0, 25, ACCENT_CYAN, engine);
     }
 
-    fn on_wrong(&mut self, selected: u8, engine: &mut Engine) {
+    fn on_wrong(&mut self, _selected: u8, engine: &mut Engine) {
         self.feedback = FeedbackState::Wrong;
         self.feedback_timer = FEEDBACK_WRONG_DUR;
         self.streak = 0;
 
-        // Flash wrong notes on piano
+        // Flash wrong notes on piano (only for music challenges)
         match &self.challenge.concept {
             MusicConcept::ChordProgression => {
-                let root = self.challenge.key_root + MAJOR_SCALE[(selected % 7) as usize];
-                for &interval in &chord_intervals(selected) {
+                let root = self.challenge.key_root + MAJOR_SCALE[(_selected % 7) as usize];
+                for &interval in &chord_intervals(_selected) {
                     self.flash_key(root + interval, WRONG_COLOR);
                 }
             }
             MusicConcept::NextNote => {
-                let midi = degree_to_midi(self.challenge.key_root, selected);
+                let midi = degree_to_midi(self.challenge.key_root, _selected);
                 self.flash_key(midi, WRONG_COLOR);
             }
-            MusicConcept::IntervalRecognition => {
-                // No specific piano flash for interval wrong answer
-            }
+            MusicConcept::IntervalRecognition | MusicConcept::PhonemeRecognition => {}
         }
 
         // Error buzz
@@ -580,6 +658,18 @@ impl VocaloidSim {
                     INTERVAL_NAMES[value as usize].to_string()
                 } else {
                     format!("{}st", value)
+                }
+            }
+            MusicConcept::PhonemeRecognition => {
+                // value is the option index (0-3)
+                let gojuuon_idx = self.challenge.phoneme_options_idx
+                    .get(value as usize)
+                    .copied()
+                    .unwrap_or(0);
+                if gojuuon_idx < GOJUUON.len() {
+                    GOJUUON[gojuuon_idx].kana.to_string()
+                } else {
+                    "?".to_string()
                 }
             }
         }
@@ -688,7 +778,10 @@ impl Simulation for VocaloidSim {
 
 impl VocaloidSim {
     fn render_header(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
-        text::draw_text(fb, 16, 14, "VOCALOID THEORY", ACCENT_TEAL, 2);
+        // Teto branding
+        text::draw_text(fb, 16, 14, "TETO THEORY", ACCENT_RED, 2);
+        let sub = "Kasane Teto";
+        text::draw_text(fb, 16, 38, sub, ACCENT_PINK, 1);
 
         let score_str = format!("Score: {}", self.score);
         let sw = text::text_width(&score_str, 2);
@@ -696,8 +789,9 @@ impl VocaloidSim {
 
         if self.streak > 0 {
             let stars: String = (0..self.streak.min(10)).map(|_| '*').collect();
-            let streak_str = format!("Streak: {}", stars);
-            text::draw_text(fb, 16, 38, &streak_str, ACCENT_PINK, 1);
+            let streak_str = format!("{}", stars);
+            let stw = text::text_width(&streak_str, 1);
+            text::draw_text(fb, 600 - stw - 16, 38, &streak_str, ACCENT_PINK, 1);
         }
 
         shapes::draw_line(fb, 0.0, HEADER_H - 1.0, SCREEN_W, HEADER_H - 1.0, DIVIDER);
@@ -762,6 +856,35 @@ impl VocaloidSim {
                         &display, ACCENT_TEAL, 3);
                 }
             }
+            MusicConcept::PhonemeRecognition => {
+                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 12.0) as i32,
+                    "TETO PHONEME", DIM_TEXT, 1);
+                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 36.0) as i32,
+                    "Which kana matches this sound?", Color::WHITE, 2);
+
+                // Show romaji prompt
+                if let Some(romaji) = self.challenge.phoneme_prompt {
+                    text::draw_text_centered(fb, cx, (CHALLENGE_Y + 80.0) as i32,
+                        romaji, ACCENT_PINK, 3);
+                }
+
+                // Show consonant row hint
+                if let Some(&answer_idx) = self.challenge.sequence.first() {
+                    let idx = answer_idx as usize;
+                    if idx < GOJUUON.len() {
+                        let row = phoneme_row(idx);
+                        if row < CONSONANT_ROWS.len() {
+                            let row_label = format!("Row: {}", CONSONANT_ROWS[row]);
+                            text::draw_text_centered(fb, cx, (CHALLENGE_Y + 130.0) as i32,
+                                &row_label, DIM_TEXT, 1);
+                        }
+                    }
+                }
+
+                // "Listen" hint
+                text::draw_text_centered(fb, cx, (CHALLENGE_Y + 160.0) as i32,
+                    "(click to hear again)", DIM_TEXT, 1);
+            }
         }
     }
 
@@ -783,6 +906,8 @@ impl VocaloidSim {
 
             let border_color = if self.challenge.solved && opt == self.challenge.answer {
                 ACCENT_CYAN
+            } else if self.challenge.concept == MusicConcept::PhonemeRecognition {
+                ACCENT_PINK.with_alpha(80)
             } else {
                 OPTION_BORDER
             };
@@ -807,22 +932,23 @@ impl VocaloidSim {
         let cx = (SCREEN_W / 2.0) as i32;
         let cy = (CHARACTER_Y + CHARACTER_H / 2.0) as i32;
 
+        // Teto-themed character faces
         let (face, msg, color) = match &self.feedback {
-            FeedbackState::Correct => ("(^o^)/", "Correct!", CORRECT_COLOR),
-            FeedbackState::Wrong => ("(>_<)", "Try again!", WRONG_COLOR),
+            FeedbackState::Correct => ("(^o^)/~", "Teto says: Correct!", CORRECT_COLOR),
+            FeedbackState::Wrong => ("(>_<;)", "Teto says: Try again!", WRONG_COLOR),
             FeedbackState::Neutral => {
-                let faces = ["(o.o)", "(^_^)", "(*v*)", "(o_o)"];
+                let faces = ["(@.@)", "(^w^)", "(*v*)", "(-w-)"];
                 let idx = ((self.pulse_time * 0.5) as usize) % faces.len();
-                (faces[idx], "", ACCENT_TEAL)
+                (faces[idx], "", ACCENT_RED)
             }
         };
 
-        // Floating note decorations
+        // Floating drill decorations (Teto's twin drills)
         let bob = (self.pulse_time * 2.0).sin() * 5.0;
         text::draw_text(fb, cx - 90, cy - 8 + bob as i32, "~",
-            ACCENT_PINK.with_alpha(100), 2);
+            ACCENT_RED.with_alpha(100), 2);
         text::draw_text(fb, cx + 70, cy - 12 + (-bob) as i32, "~",
-            ACCENT_PINK.with_alpha(100), 2);
+            ACCENT_RED.with_alpha(100), 2);
 
         text::draw_text_centered(fb, cx, cy - 5, face, color, 3);
         if !msg.is_empty() {
@@ -918,8 +1044,19 @@ impl VocaloidSim {
 
             // Note block with color gradient
             let t = i as f64 / self.phrase_notes.len().max(1) as f64;
-            let note_color = Color::lerp(ACCENT_TEAL, ACCENT_PINK, t);
+            let note_color = if note.lyric.is_some() {
+                Color::lerp(ACCENT_RED, ACCENT_PINK, t)
+            } else {
+                Color::lerp(ACCENT_TEAL, ACCENT_PINK, t)
+            };
             shapes::fill_rect(fb, x + 1.0, y, note_w - 6.0, 8.0, note_color);
+
+            // Draw lyric label above note block if present
+            if let Some(lyric) = note.lyric {
+                let lw = text::text_width(lyric, 1);
+                text::draw_text(fb, (x + note_w / 2.0) as i32 - lw / 2,
+                    (y - 14.0) as i32, lyric, ACCENT_PINK, 1);
+            }
         }
 
         // Playhead cursor
@@ -940,6 +1077,7 @@ impl VocaloidSim {
             MusicConcept::ChordProgression => "Mode: Chords",
             MusicConcept::NextNote => "Mode: Melody",
             MusicConcept::IntervalRecognition => "Mode: Intervals",
+            MusicConcept::PhonemeRecognition => "Mode: Phonemes",
         };
         let cw = text::text_width(concept_str, 1);
         text::draw_text(fb, 600 - cw - 16, (FOOTER_Y + 20.0) as i32, concept_str, DIM_TEXT, 1);

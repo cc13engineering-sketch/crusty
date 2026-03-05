@@ -115,6 +115,158 @@ pub fn generate_options(answer: u8, pool: &[u8], count: usize, seed: u64) -> Vec
     options
 }
 
+// ─── Japanese Phoneme Data (Kasane Teto CV voicebank) ─────────────
+
+/// A Japanese CV phoneme entry: (hiragana, romaji, sample_name, vowel_class).
+/// vowel_class maps to the base vowel for pitch reference: 0=a, 1=i, 2=u, 3=e, 4=o, 5=n.
+#[derive(Clone, Debug)]
+pub struct Phoneme {
+    pub kana: &'static str,
+    pub romaji: &'static str,
+    pub sample: &'static str,
+    pub vowel: u8,
+}
+
+/// The 5 Japanese vowels.
+pub const VOWELS: [&str; 5] = ["a", "i", "u", "e", "o"];
+
+/// Hiragana vowels.
+pub const VOWELS_KANA: [&str; 5] = ["あ", "い", "う", "え", "お"];
+
+/// Core CV phoneme table — the gojuuon (50 sounds) from Teto's voicebank.
+/// Each row: consonant group + vowel variants.
+pub const GOJUUON: &[Phoneme] = &[
+    // Vowels (a-row)
+    Phoneme { kana: "あ", romaji: "a",   sample: "a",   vowel: 0 },
+    Phoneme { kana: "い", romaji: "i",   sample: "i",   vowel: 1 },
+    Phoneme { kana: "う", romaji: "u",   sample: "u",   vowel: 2 },
+    Phoneme { kana: "え", romaji: "e",   sample: "e",   vowel: 3 },
+    Phoneme { kana: "お", romaji: "o",   sample: "o",   vowel: 4 },
+    // Ka-row
+    Phoneme { kana: "か", romaji: "ka",  sample: "ka",  vowel: 0 },
+    Phoneme { kana: "き", romaji: "ki",  sample: "ki",  vowel: 1 },
+    Phoneme { kana: "く", romaji: "ku",  sample: "ku",  vowel: 2 },
+    Phoneme { kana: "け", romaji: "ke",  sample: "ke",  vowel: 3 },
+    Phoneme { kana: "こ", romaji: "ko",  sample: "ko",  vowel: 4 },
+    // Sa-row
+    Phoneme { kana: "さ", romaji: "sa",  sample: "sa",  vowel: 0 },
+    Phoneme { kana: "し", romaji: "shi", sample: "shi", vowel: 1 },
+    Phoneme { kana: "す", romaji: "su",  sample: "su",  vowel: 2 },
+    Phoneme { kana: "せ", romaji: "se",  sample: "se",  vowel: 3 },
+    Phoneme { kana: "そ", romaji: "so",  sample: "so",  vowel: 4 },
+    // Ta-row
+    Phoneme { kana: "た", romaji: "ta",  sample: "ta",  vowel: 0 },
+    Phoneme { kana: "ち", romaji: "chi", sample: "chi", vowel: 1 },
+    Phoneme { kana: "つ", romaji: "tsu", sample: "tsu", vowel: 2 },
+    Phoneme { kana: "て", romaji: "te",  sample: "te",  vowel: 3 },
+    Phoneme { kana: "と", romaji: "to",  sample: "to",  vowel: 4 },
+    // Na-row
+    Phoneme { kana: "な", romaji: "na",  sample: "na",  vowel: 0 },
+    Phoneme { kana: "に", romaji: "ni",  sample: "ni",  vowel: 1 },
+    Phoneme { kana: "ぬ", romaji: "nu",  sample: "nu",  vowel: 2 },
+    Phoneme { kana: "ね", romaji: "ne",  sample: "ne",  vowel: 3 },
+    Phoneme { kana: "の", romaji: "no",  sample: "no",  vowel: 4 },
+    // Ha-row
+    Phoneme { kana: "は", romaji: "ha",  sample: "ha",  vowel: 0 },
+    Phoneme { kana: "ひ", romaji: "hi",  sample: "hi",  vowel: 1 },
+    Phoneme { kana: "ふ", romaji: "fu",  sample: "fu",  vowel: 2 },
+    Phoneme { kana: "へ", romaji: "he",  sample: "he",  vowel: 3 },
+    Phoneme { kana: "ほ", romaji: "ho",  sample: "ho",  vowel: 4 },
+    // Ma-row
+    Phoneme { kana: "ま", romaji: "ma",  sample: "ma",  vowel: 0 },
+    Phoneme { kana: "み", romaji: "mi",  sample: "mi",  vowel: 1 },
+    Phoneme { kana: "む", romaji: "mu",  sample: "mu",  vowel: 2 },
+    Phoneme { kana: "め", romaji: "me",  sample: "me",  vowel: 3 },
+    Phoneme { kana: "も", romaji: "mo",  sample: "mo",  vowel: 4 },
+    // Ya-row
+    Phoneme { kana: "や", romaji: "ya",  sample: "ya",  vowel: 0 },
+    Phoneme { kana: "ゆ", romaji: "yu",  sample: "yu",  vowel: 2 },
+    Phoneme { kana: "よ", romaji: "yo",  sample: "yo",  vowel: 4 },
+    // Ra-row
+    Phoneme { kana: "ら", romaji: "ra",  sample: "ra",  vowel: 0 },
+    Phoneme { kana: "り", romaji: "ri",  sample: "ri",  vowel: 1 },
+    Phoneme { kana: "る", romaji: "ru",  sample: "ru",  vowel: 2 },
+    Phoneme { kana: "れ", romaji: "re",  sample: "re",  vowel: 3 },
+    Phoneme { kana: "ろ", romaji: "ro",  sample: "ro",  vowel: 4 },
+    // Wa-row + n
+    Phoneme { kana: "わ", romaji: "wa",  sample: "wa",  vowel: 0 },
+    Phoneme { kana: "ん", romaji: "n",   sample: "n",   vowel: 5 },
+];
+
+/// Consonant group names in Japanese order (for display).
+pub const CONSONANT_ROWS: &[&str] = &[
+    "あ行", "か行", "さ行", "た行", "な行",
+    "は行", "ま行", "や行", "ら行", "わ行",
+];
+
+/// Get the consonant row index for a gojuuon phoneme index.
+pub fn phoneme_row(idx: usize) -> usize {
+    if idx < 5 { 0 }       // a-row
+    else if idx < 10 { 1 } // ka
+    else if idx < 15 { 2 } // sa
+    else if idx < 20 { 3 } // ta
+    else if idx < 25 { 4 } // na
+    else if idx < 30 { 5 } // ha
+    else if idx < 35 { 6 } // ma
+    else if idx < 38 { 7 } // ya (3)
+    else if idx < 43 { 8 } // ra
+    else { 9 }             // wa+n
+}
+
+/// Generate phoneme distractor options.
+/// Returns indices into GOJUUON including the answer.
+pub fn generate_phoneme_options(answer_idx: usize, count: usize, seed: u64) -> Vec<usize> {
+    let mut options = vec![answer_idx];
+    let mut s = seed;
+    let total = GOJUUON.len();
+
+    // Prefer distractors from the same vowel class or consonant row
+    let answer_vowel = GOJUUON[answer_idx].vowel;
+    let answer_row = phoneme_row(answer_idx);
+
+    // Collect same-vowel and same-row candidates
+    let mut candidates: Vec<usize> = (0..total)
+        .filter(|&i| i != answer_idx)
+        .filter(|&i| GOJUUON[i].vowel == answer_vowel || phoneme_row(i) == answer_row)
+        .collect();
+
+    // Shuffle candidates
+    for i in (1..candidates.len()).rev() {
+        s = xorshift(s);
+        let j = (s % (i as u64 + 1)) as usize;
+        candidates.swap(i, j);
+    }
+
+    for &c in candidates.iter().take(count - 1) {
+        options.push(c);
+    }
+
+    // Fill remaining from full pool if needed
+    if options.len() < count {
+        let mut all: Vec<usize> = (0..total)
+            .filter(|i| !options.contains(i))
+            .collect();
+        for i in (1..all.len()).rev() {
+            s = xorshift(s);
+            let j = (s % (i as u64 + 1)) as usize;
+            all.swap(i, j);
+        }
+        for &a in all.iter().take(count - options.len()) {
+            options.push(a);
+        }
+    }
+
+    // Truncate and shuffle
+    options.truncate(count);
+    for i in (1..options.len()).rev() {
+        s = xorshift(s);
+        let j = (s % (i as u64 + 1)) as usize;
+        options.swap(i, j);
+    }
+
+    options
+}
+
 /// Deterministic xorshift64 for shuffling.
 pub fn xorshift(mut s: u64) -> u64 {
     if s == 0 {

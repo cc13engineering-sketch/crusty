@@ -69,6 +69,15 @@ pub enum SoundCommand {
     SetVolume {
         master_volume: f64,
     },
+    /// Play a named audio sample with pitch shifting.
+    /// The `name` field identifies a pre-loaded sample (e.g. "ka", "a").
+    /// `pitch` is a playback rate multiplier (1.0 = original pitch).
+    PlaySample {
+        name: String,
+        volume: f64,
+        pitch: f64,
+        duration: f64,
+    },
 }
 
 impl SoundCommand {
@@ -109,6 +118,14 @@ impl SoundCommand {
                 format!(
                     "{{\"type\":\"SetVolume\",\"master_volume\":{}}}",
                     master_volume
+                )
+            }
+            SoundCommand::PlaySample {
+                name, volume, pitch, duration,
+            } => {
+                format!(
+                    "{{\"type\":\"PlaySample\",\"name\":\"{}\",\"volume\":{},\"pitch\":{},\"duration\":{}}}",
+                    escape_json_string(name), volume, pitch, duration
                 )
             }
         }

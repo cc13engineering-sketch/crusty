@@ -758,11 +758,11 @@ impl ChordRepsSim {
         if let Some(entry) = select_content(concept_for_content, variant_for_content, self.difficulty, content_seed) {
             self.current_insight = entry.fact.to_string();
             // Gate: no links until user has engaged (5+ correct answers)
-            // Then ~35% base rate, ~40% during streaks (user in flow)
+            // Then 50% display rate once past gate
             let has_product = entry.product.is_some();
             let past_gate = self.challenges_completed >= 5;
             let roll = engine.rng.next_u64() % 100;
-            let threshold = if self.streak >= 3 { 40 } else { 35 };
+            let threshold = 50;
             self.show_product = has_product && past_gate && roll < threshold;
             self.current_content = Some(entry);
             // Use enriched hint if available (for future hint presses on similar cards)
@@ -1922,7 +1922,7 @@ impl ChordRepsSim {
                             let link_y = start_y + (lines.len() as i32) * line_h + 14;
                             let link_text = format!("Learn more about {} >>", product.topic);
                             text::draw_text_centered(fb, cx, link_y,
-                                &link_text, DIM_TEXT, 1);
+                                &link_text, DIM_TEXT, 2);
                         }
                     }
                 }

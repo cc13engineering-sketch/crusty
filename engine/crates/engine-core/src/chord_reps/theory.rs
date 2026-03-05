@@ -392,9 +392,9 @@ const COURSERA_GETTING_STARTED: ProductRec = ProductRec {
 /// - Cadence (concept 4): Show on ~35% of entries. Users identifying
 ///   cadences are intermediate and ready for deeper coursework.
 ///
-/// Product recs display at ~25% frequency (controlled in mod.rs),
+/// Product recs display at 50% frequency (controlled in mod.rs),
 /// so effective affiliate impression rate is:
-///   entry_has_product_rate × 0.25 display_rate ≈ 7-9% of successes.
+///   entry_has_product_rate × 0.50 display_rate ≈ 13-18% of successes.
 pub const CONTENT_DB: &[ContentEntry] = &[
     // ════════════════════════════════════════════════════════════════
     // SCALE DEGREE (concept 0, variants 0–6)

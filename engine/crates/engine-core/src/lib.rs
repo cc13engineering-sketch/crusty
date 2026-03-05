@@ -48,7 +48,7 @@ pub mod policy;
 pub mod variant;
 pub mod demo_ball;
 pub mod gravity_pong;
-pub mod music_theory;
+pub mod chord_reps;
 pub mod headless;
 pub mod feel_preset;
 pub mod browser;
@@ -59,7 +59,7 @@ mod tests;
 use engine::Engine;
 use demo_ball::DemoBall;
 use gravity_pong::GravityPong;
-use music_theory::MusicTheorySim;
+use chord_reps::ChordRepsSim;
 use simulation::Simulation;
 
 thread_local! {
@@ -340,17 +340,17 @@ pub fn setup_gravity_pong() {
     });
 }
 
-// ─── Music Theory WASM API ────────────────────────────────────────
+// ─── Chord Reps WASM API ─────────────────────────────────────────
 
-/// Set up the Music Theory simulation. Call after `init()`.
+/// Set up the Chord Reps simulation. Call after `init()`.
 /// Resets the engine with seed 42 and generates the first challenge.
 #[wasm_bindgen]
-pub fn setup_music_theory() {
+pub fn setup_chord_reps() {
     ENGINE.with(|e| {
         let mut borrow = e.borrow_mut();
         let eng = borrow.as_mut().expect("Engine not initialized");
         eng.reset(42);
-        let mut sim = MusicTheorySim::new();
+        let mut sim = ChordRepsSim::new();
         sim.setup(eng);
         SIM.with(|s| {
             *s.borrow_mut() = Some(Box::new(sim));

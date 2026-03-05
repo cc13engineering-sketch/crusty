@@ -1,4 +1,4 @@
-/// SM-2 based Spaced Repetition System for music theory cards.
+/// SM-2 based Spaced Repetition System for chord reps cards.
 ///
 /// Each unique challenge variant (concept_type:variant_id) is a "card".
 /// Cards track easiness factor, interval, and review schedule.

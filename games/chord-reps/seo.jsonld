@@ -1,0 +1,75 @@
+{
+  "@context": "https://schema.org",
+  "@type": ["WebApplication", "LearningResource"],
+  "name": "Chord Reps",
+  "url": "https://chordreps.com",
+  "headline": "Chord Reps — Free Ear Training with Spaced Repetition",
+  "description": "Train your ear with spaced repetition. Practice chord identification, interval recognition, scale degrees, and cadence recognition with a virtual piano. Free, browser-based, no install needed.",
+  "applicationCategory": "EducationalApplication",
+  "applicationSubCategory": "Music Education",
+  "operatingSystem": "All",
+  "browserRequirements": "Requires a modern browser with WebAssembly support (Chrome, Firefox, Safari, Edge).",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "featureList": [
+    "Chord quality identification (Major, Minor, Diminished, Augmented)",
+    "Interval recognition (all 13 intervals from Unison to Octave)",
+    "Scale degree identification (Do Re Mi Fa Sol La Ti)",
+    "Roman numeral chord recognition (I ii iii IV V vi vii)",
+    "Cadence recognition (Authentic, Plagal, Half, Deceptive)",
+    "SM-2 spaced repetition scheduling",
+    "Interactive virtual piano keyboard (C3-C5)",
+    "Progressive difficulty with 10 levels",
+    "Streak tracking and gamified scoring",
+    "Works on desktop and mobile with touch support",
+    "Offline-capable with localStorage persistence",
+    "No account or install required"
+  ],
+  "softwareVersion": "1.0.0",
+  "creator": {
+    "@type": "Organization",
+    "name": "Chord Reps",
+    "url": "https://chordreps.com"
+  },
+  "educationalLevel": ["Beginner", "Intermediate", "Advanced"],
+  "learningResourceType": "Interactive exercise",
+  "teaches": [
+    "Chord quality identification by ear",
+    "Musical interval recognition",
+    "Scale degree identification (solfege)",
+    "Roman numeral harmonic analysis by ear",
+    "Cadence recognition (Authentic, Plagal, Half, Deceptive)",
+    "Relative pitch development"
+  ],
+  "assesses": [
+    "Chord identification accuracy",
+    "Interval recognition accuracy",
+    "Scale degree identification accuracy",
+    "Cadence recognition accuracy"
+  ],
+  "audience": {
+    "@type": "EducationalAudience",
+    "educationalRole": "student",
+    "audienceType": "Musicians, music students, producers, hobbyists, and anyone learning music theory"
+  },
+  "keywords": "ear training, chord identification, interval recognition, music theory, spaced repetition, virtual piano, free ear training app, online ear training, chord ear training, identify chords by ear, cadence ear training, scale degree ear training, anki for ear training, gamified ear training, relative pitch training",
+
+  "_seo_meta": {
+    "_comment": "Fields below drive HTML <title>, <meta>, and Open Graph tags during ship. They are NOT part of schema.org — the ship command reads them to populate the page head.",
+    "title": "Chord Reps — Free Ear Training with Spaced Repetition",
+    "meta_description": "Train your ear with spaced repetition. Practice chord identification, interval recognition, and more with a virtual piano. Free, browser-based, no install.",
+    "og_title": "Chord Reps — Free Ear Training with Spaced Repetition",
+    "og_description": "Identify chords, intervals, cadences, and scale degrees by ear. Spaced repetition optimizes your practice. Free and works in any browser.",
+    "og_type": "website",
+    "og_url": "https://chordreps.com",
+    "og_image": "https://chordreps.com/public/og-image.png",
+    "twitter_card": "summary_large_image",
+    "theme_color": "#40ffc0",
+    "canonical": "https://chordreps.com"
+  }
+}

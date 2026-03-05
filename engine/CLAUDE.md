@@ -45,7 +45,7 @@ When the user says `ship <game-name>`, build a fully self-contained, static-host
 **Steps:**
 
 1. **Resolve the game.** Match `<game-name>` (case-insensitive, hyphen/space flexible) to a directory under `site/`. Known games and their aliases:
-   - `music-theory` — aka "chord reps", "chordreps", "music theory"
+   - `chord-reps` — aka "chord reps", "chordreps", "music theory" (game config at `games/chord-reps/`)
    - `gravity-pong` — aka "gravity pong"
    - `demo-ball` — aka "demo ball"
    - Any other directory under `site/` that contains an `index.html`
@@ -73,9 +73,9 @@ When the user says `ship <game-name>`, build a fully self-contained, static-host
    - Copy `_pkg/engine_core.js` and `_pkg/engine_core_bg.wasm` into `pkg/`
    - If the game's HTML imports `../browser-state.js`, copy `site/browser-state.js` to the deployment root
    - Copy any other asset subdirectories from `site/<game-name>/` (but NOT `samples/` if its contents are already base64-embedded in the HTML)
-   - If `<game-name>/public/` exists at the project root, copy its contents directly into the deployment root (files land at the top level, not inside a `public/` subdirectory). This is for static assets like Open Graph images, favicons, `robots.txt`, etc.
+   - If `games/<game-name>/public/` exists at the project root, copy it into the deployment as `public/` (preserving the subdirectory). This is for static assets like Open Graph images, favicons, `robots.txt`, etc. Cloudflare Pages and similar hosts serve from `public/`.
 
-6. **Inject SEO from JSON-LD.** Look for `<game-name>/seo.jsonld` at the project root (i.e., `crusty/<game-name>/seo.jsonld`). This file is the **single source of truth** for all SEO metadata. If it exists:
+6. **Inject SEO from JSON-LD.** Look for `games/<game-name>/seo.jsonld` at the project root (i.e., `crusty/games/<game-name>/seo.jsonld`). This file is the **single source of truth** for all SEO metadata. If it exists:
 
    **a) Inject structured data:** Strip the `_seo_meta` key (it's not valid schema.org), then inject the remaining JSON as a `<script type="application/ld+json">` block into `<head>` (before `</head>`).
 
@@ -99,27 +99,32 @@ When the user says `ship <game-name>`, build a fully self-contained, static-host
    - `<meta name="twitter:description" content="...">` from `og_description`
    - `<meta name="twitter:image" content="...">` from `og_image`
 
-   If the file doesn't exist, warn the user: "No seo.jsonld found at `<game-name>/seo.jsonld` — deploy will proceed without SEO metadata. Create one for better SEO."
+   If the file doesn't exist, warn the user: "No seo.jsonld found at `games/<game-name>/seo.jsonld` — deploy will proceed without SEO metadata. Create one for better SEO."
 
 7. **Rewrite paths in `index.html`:**
    - `../pkg/` → `./pkg/` (WASM imports)
    - `../browser-state.js` → `./browser-state.js` (if present)
    - `__WASM_HASH__` → the 12-char SHA-256 hash computed in step 3
 
-8. **Report results.** Print:
+8. **Validate asset references.** Scan the deployed `index.html` and `seo.jsonld` metadata for all image/asset URLs (og:image, favicon hrefs, etc.). For each referenced path, verify the file exists in the deployment folder. If a filename mismatch is found (e.g., `og-image.png` referenced but `opengraph.jpg` exists), **rename the file** to match the reference. Ship must produce a working site with zero broken links — no human in the loop.
+
+9. **Report results.** Print:
    - Deployment path
    - WASM binary size
    - Total folder size
    - Whether SEO JSON-LD was injected
    - Remind the user: "Ready to deploy — drag this folder into Cloudflare Pages, Netlify, Vercel, or any static host."
 
+10. **If there is a finer piece of instruction detail that would have been helpful to have when setting up a deployable static site game, review this claude.md file section and improve instructions - let this cammand be self-healing and growing (though go easy on adding too many things - keep it simple, short, and sweet)
+
 **Important rules:**
+- **Renaming/fixing files in the deployment folder is always allowed.** The goal is a working site — if filenames don't match their references, fix them. Never leave broken asset links.
 - Never modify files under `site/`, `_site/`, or any existing build output
 - The `deployments/` directory is gitignored (add to `.gitignore` if not already)
 - If the deployment folder already exists, warn the user and ask before overwriting
 - Each game deployment is fully self-contained — no parent directory references
-- SEO JSON-LD source files live at `crusty/<game-name>/seo.jsonld` (project root, NOT inside `site/` or `engine/`)
-- Static deploy assets (OG images, favicons, `robots.txt`, etc.) live at `crusty/<game-name>/public/`. When creating or updating `seo.jsonld`, reference OG images and icon files from this directory (e.g., `og_image` should point to a file that exists in `<game-name>/public/`)
+- Per-game config lives at `games/<game-name>/` (project root). This includes `seo.jsonld` and `public/` (NOT inside `site/` or `engine/`)
+- Static deploy assets (OG images, favicons, `robots.txt`, etc.) live at `games/<game-name>/public/`. When creating or updating `seo.jsonld`, reference OG images and icon files from this directory
 
 ## Autonomy Level
 

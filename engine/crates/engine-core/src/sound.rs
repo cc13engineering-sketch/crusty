@@ -78,6 +78,15 @@ pub enum SoundCommand {
         pitch: f64,
         duration: f64,
     },
+    /// Play a sampled instrument note via WebAudioFont.
+    /// `note` is a MIDI note number (60 = middle C).
+    /// `instrument` is a General MIDI program number (0 = piano).
+    PlayNote {
+        note: u8,
+        duration: f64,
+        volume: f64,
+        instrument: u8,
+    },
 }
 
 impl SoundCommand {
@@ -126,6 +135,14 @@ impl SoundCommand {
                 format!(
                     "{{\"type\":\"PlaySample\",\"name\":\"{}\",\"volume\":{},\"pitch\":{},\"duration\":{}}}",
                     escape_json_string(name), volume, pitch, duration
+                )
+            }
+            SoundCommand::PlayNote {
+                note, duration, volume, instrument,
+            } => {
+                format!(
+                    "{{\"type\":\"PlayNote\",\"note\":{},\"duration\":{},\"volume\":{},\"instrument\":{}}}",
+                    note, duration, volume, instrument
                 )
             }
         }
@@ -579,6 +596,26 @@ mod tests {
             .expect("JSON with escaped characters must parse");
         let arr = parsed.as_array().expect("should be array");
         assert_eq!(arr[0]["id"], "test\"loop");
+    }
+
+    #[test]
+    fn play_note_serialization() {
+        let mut queue = SoundCommandQueue::new();
+        queue.push(SoundCommand::PlayNote {
+            note: 60,
+            duration: 2.0,
+            volume: 0.7,
+            instrument: 0,
+        });
+        let json = queue.drain_json();
+        let parsed: serde_json::Value = serde_json::from_str(&json)
+            .expect("PlayNote JSON must parse");
+        let arr = parsed.as_array().expect("should be array");
+        assert_eq!(arr[0]["type"], "PlayNote");
+        assert_eq!(arr[0]["note"], 60);
+        assert_eq!(arr[0]["duration"], 2.0);
+        assert_eq!(arr[0]["volume"], 0.7);
+        assert_eq!(arr[0]["instrument"], 0);
     }
 
     #[test]

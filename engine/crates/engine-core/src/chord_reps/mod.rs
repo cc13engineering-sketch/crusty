@@ -37,7 +37,7 @@ const FEEDBACK_H: f64 = 100.0;
 const PIANO_Y: f64 = 540.0;
 const WHITE_KEY_H: f64 = 130.0;
 const BLACK_KEY_H: f64 = 85.0;
-const TIMELINE_Y: f64 = 690.0;
+const TIMELINE_Y: f64 = 720.0;
 const TIMELINE_H: f64 = 140.0;
 const FOOTER_Y: f64 = 850.0;
 
@@ -76,9 +76,6 @@ const ACCENT_GOLD: Color = Color { r: 255, g: 215, b: 0, a: 255 };
 // Piano key active states — toggled keys that produce sound
 const KEY_TOGGLED: Color = Color { r: 200, g: 20, b: 20, a: 255 };     // dark red — toggled/active key
 
-// Vowel sample names for instrument sounds
-const VOWEL_SAMPLES: &[&str] = &["a", "i", "u", "e", "o"];
-
 // Correct/wrong messages
 const CORRECT_MESSAGES: &[&str] = &[
     "Correct!", "Perfect!", "Great!", "Nice!", "Well done!",
@@ -114,23 +111,12 @@ pub struct MusicChallenge {
 }
 
 #[derive(Clone, Debug)]
-struct ScheduledSound {
+struct ScheduledNote {
     play_at: f64,
-    frequency: f64,
+    note: u8,
     duration: f64,
     volume: f64,
-    waveform: Waveform,
-    attack: f64,
-    decay: f64,
-}
-
-#[derive(Clone, Debug)]
-struct ScheduledSample {
-    play_at: f64,
-    name: String,
-    volume: f64,
-    pitch: f64,
-    duration: f64,
+    instrument: u8,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -169,9 +155,9 @@ struct BackgroundStar {
     size: f64,
 }
 
-// ─── MusicTheorySim ─────────────────────────────────────────────────
+// ─── ChordRepsSim ──────────────────────────────────────────────────
 
-pub struct MusicTheorySim {
+pub struct ChordRepsSim {
     streak: u8,
     max_streak: u8,
     difficulty: u8,
@@ -182,17 +168,17 @@ pub struct MusicTheorySim {
     key_flash_timers: [f64; NUM_NOTES],
     key_flash_colors: [Color; NUM_NOTES],
     pulse_time: f64,
-    scheduled_sounds: Vec<ScheduledSound>,
+    scheduled_notes: Vec<ScheduledNote>,
     total_time: f64,
     challenges_completed: u32,
     sparkles: Vec<Sparkle>,
     background_stars: Vec<BackgroundStar>,
-    scheduled_samples: Vec<ScheduledSample>,
     combo_pulse: f64,
     toggled_keys: [bool; NUM_NOTES],
     rhythm_timer: f64,
     rhythm_on: bool,
     last_hovered_option: Option<usize>,
+    piano_expanded: bool,
     piano_scroll: f64,
     slider_dragging: bool,
     sound_energy: f64,
@@ -210,7 +196,7 @@ pub struct MusicTheorySim {
     show_product: bool,
 }
 
-impl MusicTheorySim {
+impl ChordRepsSim {
     pub fn new() -> Self {
         Self {
             streak: 0,
@@ -232,17 +218,17 @@ impl MusicTheorySim {
             key_flash_timers: [0.0; NUM_NOTES],
             key_flash_colors: [Color::WHITE; NUM_NOTES],
             pulse_time: 0.0,
-            scheduled_sounds: Vec::new(),
+            scheduled_notes: Vec::new(),
             total_time: 0.0,
             challenges_completed: 0,
             sparkles: Vec::new(),
             background_stars: Vec::new(),
-            scheduled_samples: Vec::new(),
             combo_pulse: 0.0,
             toggled_keys: [false; NUM_NOTES],
             rhythm_timer: 0.0,
             rhythm_on: false,
             last_hovered_option: None,
+            piano_expanded: false,
             piano_scroll: 0.0,
             slider_dragging: false,
             sound_energy: 0.0,
@@ -298,7 +284,11 @@ impl MusicTheorySim {
             // Fallback: generate a random ScaleDegree challenge
             self.generate_chord_challenge(key_root, engine);
         }
-        self.update_highlights();
+        self.highlighted_keys = [false; NUM_NOTES];
+        self.toggled_keys = [false; NUM_NOTES];
+        self.rhythm_timer = 0.0;
+        self.rhythm_on = false;
+        self.piano_expanded = false;
     }
 
     /// Generate ScaleDegree challenge for a specific degree (SRS-driven).
@@ -349,27 +339,23 @@ impl MusicTheorySim {
         let context_degrees: [u8; 3] = [0, 2, 4]; // scale degrees 1, 3, 5
         for (i, &deg) in context_degrees.iter().enumerate() {
             let midi = degree_to_midi(key_root, deg);
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + i as f64 * 0.3,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.25,
                 volume: 0.45,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.2,
+                instrument: 0,
             });
         }
 
         // Mystery note after a brief pause
         let mystery_midi = degree_to_midi(key_root, answer);
-        self.schedule_sound(ScheduledSound {
+        self.schedule_note(ScheduledNote {
             play_at: self.total_time + 1.2,
-            frequency: midi_to_freq(mystery_midi),
-            duration: 0.5,
-            volume: 0.7,
-            waveform: Waveform::Triangle,
-            attack: 0.01,
-            decay: 0.4,
+                note: mystery_midi,
+                duration: 0.5,
+                volume: 0.7,
+                instrument: 0,
         });
 
         // sequence stores context degrees + answer for replay
@@ -408,14 +394,12 @@ impl MusicTheorySim {
         let i_chord = chord_intervals(0);
         for (i, &iv) in i_chord.iter().enumerate() {
             let midi = key_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + i as f64 * 0.15,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.4,
                 volume: 0.4,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.3,
+                instrument: 0,
             });
         }
 
@@ -424,27 +408,23 @@ impl MusicTheorySim {
         let mystery_intervals = chord_intervals(answer);
         for &iv in &mystery_intervals {
             let midi = mystery_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + 0.8,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.6,
                 volume: 0.5,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.5,
+                instrument: 0,
             });
         }
         // Also arpeggiate the mystery chord for clarity
         for (i, &iv) in mystery_intervals.iter().enumerate() {
             let midi = mystery_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + 1.5 + i as f64 * 0.15,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.35,
                 volume: 0.45,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.3,
+                instrument: 0,
             });
         }
 
@@ -487,23 +467,19 @@ impl MusicTheorySim {
         let options = generate_options(interval, &pool, 4, engine.rng.next_u64());
 
         // Play the two notes
-        self.schedule_sound(ScheduledSound {
+        self.schedule_note(ScheduledNote {
             play_at: self.total_time + 0.1,
-            frequency: midi_to_freq(base_midi),
-            duration: 0.4,
-            volume: 0.7,
-            waveform: Waveform::Sine,
-            attack: 0.02,
-            decay: 0.3,
+                note: base_midi,
+                duration: 0.4,
+                volume: 0.7,
+                instrument: 0,
         });
-        self.schedule_sound(ScheduledSound {
+        self.schedule_note(ScheduledNote {
             play_at: self.total_time + 0.6,
-            frequency: midi_to_freq(top_midi),
-            duration: 0.4,
-            volume: 0.7,
-            waveform: Waveform::Sine,
-            attack: 0.02,
-            decay: 0.3,
+                note: top_midi,
+                duration: 0.4,
+                volume: 0.7,
+                instrument: 0,
         });
 
         self.challenge = MusicChallenge {
@@ -536,27 +512,23 @@ impl MusicTheorySim {
         // Arpeggiate up
         for (i, &iv) in intervals.iter().enumerate() {
             let midi = root_midi + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + i as f64 * 0.2,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.5,
                 volume: 0.5,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.4,
+                instrument: 0,
             });
         }
         // Then play all together
         for &iv in &intervals {
             let midi = root_midi + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + 0.7,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.6,
                 volume: 0.4,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.5,
+                instrument: 0,
             });
         }
 
@@ -588,14 +560,12 @@ impl MusicTheorySim {
         let i_chord = chord_intervals(0);
         for (i, &iv) in i_chord.iter().enumerate() {
             let midi = key_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + i as f64 * 0.12,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.5,
                 volume: 0.4,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.4,
+                instrument: 0,
             });
         }
 
@@ -604,14 +574,12 @@ impl MusicTheorySim {
         let setup_iv = chord_intervals(setup_deg);
         for &iv in &setup_iv {
             let midi = setup_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + 0.8,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.5,
                 volume: 0.5,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.4,
+                instrument: 0,
             });
         }
 
@@ -620,14 +588,12 @@ impl MusicTheorySim {
         let resolve_iv = chord_intervals(resolve_deg);
         for &iv in &resolve_iv {
             let midi = resolve_root + iv;
-            self.schedule_sound(ScheduledSound {
+            self.schedule_note(ScheduledNote {
                 play_at: self.total_time + 1.5,
-                frequency: midi_to_freq(midi),
+                note: midi,
                 duration: 0.7,
                 volume: 0.5,
-                waveform: Waveform::Sine,
-                attack: 0.02,
-                decay: 0.6,
+                instrument: 0,
             });
         }
 
@@ -708,6 +674,9 @@ impl MusicTheorySim {
         if option_idx >= self.challenge.options.len() {
             return;
         }
+        if self.eliminated_options[option_idx] {
+            return;
+        }
 
         let selected = self.challenge.options[option_idx];
         if selected == self.challenge.answer {
@@ -719,6 +688,8 @@ impl MusicTheorySim {
 
     fn on_correct(&mut self, engine: &mut Engine) {
         self.challenge.solved = true;
+        self.update_highlights();
+        self.piano_expanded = true;
         self.feedback = FeedbackState::Correct;
         self.feedback_timer = FEEDBACK_CORRECT_DUR;
         self.streak += 1;
@@ -736,13 +707,11 @@ impl MusicTheorySim {
             MusicConcept::ScaleDegree => {
                 let deg = self.challenge.answer;
                 let midi = degree_to_midi(self.challenge.key_root, deg);
-                engine.sound_queue.push(SoundCommand::PlayTone {
-                    frequency: midi_to_freq(midi),
+                engine.sound_queue.push(SoundCommand::PlayNote {
+                    note: midi,
                     duration: 0.5,
                     volume: 0.7,
-                    waveform: Waveform::Triangle,
-                    attack: 0.01,
-                    decay: 0.4,
+                    instrument: 0,
                 });
                 self.flash_key(midi, CORRECT_COLOR);
 
@@ -754,13 +723,11 @@ impl MusicTheorySim {
                 let intervals = chord_intervals(deg);
                 for (i, &interval) in intervals.iter().enumerate() {
                     let midi = root + interval;
-                    engine.sound_queue.push(SoundCommand::PlayTone {
-                        frequency: midi_to_freq(midi),
+                    engine.sound_queue.push(SoundCommand::PlayNote {
+                        note: midi,
                         duration: 0.5,
                         volume: 0.5 - i as f64 * 0.1,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.4,
+                        instrument: 0,
                     });
                     self.flash_key(midi, CORRECT_COLOR);
                 }
@@ -771,22 +738,18 @@ impl MusicTheorySim {
                 if self.challenge.sequence.len() >= 2 {
                     let base = self.challenge.sequence[0];
                     let top = self.challenge.sequence[1];
-                    engine.sound_queue.push(SoundCommand::PlayTone {
-                        frequency: midi_to_freq(base),
+                    engine.sound_queue.push(SoundCommand::PlayNote {
+                        note: base,
                         duration: 0.3,
                         volume: 0.6,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.25,
+                        instrument: 0,
                     });
-                    self.schedule_sound(ScheduledSound {
+                    self.schedule_note(ScheduledNote {
                         play_at: self.total_time + 0.3,
-                        frequency: midi_to_freq(top),
-                        duration: 0.4,
-                        volume: 0.6,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.3,
+                note: top,
+                duration: 0.4,
+                volume: 0.6,
+                instrument: 0,
                     });
                     self.flash_key(base, CORRECT_COLOR);
                     self.flash_key(top, CORRECT_COLOR);
@@ -801,13 +764,11 @@ impl MusicTheorySim {
                     let intervals = quality_intervals(q);
                     for &iv in &intervals {
                         let midi = root + iv;
-                        engine.sound_queue.push(SoundCommand::PlayTone {
-                            frequency: midi_to_freq(midi),
+                        engine.sound_queue.push(SoundCommand::PlayNote {
+                            note: midi,
                             duration: 0.5,
                             volume: 0.45,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.4,
+                            instrument: 0,
                         });
                         self.flash_key(midi, CORRECT_COLOR);
                     }
@@ -828,13 +789,11 @@ impl MusicTheorySim {
                     // Flash resolve chord
                     let rr = self.challenge.key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
                     for &iv in &chord_intervals(resolve_deg) {
-                        engine.sound_queue.push(SoundCommand::PlayTone {
-                            frequency: midi_to_freq(rr + iv),
+                        engine.sound_queue.push(SoundCommand::PlayNote {
+                            note: rr + iv,
                             duration: 0.5,
                             volume: 0.45,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.4,
+                            instrument: 0,
                         });
                         self.flash_key(rr + iv, CORRECT_COLOR);
                     }
@@ -853,9 +812,13 @@ impl MusicTheorySim {
         let variant_for_content = self.challenge.answer;
         if let Some(entry) = select_content(concept_for_content, variant_for_content, self.difficulty, content_seed) {
             self.current_insight = entry.fact.to_string();
-            // Show product ~25% of the time when one exists
-            self.show_product = entry.product.is_some()
-                && engine.rng.next_u64() % 4 == 0;
+            // Gate: no links until user has engaged (5+ correct answers)
+            // Then ~20% base rate, ~25% during streaks (user in flow)
+            let has_product = entry.product.is_some();
+            let past_gate = self.challenges_completed >= 5;
+            let rate = if self.streak >= 3 { 4 } else { 5 };
+            self.show_product = has_product && past_gate
+                && engine.rng.next_u64() % rate == 0;
             self.current_content = Some(entry);
             // Use enriched hint if available (for future hint presses on similar cards)
         } else {
@@ -999,48 +962,21 @@ impl MusicTheorySim {
         }
     }
 
-    fn schedule_sound(&mut self, sound: ScheduledSound) {
-        self.scheduled_sounds.push(sound);
+    fn schedule_note(&mut self, note: ScheduledNote) {
+        self.scheduled_notes.push(note);
     }
 
-    fn process_scheduled_sounds(&mut self, engine: &mut Engine) {
+    fn process_scheduled_notes(&mut self, engine: &mut Engine) {
         let now = self.total_time;
         let mut i = 0;
-        while i < self.scheduled_sounds.len() {
-            if self.scheduled_sounds[i].play_at <= now {
-                let s = self.scheduled_sounds.remove(i);
-                engine.sound_queue.push(SoundCommand::PlayTone {
-                    frequency: s.frequency,
+        while i < self.scheduled_notes.len() {
+            if self.scheduled_notes[i].play_at <= now {
+                let s = self.scheduled_notes.remove(i);
+                engine.sound_queue.push(SoundCommand::PlayNote {
+                    note: s.note,
                     duration: s.duration,
                     volume: s.volume,
-                    waveform: s.waveform,
-                    attack: s.attack,
-                    decay: s.decay,
-                });
-            } else {
-                i += 1;
-            }
-        }
-    }
-
-    fn midi_to_sample(midi: u8) -> (&'static str, f64) {
-        let vowel_idx = (midi % 5) as usize;
-        let sample = VOWEL_SAMPLES[vowel_idx];
-        let pitch = 2.0_f64.powf((midi as f64 - 60.0) / 12.0);
-        (sample, pitch)
-    }
-
-    fn process_scheduled_samples(&mut self, engine: &mut Engine) {
-        let now = self.total_time;
-        let mut i = 0;
-        while i < self.scheduled_samples.len() {
-            if self.scheduled_samples[i].play_at <= now {
-                let s = self.scheduled_samples.remove(i);
-                engine.sound_queue.push(SoundCommand::PlaySample {
-                    name: s.name,
-                    volume: s.volume,
-                    pitch: s.pitch,
-                    duration: s.duration,
+                    instrument: s.instrument,
                 });
             } else {
                 i += 1;
@@ -1177,13 +1113,11 @@ impl MusicTheorySim {
             MusicConcept::ScaleDegree => {
                 // Preview: play the single note for this degree
                 let midi = degree_to_midi(self.challenge.key_root, opt);
-                engine.sound_queue.push(SoundCommand::PlayTone {
-                    frequency: midi_to_freq(midi),
+                engine.sound_queue.push(SoundCommand::PlayNote {
+                    note: midi,
                     duration: 0.3,
                     volume: 0.35,
-                    waveform: Waveform::Triangle,
-                    attack: 0.01,
-                    decay: 0.25,
+                    instrument: 0,
                 });
             }
             MusicConcept::RomanNumeral => {
@@ -1192,13 +1126,11 @@ impl MusicTheorySim {
                 let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
                 for &interval in &chord_intervals(deg) {
                     let midi = root + interval;
-                    engine.sound_queue.push(SoundCommand::PlayTone {
-                        frequency: midi_to_freq(midi),
+                    engine.sound_queue.push(SoundCommand::PlayNote {
+                        note: midi,
                         duration: 0.3,
                         volume: 0.3,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.25,
+                        instrument: 0,
                     });
                 }
             }
@@ -1206,21 +1138,17 @@ impl MusicTheorySim {
                 if !self.challenge.sequence.is_empty() {
                     let base = self.challenge.sequence[0];
                     let top = base + opt;
-                    engine.sound_queue.push(SoundCommand::PlayTone {
-                        frequency: midi_to_freq(base),
+                    engine.sound_queue.push(SoundCommand::PlayNote {
+                        note: base,
                         duration: 0.2,
                         volume: 0.3,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.15,
+                        instrument: 0,
                     });
-                    engine.sound_queue.push(SoundCommand::PlayTone {
-                        frequency: midi_to_freq(top),
+                    engine.sound_queue.push(SoundCommand::PlayNote {
+                        note: top,
                         duration: 0.3,
                         volume: 0.3,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.25,
+                        instrument: 0,
                     });
                 }
             }
@@ -1232,13 +1160,11 @@ impl MusicTheorySim {
                     let intervals = quality_intervals(q);
                     for &iv in &intervals {
                         let midi = root + iv;
-                        engine.sound_queue.push(SoundCommand::PlayTone {
-                            frequency: midi_to_freq(midi),
+                        engine.sound_queue.push(SoundCommand::PlayNote {
+                            note: midi,
                             duration: 0.3,
                             volume: 0.3,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.25,
+                            instrument: 0,
                         });
                     }
                 }
@@ -1250,24 +1176,20 @@ impl MusicTheorySim {
                     let (setup_deg, resolve_deg) = cadence_chords(c);
                     let sr = self.challenge.key_root + MAJOR_SCALE[(setup_deg % 7) as usize];
                     for &iv in &chord_intervals(setup_deg) {
-                        engine.sound_queue.push(SoundCommand::PlayTone {
-                            frequency: midi_to_freq(sr + iv),
+                        engine.sound_queue.push(SoundCommand::PlayNote {
+                            note: sr + iv,
                             duration: 0.25,
                             volume: 0.3,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.2,
+                            instrument: 0,
                         });
                     }
                     let rr = self.challenge.key_root + MAJOR_SCALE[(resolve_deg % 7) as usize];
                     for &iv in &chord_intervals(resolve_deg) {
-                        engine.sound_queue.push(SoundCommand::PlayTone {
-                            frequency: midi_to_freq(rr + iv),
+                        engine.sound_queue.push(SoundCommand::PlayNote {
+                            note: rr + iv,
                             duration: 0.3,
                             volume: 0.3,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.25,
+                            instrument: 0,
                         });
                     }
                 }
@@ -1286,26 +1208,22 @@ impl MusicTheorySim {
                 let context_len = seq.len().saturating_sub(1);
                 for (i, &deg) in seq[..context_len].iter().enumerate() {
                     let midi = degree_to_midi(key_root, deg);
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + i as f64 * 0.3,
-                        frequency: midi_to_freq(midi),
-                        duration: 0.25,
-                        volume: 0.45,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.2,
+                note: midi,
+                duration: 0.25,
+                volume: 0.45,
+                instrument: 0,
                     });
                 }
                 if let Some(&mystery_deg) = seq.last() {
                     let midi = degree_to_midi(key_root, mystery_deg);
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + 1.2,
-                        frequency: midi_to_freq(midi),
-                        duration: 0.5,
-                        volume: 0.7,
-                        waveform: Waveform::Triangle,
-                        attack: 0.01,
-                        decay: 0.4,
+                note: midi,
+                duration: 0.5,
+                volume: 0.7,
+                instrument: 0,
                     });
                 }
             }
@@ -1314,14 +1232,12 @@ impl MusicTheorySim {
                 let i_chord = chord_intervals(0);
                 for (i, &iv) in i_chord.iter().enumerate() {
                     let midi = key_root + iv;
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + i as f64 * 0.15,
-                        frequency: midi_to_freq(midi),
-                        duration: 0.4,
-                        volume: 0.4,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.3,
+                note: midi,
+                duration: 0.4,
+                volume: 0.4,
+                instrument: 0,
                     });
                 }
                 if let Some(&deg) = seq.first() {
@@ -1329,49 +1245,41 @@ impl MusicTheorySim {
                     let mystery_iv = chord_intervals(deg);
                     for &iv in &mystery_iv {
                         let midi = mystery_root + iv;
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + 0.8,
-                            frequency: midi_to_freq(midi),
-                            duration: 0.6,
-                            volume: 0.5,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.5,
+                note: midi,
+                duration: 0.6,
+                volume: 0.5,
+                instrument: 0,
                         });
                     }
                     for (i, &iv) in mystery_iv.iter().enumerate() {
                         let midi = mystery_root + iv;
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + 1.5 + i as f64 * 0.15,
-                            frequency: midi_to_freq(midi),
-                            duration: 0.35,
-                            volume: 0.45,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.3,
+                note: midi,
+                duration: 0.35,
+                volume: 0.45,
+                instrument: 0,
                         });
                     }
                 }
             }
             MusicConcept::IntervalRecognition => {
                 if seq.len() >= 2 {
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + 0.1,
-                        frequency: midi_to_freq(seq[0]),
-                        duration: 0.4,
-                        volume: 0.7,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.3,
+                note: seq[0],
+                duration: 0.4,
+                volume: 0.7,
+                instrument: 0,
                     });
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + 0.6,
-                        frequency: midi_to_freq(seq[1]),
-                        duration: 0.4,
-                        volume: 0.7,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.3,
+                note: seq[1],
+                duration: 0.4,
+                volume: 0.7,
+                instrument: 0,
                     });
                 }
             }
@@ -1382,26 +1290,22 @@ impl MusicTheorySim {
                     let intervals = quality_intervals(q);
                     for (i, &iv) in intervals.iter().enumerate() {
                         let midi = root + iv;
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + i as f64 * 0.2,
-                            frequency: midi_to_freq(midi),
-                            duration: 0.5,
-                            volume: 0.5,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.4,
+                note: midi,
+                duration: 0.5,
+                volume: 0.5,
+                instrument: 0,
                         });
                     }
                     for &iv in &intervals {
                         let midi = root + iv;
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + 0.7,
-                            frequency: midi_to_freq(midi),
-                            duration: 0.6,
-                            volume: 0.4,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.5,
+                note: midi,
+                duration: 0.6,
+                volume: 0.4,
+                instrument: 0,
                         });
                     }
                 }
@@ -1411,39 +1315,33 @@ impl MusicTheorySim {
                 let i_chord = chord_intervals(0);
                 for (i, &iv) in i_chord.iter().enumerate() {
                     let midi = key_root + iv;
-                    self.scheduled_sounds.push(ScheduledSound {
+                    self.scheduled_notes.push(ScheduledNote {
                         play_at: now + i as f64 * 0.12,
-                        frequency: midi_to_freq(midi),
-                        duration: 0.5,
-                        volume: 0.4,
-                        waveform: Waveform::Sine,
-                        attack: 0.02,
-                        decay: 0.4,
+                note: midi,
+                duration: 0.5,
+                volume: 0.4,
+                instrument: 0,
                     });
                 }
                 if seq.len() >= 2 {
                     let setup_root = key_root + MAJOR_SCALE[(seq[0] % 7) as usize];
                     for &iv in &chord_intervals(seq[0]) {
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + 0.8,
-                            frequency: midi_to_freq(setup_root + iv),
-                            duration: 0.5,
-                            volume: 0.5,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.4,
+                note: setup_root + iv,
+                duration: 0.5,
+                volume: 0.5,
+                instrument: 0,
                         });
                     }
                     let resolve_root = key_root + MAJOR_SCALE[(seq[1] % 7) as usize];
                     for &iv in &chord_intervals(seq[1]) {
-                        self.scheduled_sounds.push(ScheduledSound {
+                        self.scheduled_notes.push(ScheduledNote {
                             play_at: now + 1.5,
-                            frequency: midi_to_freq(resolve_root + iv),
-                            duration: 0.7,
-                            volume: 0.5,
-                            waveform: Waveform::Sine,
-                            attack: 0.02,
-                            decay: 0.6,
+                note: resolve_root + iv,
+                duration: 0.7,
+                volume: 0.5,
+                instrument: 0,
                         });
                     }
                 }
@@ -1465,7 +1363,7 @@ impl MusicTheorySim {
 
 // ─── Simulation Trait ───────────────────────────────────────────────
 
-impl Simulation for MusicTheorySim {
+impl Simulation for ChordRepsSim {
     fn setup(&mut self, engine: &mut Engine) {
         self.screen_w = engine.framebuffer.width as f64;
         self.screen_h = engine.framebuffer.height as f64;
@@ -1507,10 +1405,9 @@ impl Simulation for MusicTheorySim {
             return;
         }
 
-        // Process scheduled sounds and samples
+        // Process scheduled notes
         let sound_count_before = engine.sound_queue.len();
-        self.process_scheduled_sounds(engine);
-        self.process_scheduled_samples(engine);
+        self.process_scheduled_notes(engine);
 
         // Decay sound energy smoothly; spike on new sounds
         self.sound_energy = (self.sound_energy - dt * 2.5).max(0.0);
@@ -1591,27 +1488,24 @@ impl Simulation for MusicTheorySim {
                 let btn_w = 120.0;
                 let btn_h = 40.0;
                 let btn_x = (self.screen_w - btn_w) / 2.0;
-                let btn_y = self.sy(PIANO_Y - 55.0);
+                let btn_y = self.sy(PIANO_Y - 40.0) - 20.0;
                 if mx >= btn_x && mx <= btn_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                     self.feedback = FeedbackState::Neutral;
                     self.feedback_timer = 0.0;
                     self.generate_challenge(engine);
                 }
 
-                // Affiliate product tap zone (product name area)
+                // Course link tap zone (single line below insight)
                 if self.show_product {
                     if let Some(entry) = self.current_content {
                         if let Some(product) = &entry.product {
-                            // Match the layout from render_feedback:
-                            // Insight capped at 4 lines when product shown
                             let max_w_px = self.screen_w as i32 - 40;
                             let all_lines = wrap_text(&self.current_insight, max_w_px, 2);
                             let n_lines = all_lines.len().min(4);
                             let start_y = self.sy(OPTIONS_Y + 40.0);
-                            let prod_top = start_y + (n_lines as f64) * 18.0 + 4.0;
-                            let prod_bot = prod_top + 52.0; // blurb + name + disclosure
-                            // Full-width tap zone
-                            if my >= prod_top && my <= prod_bot {
+                            let link_top = start_y + (n_lines as f64) * 18.0 + 8.0;
+                            let link_bot = link_top + 20.0;
+                            if my >= link_top && my <= link_bot {
                                 engine.persist_queue.push(PersistCommand::OpenUrl {
                                     url: product.url.to_string(),
                                 });
@@ -1624,17 +1518,17 @@ impl Simulation for MusicTheorySim {
             // "Replay" and "Hint" tap zones (in challenge area)
             if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
                 let cx = self.screen_w / 2.0;
-                let btn_w = 80.0;
-                let btn_h = 30.0;
-                let btn_y = self.sy(CHALLENGE_Y + 188.0);
+                let btn_w = 110.0;
+                let btn_h = 36.0;
+                let btn_y = self.sy(CHALLENGE_Y + 195.0) - 18.0;
                 // Replay button (left)
-                let replay_x = cx - 50.0 - btn_w / 2.0;
+                let replay_x = cx - 70.0 - btn_w / 2.0;
                 if mx >= replay_x && mx <= replay_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                     self.replay_challenge(engine);
                 }
                 // Hint button (right)
                 if !self.hint_used {
-                    let hint_x = cx + 50.0 - btn_w / 2.0;
+                    let hint_x = cx + 70.0 - btn_w / 2.0;
                     if mx >= hint_x && mx <= hint_x + btn_w && my >= btn_y && my <= btn_y + btn_h {
                         self.activate_hint(engine);
                     }
@@ -1653,59 +1547,68 @@ impl Simulation for MusicTheorySim {
             if let Some(idx) = self.check_option_click(mx, my) {
                 self.handle_option_click(idx, engine);
             }
-            // Piano click → toggle key (zoom-aware)
-            let (zoom, scroll) = if is_mobile {
-                (MOBILE_ZOOM, self.piano_scroll)
-            } else {
-                (1.0, 0.0)
-            };
-            if let Some(midi) = self.check_piano_click(mx, my, zoom, scroll) {
-                let idx = (midi - MIDI_LOW) as usize;
-                if idx < NUM_NOTES {
-                    self.toggled_keys[idx] = !self.toggled_keys[idx];
-                    if self.toggled_keys[idx] {
-                        let (sample, pitch) = Self::midi_to_sample(midi);
-                        engine.sound_queue.push(SoundCommand::PlaySample {
-                            name: sample.to_string(),
-                            volume: 0.5,
-                            pitch,
-                            duration: 0.4,
-                        });
-                        self.flash_key(midi, ACCENT_PINK);
+            // Piano click → toggle key (zoom-aware) — only when solved
+            if self.challenge.solved && self.piano_expanded {
+                let (zoom, scroll) = if is_mobile {
+                    (MOBILE_ZOOM, self.piano_scroll)
+                } else {
+                    (1.0, 0.0)
+                };
+                if let Some(midi) = self.check_piano_click(mx, my, zoom, scroll) {
+                    let idx = (midi - MIDI_LOW) as usize;
+                    if idx < NUM_NOTES {
+                        self.toggled_keys[idx] = !self.toggled_keys[idx];
+                        if self.toggled_keys[idx] {
+                            engine.sound_queue.push(SoundCommand::PlayNote {
+                                note: midi,
+                                duration: 0.4,
+                                volume: 0.5,
+                                instrument: 0,
+                            });
+                            self.flash_key(midi, ACCENT_PINK);
+                        }
                     }
+                }
+            }
+
+            // Collapsed piano bar tap → expand
+            if !self.piano_expanded {
+                let bar_y = self.sy(PIANO_Y);
+                let bar_h = self.sy(30.0);
+                if mx >= 0.0 && mx <= self.screen_w && my >= bar_y && my <= bar_y + bar_h {
+                    self.piano_expanded = true;
                 }
             }
         }
 
-        // Rhythm loop for toggled keys
-        let any_toggled = self.toggled_keys.iter().any(|&t| t);
-        if any_toggled {
-            self.rhythm_timer += dt;
-            let cycle = RHYTHM_ON_DUR + RHYTHM_OFF_DUR;
-            let phase = self.rhythm_timer % cycle;
-            let now_on = phase < RHYTHM_ON_DUR;
-            if now_on && !self.rhythm_on {
-                // Spike sound energy so background stars pulse with the beat
-                let toggled_count = self.toggled_keys.iter().filter(|&&t| t).count();
-                self.sound_energy = (self.sound_energy + 0.3 + toggled_count as f64 * 0.1).min(1.0);
-                // Transition to ON — play all toggled keys
-                for k in 0..NUM_NOTES {
-                    if self.toggled_keys[k] {
-                        let midi = MIDI_LOW + k as u8;
-                        let (sample, pitch) = Self::midi_to_sample(midi);
-                        engine.sound_queue.push(SoundCommand::PlaySample {
-                            name: sample.to_string(),
-                            volume: 0.45,
-                            pitch,
-                            duration: RHYTHM_ON_DUR * 0.8,
-                        });
+        // Rhythm loop for toggled keys — only when solved
+        if self.challenge.solved {
+            let any_toggled = self.toggled_keys.iter().any(|&t| t);
+            if any_toggled {
+                self.rhythm_timer += dt;
+                let cycle = RHYTHM_ON_DUR + RHYTHM_OFF_DUR;
+                let phase = self.rhythm_timer % cycle;
+                let now_on = phase < RHYTHM_ON_DUR;
+                if now_on && !self.rhythm_on {
+                    let toggled_count = self.toggled_keys.iter().filter(|&&t| t).count();
+                    self.sound_energy = (self.sound_energy + 0.3 + toggled_count as f64 * 0.1).min(1.0);
+                    for k in 0..NUM_NOTES {
+                        if self.toggled_keys[k] {
+                            let midi = MIDI_LOW + k as u8;
+                            engine.sound_queue.push(SoundCommand::PlayNote {
+                                note: midi,
+                                duration: RHYTHM_ON_DUR * 0.8,
+                                volume: 0.45,
+                                instrument: 0,
+                            });
+                        }
                     }
                 }
+                self.rhythm_on = now_on;
+            } else {
+                self.rhythm_timer = 0.0;
+                self.rhythm_on = false;
             }
-            self.rhythm_on = now_on;
-        } else {
-            self.rhythm_timer = 0.0;
-            self.rhythm_on = false;
         }
 
         // Option hover preview (uses unified hover — works on desktop + touch)
@@ -1820,7 +1723,7 @@ impl Simulation for MusicTheorySim {
 
 // ─── Rendering ──────────────────────────────────────────────────────
 
-impl MusicTheorySim {
+impl ChordRepsSim {
     fn render_header(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let ys = self.ys();
         text::draw_text(fb, 16, self.sy(14.0) as i32, "CHORD REPS", ACCENT_TEAL, 2);
@@ -1914,21 +1817,21 @@ impl MusicTheorySim {
             }
         }
 
-        // Replay + Hint buttons — small tappable text below challenge info
+        // Replay + Hint buttons — tappable text below challenge info
         if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
             let btn_y = self.sy(CHALLENGE_Y + 195.0) as i32;
             let blink = ((self.pulse_time * 2.0).sin() * 0.2 + 0.8) * 255.0;
             // Replay button (left of center)
-            text::draw_text_centered(fb, cx - 50, btn_y,
-                "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 1);
+            text::draw_text_centered(fb, cx - 70, btn_y,
+                "[ Replay ]", ACCENT_TEAL.with_alpha(blink as u8), 2);
             // Hint button (right of center)
             if !self.hint_used {
                 let hint_color = Color::from_rgba(180, 160, 100, (blink * 0.8) as u8);
-                text::draw_text_centered(fb, cx + 50, btn_y,
-                    "[ Hint ]", hint_color, 1);
+                text::draw_text_centered(fb, cx + 70, btn_y,
+                    "[ Hint ]", hint_color, 2);
             } else {
-                text::draw_text_centered(fb, cx + 50, btn_y,
-                    "[ Hint ]", DIM_TEXT.with_alpha(80), 1);
+                text::draw_text_centered(fb, cx + 70, btn_y,
+                    "[ Hint ]", DIM_TEXT.with_alpha(80), 2);
             }
 
             // Show content hint text when hint was used
@@ -1965,8 +1868,9 @@ impl MusicTheorySim {
                 shapes::fill_rect(fb, x, y, w, h, Color::from_rgba(15, 15, 25, 255));
                 shapes::draw_rect(fb, x, y, w, h, Color::from_rgba(30, 30, 50, 255));
                 let label = self.option_label(opt);
+                let label_scale = if text::text_width(&label, 2) > w as i32 - 8 { 1 } else { 2 };
                 text::draw_text_centered(fb, (x + w / 2.0) as i32, (y + h / 2.0 - 5.0) as i32,
-                    &label, Color::from_rgba(50, 50, 70, 255), 2);
+                    &label, Color::from_rgba(50, 50, 70, 255), label_scale);
                 // Diagonal strikethrough
                 shapes::draw_line(fb, x + 4.0, y + h - 4.0, x + w - 4.0, y + 4.0,
                     Color::from_rgba(80, 40, 40, 180));
@@ -1993,13 +1897,14 @@ impl MusicTheorySim {
             shapes::draw_rect(fb, x, y, w, h, border_color);
 
             let label = self.option_label(opt);
+            let label_scale = if text::text_width(&label, 2) > w as i32 - 8 { 1 } else { 2 };
             let text_color = if self.challenge.solved && opt == self.challenge.answer {
                 Color::from_rgba(0, 30, 20, 255)
             } else {
                 Color::WHITE
             };
             text::draw_text_centered(fb, (x + w / 2.0) as i32, (y + h / 2.0 - 5.0) as i32,
-                &label, text_color, 2);
+                &label, text_color, label_scale);
 
             // Number hint
             let num = format!("{}", i + 1);
@@ -2037,8 +1942,8 @@ impl MusicTheorySim {
                 let all_lines = wrap_text(&self.current_insight, max_w, 2);
                 let line_h = 18;
                 let start_y = self.sy(OPTIONS_Y + 40.0) as i32;
-                // Limit insight lines when product is shown to avoid overflow
-                let max_lines = if self.show_product { 4 } else { 8 };
+                // Limit insight lines to avoid overflow into piano zone
+                let max_lines = if self.show_product { 6 } else { 8 };
                 let lines: Vec<_> = all_lines.into_iter().take(max_lines).collect();
                 for (i, line) in lines.iter().enumerate() {
                     let alpha = if i == 0 { 220u8 } else { 180 };
@@ -2046,26 +1951,14 @@ impl MusicTheorySim {
                         ACCENT_TEAL.with_alpha(alpha), 2);
                 }
 
-                // Affiliate recommendation (below insight, above [ Next ])
+                // Subtle course link (below insight, above [ Next ])
                 if self.show_product {
                     if let Some(entry) = self.current_content {
                         if let Some(product) = &entry.product {
-                            let prod_y = start_y + (lines.len() as i32) * line_h + 10;
-
-                            // Blurb line (scale 1, gold)
-                            text::draw_text_centered(fb, cx, prod_y,
-                                product.blurb, ACCENT_GOLD, 1);
-
-                            // Product name — use scale 1 on narrow screens
-                            let name_scale = if self.screen_w < 500.0 { 1 } else { 2 };
-                            let name_y = prod_y + 14;
-                            text::draw_text_centered(fb, cx, name_y,
-                                product.name, ACCENT_CYAN, name_scale);
-
-                            // FTC disclosure (scale 1, dim)
-                            let disc_y = name_y + if name_scale == 2 { 20 } else { 12 };
-                            text::draw_text_centered(fb, cx, disc_y,
-                                product.disclosure, DIM_TEXT, 1);
+                            let link_y = start_y + (lines.len() as i32) * line_h + 14;
+                            let link_text = format!("Learn more about {} >>", product.topic);
+                            text::draw_text_centered(fb, cx, link_y,
+                                &link_text, DIM_TEXT, 1);
                         }
                     }
                 }
@@ -2092,8 +1985,25 @@ impl MusicTheorySim {
 
     fn render_piano(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, is_mobile: bool) {
         let piano_y = self.sy(PIANO_Y);
+
+        // Collapsed state — thin bar with label
+        if !self.piano_expanded {
+            let bar_h = self.sy(30.0);
+            shapes::fill_rect(fb, 0.0, piano_y, self.screen_w, bar_h,
+                Color::from_rgba(20, 25, 50, 255));
+            shapes::draw_rect(fb, 0.0, piano_y, self.screen_w, bar_h, DIVIDER);
+            let label = "Piano [tap to expand]";
+            let lw = text::text_width(label, 1);
+            text::draw_text(fb, (self.screen_w as i32 - lw) / 2,
+                (piano_y + bar_h / 2.0 - 4.0) as i32, label, DIM_TEXT, 1);
+            return;
+        }
+
         let wk_h = self.sy(WHITE_KEY_H);
         let bk_h = self.sy(BLACK_KEY_H);
+        let disabled = !self.challenge.solved;
+        // Dim factor: keys are slightly muted when piano is disabled
+        let dim_alpha: u8 = if disabled { 140 } else { 255 };
 
         let (zoom, scroll) = if is_mobile {
             (MOBILE_ZOOM, self.piano_scroll)
@@ -2110,9 +2020,9 @@ impl MusicTheorySim {
             let x = i as f64 * key_w - scroll;
             if x + key_w < 0.0 || x > self.screen_w { continue; }
 
-            let mut color = WHITE_KEY_CLR;
+            let mut color = WHITE_KEY_CLR.with_alpha(dim_alpha);
             if self.highlighted_keys[note_idx] {
-                color = Color::from_rgba(120, 220, 200, 255);
+                color = Color::from_rgba(120, 220, 200, dim_alpha);
             }
             if self.toggled_keys[note_idx] {
                 color = KEY_TOGGLED;
@@ -2134,7 +2044,7 @@ impl MusicTheorySim {
             let key_text_color = if self.toggled_keys[note_idx] {
                 Color::WHITE
             } else {
-                Color::from_rgba(80, 80, 100, 255)
+                Color::from_rgba(80, 80, 100, dim_alpha)
             };
             text::draw_text(fb, name_x, name_y, name, key_text_color, text_scale);
         }
@@ -2148,9 +2058,9 @@ impl MusicTheorySim {
                 let x = (i as f64 + 1.0) * key_w - black_w / 2.0 - scroll;
                 if x + black_w < 0.0 || x > self.screen_w { continue; }
 
-                let mut color = BLACK_KEY_CLR;
+                let mut color = BLACK_KEY_CLR.with_alpha(dim_alpha);
                 if self.highlighted_keys[note_idx] {
-                    color = Color::from_rgba(0, 160, 130, 255);
+                    color = Color::from_rgba(0, 160, 130, dim_alpha);
                 }
                 if self.toggled_keys[note_idx] {
                     color = KEY_TOGGLED;
@@ -2168,6 +2078,12 @@ impl MusicTheorySim {
 
         shapes::draw_rect(fb, 0.0, piano_y, self.screen_w, wk_h, DIVIDER);
 
+        // Context-sensitive hint text
+        let hint = if disabled {
+            "Piano unlocks after answering"
+        } else {
+            "Explore the answer -- tap keys to hear notes"
+        };
         if is_mobile {
             let track_h = 16.0;
             let track_y = self.slider_track_y();
@@ -2188,7 +2104,6 @@ impl MusicTheorySim {
             shapes::fill_rect(fb, thumb_x, track_y - 3.0,
                 thumb_w, track_h + 8.0, ACCENT_TEAL.with_alpha(200));
         } else {
-            let hint = "R / Space: replay   Click keys to loop";
             let hw = text::text_width(hint, 2);
             text::draw_text(fb, (self.screen_w as i32 - hw) / 2, (piano_y + wk_h + 6.0) as i32,
                 hint, Color::from_rgba(180, 180, 210, 255), 2);

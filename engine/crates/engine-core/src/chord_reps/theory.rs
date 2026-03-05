@@ -1,4 +1,4 @@
-//! Pure music theory functions — no side effects, no World access.
+//! Pure music-theory functions — no side effects, no World access.
 //!
 //! All functions operate on scale degrees (0–6), MIDI note numbers (0–127),
 //! and chord quality identifiers. Uses the major scale exclusively.
@@ -281,11 +281,8 @@ pub fn xorshift(mut s: u64) -> u64 {
 /// A product recommendation shown alongside a fun fact.
 #[derive(Clone, Debug)]
 pub struct ProductRec {
-    pub name: &'static str,
-    pub blurb: &'static str,
+    pub topic: &'static str,
     pub url: &'static str,
-    pub program: &'static str,
-    pub disclosure: &'static str,
 }
 
 /// A fun fact + optional product + optional hint for a specific challenge variant.
@@ -299,66 +296,89 @@ pub struct ContentEntry {
     pub product: Option<ProductRec>,
 }
 
-// ─── Coursera Affiliate Links ──────────────────────────────────────
-// Placeholder URLs — replace with real affiliate URLs after Coursera
-// approval. The course slugs are illustrative of what we'd link to.
+// ═══════════════════════════════════════════════════════════════════
+// AFFILIATE LINKS — edit these URLs, everything else is wired up
+// ═══════════════════════════════════════════════════════════════════
+//
+// TO GO LIVE (one-time, ~10 minutes):
+//   1. Apply free at https://www.coursera.org/about/affiliates
+//   2. Once approved, log into https://app.impact.com
+//   3. Generate tracking links for each course below
+//   4. Replace each AFF_* URL with your real Impact tracking link
+//
+// Mock URLs use Impact's real format. Do a single find-and-replace
+// of "1234567" with your partner ID to activate all links at once.
+//
+// Commission: specializations pay 45%, individual courses pay 20%.
+// Cookie window: 30 days (vs Amazon's 24 hours).
 
-const COURSERA_DISCLOSURE: &str = "(affiliate link \u{2014} we earn a commission if you enroll)";
+/// #1 — Berklee Musicianship SPECIALIZATION (45%, 112K enrolled)
+/// Best overall: ear training + theory = exactly what the app teaches.
+const AFF_MUSICIANSHIP: &str = "https://www.coursera.pxf.io/c/1234567/1000001/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Fspecializations%2Fmusicianship-specialization";
 
-const COURSERA_FUNDAMENTALS: ProductRec = ProductRec {
-    name: "Fundamentals of Music Theory (Coursera)",
-    blurb: "Learn the building blocks from Edinburgh",
-    url: "https://www.coursera.org/learn/edinburgh-music-theory?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
-};
+/// #2 — Edinburgh Fundamentals of Music Theory (20%, 399K enrolled, 4.52★)
+/// Highest-enrolled music theory course on Coursera. Universal rec.
+const AFF_FUNDAMENTALS: &str = "https://www.coursera.pxf.io/c/1234567/1000002/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Flearn%2Fedinburgh-music-theory";
 
+/// #3 — Berklee Songwriting SPECIALIZATION (45%)
+/// Natural upsell after chord progression / pop pattern challenges.
+const AFF_SONGWRITING: &str = "https://www.coursera.pxf.io/c/1234567/1000003/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Fspecializations%2Fsongwriting";
+
+/// #4 — Jazz Improvisation, Gary Burton / Berklee (20%, 74K, 4.81★)
+/// Celebrity instructor. Pairs with jazz-adjacent concepts.
+const AFF_JAZZ: &str = "https://www.coursera.pxf.io/c/1234567/1000004/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Flearn%2Fjazz-improvisation";
+
+/// #5 — Berklee Harmony: Tensions & Modal Interchange (20%, 4.87★)
+/// Highest-rated music course on Coursera. Advanced harmony.
+const AFF_HARMONY: &str = "https://www.coursera.pxf.io/c/1234567/1000005/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Flearn%2Fmusicianship-harmony";
+
+/// #6 — Berklee Music Production SPECIALIZATION (45%, 4.8★)
+/// "You can hear it — now produce it." For power users.
+const AFF_PRODUCTION: &str = "https://www.coursera.pxf.io/c/1234567/1000006/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Fspecializations%2Fmusic-production";
+
+/// #7 — Michigan State Getting Started (20%, 120K enrolled, 4.46★)
+/// Beginner alternative to Edinburgh. Variety prevents ad fatigue.
+const AFF_GETTING_STARTED: &str = "https://www.coursera.pxf.io/c/1234567/1000007/11298\
+    ?u=https%3A%2F%2Fwww.coursera.org%2Flearn%2Fmusic-theory";
+
+// ── Product constants (used by CONTENT_DB entries below) ────────
+// `topic` is displayed as "Learn more about {topic} >>"
+// `url` is the affiliate tracking link opened on click
+
+/// Universal — works after any ear-training challenge (45% commission)
 const COURSERA_MUSICIANSHIP: ProductRec = ProductRec {
-    name: "Developing Your Musicianship (Coursera/Berklee)",
-    blurb: "Berklee's approach to practical ear training",
-    url: "https://www.coursera.org/learn/develop-your-musicianship?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+    topic: "ear training", url: AFF_MUSICIANSHIP,
 };
-
-const COURSERA_JAZZ_IMPROV: ProductRec = ProductRec {
-    name: "Jazz Improvisation (Coursera/Berklee)",
-    blurb: "Take your theory into jazz performance",
-    url: "https://www.coursera.org/learn/jazz-improvisation?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+/// Beginners — foundational concepts, biggest social proof
+const COURSERA_FUNDAMENTALS: ProductRec = ProductRec {
+    topic: "music theory fundamentals", url: AFF_FUNDAMENTALS,
 };
-
+/// Chord progressions → songwriting pipeline (45% commission)
 const COURSERA_SONGWRITING: ProductRec = ProductRec {
-    name: "Songwriting (Coursera/Berklee)",
-    blurb: "Turn chord progressions into songs",
-    url: "https://www.coursera.org/learn/songwriting?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+    topic: "songwriting", url: AFF_SONGWRITING,
 };
-
-const COURSERA_GUITAR: ProductRec = ProductRec {
-    name: "Guitar for Beginners (Coursera/Berklee)",
-    blurb: "Play these chords on a real instrument",
-    url: "https://www.coursera.org/learn/guitar?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+/// Jazz concepts — ii-V-I, modes, tritones, 7th chords
+const COURSERA_JAZZ_IMPROV: ProductRec = ProductRec {
+    topic: "jazz improvisation", url: AFF_JAZZ,
 };
-
-const COURSERA_MUSIC_PROD: ProductRec = ProductRec {
-    name: "Music Production (Coursera/Berklee)",
-    blurb: "Hear these sounds in a DAW context",
-    url: "https://www.coursera.org/learn/music-production?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+/// Advanced harmony — cadences, voice leading, diminished chords
+const COURSERA_HARMONY: ProductRec = ProductRec {
+    topic: "harmony & voice leading", url: AFF_HARMONY,
 };
-
-const COURSERA_COMPOSITION: ProductRec = ProductRec {
-    name: "Write Like Mozart (Coursera)",
-    blurb: "Classical composition and voice leading",
-    url: "https://www.coursera.org/learn/classical-composition?utm_source=crusty&utm_medium=affiliate",
-    program: "coursera",
-    disclosure: COURSERA_DISCLOSURE,
+/// Production upsell — for users who've mastered listening (45%)
+const COURSERA_PRODUCTION: ProductRec = ProductRec {
+    topic: "music production", url: AFF_PRODUCTION,
+};
+/// Beginner alternative — rotates with FUNDAMENTALS for variety
+#[allow(dead_code)]
+const COURSERA_GETTING_STARTED: ProductRec = ProductRec {
+    topic: "music theory basics", url: AFF_GETTING_STARTED,
 };
 
 /// Master content database. Adding content = adding entries here.
@@ -389,7 +409,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 0, variant: Some(1), min_difficulty: 0,
         fact: "Supertonic (2nd) -- one step above home. The ii-V-I progression built on this degree is the backbone of jazz.",
         hint: Some("Solfege: Re -- wants to move, feels 'unfinished'"),
-        product: None,
+        product: Some(COURSERA_JAZZ_IMPROV), // "backbone of jazz" → jazz course
     },
     ContentEntry {
         concept: 0, variant: Some(2), min_difficulty: 0,
@@ -517,7 +537,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 2, variant: Some(7), min_difficulty: 0,
         fact: "Power chords in rock are just root and fifth. The perfect 5th is the foundation of the overtone series.",
         hint: Some("Song ref: 'Star Wars' opening (bum bum-bum) -- strong, open, powerful"),
-        product: None,
+        product: Some(COURSERA_MUSICIANSHIP), // practical hook → ear training
     },
     ContentEntry {
         concept: 2, variant: Some(8), min_difficulty: 0,
@@ -569,7 +589,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 3, variant: Some(2), min_difficulty: 0,
         fact: "A diminished 7th chord divides the octave into four equal minor thirds. There are really only 3 unique dim7 chords -- every other is a rearrangement.",
         hint: Some("Two stacked minor 3rds -- compact, tense, unstable"),
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
     ContentEntry {
         concept: 3, variant: Some(3), min_difficulty: 0,
@@ -585,7 +605,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 4, variant: Some(0), min_difficulty: 0,
         fact: "The cadential 6/4 is one of the most analyzed moments in all of theory. Despite looking like a tonic chord, it functions as a decorated dominant.",
         hint: Some("Bass motion: the bass moves from Sol down to Do -- strongest resolution"),
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
     ContentEntry {
         concept: 4, variant: Some(1), min_difficulty: 0,
@@ -630,7 +650,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 3, variant: Some(0), min_difficulty: 3,
         fact: "The I-IV-V progression uses only major triads. These three chords alone can harmonize almost any melody in a major key.",
         hint: Some("Bright and stable -- the 'default' chord sound in Western music"),
-        product: Some(COURSERA_GUITAR),
+        product: Some(COURSERA_SONGWRITING),
     },
     ContentEntry {
         concept: 3, variant: Some(1), min_difficulty: 3,
@@ -644,7 +664,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 4, variant: Some(0), min_difficulty: 3,
         fact: "Nearly every classical piece ends with an authentic cadence. The leading tone resolves up to tonic while the bass drops from dominant to tonic -- the strongest closure possible.",
         hint: Some("V to I -- the musical 'full stop'"),
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
     ContentEntry {
         concept: 4, variant: Some(3), min_difficulty: 3,
@@ -678,7 +698,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 1, variant: Some(0), min_difficulty: 4,
         fact: "In Schenkerian analysis, every tonal piece is ultimately a prolongation of the I chord. All the other chords are just elaborate decorations of home base.",
         hint: Some("The most stable chord -- everything resolves here"),
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
 
     // ════════════════════════════════════════════════════════════════
@@ -713,7 +733,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 4, variant: None, min_difficulty: 0,
         fact: "Cadences are musical punctuation: authentic = period, half = comma, deceptive = plot twist. The entire structure of tonal phrases depends on them.",
         hint: None,
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
 
     // ════════════════════════════════════════════════════════════════
@@ -737,7 +757,7 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 2, variant: None, min_difficulty: 6,
         fact: "All four augmented-sixth chords share the same defining interval: the augmented 6th between b6 and #4, which expands outward to an octave when it resolves.",
         hint: None,
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
     ContentEntry {
         concept: 0, variant: None, min_difficulty: 5,
@@ -749,13 +769,13 @@ pub const CONTENT_DB: &[ContentEntry] = &[
         concept: 4, variant: None, min_difficulty: 5,
         fact: "The 'truck-driver modulation' -- named by scholar Walter Everett -- sounds like shifting gears: drop to the dominant of the new key, then rev up to the new tonic.",
         hint: None,
-        product: Some(COURSERA_MUSIC_PROD),
+        product: Some(COURSERA_PRODUCTION),
     },
     ContentEntry {
         concept: 2, variant: None, min_difficulty: 5,
         fact: "Parallel fifths are the cardinal sin of counterpoint. Two voices in parallel perfect consonances lose their independence -- they start sounding like one voice.",
         hint: None,
-        product: Some(COURSERA_COMPOSITION),
+        product: Some(COURSERA_HARMONY),
     },
     ContentEntry {
         concept: 2, variant: None, min_difficulty: 4,
@@ -984,9 +1004,9 @@ mod tests {
     #[test]
     fn coursera_links_present() {
         let coursera_count = CONTENT_DB.iter()
-            .filter(|e| e.product.as_ref().map_or(false, |p| p.program == "coursera"))
+            .filter(|e| e.product.is_some())
             .count();
-        assert!(coursera_count >= 10, "should have at least 10 Coursera links, got {}", coursera_count);
+        assert!(coursera_count >= 10, "should have at least 10 course links, got {}", coursera_count);
     }
 
     #[test]

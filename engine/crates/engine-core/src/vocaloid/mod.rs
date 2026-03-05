@@ -42,6 +42,12 @@ const MIDI_LOW: u8 = 48;  // C3
 const MIDI_HIGH: u8 = 72; // C5
 const NUM_NOTES: usize = 25; // MIDI 48–72 inclusive
 
+// Mobile piano (touch devices) — zoomed keys with horizontal scrolling
+const MOBILE_ZOOM: f64 = 2.0;
+const MOBILE_PIANO_TOTAL_W: f64 = NUM_WHITE_KEYS as f64 * WHITE_KEY_W * MOBILE_ZOOM;
+const MOBILE_MAX_SCROLL: f64 = MOBILE_PIANO_TOTAL_W - SCREEN_W;
+const SLIDER_TRACK_Y: f64 = PIANO_Y + WHITE_KEY_H + 6.0;
+
 // Option button geometry
 const OPT_BTN_W: f64 = 120.0;
 const OPT_BTN_GAP: f64 = 16.0;
@@ -52,6 +58,8 @@ const OPT_X_START: f64 = (SCREEN_W - OPT_TOTAL_W) / 2.0; // 36
 const FEEDBACK_CORRECT_DUR: f64 = 1.0;
 const FEEDBACK_WRONG_DUR: f64 = 0.6;
 const KEY_FLASH_DUR: f64 = 0.5;
+const RHYTHM_ON_DUR: f64 = 0.5;
+const RHYTHM_OFF_DUR: f64 = 0.3;
 
 // Colors
 const BG_COLOR: Color = Color { r: 10, g: 10, b: 30, a: 255 };
@@ -203,6 +211,18 @@ pub struct VocaloidSim {
     background_stars: Vec<BackgroundStar>,
     scheduled_samples: Vec<ScheduledSample>,
     combo_pulse: f64,
+    toggled_keys: [bool; NUM_NOTES],
+    rhythm_timer: f64,
+    rhythm_on: bool,
+    last_hovered_option: Option<usize>,
+    piano_scroll: f64,
+    slider_dragging: bool,
+    phrase_playing: bool,
+    phrase_play_start: f64,
+    last_hovered_phrase_note: Option<usize>,
+    /// Sound energy level (0.0–1.0). Spikes on sound events, decays smoothly.
+    /// Higher pitch sounds contribute more energy. Drives star glow intensity.
+    sound_energy: f64,
 }
 
 impl VocaloidSim {
@@ -237,6 +257,16 @@ impl VocaloidSim {
             background_stars: Vec::new(),
             scheduled_samples: Vec::new(),
             combo_pulse: 0.0,
+            toggled_keys: [false; NUM_NOTES],
+            rhythm_timer: 0.0,
+            rhythm_on: false,
+            last_hovered_option: None,
+            piano_scroll: 0.0,
+            slider_dragging: false,
+            phrase_playing: false,
+            phrase_play_start: 0.0,
+            last_hovered_phrase_note: None,
+            sound_energy: 0.0,
         }
     }
 
@@ -656,22 +686,22 @@ impl VocaloidSim {
             MusicConcept::IntervalRecognition | MusicConcept::PhonemeRecognition => {}
         }
 
-        // Error buzz
+        // Gentle wrong sound
         engine.sound_queue.push(SoundCommand::PlayTone {
-            frequency: 120.0,
-            duration: 0.15,
-            volume: 0.4,
-            waveform: Waveform::Square,
-            attack: 0.005,
-            decay: 0.12,
+            frequency: 180.0,
+            duration: 0.12,
+            volume: 0.15,
+            waveform: Waveform::Sine,
+            attack: 0.01,
+            decay: 0.1,
         });
 
-        // Teto sad "n" sample
+        // Teto soft "n" sample
         engine.sound_queue.push(SoundCommand::PlaySample {
             name: "n".to_string(),
-            volume: 0.5,
-            pitch: 0.7,
-            duration: 0.6,
+            volume: 0.25,
+            pitch: 0.8,
+            duration: 0.4,
         });
 
         // Sad sparkles
@@ -811,6 +841,235 @@ impl VocaloidSim {
             }
         }
     }
+
+    // ─── Piano Interaction ──────────────────────────────────
+
+    fn check_piano_click(&self, mx: f64, my: f64, zoom: f64, scroll: f64) -> Option<u8> {
+        if my < PIANO_Y || my > PIANO_Y + WHITE_KEY_H {
+            return None;
+        }
+        let vx = mx + scroll; // virtual X in zoomed coordinate space
+        let key_w = WHITE_KEY_W * zoom;
+        let black_w = BLACK_KEY_W * zoom;
+        // Black keys first (rendered on top, overlap whites)
+        if my < PIANO_Y + BLACK_KEY_H {
+            for i in 0..NUM_WHITE_KEYS - 1 {
+                let white_midi = white_key_to_midi(i);
+                let black_midi = white_midi + 1;
+                if !is_white_key(black_midi) && black_midi <= MIDI_HIGH {
+                    let x = (i as f64 + 1.0) * key_w - black_w / 2.0;
+                    if vx >= x && vx <= x + black_w {
+                        return Some(black_midi);
+                    }
+                }
+            }
+        }
+        // White keys
+        for i in 0..NUM_WHITE_KEYS {
+            let x = i as f64 * key_w;
+            if vx >= x && vx <= x + key_w {
+                return Some(white_key_to_midi(i));
+            }
+        }
+        None
+    }
+
+    fn midi_to_sample(midi: u8) -> (&'static str, f64) {
+        // Map MIDI note to Teto vowel sample with pitch shifting
+        // Cycle vowels: a, i, u, e, o based on note
+        let vowel_idx = (midi % 5) as usize;
+        let sample = TETO_VOWELS[vowel_idx];
+        // Pitch relative to C4 (MIDI 60)
+        let pitch = 2.0_f64.powf((midi as f64 - 60.0) / 12.0);
+        (sample, pitch)
+    }
+
+    fn play_option_preview(&self, idx: usize, engine: &mut Engine) {
+        if idx >= self.challenge.options.len() {
+            return;
+        }
+        let opt = self.challenge.options[idx];
+        match &self.challenge.concept {
+            MusicConcept::ChordProgression => {
+                let deg = opt;
+                let root = self.challenge.key_root + MAJOR_SCALE[(deg % 7) as usize];
+                for &interval in &chord_intervals(deg) {
+                    let midi = root + interval;
+                    engine.sound_queue.push(SoundCommand::PlayTone {
+                        frequency: midi_to_freq(midi),
+                        duration: 0.3,
+                        volume: 0.3,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.25,
+                    });
+                }
+            }
+            MusicConcept::NextNote => {
+                let midi = degree_to_midi(self.challenge.key_root, opt);
+                engine.sound_queue.push(SoundCommand::PlayTone {
+                    frequency: midi_to_freq(midi),
+                    duration: 0.3,
+                    volume: 0.35,
+                    waveform: Waveform::Triangle,
+                    attack: 0.01,
+                    decay: 0.25,
+                });
+            }
+            MusicConcept::IntervalRecognition => {
+                if !self.challenge.sequence.is_empty() {
+                    let base = self.challenge.sequence[0];
+                    let top = base + opt;
+                    engine.sound_queue.push(SoundCommand::PlayTone {
+                        frequency: midi_to_freq(base),
+                        duration: 0.2,
+                        volume: 0.3,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.15,
+                    });
+                    engine.sound_queue.push(SoundCommand::PlayTone {
+                        frequency: midi_to_freq(top),
+                        duration: 0.3,
+                        volume: 0.3,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.25,
+                    });
+                }
+            }
+            MusicConcept::PhonemeRecognition => {
+                let gojuuon_idx = self.challenge.phoneme_options_idx
+                    .get(opt as usize)
+                    .copied()
+                    .unwrap_or(0);
+                if gojuuon_idx < GOJUUON.len() {
+                    engine.sound_queue.push(SoundCommand::PlaySample {
+                        name: GOJUUON[gojuuon_idx].sample.to_string(),
+                        volume: 0.5,
+                        pitch: 1.0,
+                        duration: 0.4,
+                    });
+                }
+            }
+        }
+    }
+
+    fn replay_challenge(&mut self, engine: &mut Engine) {
+        let seq = self.challenge.sequence.clone();
+        let key_root = self.challenge.key_root;
+        let concept = self.challenge.concept.clone();
+        let now = self.total_time;
+        match concept {
+            MusicConcept::ChordProgression => {
+                for (i, &deg) in seq.iter().enumerate() {
+                    let root = key_root + MAJOR_SCALE[(deg % 7) as usize];
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + i as f64 * 0.5,
+                        frequency: midi_to_freq(root),
+                        duration: 0.4,
+                        volume: 0.5,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.3,
+                    });
+                }
+            }
+            MusicConcept::NextNote => {
+                for (i, &deg) in seq.iter().enumerate() {
+                    let midi = degree_to_midi(key_root, deg);
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + i as f64 * 0.35,
+                        frequency: midi_to_freq(midi),
+                        duration: 0.3,
+                        volume: 0.6,
+                        waveform: Waveform::Triangle,
+                        attack: 0.01,
+                        decay: 0.25,
+                    });
+                }
+            }
+            MusicConcept::IntervalRecognition => {
+                if seq.len() >= 2 {
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + 0.1,
+                        frequency: midi_to_freq(seq[0]),
+                        duration: 0.4,
+                        volume: 0.7,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.3,
+                    });
+                    self.scheduled_sounds.push(ScheduledSound {
+                        play_at: now + 0.6,
+                        frequency: midi_to_freq(seq[1]),
+                        duration: 0.4,
+                        volume: 0.7,
+                        waveform: Waveform::Sine,
+                        attack: 0.02,
+                        decay: 0.3,
+                    });
+                }
+            }
+            MusicConcept::PhonemeRecognition => {
+                if let Some(&answer_idx) = seq.first() {
+                    let idx = answer_idx as usize;
+                    if idx < GOJUUON.len() {
+                        engine.sound_queue.push(SoundCommand::PlaySample {
+                            name: GOJUUON[idx].sample.to_string(),
+                            volume: 0.8,
+                            pitch: 1.0,
+                            duration: 0.5,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    // ─── Phrase Playback ────────────────────────────────────
+
+    fn play_phrase(&mut self, _engine: &mut Engine) {
+        if self.phrase_notes.is_empty() {
+            return;
+        }
+        self.phrase_playing = true;
+        self.phrase_play_start = self.total_time;
+        let note_spacing = 0.3;
+        for (i, note) in self.phrase_notes.iter().enumerate() {
+            let (sample, pitch) = Self::midi_to_sample(note.midi);
+            self.scheduled_samples.push(ScheduledSample {
+                play_at: self.total_time + i as f64 * note_spacing,
+                name: sample.to_string(),
+                volume: 0.5,
+                pitch,
+                duration: note_spacing * 0.9,
+            });
+        }
+    }
+
+    fn check_phrase_note_hover(&self, mx: f64, my: f64) -> Option<usize> {
+        if self.phrase_notes.is_empty() {
+            return None;
+        }
+        if my < TIMELINE_Y + 18.0 || my > TIMELINE_Y + TIMELINE_H - 8.0 {
+            return None;
+        }
+        let note_w = 30.0_f64;
+        let total_width = self.phrase_notes.len() as f64 * note_w;
+        let x_offset = if total_width > SCREEN_W - 40.0 {
+            SCREEN_W - 40.0 - total_width
+        } else {
+            20.0
+        };
+        for (i, _) in self.phrase_notes.iter().enumerate() {
+            let x = x_offset + i as f64 * note_w;
+            if mx >= x && mx <= x + note_w {
+                return Some(i);
+            }
+        }
+        None
+    }
 }
 
 // ─── Simulation Trait ───────────────────────────────────────────────
@@ -832,8 +1091,12 @@ impl Simulation for VocaloidSim {
         self.pulse_time += dt;
 
         // Process scheduled sounds and samples
+        let sound_count_before = engine.sound_queue.len();
         self.process_scheduled_sounds(engine);
         self.process_scheduled_samples(engine);
+
+        // Decay sound energy smoothly; spike on new sounds
+        self.sound_energy = (self.sound_energy - dt * 2.5).max(0.0);
 
         // Update combo pulse
         if self.combo_pulse > 0.0 {
@@ -882,13 +1145,129 @@ impl Simulation for VocaloidSim {
             }
         }
 
-        // Handle mouse click on options
-        if engine.input.mouse_buttons_pressed.contains(&0) {
-            let mx = engine.input.mouse_x;
-            let my = engine.input.mouse_y;
+        // Handle mouse click on options and piano
+        let is_mobile = engine.browser_state.is_touch_device();
+        let mx = engine.input.mouse_x;
+        let my = engine.input.mouse_y;
+
+        // Mobile slider dragging
+        if is_mobile {
+            if engine.input.mouse_buttons_pressed.contains(&0)
+                && my > PIANO_Y + WHITE_KEY_H && my < TIMELINE_Y
+            {
+                self.slider_dragging = true;
+            }
+            if self.slider_dragging {
+                if engine.input.mouse_buttons_held.contains(&0) {
+                    let ratio = (mx / SCREEN_W).max(0.0).min(1.0);
+                    self.piano_scroll = ratio * MOBILE_MAX_SCROLL;
+                }
+                if engine.input.mouse_buttons_released.contains(&0) {
+                    self.slider_dragging = false;
+                }
+            }
+        }
+
+        if engine.input.mouse_buttons_pressed.contains(&0) && !self.slider_dragging {
             if let Some(idx) = self.check_option_click(mx, my) {
                 self.handle_option_click(idx, engine);
             }
+            // Piano click → toggle key (zoom-aware)
+            let (zoom, scroll) = if is_mobile {
+                (MOBILE_ZOOM, self.piano_scroll)
+            } else {
+                (1.0, 0.0)
+            };
+            if let Some(midi) = self.check_piano_click(mx, my, zoom, scroll) {
+                let idx = (midi - MIDI_LOW) as usize;
+                if idx < NUM_NOTES {
+                    self.toggled_keys[idx] = !self.toggled_keys[idx];
+                    if self.toggled_keys[idx] {
+                        let (sample, pitch) = Self::midi_to_sample(midi);
+                        engine.sound_queue.push(SoundCommand::PlaySample {
+                            name: sample.to_string(),
+                            volume: 0.5,
+                            pitch,
+                            duration: 0.4,
+                        });
+                        self.flash_key(midi, ACCENT_PINK);
+                    }
+                }
+            }
+            // Timeline click → play phrase from start
+            if my >= TIMELINE_Y && my <= TIMELINE_Y + TIMELINE_H
+                && !self.phrase_notes.is_empty()
+            {
+                self.play_phrase(engine);
+            }
+        }
+
+        // Rhythm loop for toggled keys
+        let any_toggled = self.toggled_keys.iter().any(|&t| t);
+        if any_toggled {
+            self.rhythm_timer += dt;
+            let cycle = RHYTHM_ON_DUR + RHYTHM_OFF_DUR;
+            let phase = self.rhythm_timer % cycle;
+            let now_on = phase < RHYTHM_ON_DUR;
+            if now_on && !self.rhythm_on {
+                // Transition to ON — play all toggled keys
+                for i in 0..NUM_NOTES {
+                    if self.toggled_keys[i] {
+                        let midi = MIDI_LOW + i as u8;
+                        let (sample, pitch) = Self::midi_to_sample(midi);
+                        engine.sound_queue.push(SoundCommand::PlaySample {
+                            name: sample.to_string(),
+                            volume: 0.45,
+                            pitch,
+                            duration: RHYTHM_ON_DUR * 0.8,
+                        });
+                    }
+                }
+            }
+            self.rhythm_on = now_on;
+        } else {
+            self.rhythm_timer = 0.0;
+            self.rhythm_on = false;
+        }
+
+        // Option hover preview (uses unified hover — works on desktop + touch)
+        let hx = engine.input.hover_x;
+        let hy = engine.input.hover_y;
+        let hovered = if engine.input.hover_active {
+            self.check_option_click(hx, hy)
+        } else {
+            None
+        };
+        if hovered != self.last_hovered_option
+            && self.feedback == FeedbackState::Neutral
+            && !self.challenge.solved
+        {
+            if let Some(idx) = hovered {
+                self.play_option_preview(idx, engine);
+            }
+            self.last_hovered_option = hovered;
+        }
+
+        // Phrase note hover preview (uses unified hover)
+        let hovered_phrase = if engine.input.hover_active {
+            self.check_phrase_note_hover(hx, hy)
+        } else {
+            None
+        };
+        if hovered_phrase != self.last_hovered_phrase_note {
+            if let Some(idx) = hovered_phrase {
+                if idx < self.phrase_notes.len() {
+                    let midi = self.phrase_notes[idx].midi;
+                    let (sample, pitch) = Self::midi_to_sample(midi);
+                    engine.sound_queue.push(SoundCommand::PlaySample {
+                        name: sample.to_string(),
+                        volume: 0.35,
+                        pitch,
+                        duration: 0.3,
+                    });
+                }
+            }
+            self.last_hovered_phrase_note = hovered_phrase;
         }
 
         // Handle keyboard shortcuts (1-4)
@@ -902,6 +1281,21 @@ impl Simulation for VocaloidSim {
             self.handle_option_click(3, engine);
         }
 
+        // Replay challenge (Space or R)
+        if engine.input.keys_pressed.contains("Space")
+            || engine.input.keys_pressed.contains("KeyR")
+        {
+            if !self.challenge.solved && self.feedback == FeedbackState::Neutral {
+                self.replay_challenge(engine);
+            }
+        }
+
+        // Spike sound energy based on new sounds queued this frame
+        let new_sounds = engine.sound_queue.len().saturating_sub(sound_count_before);
+        if new_sounds > 0 {
+            self.sound_energy = (self.sound_energy + new_sounds as f64 * 0.25).min(1.0);
+        }
+
         // Export state for JS HUD
         engine.global_state.set_f64("score", self.score as f64);
         engine.global_state.set_f64("streak", self.streak as f64);
@@ -911,8 +1305,10 @@ impl Simulation for VocaloidSim {
     }
 
     fn render(&self, engine: &mut Engine) {
-        let mx = engine.input.mouse_x;
-        let my = engine.input.mouse_y;
+        // Use hover position for visual hover effects (works on desktop + touch)
+        let hx = if engine.input.hover_active { engine.input.hover_x } else { -1000.0 };
+        let hy = if engine.input.hover_active { engine.input.hover_y } else { -1000.0 };
+        let is_mobile = engine.browser_state.is_touch_device();
         let fb = &mut engine.framebuffer;
 
         self.render_background_stars(fb);
@@ -920,10 +1316,10 @@ impl Simulation for VocaloidSim {
         self.render_header(fb);
         self.render_challenge(fb);
         self.render_combo(fb);
-        self.render_options(fb, mx, my);
+        self.render_options(fb, hx, hy);
         self.render_character(fb);
-        self.render_piano(fb);
-        self.render_timeline(fb);
+        self.render_piano(fb, is_mobile);
+        self.render_timeline(fb, hx, hy);
         self.render_footer(fb);
         self.render_sparkles(fb);
     }
@@ -1114,30 +1510,50 @@ impl VocaloidSim {
             2.0, ACCENT_RED.with_alpha(sparkle_alpha as u8));
     }
 
-    fn render_piano(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+    fn render_piano(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, is_mobile: bool) {
+        let (zoom, scroll) = if is_mobile {
+            (MOBILE_ZOOM, self.piano_scroll)
+        } else {
+            (1.0, 0.0)
+        };
+        let key_w = WHITE_KEY_W * zoom;
+        let black_w = BLACK_KEY_W * zoom;
+        let toggle_pulse = (self.rhythm_timer * 8.0).sin() * 0.3 + 0.7;
+
         // White keys
         for i in 0..NUM_WHITE_KEYS {
             let midi = white_key_to_midi(i);
             let note_idx = (midi - MIDI_LOW) as usize;
-            let x = i as f64 * WHITE_KEY_W;
+            let x = i as f64 * key_w - scroll;
+
+            // Cull off-screen keys
+            if x + key_w < 0.0 || x > SCREEN_W { continue; }
 
             let mut color = WHITE_KEY_CLR;
             if self.highlighted_keys[note_idx] {
                 color = Color::from_rgba(120, 220, 200, 255);
+            }
+            if self.toggled_keys[note_idx] {
+                let glow_alpha = (toggle_pulse * 255.0) as u8;
+                color = Color::lerp(color, ACCENT_PINK, toggle_pulse * 0.6);
+                shapes::fill_rect(fb, x, PIANO_Y - 2.0, key_w, WHITE_KEY_H + 4.0,
+                    ACCENT_PINK.with_alpha(glow_alpha / 4));
             }
             if self.key_flash_timers[note_idx] > 0.0 {
                 let t = self.key_flash_timers[note_idx] / KEY_FLASH_DUR;
                 color = Color::lerp(color, self.key_flash_colors[note_idx], t);
             }
 
-            shapes::fill_rect(fb, x + 1.0, PIANO_Y, WHITE_KEY_W - 2.0, WHITE_KEY_H, color);
+            shapes::fill_rect(fb, x + 1.0, PIANO_Y, key_w - 2.0, WHITE_KEY_H, color);
 
             // Note name at bottom of key
             let name = note_name(midi);
-            let name_w = text::text_width(name, 1);
-            let name_x = (x + WHITE_KEY_W / 2.0) as i32 - name_w / 2;
-            text::draw_text(fb, name_x, (PIANO_Y + WHITE_KEY_H - 14.0) as i32,
-                name, Color::from_rgba(80, 80, 100, 255), 1);
+            let text_scale = if is_mobile { 2 } else { 1 };
+            let name_w = text::text_width(name, text_scale);
+            let name_x = (x + key_w / 2.0) as i32 - name_w / 2;
+            let name_y = (PIANO_Y + WHITE_KEY_H - if is_mobile { 22.0 } else { 14.0 }) as i32;
+            text::draw_text(fb, name_x, name_y,
+                name, Color::from_rgba(80, 80, 100, 255), text_scale);
         }
 
         // Black keys on top
@@ -1146,30 +1562,70 @@ impl VocaloidSim {
             let black_midi = white_midi + 1;
             if !is_white_key(black_midi) && black_midi <= MIDI_HIGH {
                 let note_idx = (black_midi - MIDI_LOW) as usize;
-                let x = (i as f64 + 1.0) * WHITE_KEY_W - BLACK_KEY_W / 2.0;
+                let x = (i as f64 + 1.0) * key_w - black_w / 2.0 - scroll;
+
+                if x + black_w < 0.0 || x > SCREEN_W { continue; }
 
                 let mut color = BLACK_KEY_CLR;
                 if self.highlighted_keys[note_idx] {
                     color = Color::from_rgba(0, 160, 130, 255);
+                }
+                if self.toggled_keys[note_idx] {
+                    color = Color::lerp(color, ACCENT_PINK, toggle_pulse * 0.5);
                 }
                 if self.key_flash_timers[note_idx] > 0.0 {
                     let t = self.key_flash_timers[note_idx] / KEY_FLASH_DUR;
                     color = Color::lerp(color, self.key_flash_colors[note_idx], t);
                 }
 
-                shapes::fill_rect(fb, x, PIANO_Y, BLACK_KEY_W, BLACK_KEY_H, color);
+                shapes::fill_rect(fb, x, PIANO_Y, black_w, BLACK_KEY_H, color);
             }
         }
 
         // Piano border
         shapes::draw_rect(fb, 0.0, PIANO_Y, SCREEN_W, WHITE_KEY_H, DIVIDER);
+
+        if is_mobile {
+            // Scroll slider
+            let track_h = 3.0;
+            shapes::fill_rect(fb, 12.0, SLIDER_TRACK_Y, SCREEN_W - 24.0, track_h,
+                Color::from_rgba(30, 30, 60, 255));
+
+            let visible_ratio = SCREEN_W / MOBILE_PIANO_TOTAL_W;
+            let track_inner = SCREEN_W - 24.0;
+            let thumb_w = (visible_ratio * track_inner).max(24.0);
+            let max_thumb_travel = track_inner - thumb_w;
+            let scroll_pct = if MOBILE_MAX_SCROLL > 0.0 {
+                self.piano_scroll / MOBILE_MAX_SCROLL
+            } else { 0.0 };
+            let thumb_x = 12.0 + scroll_pct * max_thumb_travel;
+
+            // Thumb glow
+            shapes::fill_rect(fb, thumb_x - 1.0, SLIDER_TRACK_Y - 4.0,
+                thumb_w + 2.0, track_h + 8.0, ACCENT_TEAL.with_alpha(30));
+            // Thumb body
+            shapes::fill_rect(fb, thumb_x, SLIDER_TRACK_Y - 2.0,
+                thumb_w, track_h + 4.0, ACCENT_TEAL.with_alpha(180));
+        } else {
+            // Desktop hint
+            let hint = "R / Space: replay   Click keys to loop";
+            let hw = text::text_width(hint, 1);
+            text::draw_text(fb, (SCREEN_W as i32 - hw) / 2, (PIANO_Y + WHITE_KEY_H + 4.0) as i32,
+                hint, DIM_TEXT, 1);
+        }
     }
 
-    fn render_timeline(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+    fn render_timeline(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, mx: f64, my: f64) {
         shapes::fill_rect(fb, 0.0, TIMELINE_Y, SCREEN_W, TIMELINE_H,
             Color::from_rgba(8, 8, 24, 255));
 
-        text::draw_text(fb, 8, (TIMELINE_Y + 6.0) as i32, "COMPOSED PHRASE", DIM_TEXT, 1);
+        // Header with play hint
+        let header = if self.phrase_notes.is_empty() {
+            "COMPOSED PHRASE"
+        } else {
+            "COMPOSED PHRASE (tap to play all)"
+        };
+        text::draw_text(fb, 8, (TIMELINE_Y + 6.0) as i32, header, DIM_TEXT, 1);
 
         if self.phrase_notes.is_empty() {
             text::draw_text_centered(fb, 300, (TIMELINE_Y + TIMELINE_H / 2.0) as i32,
@@ -1191,14 +1647,20 @@ impl VocaloidSim {
         let range = (max_midi - min_midi).max(12) as f64;
         let usable_h = TIMELINE_H - 40.0;
 
+        // Check which note is hovered
+        let hovered_idx = self.check_phrase_note_hover(mx, my);
+
         for (i, note) in self.phrase_notes.iter().enumerate() {
             let x = x_offset + i as f64 * note_w;
             let y_ratio = (note.midi - min_midi) as f64 / range;
             let y = TIMELINE_Y + 22.0 + usable_h * (1.0 - y_ratio);
 
-            // Glow under
+            let is_hovered = hovered_idx == Some(i);
+
+            // Glow under (brighter on hover)
+            let glow_alpha = if is_hovered { 100 } else { 40 };
             shapes::fill_rect(fb, x, y - 2.0, note_w - 4.0, 12.0,
-                ACCENT_TEAL.with_alpha(40));
+                ACCENT_TEAL.with_alpha(glow_alpha));
 
             // Note block with color gradient
             let t = i as f64 / self.phrase_notes.len().max(1) as f64;
@@ -1207,13 +1669,28 @@ impl VocaloidSim {
             } else {
                 Color::lerp(ACCENT_TEAL, ACCENT_PINK, t)
             };
-            shapes::fill_rect(fb, x + 1.0, y, note_w - 6.0, 8.0, note_color);
+            let block_color = if is_hovered {
+                Color::lerp(note_color, Color::WHITE, 0.4)
+            } else {
+                note_color
+            };
+            let block_h = if is_hovered { 10.0 } else { 8.0 };
+            let block_y = if is_hovered { y - 1.0 } else { y };
+            shapes::fill_rect(fb, x + 1.0, block_y, note_w - 6.0, block_h, block_color);
 
             // Draw lyric label above note block if present
             if let Some(lyric) = note.lyric {
                 let lw = text::text_width(lyric, 1);
                 text::draw_text(fb, (x + note_w / 2.0) as i32 - lw / 2,
                     (y - 14.0) as i32, lyric, ACCENT_PINK, 1);
+            }
+
+            // Show note name on hover
+            if is_hovered {
+                let name = note_name(note.midi);
+                let nw = text::text_width(name, 1);
+                text::draw_text(fb, (x + note_w / 2.0) as i32 - nw / 2,
+                    (y + block_h + 2.0) as i32, name, Color::WHITE, 1);
             }
         }
 
@@ -1243,11 +1720,10 @@ impl VocaloidSim {
         let phrase_str = format!("Phrase: {} notes", self.phrase_notes.len());
         text::draw_text_centered(fb, 300, (FOOTER_Y + 20.0) as i32, &phrase_str, DIM_TEXT, 1);
 
-        // Attribution
+        // Attribution — fan tribute
         let attr = "Kasane Teto (c) TWINDRILL - kasaneteto.jp";
-        let aw = text::text_width(attr, 1);
-        text::draw_text(fb, 600 - aw - 8, (FOOTER_Y + 36.0) as i32, attr,
-            Color::from_rgba(60, 60, 80, 180), 1);
+        text::draw_text_centered(fb, (SCREEN_W / 2.0) as i32, (FOOTER_Y + 36.0) as i32, attr,
+            ACCENT_PINK.with_alpha(120), 1);
     }
 
     fn render_sparkles(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
@@ -1288,21 +1764,33 @@ impl VocaloidSim {
     }
 
     fn render_background_stars(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        // Sound energy drives stars toward white/bright glow
+        let energy = self.sound_energy;
+
         for star in &self.background_stars {
             let twinkle = ((self.pulse_time * 1.5 + star.phase).sin() * 0.4 + 0.6) * 255.0;
-            let alpha = twinkle.max(30.0).min(200.0) as u8;
+            let base_alpha = twinkle.max(30.0).min(200.0);
+            // Boost alpha and blend toward white when sound is playing
+            let boosted_alpha = (base_alpha + energy * 120.0).min(255.0) as u8;
+
             if star.is_note {
-                // Music note shape
-                let color = ACCENT_PINK.with_alpha(alpha / 2);
-                shapes::fill_circle(fb, star.x, star.y, star.size * 0.8, color);
+                let base_color = ACCENT_PINK.with_alpha(boosted_alpha / 2);
+                let color = Color::lerp(base_color, Color::WHITE.with_alpha(boosted_alpha), energy * 0.6);
+                let size = star.size * 0.8 + energy * 1.5;
+                shapes::fill_circle(fb, star.x, star.y, size, color);
                 shapes::draw_line(fb, star.x + star.size * 0.7, star.y,
                     star.x + star.size * 0.7, star.y - star.size * 2.5, color);
             } else {
-                // Glowing dot
-                let color = ACCENT_TEAL.with_alpha(alpha / 3);
-                shapes::fill_circle(fb, star.x, star.y, star.size + 1.0, color);
-                let color2 = Color::WHITE.with_alpha(alpha / 2);
-                shapes::fill_circle(fb, star.x, star.y, star.size * 0.5, color2);
+                let base_color = ACCENT_TEAL.with_alpha(boosted_alpha / 3);
+                let glow_color = Color::lerp(base_color, Color::WHITE.with_alpha(boosted_alpha / 2), energy * 0.5);
+                let size = star.size + 1.0 + energy * 2.0;
+                shapes::fill_circle(fb, star.x, star.y, size, glow_color);
+                let core_color = Color::lerp(
+                    Color::WHITE.with_alpha(boosted_alpha / 2),
+                    Color::WHITE.with_alpha(boosted_alpha),
+                    energy,
+                );
+                shapes::fill_circle(fb, star.x, star.y, star.size * 0.5 + energy, core_color);
             }
         }
     }

@@ -51,6 +51,7 @@ pub mod gravity_pong;
 pub mod vocaloid;
 pub mod headless;
 pub mod feel_preset;
+pub mod browser;
 
 #[cfg(test)]
 mod tests;
@@ -120,6 +121,18 @@ pub fn framebuffer_len() -> usize {
     with_engine(|eng| eng.framebuffer.len())
 }
 
+// ─── Browser State WASM API ─────────────────────────────────────────
+
+#[wasm_bindgen]
+pub fn browser_state_ptr() -> usize {
+    with_engine(|eng| eng.browser_state.ptr())
+}
+
+#[wasm_bindgen]
+pub fn browser_state_len() -> usize {
+    with_engine(|eng| eng.browser_state.slot_count())
+}
+
 #[wasm_bindgen]
 pub fn key_down(code: String) {
     with_engine(|eng| eng.input.on_key_down(code));
@@ -155,6 +168,7 @@ pub fn touch_start(id: u32, x: f64, y: f64) {
         // Forward primary touch to mouse input for backwards compatibility
         if eng.gestures.primary_touch() == Some(id) {
             eng.input.on_mouse_down(px, py, 0);
+            eng.input.on_touch_hover_start(px, py);
         }
     });
 }
@@ -165,6 +179,7 @@ pub fn touch_move(id: u32, x: f64, y: f64) {
     with_engine(|eng| {
         if let Some((px, py)) = eng.gestures.on_touch_move(id, x, y) {
             eng.input.on_mouse_move(px, py);
+            eng.input.on_touch_hover_move(px, py);
         }
     });
 }
@@ -175,6 +190,7 @@ pub fn touch_end(id: u32, x: f64, y: f64) {
     with_engine(|eng| {
         if let Some((px, py)) = eng.gestures.on_touch_end(id, x, y) {
             eng.input.on_mouse_up(px, py, 0);
+            eng.input.on_touch_hover_end();
         }
     });
 }

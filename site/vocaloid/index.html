@@ -23,40 +23,6 @@
             height: 100dvh;
         }
         h1 { display: none; }
-        #hud {
-            position: fixed;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            justify-content: center;
-            pointer-events: none;
-        }
-        .hud-stat {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 212, 170, 0.06);
-            border: 1px solid rgba(0, 212, 170, 0.12);
-            border-radius: 20px;
-            padding: 6px 16px;
-            font-size: 0.85rem;
-        }
-        .hud-label {
-            color: #888;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            letter-spacing: 0.08em;
-        }
-        .hud-value {
-            color: #00d4aa;
-            font-weight: 600;
-            font-variant-numeric: tabular-nums;
-            min-width: 3ch;
-        }
         #game-canvas {
             cursor: pointer;
             display: block;
@@ -72,20 +38,27 @@
         }
         #attribution {
             position: fixed;
-            bottom: 4px;
-            left: 10px;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 10;
             pointer-events: auto;
-            font-size: 0.55rem;
-            color: #555;
-            letter-spacing: 0.03em;
+            font-size: 0.75rem;
+            color: #aa88aa;
+            letter-spacing: 0.04em;
+            text-align: center;
+            background: rgba(10, 10, 30, 0.7);
+            padding: 4px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 102, 178, 0.15);
         }
         #attribution a {
-            color: #666;
+            color: #ff66b2;
             text-decoration: none;
         }
         #attribution a:hover {
             color: #00d4aa;
+            text-decoration: underline;
         }
         .info { display: none; }
         a { color: #00d4aa; }
@@ -103,23 +76,9 @@
 </head>
 <body>
     <h1>Teto Theory</h1>
-    <div id="hud" style="display:none">
-        <div class="hud-stat">
-            <span class="hud-label">Score</span>
-            <span class="hud-value" id="score-val">0</span>
-        </div>
-        <div class="hud-stat">
-            <span class="hud-label">Streak</span>
-            <span class="hud-value" id="streak-val">0</span>
-        </div>
-        <div class="hud-stat">
-            <span class="hud-label">Phrase</span>
-            <span class="hud-value" id="phrase-val">0</span>
-        </div>
-    </div>
     <canvas id="game-canvas" width="600" height="900"></canvas>
     <img id="teto-art" alt="Kasane Teto" />
-    <div id="attribution">Character: Kasane Teto &copy; TWINDRILL — <a href="https://kasaneteto.jp" target="_blank" rel="noopener">kasaneteto.jp</a></div>
+    <div id="attribution">Kasane Teto &copy; TWINDRILL &mdash; Fan tribute &hearts; <a href="https://kasaneteto.jp" target="_blank" rel="noopener">kasaneteto.jp</a></div>
     <p class="info">
         Music theory + Japanese phonemes with Kasane Teto's UTAU voicebank.
         Complete chords, melodies, intervals, and phoneme challenges.
@@ -129,6 +88,7 @@
     <div class="version">v2-teto-webgl</div>
 
     <script type="module">
+    import { initBrowserState } from '../browser-state.js';
     // =========================================================================
     //  VOCALOID THEORY — WebGL2 Renderer + Web Audio Sound Engine
     //  Pipeline: Upload WASM framebuffer → Glow → Bloom → Composite
@@ -145,9 +105,9 @@
         mouse_move, mouse_down, mouse_up,
         touch_start, touch_move, touch_end,
         key_down, key_up,
-        get_game_state_f64,
         drain_sound_commands,
-        setup_vocaloid
+        setup_vocaloid,
+        browser_state_ptr, browser_state_len
     } = api;
 
     // --- Constants ---
@@ -178,12 +138,12 @@
         // Position Teto art overlay (character area: Y=410-510 in engine coords)
         if (tetoArt.src) {
             const scale = ch / H;
-            const artH = 120 * scale;
+            const artH = 160 * scale;
             const artW = artH * (200 / 300);
             tetoArt.style.width = artW + 'px';
             tetoArt.style.height = artH + 'px';
             tetoArt.style.left = (parseFloat(canvas.style.left) + cw / 2 - artW / 2) + 'px';
-            tetoArt.style.top = (parseFloat(canvas.style.top) + (420 / H) * ch) + 'px';
+            tetoArt.style.top = (parseFloat(canvas.style.top) + (385 / H) * ch) + 'px';
         }
     }
     resizeCanvas();
@@ -226,9 +186,6 @@
         resizeCanvas();
     };
 
-    const scoreEl  = document.getElementById('score-val');
-    const streakEl = document.getElementById('streak-val');
-    const phraseEl = document.getElementById('phrase-val');
 
     // --- WebGL2 Init ---
     const gl = canvas.getContext('webgl2', {
@@ -773,8 +730,12 @@
         init(W, H);
         setup_vocaloid();
 
-        // Show HUD
-        document.getElementById('hud').style.display = 'flex';
+        // Browser → WASM shared state (viewport, touch detection, etc.)
+        const updateBrowserState = initBrowserState(memory, browser_state_ptr, browser_state_len, {
+            canvasSizeFn: function() {
+                return { w: parseFloat(canvas.style.width) || W, h: parseFloat(canvas.style.height) || H };
+            }
+        });
 
         let last = performance.now();
         let totalTime = 0;
@@ -783,6 +744,9 @@
             const dt = now - last;
             last = now;
             totalTime += dt * 0.001;
+
+            // --- Update Browser State (before tick so WASM sees current values) ---
+            updateBrowserState(dt);
 
             // --- Engine Tick ---
             tick(dt);
@@ -865,11 +829,6 @@
             gl.uniform1f(compositeProg.uniforms['uChromaticAberration'], FX.chromaticAberration);
 
             drawFullscreen();
-
-            // --- Update HUD ---
-            scoreEl.textContent  = Math.floor(get_game_state_f64('score'));
-            streakEl.textContent = Math.floor(get_game_state_f64('streak'));
-            phraseEl.textContent = Math.floor(get_game_state_f64('phrase_len'));
 
             requestAnimationFrame(frame);
         }

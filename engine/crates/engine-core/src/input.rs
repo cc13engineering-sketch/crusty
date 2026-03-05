@@ -12,7 +12,20 @@ pub struct Input {
     pub drag_start: Option<(f64, f64)>,
     pub is_dragging: bool,
     drag_threshold: f64,
+
+    // Unified hover — works across mouse (always active) and touch
+    // (active during touch + linger period after release).
+    // On desktop: mirrors mouse_x/mouse_y every frame.
+    // On touch: set on touch_start/move, lingers after touch_end, then deactivates.
+    // Games should use hover_x/hover_y/hover_active for all hover-based interactions.
+    pub hover_x: f64,
+    pub hover_y: f64,
+    pub hover_active: bool,
+    hover_linger: f64,
 }
+
+/// How long hover persists after a touch ends (seconds).
+const TOUCH_HOVER_LINGER: f64 = 0.2;
 
 impl Input {
     pub fn new() -> Self {
@@ -28,6 +41,10 @@ impl Input {
             drag_start: None,
             is_dragging: false,
             drag_threshold: 5.0,
+            hover_x: -1000.0,
+            hover_y: -1000.0,
+            hover_active: false,
+            hover_linger: 0.0,
         }
     }
 
@@ -41,6 +58,48 @@ impl Input {
     pub fn on_key_up(&mut self, code: String) {
         self.keys_held.remove(&code);
         self.keys_released.insert(code);
+    }
+
+    /// Tick hover state each frame. Call early in the engine tick.
+    ///
+    /// On desktop (`is_touch == false`): hover always mirrors mouse position.
+    /// On touch (`is_touch == true`): hover was set by touch events and
+    /// lingers briefly after touch_end, then deactivates.
+    pub fn update_hover(&mut self, dt: f64, is_touch: bool) {
+        if is_touch {
+            if self.hover_linger > 0.0 {
+                self.hover_linger -= dt;
+                if self.hover_linger <= 0.0 {
+                    self.hover_active = false;
+                    self.hover_x = -1000.0;
+                    self.hover_y = -1000.0;
+                }
+            }
+        } else {
+            // Desktop: hover always tracks mouse
+            self.hover_x = self.mouse_x;
+            self.hover_y = self.mouse_y;
+            self.hover_active = true;
+        }
+    }
+
+    /// Called on touch start — activates hover at touch position.
+    pub fn on_touch_hover_start(&mut self, x: f64, y: f64) {
+        self.hover_x = x;
+        self.hover_y = y;
+        self.hover_active = true;
+        self.hover_linger = 0.0;
+    }
+
+    /// Called on touch move — updates hover position while finger is down.
+    pub fn on_touch_hover_move(&mut self, x: f64, y: f64) {
+        self.hover_x = x;
+        self.hover_y = y;
+    }
+
+    /// Called on touch end — starts the linger timer.
+    pub fn on_touch_hover_end(&mut self) {
+        self.hover_linger = TOUCH_HOVER_LINGER;
     }
 
     pub fn on_mouse_move(&mut self, x: f64, y: f64) {

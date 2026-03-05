@@ -32,6 +32,7 @@ use crate::ui_canvas::UiCanvas;
 use crate::color_palette::ColorPalette;
 use crate::frame_metrics::FrameMetrics;
 use crate::rng::SeededRng;
+use crate::browser::BrowserState;
 
 /// Defines the canonical execution phases within a single engine tick.
 ///
@@ -311,6 +312,9 @@ pub struct Engine {
 
     // Canonical deterministic RNG
     pub rng: SeededRng,
+
+    // Browser → WASM shared memory channel
+    pub browser_state: BrowserState,
 }
 
 const FIXED_DT: f64 = 1.0 / 60.0;
@@ -362,6 +366,7 @@ impl Engine {
             ui_canvas: UiCanvas::new(),
             frame_metrics: FrameMetrics::new(),
             rng: SeededRng::new(42),
+            browser_state: BrowserState::new(),
         }
     }
 
@@ -611,6 +616,10 @@ impl Engine {
         let dt = dt.min(MAX_FRAME_DT);
         self.accumulator += dt;
         self.accumulator = self.accumulator.min(5.0 * FIXED_DT);
+
+        // Update hover state (must be before any system reads hover_x/y)
+        let is_touch = self.browser_state.is_touch_device();
+        self.input.update_hover(dt, is_touch);
 
         if self.input.keys_pressed.contains("KeyD") {
             self.debug_mode = !self.debug_mode;

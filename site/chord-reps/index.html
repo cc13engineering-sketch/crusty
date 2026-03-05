@@ -34,7 +34,7 @@
         }
         #attribution {
             position: fixed;
-            bottom: 8px;
+            top: 8px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
@@ -145,11 +145,11 @@
         if (!audioCtx) {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             masterCompressor = audioCtx.createDynamicsCompressor();
-            masterCompressor.threshold.value = -12;
-            masterCompressor.knee.value = 10;
-            masterCompressor.ratio.value = 4;
-            masterCompressor.attack.value = 0.003;
-            masterCompressor.release.value = 0.1;
+            masterCompressor.threshold.value = -18;
+            masterCompressor.knee.value = 20;
+            masterCompressor.ratio.value = 6;
+            masterCompressor.attack.value = 0.008;
+            masterCompressor.release.value = 0.15;
             masterCompressor.connect(audioCtx.destination);
             player = new WebAudioFontPlayer();
             player.adjustPreset(audioCtx, _tone_0000_JCLive_sf2_file);
@@ -200,11 +200,22 @@
     function playNote(note, duration, volume, instrument) {
         try {
             if (!player) return;
+            const now = audioCtx.currentTime;
+            const softVol = volume * 0.45;
+            const fadeIn = 0.02;
+            const fadeOut = Math.min(duration * 0.3, 0.15);
+
+            const env = audioCtx.createGain();
+            env.gain.setValueAtTime(0.0001, now);
+            env.gain.linearRampToValueAtTime(1.0, now + fadeIn);
+            env.gain.setValueAtTime(1.0, now + duration - fadeOut);
+            env.gain.linearRampToValueAtTime(0.0001, now + duration);
+            env.connect(masterCompressor);
+
             player.queueWaveTable(
-                audioCtx, masterCompressor,
+                audioCtx, env,
                 _tone_0000_JCLive_sf2_file,
-                audioCtx.currentTime,
-                note, duration, volume
+                now, note, duration, softVol
             );
         } catch (e) {}
     }

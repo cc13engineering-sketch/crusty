@@ -34,19 +34,19 @@
         }
         #attribution {
             position: fixed;
-            top: 8px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 10;
             pointer-events: auto;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: #aa88aa;
             letter-spacing: 0.04em;
             text-align: center;
             background: rgba(10, 10, 30, 0.7);
-            padding: 4px 16px;
+            padding: 2px 8px;
             border-radius: 12px;
-            border: 1px solid rgba(255, 102, 178, 0.15);
+            border: 1px solid rgba(255, 102, 178, 0.07);
         }
         #attribution a {
             color: #ff66b2;
@@ -554,6 +554,11 @@
         // Restore SRS state from localStorage before setup
         const savedSrs = localStorage.getItem('crusty_mt_srs');
         if (savedSrs) set_game_state_str('srs_state', savedSrs);
+
+        // Pass current real-world day so SRS scheduling works across sessions
+        // Day 0 = Unix epoch; value is fractional days since epoch
+        const currentDay = Date.now() / (1000 * 60 * 60 * 24);
+        set_game_state_str('current_day', String(currentDay));
 
         setup_chord_reps();
 

@@ -758,12 +758,12 @@ impl ChordRepsSim {
         if let Some(entry) = select_content(concept_for_content, variant_for_content, self.difficulty, content_seed) {
             self.current_insight = entry.fact.to_string();
             // Gate: no links until user has engaged (5+ correct answers)
-            // Then ~20% base rate, ~25% during streaks (user in flow)
+            // Then ~35% base rate, ~40% during streaks (user in flow)
             let has_product = entry.product.is_some();
             let past_gate = self.challenges_completed >= 5;
-            let rate = if self.streak >= 3 { 4 } else { 5 };
-            self.show_product = has_product && past_gate
-                && engine.rng.next_u64() % rate == 0;
+            let roll = engine.rng.next_u64() % 100;
+            let threshold = if self.streak >= 3 { 40 } else { 35 };
+            self.show_product = has_product && past_gate && roll < threshold;
             self.current_content = Some(entry);
             // Use enriched hint if available (for future hint presses on similar cards)
         } else {
@@ -1323,6 +1323,13 @@ impl Simulation for ChordRepsSim {
             }
         }
 
+        // Sync SRS to real-world day (JS passes fractional days since Unix epoch)
+        if let Some(day_str) = engine.global_state.get_str("current_day") {
+            if let Ok(day) = day_str.parse::<f64>() {
+                self.srs.check_day_reset(day);
+            }
+        }
+
         engine.global_state.set_f64("streak", 0.0);
         engine.global_state.set_f64("difficulty", 1.0);
     }
@@ -1492,8 +1499,8 @@ impl Simulation for ChordRepsSim {
             if let Some(idx) = self.check_option_click(mx, my) {
                 self.handle_option_click(idx, engine);
             }
-            // Piano click → toggle key (zoom-aware) — only when solved
-            if self.challenge.solved && self.piano_expanded {
+            // Piano click → toggle key (zoom-aware)
+            if self.piano_expanded {
                 let (zoom, scroll) = if is_mobile {
                     (MOBILE_ZOOM, self.piano_scroll)
                 } else {
@@ -1526,8 +1533,8 @@ impl Simulation for ChordRepsSim {
             }
         }
 
-        // Rhythm loop for toggled keys — only when solved
-        if self.challenge.solved {
+        // Rhythm loop for toggled keys
+        {
             let any_toggled = self.toggled_keys.iter().any(|&t| t);
             if any_toggled {
                 self.rhythm_timer += dt;
@@ -1694,11 +1701,16 @@ impl ChordRepsSim {
                 text::draw_text_centered(fb, cx, cy(12.0), "SCALE DEGREE", DIM_TEXT, 1);
                 text::draw_text_centered(fb, cx, cy(36.0), "Which degree is this note?", Color::WHITE, 2);
 
-                // Show the mystery note name
-                if let Some(&deg) = self.challenge.sequence.last() {
-                    let midi = degree_to_midi(self.challenge.key_root, deg);
-                    let display = format!("{}  -->  ?", note_name(midi));
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                // Before solving: just show ?. After: reveal note = degree
+                if self.challenge.solved {
+                    if let Some(&deg) = self.challenge.sequence.last() {
+                        let midi = degree_to_midi(self.challenge.key_root, deg);
+                        let degree_name = DEGREE_NAMES[(deg % 7) as usize];
+                        let display = format!("{} = {}", note_name(midi), degree_name);
+                        text::draw_text_centered(fb, cx, cy(90.0), &display, CORRECT_COLOR, 3);
+                    }
+                } else {
+                    text::draw_text_centered(fb, cx, cy(90.0), "?", ACCENT_TEAL, 3);
                 }
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
@@ -1709,9 +1721,13 @@ impl ChordRepsSim {
                 text::draw_text_centered(fb, cx, cy(12.0), "ROMAN NUMERAL", DIM_TEXT, 1);
                 text::draw_text_centered(fb, cx, cy(36.0), "Identify this chord", Color::WHITE, 2);
 
-                // Show a ? for the mystery chord
-                let display = "I  -->  ?";
-                text::draw_text_centered(fb, cx, cy(90.0), display, ACCENT_TEAL, 3);
+                // Before solving: just show ?. After: reveal the chord
+                if self.challenge.solved {
+                    let degree_name = DEGREE_NAMES[(self.challenge.answer % 7) as usize];
+                    text::draw_text_centered(fb, cx, cy(90.0), degree_name, CORRECT_COLOR, 3);
+                } else {
+                    text::draw_text_centered(fb, cx, cy(90.0), "?", ACCENT_TEAL, 3);
+                }
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
                 text::draw_text_centered(fb, cx, cy(150.0), &key_str, DIM_TEXT, 1);
@@ -1721,11 +1737,16 @@ impl ChordRepsSim {
                 text::draw_text_centered(fb, cx, cy(12.0), "INTERVAL", DIM_TEXT, 1);
                 text::draw_text_centered(fb, cx, cy(36.0), "Name this interval", Color::WHITE, 2);
 
-                if self.challenge.sequence.len() >= 2 {
-                    let note1 = note_name(self.challenge.sequence[0]);
-                    let note2 = note_name(self.challenge.sequence[1]);
-                    let display = format!("{} --> {}", note1, note2);
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                // Before solving: just show ?. After: reveal both notes
+                if self.challenge.solved {
+                    if self.challenge.sequence.len() >= 2 {
+                        let note1 = note_name(self.challenge.sequence[0]);
+                        let note2 = note_name(self.challenge.sequence[1]);
+                        let display = format!("{}  -->  {}", note1, note2);
+                        text::draw_text_centered(fb, cx, cy(90.0), &display, CORRECT_COLOR, 3);
+                    }
+                } else {
+                    text::draw_text_centered(fb, cx, cy(90.0), "?", ACCENT_TEAL, 3);
                 }
             }
             MusicConcept::ChordQuality => {
@@ -1742,12 +1763,16 @@ impl ChordRepsSim {
                 text::draw_text_centered(fb, cx, cy(12.0), "CADENCE", DIM_TEXT, 1);
                 text::draw_text_centered(fb, cx, cy(36.0), "What type of cadence is this?", Color::WHITE, 2);
 
-                // Show the two chords as Roman numerals
-                if self.challenge.sequence.len() >= 2 {
-                    let s = DEGREE_NAMES[(self.challenge.sequence[0] % 7) as usize];
-                    let r = DEGREE_NAMES[(self.challenge.sequence[1] % 7) as usize];
-                    let display = format!("{}  -->  {}", s, r);
-                    text::draw_text_centered(fb, cx, cy(90.0), &display, ACCENT_TEAL, 3);
+                // Before solving: show ? --> ?. After: reveal the chords
+                if self.challenge.solved {
+                    if self.challenge.sequence.len() >= 2 {
+                        let s = DEGREE_NAMES[(self.challenge.sequence[0] % 7) as usize];
+                        let r = DEGREE_NAMES[(self.challenge.sequence[1] % 7) as usize];
+                        let display = format!("{}  -->  {}", s, r);
+                        text::draw_text_centered(fb, cx, cy(90.0), &display, CORRECT_COLOR, 3);
+                    }
+                } else {
+                    text::draw_text_centered(fb, cx, cy(90.0), "?  -->  ?", ACCENT_TEAL, 3);
                 }
 
                 let key_str = format!("Key: {} Major", note_name(self.challenge.key_root));
@@ -1940,9 +1965,7 @@ impl ChordRepsSim {
 
         let wk_h = self.sy(WHITE_KEY_H);
         let bk_h = self.sy(BLACK_KEY_H);
-        let disabled = !self.challenge.solved;
-        // Dim factor: keys are slightly muted when piano is disabled
-        let dim_alpha: u8 = if disabled { 140 } else { 255 };
+        let dim_alpha: u8 = 255;
 
         let (zoom, scroll) = if is_mobile {
             (MOBILE_ZOOM, self.piano_scroll)
@@ -2017,12 +2040,7 @@ impl ChordRepsSim {
 
         shapes::draw_rect(fb, 0.0, piano_y, self.screen_w, wk_h, DIVIDER);
 
-        // Context-sensitive hint text
-        let hint = if disabled {
-            "Piano unlocks after answering"
-        } else {
-            "Explore the answer -- tap keys to hear notes"
-        };
+        let hint = "Tap keys to hear notes";
         if is_mobile {
             let track_h = 16.0;
             let track_y = self.slider_track_y();

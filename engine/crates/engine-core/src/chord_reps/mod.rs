@@ -1612,16 +1612,21 @@ impl Simulation for ChordRepsSim {
         engine.global_state.set_f64("difficulty", self.difficulty as f64);
         engine.global_state.set_f64("challenges_completed", self.challenges_completed as f64);
 
-        // Export link hit-zone for JS click handler (user gesture context)
+        // Export link hit-zone for JS click handler (user gesture context).
+        // Bounds must match the render_feedback layout exactly.
         if self.show_product && self.challenge.solved {
             if let Some(entry) = self.current_content {
                 if let Some(product) = &entry.product {
                     let max_w_px = self.screen_w as i32 - 40;
                     let all_lines = wrap_text(&self.current_insight, max_w_px, 2);
-                    let n_lines = all_lines.len().min(4);
+                    let max_lines = 6; // matches render_feedback
+                    let n_lines = all_lines.len().min(max_lines);
+                    let line_h = 18.0;
                     let start_y = self.sy(OPTIONS_Y + 40.0);
-                    let link_top = start_y + (n_lines as f64) * 18.0 + 8.0;
-                    let link_bot = link_top + 20.0;
+                    let link_y = start_y + (n_lines as f64) * line_h + 14.0;
+                    // 44px touch target (Apple HIG minimum)
+                    let link_top = link_y - 12.0;
+                    let link_bot = link_y + 32.0;
                     engine.global_state.set_str("link_url", product.url);
                     engine.global_state.set_f64("link_top", link_top);
                     engine.global_state.set_f64("link_bot", link_bot);

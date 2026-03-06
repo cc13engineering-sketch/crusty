@@ -24,6 +24,22 @@ pub enum PokemonType {
     Steel,
 }
 
+impl PokemonType {
+    /// Gen 2 move category derived from type.
+    /// Physical: Normal, Fighting, Poison, Ground, Flying, Bug, Rock, Ghost, Steel
+    /// Special: Fire, Water, Grass, Electric, Ice, Psychic, Dragon, Dark
+    pub fn gen2_category(self) -> MoveCategory {
+        match self {
+            PokemonType::Normal | PokemonType::Fighting | PokemonType::Poison |
+            PokemonType::Ground | PokemonType::Flying | PokemonType::Bug |
+            PokemonType::Rock | PokemonType::Ghost | PokemonType::Steel => MoveCategory::Physical,
+            PokemonType::Fire | PokemonType::Water | PokemonType::Grass |
+            PokemonType::Electric | PokemonType::Ice | PokemonType::Psychic |
+            PokemonType::Dragon | PokemonType::Dark => MoveCategory::Special,
+        }
+    }
+}
+
 /// Move damage category
 #[derive(Clone, Copy, PartialEq, Debug)]
 pub enum MoveCategory {
@@ -372,6 +388,18 @@ pub struct MoveData {
     pub accuracy: u8,
     pub pp: u8,
     pub description: &'static str,
+}
+
+impl MoveData {
+    /// Derive category from type (Gen 2 rule): Status if power==0, else type-based.
+    /// Use this instead of the manual `category` field to avoid misclassification.
+    pub fn derived_category(&self) -> MoveCategory {
+        if self.power == 0 {
+            MoveCategory::Status
+        } else {
+            self.move_type.gen2_category()
+        }
+    }
 }
 
 /// A Pokemon instance (owned by player or wild)
@@ -2156,4 +2184,69 @@ pub fn calc_damage(
     let damage = (base * stab * effectiveness * rng_roll * crit_mult * burn_mult).max(1.0) as u16;
 
     (damage, effectiveness)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Phase 0A validation: every move's manual category must match
+    /// the Gen 2 type-derived category. This catches misclassification
+    /// bugs that have recurred across multiple sprints.
+    #[test]
+    fn test_all_move_categories_match_gen2_type_rules() {
+        let mut errors = Vec::new();
+        for m in MOVE_DB.iter() {
+            let derived = m.derived_category();
+            if m.category != derived {
+                errors.push(format!(
+                    "{} ({}): manual={:?}, derived={:?} (type={:?}, power={})",
+                    m.name, m.id, m.category, derived, m.move_type, m.power
+                ));
+            }
+        }
+        assert!(
+            errors.is_empty(),
+            "Move category mismatches (manual vs Gen 2 type-derived):\n{}",
+            errors.join("\n")
+        );
+    }
+
+    #[test]
+    fn test_gen2_physical_types() {
+        assert_eq!(PokemonType::Normal.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Fighting.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Poison.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Ground.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Flying.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Bug.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Rock.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Ghost.gen2_category(), MoveCategory::Physical);
+        assert_eq!(PokemonType::Steel.gen2_category(), MoveCategory::Physical);
+    }
+
+    #[test]
+    fn test_gen2_special_types() {
+        assert_eq!(PokemonType::Fire.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Water.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Grass.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Electric.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Ice.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Psychic.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Dragon.gen2_category(), MoveCategory::Special);
+        assert_eq!(PokemonType::Dark.gen2_category(), MoveCategory::Special);
+    }
+
+    #[test]
+    fn test_status_moves_have_zero_power() {
+        for m in MOVE_DB.iter() {
+            if m.category == MoveCategory::Status {
+                assert_eq!(
+                    m.power, 0,
+                    "Status move {} has power {} (expected 0)",
+                    m.name, m.power
+                );
+            }
+        }
+    }
 }

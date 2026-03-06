@@ -231,6 +231,44 @@ Not yet implemented. `GamePhase::Credits { timer: f64 }`. Scrolling text on fram
 
 ---
 
+## Headless Testing Gaps
+
+The headless infrastructure (`headless/runner.rs`, `headless/scenario.rs`, `headless/replay.rs`) was built for pointer-driven physics games, not keyboard-driven RPGs. Sprint 58 proved `HeadlessRunner::run_sim()` works with `PokemonSim` via `InputFrame` — but several gaps remain before this game can be a full stress test for Crusty's deterministic tooling.
+
+### Gap 1: ScheduledAction has no keyboard events (CRITICAL)
+`GameScenario` drives input via `ScheduledAction`, which only has `PointerDown`, `PointerMove`, `PointerUp`. Pokemon is 100% keyboard-driven (`ArrowUp/Down/Left/Right`, `KeyZ`, `KeyX`). You cannot write a scenario that picks a starter, walks a route, or fights a battle using the current scenario system.
+
+**Workaround (current)**: The Sprint 58 headless tests use `HeadlessRunner::run_sim()` directly with `InputFrame` arrays — this works because `InputFrame` has `keys_pressed`/`keys_held`. But you lose the `GameScenario` assertion framework.
+
+**Fix**: Add `KeyDown { frame: u64, key: String }` and `KeyUp { frame: u64, key: String }` variants to `ScheduledAction`. Wire the dispatch in `GameScenario::run()` to push keys into `engine.input.keys_pressed`. This lets scenarios drive the full game: title screen → starter select → walk to gym → battle → verify badge earned.
+
+### Gap 2: `state_hash()` doesn't capture game-specific state (CRITICAL)
+`Engine::state_hash()` hashes ECS world state (transforms, rigidbodies, input keys). Pokemon doesn't use the ECS — it's a standalone `PokemonSim` struct. So `state_hash()` returns essentially the same value regardless of whether the player has 0 badges or 8. The `PlaythroughFile` and `DivergenceReport` systems rely on `state_hash` for determinism verification — but for Pokemon, they're comparing meaningless hashes.
+
+**Fix**: Add `fn state_hash(&self) -> u64` to the `Simulation` trait (default returns 0). Have `Engine::state_hash()` XOR in the simulation's hash. Implement on `PokemonSim` to hash: `current_map_id`, `player.x`, `player.y`, `badges`, `story_flags`, `money`, `party.len()`, each party Pokemon's `species_id`/`level`/`hp`, `defeated_trainers.len()`, `phase` discriminant, and `battle` state if in battle. This makes `PlaythroughFile` verification and `DivergenceReport` actually detect Pokemon-specific determinism breaks.
+
+### Gap 3: `GameScenario` uses legacy API, not `Simulation` trait
+`GameScenario` takes raw function pointers (`setup_fn`, `update_fn`, `render_fn`), not a `Simulation` impl. Pokemon implements `Simulation`. No bridge exists. The Sprint 58 tests work around this by using `HeadlessRunner::run_sim()` directly.
+
+**Fix**: Either migrate `GameScenario` to accept `&mut dyn Simulation`, or build a `PokemonScenario` wrapper that combines `run_sim()` with the `Assertion` framework from `scenario.rs`. The assertion types (`StateEquals`, `StateInRange`, `StateGreaterThan`) are reusable — they just need to be decoupled from the legacy `GameScenario` runner.
+
+### Gap 4: No "observable state" contract on Simulation trait
+The headless tools read `global_state` for metrics, but there's no trait method ensuring simulations export their state. Phase 0E added `export_debug_state()` called manually inside `step()`. If it's forgotten, headless tools see stale data.
+
+**Fix**: Add `fn export_state(&self, engine: &mut Engine)` to the `Simulation` trait (default no-op). Have the runner call it after every `step()`. Move `export_debug_state()` into this method.
+
+### Gap 5: Death classification doesn't map to RPG concepts
+`DeathClass` (Cliff, Attrition, Blowout, CloseCall) was designed for games where a single metric declines to zero. In Pokemon, relevant terminal states are: party wipe (WhiteOut), softlock (position unchanged for N frames), all badges earned, E4 defeated, credits reached. The anomaly detector could catch party wipes via `lead_hp` drops but can't distinguish "lost to wild Rattata" from "lost to Champion Lance."
+
+**Fix (future)**: Add Pokemon-specific classifications or export richer state (e.g., `game_outcome` key: "playing"/"whiteout"/"credits"/"stuck"). The anomaly detector's spike/plateau detection on `badges` and `defeated_count` already provides some regression value.
+
+### Gap 6: No goal-seeking Policy for RPGs
+`RandomPolicy` picks random keys. An RPG policy needs multi-step plans: walk to (5,10), press Z, navigate dialogue, select moves in battle. This requires map pathfinding, menu state machines, and battle AI — essentially an automated player.
+
+**Fix (future, post-Johto)**: Build a `PokemonPolicy` that reads `player_x`/`player_y`/`current_map` from observations and follows a scripted waypoint list. This would enable fully automated regression playthroughs: "start new game, pick Cyndaquil, walk to Violet City, beat Falkner, verify Zephyr Badge." Major project but the ultimate stress test for deterministic replay.
+
+---
+
 ## Technical Notes
 
 **Tile rendering**: 16×16 tiles, 4-color indexed strings in `sprites.rs`, palettes in `render.rs`. `decode_sprite()` converts string → pixel buffer. See "Tile Art Sources" section above for upgrade path to proper art packs.
@@ -406,13 +444,3 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - HeadlessRunner works correctly with PokemonSim — turbo mode ~0.2s for 200+ frames
 - All 1267 tests pass (1259 existing + 8 new headless)
 - **Next (Sprint 59)**: Tile art conversion tool + music_id wiring via global_state
-
-### Sprint 59 (Infrastructure)
-- Export `music_id` and `map_name` to global_state every frame for JS-side music playback
-- Built `tools/png_to_sprites.py`: PNG tilesheet → sprites.rs converter
-  - Auto-detects 4-color palette, maps to 0/1/2/3 indices
-  - Supports 8×8 and 16×16 source tiles (upscales 8→16 automatically)
-  - Preview mode, blank tile skipping, configurable prefix
-- Music_id mapping: 0=house, 1=town, 2=route, 3=city, 4=special, 5=dungeon, 6=E4, 7=violet, 8=gym, 9=tower, 10=park, 11=forest
-- All 1267 tests pass
-- **Next (Sprint 60 QA)**: Full QA sweep + headless regression tests

@@ -51,7 +51,7 @@ jobs:
 
       - name: Assemble site
         run: |
-          mkdir -p _site/pkg _site/demo-ball _site/changelog _site/docs
+          mkdir -p _site/pkg _site/demo-ball _site/docs
 
           # Copy WASM build artifacts
           cp _pkg/engine_core.js _site/pkg/
@@ -73,9 +73,6 @@ jobs:
             mkdir -p "_site/$name"
             cp "$demo_dir"/*.html "_site/$name/"
           done
-
-          # Copy changelog
-          cp site/changelog/index.html _site/changelog/
 
           # Copy generated docs (built from docs/*.md by build-docs.sh)
           cp site/docs/*.html _site/docs/

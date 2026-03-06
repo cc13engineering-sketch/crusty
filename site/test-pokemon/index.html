@@ -65,33 +65,35 @@
             z-index: 10;
             pointer-events: none;
         }
-        /* D-pad for mobile */
-        .dpad {
+        /* Mobile touch controls - GBC layout */
+        .touch-controls {
             display: none;
             position: fixed;
-            bottom: 60px;
-            left: 30px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
             z-index: 30;
-        }
-        .ab-buttons {
-            display: none;
-            position: fixed;
-            bottom: 60px;
-            right: 30px;
-            z-index: 30;
+            pointer-events: none;
         }
         @media (hover: none) and (pointer: coarse) {
-            .dpad, .ab-buttons { display: grid; }
+            .touch-controls { display: block; }
             .controls-hint { display: none; }
         }
+        /* D-pad: left side */
         .dpad {
-            grid-template-columns: 50px 50px 50px;
-            grid-template-rows: 50px 50px 50px;
+            display: grid;
+            position: absolute;
+            bottom: 40px;
+            left: 20px;
+            grid-template-columns: 48px 48px 48px;
+            grid-template-rows: 48px 48px 48px;
             gap: 2px;
+            pointer-events: auto;
         }
         .dpad-btn {
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
             border-radius: 8px;
             color: #fff;
             font-size: 1.2rem;
@@ -102,16 +104,27 @@
             -webkit-user-select: none;
             touch-action: manipulation;
         }
-        .dpad-btn:active { background: rgba(255,255,255,0.3); }
+        .dpad-btn:active { background: rgba(255,255,255,0.4); }
         .dpad-empty { background: transparent; border: none; }
+        /* A/B buttons: right side, GBC-style stagger (B left-lower, A right-upper) */
+        .ab-buttons {
+            display: flex;
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            flex-direction: row;
+            align-items: flex-end;
+            gap: 10px;
+            pointer-events: auto;
+        }
         .ab-btn {
-            width: 56px;
-            height: 56px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
             color: #fff;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -119,9 +132,36 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-            margin: 4px;
         }
-        .ab-btn:active { background: rgba(255,255,255,0.3); }
+        .ab-btn:active { background: rgba(255,255,255,0.4); }
+        .ab-btn-b { margin-bottom: 0; }
+        .ab-btn-a { margin-bottom: 30px; }
+        /* START/SELECT: small buttons, bottom center */
+        .start-select {
+            display: flex;
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            gap: 16px;
+            pointer-events: auto;
+        }
+        .ss-btn {
+            padding: 6px 16px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.6);
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            transform: rotate(-15deg);
+        }
+        .ss-btn:active { background: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
@@ -135,21 +175,27 @@
     </div>
     <div class="version">Crusty Engine — Pokemon Demo</div>
 
-    <!-- Mobile D-pad -->
-    <div class="dpad">
-        <div class="dpad-empty"></div>
-        <button class="dpad-btn" data-key="ArrowUp">&#9650;</button>
-        <div class="dpad-empty"></div>
-        <button class="dpad-btn" data-key="ArrowLeft">&#9664;</button>
-        <div class="dpad-empty"></div>
-        <button class="dpad-btn" data-key="ArrowRight">&#9654;</button>
-        <div class="dpad-empty"></div>
-        <button class="dpad-btn" data-key="ArrowDown">&#9660;</button>
-        <div class="dpad-empty"></div>
-    </div>
-    <div class="ab-buttons" style="display:none; flex-direction:row; gap:8px; align-items:flex-end;">
-        <button class="ab-btn" data-key="KeyX" style="margin-bottom:40px;">B</button>
-        <button class="ab-btn" data-key="KeyZ">A</button>
+    <!-- Mobile touch controls (GBC layout) -->
+    <div class="touch-controls">
+        <div class="dpad">
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" data-key="ArrowUp">&#9650;</button>
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" data-key="ArrowLeft">&#9664;</button>
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" data-key="ArrowRight">&#9654;</button>
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" data-key="ArrowDown">&#9660;</button>
+            <div class="dpad-empty"></div>
+        </div>
+        <div class="ab-buttons">
+            <button class="ab-btn ab-btn-b" data-key="KeyX">B</button>
+            <button class="ab-btn ab-btn-a" data-key="KeyZ">A</button>
+        </div>
+        <div class="start-select">
+            <button class="ss-btn" data-key="Escape">Start</button>
+            <button class="ss-btn" data-key="KeyX">Select</button>
+        </div>
     </div>
 
     <script type="module">
@@ -212,15 +258,17 @@
 
         function loadSprite(name, isBack) {
             const key = (isBack ? 'back_' : 'front_') + name;
-            if (spriteCache[key]) return spriteCache[key];
+            if (key in spriteCache) return spriteCache[key];
 
             const img = new Image();
-            img.crossOrigin = 'anonymous';
             img.src = (isBack ? BACK_SPRITE_BASE : SPRITE_BASE) + name + '.png';
             img.onload = () => { spriteCache[key] = img; };
-            img.onerror = () => { console.warn('Failed to load sprite:', name, isBack ? '(back)' : '(front)'); };
+            img.onerror = () => {
+                console.warn('Failed to load sprite:', name, isBack ? '(back)' : '(front)');
+                delete spriteCache[key]; // Allow retry
+            };
 
-            // Return null until loaded
+            // Mark as loading (use 'loading' sentinel, not null)
             spriteCache[key] = null;
             return null;
         }
@@ -230,7 +278,7 @@
             'chikorita', 'bayleef', 'cyndaquil', 'quilava', 'totodile', 'croconaw',
             'pidgey', 'rattata', 'sentret', 'hoothoot', 'caterpie', 'weedle',
             'geodude', 'zubat', 'bellsprout', 'gastly', 'onix', 'magikarp',
-            'ledyba', 'spinarak', 'mareep', 'wooper'
+            'ledyba', 'spinarak', 'mareep', 'wooper', 'hoppip'
         ];
         commonPokemon.forEach(name => {
             loadSprite(name, false);
@@ -289,8 +337,8 @@
         });
         window.addEventListener('keyup', e => key_up(e.code));
 
-        // Mobile D-pad buttons
-        document.querySelectorAll('.dpad-btn, .ab-btn').forEach(btn => {
+        // Mobile touch buttons (D-pad, A/B, Start/Select)
+        document.querySelectorAll('.dpad-btn, .ab-btn, .ss-btn').forEach(btn => {
             const keyCode = btn.dataset.key;
             btn.addEventListener('touchstart', e => {
                 e.preventDefault();
@@ -300,12 +348,16 @@
                 e.preventDefault();
                 key_up(keyCode);
             }, { passive: false });
+            // Also handle mouse for testing on desktop
+            btn.addEventListener('mousedown', e => {
+                e.preventDefault();
+                key_down(keyCode);
+            });
+            btn.addEventListener('mouseup', e => {
+                e.preventDefault();
+                key_up(keyCode);
+            });
         });
-
-        // Show mobile controls on touch devices
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.querySelector('.ab-buttons').style.display = 'flex';
-        }
 
         // --- Sound System (8-bit style with BGM) ---
         let audioCtx = null;

@@ -528,4 +528,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Confusion cleared on switch, auto-switch after faint
 - Added player_confused/enemy_confused fields to BattleState
 - 3 new tests (move data verification). All 1283 pass.
-- **Next (Sprint 68)**: Continue implementation — candidates: Toxic (escalating poison), Mean Look (trapped), more story flag wiring, or Phase 0D (NPC Action as Data)
+- **Next (Sprint 68)**: Toxic, Mean Look
+
+### Sprint 68 (Toxic + Mean Look)
+- **Added**: Toxic — BadPoison status with escalating damage (1/16, 2/16, 3/16... of max HP per turn)
+- **Added**: Mean Look — enemy use prevents player from fleeing wild battles (player_trapped)
+- Added MOVE_TOXIC (id 92, Poison, Status, 85 accuracy)
+- BadPoison persists in save (serialized as 11+turn value)
+- Updated all StatusCondition match arms for new BadPoison variant
+- 2 new tests (Toxic escalation, Toxic infliction). All 1285 pass.
+- **Next (Sprint 69)**: QA sprint

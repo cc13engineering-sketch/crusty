@@ -7,7 +7,8 @@
 // CherrygroveCity (20x18), Route30 (30x18), Route31 (30x14),
 // VioletCity (24x18), VioletGym (10x10), SproutTower (14x14),
 // PlayerHouse1F (10x8), PlayerHouse2F (10x8), ElmLab (10x10), PokemonCenter (10x8),
-// Route32 (20x30), UnionCave (16x16).
+// Route32 (20x30), UnionCave (16x16), GenericHouse (8x6), Route33 (20x12),
+// AzaleaTown (20x18), AzaleaGym (10x10), IlexForest (16x20), Route34 (16x20).
 
 // Species IDs used in encounter tables (matching data.rs constants)
 const CATERPIE: u16 = 10;
@@ -26,6 +27,15 @@ const ONIX: u16 = 95;
 const SPINARAK: u16 = 167;
 const MAREEP: u16 = 179;
 const WOOPER: u16 = 194;
+const MAGIKARP: u16 = 129;
+const ODDISH: u16 = 43;
+const DROWZEE: u16 = 96;
+const PARAS: u16 = 46;
+const CLEFAIRY: u16 = 35;
+const MILTANK: u16 = 241;
+const SNUBBULL: u16 = 209;
+const JIGGLYPUFF: u16 = 39;
+const MEOWTH: u16 = 52;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -82,6 +92,14 @@ pub enum MapId {
     PokemonCenter,
     Route32,
     UnionCave,
+    GenericHouse,
+    Route33,
+    AzaleaTown,
+    AzaleaGym,
+    IlexForest,
+    Route34,
+    GoldenrodCity,
+    GoldenrodGym,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -188,6 +206,14 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::PokemonCenter => build_pokemon_center(),
         MapId::Route32 => build_route_32(),
         MapId::UnionCave => build_union_cave(),
+        MapId::GenericHouse => build_generic_house(),
+        MapId::Route33 => build_route_33(),
+        MapId::AzaleaTown => build_azalea_town(),
+        MapId::AzaleaGym => build_azalea_gym(),
+        MapId::IlexForest => build_ilex_forest(),
+        MapId::Route34 => build_route_34(),
+        MapId::GoldenrodCity => build_goldenrod_city(),
+        MapId::GoldenrodGym => build_goldenrod_gym(),
     }
 }
 
@@ -331,13 +357,13 @@ fn build_new_bark_town() -> MapData {
 
     let warps = vec![
         // Player house door -> PlayerHouse1F
-        WarpData { x: 5, y: 4, dest_map: MapId::PlayerHouse1F, dest_x: 4, dest_y: 7 },
-        // NPC house door (not implemented interior, warp to self for now)
-        WarpData { x: 12, y: 4, dest_map: MapId::NewBarkTown, dest_x: 12, dest_y: 5 },
+        WarpData { x: 5, y: 4, dest_map: MapId::PlayerHouse1F, dest_x: 4, dest_y: 6 },
+        // NPC house door -> GenericHouse
+        WarpData { x: 12, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Elm's Lab door -> ElmLab
-        WarpData { x: 17, y: 4, dest_map: MapId::ElmLab, dest_x: 4, dest_y: 9 },
+        WarpData { x: 17, y: 4, dest_map: MapId::ElmLab, dest_x: 4, dest_y: 8 },
         // Right edge exit -> Route 29
-        WarpData { x: 19, y: 10, dest_map: MapId::Route29, dest_x: 0, dest_y: 7 },
+        WarpData { x: 19, y: 10, dest_map: MapId::Route29, dest_x: 1, dest_y: 7 },
     ];
 
     let npcs = vec![
@@ -520,9 +546,9 @@ fn build_route_29() -> MapData {
 
     let warps = vec![
         // Left edge -> New Bark Town (right exit)
-        WarpData { x: 0, y: 7, dest_map: MapId::NewBarkTown, dest_x: 19, dest_y: 10 },
+        WarpData { x: 0, y: 7, dest_map: MapId::NewBarkTown, dest_x: 18, dest_y: 10 },
         // Right edge -> Cherrygrove City (left entry)
-        WarpData { x: 29, y: 7, dest_map: MapId::CherrygroveCity, dest_x: 0, dest_y: 10 },
+        WarpData { x: 29, y: 7, dest_map: MapId::CherrygroveCity, dest_x: 1, dest_y: 10 },
     ];
 
     let npcs = vec![
@@ -698,17 +724,17 @@ fn build_cherrygrove_city() -> MapData {
 
     let warps = vec![
         // Left edge entry from Route 29
-        WarpData { x: 0, y: 10, dest_map: MapId::Route29, dest_x: 29, dest_y: 7 },
+        WarpData { x: 0, y: 10, dest_map: MapId::Route29, dest_x: 28, dest_y: 7 },
         // Pokemon Center door
-        WarpData { x: 7, y: 4, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 7 },
-        // NPC house door (upper right)
-        WarpData { x: 15, y: 4, dest_map: MapId::CherrygroveCity, dest_x: 15, dest_y: 5 },
-        // NPC house door (lower right)
-        WarpData { x: 16, y: 8, dest_map: MapId::CherrygroveCity, dest_x: 16, dest_y: 9 },
+        WarpData { x: 7, y: 4, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // NPC house door (upper right) -> GenericHouse
+        WarpData { x: 15, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // NPC house door (lower right) -> GenericHouse
+        WarpData { x: 16, y: 8, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // North exit to Route 30 (column 9)
-        WarpData { x: 9, y: 0, dest_map: MapId::Route30, dest_x: 14, dest_y: 17 },
+        WarpData { x: 9, y: 0, dest_map: MapId::Route30, dest_x: 14, dest_y: 16 },
         // North exit to Route 30 (column 10)
-        WarpData { x: 10, y: 0, dest_map: MapId::Route30, dest_x: 15, dest_y: 17 },
+        WarpData { x: 10, y: 0, dest_map: MapId::Route30, dest_x: 15, dest_y: 16 },
     ];
 
     let npcs = vec![
@@ -939,9 +965,9 @@ fn build_route_30() -> MapData {
         // South exit -> CherrygroveCity north (column 15 -> Cherrygrove col 10)
         WarpData { x: 15, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 10, dest_y: 1 },
         // East exit -> Route 31 (row 2)
-        WarpData { x: 29, y: 2, dest_map: MapId::Route31, dest_x: 0, dest_y: 7 },
+        WarpData { x: 29, y: 2, dest_map: MapId::Route31, dest_x: 1, dest_y: 7 },
         // East exit -> Route 31 (row 3)
-        WarpData { x: 29, y: 3, dest_map: MapId::Route31, dest_x: 0, dest_y: 8 },
+        WarpData { x: 29, y: 3, dest_map: MapId::Route31, dest_x: 1, dest_y: 8 },
     ];
 
     let npcs = vec![
@@ -1141,8 +1167,8 @@ fn build_route_31() -> MapData {
         WarpData { x: 0, y: 7, dest_map: MapId::Route30, dest_x: 28, dest_y: 2 },
         WarpData { x: 0, y: 8, dest_map: MapId::Route30, dest_x: 28, dest_y: 3 },
         // Right edge -> Violet City (west entry)
-        WarpData { x: 29, y: 7, dest_map: MapId::VioletCity, dest_x: 0, dest_y: 10 },
-        WarpData { x: 29, y: 8, dest_map: MapId::VioletCity, dest_x: 0, dest_y: 11 },
+        WarpData { x: 29, y: 7, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 10 },
+        WarpData { x: 29, y: 8, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 11 },
     ];
 
     let npcs = vec![
@@ -1361,20 +1387,20 @@ fn build_violet_city() -> MapData {
 
     let warps = vec![
         // West edge entry from Route 31 (row 10)
-        WarpData { x: 0, y: 10, dest_map: MapId::Route31, dest_x: 29, dest_y: 7 },
+        WarpData { x: 0, y: 10, dest_map: MapId::Route31, dest_x: 28, dest_y: 7 },
         // West edge entry from Route 31 (row 11)
-        WarpData { x: 0, y: 11, dest_map: MapId::Route31, dest_x: 29, dest_y: 8 },
+        WarpData { x: 0, y: 11, dest_map: MapId::Route31, dest_x: 28, dest_y: 8 },
         // Pokemon Center door -> PokemonCenter interior
-        WarpData { x: 5, y: 11, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 7 },
-        // Poke Mart door (not implemented interior, warp to self)
-        WarpData { x: 15, y: 11, dest_map: MapId::VioletCity, dest_x: 15, dest_y: 12 },
+        WarpData { x: 5, y: 11, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // Poke Mart door -> GenericHouse (used as mart interior)
+        WarpData { x: 15, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Violet Gym door -> VioletGym interior
-        WarpData { x: 10, y: 6, dest_map: MapId::VioletGym, dest_x: 5, dest_y: 9 },
+        WarpData { x: 10, y: 6, dest_map: MapId::VioletGym, dest_x: 5, dest_y: 8 },
         // Sprout Tower door -> SproutTower interior
-        WarpData { x: 18, y: 4, dest_map: MapId::SproutTower, dest_x: 7, dest_y: 13 },
+        WarpData { x: 18, y: 4, dest_map: MapId::SproutTower, dest_x: 7, dest_y: 12 },
         // South exit to Route 32 (x=11,12 at bottom edge)
-        WarpData { x: 11, y: 17, dest_map: MapId::Route32, dest_x: 9, dest_y: 0 },
-        WarpData { x: 12, y: 17, dest_map: MapId::Route32, dest_x: 10, dest_y: 0 },
+        WarpData { x: 11, y: 17, dest_map: MapId::Route32, dest_x: 9, dest_y: 1 },
+        WarpData { x: 12, y: 17, dest_map: MapId::Route32, dest_x: 10, dest_y: 1 },
     ];
 
     let npcs = vec![
@@ -1711,8 +1737,8 @@ fn build_player_house_1f() -> MapData {
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 6: stairs area (left) and floor
         BLACK,BOOKSHELF,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 7: bottom wall with door
-        BLACK,BLACK,BLACK,BLACK,DOOR,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 7: bottom wall with 2-tile-wide door
+        BLACK,BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,BLACK,
     ];
 
     #[rustfmt::skip]
@@ -1731,16 +1757,17 @@ fn build_player_house_1f() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 6: stairs solid, floor
         C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 7: wall solid, door warp
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 7: wall solid, 2-tile door warp
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
 
     debug_assert_eq!(tiles.len(), w * h, "PlayerHouse1F tiles count mismatch");
     debug_assert_eq!(collision.len(), w * h, "PlayerHouse1F collision count mismatch");
 
     let warps = vec![
-        // Door exits to New Bark Town (in front of player house)
+        // Door exits to New Bark Town (in front of player house) - 2 tiles wide
         WarpData { x: 4, y: 7, dest_map: MapId::NewBarkTown, dest_x: 5, dest_y: 5 },
+        WarpData { x: 5, y: 7, dest_map: MapId::NewBarkTown, dest_x: 5, dest_y: 5 },
     ];
 
     let npcs = vec![
@@ -1864,8 +1891,8 @@ fn build_elm_lab() -> MapData {
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 8: floor near door
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 9: bottom wall with door
-        BLACK,BLACK,BLACK,BLACK,DOOR,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 9: bottom wall with 2-tile-wide door
+        BLACK,BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,BLACK,
     ];
 
     #[rustfmt::skip]
@@ -1888,16 +1915,17 @@ fn build_elm_lab() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 8: floor
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 9: wall + door warp
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 9: wall + 2-tile door warp
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
 
     debug_assert_eq!(tiles.len(), w * h, "ElmLab tiles count mismatch");
     debug_assert_eq!(collision.len(), w * h, "ElmLab collision count mismatch");
 
     let warps = vec![
-        // Door exits to New Bark Town (in front of lab)
+        // Door exits to New Bark Town (in front of lab) - 2 tiles wide
         WarpData { x: 4, y: 9, dest_map: MapId::NewBarkTown, dest_x: 17, dest_y: 5 },
+        WarpData { x: 5, y: 9, dest_map: MapId::NewBarkTown, dest_x: 17, dest_y: 5 },
     ];
 
     let npcs = vec![
@@ -1956,8 +1984,8 @@ fn build_pokemon_center() -> MapData {
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 6: floor near entrance
         BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BLACK,
-        // Row 7: bottom wall with door
-        BLACK,BLACK,BLACK,BLACK,DOOR,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 7: bottom wall with 2-tile-wide door
+        BLACK,BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,BLACK,
     ];
 
     #[rustfmt::skip]
@@ -1976,16 +2004,17 @@ fn build_pokemon_center() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 6: bookshelves solid on sides
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 7: wall + door warp
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 7: wall + 2-tile door warp
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
 
     debug_assert_eq!(tiles.len(), w * h, "PokemonCenter tiles count mismatch");
     debug_assert_eq!(collision.len(), w * h, "PokemonCenter collision count mismatch");
 
     let warps = vec![
-        // Door exits to Cherrygrove City (in front of pokecenter)
+        // Door exits to Cherrygrove City (in front of pokecenter) - 2 tiles wide
         WarpData { x: 4, y: 7, dest_map: MapId::CherrygroveCity, dest_x: 7, dest_y: 5 },
+        WarpData { x: 5, y: 7, dest_map: MapId::CherrygroveCity, dest_x: 7, dest_y: 5 },
     ];
 
     let npcs = vec![
@@ -2223,8 +2252,8 @@ fn build_route_32() -> MapData {
         WarpData { x: 9, y: 0, dest_map: MapId::VioletCity, dest_x: 11, dest_y: 16 },
         WarpData { x: 10, y: 0, dest_map: MapId::VioletCity, dest_x: 12, dest_y: 16 },
         // South exit to Union Cave (x=9,10 at row 29)
-        WarpData { x: 9, y: 29, dest_map: MapId::UnionCave, dest_x: 7, dest_y: 1 },
-        WarpData { x: 10, y: 29, dest_map: MapId::UnionCave, dest_x: 8, dest_y: 1 },
+        WarpData { x: 9, y: 29, dest_map: MapId::UnionCave, dest_x: 7, dest_y: 2 },
+        WarpData { x: 10, y: 29, dest_map: MapId::UnionCave, dest_x: 8, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -2373,9 +2402,9 @@ fn build_union_cave() -> MapData {
         // North entrance warps back to Route 32 (near south end of Route 32)
         WarpData { x: 7, y: 1, dest_map: MapId::Route32, dest_x: 9, dest_y: 28 },
         WarpData { x: 8, y: 1, dest_map: MapId::Route32, dest_x: 10, dest_y: 28 },
-        // South exit warps back to Route 32 (dead end loop for now)
-        WarpData { x: 7, y: 15, dest_map: MapId::Route32, dest_x: 9, dest_y: 28 },
-        WarpData { x: 8, y: 15, dest_map: MapId::Route32, dest_x: 10, dest_y: 28 },
+        // South exit to Route 33
+        WarpData { x: 7, y: 15, dest_map: MapId::Route33, dest_x: 1, dest_y: 5 },
+        WarpData { x: 8, y: 15, dest_map: MapId::Route33, dest_x: 1, dest_y: 6 },
     ];
 
     let npcs = vec![
@@ -2494,6 +2523,1185 @@ impl MapData {
     }
 }
 
+fn build_generic_house() -> MapData {
+    let w: usize = 8;
+    let h: usize = 7;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,PC,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "GenericHouse tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "GenericHouse collision count mismatch");
+
+    // Exit warp — destination will be overridden dynamically (like PokemonCenter)
+    let warps = vec![
+        WarpData { x: 3, y: 6, dest_map: MapId::NewBarkTown, dest_x: 12, dest_y: 5 },
+        WarpData { x: 4, y: 6, dest_map: MapId::NewBarkTown, dest_x: 12, dest_y: 5 },
+    ];
+
+    let npcs = vec![
+        NpcDef {
+            x: 4, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "I love this town.",
+                "It's so peaceful here.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    MapData {
+        id: MapId::GenericHouse,
+        name: "HOUSE",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 0,
+    }
+}
+
+// ─── Route 33 (20x12) ──────────────────────────────────
+// Short route connecting Union Cave to Azalea Town. Rainy in the game.
+
+fn build_route_33() -> MapData {
+    let w: usize = 20;
+    let h: usize = 12;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: trees
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: trees
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: trees + grass
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3: trees + grass + path
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: grass + path
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,
+        GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: main east-west path (entry from Union Cave left)
+        PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,
+        PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 6: main path continued (exit to Azalea right)
+        PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,
+        GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,PATH,PATH,
+        // Row 7: grass + tall grass
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,
+        // Row 8: grass
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        // Row 9: grass
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10: tree tops
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 11: tree bottoms
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0-1: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: left warp from Union Cave, right continues
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 6: right warp to Azalea Town
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10-11: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "Route33 tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "Route33 collision count mismatch");
+
+    let warps = vec![
+        // Left edge -> Union Cave south exit
+        WarpData { x: 0, y: 5, dest_map: MapId::UnionCave, dest_x: 7, dest_y: 14 },
+        WarpData { x: 0, y: 6, dest_map: MapId::UnionCave, dest_x: 8, dest_y: 14 },
+        // Right edge -> Azalea Town
+        WarpData { x: 19, y: 5, dest_map: MapId::AzaleaTown, dest_x: 1, dest_y: 9 },
+        WarpData { x: 19, y: 6, dest_map: MapId::AzaleaTown, dest_x: 1, dest_y: 10 },
+    ];
+
+    let npcs = vec![
+        NpcDef {
+            x: 10, y: 4, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "It always rains on",
+                "ROUTE 33. So annoying!",
+            ],
+            is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 30 },
+        EncounterEntry { species_id: GEODUDE, min_level: 6, max_level: 8, weight: 20 },
+        EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 15 },
+        EncounterEntry { species_id: HOPPIP, min_level: 6, max_level: 8, weight: 20 },
+        EncounterEntry { species_id: SPINARAK, min_level: 6, max_level: 8, weight: 15 },
+    ];
+
+    MapData {
+        id: MapId::Route33,
+        name: "ROUTE 33",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 2,
+    }
+}
+
+// ─── Azalea Town (20x18) ────────────────────────────────
+// Home of Kurt the Pokeball maker and Bugsy's Gym.
+
+fn build_azalea_town() -> MapData {
+    let w: usize = 20;
+    let h: usize = 18;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: tree tops with NE exit to Ilex Forest
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,TREE_TOP,
+        // Row 1: tree bottoms with path to Ilex
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,PATH,PATH,TREE_BOTTOM,
+        // Row 2: grass + building roofs
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 3: grass + Kurt's house wall
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 4: grass + Kurt's house door
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: grass + path in front
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,
+        PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 6: Gym roof + path
+        GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 7: Gym wall + path
+        GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: Gym door + path
+        GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9: path (entry from Route 33)
+        PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10: path + PokemonCenter
+        PATH,PATH,GRASS,GRASS,GRASS,POKECENTER_ROOF,POKECENTER_ROOF,POKECENTER_ROOF,GRASS,GRASS,
+        GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11: PokemonCenter + mart
+        PATH,GRASS,GRASS,GRASS,GRASS,POKECENTER_WALL,POKECENTER_WALL,POKECENTER_WALL,GRASS,BUILDING_ROOF,
+        BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 12: PokemonCenter door + mart wall
+        GRASS,GRASS,GRASS,GRASS,GRASS,POKECENTER_WALL,POKECENTER_DOOR,POKECENTER_WALL,GRASS,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 13: path + mart door
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_WALL,
+        DOOR,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14: grass + sign
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,SIGN,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 15: flowers + grass
+        GRASS,GRASS,FLOWER,FLOWER,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 16: tree tops
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 17: tree bottoms
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid trees with NE exit warp to Ilex Forest
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,
+        // Row 1: path leading to Ilex exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2: building roof solid
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 3: building wall solid
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 4: Kurt's door
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: path
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6: Gym roof solid
+        C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 7: Gym wall solid
+        C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: Gym door
+        C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9: path (left warp from Route 33)
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: PokemonCenter roof solid
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11: walls
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12: PokemonCenter door, mart wall
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 13: mart door
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14: sign
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 15
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 16-17: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "AzaleaTown tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "AzaleaTown collision count mismatch");
+
+    let warps = vec![
+        // West edge -> Route 33
+        WarpData { x: 0, y: 9, dest_map: MapId::Route33, dest_x: 18, dest_y: 5 },
+        WarpData { x: 0, y: 10, dest_map: MapId::Route33, dest_x: 18, dest_y: 6 },
+        // Kurt's house door -> GenericHouse
+        WarpData { x: 8, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Azalea Gym door
+        WarpData { x: 2, y: 8, dest_map: MapId::AzaleaGym, dest_x: 5, dest_y: 8 },
+        // Pokemon Center door
+        WarpData { x: 6, y: 12, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // Mart door -> GenericHouse (mart interior)
+        WarpData { x: 10, y: 13, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Northeast exit -> Ilex Forest (south)
+        WarpData { x: 17, y: 0, dest_map: MapId::IlexForest, dest_x: 3, dest_y: 18 },
+        WarpData { x: 18, y: 0, dest_map: MapId::IlexForest, dest_x: 4, dest_y: 18 },
+    ];
+
+    let npcs = vec![
+        NpcDef {
+            x: 5, y: 5, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "AZALEA TOWN is famous",
+                "for SLOWPOKE. They say",
+                "SLOWPOKE bring the rain.",
+            ],
+            is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
+        },
+        NpcDef {
+            x: 12, y: 12, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "Welcome! We have a great",
+                "selection of items today!",
+            ],
+            is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    MapData {
+        id: MapId::AzaleaTown,
+        name: "AZALEA TOWN",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 10,
+    }
+}
+
+// ─── Azalea Gym (10x10) ────────────────────────────────
+// Bug-type gym. Leader: Bugsy.
+
+fn build_azalea_gym() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: black walls
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: gym interior
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2: gym leader area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 3
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5: trainee area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 8
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: exit door
+        BLACK,BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "AzaleaGym tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "AzaleaGym collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 4, y: 9, dest_map: MapId::AzaleaTown, dest_x: 2, dest_y: 9 },
+        WarpData { x: 5, y: 9, dest_map: MapId::AzaleaTown, dest_x: 2, dest_y: 9 },
+    ];
+
+    let npcs = vec![
+        // Gym Leader Bugsy
+        NpcDef {
+            x: 5, y: 2, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "I'm BUGSY!",
+                "I never lose when it",
+                "comes to BUG POKEMON!",
+                "My research is going",
+                "to make me the best!",
+                "Let me demonstrate!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: CATERPIE, level: 14 },
+                TrainerPokemon { species_id: SPINARAK, level: 14 },
+                TrainerPokemon { species_id: CATERPIE, level: 16 },
+            ],
+        },
+        // Gym trainee
+        NpcDef {
+            x: 3, y: 5, sprite_id: 2, facing: Direction::Right,
+            dialogue: &[
+                "BUG POKEMON are so",
+                "cool! They evolve",
+                "really quickly!",
+                "Battle me!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: CATERPIE, level: 10 },
+                TrainerPokemon { species_id: WEEDLE, level: 10 },
+            ],
+        },
+    ];
+
+    MapData {
+        id: MapId::AzaleaGym,
+        name: "AZALEA GYM",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 8,
+    }
+}
+
+// ─── Ilex Forest (16x20) ─────────────────────────────────
+// Dense forest connecting Azalea Town (south) to Route 34 (north).
+// Contains Farfetch'd chase event, Charcoal Maker, Cut tree, and Headbutt tutor.
+fn build_ilex_forest() -> MapData {
+    let w: usize = 16;
+    let h: usize = 20;
+
+    // T=TREE_TOP, B=TREE_BOTTOM, G=GRASS, P=PATH, TG=TALL_GRASS, F=FLOWER
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: dense tree canopy top
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: tree bottoms with north exit gap (blocked by Cut tree)
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: forest path winds east
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,PATH,PATH,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: headbutt tutor area
+        TREE_TOP,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 5
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 6: winding path area
+        TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 7
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 8: Farfetch'd area
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,
+        // Row 9
+        TREE_BOTTOM,GRASS,GRASS,TREE_TOP,GRASS,PATH,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 10: mid-forest clearing
+        TREE_TOP,GRASS,GRASS,TREE_BOTTOM,GRASS,PATH,GRASS,TREE_BOTTOM,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_TOP,GRASS,TREE_TOP,
+        // Row 11
+        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,TREE_BOTTOM,
+        // Row 12: second Farfetch'd area
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 13
+        TREE_BOTTOM,GRASS,GRASS,PATH,PATH,GRASS,TREE_TOP,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_BOTTOM,
+        // Row 14: charcoal kiln area
+        TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,
+        // Row 15
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 16
+        TREE_TOP,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 17
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 18: approaching south exit
+        TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,
+        // Row 19: south exit (to Azalea Town)
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid tree tops
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: tree bottoms with north exit (Cut tree blocks)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 5
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 14
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 15
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 16
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 17
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 18
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 19: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    let warps = vec![
+        // North exit → Route 34 (south end)
+        WarpData { x: 7, y: 1, dest_map: MapId::Route34, dest_x: 7, dest_y: 18 },
+        WarpData { x: 8, y: 1, dest_map: MapId::Route34, dest_x: 8, dest_y: 18 },
+        // South exit → Azalea Town (north end)
+        WarpData { x: 3, y: 19, dest_map: MapId::AzaleaTown, dest_x: 17, dest_y: 1 },
+        WarpData { x: 4, y: 19, dest_map: MapId::AzaleaTown, dest_x: 18, dest_y: 1 },
+    ];
+
+    let npcs = vec![
+        // Charcoal Maker's apprentice (near south entrance)
+        NpcDef {
+            x: 5, y: 15, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "Oh no! My master's",
+                "FARFETCH'D has run off",
+                "into the forest!",
+                "I can't control it",
+                "because I don't have",
+                "any GYM BADGES...",
+                "Could you find it?",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Headbutt tutor
+        NpcDef {
+            x: 7, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "Did you know you can",
+                "HEADBUTT trees to find",
+                "hidden POKEMON?",
+                "Here, take this TM.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: CATERPIE, min_level: 5, max_level: 6, weight: 30 },
+        EncounterEntry { species_id: WEEDLE, min_level: 5, max_level: 6, weight: 15 },
+        EncounterEntry { species_id: ODDISH, min_level: 5, max_level: 6, weight: 20 },
+        EncounterEntry { species_id: PARAS, min_level: 5, max_level: 6, weight: 15 },
+        EncounterEntry { species_id: ZUBAT, min_level: 5, max_level: 6, weight: 10 },
+        EncounterEntry { species_id: PIDGEY, min_level: 7, max_level: 7, weight: 10 },
+    ];
+
+    MapData {
+        id: MapId::IlexForest,
+        name: "ILEX FOREST",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 10,
+    }
+}
+
+// ─── Route 34 (16x20) ───────────────────────────────────
+// Connects Ilex Forest (south) to Goldenrod City (north).
+// Day Care Center near the north end. Tall grass with Drowzee, Rattata, Abra, Ditto.
+fn build_route_34() -> MapData {
+    let w: usize = 16;
+    let h: usize = 20;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north exit to Goldenrod
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,PATH,PATH,PATH,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: Day Care building
+        TREE_TOP,TREE_TOP,TREE_TOP,BUILDING_ROOF,BUILDING_ROOF,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,BUILDING_WALL,BUILDING_WALL,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        TREE_TOP,TREE_TOP,TREE_TOP,DOOR,FENCE_H,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 5
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 6: trainer area
+        TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 7
+        TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 8
+        TREE_TOP,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 9
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 10
+        TREE_TOP,GRASS,TALL_GRASS,GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 11
+        TREE_BOTTOM,GRASS,TALL_GRASS,GRASS,PATH,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 12
+        TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 13
+        TREE_BOTTOM,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 14
+        TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 15
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 16
+        TREE_TOP,GRASS,PATH,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 17
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 18
+        TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 19: south exit to Ilex Forest
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: north exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: Day Care roof
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4: Day Care door
+        C_SOLID,C_SOLID,C_SOLID,C_SIGN,C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 5
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 11
+        C_SOLID,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 14
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 16
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 17
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 18
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 19: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    let warps = vec![
+        // North exit → Goldenrod City (south end)
+        WarpData { x: 6, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 11, dest_y: 18 },
+        WarpData { x: 7, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 12, dest_y: 18 },
+        WarpData { x: 8, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 13, dest_y: 18 },
+        WarpData { x: 9, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 14, dest_y: 18 },
+        // South exit → Ilex Forest (north exit)
+        WarpData { x: 7, y: 19, dest_map: MapId::IlexForest, dest_x: 7, dest_y: 2 },
+        WarpData { x: 8, y: 19, dest_map: MapId::IlexForest, dest_x: 8, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Day Care Man (outside)
+        NpcDef {
+            x: 5, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "I'm the DAY-CARE MAN.",
+                "We look after your",
+                "POKEMON for you.",
+                "Would you like to use",
+                "the DAY-CARE?",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Youngster trainer
+        NpcDef {
+            x: 6, y: 7, sprite_id: 2, facing: Direction::Left,
+            dialogue: &[
+                "I'm raising my team",
+                "by battling trainers",
+                "on this route!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATTATA, level: 12 },
+                TrainerPokemon { species_id: PIDGEY, level: 12 },
+            ],
+        },
+        // Picnicker
+        NpcDef {
+            x: 4, y: 11, sprite_id: 4, facing: Direction::Right,
+            dialogue: &[
+                "Route 34 is perfect",
+                "for training POKEMON!",
+                "Let's battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: HOPPIP, level: 11 },
+                TrainerPokemon { species_id: HOPPIP, level: 11 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: DROWZEE, min_level: 10, max_level: 12, weight: 40 },
+        EncounterEntry { species_id: RATTATA, min_level: 11, max_level: 13, weight: 30 },
+        EncounterEntry { species_id: PIDGEY, min_level: 12, max_level: 12, weight: 15 },
+        EncounterEntry { species_id: DROWZEE, min_level: 10, max_level: 10, weight: 10 },
+        // Abra and Ditto are rare — we use low weight
+        EncounterEntry { species_id: DROWZEE, min_level: 12, max_level: 12, weight: 5 },
+    ];
+
+    MapData {
+        id: MapId::Route34,
+        name: "ROUTE 34",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 2,
+    }
+}
+
+// ─── Goldenrod City (24x20) ─────────────────────────────
+// Largest city in Johto. Pokemon Center, Mart, Gym, Bike Shop, Radio Tower.
+// South exit to Route 34, north exit to Route 35.
+fn build_goldenrod_city() -> MapData {
+    let w: usize = 24;
+    let h: usize = 20;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north border (trees + Route 35 exit)
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        GRASS,PATH,PATH,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: Radio Tower roof + buildings
+        GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,GRASS,GRASS,
+        PATH,PATH,PATH,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 3: Radio Tower wall
+        GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,
+        PATH,PATH,PATH,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 4: Radio Tower door + path
+        GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 5: Main east-west road
+        GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,GRASS,
+        // Row 6: Dept Store roof
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_ROOF,
+        BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 7: Dept Store wall
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 8: Dept Store door + path
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_WALL,
+        BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 9: Gym roof area
+        GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 10: Gym wall
+        GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 11: Gym door
+        GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 12: path + PokeCenter roof
+        GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,BUILDING_ROOF,
+        BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 13: PokeCenter wall + Pokecenter door area
+        GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,POKECENTER_WALL,
+        POKECENTER_WALL,POKECENTER_WALL,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,
+        BUILDING_ROOF,GRASS,GRASS,GRASS,
+        // Row 14: PokeCenter door
+        GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,POKECENTER_WALL,
+        POKECENTER_DOOR,POKECENTER_WALL,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_WALL,DOOR,
+        BUILDING_WALL,GRASS,GRASS,GRASS,
+        // Row 15: Bike Shop area + south path
+        GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,FENCE_H,FENCE_H,
+        FENCE_H,GRASS,GRASS,GRASS,
+        // Row 16: Flower area
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,FLOWER,FLOWER,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 17
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        GRASS,FLOWER,FLOWER,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,
+        // Row 18
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,PATH,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 19: south exit to Route 34
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: north border
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: roofs solid
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 3: walls solid
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 4: doors
+        C_WALK,C_WALK,C_SOLID,C_SIGN,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SIGN,C_SOLID,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: main road
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9: gym roof
+        C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: gym wall
+        C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11: gym door
+        C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12: PokeCenter roof
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 13: PokeCenter wall
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 14: PokeCenter door + Bike Shop door
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SIGN,
+        C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 15: path
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 16: flower area
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 17
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 18
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 19: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    let warps = vec![
+        // North exit → Route 35 (placeholder - loops back for now)
+        WarpData { x: 11, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 11, dest_y: 1 },
+        WarpData { x: 12, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 12, dest_y: 1 },
+        // South exit → Route 34
+        WarpData { x: 11, y: 19, dest_map: MapId::Route34, dest_x: 6, dest_y: 1 },
+        WarpData { x: 12, y: 19, dest_map: MapId::Route34, dest_x: 7, dest_y: 1 },
+        WarpData { x: 13, y: 19, dest_map: MapId::Route34, dest_x: 8, dest_y: 1 },
+        WarpData { x: 14, y: 19, dest_map: MapId::Route34, dest_x: 9, dest_y: 1 },
+        // Gym door
+        WarpData { x: 2, y: 11, dest_map: MapId::GoldenrodGym, dest_x: 5, dest_y: 8 },
+        // Pokemon Center door
+        WarpData { x: 10, y: 14, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // Dept Store door → GenericHouse (mart)
+        WarpData { x: 11, y: 8, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+    ];
+
+    let npcs = vec![
+        // Flower Shop lady
+        NpcDef {
+            x: 11, y: 16, sprite_id: 4, facing: Direction::Down,
+            dialogue: &[
+                "Welcome to the",
+                "FLOWER SHOP!",
+                "After you beat WHITNEY",
+                "come back for a",
+                "SQUIRTBOTTLE.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Bike Shop owner (sign interaction)
+        NpcDef {
+            x: 20, y: 15, sprite_id: 3, facing: Direction::Left,
+            dialogue: &[
+                "I make BICYCLES.",
+                "Want one? Just take it!",
+                "Ride it everywhere!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // City guide
+        NpcDef {
+            x: 8, y: 5, sprite_id: 2, facing: Direction::Right,
+            dialogue: &[
+                "GOLDENROD CITY is the",
+                "biggest city in JOHTO!",
+                "The GYM is south.",
+                "WHITNEY uses NORMAL",
+                "type POKEMON.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    MapData {
+        id: MapId::GoldenrodCity,
+        name: "GOLDENROD CITY",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 11,
+    }
+}
+
+// ─── Goldenrod Gym (10x10) ──────────────────────────────
+// Whitney's Normal-type Gym. Clefairy maze pattern.
+fn build_goldenrod_gym() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2: Whitney's area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 3
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4: flower maze
+        BLACK,FLOOR,FLOWER,FLOWER,FLOOR,FLOOR,FLOWER,FLOWER,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOWER,FLOOR,FLOOR,FLOOR,FLOOR,FLOWER,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,FLOWER,FLOOR,FLOOR,FLOOR,FLOOR,FLOWER,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOWER,FLOWER,FLOOR,FLOOR,FLOWER,FLOWER,FLOOR,BLACK,
+        // Row 8
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: exit
+        BLACK,BLACK,BLACK,BLACK,DOOR,DOOR,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4: flower walls
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9: exit door
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    let warps = vec![
+        WarpData { x: 4, y: 9, dest_map: MapId::GoldenrodCity, dest_x: 2, dest_y: 12 },
+        WarpData { x: 5, y: 9, dest_map: MapId::GoldenrodCity, dest_x: 2, dest_y: 12 },
+    ];
+
+    let npcs = vec![
+        // Whitney - Gym Leader
+        NpcDef {
+            x: 5, y: 2, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "I'm WHITNEY!",
+                "Everyone says I'm",
+                "pretty NORMAL...",
+                "But I'm also pretty",
+                "tough! Come on!",
+                "Let me show you!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: CLEFAIRY, level: 18 },
+                TrainerPokemon { species_id: MILTANK, level: 20 },
+            ],
+        },
+        // Lass Carrie
+        NpcDef {
+            x: 3, y: 5, sprite_id: 4, facing: Direction::Right,
+            dialogue: &[
+                "NORMAL type POKEMON",
+                "are so cute!",
+                "Don't you think so?",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SNUBBULL, level: 18 },
+            ],
+        },
+        // Lass Bridget
+        NpcDef {
+            x: 5, y: 6, sprite_id: 4, facing: Direction::Down,
+            dialogue: &[
+                "JIGGLYPUFF's SING",
+                "is a lullaby! Watch!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: JIGGLYPUFF, level: 15 },
+                TrainerPokemon { species_id: JIGGLYPUFF, level: 15 },
+                TrainerPokemon { species_id: JIGGLYPUFF, level: 15 },
+            ],
+        },
+        // Beauty Samantha
+        NpcDef {
+            x: 8, y: 3, sprite_id: 4, facing: Direction::Left,
+            dialogue: &[
+                "My cute MEOWTH will",
+                "scratch you to bits!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: MEOWTH, level: 16 },
+                TrainerPokemon { species_id: MEOWTH, level: 16 },
+            ],
+        },
+    ];
+
+    MapData {
+        id: MapId::GoldenrodGym,
+        name: "GOLDENROD GYM",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 8,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2587,6 +3795,14 @@ mod tests {
             MapId::PokemonCenter,
             MapId::Route32,
             MapId::UnionCave,
+            MapId::GenericHouse,
+            MapId::Route33,
+            MapId::AzaleaTown,
+            MapId::AzaleaGym,
+            MapId::IlexForest,
+            MapId::Route34,
+            MapId::GoldenrodCity,
+            MapId::GoldenrodGym,
         ];
         for id in &maps {
             let map = load_map(*id);

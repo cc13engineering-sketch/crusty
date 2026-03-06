@@ -81,6 +81,16 @@ pub const SPINARAK: SpeciesId = 167;
 pub const MAREEP: SpeciesId = 179;
 pub const WOOPER: SpeciesId = 194;
 pub const HOPPIP: SpeciesId = 187;
+pub const ODDISH: SpeciesId = 43;
+pub const DROWZEE: SpeciesId = 96;
+pub const ABRA: SpeciesId = 63;
+pub const DITTO: SpeciesId = 132;
+pub const PARAS: SpeciesId = 46;
+pub const CLEFAIRY: SpeciesId = 35;
+pub const MILTANK: SpeciesId = 241;
+pub const SNUBBULL: SpeciesId = 209;
+pub const JIGGLYPUFF: SpeciesId = 39;
+pub const MEOWTH: SpeciesId = 52;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_TACKLE: MoveId = 33;
@@ -111,6 +121,32 @@ pub const MOVE_NIGHT_SHADE: MoveId = 101;
 pub const MOVE_LICK: MoveId = 122;
 pub const MOVE_SPLASH: MoveId = 150;
 pub const MOVE_SCARY_FACE: MoveId = 184;
+pub const MOVE_LEECH_LIFE: MoveId = 141;
+pub const MOVE_MUD_SLAP: MoveId = 189;
+pub const MOVE_ABSORB: MoveId = 71;
+pub const MOVE_CONFUSION: MoveId = 93;
+pub const MOVE_POUND: MoveId = 1;
+pub const MOVE_TELEPORT: MoveId = 100;
+pub const MOVE_TRANSFORM: MoveId = 144;
+pub const MOVE_POISON_POWDER: MoveId = 77;
+pub const MOVE_STUN_SPORE: MoveId = 78;
+pub const MOVE_SLEEP_POWDER: MoveId = 79;
+pub const MOVE_ACID: MoveId = 51;
+pub const MOVE_FURY_SWIPES: MoveId = 154;
+pub const MOVE_SLAM: MoveId = 21;
+pub const MOVE_CONFUSE_RAY: MoveId = 109;
+pub const MOVE_MAGNITUDE: MoveId = 222;
+pub const MOVE_HYPER_FANG: MoveId = 162;
+pub const MOVE_DOUBLE_KICK: MoveId = 24;
+pub const MOVE_ROLLOUT: MoveId = 205;
+pub const MOVE_ATTRACT: MoveId = 213;
+pub const MOVE_STOMP: MoveId = 23;
+pub const MOVE_MILK_DRINK: MoveId = 208;
+pub const MOVE_DOUBLESLAP: MoveId = 3;
+pub const MOVE_METRONOME: MoveId = 118;
+pub const MOVE_SING: MoveId = 47;
+pub const MOVE_DISABLE: MoveId = 50;
+pub const MOVE_ENCORE: MoveId = 227;
 
 /// Static species data
 #[derive(Debug)]
@@ -176,7 +212,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 45, base_attack: 49, base_defense: 65,
         base_sp_attack: 49, base_sp_defense: 65, base_speed: 45,
         catch_rate: 45, base_exp_yield: 64, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP), (15, MOVE_POISON_POWDER)],
         evolution_level: Some(16), evolution_into: Some(BAYLEEF),
     },
     SpeciesData {
@@ -185,7 +221,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 60, base_attack: 62, base_defense: 80,
         base_sp_attack: 63, base_sp_defense: 80, base_speed: 60,
         catch_rate: 45, base_exp_yield: 141, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP), (15, MOVE_POISON_POWDER)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -194,7 +230,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 39, base_attack: 52, base_defense: 43,
         base_sp_attack: 60, base_sp_defense: 50, base_speed: 65,
         catch_rate: 45, base_exp_yield: 65, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER), (19, MOVE_QUICK_ATTACK)],
         evolution_level: Some(14), evolution_into: Some(QUILAVA),
     },
     SpeciesData {
@@ -203,7 +239,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 58, base_attack: 64, base_defense: 58,
         base_sp_attack: 80, base_sp_defense: 65, base_speed: 80,
         catch_rate: 45, base_exp_yield: 142, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER), (21, MOVE_QUICK_ATTACK)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -212,7 +248,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 50, base_attack: 65, base_defense: 64,
         base_sp_attack: 44, base_sp_defense: 48, base_speed: 43,
         catch_rate: 45, base_exp_yield: 66, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (15, MOVE_BITE)],
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (20, MOVE_BITE)],
         evolution_level: Some(18), evolution_into: Some(CROCONAW),
     },
     SpeciesData {
@@ -221,7 +257,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 65, base_attack: 80, base_defense: 80,
         base_sp_attack: 59, base_sp_defense: 63, base_speed: 58,
         catch_rate: 45, base_exp_yield: 143, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (15, MOVE_BITE)],
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (21, MOVE_BITE)],
         evolution_level: None, evolution_into: None,
     },
     // Wild Pokemon
@@ -232,7 +268,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 35, base_sp_defense: 35, base_speed: 56,
         catch_rate: 255, base_exp_yield: 55, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (5, MOVE_SAND_ATTACK), (9, MOVE_GUST), (15, MOVE_QUICK_ATTACK)],
-        evolution_level: None, evolution_into: None,
+        evolution_level: Some(18), evolution_into: Some(17), // Pidgeotto
     },
     SpeciesData {
         id: RATTATA, name: "Rattata",
@@ -240,8 +276,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 30, base_attack: 56, base_defense: 35,
         base_sp_attack: 25, base_sp_defense: 35, base_speed: 72,
         catch_rate: 255, base_exp_yield: 57, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (7, MOVE_QUICK_ATTACK), (13, MOVE_BITE)],
-        evolution_level: None, evolution_into: None,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (7, MOVE_QUICK_ATTACK), (13, MOVE_HYPER_FANG)],
+        evolution_level: Some(20), evolution_into: Some(20), // Raticate
     },
     SpeciesData {
         id: SENTRET, name: "Sentret",
@@ -249,7 +285,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 35, base_attack: 46, base_defense: 34,
         base_sp_attack: 35, base_sp_defense: 45, base_speed: 20,
         catch_rate: 255, base_exp_yield: 57, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (7, MOVE_QUICK_ATTACK), (12, MOVE_SCRATCH)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (7, MOVE_QUICK_ATTACK), (12, MOVE_SCRATCH), (17, MOVE_FURY_SWIPES), (25, MOVE_SLAM)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -285,8 +321,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 40, base_attack: 80, base_defense: 100,
         base_sp_attack: 30, base_sp_defense: 30, base_speed: 20,
         catch_rate: 255, base_exp_yield: 73, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL)],
-        evolution_level: None, evolution_into: None,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (11, MOVE_ROCK_THROW), (16, MOVE_MAGNITUDE)],
+        evolution_level: Some(25), evolution_into: Some(75), // Graveler
     },
     SpeciesData {
         id: ZUBAT, name: "Zubat",
@@ -294,8 +330,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 40, base_attack: 45, base_defense: 35,
         base_sp_attack: 30, base_sp_defense: 40, base_speed: 55,
         catch_rate: 255, base_exp_yield: 54, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_LEER), (6, MOVE_BITE)],
-        evolution_level: None, evolution_into: None,
+        learnset: &[(1, MOVE_LEECH_LIFE), (1, MOVE_LEER), (6, MOVE_BITE), (19, MOVE_CONFUSE_RAY)],
+        evolution_level: Some(22), evolution_into: Some(42), // Golbat
     },
     SpeciesData {
         id: BELLSPROUT, name: "Bellsprout",
@@ -303,7 +339,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 50, base_attack: 75, base_defense: 35,
         base_sp_attack: 70, base_sp_defense: 30, base_speed: 40,
         catch_rate: 255, base_exp_yield: 84, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_VINE_WHIP), (7, MOVE_GROWL)],
+        learnset: &[(1, MOVE_VINE_WHIP), (7, MOVE_GROWL), (15, MOVE_SLEEP_POWDER), (17, MOVE_POISON_POWDER), (19, MOVE_STUN_SPORE), (23, MOVE_ACID)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -312,8 +348,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 30, base_attack: 35, base_defense: 30,
         base_sp_attack: 100, base_sp_defense: 35, base_speed: 80,
         catch_rate: 255, base_exp_yield: 95, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (16, MOVE_NIGHT_SHADE)],
-        evolution_level: None, evolution_into: None,
+        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (16, MOVE_NIGHT_SHADE), (21, MOVE_CONFUSE_RAY)],
+        evolution_level: Some(25), evolution_into: Some(93), // Haunter
     },
     SpeciesData {
         id: ONIX, name: "Onix",
@@ -358,7 +394,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 65, base_sp_defense: 45, base_speed: 35,
         catch_rate: 255, base_exp_yield: 59, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (9, MOVE_THUNDER_SHOCK)],
-        evolution_level: None, evolution_into: None,
+        evolution_level: Some(15), evolution_into: Some(180), // Flaaffy
     },
     SpeciesData {
         id: WOOPER, name: "Wooper",
@@ -366,8 +402,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 55, base_attack: 45, base_defense: 45,
         base_sp_attack: 25, base_sp_defense: 25, base_speed: 15,
         catch_rate: 255, base_exp_yield: 52, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP)],
-        evolution_level: None, evolution_into: None,
+        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP), (11, MOVE_SLAM)],
+        evolution_level: Some(20), evolution_into: Some(195), // Quagsire
     },
     SpeciesData {
         id: HOPPIP, name: "Hoppip",
@@ -377,6 +413,98 @@ const SPECIES_DB: &[SpeciesData] = &[
         catch_rate: 255, base_exp_yield: 50, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP)],
         evolution_level: None, evolution_into: None,
+    },
+    // ─── New species: Ilex Forest / Route 34 ─────────────
+    SpeciesData {
+        id: ODDISH, name: "Oddish",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Poison),
+        base_hp: 45, base_attack: 50, base_defense: 55,
+        base_sp_attack: 75, base_sp_defense: 65, base_speed: 30,
+        catch_rate: 255, base_exp_yield: 78, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_ABSORB), (14, MOVE_POISON_POWDER), (16, MOVE_STUN_SPORE), (18, MOVE_SLEEP_POWDER), (23, MOVE_ACID)],
+        evolution_level: Some(21), evolution_into: Some(44), // Gloom
+    },
+    SpeciesData {
+        id: DROWZEE, name: "Drowzee",
+        type1: PokemonType::Psychic, type2: None,
+        base_hp: 60, base_attack: 48, base_defense: 45,
+        base_sp_attack: 43, base_sp_defense: 90, base_speed: 42,
+        catch_rate: 190, base_exp_yield: 102, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POUND), (1, MOVE_HYPNOSIS), (18, MOVE_CONFUSION)],
+        evolution_level: Some(26), evolution_into: Some(97), // Hypno
+    },
+    SpeciesData {
+        id: ABRA, name: "Abra",
+        type1: PokemonType::Psychic, type2: None,
+        base_hp: 25, base_attack: 20, base_defense: 15,
+        base_sp_attack: 105, base_sp_defense: 55, base_speed: 90,
+        catch_rate: 200, base_exp_yield: 73, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TELEPORT)],
+        evolution_level: Some(16), evolution_into: Some(64), // Kadabra
+    },
+    SpeciesData {
+        id: DITTO, name: "Ditto",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 48, base_attack: 48, base_defense: 48,
+        base_sp_attack: 48, base_sp_defense: 48, base_speed: 48,
+        catch_rate: 35, base_exp_yield: 61, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TRANSFORM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: PARAS, name: "Paras",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Grass),
+        base_hp: 35, base_attack: 70, base_defense: 55,
+        base_sp_attack: 45, base_sp_defense: 55, base_speed: 25,
+        catch_rate: 190, base_exp_yield: 70, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (7, MOVE_STUN_SPORE), (13, MOVE_POISON_POWDER), (19, MOVE_LEECH_LIFE)],
+        evolution_level: Some(24), evolution_into: Some(47), // Parasect
+    },
+    // ─── Goldenrod / Whitney Gym species ─────────────────
+    SpeciesData {
+        id: CLEFAIRY, name: "Clefairy",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 70, base_attack: 45, base_defense: 48,
+        base_sp_attack: 60, base_sp_defense: 65, base_speed: 35,
+        catch_rate: 150, base_exp_yield: 68, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POUND), (1, MOVE_GROWL), (8, MOVE_ENCORE), (13, MOVE_SING), (18, MOVE_DOUBLESLAP), (25, MOVE_METRONOME)],
+        evolution_level: None, evolution_into: None, // Evolves with Moon Stone
+    },
+    SpeciesData {
+        id: MILTANK, name: "Miltank",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 95, base_attack: 80, base_defense: 105,
+        base_sp_attack: 40, base_sp_defense: 70, base_speed: 100,
+        catch_rate: 45, base_exp_yield: 200, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (5, MOVE_GROWL), (8, MOVE_DEFENSE_CURL), (11, MOVE_STOMP), (15, MOVE_MILK_DRINK), (18, MOVE_ATTRACT), (19, MOVE_ROLLOUT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SNUBBULL, name: "Snubbull",
+        type1: PokemonType::Normal, type2: None, // Gen 2: Normal type (became Fairy in Gen 6)
+        base_hp: 60, base_attack: 80, base_defense: 50,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 30,
+        catch_rate: 190, base_exp_yield: 63, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SCARY_FACE), (7, MOVE_BITE), (13, MOVE_LICK)],
+        evolution_level: Some(23), evolution_into: Some(210), // Granbull
+    },
+    SpeciesData {
+        id: JIGGLYPUFF, name: "Jigglypuff",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 115, base_attack: 45, base_defense: 20,
+        base_sp_attack: 45, base_sp_defense: 25, base_speed: 20,
+        catch_rate: 170, base_exp_yield: 76, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SING), (4, MOVE_DEFENSE_CURL), (9, MOVE_POUND), (14, MOVE_DISABLE), (19, MOVE_ROLLOUT)],
+        evolution_level: None, evolution_into: None, // Evolves with Moon Stone
+    },
+    SpeciesData {
+        id: MEOWTH, name: "Meowth",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 40, base_attack: 45, base_defense: 35,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 90,
+        catch_rate: 255, base_exp_yield: 69, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (11, MOVE_BITE), (20, MOVE_FURY_SWIPES)],
+        evolution_level: Some(28), evolution_into: Some(53), // Persian
     },
 ];
 
@@ -388,15 +516,15 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_GROWL, name: "Growl", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Reduces the foe's Attack." },
     MoveData { id: MOVE_LEER, name: "Leer", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Reduces the foe's Defense." },
     MoveData { id: MOVE_TAIL_WHIP, name: "Tail Whip", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Lowers the foe's Defense." },
-    MoveData { id: MOVE_RAZOR_LEAF, name: "Razor Leaf", move_type: PokemonType::Grass, category: MoveCategory::Physical, power: 55, accuracy: 95, pp: 25, description: "Leaves are launched to slash." },
-    MoveData { id: MOVE_VINE_WHIP, name: "Vine Whip", move_type: PokemonType::Grass, category: MoveCategory::Physical, power: 35, accuracy: 100, pp: 10, description: "Strikes with slender vines." },
+    MoveData { id: MOVE_RAZOR_LEAF, name: "Razor Leaf", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 55, accuracy: 95, pp: 25, description: "Leaves are launched to slash." },
+    MoveData { id: MOVE_VINE_WHIP, name: "Vine Whip", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 35, accuracy: 100, pp: 10, description: "Strikes with slender vines." },
     MoveData { id: MOVE_EMBER, name: "Ember", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 25, description: "A weak fire attack." },
     MoveData { id: MOVE_SMOKESCREEN, name: "Smokescreen", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Lowers the foe's accuracy." },
     MoveData { id: MOVE_WATER_GUN, name: "Water Gun", move_type: PokemonType::Water, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 25, description: "Squirts water to attack." },
     MoveData { id: MOVE_RAGE, name: "Rage", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 20, description: "Raises Attack if hit." },
-    MoveData { id: MOVE_BITE, name: "Bite", move_type: PokemonType::Dark, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 25, description: "May cause flinching." },
+    MoveData { id: MOVE_BITE, name: "Bite", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 25, description: "May cause flinching." },
     MoveData { id: MOVE_QUICK_ATTACK, name: "Quick Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 30, description: "Always strikes first." },
-    MoveData { id: MOVE_GUST, name: "Gust", move_type: PokemonType::Flying, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 35, description: "Whips up a small gust." },
+    MoveData { id: MOVE_GUST, name: "Gust", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 35, description: "Whips up a small gust." },
     MoveData { id: MOVE_PECK, name: "Peck", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 35, accuracy: 100, pp: 35, description: "Jabs the foe with a beak." },
     MoveData { id: MOVE_FORESIGHT, name: "Foresight", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Negates accuracy reduction." },
     MoveData { id: MOVE_STRING_SHOT, name: "String Shot", move_type: PokemonType::Bug, category: MoveCategory::Status, power: 0, accuracy: 95, pp: 40, description: "Reduces the foe's Speed." },
@@ -407,10 +535,38 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_THUNDER_SHOCK, name: "ThunderShock", move_type: PokemonType::Electric, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 30, description: "May paralyze the foe." },
     MoveData { id: MOVE_ROCK_THROW, name: "Rock Throw", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 50, accuracy: 90, pp: 15, description: "Drops rocks on the foe." },
     MoveData { id: MOVE_HYPNOSIS, name: "Hypnosis", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 60, pp: 20, description: "May put the foe to sleep." },
-    MoveData { id: MOVE_NIGHT_SHADE, name: "Night Shade", move_type: PokemonType::Ghost, category: MoveCategory::Special, power: 1, accuracy: 100, pp: 15, description: "Inflicts damage equal to level." },
+    MoveData { id: MOVE_NIGHT_SHADE, name: "Night Shade", move_type: PokemonType::Ghost, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 15, description: "Inflicts damage equal to level." },
     MoveData { id: MOVE_LICK, name: "Lick", move_type: PokemonType::Ghost, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 30, description: "May paralyze the foe." },
     MoveData { id: MOVE_SPLASH, name: "Splash", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Has no effect whatsoever." },
     MoveData { id: MOVE_SCARY_FACE, name: "Scary Face", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 10, description: "Sharply reduces Speed." },
+    MoveData { id: MOVE_LEECH_LIFE, name: "Leech Life", move_type: PokemonType::Bug, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 15, description: "Drains HP from the foe." },
+    MoveData { id: MOVE_MUD_SLAP, name: "Mud-Slap", move_type: PokemonType::Ground, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 10, description: "Reduces the foe's accuracy." },
+    // ─── New moves for levels 15-25 and new species ──────
+    MoveData { id: MOVE_ABSORB, name: "Absorb", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 20, accuracy: 100, pp: 25, description: "Drains HP from the foe." },
+    MoveData { id: MOVE_CONFUSION, name: "Confusion", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 50, accuracy: 100, pp: 25, description: "May confuse the foe." },
+    MoveData { id: MOVE_POUND, name: "Pound", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 35, description: "Pounds with forelegs or tail." },
+    MoveData { id: MOVE_TELEPORT, name: "Teleport", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Flee from wild battles." },
+    MoveData { id: MOVE_TRANSFORM, name: "Transform", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies the foe's stats." },
+    MoveData { id: MOVE_POISON_POWDER, name: "PoisonPowder", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 35, description: "May poison the foe." },
+    MoveData { id: MOVE_STUN_SPORE, name: "Stun Spore", move_type: PokemonType::Grass, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 30, description: "May paralyze the foe." },
+    MoveData { id: MOVE_SLEEP_POWDER, name: "Sleep Powder", move_type: PokemonType::Grass, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 15, description: "May put the foe to sleep." },
+    MoveData { id: MOVE_ACID, name: "Acid", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 30, description: "May lower Defense." },
+    MoveData { id: MOVE_FURY_SWIPES, name: "Fury Swipes", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 18, accuracy: 80, pp: 15, description: "Rakes with claws 2-5 times." },
+    MoveData { id: MOVE_SLAM, name: "Slam", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 75, pp: 20, description: "Slams the foe with a tail." },
+    MoveData { id: MOVE_CONFUSE_RAY, name: "Confuse Ray", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Confuses the foe." },
+    MoveData { id: MOVE_MAGNITUDE, name: "Magnitude", move_type: PokemonType::Ground, category: MoveCategory::Physical, power: 70, accuracy: 100, pp: 30, description: "Ground quake of random power." },
+    MoveData { id: MOVE_HYPER_FANG, name: "Hyper Fang", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 90, pp: 15, description: "May cause flinching." },
+    MoveData { id: MOVE_DOUBLE_KICK, name: "Double Kick", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 30, accuracy: 100, pp: 30, description: "Kicks the foe twice." },
+    // ─── Whitney / Goldenrod Gym moves ───────────────────
+    MoveData { id: MOVE_ROLLOUT, name: "Rollout", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 30, accuracy: 90, pp: 20, description: "Power doubles per hit." },
+    MoveData { id: MOVE_ATTRACT, name: "Attract", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 15, description: "Infatuates the foe." },
+    MoveData { id: MOVE_STOMP, name: "Stomp", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 20, description: "May cause flinching." },
+    MoveData { id: MOVE_MILK_DRINK, name: "Milk Drink", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Restores half max HP." },
+    MoveData { id: MOVE_DOUBLESLAP, name: "DoubleSlap", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 85, pp: 10, description: "Hits 2-5 times." },
+    MoveData { id: MOVE_METRONOME, name: "Metronome", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Uses a random move." },
+    MoveData { id: MOVE_SING, name: "Sing", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 15, description: "May put the foe to sleep." },
+    MoveData { id: MOVE_DISABLE, name: "Disable", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 20, description: "Disables the foe's move." },
+    MoveData { id: MOVE_ENCORE, name: "Encore", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Forces move repetition." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -536,12 +692,16 @@ pub fn exp_for_level(level: u8, growth: GrowthRate) -> u32 {
     }
 }
 
-/// Experience gained from defeating a Pokemon (simplified Gen 2)
+/// Experience gained from defeating a Pokemon (Gen 2 formula)
+/// EXP = (a * b * L) / 7 where a=1 for wild, 1.5 for trainer
 pub fn exp_gained(defeated_species: &SpeciesData, defeated_level: u8, is_wild: bool) -> u32 {
-    let a: u32 = if is_wild { 1 } else { 3 }; // trainer gives 1.5x but we simplify
     let b = defeated_species.base_exp_yield as u32;
     let l = defeated_level as u32;
-    (a * b * l) / (7 * if is_wild { 1 } else { 1 })
+    if is_wild {
+        (b * l) / 7
+    } else {
+        (3 * b * l) / 14 // 1.5x wild rate for trainers
+    }
 }
 
 // ─── Pokemon Creation ───────────────────────────────────
@@ -789,6 +949,7 @@ impl Bag {
 }
 
 /// Damage calculation (Gen 2 formula, simplified)
+/// atk_stage_mult and def_stage_mult should be pre-computed from stage_multiplier()
 pub fn calc_damage(
     attacker: &Pokemon,
     defender_defense: u16,
@@ -797,6 +958,8 @@ pub fn calc_damage(
     move_data: &MoveData,
     rng_roll: f64, // 0.85 to 1.0
     is_crit: bool,
+    atk_stage_mult: f64,
+    def_stage_mult: f64,
 ) -> (u16, f64) {
     // Status moves do no damage
     if move_data.category == MoveCategory::Status || move_data.power == 0 {
@@ -805,11 +968,11 @@ pub fn calc_damage(
 
     let level = attacker.level as f64;
     let attack_stat = match move_data.category {
-        MoveCategory::Physical => attacker.attack as f64,
-        MoveCategory::Special => attacker.sp_attack as f64,
+        MoveCategory::Physical => attacker.attack as f64 * atk_stage_mult,
+        MoveCategory::Special => attacker.sp_attack as f64 * atk_stage_mult,
         MoveCategory::Status => 0.0,
     };
-    let defense_stat = defender_defense as f64;
+    let defense_stat = defender_defense as f64 * def_stage_mult;
     let power = move_data.power as f64;
 
     // STAB (Same Type Attack Bonus)

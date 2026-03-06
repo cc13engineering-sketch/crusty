@@ -134,7 +134,7 @@ enum BattlePhase {
     Intro { timer: f64 },
     ActionSelect { cursor: u8 },
     MoveSelect { cursor: u8 },
-    PlayerAttack { timer: f64, move_id: MoveId, damage: u16, effectiveness: f64, is_crit: bool },
+    PlayerAttack { timer: f64, move_id: MoveId, damage: u16, effectiveness: f64, is_crit: bool, from_pending: bool },
     EnemyAttack { timer: f64, move_id: MoveId, damage: u16, effectiveness: f64, is_crit: bool },
     Text { message: String, timer: f64, next_phase: Box<BattlePhase> },
     PlayerFainted,
@@ -147,6 +147,51 @@ enum BattlePhase {
 
 // ─── Battle State ───────────────────────────────────────
 
+// Stat stage indices: ATK=0, DEF=1, SPA=2, SPD=3, SPE=4, ACC=5, EVA=6
+const STAGE_ATK: usize = 0;
+const STAGE_DEF: usize = 1;
+const STAGE_SPA: usize = 2;
+const STAGE_SPD: usize = 3;
+const STAGE_SPE: usize = 4;
+const STAGE_ACC: usize = 5;
+const STAGE_EVA: usize = 6;
+
+/// Convert stat stage (-6 to +6) to a multiplier (Gen 2 formula)
+fn stage_multiplier(stage: i8) -> f64 {
+    let s = stage.max(-6).min(6);
+    if s >= 0 {
+        (2 + s as i32) as f64 / 2.0
+    } else {
+        2.0 / (2 - s as i32) as f64
+    }
+}
+
+/// Convert accuracy/evasion stage to hit rate multiplier (Gen 2: uses 3-based formula)
+fn accuracy_stage_multiplier(stage: i8) -> f64 {
+    let s = stage.max(-6).min(6);
+    if s >= 0 {
+        (3 + s as i32) as f64 / 3.0
+    } else {
+        3.0 / (3 - s as i32) as f64
+    }
+}
+
+/// Determine what stat stage change a status move applies.
+/// Returns (target_is_enemy, stat_index, delta). None if not a stat move.
+fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
+    match move_id {
+        MOVE_GROWL => Some((true, STAGE_ATK, -1)),
+        MOVE_LEER => Some((true, STAGE_DEF, -1)),
+        MOVE_TAIL_WHIP => Some((true, STAGE_DEF, -1)),
+        MOVE_SAND_ATTACK => Some((true, STAGE_ACC, -1)),
+        MOVE_SMOKESCREEN => Some((true, STAGE_ACC, -1)),
+        MOVE_STRING_SHOT => Some((true, STAGE_SPE, -1)),
+        MOVE_SCARY_FACE => Some((true, STAGE_SPE, -2)),
+        MOVE_DEFENSE_CURL => Some((false, STAGE_DEF, 1)),
+        _ => None,
+    }
+}
+
 #[derive(Clone, Debug)]
 struct BattleState {
     phase: BattlePhase,
@@ -156,8 +201,12 @@ struct BattleState {
     player_hp_display: f64,
     enemy_hp_display: f64,
     turn_count: u32,
-    trainer_team: Vec<Pokemon>,   // remaining Pokemon for trainer battles
-    trainer_team_idx: usize,      // current index in trainer_team (0 = first already sent out)
+    trainer_team: Vec<Pokemon>,
+    trainer_team_idx: usize,
+    pending_player_move: Option<(MoveId, u16, f64, bool)>,
+    // Stat stages: [ATK, DEF, SPA, SPD, SPE, ACC, EVA] — range -6 to +6, reset per battle
+    player_stages: [i8; 7],
+    enemy_stages: [i8; 7],
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -235,6 +284,10 @@ pub struct PokemonSim {
     pokedex_caught: Vec<SpeciesId>,
     pc_boxes: Vec<Pokemon>,
     repel_steps: u32,
+    last_pokecenter_map: MapId, // tracks which city's pokecenter door to exit to
+    last_house_map: MapId, // tracks which city's generic house door to exit to
+    rival_starter: SpeciesId, // rival picks type-advantaged starter
+    rival_battle_done: bool,
 }
 
 impl PokemonSim {
@@ -285,6 +338,10 @@ impl PokemonSim {
             pokedex_caught: Vec::new(),
             pc_boxes: Vec::new(),
             repel_steps: 0,
+            last_pokecenter_map: MapId::CherrygroveCity,
+            last_house_map: MapId::NewBarkTown,
+            rival_starter: 0, // set when player picks starter
+            rival_battle_done: false,
         }
     }
 
@@ -313,6 +370,13 @@ impl PokemonSim {
     }
 
     fn change_map(&mut self, map_id: MapId, dest_x: u8, dest_y: u8) {
+        // Track which city the player came from when entering shared interiors
+        if map_id == MapId::PokemonCenter {
+            self.last_pokecenter_map = self.current_map_id;
+        }
+        if map_id == MapId::GenericHouse {
+            self.last_house_map = self.current_map_id;
+        }
         self.current_map_id = map_id;
         self.current_map = load_map(map_id);
         self.player.x = dest_x as i32;
@@ -328,6 +392,32 @@ impl PokemonSim {
         let vh = (VIEW_TILES_Y * TILE_PX) as f64;
         self.camera_x = target_x.max(0.0).min((map_pw - vw).max(0.0));
         self.camera_y = target_y.max(0.0).min((map_ph - vh).max(0.0));
+    }
+
+    /// Trigger rival battle event (called from step_overworld)
+    fn check_rival_battle(&mut self) -> bool {
+        if self.has_starter && !self.rival_battle_done
+            && self.current_map_id == MapId::Route29
+            && self.rival_starter > 0
+        {
+            self.rival_battle_done = true;
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "???: Hey, wait!".to_string(),
+                    "I just got a POKEMON".to_string(),
+                    "from the LAB too!".to_string(),
+                    "I'll show you how".to_string(),
+                    "strong I already am!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::StartTrainerBattle {
+                    team: vec![(self.rival_starter, 5)],
+                },
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
     }
 
     // ─── Overworld Logic ───────────────────────────────
@@ -391,7 +481,29 @@ impl PokemonSim {
                 let py = self.player.y as u8;
                 let warp_data = self.current_map.warp_at(px, py).cloned();
                 if let Some(warp) = warp_data {
-                    self.change_map(warp.dest_map, warp.dest_x, warp.dest_y);
+                    // PokemonCenter: dynamic exit based on which city we entered from
+                    if self.current_map_id == MapId::PokemonCenter {
+                        let (dest_map, dx, dy) = match self.last_pokecenter_map {
+                            MapId::VioletCity => (MapId::VioletCity, 5, 12),
+                            MapId::AzaleaTown => (MapId::AzaleaTown, 6, 13),
+                            MapId::GoldenrodCity => (MapId::GoldenrodCity, 10, 15),
+                            _ => (MapId::CherrygroveCity, 7, 5),
+                        };
+                        self.change_map(dest_map, dx, dy);
+                    } else if self.current_map_id == MapId::GenericHouse {
+                        // GenericHouse: dynamic exit based on which city we entered from
+                        let (dest_map, dx, dy) = match self.last_house_map {
+                            MapId::NewBarkTown => (MapId::NewBarkTown, 12, 5),
+                            MapId::CherrygroveCity => (MapId::CherrygroveCity, 15, 5),
+                            MapId::VioletCity => (MapId::VioletCity, 15, 12),
+                            MapId::AzaleaTown => (MapId::AzaleaTown, 8, 5),
+                            MapId::GoldenrodCity => (MapId::GoldenrodCity, 11, 9),
+                            _ => (MapId::NewBarkTown, 12, 5),
+                        };
+                        self.change_map(dest_map, dx, dy);
+                    } else {
+                        self.change_map(warp.dest_map, warp.dest_x, warp.dest_y);
+                    }
                     return;
                 }
 
@@ -418,10 +530,65 @@ impl PokemonSim {
                                 turn_count: 0,
                                 trainer_team: Vec::new(),
                                 trainer_team_idx: 0,
+                                pending_player_move: None,
+                                player_stages: [0; 7],
+                                enemy_stages: [0; 7],
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
                             self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                            return;
+                        }
+                    }
+                }
+
+                // Check for rival battle event
+                if self.check_rival_battle() { return; }
+
+                // Check trainer line-of-sight (5 tiles in their facing direction)
+                if self.party.iter().any(|p| !p.is_fainted()) {
+                    let px = self.player.x;
+                    let py = self.player.y;
+                    for (npc_idx, npc) in self.current_map.npcs.iter().enumerate() {
+                        if !npc.is_trainer || npc.trainer_team.is_empty() { continue; }
+                        // Skip already defeated trainers
+                        let key = (self.current_map_id, npc_idx as u8);
+                        if self.defeated_trainers.contains(&key) { continue; }
+                        // Check if player is in this trainer's line of sight
+                        let (dx, dy) = match npc.facing {
+                            Direction::Up => (0i32, -1i32),
+                            Direction::Down => (0, 1),
+                            Direction::Left => (-1, 0),
+                            Direction::Right => (1, 0),
+                        };
+                        let mut in_sight = false;
+                        for dist in 1..=5 {
+                            let check_x = npc.x as i32 + dx * dist;
+                            let check_y = npc.y as i32 + dy * dist;
+                            // Stop at walls
+                            if check_x < 0 || check_y < 0
+                                || (check_x as usize) >= self.current_map.width
+                                || (check_y as usize) >= self.current_map.height
+                            { break; }
+                            let col = self.current_map.collision_at(check_x as usize, check_y as usize);
+                            if matches!(col, CollisionType::Solid) { break; }
+                            if check_x == px && check_y == py {
+                                in_sight = true;
+                                break;
+                            }
+                        }
+                        if in_sight {
+                            // Trainer spotted player! Start battle.
+                            let team: Vec<(SpeciesId, u8)> = npc.trainer_team
+                                .iter().map(|tp| (tp.species_id, tp.level)).collect();
+                            let lines: Vec<String> = npc.dialogue.iter().map(|s| s.to_string()).collect();
+                            self.trainer_battle_npc = Some(key);
+                            self.dialogue = Some(DialogueState {
+                                lines, current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::StartTrainerBattle { team },
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            self.battle = None; // ensure clean state
                             return;
                         }
                     }
@@ -692,7 +859,7 @@ impl PokemonSim {
                         } else {
                             format!("{} is fast asleep!", self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???"))
                         };
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                         battle.phase = BattlePhase::Text {
                             message: reason, timer: 0.0,
                             next_phase: Box::new(BattlePhase::EnemyAttack {
@@ -728,15 +895,46 @@ impl PokemonSim {
                         p.move_pp[cursor as usize] -= 1;
                     }
 
+                    // Accuracy check (apply accuracy/evasion stages)
+                    let accuracy_ok = if let Some(move_data) = get_move(move_id) {
+                        if move_data.accuracy >= 100 || move_data.category == MoveCategory::Status {
+                            true
+                        } else {
+                            let acc_mult = accuracy_stage_multiplier(battle.player_stages[STAGE_ACC]);
+                            let eva_mult = accuracy_stage_multiplier(battle.enemy_stages[STAGE_EVA]);
+                            let effective_acc = (move_data.accuracy as f64 * acc_mult / eva_mult).min(100.0);
+                            (engine.rng.next_u64() % 100) < effective_acc as u64
+                        }
+                    } else { true };
+
                     // Calc player damage (1/16 crit chance, Gen 2)
-                    let p_crit = (engine.rng.next_u64() % CRIT_CHANCE) == 0;
-                    let (p_damage, p_eff) = if let Some(move_data) = get_move(move_id) {
+                    let p_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+                    let (p_damage, p_eff) = if !accuracy_ok {
+                        (0, 1.0)
+                    } else if let Some(move_data) = get_move(move_id) {
                         let species = get_species(battle.enemy.species_id);
                         let dt1 = species.map(|s| s.type1).unwrap_or(PokemonType::Normal);
                         let dt2 = species.and_then(|s| s.type2);
                         let rng = DAMAGE_ROLL_MIN + engine.rng.next_f64() * DAMAGE_ROLL_RANGE;
+                        // Use Defense for Physical moves, Sp.Defense for Special moves
+                        let def_stat = match move_data.category {
+                            MoveCategory::Physical => battle.enemy.defense,
+                            _ => battle.enemy.sp_defense,
+                        };
+                        // Stat stage multipliers (player attacking, enemy defending)
+                        let atk_stage = match move_data.category {
+                            MoveCategory::Physical => battle.player_stages[STAGE_ATK],
+                            _ => battle.player_stages[STAGE_SPA],
+                        };
+                        let def_stage = match move_data.category {
+                            MoveCategory::Physical => battle.enemy_stages[STAGE_DEF],
+                            _ => battle.enemy_stages[STAGE_SPD],
+                        };
+                        // Critical hits ignore negative atk stages and positive def stages (Gen 2)
+                        let atk_mult = if p_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
+                        let def_mult = if p_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
                         if let Some(atk) = self.party.get(battle.player_idx) {
-                            calc_damage(atk, battle.enemy.defense, dt1, dt2, move_data, rng, p_crit)
+                            calc_damage(atk, def_stat, dt1, dt2, move_data, rng, p_crit, atk_mult, def_mult)
                         } else {
                             (0, 1.0)
                         }
@@ -744,19 +942,26 @@ impl PokemonSim {
                         (0, 1.0)
                     };
 
-                    // Check speed for turn order (paralysis halves speed)
-                    let mut player_speed = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0);
+                    // Check speed for turn order (paralysis halves speed, apply speed stages)
+                    let player_spd_stage = stage_multiplier(battle.player_stages[STAGE_SPE]);
+                    let enemy_spd_stage = stage_multiplier(battle.enemy_stages[STAGE_SPE]);
+                    let mut player_speed = (self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0) as f64 * player_spd_stage) as u16;
                     if let Some(p) = self.party.get(battle.player_idx) {
                         if matches!(p.status, StatusCondition::Paralysis) {
                             player_speed /= 2;
                         }
                     }
-                    if player_speed >= battle.enemy.speed {
+                    let enemy_speed = (battle.enemy.speed as f64 * enemy_spd_stage) as u16;
+                    if player_speed >= enemy_speed {
+                        // Player goes first
+                        battle.pending_player_move = None;
                         battle.phase = BattlePhase::PlayerAttack {
-                            timer: 0.0, move_id, damage: p_damage, effectiveness: p_eff, is_crit: p_crit,
+                            timer: 0.0, move_id, damage: p_damage, effectiveness: p_eff, is_crit: p_crit, from_pending: false,
                         };
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx);
+                        // Enemy goes first — store player's move for after enemy's turn
+                        battle.pending_player_move = Some((move_id, p_damage, p_eff, p_crit));
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                         battle.phase = BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         };
@@ -764,7 +969,7 @@ impl PokemonSim {
                 }
             }
 
-            BattlePhase::PlayerAttack { timer, move_id, damage, effectiveness, is_crit } => {
+            BattlePhase::PlayerAttack { timer, move_id, damage, effectiveness, is_crit, from_pending } => {
                 let t = timer + dt;
                 // Flash effect on hit at t=0.3
                 if timer < 0.3 && t >= 0.3 && damage > 0 {
@@ -781,14 +986,65 @@ impl PokemonSim {
                         try_inflict_status(&mut battle.enemy, move_id, roll);
                     }
 
-                    let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                    let move_data_ref = get_move(move_id);
+                    let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
                     let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    // Detect miss: damage=0 on a move with power, non-zero effectiveness
+                    let is_miss = damage == 0
+                        && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
+                        && effectiveness > 0.0;
                     let eff = eff_text(effectiveness);
                     let crit_str = if is_crit { " Critical hit!" } else { "" };
-                    let msg = if eff.is_empty() {
-                        format!("{} used {}!{}", pname, move_name, crit_str)
+                    let miss_str = if is_miss { " Attack missed!" } else { "" };
+                    let msg = if !eff.is_empty() {
+                        format!("{} used {}! {}{}{}", pname, move_name, eff, crit_str, miss_str)
+                    } else if !miss_str.is_empty() {
+                        format!("{} used {}!{}", pname, move_name, miss_str)
                     } else {
-                        format!("{} used {}! {}{}", pname, move_name, eff, crit_str)
+                        format!("{} used {}!{}", pname, move_name, crit_str)
+                    };
+
+                    // Apply stat stage effects for player's status moves
+                    let stage_msg = if !is_miss {
+                        if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                            let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
+                            let old = stages[stat_idx];
+                            stages[stat_idx] = (old + delta).max(-6).min(6);
+                            if stages[stat_idx] != old {
+                                let stat_name = match stat_idx {
+                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
+                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
+                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
+                                    _ => "evasion",
+                                };
+                                let target_name = if target_enemy {
+                                    let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                    format!("{}{}", prefix, battle.enemy.name())
+                                } else {
+                                    pname.clone()
+                                };
+                                let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" }
+                                    else if delta < -1 { "sharply fell!" } else { "fell!" };
+                                Some(format!("{}'s {} {}", target_name, stat_name, change))
+                            } else {
+                                let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
+                                Some(format!("{} won't {}", match stat_idx {
+                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
+                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
+                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
+                                    _ => "evasion",
+                                }, dir))
+                            }
+                        } else { None }
+                    } else { None };
+
+                    // Helper: wrap next_phase with stat change text if present
+                    let wrap_stat = |next: BattlePhase, sm: &Option<String>| -> Box<BattlePhase> {
+                        if let Some(ref s) = sm {
+                            Box::new(BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(next) })
+                        } else {
+                            Box::new(next)
+                        }
                     };
 
                     if battle.enemy.is_fainted() {
@@ -797,10 +1053,39 @@ impl PokemonSim {
                             .unwrap_or(10);
                         battle.phase = BattlePhase::Text {
                             message: msg, timer: 0.0,
-                            next_phase: Box::new(BattlePhase::EnemyFainted { exp_gained: exp }),
+                            next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg),
                         };
+                    } else if from_pending {
+                        // Player's turn came from pending (enemy already attacked this turn)
+                        // End-of-turn: apply status damage, tick status, return to ActionSelect
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.apply_status_damage();
+                            p.tick_status();
+                        }
+                        battle.enemy.apply_status_damage();
+                        battle.enemy.tick_status();
+                        battle.turn_count += 1;
+                        if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
+                            battle.phase = BattlePhase::Text {
+                                message: msg, timer: 0.0,
+                                next_phase: wrap_stat(BattlePhase::PlayerFainted, &stage_msg),
+                            };
+                        } else if battle.enemy.is_fainted() {
+                            let exp = get_species(battle.enemy.species_id)
+                                .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
+                                .unwrap_or(10);
+                            battle.phase = BattlePhase::Text {
+                                message: msg, timer: 0.0,
+                                next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg),
+                            };
+                        } else {
+                            battle.phase = BattlePhase::Text {
+                                message: msg, timer: 0.0,
+                                next_phase: wrap_stat(BattlePhase::ActionSelect { cursor: 0 }, &stage_msg),
+                            };
+                        }
                     } else {
-                        // Check if enemy can move
+                        // Player went first — enemy gets to attack now
                         let enemy_can_move = battle.enemy.can_move();
                         let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
                         if !enemy_can_move || enemy_paralyzed {
@@ -812,23 +1097,23 @@ impl PokemonSim {
                             };
                             battle.phase = BattlePhase::Text {
                                 message: msg, timer: 0.0,
-                                next_phase: Box::new(BattlePhase::Text {
+                                next_phase: wrap_stat(BattlePhase::Text {
                                     message: reason, timer: 0.0,
                                     next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                                }),
+                                }, &stage_msg),
                             };
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                             battle.phase = BattlePhase::Text {
                                 message: msg, timer: 0.0,
-                                next_phase: Box::new(BattlePhase::EnemyAttack {
+                                next_phase: wrap_stat(BattlePhase::EnemyAttack {
                                     timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                                }),
+                                }, &stage_msg),
                             };
                         }
                     }
                 } else {
-                    battle.phase = BattlePhase::PlayerAttack { timer: t, move_id, damage, effectiveness, is_crit };
+                    battle.phase = BattlePhase::PlayerAttack { timer: t, move_id, damage, effectiveness, is_crit, from_pending };
                 }
             }
 
@@ -848,45 +1133,111 @@ impl PokemonSim {
                         }
                     }
 
-                    let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                    let move_data_ref = get_move(move_id);
+                    let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
                     let ename = battle.enemy.name().to_string();
+                    let is_miss = damage == 0
+                        && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
+                        && effectiveness > 0.0;
                     let eff = eff_text(effectiveness);
                     let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                     let crit_str = if is_crit { " Critical hit!" } else { "" };
-                    let msg = if eff.is_empty() {
-                        format!("{}{} used {}!{}", prefix, ename, move_name, crit_str)
+                    let miss_str = if is_miss { " Attack missed!" } else { "" };
+                    let msg = if !eff.is_empty() {
+                        format!("{}{} used {}! {}{}{}", prefix, ename, move_name, eff, crit_str, miss_str)
+                    } else if !miss_str.is_empty() {
+                        format!("{}{} used {}!{}", prefix, ename, move_name, miss_str)
                     } else {
-                        format!("{}{} used {}! {}{}", prefix, ename, move_name, eff, crit_str)
+                        format!("{}{} used {}!{}", prefix, ename, move_name, crit_str)
                     };
+
+                    // Apply stat stage effects for enemy's status moves
+                    let e_stage_msg = if !is_miss {
+                        if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                            // For enemy's move: target_enemy means target the "enemy" from the move's perspective,
+                            // but the enemy's enemy is the player
+                            let stages = if target_enemy { &mut battle.player_stages } else { &mut battle.enemy_stages };
+                            let old = stages[stat_idx];
+                            stages[stat_idx] = (old + delta).max(-6).min(6);
+                            if stages[stat_idx] != old {
+                                let stat_name = match stat_idx {
+                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
+                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
+                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
+                                    _ => "evasion",
+                                };
+                                let target_name = if target_enemy {
+                                    // Enemy targets player
+                                    self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default()
+                                } else {
+                                    let pfx = if battle.is_wild { "Wild " } else { "Foe " };
+                                    format!("{}{}", pfx, battle.enemy.name())
+                                };
+                                let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" }
+                                    else if delta < -1 { "sharply fell!" } else { "fell!" };
+                                Some(format!("{}'s {} {}", target_name, stat_name, change))
+                            } else {
+                                let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
+                                Some(format!("{} won't {}", match stat_idx {
+                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
+                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
+                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
+                                    _ => "evasion",
+                                }, dir))
+                            }
+                        } else { None }
+                    } else { None };
 
                     let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
 
-                    // End-of-turn: apply status damage and tick status for both sides
-                    let player_fainted_from_status;
-                    if let Some(p) = self.party.get_mut(battle.player_idx) {
-                        p.apply_status_damage();
-                        p.tick_status();
-                        player_fainted_from_status = p.is_fainted() && !fainted;
-                    } else {
-                        player_fainted_from_status = false;
-                    }
-                    let enemy_status_dmg = battle.enemy.apply_status_damage();
-                    battle.enemy.tick_status();
+                    // If player has a pending move, execute it next (enemy went first)
+                    let has_pending = battle.pending_player_move.is_some();
 
-                    let next = if fainted || player_fainted_from_status {
-                        BattlePhase::PlayerFainted
-                    } else if enemy_status_dmg > 0 && battle.enemy.is_fainted() {
-                        let exp = get_species(battle.enemy.species_id)
-                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                            .unwrap_or(10);
-                        BattlePhase::EnemyFainted { exp_gained: exp }
-                    } else {
-                        BattlePhase::ActionSelect { cursor: 0 }
+                    let wrap_estat = |next: BattlePhase, sm: &Option<String>| -> Box<BattlePhase> {
+                        if let Some(ref s) = sm {
+                            Box::new(BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(next) })
+                        } else {
+                            Box::new(next)
+                        }
                     };
 
-                    battle.turn_count += 1;
+                    let next = if fainted {
+                        BattlePhase::PlayerFainted
+                    } else if has_pending {
+                        // Player's turn now — extract pending move
+                        let (pm_id, pm_dmg, pm_eff, pm_crit) = battle.pending_player_move.take().unwrap();
+                        BattlePhase::PlayerAttack {
+                            timer: 0.0, move_id: pm_id, damage: pm_dmg,
+                            effectiveness: pm_eff, is_crit: pm_crit, from_pending: true,
+                        }
+                    } else {
+                        // End-of-turn: apply status damage and tick status for both sides
+                        let player_fainted_from_status;
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.apply_status_damage();
+                            p.tick_status();
+                            player_fainted_from_status = p.is_fainted() && !fainted;
+                        } else {
+                            player_fainted_from_status = false;
+                        }
+                        let enemy_status_dmg = battle.enemy.apply_status_damage();
+                        battle.enemy.tick_status();
+
+                        if player_fainted_from_status {
+                            BattlePhase::PlayerFainted
+                        } else if enemy_status_dmg > 0 && battle.enemy.is_fainted() {
+                            let exp = get_species(battle.enemy.species_id)
+                                .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
+                                .unwrap_or(10);
+                            BattlePhase::EnemyFainted { exp_gained: exp }
+                        } else {
+                            BattlePhase::ActionSelect { cursor: 0 }
+                        }
+                    };
+
+                    if !has_pending { battle.turn_count += 1; }
                     battle.phase = BattlePhase::Text {
-                        message: msg, timer: 0.0, next_phase: Box::new(next),
+                        message: msg, timer: 0.0, next_phase: wrap_estat(next, &e_stage_msg),
                     };
                 } else {
                     battle.phase = BattlePhase::EnemyAttack { timer: t, move_id, damage, effectiveness, is_crit };
@@ -963,6 +1314,7 @@ impl PokemonSim {
                     let next_name = next_enemy.name().to_string();
                     battle.enemy = next_enemy;
                     battle.enemy_hp_display = battle.enemy.hp as f64;
+                    battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
                     battle.phase = BattlePhase::Text {
                         message: format!("Trainer sent out {}!", next_name),
                         timer: 0.0,
@@ -983,6 +1335,7 @@ impl PokemonSim {
                         let next_name = next_enemy.name().to_string();
                         battle.enemy = next_enemy;
                         battle.enemy_hp_display = battle.enemy.hp as f64;
+                        battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
                         battle.phase = BattlePhase::Text {
                             message: format!("Trainer sent out {}!", next_name),
                             timer: 0.0,
@@ -1018,6 +1371,8 @@ impl PokemonSim {
                                 // Check if this was a gym leader battle
                                 let badge_action = match (map_id, npc_idx) {
                                     (MapId::VioletGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 0 }),
+                                    (MapId::AzaleaGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 1 }),
+                                    (MapId::GoldenrodGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 2 }),
                                     _ => None,
                                 };
 
@@ -1059,7 +1414,7 @@ impl PokemonSim {
             BattlePhase::RunFailed { timer } => {
                 let t = timer + dt;
                 if t > 1.0 {
-                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx);
+                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                     battle.phase = BattlePhase::EnemyAttack {
                         timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                     };
@@ -1072,7 +1427,8 @@ impl PokemonSim {
                 sfx_faint(engine);
                 let any_alive = self.party.iter().any(|p| !p.is_fainted());
                 if any_alive {
-                    // Auto-switch to next alive Pokemon
+                    // Auto-switch to next alive Pokemon — reset player stages
+                    battle.player_stages = [0; 7];
                     for (i, p) in self.party.iter().enumerate() {
                         if !p.is_fainted() {
                             let pname = p.name().to_string();
@@ -1113,7 +1469,7 @@ impl PokemonSim {
         self.battle = Some(battle);
     }
 
-    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize) -> (MoveId, u16, f64, bool) {
+    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7]) -> (MoveId, u16, f64, bool) {
         let available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
         if available.is_empty() { return (MOVE_TACKLE, 5, 1.0, false); }
 
@@ -1145,13 +1501,43 @@ impl PokemonSim {
             available[(engine.rng.next_u64() as usize) % available.len()]
         };
 
-        let is_crit = (engine.rng.next_u64() % CRIT_CHANCE) == 0;
-        if let (Some(md), Some(pp)) = (get_move(mid), self.party.get(player_idx)) {
+        // Accuracy check for enemy move (apply accuracy/evasion stages)
+        let accuracy_ok = if let Some(md) = get_move(mid) {
+            if md.accuracy >= 100 || md.category == MoveCategory::Status {
+                true
+            } else {
+                let acc_mult = accuracy_stage_multiplier(enemy_stages[STAGE_ACC]);
+                let eva_mult = accuracy_stage_multiplier(player_stages[STAGE_EVA]);
+                let effective_acc = (md.accuracy as f64 * acc_mult / eva_mult).min(100.0);
+                (engine.rng.next_u64() % 100) < effective_acc as u64
+            }
+        } else { true };
+
+        let is_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+        if !accuracy_ok {
+            (mid, 0, 1.0, false) // miss — zero damage
+        } else if let (Some(md), Some(pp)) = (get_move(mid), self.party.get(player_idx)) {
             let sp = get_species(pp.species_id);
             let dt1 = sp.map(|s| s.type1).unwrap_or(PokemonType::Normal);
             let dt2 = sp.and_then(|s| s.type2);
             let rng = DAMAGE_ROLL_MIN + engine.rng.next_f64() * DAMAGE_ROLL_RANGE;
-            let (dmg, eff) = calc_damage(enemy, pp.defense, dt1, dt2, md, rng, is_crit);
+            // Use Defense for Physical moves, Sp.Defense for Special moves
+            let def_stat = match md.category {
+                MoveCategory::Physical => pp.defense,
+                _ => pp.sp_defense,
+            };
+            // Stat stage multipliers (enemy attacking, player defending)
+            let atk_stage = match md.category {
+                MoveCategory::Physical => enemy_stages[STAGE_ATK],
+                _ => enemy_stages[STAGE_SPA],
+            };
+            let def_stage = match md.category {
+                MoveCategory::Physical => player_stages[STAGE_DEF],
+                _ => player_stages[STAGE_SPD],
+            };
+            let atk_mult = if is_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
+            let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
+            let (dmg, eff) = calc_damage(enemy, def_stat, dt1, dt2, md, rng, is_crit, atk_mult, def_mult);
             (mid, dmg, eff, is_crit)
         } else {
             (mid, 5, 1.0, false)
@@ -1266,6 +1652,9 @@ impl PokemonSim {
                             turn_count: 0,
                             trainer_team: remaining,
                             trainer_team_idx: 0,
+                            pending_player_move: None,
+                            player_stages: [0; 7],
+                            enemy_stages: [0; 7],
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -1351,6 +1740,7 @@ impl PokemonSim {
                     if let Some(battle) = &mut self.battle {
                         battle.player_idx = selected;
                         battle.player_hp_display = self.party[selected].hp as f64;
+                        battle.player_stages = [0; 7]; // Reset player stages on switch
                         let pname = self.party[selected].name().to_string();
                         battle.phase = BattlePhase::Text {
                             message: format!("Go! {}!", pname),
@@ -2283,7 +2673,7 @@ impl PokemonSim {
             self.phase = GamePhase::Dialogue;
         } else {
             // Failed catch - enemy gets a turn
-            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx);
+            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
             battle.phase = BattlePhase::Text {
                 message: format!("You threw a {}!\nOh no! It broke free!", ball_name),
                 timer: 0.0,
@@ -2782,6 +3172,13 @@ impl Simulation for PokemonSim {
 
                 if is_confirm(engine) {
                     let species = match cursor { 0 => CHIKORITA, 1 => CYNDAQUIL, 2 => TOTODILE, _ => CHIKORITA };
+                    // Rival picks type-advantaged starter (GSC logic)
+                    self.rival_starter = match species {
+                        CHIKORITA => CYNDAQUIL,   // Fire beats Grass
+                        CYNDAQUIL => TOTODILE,    // Water beats Fire
+                        TOTODILE => CHIKORITA,    // Grass beats Water
+                        _ => CYNDAQUIL,
+                    };
                     let starter = Pokemon::new(species, 5);
                     let name = get_species(species).map(|s| s.name).unwrap_or("???").to_string();
                     self.party.push(starter);

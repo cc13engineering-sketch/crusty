@@ -406,3 +406,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - HeadlessRunner works correctly with PokemonSim — turbo mode ~0.2s for 200+ frames
 - All 1267 tests pass (1259 existing + 8 new headless)
 - **Next (Sprint 59)**: Tile art conversion tool + music_id wiring via global_state
+
+### Sprint 59 (Infrastructure)
+- Export `music_id` and `map_name` to global_state every frame for JS-side music playback
+- Built `tools/png_to_sprites.py`: PNG tilesheet → sprites.rs converter
+  - Auto-detects 4-color palette, maps to 0/1/2/3 indices
+  - Supports 8×8 and 16×16 source tiles (upscales 8→16 automatically)
+  - Preview mode, blank tile skipping, configurable prefix
+- Music_id mapping: 0=house, 1=town, 2=route, 3=city, 4=special, 5=dungeon, 6=E4, 7=violet, 8=gym, 9=tower, 10=park, 11=forest
+- All 1267 tests pass
+- **Next (Sprint 60 QA)**: Full QA sweep + headless regression tests

@@ -152,6 +152,16 @@ pub const GOLBAT: SpeciesId = 42;
 pub const GYARADOS: SpeciesId = 130;
 pub const GOLDEEN: SpeciesId = 118;
 pub const SEAKING: SpeciesId = 119;
+// ─── Sprint 50: Blackthorn / Phase 3 species ────────────
+pub const JYNX: SpeciesId = 124;
+pub const SNEASEL: SpeciesId = 215;
+pub const DELIBIRD: SpeciesId = 225;
+pub const DRATINI: SpeciesId = 147;
+pub const DRAGONAIR: SpeciesId = 148;
+pub const DRAGONITE: SpeciesId = 149;
+pub const KINGDRA: SpeciesId = 230;
+pub const HORSEA: SpeciesId = 116;
+pub const SEADRA: SpeciesId = 117;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -281,6 +291,15 @@ pub const MOVE_TWISTER: MoveId = 239;
 pub const MOVE_ENDURE: MoveId = 203;
 pub const MOVE_AMNESIA: MoveId = 133;
 pub const MOVE_THRASH: MoveId = 37;
+// ─── Sprint 50: Blackthorn / Phase 3 moves ──────────────
+pub const MOVE_AGILITY: MoveId = 97;
+pub const MOVE_OUTRAGE: MoveId = 200;
+pub const MOVE_HYPER_BEAM: MoveId = 63;
+pub const MOVE_PRESENT: MoveId = 217;
+pub const MOVE_ICE_PUNCH: MoveId = 8;
+pub const MOVE_LOVELY_KISS: MoveId = 142;
+pub const MOVE_SLASH: MoveId = 163;
+pub const MOVE_SAFEGUARD: MoveId = 219;
 
 /// Static species data
 #[derive(Debug)]
@@ -1160,6 +1179,88 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_PECK), (1, MOVE_TAIL_WHIP), (1, MOVE_SUPERSONIC), (1, MOVE_HORN_ATTACK), (24, MOVE_FURY_ATTACK), (33, MOVE_WATER_GUN), (41, MOVE_HYDRO_PUMP)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 50: Blackthorn / Phase 3 species ────────────
+    SpeciesData {
+        id: JYNX, name: "Jynx",
+        type1: PokemonType::Ice, type2: Some(PokemonType::Psychic),
+        base_hp: 65, base_attack: 50, base_defense: 35,
+        base_sp_attack: 115, base_sp_defense: 95, base_speed: 95,
+        catch_rate: 45, base_exp_yield: 137, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POUND), (1, MOVE_LICK), (1, MOVE_LOVELY_KISS), (1, MOVE_POWDER_SNOW), (13, MOVE_CONFUSION), (21, MOVE_ICE_PUNCH), (25, MOVE_MEAN_LOOK), (31, MOVE_BODY_SLAM), (39, MOVE_THRASH), (47, MOVE_BLIZZARD)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SNEASEL, name: "Sneasel",
+        type1: PokemonType::Dark, type2: Some(PokemonType::Ice),
+        base_hp: 55, base_attack: 95, base_defense: 55,
+        base_sp_attack: 35, base_sp_defense: 75, base_speed: 115,
+        catch_rate: 60, base_exp_yield: 132, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (9, MOVE_QUICK_ATTACK), (17, MOVE_SCREECH), (25, MOVE_FAINT_ATTACK), (33, MOVE_FURY_SWIPES), (41, MOVE_AGILITY), (49, MOVE_SLASH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: DELIBIRD, name: "Delibird",
+        type1: PokemonType::Ice, type2: Some(PokemonType::Flying),
+        base_hp: 45, base_attack: 55, base_defense: 45,
+        base_sp_attack: 65, base_sp_defense: 45, base_speed: 75,
+        catch_rate: 45, base_exp_yield: 183, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_PRESENT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: DRATINI, name: "Dratini",
+        type1: PokemonType::Dragon, type2: None,
+        base_hp: 41, base_attack: 64, base_defense: 45,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 50,
+        catch_rate: 45, base_exp_yield: 67, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (8, MOVE_THUNDER_WAVE), (15, MOVE_TWISTER), (22, MOVE_DRAGON_RAGE), (29, MOVE_SLAM), (36, MOVE_AGILITY), (43, MOVE_SAFEGUARD), (50, MOVE_OUTRAGE), (57, MOVE_HYPER_BEAM)],
+        evolution_level: Some(30), evolution_into: Some(DRAGONAIR),
+    },
+    SpeciesData {
+        id: DRAGONAIR, name: "Dragonair",
+        type1: PokemonType::Dragon, type2: None,
+        base_hp: 61, base_attack: 84, base_defense: 65,
+        base_sp_attack: 70, base_sp_defense: 70, base_speed: 70,
+        catch_rate: 45, base_exp_yield: 144, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (1, MOVE_THUNDER_WAVE), (1, MOVE_TWISTER), (22, MOVE_DRAGON_RAGE), (29, MOVE_SLAM), (38, MOVE_AGILITY), (47, MOVE_SAFEGUARD), (56, MOVE_OUTRAGE), (65, MOVE_HYPER_BEAM)],
+        evolution_level: Some(55), evolution_into: Some(DRAGONITE),
+    },
+    SpeciesData {
+        id: DRAGONITE, name: "Dragonite",
+        type1: PokemonType::Dragon, type2: Some(PokemonType::Flying),
+        base_hp: 91, base_attack: 134, base_defense: 95,
+        base_sp_attack: 100, base_sp_defense: 100, base_speed: 80,
+        catch_rate: 45, base_exp_yield: 218, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (1, MOVE_THUNDER_WAVE), (1, MOVE_TWISTER), (22, MOVE_DRAGON_RAGE), (29, MOVE_SLAM), (38, MOVE_AGILITY), (47, MOVE_SAFEGUARD), (55, MOVE_WING_ATTACK), (61, MOVE_OUTRAGE), (75, MOVE_HYPER_BEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HORSEA, name: "Horsea",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 30, base_attack: 40, base_defense: 70,
+        base_sp_attack: 70, base_sp_defense: 25, base_speed: 60,
+        catch_rate: 225, base_exp_yield: 83, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BUBBLE), (8, MOVE_SMOKESCREEN), (15, MOVE_LEER), (22, MOVE_WATER_GUN), (29, MOVE_TWISTER), (36, MOVE_AGILITY), (43, MOVE_HYDRO_PUMP)],
+        evolution_level: Some(32), evolution_into: Some(SEADRA),
+    },
+    SpeciesData {
+        id: SEADRA, name: "Seadra",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 55, base_attack: 65, base_defense: 95,
+        base_sp_attack: 95, base_sp_defense: 45, base_speed: 85,
+        catch_rate: 75, base_exp_yield: 155, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BUBBLE), (1, MOVE_SMOKESCREEN), (1, MOVE_LEER), (1, MOVE_WATER_GUN), (29, MOVE_TWISTER), (40, MOVE_AGILITY), (51, MOVE_HYDRO_PUMP)],
+        evolution_level: Some(40), evolution_into: Some(KINGDRA),
+    },
+    SpeciesData {
+        id: KINGDRA, name: "Kingdra",
+        type1: PokemonType::Water, type2: Some(PokemonType::Dragon),
+        base_hp: 75, base_attack: 95, base_defense: 95,
+        base_sp_attack: 95, base_sp_defense: 95, base_speed: 85,
+        catch_rate: 45, base_exp_yield: 207, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BUBBLE), (1, MOVE_SMOKESCREEN), (1, MOVE_LEER), (1, MOVE_WATER_GUN), (29, MOVE_TWISTER), (40, MOVE_AGILITY), (51, MOVE_HYDRO_PUMP)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1295,6 +1396,15 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_ENDURE, name: "Endure", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Always leaves at least 1 HP." },
     MoveData { id: MOVE_AMNESIA, name: "Amnesia", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Sharply raises Sp. Def." },
     MoveData { id: MOVE_THRASH, name: "Thrash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 90, accuracy: 100, pp: 20, description: "Rampages 2-3 turns, confuses." },
+    // ─── Sprint 50: Blackthorn / Phase 3 moves ──────────────
+    MoveData { id: MOVE_AGILITY, name: "Agility", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Sharply raises Speed." },
+    MoveData { id: MOVE_OUTRAGE, name: "Outrage", move_type: PokemonType::Dragon, category: MoveCategory::Special, power: 90, accuracy: 100, pp: 15, description: "Rampages 2-3 turns, confuses." },
+    MoveData { id: MOVE_HYPER_BEAM, name: "Hyper Beam", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 150, accuracy: 90, pp: 5, description: "Must recharge next turn." },
+    MoveData { id: MOVE_PRESENT, name: "Present", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 90, pp: 15, description: "Random damage or heal." },
+    MoveData { id: MOVE_ICE_PUNCH, name: "Ice Punch", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 75, accuracy: 100, pp: 15, description: "May freeze the foe." },
+    MoveData { id: MOVE_LOVELY_KISS, name: "Lovely Kiss", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 10, description: "Puts the foe to sleep." },
+    MoveData { id: MOVE_SLASH, name: "Slash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 70, accuracy: 100, pp: 20, description: "High critical-hit ratio." },
+    MoveData { id: MOVE_SAFEGUARD, name: "Safeguard", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 25, description: "Prevents status for 5 turns." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

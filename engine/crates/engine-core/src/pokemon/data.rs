@@ -1523,7 +1523,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         id: VILEPLUME, name: "Vileplume",
         type1: PokemonType::Grass, type2: Some(PokemonType::Poison),
         base_hp: 75, base_attack: 80, base_defense: 85,
-        base_sp_attack: 110, base_sp_defense: 90, base_speed: 50,
+        base_sp_attack: 100, base_sp_defense: 90, base_speed: 50,
         catch_rate: 45, base_exp_yield: 184, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_ABSORB), (1, MOVE_STUN_SPORE), (1, MOVE_ACID), (1, MOVE_SLEEP_POWDER)],
         evolution_level: None, evolution_into: None,

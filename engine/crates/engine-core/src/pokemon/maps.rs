@@ -7310,9 +7310,9 @@ fn build_elite_four_koga() -> MapData {
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
                 TrainerPokemon { species_id: ARIADOS, level: 40 },
+                TrainerPokemon { species_id: VENOMOTH, level: 41 },
                 TrainerPokemon { species_id: FORRETRESS, level: 43 },
                 TrainerPokemon { species_id: MUK, level: 42 },
-                TrainerPokemon { species_id: VENOMOTH, level: 41 },
                 TrainerPokemon { species_id: CROBAT, level: 44 },
             ],
         },

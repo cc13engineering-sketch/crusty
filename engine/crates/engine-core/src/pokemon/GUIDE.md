@@ -407,3 +407,15 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Sneasel missing Beat Up/Metal Claw — deferred until those moves are implemented
 - **Total: 46 maps, 8 badges, ~112 species, ~142 moves**
 - **Next sprint (52)**: Route 45, Route 46 — connecting Blackthorn south to Route 29/Cherrygrove area
+
+### Sprint 52 (Content)
+- Route 45 (12x24): Long mountain trail south from Blackthorn, 3 trainers (Hiker, Blackbelt, Cooltrainer), Geodude/Graveler/Gligar/Teddiursa/Skarmory/Raticate/Spearow encounters
+- Route 46 (12x16): Short route connecting Route 45 south to Route 29 (near New Bark), 2 trainers (Hiker, Picnicker), Geodude/Rattata/Spearow/Graveler encounters
+- BlackthornCity south exit now connects to Route 45
+- 6 new species: Graveler, Golem, Gligar, Teddiursa, Ursaring, Skarmory
+- 2 new moves: Swift (never-miss sentinel accuracy=255), Steel Wing
+- Fixed 9 warp bugs (destinations landing on C_WARP/C_SOLID)
+- All tests pass (1264 total)
+- **Total: 48 maps, 8 badges, ~118 species, ~144 moves**
+- **Phase 3 progress**: Route 44 ✓, Ice Path ✓, Blackthorn ✓, Route 45 ✓, Route 46 ✓. Next: Route 27, Route 26, Victory Road
+- **Next sprint (53)**: Route 27, Route 26 — connecting to Victory Road. Also investigate trainer battle detection bug (trainers not noticing player)

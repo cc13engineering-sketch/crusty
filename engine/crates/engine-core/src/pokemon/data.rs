@@ -1,0 +1,838 @@
+// AI-INSTRUCTIONS: Pokemon data module. Contains all species data, move data, type effectiveness
+// chart, and level-up/growth rate calculations for Pokemon Gold/Silver/Crystal recreation.
+// Types: SpeciesId (u16), MoveId (u16). All stats follow Gen 2 formulas.
+
+/// Pokemon elemental types (Gen 2)
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum PokemonType {
+    Normal,
+    Fire,
+    Water,
+    Grass,
+    Electric,
+    Ice,
+    Fighting,
+    Poison,
+    Ground,
+    Flying,
+    Psychic,
+    Bug,
+    Rock,
+    Ghost,
+    Dragon,
+    Dark,
+    Steel,
+}
+
+/// Move damage category
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum MoveCategory {
+    Physical,
+    Special,
+    Status,
+}
+
+/// Experience growth rate
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum GrowthRate {
+    Fast,
+    MediumFast,
+    MediumSlow,
+    Slow,
+}
+
+/// Status conditions (Gen 2)
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum StatusCondition {
+    None,
+    Poison,
+    Burn,
+    Paralysis,
+    Sleep { turns: u8 },
+    Freeze,
+}
+
+/// Species identification
+pub type SpeciesId = u16;
+/// Move identification
+pub type MoveId = u16;
+
+// ─── Species IDs ────────────────────────────────────────
+pub const CHIKORITA: SpeciesId = 152;
+pub const BAYLEEF: SpeciesId = 153;
+pub const CYNDAQUIL: SpeciesId = 155;
+pub const QUILAVA: SpeciesId = 156;
+pub const TOTODILE: SpeciesId = 158;
+pub const CROCONAW: SpeciesId = 159;
+pub const PIDGEY: SpeciesId = 16;
+pub const RATTATA: SpeciesId = 19;
+pub const SENTRET: SpeciesId = 161;
+pub const HOOTHOOT: SpeciesId = 163;
+pub const CATERPIE: SpeciesId = 10;
+pub const WEEDLE: SpeciesId = 13;
+pub const GEODUDE: SpeciesId = 74;
+pub const ZUBAT: SpeciesId = 41;
+pub const BELLSPROUT: SpeciesId = 69;
+pub const GASTLY: SpeciesId = 92;
+pub const ONIX: SpeciesId = 95;
+pub const MAGIKARP: SpeciesId = 129;
+pub const LEDYBA: SpeciesId = 165;
+pub const SPINARAK: SpeciesId = 167;
+pub const MAREEP: SpeciesId = 179;
+pub const WOOPER: SpeciesId = 194;
+pub const HOPPIP: SpeciesId = 187;
+
+// ─── Move IDs ───────────────────────────────────────────
+pub const MOVE_TACKLE: MoveId = 33;
+pub const MOVE_GROWL: MoveId = 45;
+pub const MOVE_RAZOR_LEAF: MoveId = 75;
+pub const MOVE_LEER: MoveId = 43;
+pub const MOVE_EMBER: MoveId = 52;
+pub const MOVE_SMOKESCREEN: MoveId = 108;
+pub const MOVE_SCRATCH: MoveId = 10;
+pub const MOVE_WATER_GUN: MoveId = 55;
+pub const MOVE_RAGE: MoveId = 99;
+pub const MOVE_QUICK_ATTACK: MoveId = 98;
+pub const MOVE_GUST: MoveId = 16;
+pub const MOVE_TAIL_WHIP: MoveId = 39;
+pub const MOVE_BITE: MoveId = 44;
+pub const MOVE_PECK: MoveId = 64;
+pub const MOVE_FORESIGHT: MoveId = 193;
+pub const MOVE_STRING_SHOT: MoveId = 81;
+pub const MOVE_POISON_STING: MoveId = 40;
+pub const MOVE_VINE_WHIP: MoveId = 22;
+pub const MOVE_DEFENSE_CURL: MoveId = 111;
+pub const MOVE_SAND_ATTACK: MoveId = 28;
+pub const MOVE_BIND: MoveId = 20;
+pub const MOVE_THUNDER_SHOCK: MoveId = 84;
+pub const MOVE_ROCK_THROW: MoveId = 88;
+pub const MOVE_HYPNOSIS: MoveId = 95;
+pub const MOVE_NIGHT_SHADE: MoveId = 101;
+pub const MOVE_LICK: MoveId = 122;
+pub const MOVE_SPLASH: MoveId = 150;
+pub const MOVE_SCARY_FACE: MoveId = 184;
+
+/// Static species data
+#[derive(Debug)]
+pub struct SpeciesData {
+    pub id: SpeciesId,
+    pub name: &'static str,
+    pub type1: PokemonType,
+    pub type2: Option<PokemonType>,
+    pub base_hp: u16,
+    pub base_attack: u16,
+    pub base_defense: u16,
+    pub base_sp_attack: u16,
+    pub base_sp_defense: u16,
+    pub base_speed: u16,
+    pub catch_rate: u8,
+    pub base_exp_yield: u16,
+    pub growth_rate: GrowthRate,
+    pub learnset: &'static [(u8, MoveId)],
+    pub evolution_level: Option<u8>,
+    pub evolution_into: Option<SpeciesId>,
+}
+
+/// Static move data
+#[derive(Debug)]
+pub struct MoveData {
+    pub id: MoveId,
+    pub name: &'static str,
+    pub move_type: PokemonType,
+    pub category: MoveCategory,
+    pub power: u8,
+    pub accuracy: u8,
+    pub pp: u8,
+    pub description: &'static str,
+}
+
+/// A Pokemon instance (owned by player or wild)
+#[derive(Clone, Debug)]
+pub struct Pokemon {
+    pub species_id: SpeciesId,
+    pub nickname: Option<String>,
+    pub level: u8,
+    pub hp: u16,
+    pub max_hp: u16,
+    pub attack: u16,
+    pub defense: u16,
+    pub sp_attack: u16,
+    pub sp_defense: u16,
+    pub speed: u16,
+    pub exp: u32,
+    pub moves: [Option<MoveId>; 4],
+    pub move_pp: [u8; 4],
+    pub move_max_pp: [u8; 4],
+    pub status: StatusCondition,
+}
+
+// ─── Species Database ───────────────────────────────────
+
+const SPECIES_DB: &[SpeciesData] = &[
+    // Starters
+    SpeciesData {
+        id: CHIKORITA, name: "Chikorita",
+        type1: PokemonType::Grass, type2: None,
+        base_hp: 45, base_attack: 49, base_defense: 65,
+        base_sp_attack: 49, base_sp_defense: 65, base_speed: 45,
+        catch_rate: 45, base_exp_yield: 64, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP)],
+        evolution_level: Some(16), evolution_into: Some(BAYLEEF),
+    },
+    SpeciesData {
+        id: BAYLEEF, name: "Bayleef",
+        type1: PokemonType::Grass, type2: None,
+        base_hp: 60, base_attack: 62, base_defense: 80,
+        base_sp_attack: 63, base_sp_defense: 80, base_speed: 60,
+        catch_rate: 45, base_exp_yield: 141, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: CYNDAQUIL, name: "Cyndaquil",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 39, base_attack: 52, base_defense: 43,
+        base_sp_attack: 60, base_sp_defense: 50, base_speed: 65,
+        catch_rate: 45, base_exp_yield: 65, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER)],
+        evolution_level: Some(14), evolution_into: Some(QUILAVA),
+    },
+    SpeciesData {
+        id: QUILAVA, name: "Quilava",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 58, base_attack: 64, base_defense: 58,
+        base_sp_attack: 80, base_sp_defense: 65, base_speed: 80,
+        catch_rate: 45, base_exp_yield: 142, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: TOTODILE, name: "Totodile",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 50, base_attack: 65, base_defense: 64,
+        base_sp_attack: 44, base_sp_defense: 48, base_speed: 43,
+        catch_rate: 45, base_exp_yield: 66, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (15, MOVE_BITE)],
+        evolution_level: Some(18), evolution_into: Some(CROCONAW),
+    },
+    SpeciesData {
+        id: CROCONAW, name: "Croconaw",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 65, base_attack: 80, base_defense: 80,
+        base_sp_attack: 59, base_sp_defense: 63, base_speed: 58,
+        catch_rate: 45, base_exp_yield: 143, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (15, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    // Wild Pokemon
+    SpeciesData {
+        id: PIDGEY, name: "Pidgey",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 40, base_attack: 45, base_defense: 40,
+        base_sp_attack: 35, base_sp_defense: 35, base_speed: 56,
+        catch_rate: 255, base_exp_yield: 55, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (5, MOVE_SAND_ATTACK), (9, MOVE_GUST), (15, MOVE_QUICK_ATTACK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: RATTATA, name: "Rattata",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 30, base_attack: 56, base_defense: 35,
+        base_sp_attack: 25, base_sp_defense: 35, base_speed: 72,
+        catch_rate: 255, base_exp_yield: 57, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (7, MOVE_QUICK_ATTACK), (13, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SENTRET, name: "Sentret",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 35, base_attack: 46, base_defense: 34,
+        base_sp_attack: 35, base_sp_defense: 45, base_speed: 20,
+        catch_rate: 255, base_exp_yield: 57, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (7, MOVE_QUICK_ATTACK), (12, MOVE_SCRATCH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HOOTHOOT, name: "Hoothoot",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 60, base_attack: 30, base_defense: 30,
+        base_sp_attack: 36, base_sp_defense: 56, base_speed: 50,
+        catch_rate: 255, base_exp_yield: 58, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (6, MOVE_FORESIGHT), (11, MOVE_PECK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: CATERPIE, name: "Caterpie",
+        type1: PokemonType::Bug, type2: None,
+        base_hp: 45, base_attack: 30, base_defense: 35,
+        base_sp_attack: 20, base_sp_defense: 20, base_speed: 45,
+        catch_rate: 255, base_exp_yield: 53, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_STRING_SHOT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: WEEDLE, name: "Weedle",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 40, base_attack: 35, base_defense: 30,
+        base_sp_attack: 20, base_sp_defense: 20, base_speed: 50,
+        catch_rate: 255, base_exp_yield: 52, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GEODUDE, name: "Geodude",
+        type1: PokemonType::Rock, type2: Some(PokemonType::Ground),
+        base_hp: 40, base_attack: 80, base_defense: 100,
+        base_sp_attack: 30, base_sp_defense: 30, base_speed: 20,
+        catch_rate: 255, base_exp_yield: 73, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: ZUBAT, name: "Zubat",
+        type1: PokemonType::Poison, type2: Some(PokemonType::Flying),
+        base_hp: 40, base_attack: 45, base_defense: 35,
+        base_sp_attack: 30, base_sp_defense: 40, base_speed: 55,
+        catch_rate: 255, base_exp_yield: 54, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_LEER), (6, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: BELLSPROUT, name: "Bellsprout",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Poison),
+        base_hp: 50, base_attack: 75, base_defense: 35,
+        base_sp_attack: 70, base_sp_defense: 30, base_speed: 40,
+        catch_rate: 255, base_exp_yield: 84, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_VINE_WHIP), (7, MOVE_GROWL)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GASTLY, name: "Gastly",
+        type1: PokemonType::Ghost, type2: Some(PokemonType::Poison),
+        base_hp: 30, base_attack: 35, base_defense: 30,
+        base_sp_attack: 100, base_sp_defense: 35, base_speed: 80,
+        catch_rate: 255, base_exp_yield: 95, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (16, MOVE_NIGHT_SHADE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: ONIX, name: "Onix",
+        type1: PokemonType::Rock, type2: Some(PokemonType::Ground),
+        base_hp: 35, base_attack: 45, base_defense: 160,
+        base_sp_attack: 30, base_sp_defense: 45, base_speed: 70,
+        catch_rate: 255, base_exp_yield: 108, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_BIND), (9, MOVE_ROCK_THROW)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MAGIKARP, name: "Magikarp",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 20, base_attack: 10, base_defense: 55,
+        base_sp_attack: 15, base_sp_defense: 20, base_speed: 80,
+        catch_rate: 255, base_exp_yield: 20, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SPLASH), (15, MOVE_TACKLE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: LEDYBA, name: "Ledyba",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Flying),
+        base_hp: 40, base_attack: 20, base_defense: 30,
+        base_sp_attack: 40, base_sp_defense: 80, base_speed: 55,
+        catch_rate: 255, base_exp_yield: 54, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (8, MOVE_PECK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SPINARAK, name: "Spinarak",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 40, base_attack: 60, base_defense: 40,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 30,
+        catch_rate: 255, base_exp_yield: 54, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT), (11, MOVE_SCARY_FACE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MAREEP, name: "Mareep",
+        type1: PokemonType::Electric, type2: None,
+        base_hp: 55, base_attack: 40, base_defense: 40,
+        base_sp_attack: 65, base_sp_defense: 45, base_speed: 35,
+        catch_rate: 255, base_exp_yield: 59, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (9, MOVE_THUNDER_SHOCK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: WOOPER, name: "Wooper",
+        type1: PokemonType::Water, type2: Some(PokemonType::Ground),
+        base_hp: 55, base_attack: 45, base_defense: 45,
+        base_sp_attack: 25, base_sp_defense: 25, base_speed: 15,
+        catch_rate: 255, base_exp_yield: 52, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HOPPIP, name: "Hoppip",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Flying),
+        base_hp: 35, base_attack: 35, base_defense: 40,
+        base_sp_attack: 35, base_sp_defense: 55, base_speed: 50,
+        catch_rate: 255, base_exp_yield: 50, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP)],
+        evolution_level: None, evolution_into: None,
+    },
+];
+
+// ─── Move Database ──────────────────────────────────────
+
+const MOVE_DB: &[MoveData] = &[
+    MoveData { id: MOVE_TACKLE, name: "Tackle", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 35, accuracy: 95, pp: 35, description: "A full-body charge attack." },
+    MoveData { id: MOVE_SCRATCH, name: "Scratch", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 35, description: "Scratches with sharp claws." },
+    MoveData { id: MOVE_GROWL, name: "Growl", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Reduces the foe's Attack." },
+    MoveData { id: MOVE_LEER, name: "Leer", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Reduces the foe's Defense." },
+    MoveData { id: MOVE_TAIL_WHIP, name: "Tail Whip", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Lowers the foe's Defense." },
+    MoveData { id: MOVE_RAZOR_LEAF, name: "Razor Leaf", move_type: PokemonType::Grass, category: MoveCategory::Physical, power: 55, accuracy: 95, pp: 25, description: "Leaves are launched to slash." },
+    MoveData { id: MOVE_VINE_WHIP, name: "Vine Whip", move_type: PokemonType::Grass, category: MoveCategory::Physical, power: 35, accuracy: 100, pp: 10, description: "Strikes with slender vines." },
+    MoveData { id: MOVE_EMBER, name: "Ember", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 25, description: "A weak fire attack." },
+    MoveData { id: MOVE_SMOKESCREEN, name: "Smokescreen", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Lowers the foe's accuracy." },
+    MoveData { id: MOVE_WATER_GUN, name: "Water Gun", move_type: PokemonType::Water, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 25, description: "Squirts water to attack." },
+    MoveData { id: MOVE_RAGE, name: "Rage", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 20, description: "Raises Attack if hit." },
+    MoveData { id: MOVE_BITE, name: "Bite", move_type: PokemonType::Dark, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 25, description: "May cause flinching." },
+    MoveData { id: MOVE_QUICK_ATTACK, name: "Quick Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 30, description: "Always strikes first." },
+    MoveData { id: MOVE_GUST, name: "Gust", move_type: PokemonType::Flying, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 35, description: "Whips up a small gust." },
+    MoveData { id: MOVE_PECK, name: "Peck", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 35, accuracy: 100, pp: 35, description: "Jabs the foe with a beak." },
+    MoveData { id: MOVE_FORESIGHT, name: "Foresight", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Negates accuracy reduction." },
+    MoveData { id: MOVE_STRING_SHOT, name: "String Shot", move_type: PokemonType::Bug, category: MoveCategory::Status, power: 0, accuracy: 95, pp: 40, description: "Reduces the foe's Speed." },
+    MoveData { id: MOVE_POISON_STING, name: "Poison Sting", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 15, accuracy: 100, pp: 35, description: "May poison the foe." },
+    MoveData { id: MOVE_DEFENSE_CURL, name: "Defense Curl", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Raises the user's Defense." },
+    MoveData { id: MOVE_SAND_ATTACK, name: "Sand Attack", move_type: PokemonType::Ground, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 15, description: "Reduces the foe's accuracy." },
+    MoveData { id: MOVE_BIND, name: "Bind", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 75, pp: 20, description: "Binds the foe for 2-5 turns." },
+    MoveData { id: MOVE_THUNDER_SHOCK, name: "ThunderShock", move_type: PokemonType::Electric, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 30, description: "May paralyze the foe." },
+    MoveData { id: MOVE_ROCK_THROW, name: "Rock Throw", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 50, accuracy: 90, pp: 15, description: "Drops rocks on the foe." },
+    MoveData { id: MOVE_HYPNOSIS, name: "Hypnosis", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 60, pp: 20, description: "May put the foe to sleep." },
+    MoveData { id: MOVE_NIGHT_SHADE, name: "Night Shade", move_type: PokemonType::Ghost, category: MoveCategory::Special, power: 1, accuracy: 100, pp: 15, description: "Inflicts damage equal to level." },
+    MoveData { id: MOVE_LICK, name: "Lick", move_type: PokemonType::Ghost, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 30, description: "May paralyze the foe." },
+    MoveData { id: MOVE_SPLASH, name: "Splash", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Has no effect whatsoever." },
+    MoveData { id: MOVE_SCARY_FACE, name: "Scary Face", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 10, description: "Sharply reduces Speed." },
+];
+
+// ─── Type Effectiveness Chart ───────────────────────────
+
+/// Returns damage multiplier for attack type vs defense type.
+/// 2.0 = super effective, 0.5 = not very effective, 0.0 = no effect
+pub fn type_effectiveness(atk: PokemonType, def: PokemonType) -> f64 {
+    use PokemonType::*;
+    match (atk, def) {
+        // Normal
+        (Normal, Rock) => 0.5, (Normal, Ghost) => 0.0, (Normal, Steel) => 0.5,
+        // Fire
+        (Fire, Fire) => 0.5, (Fire, Water) => 0.5, (Fire, Grass) => 2.0,
+        (Fire, Ice) => 2.0, (Fire, Bug) => 2.0, (Fire, Rock) => 0.5,
+        (Fire, Dragon) => 0.5, (Fire, Steel) => 2.0,
+        // Water
+        (Water, Fire) => 2.0, (Water, Water) => 0.5, (Water, Grass) => 0.5,
+        (Water, Ground) => 2.0, (Water, Rock) => 2.0, (Water, Dragon) => 0.5,
+        // Grass
+        (Grass, Fire) => 0.5, (Grass, Water) => 2.0, (Grass, Grass) => 0.5,
+        (Grass, Poison) => 0.5, (Grass, Ground) => 2.0, (Grass, Flying) => 0.5,
+        (Grass, Bug) => 0.5, (Grass, Rock) => 2.0, (Grass, Dragon) => 0.5,
+        (Grass, Steel) => 0.5,
+        // Electric
+        (Electric, Water) => 2.0, (Electric, Electric) => 0.5, (Electric, Grass) => 0.5,
+        (Electric, Ground) => 0.0, (Electric, Flying) => 2.0, (Electric, Dragon) => 0.5,
+        // Flying
+        (Flying, Electric) => 0.5, (Flying, Grass) => 2.0, (Flying, Fighting) => 2.0,
+        (Flying, Bug) => 2.0, (Flying, Rock) => 0.5, (Flying, Steel) => 0.5,
+        // Fighting
+        (Fighting, Normal) => 2.0, (Fighting, Ice) => 2.0, (Fighting, Poison) => 0.5,
+        (Fighting, Flying) => 0.5, (Fighting, Psychic) => 0.5, (Fighting, Bug) => 0.5,
+        (Fighting, Rock) => 2.0, (Fighting, Ghost) => 0.0, (Fighting, Dark) => 2.0,
+        (Fighting, Steel) => 2.0,
+        // Poison
+        (Poison, Grass) => 2.0, (Poison, Poison) => 0.5, (Poison, Ground) => 0.5,
+        (Poison, Rock) => 0.5, (Poison, Ghost) => 0.5, (Poison, Steel) => 0.0,
+        // Ground
+        (Ground, Fire) => 2.0, (Ground, Electric) => 2.0, (Ground, Grass) => 0.5,
+        (Ground, Poison) => 2.0, (Ground, Flying) => 0.0, (Ground, Bug) => 0.5,
+        (Ground, Rock) => 2.0, (Ground, Steel) => 2.0,
+        // Psychic
+        (Psychic, Fighting) => 2.0, (Psychic, Poison) => 2.0, (Psychic, Psychic) => 0.5,
+        (Psychic, Dark) => 0.0, (Psychic, Steel) => 0.5,
+        // Bug
+        (Bug, Fire) => 0.5, (Bug, Grass) => 2.0, (Bug, Fighting) => 0.5,
+        (Bug, Poison) => 0.5, (Bug, Flying) => 0.5, (Bug, Psychic) => 2.0,
+        (Bug, Ghost) => 0.5, (Bug, Dark) => 2.0, (Bug, Steel) => 0.5,
+        // Rock
+        (Rock, Fire) => 2.0, (Rock, Ice) => 2.0, (Rock, Fighting) => 0.5,
+        (Rock, Ground) => 0.5, (Rock, Flying) => 2.0, (Rock, Bug) => 2.0,
+        (Rock, Steel) => 0.5,
+        // Ghost
+        (Ghost, Normal) => 0.0, (Ghost, Psychic) => 2.0, (Ghost, Ghost) => 2.0,
+        (Ghost, Dark) => 0.5, (Ghost, Steel) => 0.5,
+        // Dragon
+        (Dragon, Dragon) => 2.0, (Dragon, Steel) => 0.5,
+        // Dark
+        (Dark, Fighting) => 0.5, (Dark, Psychic) => 2.0, (Dark, Ghost) => 2.0,
+        (Dark, Dark) => 0.5, (Dark, Steel) => 0.5,
+        // Steel
+        (Steel, Fire) => 0.5, (Steel, Water) => 0.5, (Steel, Electric) => 0.5,
+        (Steel, Ice) => 2.0, (Steel, Rock) => 2.0, (Steel, Steel) => 0.5,
+        // Ice
+        (Ice, Fire) => 0.5, (Ice, Water) => 0.5, (Ice, Grass) => 2.0,
+        (Ice, Ice) => 0.5, (Ice, Ground) => 2.0, (Ice, Flying) => 2.0,
+        (Ice, Dragon) => 2.0, (Ice, Steel) => 0.5,
+        // Default: neutral
+        _ => 1.0,
+    }
+}
+
+/// Combined type effectiveness for dual-type Pokemon
+pub fn combined_effectiveness(atk_type: PokemonType, def_type1: PokemonType, def_type2: Option<PokemonType>) -> f64 {
+    let mut mult = type_effectiveness(atk_type, def_type1);
+    if let Some(t2) = def_type2 {
+        mult *= type_effectiveness(atk_type, t2);
+    }
+    mult
+}
+
+// ─── Lookup Functions ───────────────────────────────────
+
+pub fn get_species(id: SpeciesId) -> Option<&'static SpeciesData> {
+    SPECIES_DB.iter().find(|s| s.id == id)
+}
+
+pub fn get_move(id: MoveId) -> Option<&'static MoveData> {
+    MOVE_DB.iter().find(|m| m.id == id)
+}
+
+// ─── Stat Calculation (Gen 2 formulas) ──────────────────
+
+/// Calculate HP stat for a given level
+pub fn calc_hp(base: u16, level: u8) -> u16 {
+    let l = level as u16;
+    // Simplified: HP = ((Base * 2 + IV + EV/4) * Level / 100) + Level + 10
+    // Using fixed IV=15, EV=0 for simplicity
+    ((base * 2 + 15) * l / 100) + l + 10
+}
+
+/// Calculate non-HP stat for a given level
+pub fn calc_stat(base: u16, level: u8) -> u16 {
+    let l = level as u16;
+    // Stat = ((Base * 2 + IV + EV/4) * Level / 100) + 5
+    ((base * 2 + 15) * l / 100) + 5
+}
+
+/// Experience needed to reach a given level
+pub fn exp_for_level(level: u8, growth: GrowthRate) -> u32 {
+    let n = level as u32;
+    if n <= 1 { return 0; }
+    match growth {
+        GrowthRate::Fast => (4 * n * n * n) / 5,
+        GrowthRate::MediumFast => n * n * n,
+        GrowthRate::MediumSlow => {
+            let n3 = n * n * n;
+            let n2 = n * n;
+            // 6n^3/5 - 15n^2 + 100n - 140
+            (6 * n3 / 5).saturating_sub(15 * n2) + 100 * n - 140
+        }
+        GrowthRate::Slow => (5 * n * n * n) / 4,
+    }
+}
+
+/// Experience gained from defeating a Pokemon (simplified Gen 2)
+pub fn exp_gained(defeated_species: &SpeciesData, defeated_level: u8, is_wild: bool) -> u32 {
+    let a: u32 = if is_wild { 1 } else { 3 }; // trainer gives 1.5x but we simplify
+    let b = defeated_species.base_exp_yield as u32;
+    let l = defeated_level as u32;
+    (a * b * l) / (7 * if is_wild { 1 } else { 1 })
+}
+
+// ─── Pokemon Creation ───────────────────────────────────
+
+impl Pokemon {
+    /// Create a new Pokemon at the given level with appropriate moves
+    pub fn new(species_id: SpeciesId, level: u8) -> Self {
+        let species = get_species(species_id).expect("Invalid species ID");
+
+        // Calculate stats
+        let max_hp = calc_hp(species.base_hp, level);
+        let attack = calc_stat(species.base_attack, level);
+        let defense = calc_stat(species.base_defense, level);
+        let sp_attack = calc_stat(species.base_sp_attack, level);
+        let sp_defense = calc_stat(species.base_sp_defense, level);
+        let speed = calc_stat(species.base_speed, level);
+
+        // Determine moves: take the last 4 moves the Pokemon would know at this level
+        let mut available_moves: Vec<MoveId> = species.learnset.iter()
+            .filter(|(lvl, _)| *lvl <= level)
+            .map(|(_, mid)| *mid)
+            .collect();
+
+        // Take last 4 (most recently learned)
+        while available_moves.len() > 4 {
+            available_moves.remove(0);
+        }
+
+        let mut moves = [None; 4];
+        let mut move_pp = [0u8; 4];
+        let mut move_max_pp = [0u8; 4];
+
+        for (i, &mid) in available_moves.iter().enumerate() {
+            moves[i] = Some(mid);
+            if let Some(md) = get_move(mid) {
+                move_pp[i] = md.pp;
+                move_max_pp[i] = md.pp;
+            }
+        }
+
+        let exp = exp_for_level(level, species.growth_rate);
+
+        Pokemon {
+            species_id,
+            nickname: None,
+            level,
+            hp: max_hp,
+            max_hp,
+            attack,
+            defense,
+            sp_attack,
+            sp_defense,
+            speed,
+            exp,
+            moves,
+            move_pp,
+            move_max_pp,
+            status: StatusCondition::None,
+        }
+    }
+
+    /// Recalculate stats (after leveling up)
+    pub fn recalc_stats(&mut self) {
+        if let Some(species) = get_species(self.species_id) {
+            let old_max_hp = self.max_hp;
+            self.max_hp = calc_hp(species.base_hp, self.level);
+            self.attack = calc_stat(species.base_attack, self.level);
+            self.defense = calc_stat(species.base_defense, self.level);
+            self.sp_attack = calc_stat(species.base_sp_attack, self.level);
+            self.sp_defense = calc_stat(species.base_sp_defense, self.level);
+            self.speed = calc_stat(species.base_speed, self.level);
+            // Increase current HP by the same amount max increased
+            let hp_increase = self.max_hp.saturating_sub(old_max_hp);
+            self.hp = self.hp.saturating_add(hp_increase).min(self.max_hp);
+        }
+    }
+
+    /// Check if this Pokemon should learn a new move at its current level
+    pub fn check_new_moves(&self) -> Vec<MoveId> {
+        if let Some(species) = get_species(self.species_id) {
+            species.learnset.iter()
+                .filter(|(lvl, _)| *lvl == self.level)
+                .map(|(_, mid)| *mid)
+                .collect()
+        } else {
+            vec![]
+        }
+    }
+
+    /// Heal to full HP, restore all PP, and clear status
+    pub fn heal(&mut self) {
+        self.hp = self.max_hp;
+        for i in 0..4 {
+            self.move_pp[i] = self.move_max_pp[i];
+        }
+        self.status = StatusCondition::None;
+    }
+
+    /// Is this Pokemon fainted?
+    pub fn is_fainted(&self) -> bool {
+        self.hp == 0
+    }
+
+    /// Get species name
+    pub fn name(&self) -> &str {
+        if let Some(nick) = &self.nickname {
+            nick.as_str()
+        } else if let Some(species) = get_species(self.species_id) {
+            species.name
+        } else {
+            "???"
+        }
+    }
+
+    /// Clear any status condition
+    pub fn clear_status(&mut self) {
+        self.status = StatusCondition::None;
+    }
+
+    /// Apply end-of-turn status damage. Returns damage dealt.
+    pub fn apply_status_damage(&mut self) -> u16 {
+        let damage = match self.status {
+            StatusCondition::Poison | StatusCondition::Burn => self.max_hp / 8,
+            _ => 0,
+        };
+        if damage > 0 {
+            self.hp = self.hp.saturating_sub(damage);
+        }
+        damage
+    }
+
+    /// Check if this Pokemon can move this turn.
+    /// Paralysis RNG check happens externally in mod.rs; here we always return true for it.
+    pub fn can_move(&self) -> bool {
+        match self.status {
+            StatusCondition::Sleep { turns } => turns == 0,
+            StatusCondition::Freeze => false,
+            _ => true,
+        }
+    }
+
+    /// Tick status at end of turn (decrements sleep counter, etc.)
+    pub fn tick_status(&mut self) {
+        match self.status {
+            StatusCondition::Sleep { turns } => {
+                if turns > 0 {
+                    let new_turns = turns - 1;
+                    if new_turns == 0 {
+                        self.status = StatusCondition::None;
+                    } else {
+                        self.status = StatusCondition::Sleep { turns: new_turns };
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+// ─── Items ─────────────────────────────────────────────
+
+pub type ItemId = u8;
+
+pub const ITEM_POTION: ItemId = 1;
+pub const ITEM_SUPER_POTION: ItemId = 2;
+pub const ITEM_ANTIDOTE: ItemId = 3;
+pub const ITEM_POKE_BALL: ItemId = 4;
+pub const ITEM_PARALYZE_HEAL: ItemId = 5;
+pub const ITEM_REVIVE: ItemId = 6;
+pub const ITEM_FULL_HEAL: ItemId = 7;
+pub const ITEM_GREAT_BALL: ItemId = 8;
+pub const ITEM_ETHER: ItemId = 9;
+pub const ITEM_ESCAPE_ROPE: ItemId = 10;
+pub const ITEM_REPEL: ItemId = 11;
+
+#[derive(Clone, Debug)]
+pub struct ItemData {
+    pub id: ItemId,
+    pub name: &'static str,
+    pub description: &'static str,
+    pub heal_amount: u16,
+    pub is_ball: bool,
+    pub price: u16,
+    pub is_revive: bool,
+    pub is_status_heal: bool,
+}
+
+const ITEM_DB: &[ItemData] = &[
+    ItemData { id: ITEM_POTION, name: "Potion", description: "Restores 20 HP.", heal_amount: 20, is_ball: false, price: 300, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_SUPER_POTION, name: "Super Potion", description: "Restores 50 HP.", heal_amount: 50, is_ball: false, price: 700, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_ANTIDOTE, name: "Antidote", description: "Cures poison.", heal_amount: 0, is_ball: false, price: 100, is_revive: false, is_status_heal: true },
+    ItemData { id: ITEM_POKE_BALL, name: "Poke Ball", description: "Catches wild Pokemon.", heal_amount: 0, is_ball: true, price: 200, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_PARALYZE_HEAL, name: "Paralyze Heal", description: "Cures paralysis.", heal_amount: 0, is_ball: false, price: 200, is_revive: false, is_status_heal: true },
+    ItemData { id: ITEM_REVIVE, name: "Revive", description: "Revives a fainted Pokemon to 50% HP.", heal_amount: 0, is_ball: false, price: 1500, is_revive: true, is_status_heal: false },
+    ItemData { id: ITEM_FULL_HEAL, name: "Full Heal", description: "Cures all status conditions.", heal_amount: 0, is_ball: false, price: 600, is_revive: false, is_status_heal: true },
+    ItemData { id: ITEM_GREAT_BALL, name: "Great Ball", description: "A good Ball with a higher catch rate.", heal_amount: 0, is_ball: true, price: 600, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_ETHER, name: "Ether", description: "Restores 10 PP to one move.", heal_amount: 0, is_ball: false, price: 1200, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_ESCAPE_ROPE, name: "Escape Rope", description: "Escapes from dungeons instantly.", heal_amount: 0, is_ball: false, price: 550, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_REPEL, name: "Repel", description: "Repels wild Pokemon for 100 steps.", heal_amount: 0, is_ball: false, price: 350, is_revive: false, is_status_heal: false },
+];
+
+pub fn get_item(id: ItemId) -> Option<&'static ItemData> {
+    ITEM_DB.iter().find(|i| i.id == id)
+}
+
+/// Player's bag: (item_id, quantity) pairs
+#[derive(Clone, Debug)]
+pub struct Bag {
+    pub items: Vec<(ItemId, u8)>,
+}
+
+impl Bag {
+    pub fn new() -> Self {
+        Bag { items: Vec::new() }
+    }
+
+    pub fn add_item(&mut self, id: ItemId, qty: u8) {
+        if let Some(entry) = self.items.iter_mut().find(|(i, _)| *i == id) {
+            entry.1 = entry.1.saturating_add(qty);
+        } else {
+            self.items.push((id, qty));
+        }
+    }
+
+    pub fn use_item(&mut self, id: ItemId) -> bool {
+        if let Some(entry) = self.items.iter_mut().find(|(i, _)| *i == id) {
+            if entry.1 > 0 {
+                entry.1 -= 1;
+                if entry.1 == 0 {
+                    self.items.retain(|(i, _)| *i != id);
+                }
+                return true;
+            }
+        }
+        false
+    }
+
+    pub fn count(&self, id: ItemId) -> u8 {
+        self.items.iter().find(|(i, _)| *i == id).map(|(_, q)| *q).unwrap_or(0)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+}
+
+/// Damage calculation (Gen 2 formula, simplified)
+pub fn calc_damage(
+    attacker: &Pokemon,
+    defender_defense: u16,
+    defender_type1: PokemonType,
+    defender_type2: Option<PokemonType>,
+    move_data: &MoveData,
+    rng_roll: f64, // 0.85 to 1.0
+    is_crit: bool,
+) -> (u16, f64) {
+    // Status moves do no damage
+    if move_data.category == MoveCategory::Status || move_data.power == 0 {
+        return (0, 1.0);
+    }
+
+    let level = attacker.level as f64;
+    let attack_stat = match move_data.category {
+        MoveCategory::Physical => attacker.attack as f64,
+        MoveCategory::Special => attacker.sp_attack as f64,
+        MoveCategory::Status => 0.0,
+    };
+    let defense_stat = defender_defense as f64;
+    let power = move_data.power as f64;
+
+    // STAB (Same Type Attack Bonus)
+    let attacker_species = get_species(attacker.species_id);
+    let stab = if let Some(sp) = attacker_species {
+        if move_data.move_type == sp.type1 || sp.type2 == Some(move_data.move_type) {
+            1.5
+        } else {
+            1.0
+        }
+    } else {
+        1.0
+    };
+
+    // Type effectiveness
+    let effectiveness = combined_effectiveness(move_data.move_type, defender_type1, defender_type2);
+
+    // Critical hit multiplier (Gen 2: 2x)
+    let crit_mult = if is_crit { 2.0 } else { 1.0 };
+
+    // Damage formula: ((2*Level/5 + 2) * Power * A/D) / 50 + 2) * STAB * Type * Random * Crit
+    let base = ((2.0 * level / 5.0 + 2.0) * power * attack_stat / defense_stat) / 50.0 + 2.0;
+    let damage = (base * stab * effectiveness * rng_roll * crit_mult).max(1.0) as u16;
+
+    (damage, effectiveness)
+}

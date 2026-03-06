@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Pokemon Gold — Crusty Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../crusty-ui.css">
+    <style>
+        :root {
+            --color-bg: #0a0a1a;
+            --color-accent: #f0d060;
+            --accent-rgb: 240, 208, 96;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; }
+        body {
+            background: #000;
+            color: var(--color-text);
+            font-family: var(--font-ui);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            height: 100dvh;
+        }
+        #game-canvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+        }
+        #sprite-overlay {
+            position: absolute;
+            pointer-events: none;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        #game-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .controls-hint {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #444;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            z-index: 20;
+            text-align: center;
+        }
+        .version {
+            position: fixed;
+            bottom: 6px;
+            right: 10px;
+            color: #333;
+            font-size: 0.6rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+        /* D-pad for mobile */
+        .dpad {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            left: 30px;
+            z-index: 30;
+        }
+        .ab-buttons {
+            display: none;
+            position: fixed;
+            bottom: 60px;
+            right: 30px;
+            z-index: 30;
+        }
+        @media (hover: none) and (pointer: coarse) {
+            .dpad, .ab-buttons { display: grid; }
+            .controls-hint { display: none; }
+        }
+        .dpad {
+            grid-template-columns: 50px 50px 50px;
+            grid-template-rows: 50px 50px 50px;
+            gap: 2px;
+        }
+        .dpad-btn {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .dpad-btn:active { background: rgba(255,255,255,0.3); }
+        .dpad-empty { background: transparent; border: none; }
+        .ab-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 0.9rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            margin: 4px;
+        }
+        .ab-btn:active { background: rgba(255,255,255,0.3); }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <canvas id="sprite-overlay"></canvas>
+    </div>
+
+    <div class="controls-hint">
+        ARROWS/WASD: Move &nbsp; Z/ENTER: Confirm &nbsp; X/ESC: Cancel/Menu
+    </div>
+    <div class="version">Crusty Engine — Pokemon Demo</div>
+
+    <!-- Mobile D-pad -->
+    <div class="dpad">
+        <div class="dpad-empty"></div>
+        <button class="dpad-btn" data-key="ArrowUp">&#9650;</button>
+        <div class="dpad-empty"></div>
+        <button class="dpad-btn" data-key="ArrowLeft">&#9664;</button>
+        <div class="dpad-empty"></div>
+        <button class="dpad-btn" data-key="ArrowRight">&#9654;</button>
+        <div class="dpad-empty"></div>
+        <button class="dpad-btn" data-key="ArrowDown">&#9660;</button>
+        <div class="dpad-empty"></div>
+    </div>
+    <div class="ab-buttons" style="display:none; flex-direction:row; gap:8px; align-items:flex-end;">
+        <button class="ab-btn" data-key="KeyX" style="margin-bottom:40px;">B</button>
+        <button class="ab-btn" data-key="KeyZ">A</button>
+    </div>
+
+    <script type="module">
+        import { initBrowserState } from '../browser-state.js';
+
+        const { default: initWasm, ...api } = await import('../pkg/engine_core.js');
+        const {
+            init, tick,
+            framebuffer_ptr, framebuffer_len,
+            mouse_move, mouse_down, mouse_up,
+            touch_start, touch_move, touch_end,
+            key_down, key_up,
+            get_game_state_f64, get_game_state_str,
+            setup_test_pokemon,
+            set_url_param,
+            drain_sound_commands,
+            drain_persist_commands,
+            browser_state_ptr, browser_state_len
+        } = api;
+
+        // Game Boy-style resolution: render at a fixed virtual size
+        // Use a multiple of 160x144 (GBC native) that fits the screen
+        const GBC_W = 160;
+        const GBC_H = 144;
+
+        // Calculate the largest integer scale that fits the screen
+        const maxScale = Math.min(
+            Math.floor(window.innerWidth / GBC_W),
+            Math.floor(window.innerHeight / GBC_H)
+        );
+        const SCALE = Math.max(maxScale, 1);
+        const W = GBC_W * SCALE;
+        const H = GBC_H * SCALE;
+
+        const canvas = document.getElementById('game-canvas');
+        canvas.width = W;
+        canvas.height = H;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+
+        // Sprite overlay canvas (same size, positioned on top)
+        const overlay = document.getElementById('sprite-overlay');
+        overlay.width = W;
+        overlay.height = H;
+        overlay.style.width = W + 'px';
+        overlay.style.height = H + 'px';
+        overlay.style.left = canvas.offsetLeft + 'px';
+        overlay.style.top = canvas.offsetTop + 'px';
+
+        const ctx2d = canvas.getContext('2d', { alpha: false });
+        ctx2d.imageSmoothingEnabled = false;
+
+        const overlayCtx = overlay.getContext('2d', { alpha: true });
+        overlayCtx.imageSmoothingEnabled = false;
+
+        // --- Sprite Loading from PokemonDB ---
+        const spriteCache = {};
+        const SPRITE_BASE = 'https://img.pokemondb.net/sprites/crystal/normal/';
+        const BACK_SPRITE_BASE = 'https://img.pokemondb.net/sprites/crystal/back-normal/';
+
+        function loadSprite(name, isBack) {
+            const key = (isBack ? 'back_' : 'front_') + name;
+            if (spriteCache[key]) return spriteCache[key];
+
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = (isBack ? BACK_SPRITE_BASE : SPRITE_BASE) + name + '.png';
+            img.onload = () => { spriteCache[key] = img; };
+            img.onerror = () => { console.warn('Failed to load sprite:', name, isBack ? '(back)' : '(front)'); };
+
+            // Return null until loaded
+            spriteCache[key] = null;
+            return null;
+        }
+
+        // Preload common Pokemon sprites
+        const commonPokemon = [
+            'chikorita', 'bayleef', 'cyndaquil', 'quilava', 'totodile', 'croconaw',
+            'pidgey', 'rattata', 'sentret', 'hoothoot', 'caterpie', 'weedle',
+            'geodude', 'zubat', 'bellsprout', 'gastly', 'onix', 'magikarp',
+            'ledyba', 'spinarak', 'mareep', 'wooper'
+        ];
+        commonPokemon.forEach(name => {
+            loadSprite(name, false);
+            loadSprite(name, true);
+        });
+
+        // --- Input Handling ---
+        function toEngine(pageX, pageY) {
+            const r = canvas.getBoundingClientRect();
+            return [
+                (pageX - r.left) / r.width * W,
+                (pageY - r.top) / r.height * H
+            ];
+        }
+
+        canvas.addEventListener('mousemove', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_move(x, y);
+        });
+        canvas.addEventListener('mousedown', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_down(x, y, e.button);
+        });
+        canvas.addEventListener('mouseup', e => {
+            const [x, y] = toEngine(e.clientX, e.clientY);
+            mouse_up(x, y, e.button);
+        });
+
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_start(t.identifier, x, y);
+            }
+        }, { passive: false });
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_move(t.identifier, x, y);
+            }
+        }, { passive: false });
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                const [x, y] = toEngine(t.clientX, t.clientY);
+                touch_end(t.identifier, x, y);
+            }
+        }, { passive: false });
+
+        window.addEventListener('keydown', e => {
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
+            key_down(e.code);
+        });
+        window.addEventListener('keyup', e => key_up(e.code));
+
+        // Mobile D-pad buttons
+        document.querySelectorAll('.dpad-btn, .ab-btn').forEach(btn => {
+            const keyCode = btn.dataset.key;
+            btn.addEventListener('touchstart', e => {
+                e.preventDefault();
+                key_down(keyCode);
+            }, { passive: false });
+            btn.addEventListener('touchend', e => {
+                e.preventDefault();
+                key_up(keyCode);
+            }, { passive: false });
+        });
+
+        // Show mobile controls on touch devices
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+            document.querySelector('.ab-buttons').style.display = 'flex';
+        }
+
+        // --- Sound System (8-bit style with BGM) ---
+        let audioCtx = null;
+        let bgmInterval = null;
+        let currentBgm = '';
+
+        function initAudio() {
+            if (audioCtx) return;
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('touchstart', initAudio, { once: true });
+
+        function playBeep(freq, dur, vol) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol * 0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + dur);
+        }
+
+        function playNote(freq, dur, vol, delay, type) {
+            if (!audioCtx) return;
+            const t = audioCtx.currentTime + (delay || 0);
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type || 'square';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol * 0.08, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(t);
+            osc.stop(t + dur);
+        }
+
+        function playSfx(name) {
+            if (!audioCtx) return;
+            switch(name) {
+                case 'select':
+                    playNote(880, 0.05, 0.4, 0);
+                    break;
+                case 'confirm':
+                    playNote(660, 0.06, 0.4, 0);
+                    playNote(880, 0.08, 0.4, 0.06);
+                    break;
+                case 'damage':
+                    playNote(200, 0.08, 0.6, 0);
+                    playNote(150, 0.08, 0.6, 0.05);
+                    playNote(100, 0.1, 0.5, 0.1);
+                    break;
+                case 'heal':
+                    playNote(523, 0.12, 0.3, 0);
+                    playNote(659, 0.12, 0.3, 0.1);
+                    playNote(784, 0.12, 0.3, 0.2);
+                    playNote(1047, 0.2, 0.3, 0.3);
+                    break;
+                case 'levelup':
+                    [523,587,659,784,880,1047].forEach((f,i) => playNote(f, 0.1, 0.3, i*0.08));
+                    break;
+                case 'catch':
+                    playNote(440, 0.1, 0.3, 0);
+                    playNote(554, 0.1, 0.3, 0.12);
+                    playNote(659, 0.15, 0.3, 0.24);
+                    playNote(880, 0.3, 0.4, 0.4);
+                    break;
+                case 'faint':
+                    [400,350,300,250,200,150].forEach((f,i) => playNote(f, 0.12, 0.3, i*0.1));
+                    break;
+                case 'run':
+                    playNote(600, 0.05, 0.3, 0);
+                    playNote(500, 0.05, 0.3, 0.05);
+                    playNote(400, 0.08, 0.3, 0.1);
+                    break;
+            }
+        }
+
+        // Simple BGM patterns (looping note sequences)
+        const BGM = {
+            overworld: { tempo: 180, notes: [
+                [392,0.15],[440,0.15],[494,0.15],[523,0.3],[494,0.15],[440,0.15],[392,0.3],
+                [330,0.15],[349,0.15],[392,0.15],[440,0.3],[392,0.15],[349,0.15],[330,0.3],
+                [294,0.15],[330,0.15],[349,0.3],[392,0.15],[440,0.3],[494,0.15],[523,0.5],
+            ], vol: 0.15, type: 'triangle' },
+            battle: { tempo: 220, notes: [
+                [330,0.1],[330,0.1],[0,0.05],[330,0.1],[0,0.05],[262,0.1],[330,0.15],
+                [392,0.3],[0,0.1],[196,0.3],[0,0.15],
+                [262,0.15],[0,0.1],[196,0.15],[0,0.1],[165,0.15],[0,0.1],
+                [220,0.15],[247,0.15],[0,0.05],[220,0.15],[0,0.05],
+                [208,0.1],[220,0.15],[0,0.05],[262,0.1],[330,0.1],[392,0.1],[440,0.2],
+            ], vol: 0.12, type: 'square' },
+        };
+
+        function startBgm(name) {
+            if (currentBgm === name) return;
+            stopBgm();
+            currentBgm = name;
+            const bgm = BGM[name];
+            if (!bgm || !audioCtx) return;
+            let noteIdx = 0;
+            let nextTime = audioCtx.currentTime + 0.1;
+            function scheduleNotes() {
+                if (currentBgm !== name) return;
+                const now = audioCtx.currentTime;
+                while (nextTime < now + 0.5) {
+                    const [freq, dur] = bgm.notes[noteIdx % bgm.notes.length];
+                    if (freq > 0) {
+                        playNote(freq, dur * 0.9, bgm.vol, nextTime - now, bgm.type);
+                    }
+                    nextTime += dur;
+                    noteIdx++;
+                }
+            }
+            scheduleNotes();
+            bgmInterval = setInterval(scheduleNotes, 200);
+        }
+
+        function stopBgm() {
+            if (bgmInterval) { clearInterval(bgmInterval); bgmInterval = null; }
+            currentBgm = '';
+        }
+
+        // --- Main Loop ---
+        async function main() {
+            const wasm = await initWasm();
+            const memory = wasm.memory;
+
+            init(W, H);
+
+            for (const [k, v] of new URLSearchParams(location.search)) {
+                set_url_param(k, v);
+            }
+
+            setup_test_pokemon();
+
+            const updateBrowserState = initBrowserState(memory, browser_state_ptr, browser_state_len, {
+                canvasSizeFn: () => ({ w: parseFloat(canvas.style.width) || W, h: parseFloat(canvas.style.height) || H })
+            });
+
+            const imageData = ctx2d.createImageData(W, H);
+            let last = performance.now();
+            let prevPhase = '';
+
+            function frame(now) {
+                const dt = now - last;
+                last = now;
+
+                updateBrowserState(dt);
+                tick(dt);
+
+                // Process sound commands
+                try {
+                    const soundJson = drain_sound_commands();
+                    if (soundJson && soundJson !== '[]') {
+                        const cmds = JSON.parse(soundJson);
+                        for (const cmd of cmds) {
+                            if (cmd.PlayTone) {
+                                playBeep(cmd.PlayTone.frequency, cmd.PlayTone.duration, cmd.PlayTone.volume);
+                            }
+                        }
+                    }
+                } catch(e) {}
+
+                drain_persist_commands();
+
+                // --- Render WASM framebuffer ---
+                const ptr = framebuffer_ptr();
+                const len = framebuffer_len();
+                const pixels = new Uint8ClampedArray(memory.buffer, ptr, len);
+                imageData.data.set(pixels);
+                ctx2d.putImageData(imageData, 0, 0);
+
+                // --- Pokemon Sprite Overlay ---
+                const phase = get_game_state_str('game_phase');
+                const inBattle = get_game_state_f64('in_battle');
+                overlayCtx.clearRect(0, 0, W, H);
+
+                if (inBattle > 0.5) {
+                    const enemyName = get_game_state_str('enemy_pokemon');
+                    const playerName = get_game_state_str('player_pokemon');
+                    const spriteSize = get_game_state_f64('enemy_sprite_size') || (40 * SCALE);
+                    const enemyX = get_game_state_f64('enemy_sprite_x');
+                    const enemyY = get_game_state_f64('enemy_sprite_y');
+                    const playerX = get_game_state_f64('player_sprite_x');
+                    const playerY = get_game_state_f64('player_sprite_y');
+
+                    // Load and draw enemy sprite (front view)
+                    if (enemyName) {
+                        const frontSprite = spriteCache['front_' + enemyName];
+                        if (!frontSprite) {
+                            loadSprite(enemyName, false);
+                        } else {
+                            overlayCtx.drawImage(frontSprite, enemyX, enemyY, spriteSize, spriteSize);
+                        }
+                    }
+
+                    // Load and draw player sprite (back view)
+                    if (playerName) {
+                        const backSprite = spriteCache['back_' + playerName];
+                        if (!backSprite) {
+                            loadSprite(playerName, true);
+                        } else {
+                            overlayCtx.drawImage(backSprite, playerX, playerY, spriteSize, spriteSize);
+                        }
+                    }
+                }
+
+                // Phase change sound effects and BGM
+                if (phase !== prevPhase) {
+                    if (phase === 'battle') {
+                        playSfx('confirm');
+                        startBgm('battle');
+                    } else if (phase === 'overworld') {
+                        if (prevPhase === 'battle') {
+                            playSfx('confirm');
+                        }
+                        startBgm('overworld');
+                    } else if (phase === 'title') {
+                        stopBgm();
+                    }
+                    prevPhase = phase;
+                }
+
+                // Detect HP changes for damage SFX
+                if (inBattle > 0.5) {
+                    const eHP = get_game_state_f64('enemy_hp');
+                    const pHP = get_game_state_f64('player_hp');
+                    if (typeof frame._lastEHP === 'number' && eHP < frame._lastEHP) playSfx('damage');
+                    if (typeof frame._lastPHP === 'number' && pHP < frame._lastPHP) playSfx('damage');
+                    frame._lastEHP = eHP;
+                    frame._lastPHP = pHP;
+                } else {
+                    frame._lastEHP = undefined;
+                    frame._lastPHP = undefined;
+                }
+
+                requestAnimationFrame(frame);
+            }
+
+            requestAnimationFrame(frame);
+        }
+
+        main();
+    </script>
+</body>
+</html>

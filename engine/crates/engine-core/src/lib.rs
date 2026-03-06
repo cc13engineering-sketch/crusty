@@ -49,6 +49,7 @@ pub mod variant;
 pub mod demo_ball;
 pub mod gravity_pong;
 pub mod chord_reps;
+pub mod pokemon;
 pub mod headless;
 pub mod feel_preset;
 pub mod browser;
@@ -60,6 +61,7 @@ use engine::Engine;
 use demo_ball::DemoBall;
 use gravity_pong::GravityPong;
 use chord_reps::ChordRepsSim;
+use pokemon::PokemonSim;
 use simulation::Simulation;
 
 thread_local! {
@@ -345,6 +347,23 @@ pub fn setup_gravity_pong() {
         let eng = borrow.as_mut().expect("Engine not initialized");
         eng.reset(42);
         let mut sim = GravityPong::new();
+        sim.setup(eng);
+        SIM.with(|s| {
+            *s.borrow_mut() = Some(Box::new(sim));
+        });
+    });
+}
+
+// ─── Pokemon WASM API ─────────────────────────────────────────
+
+/// Set up the Pokemon game. Call after `init()`.
+#[wasm_bindgen]
+pub fn setup_test_pokemon() {
+    ENGINE.with(|e| {
+        let mut borrow = e.borrow_mut();
+        let eng = borrow.as_mut().expect("Engine not initialized");
+        eng.reset(42);
+        let mut sim = PokemonSim::new();
         sim.setup(eng);
         SIM.with(|s| {
             *s.borrow_mut() = Some(Box::new(sim));

@@ -69,7 +69,7 @@ jobs:
 
           # Copy all game demos (gravity-pong, chord-reps, etc.)
   
-          for demo_dir in site/gravity-pong* site/chord-reps; do
+          for demo_dir in site/gravity-pong* site/chord-reps site/test-pokemon; do
             [ -d "$demo_dir" ] || continue
             name=$(basename "$demo_dir")
             mkdir -p "_site/$name"

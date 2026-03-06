@@ -113,9 +113,9 @@ const CAMERA_LERP: f64 = 0.2;
 #[allow(dead_code)] const FLAG_GOT_EGG: u64           = 1 << 0;  // Elm's aide gives Mystery Egg
 #[allow(dead_code)] const FLAG_DELIVERED_EGG: u64     = 1 << 1;  // Returned egg to Elm
 const FLAG_RIVAL_ROUTE29: u64   = 1 << 2;  // Fought rival on Route 29
-#[allow(dead_code)] const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
-#[allow(dead_code)] const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
-#[allow(dead_code)] const FLAG_RED_GYARADOS: u64      = 1 << 5;  // Red Gyarados event
+const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
+const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
+const FLAG_RED_GYARADOS: u64      = 1 << 5;  // Red Gyarados event
 #[allow(dead_code)] const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
 #[allow(dead_code)] const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion
 #[allow(dead_code)] const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine
@@ -851,6 +851,136 @@ impl PokemonSim {
         false
     }
 
+    /// Sprout Tower elder: one-time battle at top of tower
+    fn check_sprout_tower_elder(&mut self) -> bool {
+        if self.current_map_id == MapId::SproutTower
+            && !self.has_flag(FLAG_SPROUT_CLEAR)
+            && self.player.x == 7 && self.player.y <= 3
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_SPROUT_CLEAR);
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "ELDER LI: So you have".to_string(),
+                    "come this far.".to_string(),
+                    "Let me test your".to_string(),
+                    "bond with POKEMON!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::StartTrainerBattle {
+                    team: vec![
+                        (BELLSPROUT, 7),
+                        (BELLSPROUT, 7),
+                        (BELLSPROUT, 10),
+                    ],
+                },
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
+    }
+
+    /// Red Gyarados: forced wild encounter at Lake of Rage
+    fn check_red_gyarados(&mut self, engine: &mut Engine) -> bool {
+        if self.current_map_id == MapId::LakeOfRage
+            && !self.has_flag(FLAG_RED_GYARADOS)
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_RED_GYARADOS);
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "The lake is churning!".to_string(),
+                    "A huge red GYARADOS".to_string(),
+                    "burst from the water!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            // After dialogue, start forced wild battle with Red Gyarados L30
+            self.register_seen(GYARADOS);
+            let enemy = Pokemon::new(GYARADOS, 30);
+            let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+            let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+            self.battle = Some(BattleState {
+                phase: BattlePhase::Intro { timer: 0.0 },
+                enemy,
+                player_idx,
+                is_wild: true,
+                player_hp_display: player_hp,
+                enemy_hp_display: 0.0,
+                turn_count: 0,
+                trainer_team: Vec::new(),
+                trainer_team_idx: 0,
+                pending_player_move: None,
+                player_stages: [0; 7],
+                enemy_stages: [0; 7],
+                enemy_flinched: false,
+                player_flinched: false,
+                player_confused: 0,
+                enemy_confused: 0,
+                player_trapped: false,
+            });
+            self.encounter_flash_count = 0;
+            // Skip dialogue — go straight to encounter transition after a brief pause
+            self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+            let _ = engine; // used for future SFX
+            return true;
+        }
+        false
+    }
+
+    /// Sudowoodo: blocking tree on Route 36, forced wild encounter
+    fn check_sudowoodo(&mut self, engine: &mut Engine) -> bool {
+        // In the original game, Sudowoodo blocks the east exit of Route 36
+        // and you need the SquirtBottle. We simplify: approaching the blocking
+        // tile triggers a forced wild Sudowoodo battle (one-time).
+        if self.current_map_id == MapId::Route36
+            && !self.has_flag(FLAG_SUDOWOODO)
+            && self.player.x >= 14 && self.player.y >= 5 && self.player.y <= 7
+            && self.badges.count_ones() >= 3 // Need at least Plain Badge (Whitney)
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_SUDOWOODO);
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "The weird tree moved!".to_string(),
+                    "It's a POKEMON!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            self.register_seen(SUDOWOODO);
+            let enemy = Pokemon::new(SUDOWOODO, 20);
+            let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+            let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+            self.battle = Some(BattleState {
+                phase: BattlePhase::Intro { timer: 0.0 },
+                enemy,
+                player_idx,
+                is_wild: true,
+                player_hp_display: player_hp,
+                enemy_hp_display: 0.0,
+                turn_count: 0,
+                trainer_team: Vec::new(),
+                trainer_team_idx: 0,
+                pending_player_move: None,
+                player_stages: [0; 7],
+                enemy_stages: [0; 7],
+                enemy_flinched: false,
+                player_flinched: false,
+                player_confused: 0,
+                enemy_confused: 0,
+                player_trapped: false,
+            });
+            self.encounter_flash_count = 0;
+            self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+            let _ = engine;
+            return true;
+        }
+        false
+    }
+
     // ─── Overworld Logic ───────────────────────────────
 
     fn step_overworld(&mut self, engine: &mut Engine) {
@@ -1035,9 +1165,12 @@ impl PokemonSim {
                     }
                 }
 
-                // Check for rival battle events
+                // Check for story event battles
                 if self.check_rival_battle() { return; }
                 if self.check_victory_road_rival() { return; }
+                if self.check_sprout_tower_elder() { return; }
+                if self.check_red_gyarados(engine) { return; }
+                if self.check_sudowoodo(engine) { return; }
 
                 // Check trainer line-of-sight (5 tiles in their facing direction)
                 if self.party.iter().any(|p| !p.is_fainted()) {
@@ -1677,6 +1810,18 @@ impl PokemonSim {
                                 let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                                 Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
                             }
+                        } else if move_id == MOVE_SWAGGER {
+                            // Swagger: raise target's Attack +2 AND confuse
+                            let old = battle.enemy_stages[STAGE_ATK];
+                            battle.enemy_stages[STAGE_ATK] = (old + 2).min(6);
+                            if battle.enemy_confused == 0 {
+                                battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
+                            } else {
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
+                            }
                         } else if move_id == MOVE_MEAN_LOOK {
                             // Mean Look is only meaningful in wild battles
                             // Player uses Mean Look on wild — prevent it from fleeing (no effect in trainer battles)
@@ -1930,6 +2075,18 @@ impl PokemonSim {
                         } else if move_id == MOVE_CONFUSE_RAY {
                             if battle.player_confused == 0 {
                                 battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; // 2-5 turns
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} became confused!", pname))
+                            } else {
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} is already confused!", pname))
+                            }
+                        } else if move_id == MOVE_SWAGGER {
+                            // Swagger: raise target's Attack +2 AND confuse (enemy uses on player)
+                            let old = battle.player_stages[STAGE_ATK];
+                            battle.player_stages[STAGE_ATK] = (old + 2).min(6);
+                            if battle.player_confused == 0 {
+                                battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
                                 let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                                 Some(format!("{} became confused!", pname))
                             } else {
@@ -5178,7 +5335,49 @@ mod headless_tests {
         // Self-Destruct user always faints after dealing damage
         let sd = get_move(MOVE_SELF_DESTRUCT).expect("Self-Destruct should exist");
         assert_eq!(sd.power, 200, "Self-Destruct should be 200 power");
-        // Verify the move data is correct — the user-faint logic is in battle processing
         assert_eq!(sd.accuracy, 100, "Self-Destruct should have 100% accuracy");
+    }
+
+    #[test]
+    fn test_swagger_data() {
+        let sw = get_move(MOVE_SWAGGER).expect("Swagger should exist");
+        assert_eq!(sw.power, 0);
+        assert_eq!(sw.category, MoveCategory::Status);
+        assert_eq!(sw.move_type, PokemonType::Normal);
+        assert_eq!(sw.accuracy, 90);
+        assert_eq!(sw.pp, 15);
+    }
+
+    #[test]
+    fn test_story_flags_sprout_clear() {
+        let mut sim = PokemonSim::new();
+        sim.party.push(Pokemon::new(CHIKORITA, 10));
+        sim.change_map(MapId::SproutTower, 7, 2);
+
+        // Should trigger elder battle
+        assert!(!sim.has_flag(FLAG_SPROUT_CLEAR));
+        let triggered = sim.check_sprout_tower_elder();
+        assert!(triggered);
+        assert!(sim.has_flag(FLAG_SPROUT_CLEAR));
+
+        // Should not trigger again
+        assert!(!sim.check_sprout_tower_elder());
+    }
+
+    #[test]
+    fn test_sudowoodo_requires_3_badges() {
+        let mut sim = PokemonSim::new();
+        sim.party.push(Pokemon::new(CHIKORITA, 10));
+        sim.change_map(MapId::Route36, 15, 6);
+
+        // With 2 badges, should NOT trigger
+        sim.badges = 0b00000011; // 2 badges
+        assert!(!sim.check_sudowoodo(&mut Engine::new(160, 144)));
+
+        // With 3 badges, should trigger
+        sim.badges = 0b00000111; // 3 badges
+        let mut eng = Engine::new(160, 144);
+        assert!(sim.check_sudowoodo(&mut eng));
+        assert!(sim.has_flag(FLAG_SUDOWOODO));
     }
 }

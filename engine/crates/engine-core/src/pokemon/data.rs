@@ -266,6 +266,7 @@ pub const MOVE_FURY_ATTACK: MoveId = 31;
 pub const MOVE_SLUDGE: MoveId = 124;
 pub const MOVE_SELF_DESTRUCT: MoveId = 120;
 pub const MOVE_HAZE: MoveId = 114;
+pub const MOVE_SWAGGER: MoveId = 207;
 pub const MOVE_PURSUIT: MoveId = 228;
 pub const MOVE_FIRE_PUNCH: MoveId = 7;
 // ─── Route 38-39 / Olivine moves ────────────────────────
@@ -1702,6 +1703,7 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SPITE, name: "Spite", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Cuts the foe's PP." },
     MoveData { id: MOVE_MEAN_LOOK, name: "Mean Look", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Prevents the foe from fleeing." },
     MoveData { id: MOVE_TOXIC, name: "Toxic", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 10, description: "Badly poisons the foe." },
+    MoveData { id: MOVE_SWAGGER, name: "Swagger", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 15, description: "Confuses and raises Attack." },
     MoveData { id: MOVE_CURSE, name: "Curse", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Works differently for Ghosts." },
     MoveData { id: MOVE_MIMIC, name: "Mimic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies a foe's move." },
     MoveData { id: MOVE_HORN_ATTACK, name: "Horn Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 25, description: "Jabs with a sharp horn." },

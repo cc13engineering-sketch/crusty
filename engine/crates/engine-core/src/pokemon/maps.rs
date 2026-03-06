@@ -4378,10 +4378,10 @@ fn build_ecruteak_city() -> MapData {
         WarpData { x: 18, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
         WarpData { x: 19, y: 8, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 8 },
         WarpData { x: 19, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
-        // Burned Tower entrance (4,4)
-        WarpData { x: 4, y: 4, dest_map: MapId::BurnedTower, dest_x: 7, dest_y: 12 },
-        // Ecruteak Gym entrance (13,4)
-        WarpData { x: 13, y: 4, dest_map: MapId::EcruteakGym, dest_x: 5, dest_y: 8 },
+        // Burned Tower entrance (4,4) — land one tile above exit warp
+        WarpData { x: 4, y: 4, dest_map: MapId::BurnedTower, dest_x: 7, dest_y: 11 },
+        // Ecruteak Gym entrance (13,4) — land one tile above exit warp
+        WarpData { x: 13, y: 4, dest_map: MapId::EcruteakGym, dest_x: 5, dest_y: 7 },
         // Dance Theater → GenericHouse (4,12)
         WarpData { x: 4, y: 12, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
         // Pokemon Center (15,12)

@@ -157,6 +157,7 @@ impl UiWidget {
     }
 
     /// Get the bounding rect (x, y, w, h) at the resolved screen position.
+    #[allow(dead_code)]
     fn bounds(&self, screen_w: f64, screen_h: f64) -> (i32, i32, f64, f64) {
         let (x, y) = resolve_position(&self.anchor, self.offset, screen_w, screen_h);
         let (w, h) = match &self.kind {

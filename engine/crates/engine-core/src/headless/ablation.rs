@@ -214,7 +214,7 @@ fn run_variant<S: Simulation>(
     frames: u64,
     metric_key: &str,
 ) -> Vec<f64> {
-    let run_config = RunConfig {
+    let _run_config = RunConfig {
         turbo: true,
         capture_state_hashes: false,
     };

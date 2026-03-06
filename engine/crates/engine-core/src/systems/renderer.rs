@@ -23,6 +23,7 @@ pub fn run_entities_only(
     render_drawables(world, fb, input, camera, sprite_sheets);
 }
 
+#[allow(dead_code)]
 pub fn run(
     world: &World,
     fb: &mut Framebuffer,

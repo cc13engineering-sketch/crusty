@@ -68,7 +68,6 @@ info / schema            Engine metadata and component schema
 | [engine/ARCHITECTURE.md](engine/ARCHITECTURE.md) | Engine internals, system execution, ECS design |
 | [engine/CLAUDE.md](engine/CLAUDE.md) | Coding conventions for AI-assisted development |
 | [ENGINE_BOUNDARIES.md](ENGINE_BOUNDARIES.md) | Platform separation rules |
-| [REVIEW.md](REVIEW.md) | Expert review with ratings and findings |
 | [site/docs/](site/docs/) | Web-hosted docs (getting started, API reference) |
 
 ## Design Priorities

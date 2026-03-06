@@ -223,6 +223,7 @@ pub fn fill_pill(fb: &mut Framebuffer, x: f64, y: f64, w: f64, h: f64, color: Co
 }
 
 /// Fill a triangle defined by three vertices with a solid color (AA edges).
+#[allow(dead_code)]
 pub fn fill_triangle(
     fb: &mut Framebuffer,
     x0: f64,

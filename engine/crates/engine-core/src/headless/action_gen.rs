@@ -63,10 +63,12 @@ pub fn drag(
 // ─── Deterministic PRNG ─────────────────────────────────────────────
 
 /// Simple LCG for deterministic random generation without external deps.
+#[allow(dead_code)]
 pub(crate) struct LcgRng {
     state: u64,
 }
 
+#[allow(dead_code)]
 impl LcgRng {
     pub(crate) fn new(seed: u64) -> Self {
         Self { state: seed.wrapping_add(1) }

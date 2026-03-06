@@ -128,6 +128,7 @@ impl Particle {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct GravityWell {
     x: f64,
     y: f64,
@@ -158,6 +159,7 @@ impl GravityWell {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct Repulsor {
     x: f64,
     y: f64,
@@ -189,6 +191,7 @@ impl Repulsor {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct BlackHole {
     x: f64,
     y: f64,
@@ -227,6 +230,7 @@ impl BlackHole {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct Target {
     x: f64,
     y: f64,
@@ -302,6 +306,7 @@ struct DustMote {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 enum VisualEffect {
     Burst {
         x: f64,
@@ -401,6 +406,7 @@ impl PlasmaCurrent {
 }
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 struct Supernova {
     x: f64,
     y: f64,

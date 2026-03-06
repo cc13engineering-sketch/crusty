@@ -38,6 +38,7 @@ const PIANO_Y: f64 = 540.0;
 const WHITE_KEY_H: f64 = 130.0;
 const BLACK_KEY_H: f64 = 85.0;
 const TIMELINE_Y: f64 = 720.0;
+#[allow(dead_code)]
 const TIMELINE_H: f64 = 140.0;
 const FOOTER_Y: f64 = 850.0;
 
@@ -62,6 +63,7 @@ const BG_COLOR: Color = Color { r: 10, g: 10, b: 30, a: 255 };
 const ACCENT_TEAL: Color = Color { r: 0, g: 212, b: 170, a: 255 };
 const ACCENT_CYAN: Color = Color { r: 0, g: 255, b: 204, a: 255 };
 const ACCENT_PINK: Color = Color { r: 255, g: 102, b: 178, a: 255 };
+#[allow(dead_code)]
 const ACCENT_RED: Color = Color { r: 255, g: 80, b: 80, a: 255 };
 const CORRECT_COLOR: Color = Color { r: 0, g: 255, b: 180, a: 255 };
 const WRONG_COLOR: Color = Color { r: 255, g: 68, b: 102, a: 255 };
@@ -127,6 +129,7 @@ enum FeedbackState {
 }
 
 #[derive(Clone, Debug, Copy, PartialEq)]
+#[allow(dead_code)]
 enum SparkleShape {
     Circle,
     Star,
@@ -373,6 +376,7 @@ impl ChordRepsSim {
         };
     }
 
+    #[allow(dead_code)]
     fn generate_note_challenge(&mut self, key_root: u8, engine: &mut Engine) {
         let answer = engine.rng.range_i32(0, 6) as u8;
         self.generate_note_challenge_inner(key_root, answer, engine);
@@ -443,6 +447,7 @@ impl ChordRepsSim {
         };
     }
 
+    #[allow(dead_code)]
     fn generate_interval_challenge(&mut self, key_root: u8, engine: &mut Engine) {
         let intervals: Vec<u8> = if self.difficulty <= 4 {
             vec![0, 2, 4, 7, 12]
@@ -494,6 +499,7 @@ impl ChordRepsSim {
         };
     }
 
+    #[allow(dead_code)]
     fn generate_quality_challenge(&mut self, engine: &mut Engine) {
         let qi = engine.rng.range_i32(0, CHORD_QUALITIES.len() as i32 - 1) as usize;
         self.generate_quality_challenge_inner(qi as u8, engine);
@@ -544,6 +550,7 @@ impl ChordRepsSim {
         };
     }
 
+    #[allow(dead_code)]
     fn generate_cadence_challenge(&mut self, key_root: u8, engine: &mut Engine) {
         let ci = engine.rng.range_i32(0, CADENCE_TYPES.len() as i32 - 1) as usize;
         self.generate_cadence_challenge_inner(key_root, ci as u8, engine);
@@ -939,6 +946,7 @@ impl ChordRepsSim {
         }
     }
 
+    #[allow(dead_code)]
     fn spawn_sparkles(&mut self, cx: f64, cy: f64, count: usize, color: Color, engine: &mut Engine) {
         let shapes = [SparkleShape::Circle, SparkleShape::Star, SparkleShape::Note];
         for _ in 0..count {
@@ -1045,6 +1053,7 @@ impl ChordRepsSim {
         None
     }
 
+    #[allow(dead_code)]
     fn play_option_preview(&self, idx: usize, engine: &mut Engine) {
         if idx >= self.challenge.options.len() {
             return;

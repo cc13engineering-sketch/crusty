@@ -116,7 +116,7 @@ pub fn run_edge_bounce(world: &mut World, bounds: (f64, f64)) {
     for (entity, restitution, margin) in bounce_entities {
         let (bw, bh) = bounds;
         let (mut bounce_x, mut bounce_y) = (false, false);
-        let (mut new_x, mut new_y) = (0.0, 0.0);
+        let (mut new_x, mut new_y);
 
         if let Some(t) = world.transforms.get(entity) {
             new_x = t.x;

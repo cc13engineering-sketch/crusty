@@ -9,10 +9,10 @@ use serde::{Serialize, Deserialize};
 use crate::simulation::Simulation;
 use crate::input_frame::InputFrame;
 use super::runner::{HeadlessRunner, RunConfig};
-use super::death_classify::{ClassifierConfig, classify};
-use super::death_report::{DeathReport, classify_batch};
-use super::highlights::{HighlightConfig, HighlightReport, scan_for_highlights_report};
-use super::ablation::{AblationConfig, AblationReport, run_ablation_study};
+use super::death_classify::ClassifierConfig;
+use super::death_report::classify_batch;
+use super::highlights::{HighlightConfig, scan_for_highlights_report};
+use super::ablation::{AblationConfig, run_ablation_study};
 
 // ─── Configuration ──────────────────────────────────────────────────
 

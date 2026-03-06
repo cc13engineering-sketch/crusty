@@ -1,7 +1,9 @@
 _site/
 _site_fresh/
 _pkg/
+site/pkg/
 deployments/
+plans/
 .claude/
 .env
 .DS_Store

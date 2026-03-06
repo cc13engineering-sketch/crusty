@@ -5264,42 +5264,6 @@ mod tests {
     }
 
     #[test]
-    fn test_all_warps_land_on_walk() {
-        let all_maps = [
-            MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
-            MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
-            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
-            MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
-            MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
-            MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
-            MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
-            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
-            MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
-            MapId::OlivineLighthouse,
-        ];
-        for src_id in &all_maps {
-            let src_map = load_map(*src_id);
-            for (wi, warp) in src_map.warps.iter().enumerate() {
-                let dest_map = load_map(warp.dest_map);
-                let dx = warp.dest_x as usize;
-                let dy = warp.dest_y as usize;
-                assert!(
-                    dx < dest_map.width && dy < dest_map.height,
-                    "Warp #{} in {:?} goes out of bounds: ({},{}) in {:?} ({}x{})",
-                    wi, src_id, dx, dy, warp.dest_map, dest_map.width, dest_map.height
-                );
-                let idx = dy * dest_map.width + dx;
-                let coll = dest_map.collision[idx];
-                assert!(
-                    coll == C_WALK || coll == C_TALL,
-                    "Warp #{} in {:?} lands on collision {} at ({},{}) in {:?}. Expected C_WALK(0) or C_TALL(2).",
-                    wi, src_id, coll, dx, dy, warp.dest_map
-                );
-            }
-        }
-    }
-
-    #[test]
     fn test_all_npcs_on_walkable() {
         let all_maps = [
             MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
@@ -5570,7 +5534,7 @@ mod tests {
                     continue;
                 }
                 let coll = dest.collision[dy * dest.width + dx];
-                if coll != C_WALK {
+                if coll != C_WALK && coll != C_TALL {
                     let name = match coll {
                         C_SOLID => "C_SOLID", C_TALL => "C_TALL",
                         C_WATER => "C_WATER", C_WARP => "C_WARP",

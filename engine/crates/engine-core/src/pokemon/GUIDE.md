@@ -139,7 +139,7 @@ With Phase 0A done, `MoveData` entries no longer need a `category` field — jus
 
 Build maps in geographic order, wiring each to the previous. For each: add `MapId` variant, `load_map()` arm, `build_<n>()` function, bidirectional warps, update warp test, `cargo test`.
 
-**Map order**: Route 38 → Route 39 → OlivineCity → OlivineGym → OlivineLighthouse (multi-floor) → Route 40 → CianwoodCity → CianwoodGym → CianwoodPharmacy → Route 42 → MahoganyTown → Route 43 → LakeOfRage → MahoganyGym → RocketHQ (multi-room)
+**Map order**: ~~Route 38 → Route 39 → OlivineCity → OlivineGym~~ (DONE Sprint 43) → OlivineLighthouse (multi-floor) → Route 40 → CianwoodCity → CianwoodGym → CianwoodPharmacy → Route 42 → MahoganyTown → Route 43 → LakeOfRage → MahoganyGym → RocketHQ (multi-room)
 
 Match original dimensions. Accurate encounter tables from `data/wild/johto_grass.asm`. Faithful gym puzzles. Correct music_ids.
 
@@ -160,8 +160,8 @@ Use `NpcAction::GiveBadge { badge_num }` from Phase 0D.
 **Remaining Gym leaders:**
 | Gym | Leader | Badge # | Team |
 |-----|--------|---------|------|
-| 5 - Cianwood | Chuck | 4 | Primeape lv27, Poliwrath lv30 |
-| 6 - Olivine | Jasmine | 5 | 2x Magnemite lv30, Steelix lv35 |
+| ~~5 - Olivine~~ | ~~Jasmine~~ | ~~4~~ | ~~2x Magnemite lv30, Steelix lv35~~ (DONE Sprint 43) |
+| 6 - Cianwood | Chuck | 5 | Primeape lv27, Poliwrath lv30 |
 | 7 - Mahogany | Pryce | 6 | Seel lv27, Dewgong lv29, Piloswine lv31 |
 | 8 - Blackthorn | Clair | 7 | 3x Dragonair lv37, Kingdra lv40 |
 
@@ -305,9 +305,12 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 5. Warp audit: all warps verified landing on C_WALK.
 6. GoldenrodCity NPC placement fix.
 
-### Sprint 43 (Pre-stage)
-- Pre-staged 15 species for Routes 38-39/Olivine: Pidgeotto, Noctowl, Farfetch'd, Tauros, Magnemite, Doduo, Flaaffy, Psyduck, Mr. Mime, Skiploom, Corsola, Slowpoke, Pikachu, Poliwhirl, Krabby
-- Pre-staged 17 moves for Routes 38-39/Olivine: Thunder Wave, Bubble, Harden, Barrier, Meditate, ViceGrip, Double Team, Recover, Swords Dance, Whirlwind, Wing Attack, Tri Attack, Drill Peck, BubbleBeam, Thunderbolt, Faint Attack, Pay Day
-- Added MapId variants: Route38, Route39, OlivineCity, OlivineGym (build functions pending)
-- Wired Ecruteak east exit warps to Route 38
-- **Next sprint**: Build Route 38, Route 39, Olivine City, Olivine Gym maps. Then implement Phase 0 architectural changes.
+### Sprint 43 (Content)
+- Route 38 (20x10): 4 trainers (Doduo/Wooper/Flaaffy/Hoppip teams), 7 encounter species, connects Ecruteak east to Route 39
+- Route 39 (12x18): MooMoo Farm (sick Miltank NPC), 3 trainers + farm NPC, connects south to Olivine City
+- Olivine City (20x18): Gym (NW), PokemonCenter, Mart, Lighthouse placeholder (GenericHouse), harbor (south water)
+- Olivine Gym (10x10): Jasmine — 2x Magnemite lv30 + Steelix lv35. Mineral Badge (#5)
+- 15 new species + Steelix, 17 new moves pre-staged from data.rs
+- Trainer battle fix: first non-fainted Pokemon now selected as battle lead
+- **Total: 33 maps, 5 badges, ~83 species, ~114 moves**
+- **Next sprint (44 QA)**: Warp audit for all 33 maps, NPC placement audit, encounter table accuracy check, Olivine warps verification

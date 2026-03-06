@@ -91,6 +91,10 @@ const DRAGONITE: u16 = 149;
 const KINGDRA: u16 = 230;
 const HORSEA: u16 = 116;
 const SEADRA: u16 = 117;
+const GRAVELER: u16 = 75;
+const GLIGAR: u16 = 207;
+const TEDDIURSA: u16 = 216;
+const SKARMORY: u16 = 227;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -179,6 +183,8 @@ pub enum MapId {
     IcePath,
     BlackthornCity,
     BlackthornGym,
+    Route45,
+    Route46,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -317,6 +323,8 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::IcePath => build_ice_path(),
         MapId::BlackthornCity => build_blackthorn_city(),
         MapId::BlackthornGym => build_blackthorn_gym(),
+        MapId::Route45 => build_route_45(),
+        MapId::Route46 => build_route_46(),
     }
 }
 
@@ -6219,11 +6227,11 @@ fn build_blackthorn_city() -> MapData {
         WarpData { x: 15, y: 3, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // House door (10,9) → GenericHouse
         WarpData { x: 10, y: 9, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
-        // South exit → Route 45 (future — loop back for now)
-        WarpData { x: 8, y: 12, dest_map: MapId::BlackthornCity, dest_x: 8, dest_y: 10 },
-        WarpData { x: 9, y: 12, dest_map: MapId::BlackthornCity, dest_x: 9, dest_y: 10 },
-        WarpData { x: 10, y: 12, dest_map: MapId::BlackthornCity, dest_x: 10, dest_y: 10 },
-        WarpData { x: 11, y: 12, dest_map: MapId::BlackthornCity, dest_x: 11, dest_y: 10 },
+        // South exit → Route 45
+        WarpData { x: 8, y: 12, dest_map: MapId::Route45, dest_x: 4, dest_y: 2 },
+        WarpData { x: 9, y: 12, dest_map: MapId::Route45, dest_x: 5, dest_y: 2 },
+        WarpData { x: 10, y: 12, dest_map: MapId::Route45, dest_x: 6, dest_y: 2 },
+        WarpData { x: 11, y: 12, dest_map: MapId::Route45, dest_x: 7, dest_y: 2 },
     ];
     let npcs = vec![
         // NPC 0: Old man near gym
@@ -6333,6 +6341,265 @@ fn build_blackthorn_gym() -> MapData {
     ];
     let encounters = vec![];
     MapData { id: MapId::BlackthornGym, name: "BLACKTHORN GYM", width, height, tiles, collision, warps, npcs, encounters, music_id: 5 }
+}
+
+fn build_route_45() -> MapData {
+    let width = 12;
+    let height = 24;
+    let tiles = vec![
+        // Row 0: trees top border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: trees with north entrance
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: mountain terrain
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: ledge area
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 6
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 7
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 8
+        GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 9
+        GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        // Row 10
+        TREE_TOP,TREE_TOP,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 12: middle section
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 13
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 15
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 16
+        GRASS,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 17
+        GRASS,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 18
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 19
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 20
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 21: approaching south exit
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 22: south exit
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 23: trees
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+    let collision = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north entrance at (4-7,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 6
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 7
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,
+        // Row 9
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        // Row 10
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 15
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 16
+        C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 17
+        C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 18
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 19
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 20
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 21
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 22: south exit at (4-7,22)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 23
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // North entrance → Blackthorn City south
+        WarpData { x: 4, y: 1, dest_map: MapId::BlackthornCity, dest_x: 8, dest_y: 11 },
+        WarpData { x: 5, y: 1, dest_map: MapId::BlackthornCity, dest_x: 9, dest_y: 11 },
+        WarpData { x: 6, y: 1, dest_map: MapId::BlackthornCity, dest_x: 10, dest_y: 11 },
+        WarpData { x: 7, y: 1, dest_map: MapId::BlackthornCity, dest_x: 11, dest_y: 11 },
+        // South exit → Route 46 north
+        WarpData { x: 4, y: 22, dest_map: MapId::Route46, dest_x: 4, dest_y: 2 },
+        WarpData { x: 5, y: 22, dest_map: MapId::Route46, dest_x: 5, dest_y: 2 },
+        WarpData { x: 6, y: 22, dest_map: MapId::Route46, dest_x: 6, dest_y: 2 },
+        WarpData { x: 7, y: 22, dest_map: MapId::Route46, dest_x: 7, dest_y: 2 },
+    ];
+    let npcs = vec![
+        // Trainer 1: Hiker (upper area)
+        NpcDef {
+            x: 5, y: 5, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["These mountains are", "my training ground!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: GEODUDE, level: 27 }, TrainerPokemon { species_id: GRAVELER, level: 29 }],
+        },
+        // Trainer 2: Blackbelt (middle)
+        NpcDef {
+            x: 4, y: 12, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["My fighting spirit", "burns bright!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: MACHOKE, level: 29 }, TrainerPokemon { species_id: PRIMEAPE, level: 29 }],
+        },
+        // Trainer 3: Cooltrainer (lower area)
+        NpcDef {
+            x: 6, y: 18, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["I've trained hard", "on this mountain!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: SKARMORY, level: 30 }, TrainerPokemon { species_id: GLIGAR, level: 30 }],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 23, max_level: 27, weight: 25 },
+        EncounterEntry { species_id: GRAVELER, min_level: 26, max_level: 28, weight: 15 },
+        EncounterEntry { species_id: GLIGAR, min_level: 24, max_level: 26, weight: 15 },
+        EncounterEntry { species_id: TEDDIURSA, min_level: 23, max_level: 25, weight: 20 },
+        EncounterEntry { species_id: SKARMORY, min_level: 24, max_level: 26, weight: 5 },
+        EncounterEntry { species_id: RATICATE, min_level: 25, max_level: 27, weight: 10 },
+        EncounterEntry { species_id: SPEAROW, min_level: 23, max_level: 25, weight: 10 },
+    ];
+    MapData { id: MapId::Route45, name: "ROUTE 45", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
+fn build_route_46() -> MapData {
+    let width = 12;
+    let height = 16;
+    let tiles = vec![
+        // Row 0: trees
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: north entrance from Route 45
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,TALL_GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,TALL_GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 6
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 7
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 8
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9
+        GRASS,GRASS,GRASS,TALL_GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        // Row 10
+        TREE_TOP,TREE_TOP,GRASS,TALL_GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 11
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 12
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 13: approaching south exit
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14: south exit → Route 29
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 15: trees
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+    let collision = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north entrance at (4-7,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 7
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,
+        // Row 10
+        C_SOLID,C_SOLID,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_SOLID,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 13
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14: south exit at (4-7,14)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // North entrance → Route 45 south
+        WarpData { x: 4, y: 1, dest_map: MapId::Route45, dest_x: 4, dest_y: 21 },
+        WarpData { x: 5, y: 1, dest_map: MapId::Route45, dest_x: 5, dest_y: 21},
+        WarpData { x: 6, y: 1, dest_map: MapId::Route45, dest_x: 6, dest_y: 21},
+        WarpData { x: 7, y: 1, dest_map: MapId::Route45, dest_x: 7, dest_y: 21},
+        // South exit → Route 29 (near east end, on walkable path tiles)
+        WarpData { x: 4, y: 14, dest_map: MapId::Route29, dest_x: 26, dest_y: 5 },
+        WarpData { x: 5, y: 14, dest_map: MapId::Route29, dest_x: 27, dest_y: 5 },
+        WarpData { x: 6, y: 14, dest_map: MapId::Route29, dest_x: 26, dest_y: 4 },
+        WarpData { x: 7, y: 14, dest_map: MapId::Route29, dest_x: 27, dest_y: 4 },
+    ];
+    let npcs = vec![
+        // Trainer 1: Hiker
+        NpcDef {
+            x: 5, y: 5, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["I climbed all the", "way from ROUTE 29!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: GEODUDE, level: 25 }, TrainerPokemon { species_id: GEODUDE, level: 25 }, TrainerPokemon { species_id: GRAVELER, level: 27 }],
+        },
+        // Trainer 2: Picnicker
+        NpcDef {
+            x: 4, y: 10, sprite_id: 1, facing: Direction::Right,
+            dialogue: &["This route is a", "great shortcut!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: TEDDIURSA, level: 27 }, TrainerPokemon { species_id: RATICATE, level: 27 }],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 20, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: RATTATA, min_level: 18, max_level: 22, weight: 25 },
+        EncounterEntry { species_id: SPEAROW, min_level: 18, max_level: 22, weight: 25 },
+        EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 26, weight: 10 },
+        EncounterEntry { species_id: GRAVELER, min_level: 24, max_level: 26, weight: 10 },
+    ];
+    MapData { id: MapId::Route46, name: "ROUTE 46", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
 }
 
 #[cfg(test)]
@@ -6460,6 +6727,8 @@ mod tests {
             MapId::IcePath,
             MapId::BlackthornCity,
             MapId::BlackthornGym,
+            MapId::Route45,
+            MapId::Route46,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -6495,6 +6764,7 @@ mod tests {
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
             MapId::Route43, MapId::LakeOfRage,
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
+            MapId::Route45, MapId::Route46,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -6741,6 +7011,7 @@ mod tests {
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
             MapId::Route43, MapId::LakeOfRage,
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
+            MapId::Route45, MapId::Route46,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

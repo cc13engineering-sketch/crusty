@@ -300,6 +300,15 @@ pub const MOVE_ICE_PUNCH: MoveId = 8;
 pub const MOVE_LOVELY_KISS: MoveId = 142;
 pub const MOVE_SLASH: MoveId = 163;
 pub const MOVE_SAFEGUARD: MoveId = 219;
+// ─── Route 45/46 species + moves ────────────────────────
+pub const GRAVELER: SpeciesId = 75;
+pub const GLIGAR: SpeciesId = 207;
+pub const TEDDIURSA: SpeciesId = 216;
+pub const URSARING: SpeciesId = 217;
+pub const SKARMORY: SpeciesId = 227;
+pub const GOLEM: SpeciesId = 76;
+pub const MOVE_SWIFT: MoveId = 129;
+pub const MOVE_STEEL_WING: MoveId = 211;
 
 /// Static species data
 #[derive(Debug)]
@@ -1261,6 +1270,61 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_BUBBLE), (1, MOVE_SMOKESCREEN), (1, MOVE_LEER), (1, MOVE_WATER_GUN), (29, MOVE_TWISTER), (40, MOVE_AGILITY), (51, MOVE_HYDRO_PUMP)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 52: Route 45/46 species ────────────────────
+    SpeciesData {
+        id: GRAVELER, name: "Graveler",
+        type1: PokemonType::Rock, type2: Some(PokemonType::Ground),
+        base_hp: 55, base_attack: 95, base_defense: 115,
+        base_sp_attack: 45, base_sp_defense: 45, base_speed: 35,
+        catch_rate: 120, base_exp_yield: 134, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (11, MOVE_ROCK_THROW), (16, MOVE_MAGNITUDE), (21, MOVE_SELF_DESTRUCT), (29, MOVE_ROCK_SLIDE), (36, MOVE_EARTHQUAKE)],
+        evolution_level: Some(38), evolution_into: Some(GOLEM),
+    },
+    SpeciesData {
+        id: GOLEM, name: "Golem",
+        type1: PokemonType::Rock, type2: Some(PokemonType::Ground),
+        base_hp: 80, base_attack: 110, base_defense: 130,
+        base_sp_attack: 55, base_sp_defense: 65, base_speed: 45,
+        catch_rate: 45, base_exp_yield: 177, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (1, MOVE_ROCK_THROW), (1, MOVE_MAGNITUDE), (21, MOVE_SELF_DESTRUCT), (29, MOVE_ROCK_SLIDE), (36, MOVE_EARTHQUAKE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GLIGAR, name: "Gligar",
+        type1: PokemonType::Ground, type2: Some(PokemonType::Flying),
+        base_hp: 65, base_attack: 75, base_defense: 105,
+        base_sp_attack: 35, base_sp_defense: 65, base_speed: 85,
+        catch_rate: 60, base_exp_yield: 108, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_POISON_STING), (6, MOVE_SAND_ATTACK), (13, MOVE_HARDEN), (20, MOVE_QUICK_ATTACK), (28, MOVE_FAINT_ATTACK), (36, MOVE_SLASH), (44, MOVE_SCREECH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: TEDDIURSA, name: "Teddiursa",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 60, base_attack: 80, base_defense: 50,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 40,
+        catch_rate: 120, base_exp_yield: 124, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (8, MOVE_LICK), (15, MOVE_FURY_SWIPES), (22, MOVE_FAINT_ATTACK), (29, MOVE_REST), (36, MOVE_SLASH), (43, MOVE_THRASH)],
+        evolution_level: Some(30), evolution_into: Some(URSARING),
+    },
+    SpeciesData {
+        id: URSARING, name: "Ursaring",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 90, base_attack: 130, base_defense: 75,
+        base_sp_attack: 75, base_sp_defense: 75, base_speed: 55,
+        catch_rate: 60, base_exp_yield: 189, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (1, MOVE_LICK), (1, MOVE_FURY_SWIPES), (22, MOVE_FAINT_ATTACK), (29, MOVE_REST), (36, MOVE_SLASH), (43, MOVE_THRASH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SKARMORY, name: "Skarmory",
+        type1: PokemonType::Steel, type2: Some(PokemonType::Flying),
+        base_hp: 65, base_attack: 80, base_defense: 140,
+        base_sp_attack: 40, base_sp_defense: 70, base_speed: 70,
+        catch_rate: 25, base_exp_yield: 168, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_LEER), (1, MOVE_PECK), (13, MOVE_SAND_ATTACK), (19, MOVE_SWIFT), (25, MOVE_AGILITY), (31, MOVE_FURY_ATTACK), (37, MOVE_SLASH), (43, MOVE_STEEL_WING)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1405,6 +1469,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_LOVELY_KISS, name: "Lovely Kiss", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 10, description: "Puts the foe to sleep." },
     MoveData { id: MOVE_SLASH, name: "Slash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 70, accuracy: 100, pp: 20, description: "High critical-hit ratio." },
     MoveData { id: MOVE_SAFEGUARD, name: "Safeguard", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 25, description: "Prevents status for 5 turns." },
+    // ─── Sprint 52: Route 45/46 moves ──────────────────────
+    MoveData { id: MOVE_SWIFT, name: "Swift", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 60, accuracy: 255, pp: 20, description: "Never misses." },
+    MoveData { id: MOVE_STEEL_WING, name: "Steel Wing", move_type: PokemonType::Steel, category: MoveCategory::Physical, power: 70, accuracy: 90, pp: 25, description: "May raise Defense." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

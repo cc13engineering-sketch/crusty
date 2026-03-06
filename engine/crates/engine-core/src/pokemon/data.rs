@@ -1186,7 +1186,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 65, base_attack: 50, base_defense: 35,
         base_sp_attack: 115, base_sp_defense: 95, base_speed: 95,
         catch_rate: 45, base_exp_yield: 137, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_POUND), (1, MOVE_LICK), (1, MOVE_LOVELY_KISS), (1, MOVE_POWDER_SNOW), (13, MOVE_CONFUSION), (21, MOVE_ICE_PUNCH), (25, MOVE_MEAN_LOOK), (31, MOVE_BODY_SLAM), (39, MOVE_THRASH), (47, MOVE_BLIZZARD)],
+        learnset: &[(1, MOVE_POUND), (1, MOVE_LICK), (1, MOVE_LOVELY_KISS), (1, MOVE_POWDER_SNOW), (21, MOVE_DOUBLESLAP), (25, MOVE_ICE_PUNCH), (35, MOVE_MEAN_LOOK), (41, MOVE_BODY_SLAM), (51, MOVE_THRASH), (57, MOVE_BLIZZARD)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1250,7 +1250,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 95, base_sp_defense: 45, base_speed: 85,
         catch_rate: 75, base_exp_yield: 155, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_BUBBLE), (1, MOVE_SMOKESCREEN), (1, MOVE_LEER), (1, MOVE_WATER_GUN), (29, MOVE_TWISTER), (40, MOVE_AGILITY), (51, MOVE_HYDRO_PUMP)],
-        evolution_level: Some(40), evolution_into: Some(KINGDRA),
+        evolution_level: Some(38), evolution_into: Some(KINGDRA),
     },
     SpeciesData {
         id: KINGDRA, name: "Kingdra",

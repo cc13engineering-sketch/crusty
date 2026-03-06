@@ -903,13 +903,17 @@ impl PokemonSim {
                     // Accuracy check (apply accuracy/evasion stages)
                     // Gen 2: all moves use accuracy + stage modifiers, including status
                     let accuracy_ok = if let Some(move_data) = get_move(move_id) {
-                        let acc_mult = accuracy_stage_multiplier(battle.player_stages[STAGE_ACC]);
-                        let eva_mult = accuracy_stage_multiplier(battle.enemy_stages[STAGE_EVA]);
-                        let effective_acc = (move_data.accuracy as f64 * acc_mult / eva_mult).min(100.0);
-                        if effective_acc >= 100.0 {
-                            true
+                        if move_data.accuracy >= 255 {
+                            true // Never-miss moves (Faint Attack, Swift)
                         } else {
-                            (engine.rng.next_u64() % 100) < effective_acc as u64
+                            let acc_mult = accuracy_stage_multiplier(battle.player_stages[STAGE_ACC]);
+                            let eva_mult = accuracy_stage_multiplier(battle.enemy_stages[STAGE_EVA]);
+                            let effective_acc = (move_data.accuracy as f64 * acc_mult / eva_mult).min(100.0);
+                            if effective_acc >= 100.0 {
+                                true
+                            } else {
+                                (engine.rng.next_u64() % 100) < effective_acc as u64
+                            }
                         }
                     } else { true };
 
@@ -1512,13 +1516,17 @@ impl PokemonSim {
         // Accuracy check for enemy move (apply accuracy/evasion stages)
         // Gen 2: all moves use accuracy + stage modifiers, including status
         let accuracy_ok = if let Some(md) = get_move(mid) {
-            let acc_mult = accuracy_stage_multiplier(enemy_stages[STAGE_ACC]);
-            let eva_mult = accuracy_stage_multiplier(player_stages[STAGE_EVA]);
-            let effective_acc = (md.accuracy as f64 * acc_mult / eva_mult).min(100.0);
-            if effective_acc >= 100.0 {
-                true
+            if md.accuracy >= 255 {
+                true // Never-miss moves (Faint Attack, Swift)
             } else {
-                (engine.rng.next_u64() % 100) < effective_acc as u64
+                let acc_mult = accuracy_stage_multiplier(enemy_stages[STAGE_ACC]);
+                let eva_mult = accuracy_stage_multiplier(player_stages[STAGE_EVA]);
+                let effective_acc = (md.accuracy as f64 * acc_mult / eva_mult).min(100.0);
+                if effective_acc >= 100.0 {
+                    true
+                } else {
+                    (engine.rng.next_u64() % 100) < effective_acc as u64
+                }
             }
         } else { true };
 

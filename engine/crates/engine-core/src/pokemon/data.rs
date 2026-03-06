@@ -134,6 +134,14 @@ pub const SPEAROW: SpeciesId = 21;
 pub const FEAROW: SpeciesId = 22;
 pub const MACHOP: SpeciesId = 66;
 pub const AMPHAROS: SpeciesId = 181;
+// ─── Route 40 / Cianwood species ─────────────────────────
+pub const MANKEY: SpeciesId = 56;
+pub const PRIMEAPE: SpeciesId = 57;
+pub const POLIWRATH: SpeciesId = 62;
+pub const TENTACOOL: SpeciesId = 72;
+pub const TENTACRUEL: SpeciesId = 73;
+pub const MACHOKE: SpeciesId = 67;
+pub const MACHAMP: SpeciesId = 68;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -241,6 +249,13 @@ pub const MOVE_SUNNY_DAY: MoveId = 241;
 pub const MOVE_KARATE_CHOP: MoveId = 2;
 pub const MOVE_BODY_SLAM: MoveId = 34;
 pub const MOVE_SEISMIC_TOSS: MoveId = 69;
+// ─── Route 40 / Cianwood moves ──────────────────────────
+pub const MOVE_CROSS_CHOP: MoveId = 238;
+pub const MOVE_SUBMISSION: MoveId = 66;
+pub const MOVE_DYNAMIC_PUNCH: MoveId = 223;
+pub const MOVE_SURF: MoveId = 57;
+pub const MOVE_CONSTRICT: MoveId = 132;
+pub const MOVE_WRAP: MoveId = 35;
 
 /// Static species data
 #[derive(Debug)]
@@ -974,6 +989,70 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_THUNDER_SHOCK), (9, MOVE_THUNDER_SHOCK), (18, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Route 40 / Cianwood species ─────────────────────
+    SpeciesData {
+        id: MANKEY, name: "Mankey",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 40, base_attack: 80, base_defense: 35,
+        base_sp_attack: 35, base_sp_defense: 45, base_speed: 70,
+        catch_rate: 190, base_exp_yield: 74, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (9, MOVE_LOW_KICK), (15, MOVE_KARATE_CHOP), (21, MOVE_FURY_SWIPES), (27, MOVE_SEISMIC_TOSS)],
+        evolution_level: Some(28), evolution_into: None,
+    },
+    SpeciesData {
+        id: PRIMEAPE, name: "Primeape",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 65, base_attack: 105, base_defense: 60,
+        base_sp_attack: 60, base_sp_defense: 70, base_speed: 95,
+        catch_rate: 75, base_exp_yield: 149, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (1, MOVE_LOW_KICK), (15, MOVE_KARATE_CHOP), (21, MOVE_FURY_SWIPES), (28, MOVE_CROSS_CHOP), (36, MOVE_SEISMIC_TOSS)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: POLIWRATH, name: "Poliwrath",
+        type1: PokemonType::Water, type2: Some(PokemonType::Fighting),
+        base_hp: 90, base_attack: 85, base_defense: 95,
+        base_sp_attack: 70, base_sp_defense: 90, base_speed: 70,
+        catch_rate: 45, base_exp_yield: 185, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_HYPNOSIS), (1, MOVE_DOUBLESLAP), (35, MOVE_SUBMISSION), (43, MOVE_DYNAMIC_PUNCH), (51, MOVE_SURF)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: TENTACOOL, name: "Tentacool",
+        type1: PokemonType::Water, type2: Some(PokemonType::Poison),
+        base_hp: 40, base_attack: 40, base_defense: 35,
+        base_sp_attack: 50, base_sp_defense: 100, base_speed: 70,
+        catch_rate: 190, base_exp_yield: 105, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_POISON_STING), (6, MOVE_SUPERSONIC), (12, MOVE_CONSTRICT), (19, MOVE_ACID), (25, MOVE_BUBBLEBEAM), (30, MOVE_WRAP)],
+        evolution_level: Some(30), evolution_into: None,
+    },
+    SpeciesData {
+        id: TENTACRUEL, name: "Tentacruel",
+        type1: PokemonType::Water, type2: Some(PokemonType::Poison),
+        base_hp: 80, base_attack: 70, base_defense: 65,
+        base_sp_attack: 80, base_sp_defense: 120, base_speed: 100,
+        catch_rate: 60, base_exp_yield: 205, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_SUPERSONIC), (1, MOVE_CONSTRICT), (19, MOVE_ACID), (25, MOVE_BUBBLEBEAM), (30, MOVE_WRAP), (38, MOVE_SCREECH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MACHOKE, name: "Machoke",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 80, base_attack: 100, base_defense: 70,
+        base_sp_attack: 50, base_sp_defense: 60, base_speed: 45,
+        catch_rate: 90, base_exp_yield: 146, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LOW_KICK), (1, MOVE_LEER), (1, MOVE_FOCUS_ENERGY), (13, MOVE_KARATE_CHOP), (19, MOVE_SEISMIC_TOSS), (25, MOVE_FORESIGHT), (34, MOVE_SUBMISSION), (43, MOVE_CROSS_CHOP)],
+        evolution_level: Some(38), evolution_into: None,
+    },
+    SpeciesData {
+        id: MACHAMP, name: "Machamp",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 90, base_attack: 130, base_defense: 80,
+        base_sp_attack: 65, base_sp_defense: 85, base_speed: 55,
+        catch_rate: 45, base_exp_yield: 193, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LOW_KICK), (1, MOVE_LEER), (1, MOVE_FOCUS_ENERGY), (13, MOVE_KARATE_CHOP), (19, MOVE_SEISMIC_TOSS), (25, MOVE_FORESIGHT), (34, MOVE_SUBMISSION), (43, MOVE_CROSS_CHOP), (52, MOVE_DYNAMIC_PUNCH)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1078,7 +1157,7 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_DRILL_PECK, name: "Drill Peck", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 20, description: "A spiraling, drilling peck." },
     MoveData { id: MOVE_BUBBLEBEAM, name: "BubbleBeam", move_type: PokemonType::Water, category: MoveCategory::Special, power: 65, accuracy: 100, pp: 20, description: "May lower the foe's Speed." },
     MoveData { id: MOVE_THUNDERBOLT, name: "Thunderbolt", move_type: PokemonType::Electric, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "May paralyze the foe." },
-    MoveData { id: MOVE_FAINT_ATTACK, name: "Faint Attack", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 20, description: "Never misses the foe." },
+    MoveData { id: MOVE_FAINT_ATTACK, name: "Faint Attack", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 60, accuracy: 255, pp: 20, description: "Never misses the foe." },
     MoveData { id: MOVE_PAY_DAY, name: "Pay Day", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 20, description: "Scatters coins after battle." },
     MoveData { id: MOVE_IRON_TAIL, name: "Iron Tail", move_type: PokemonType::Steel, category: MoveCategory::Physical, power: 100, accuracy: 75, pp: 15, description: "Attacks with a steel tail." },
     MoveData { id: MOVE_SCREECH, name: "Screech", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 40, description: "Sharply lowers Defense." },
@@ -1087,6 +1166,13 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_KARATE_CHOP, name: "Karate Chop", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 50, accuracy: 100, pp: 25, description: "High critical-hit ratio." },
     MoveData { id: MOVE_BODY_SLAM, name: "Body Slam", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 85, accuracy: 100, pp: 15, description: "May paralyze the foe." },
     MoveData { id: MOVE_SEISMIC_TOSS, name: "Seismic Toss", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 20, description: "Damage equals user's level." },
+    // ─── Route 40 / Cianwood moves ──────────────────────────
+    MoveData { id: MOVE_CROSS_CHOP, name: "Cross Chop", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 100, accuracy: 80, pp: 5, description: "High critical-hit ratio." },
+    MoveData { id: MOVE_SUBMISSION, name: "Submission", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 80, accuracy: 80, pp: 25, description: "Also hurts the user a little." },
+    MoveData { id: MOVE_DYNAMIC_PUNCH, name: "DynamicPunch", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 100, accuracy: 50, pp: 5, description: "Always confuses if it hits." },
+    MoveData { id: MOVE_SURF, name: "Surf", move_type: PokemonType::Water, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "A big wave hits all." },
+    MoveData { id: MOVE_CONSTRICT, name: "Constrict", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 10, accuracy: 100, pp: 35, description: "May lower Speed." },
+    MoveData { id: MOVE_WRAP, name: "Wrap", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 85, pp: 20, description: "Traps the foe for 2-5 turns." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

@@ -538,3 +538,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Updated all StatusCondition match arms for new BadPoison variant
 - 2 new tests (Toxic escalation, Toxic infliction). All 1285 pass.
 - **Next (Sprint 69)**: QA sprint
+
+### Sprint 69 (QA)
+- **Fixed**: Self-Destruct mutual KO — player faint now processed after EnemyFainted (no EXP for fainted Pokemon)
+- **Fixed**: Enemy Self-Destruct — skip player's pending move when enemy already dead from own Self-Destruct
+- **Fixed**: End-of-turn enemy faint check — catches Self-Destruct deaths, not just status damage
+- **Fixed**: BadPoison turn counter resets to 1 on switch-in (Gen 2 compliance)
+- **Fixed**: Mean Look (player_trapped) clears on switch
+- Verified working: confusion mechanic, Toxic escalation, antidote cures BadPoison, evolution chains, Victory Road gate, flinch/paralysis/freeze timing
+- 2 new tests. All 1287 pass.
+- **Next (Sprint 70)**: Continue Phase 5 — more moves/mechanics

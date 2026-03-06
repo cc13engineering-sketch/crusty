@@ -498,3 +498,15 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Added**: Struggle move — forced when all PP = 0 (50 power, never-miss, 1/4 recoil). Prevents soft-lock.
 - 3 new tests (Struggle, freeze thaw, status move infliction). All 1275 tests pass.
 - **Next (Sprint 65)**: Phase 0C story flags (DoD #7), Victory Road rival battle
+
+### Sprint 65 (Phase 0C — Story Flags + Victory Road Rival)
+- **Added**: Story flags infrastructure — u64 bitfield with has_flag/set_flag helpers, persisted in save
+- **Added**: Victory Road rival battle — starter final form lv36 + Haunter lv35 + Sneasel lv34 + Magneton lv34 + Golbat lv36
+- **Added**: Route gate — Victory Road blocked without 8 badges (uses count_ones on badge bitfield)
+- **Added**: Final starter evolutions: Meganium (154), Typhlosion (157), Feraligatr (160)
+- **Added**: Magneton (82, Electric/Steel) with Magnemite evolution chain
+- **Fixed**: Badge count check uses count_ones() instead of raw comparison (badges is a bitfield, not a counter)
+- FLAG_RIVAL_ROUTE29 wired into existing Route 29 rival battle
+- 10 story flag constants defined (8 reserved for future events: egg, Sprout Tower, Sudowoodo, etc.)
+- 3 new tests (flags save/load, Victory Road rival requires 8 badges, final evolutions exist). All 1278 pass.
+- **Next (Sprint 66)**: QA sprint

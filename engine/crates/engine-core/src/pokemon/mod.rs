@@ -1285,7 +1285,10 @@ impl PokemonSim {
                         }
                         3 => {
                             if battle.is_wild {
-                                let pspeed = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(50);
+                                let mut pspeed = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(50);
+                                if self.party.get(battle.player_idx).map(|p| matches!(p.status, StatusCondition::Paralysis)).unwrap_or(false) {
+                                    pspeed /= 2;
+                                }
                                 let espeed = battle.enemy.speed;
                                 let chance = (pspeed as f64 * 128.0 / espeed as f64 + 30.0 * battle.turn_count as f64) / 256.0;
                                 if engine.rng.next_f64() < chance || battle.turn_count > 3 {
@@ -2036,6 +2039,7 @@ impl PokemonSim {
                     self.money -= lost;
                     for p in &mut self.party { p.heal(); }
                     engine.global_state.set_f64("in_battle", 0.0);
+                    engine.global_state.set_f64("pending_evolution", 0.0);
                     self.battle = None;
                     self.dialogue = Some(DialogueState {
                         lines: vec![
@@ -2047,7 +2051,10 @@ impl PokemonSim {
                         current_line: 0, char_index: 0, timer: 0.0,
                         on_complete: DialogueAction::None,
                     });
+                    // Preserve last_pokecenter_map — change_map would overwrite it
+                    let saved_pc = self.last_pokecenter_map;
                     self.change_map(MapId::PokemonCenter, 5, 6);
+                    self.last_pokecenter_map = saved_pc;
                     self.phase = GamePhase::Dialogue;
                     return;
                 }
@@ -3404,7 +3411,13 @@ impl PokemonSim {
         let catch_rate = get_species(battle.enemy.species_id)
             .map(|s| s.catch_rate as f64)
             .unwrap_or(128.0);
-        let rate = ((3.0 * max_hp - 2.0 * cur_hp) * catch_rate * ball_mult) / (3.0 * max_hp);
+        // Gen 2 status multiplier: sleep/freeze = 2x, other status = 1.5x
+        let status_mult = match battle.enemy.status {
+            StatusCondition::Sleep { .. } | StatusCondition::Freeze => 2.0,
+            StatusCondition::Poison | StatusCondition::Burn | StatusCondition::Paralysis => 1.5,
+            StatusCondition::None => 1.0,
+        };
+        let rate = ((3.0 * max_hp - 2.0 * cur_hp) * catch_rate * ball_mult * status_mult) / (3.0 * max_hp);
         let shake_prob = rate / 255.0;
 
         let r = engine.rng.next_f64();
@@ -4811,5 +4824,32 @@ mod headless_tests {
         assert_eq!(croc.evolution_into, Some(FERALIGATR));
         let mite = get_species(MAGNEMITE).unwrap();
         assert_eq!(mite.evolution_into, Some(MAGNETON));
+    }
+
+    #[test]
+    fn test_hp_formula_gen2() {
+        // Gen 2 HP formula: ((Base*2 + IV) * Level / 100) + Level + 10
+        // IV=15 (max), EV=0
+        // Pikachu base HP = 35: at lv50, ((35*2+15)*50/100) + 50 + 10 = 42 + 50 + 10 = 102
+        let hp = calc_hp(35, 50);
+        assert_eq!(hp, 102, "Pikachu lv50 HP should be 102, got {}", hp);
+
+        // Chikorita base HP = 45: at lv5, ((45*2+15)*5/100) + 5 + 10 = 5 + 5 + 10 = 20
+        let hp5 = calc_hp(45, 5);
+        assert_eq!(hp5, 20, "Chikorita lv5 HP should be 20, got {}", hp5);
+    }
+
+    #[test]
+    fn test_whiteout_preserves_pokecenter_map() {
+        let mut sim = PokemonSim::new();
+        sim.last_pokecenter_map = MapId::VioletCity;
+
+        // Simulate whiteout — save/restore pattern
+        let saved_pc = sim.last_pokecenter_map;
+        sim.change_map(MapId::PokemonCenter, 5, 6);
+        sim.last_pokecenter_map = saved_pc;
+
+        assert_eq!(sim.last_pokecenter_map, MapId::VioletCity,
+            "Whiteout should preserve last PokeCenter, not overwrite with current map");
     }
 }

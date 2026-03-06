@@ -164,6 +164,8 @@ pub enum MapId {
     Route42,
     MahoganyTown,
     MahoganyGym,
+    Route43,
+    LakeOfRage,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -296,6 +298,8 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route42 => build_route_42(),
         MapId::MahoganyTown => build_mahogany_town(),
         MapId::MahoganyGym => build_mahogany_gym(),
+        MapId::Route43 => build_route_43(),
+        MapId::LakeOfRage => build_lake_of_rage(),
     }
 }
 
@@ -5562,11 +5566,11 @@ fn build_mahogany_town() -> MapData {
         WarpData { x: 1, y: 8, dest_map: MapId::Route42, dest_x: 17, dest_y: 9 },
         WarpData { x: 0, y: 9, dest_map: MapId::Route42, dest_x: 17, dest_y: 10 },
         WarpData { x: 1, y: 9, dest_map: MapId::Route42, dest_x: 17, dest_y: 10 },
-        // North exit → Route 43 (will be added in future sprint; temp loop back)
-        WarpData { x: 5, y: 1, dest_map: MapId::MahoganyTown, dest_x: 5, dest_y: 4 },
-        WarpData { x: 6, y: 1, dest_map: MapId::MahoganyTown, dest_x: 6, dest_y: 4 },
-        WarpData { x: 9, y: 1, dest_map: MapId::MahoganyTown, dest_x: 9, dest_y: 4 },
-        WarpData { x: 10, y: 1, dest_map: MapId::MahoganyTown, dest_x: 10, dest_y: 4 },
+        // North exit → Route 43
+        WarpData { x: 5, y: 1, dest_map: MapId::Route43, dest_x: 5, dest_y: 17 },
+        WarpData { x: 6, y: 1, dest_map: MapId::Route43, dest_x: 6, dest_y: 17 },
+        WarpData { x: 9, y: 1, dest_map: MapId::Route43, dest_x: 5, dest_y: 17 },
+        WarpData { x: 10, y: 1, dest_map: MapId::Route43, dest_x: 6, dest_y: 17 },
         // East exit → Route 44 (future)
         WarpData { x: 14, y: 8, dest_map: MapId::Route42, dest_x: 17, dest_y: 9 },
         WarpData { x: 15, y: 8, dest_map: MapId::Route42, dest_x: 17, dest_y: 9 },
@@ -5690,6 +5694,241 @@ fn build_mahogany_gym() -> MapData {
         },
     ];
     MapData { id: MapId::MahoganyGym, name: "MAHOGANY GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 8 }
+}
+
+// ─── Route 43 (12×20) ──────────────────────────────────
+// Connects Mahogany Town (south) to Lake of Rage (north). Grass route with trainers.
+fn build_route_43() -> MapData {
+    let width: usize = 12;
+    let height: usize = 20;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: tree border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: north exit to Lake of Rage
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,PATH,GRASS,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 6: gatehouse area
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 7
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8
+        GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 9
+        GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 10
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 12: trees narrow the path
+        TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 13
+        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 14
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 15
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 16
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 17
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 18: south exit to Mahogany Town
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,PATH,PATH,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 19: tree border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 6
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 9
+        C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 14
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 15
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 16
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 17
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 18: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WARP,C_WARP,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 19
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // North exit → Lake of Rage
+        WarpData { x: 4, y: 1, dest_map: MapId::LakeOfRage, dest_x: 7, dest_y: 11 },
+        WarpData { x: 5, y: 1, dest_map: MapId::LakeOfRage, dest_x: 8, dest_y: 11 },
+        WarpData { x: 6, y: 1, dest_map: MapId::LakeOfRage, dest_x: 7, dest_y: 11 },
+        WarpData { x: 7, y: 1, dest_map: MapId::LakeOfRage, dest_x: 8, dest_y: 11 },
+        // South exit → Mahogany Town north
+        WarpData { x: 5, y: 18, dest_map: MapId::MahoganyTown, dest_x: 7, dest_y: 4 },
+        WarpData { x: 6, y: 18, dest_map: MapId::MahoganyTown, dest_x: 8, dest_y: 4 },
+    ];
+    let npcs = vec![
+        // Camper trainer
+        NpcDef {
+            x: 3, y: 6, sprite_id: 3, facing: Direction::Right,
+            dialogue: &["I came all the way", "from MAHOGANY for", "some training!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: PIDGEOTTO, level: 24 }, TrainerPokemon { species_id: RATICATE, level: 24 }],
+        },
+        // Picnicker trainer
+        NpcDef {
+            x: 9, y: 10, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["The wild Pokemon", "here are unusual!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: FLAAFFY, level: 24 }, TrainerPokemon { species_id: GIRAFARIG, level: 26 }],
+        },
+        // Psychic trainer
+        NpcDef {
+            x: 5, y: 14, sprite_id: 4, facing: Direction::Down,
+            dialogue: &["I sense a great", "disturbance at the", "LAKE OF RAGE..."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: GIRAFARIG, level: 26 }],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: GIRAFARIG, min_level: 15, max_level: 17, weight: 25 },
+        EncounterEntry { species_id: PIDGEOTTO, min_level: 16, max_level: 17, weight: 20 },
+        EncounterEntry { species_id: VENONAT, min_level: 15, max_level: 16, weight: 20 },
+        EncounterEntry { species_id: NOCTOWL, min_level: 17, max_level: 17, weight: 10 },
+        EncounterEntry { species_id: FLAAFFY, min_level: 15, max_level: 17, weight: 15 },
+        EncounterEntry { species_id: RATICATE, min_level: 16, max_level: 17, weight: 10 },
+    ];
+    MapData { id: MapId::Route43, name: "ROUTE 43", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
+// ─── Lake of Rage (16×14) ───────────────────────────────
+// Red Gyarados event area. Large lake with shore, trees.
+fn build_lake_of_rage() -> MapData {
+    let width: usize = 16;
+    let height: usize = 14;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,
+        // Row 5: Red Gyarados in water
+        GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,
+        // Row 6
+        GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,
+        // Row 7
+        GRASS,GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,GRASS,
+        // Row 8
+        GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9: shore
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 10
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 11: sign
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,SIGN,PATH,PATH,SIGN,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 12: south exit to Route 43
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 13
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,
+        // Row 6
+        C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 10
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 11
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WARP,C_WARP,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // South exit → Route 43
+        WarpData { x: 7, y: 12, dest_map: MapId::Route43, dest_x: 5, dest_y: 2 },
+        WarpData { x: 8, y: 12, dest_map: MapId::Route43, dest_x: 6, dest_y: 2 },
+    ];
+    let npcs = vec![
+        // Lance NPC (appears during Red Gyarados event)
+        NpcDef {
+            x: 4, y: 8, sprite_id: 7, facing: Direction::Right,
+            dialogue: &["I'm LANCE of the", "ELITE FOUR.", "I've been investigating", "the lake's disturbance.", "A red GYARADOS was", "spotted here. Be careful!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Fisherman
+        NpcDef {
+            x: 12, y: 8, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["I saw a huge red", "GYARADOS! It was", "terrifying!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Cooltrainer (trainer)
+        NpcDef {
+            x: 3, y: 10, sprite_id: 4, facing: Direction::Down,
+            dialogue: &["Something evil is", "happening in MAHOGANY."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: GYARADOS, level: 27 }, TrainerPokemon { species_id: GOLBAT, level: 27 }],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 90 },
+        EncounterEntry { species_id: GYARADOS, min_level: 15, max_level: 15, weight: 10 },
+    ];
+    MapData { id: MapId::LakeOfRage, name: "LAKE OF RAGE", width, height, tiles, collision, warps, npcs, encounters, music_id: 4 }
 }
 
 #[cfg(test)]
@@ -5844,6 +6083,7 @@ mod tests {
             MapId::OlivineLighthouse,
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
+            MapId::Route43, MapId::LakeOfRage,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -6088,6 +6328,7 @@ mod tests {
             MapId::OlivineLighthouse,
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
+            MapId::Route43, MapId::LakeOfRage,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

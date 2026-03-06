@@ -114,24 +114,13 @@ Species and moves added as needed per sprint. Currently ~125 species, ~147 moves
 ### Phase 2: Maps — Olivine, Cianwood, Mahogany (Gyms 5-7) ✓
 All maps built through Lake of Rage and Mahogany Gym. RocketHQ still needed for story gating.
 
-### Phase 3: Maps — Blackthorn through Victory Road (Gym 8 + E4)
-_In progress._ Route 44 ✓, Ice Path ✓, Blackthorn ✓, Route 45 ✓, Route 46 ✓, Route 27 ✓, Route 26 ✓.
+### Phase 3: Maps — Blackthorn through Victory Road (Gym 8 + E4) ✓
+All maps complete: Route 44, Ice Path, Blackthorn, Route 45, Route 46, Route 27, Route 26, Victory Road, Indigo Plateau, E4 rooms (Will/Koga/Bruno/Karen), Champion Lance.
 
-**Remaining**: VictoryRoad → IndigoPlateau → EliteFourWill → EliteFourKoga → EliteFourBruno → EliteFourKaren → ChampionLance
+### Phase 4: Trainer Teams ✓
+All 8 gym leaders + all 5 E4/Champion wired with correct canonical teams. Verified against pret/pokecrystal Sprint 57.
 
-E4 rooms themed to type specialty. Warp to next room after victory.
-
-### Phase 4: Trainer Teams
-All 8 gym leaders wired with correct teams and badge rewards.
-
-**Remaining — Elite Four** (from `data/trainers/parties.asm`):
-- Will: Xatu lv40, Jynx lv41, Exeggutor lv41, Slowbro lv41, Xatu lv42
-- Koga: Ariados lv40, Forretress lv43, Muk lv42, Venomoth lv41, Crobat lv44
-- Bruno: Hitmontop lv42, Hitmonlee lv42, Hitmonchan lv42, Onix lv43, Machamp lv46
-- Karen: Umbreon lv42, Vileplume lv42, Gengar lv45, Murkrow lv44, Houndoom lv47
-- Lance: Gyarados lv44, Dragonite lv47, Dragonite lv47, Aerodactyl lv46, Charizard lv46, Dragonite lv50
-
-**Rival** at Victory Road: starter final form lv36 + Haunter lv35 + Sneasel lv34 + Magneton lv34 + Golbat lv36
+**Rival** at Victory Road: starter final form lv36 + Haunter lv35 + Sneasel lv34 + Magneton lv34 + Golbat lv36 (not yet implemented)
 
 ### Phase 5: Move Effects & Battle Polish
 **Priority 1 — Secondary effects**: Thunderbolt 10% paralysis, Ice Beam 10% freeze, Fire Blast 10% burn, Dragon Breath 30% paralysis, Crunch 20% def drop, Psychic 10% sp.def drop.
@@ -318,3 +307,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Phase 3 COMPLETE**: All maps Route 44 through Champion Lance built
 - **Total: 57 maps, 8 badges, ~141 species, ~149 moves**
 - **Next (Sprint 57 QA)**: Full audit of all 57 maps, E4 teams, warp connectivity
+
+### Sprint 57 (QA)
+- Audited all E4 teams against pret/pokecrystal canonical data
+- Fixed Vileplume SpAtk: 110→100 (Gen 2 canonical)
+- Fixed Koga party order: Venomoth/Forretress/Muk (was Forretress/Muk/Venomoth)
+- Verified all 16 new species base stats — 15/16 correct, Vileplume fixed
+- Verified Psychic and Crunch move categories (both Special, correct for Gen 2 type-based system)
+- Victory Road encounters verified as reasonable substitutes (Rhyhorn/Rhydon not yet implemented)
+- All 1259 tests pass
+- **Next (Sprint 58)**: Tile art upgrade pipeline + music integration (see GUIDE.md sections 8-9)

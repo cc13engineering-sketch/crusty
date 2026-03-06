@@ -379,3 +379,17 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Total: 42 maps, 7 badges, ~103 species, ~134 moves**
 - **Phase 2 nearly complete**: Only RocketHQ remains before Phase 3 (Blackthorn → Victory Road)
 - **Next sprint (50)**: Route 44, begin Phase 3 (Ice Path → Blackthorn City)
+
+### Sprint 50 (Content)
+- Route 44 (20x12): Grass route connecting Mahogany east to Ice Path, 3 trainers (Psychic, Fisher, Bird Keeper), Bellsprout/Oddish/Raticate/Pidgeotto/Poliwag/Geodude encounters
+- Ice Path (14x14): Cave with ice patches (water tiles as obstacles), 2 trainers (Boarder, Skier), Zubat/Golbat/Swinub/Geodude/Jynx/Sneasel encounters
+- Blackthorn City (20x14): Gym, PokemonCenter, Mart, house, 3 NPCs. South exit placeholder for future Route 45
+- Blackthorn Gym (10x10): Clair — 3x Dragonair lv37, Kingdra lv40. Rising Badge (#8). 2 Cooltrainers (Horsea/Seadra, Dratini/Dragonair)
+- 9 new species: Jynx, Sneasel, Delibird, Dratini, Dragonair, Dragonite, Kingdra, Horsea, Seadra
+- 8 new moves: Agility, Outrage, Hyper Beam, Present, Ice Punch, Lovely Kiss, Slash, Safeguard
+- MahoganyTown east exit now connects to Route 44
+- Fixed 5 warp bugs (MahoganyTown→Route44 dest on C_WARP, IcePath→BlackthornCity dest on C_WARP)
+- All 34 tests pass
+- **Total: 46 maps, 8 badges, ~112 species, ~142 moves**
+- **Phase 3 progress**: Route 44 ✓, Ice Path ✓, Blackthorn City ✓, Blackthorn Gym ✓. Next: Route 45, Route 46
+- **Next sprint (51 QA)**: Full warp/NPC audit, species data verification for Sprint 50 additions

@@ -209,6 +209,9 @@ struct BattleState {
     // Stat stages: [ATK, DEF, SPA, SPD, SPE, ACC, EVA] — range -6 to +6, reset per battle
     player_stages: [i8; 7],
     enemy_stages: [i8; 7],
+    // Flinch: set by first attacker's move, checked before second attacker moves
+    enemy_flinched: bool,
+    player_flinched: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -903,6 +906,8 @@ impl PokemonSim {
                                 pending_player_move: None,
                                 player_stages: [0; 7],
                                 enemy_stages: [0; 7],
+                                enemy_flinched: false,
+                                player_flinched: false,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -1351,10 +1356,28 @@ impl PokemonSim {
                 if t > 0.8 {
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
-                    // Check for status infliction from move
+                    // Check for secondary effects from move
                     if damage > 0 {
                         let roll = engine.rng.next_f64();
                         try_inflict_status(&mut battle.enemy, move_id, roll);
+                        // Check flinch (only matters if player goes first)
+                        let fc = flinch_chance(move_id);
+                        if fc > 0.0 && !from_pending {
+                            let flinch_roll = engine.rng.next_f64();
+                            if flinch_roll < fc {
+                                battle.enemy_flinched = true;
+                            }
+                        }
+                    }
+                    // Check damaging move stat effects (separate roll from status)
+                    if damage > 0 {
+                        if let Some((target_enemy, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
+                            let stat_roll = engine.rng.next_f64();
+                            if stat_roll < chance {
+                                let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
+                                stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
+                            }
+                        }
                     }
 
                     let move_data_ref = get_move(move_id);
@@ -1459,9 +1482,13 @@ impl PokemonSim {
                         // Player went first — enemy gets to attack now
                         let enemy_can_move = battle.enemy.can_move();
                         let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
-                        if !enemy_can_move || enemy_paralyzed {
+                        let enemy_flinched = battle.enemy_flinched;
+                        battle.enemy_flinched = false; // Reset for next turn
+                        if !enemy_can_move || enemy_paralyzed || enemy_flinched {
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            let reason = if enemy_paralyzed {
+                            let reason = if enemy_flinched {
+                                format!("{}{} flinched!", prefix, battle.enemy.name())
+                            } else if enemy_paralyzed {
                                 format!("{}{} is paralyzed!", prefix, battle.enemy.name())
                             } else {
                                 format!("{}{} is fast asleep!", prefix, battle.enemy.name())
@@ -1501,6 +1528,26 @@ impl PokemonSim {
                         if damage > 0 {
                             let roll = engine.rng.next_f64();
                             try_inflict_status(p, move_id, roll);
+                            // Check flinch (only if enemy went first, i.e. no pending_player_move means enemy moved first)
+                            let fc = flinch_chance(move_id);
+                            if fc > 0.0 && battle.pending_player_move.is_some() {
+                                let flinch_roll = engine.rng.next_f64();
+                                if flinch_roll < fc {
+                                    battle.player_flinched = true;
+                                }
+                            }
+                        }
+                        // Check damaging move stat effects
+                        if damage > 0 {
+                            if let Some((target_player, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
+                                let stat_roll = engine.rng.next_f64();
+                                if stat_roll < chance {
+                                    // For enemy's move: target_enemy from the fn means "the defender"
+                                    // which from enemy's perspective is the player
+                                    let stages = if target_player { &mut battle.player_stages } else { &mut battle.enemy_stages };
+                                    stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
+                                }
+                            }
                         }
                     }
 
@@ -1574,8 +1621,19 @@ impl PokemonSim {
 
                     let next = if fainted {
                         BattlePhase::PlayerFainted
+                    } else if has_pending && battle.player_flinched {
+                        // Player flinched — skip their pending move
+                        battle.pending_player_move = None;
+                        battle.player_flinched = false;
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        BattlePhase::Text {
+                            message: format!("{} flinched!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                        }
                     } else if has_pending {
                         // Player's turn now — extract pending move
+                        battle.player_flinched = false;
                         let (pm_id, pm_dmg, pm_eff, pm_crit) = battle.pending_player_move.take().unwrap();
                         BattlePhase::PlayerAttack {
                             timer: 0.0, move_id: pm_id, damage: pm_dmg,
@@ -2064,6 +2122,8 @@ impl PokemonSim {
                             pending_player_move: None,
                             player_stages: [0; 7],
                             enemy_stages: [0; 7],
+                            enemy_flinched: false,
+                            player_flinched: false,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -3734,15 +3794,81 @@ fn sfx_select(engine: &mut Engine) {
     });
 }
 
+/// Check and apply secondary status infliction from a damaging move.
 fn try_inflict_status(target: &mut Pokemon, move_id: MoveId, rng_roll: f64) {
     if !matches!(target.status, StatusCondition::None) { return; }
     match move_id {
-        MOVE_POISON_STING => { if rng_roll < 0.3 { target.status = StatusCondition::Poison; } }
-        MOVE_EMBER => { if rng_roll < 0.1 { target.status = StatusCondition::Burn; } }
-        MOVE_THUNDER_SHOCK => { if rng_roll < 0.1 { target.status = StatusCondition::Paralysis; } }
-        MOVE_LICK => { if rng_roll < 0.3 { target.status = StatusCondition::Paralysis; } }
-        MOVE_HYPNOSIS => { target.status = StatusCondition::Sleep { turns: 3 }; }
+        // 10% burn
+        MOVE_EMBER | MOVE_FLAMETHROWER | MOVE_FIRE_BLAST | MOVE_FLAME_WHEEL | MOVE_FIRE_PUNCH => {
+            if rng_roll < 0.1 { target.status = StatusCondition::Burn; }
+        }
+        // 10% freeze
+        MOVE_ICE_BEAM | MOVE_BLIZZARD | MOVE_POWDER_SNOW | MOVE_ICE_PUNCH => {
+            if rng_roll < 0.1 { target.status = StatusCondition::Freeze; }
+        }
+        // 10% paralysis
+        MOVE_THUNDERBOLT | MOVE_THUNDER_SHOCK => {
+            if rng_roll < 0.1 { target.status = StatusCondition::Paralysis; }
+        }
+        // 30% paralysis
+        MOVE_BODY_SLAM | MOVE_LICK | MOVE_TWISTER => {
+            if rng_roll < 0.3 { target.status = StatusCondition::Paralysis; }
+        }
+        // 30% poison
+        MOVE_POISON_STING | MOVE_SLUDGE => {
+            if rng_roll < 0.3 { target.status = StatusCondition::Poison; }
+        }
+        // 20% tri-attack: ~6.67% each for burn/freeze/paralysis
+        MOVE_TRI_ATTACK => {
+            if rng_roll < 0.0667 { target.status = StatusCondition::Paralysis; }
+            else if rng_roll < 0.1333 { target.status = StatusCondition::Burn; }
+            else if rng_roll < 0.2 { target.status = StatusCondition::Freeze; }
+        }
+        // 10% confusion (via Psybeam, Confusion) — not implemented yet as volatile status
+        // 100% confusion (Dynamic Punch) — not implemented yet
+        // Sleep (status moves, handled elsewhere)
+        MOVE_HYPNOSIS | MOVE_SING | MOVE_SLEEP_POWDER | MOVE_LOVELY_KISS => {
+            target.status = StatusCondition::Sleep { turns: 3 };
+        }
+        // Paralysis (status moves)
+        MOVE_STUN_SPORE | MOVE_THUNDER_WAVE => {
+            target.status = StatusCondition::Paralysis;
+        }
+        // Poison (status moves)
+        MOVE_POISON_POWDER => {
+            target.status = StatusCondition::Poison;
+        }
         _ => {}
+    }
+}
+
+/// Check for secondary stat drops from damaging moves.
+/// Returns (target_is_enemy, stat_idx, delta, chance) or None.
+fn damaging_move_stat_effect(move_id: MoveId) -> Option<(bool, usize, i8, f64)> {
+    match move_id {
+        // Stat drops on target
+        MOVE_PSYCHIC => Some((true, STAGE_SPD, -1, 0.1)),
+        MOVE_SHADOW_BALL => Some((true, STAGE_SPD, -1, 0.2)),
+        MOVE_CRUNCH => Some((true, STAGE_SPD, -1, 0.2)),
+        MOVE_ACID => Some((true, STAGE_DEF, -1, 0.1)),
+        MOVE_AURORA_BEAM => Some((true, STAGE_ATK, -1, 0.1)),
+        MOVE_BUBBLEBEAM | MOVE_BUBBLE | MOVE_CONSTRICT => Some((true, STAGE_SPE, -1, 0.1)),
+        MOVE_IRON_TAIL => Some((true, STAGE_DEF, -1, 0.3)),
+        MOVE_MUD_SLAP => Some((true, STAGE_ACC, -1, 1.0)),
+        MOVE_ICY_WIND => Some((true, STAGE_SPE, -1, 1.0)),
+        // Stat raise on user (target_is_enemy=false means self)
+        MOVE_STEEL_WING => Some((false, STAGE_DEF, 1, 0.1)),
+        _ => None,
+    }
+}
+
+/// Check if a move causes flinch. Returns flinch chance (0.0 = no flinch).
+fn flinch_chance(move_id: MoveId) -> f64 {
+    match move_id {
+        MOVE_HEADBUTT | MOVE_BITE | MOVE_STOMP | MOVE_ROCK_SLIDE => 0.3,
+        MOVE_TWISTER => 0.2,
+        MOVE_HYPER_FANG => 0.1,
+        _ => 0.0,
     }
 }
 

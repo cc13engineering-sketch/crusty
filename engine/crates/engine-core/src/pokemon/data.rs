@@ -801,7 +801,7 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_FLAMETHROWER, name: "Flamethrower", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "May burn the foe." },
     MoveData { id: MOVE_FIRE_SPIN, name: "Fire Spin", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 15, accuracy: 70, pp: 15, description: "Traps foe in fire 2-5 turns." },
     MoveData { id: MOVE_SUPERSONIC, name: "Supersonic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 20, description: "May confuse the foe." },
-    MoveData { id: MOVE_SONIC_BOOM, name: "Sonic Boom", move_type: PokemonType::Normal, category: MoveCategory::Special, power: 1, accuracy: 90, pp: 20, description: "Always inflicts 20 HP damage." },
+    MoveData { id: MOVE_SONIC_BOOM, name: "Sonic Boom", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 90, pp: 20, description: "Always inflicts 20 HP damage." },
     MoveData { id: MOVE_PSYBEAM, name: "Psybeam", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 65, accuracy: 100, pp: 20, description: "May confuse the foe." },
     MoveData { id: MOVE_LOW_KICK, name: "Low Kick", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 50, accuracy: 90, pp: 20, description: "A low, tripping kick." },
     MoveData { id: MOVE_FLAIL, name: "Flail", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 15, description: "Stronger when HP is low." },
@@ -812,8 +812,8 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SLUDGE, name: "Sludge", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 20, description: "May poison the foe." },
     MoveData { id: MOVE_SELF_DESTRUCT, name: "Selfdestruct", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 200, accuracy: 100, pp: 5, description: "Faints user; hurts foe hard." },
     MoveData { id: MOVE_HAZE, name: "Haze", move_type: PokemonType::Ice, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Resets all stat changes." },
-    MoveData { id: MOVE_PURSUIT, name: "Pursuit", move_type: PokemonType::Dark, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 20, description: "Hits hard on switch-out." },
-    MoveData { id: MOVE_FIRE_PUNCH, name: "Fire Punch", move_type: PokemonType::Fire, category: MoveCategory::Physical, power: 75, accuracy: 100, pp: 15, description: "May burn the foe." },
+    MoveData { id: MOVE_PURSUIT, name: "Pursuit", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 20, description: "Hits hard on switch-out." },
+    MoveData { id: MOVE_FIRE_PUNCH, name: "Fire Punch", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 75, accuracy: 100, pp: 15, description: "May burn the foe." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -1240,9 +1240,16 @@ pub fn calc_damage(
     // Critical hit multiplier (Gen 2: 2x)
     let crit_mult = if is_crit { 2.0 } else { 1.0 };
 
-    // Damage formula: ((2*Level/5 + 2) * Power * A/D) / 50 + 2) * STAB * Type * Random * Crit
+    // Burn halves Physical damage (Gen 2)
+    let burn_mult = if matches!(attacker.status, StatusCondition::Burn) && move_data.category == MoveCategory::Physical {
+        0.5
+    } else {
+        1.0
+    };
+
+    // Damage formula: ((2*Level/5 + 2) * Power * A/D) / 50 + 2) * STAB * Type * Random * Crit * Burn
     let base = ((2.0 * level / 5.0 + 2.0) * power * attack_stat / defense_stat) / 50.0 + 2.0;
-    let damage = (base * stab * effectiveness * rng_roll * crit_mult).max(1.0) as u16;
+    let damage = (base * stab * effectiveness * rng_roll * crit_mult * burn_mult).max(1.0) as u16;
 
     (damage, effectiveness)
 }

@@ -1,8 +1,8 @@
-# ENGINE_POKEMON.md — Engine Notes from 30 Sprints of Pokemon Development
+# ENGINE_POKEMON.md — Engine Notes from 42 Sprints of Pokemon Development
 
 ## Overview
 
-Pokemon Gold/Silver/Crystal recreation built on the Crusty engine. ~8700 lines of Rust across 5 files, implementing 23 species, 14 maps, turn-based battles, and a full overworld. All rendering is Rust-side framebuffer at GBC resolution (160x144), with a JavaScript overlay canvas for battle sprites loaded from the web.
+Pokemon Gold/Silver/Crystal recreation built on the Crusty engine. ~11,800 lines of Rust across 5 files, implementing ~42 species, 29 maps (Johto through Ecruteak City), turn-based battles with stat stages, and a full overworld with trainer battles. All rendering is Rust-side framebuffer at GBC resolution (160x144), with a JavaScript overlay canvas for battle sprites loaded from the web. Scope: Johto region only (no Kanto post-game).
 
 ## Engine Observations
 
@@ -23,19 +23,25 @@ Rust pushes `SoundCommand { waveform, frequency, duration, volume }` to a queue;
 **Global State Bridge**
 `engine.global_state.set_str("enemy_pokemon", "totodile")` in Rust → `get_game_state_str("enemy_pokemon")` in JavaScript. This let us load Pokemon sprites from a CDN without any image handling in Rust. The bridge is also how we signal battle start/end, healing animations, and evolution sequences to the JS overlay.
 
+**Stat Stage System (Sprint 36)**
+Implemented all 7 stat stages (Atk, Def, SpAtk, SpDef, Speed, Accuracy, Evasion) with Gen 2 multiplier tables. The `[i8; 7]` array per battler is compact, and stage-modified stats feed cleanly into damage calc. Moves like Growl, Defense Curl, and Scary Face "just work" once the stage infrastructure exists.
+
 ### Pain Points & Lessons
 
 **File Size**
-`mod.rs` hit ~2900 lines and `maps.rs` ~2800 lines. Both are at the edge of comfortable navigation. A future refactor could split battle logic into `battle.rs`, menu logic into `menus.rs`, and map data into per-map files. The current monolith works but makes targeted edits slower.
+`mod.rs` hit ~3430 lines and `maps.rs` ~5020 lines. Both are well past comfortable navigation. maps.rs especially — each new city adds ~300-400 lines of tile/collision/warp data. A future refactor could split map data into per-region files or generate it from a tilemap editor.
 
 **State Machine Complexity**
-GamePhase has 18 variants, BattlePhase has 15. Nested state transitions (e.g., PlayerAttack → Text → EnemyAttack → Text → ActionSelect) require careful phase chain construction. The `BattlePhase::Text { message, next_phase }` pattern handles this cleanly but deeply nested Box<BattlePhase> chains are hard to read.
+GamePhase has 18+ variants, BattlePhase has 15+. Nested state transitions (e.g., PlayerAttack → Text → EnemyAttack → Text → ActionSelect) require careful phase chain construction. The `BattlePhase::Text { message, next_phase }` pattern handles this cleanly but deeply nested Box<BattlePhase> chains are hard to read.
+
+**Warp Destination Bugs**
+The #1 recurring QA issue across all sprints. Warp destinations must land on C_WALK tiles, not C_WARP tiles (the engine places the player exactly at dest coordinates; if that's a warp tile, they immediately warp back). Every map connection needs manual verification: find the destination map's collision array, compute `y * width + x`, check the tile type. Automating this check would eliminate the most common bug class.
 
 **No Asset Pipeline**
 Sprites are hardcoded as `const` arrays of palette indices in `sprites.rs` (1475 lines). This is correct for the engine's "zero runtime dependencies" philosophy but painful to author. A future tool could convert indexed PNGs to the const array format.
 
-**Paralysis Check Duplication**
-The paralysis immobility check appears in two places (player can't move, enemy can't move) with identical logic. Extracted to a constant (`PARALYSIS_SKIP_CHANCE`) but the check pattern itself is still duplicated. Could be a method on `Pokemon`.
+**Gen 2 Physical/Special Split**
+In Gen 2, move category is determined by TYPE, not per-move. Physical types: Normal, Fighting, Poison, Ground, Flying, Bug, Rock, Ghost, Steel. Special types: Fire, Water, Grass, Electric, Ice, Psychic, Dragon, Dark. This caught us multiple times — Pursuit (Dark=Special), Fire Punch (Fire=Special), Acid (Poison=Physical), Sonic Boom (Normal=Physical) all needed corrections.
 
 ### Architecture Decisions Worth Noting
 
@@ -51,20 +57,51 @@ The paralysis immobility check appears in two places (player can't move, enemy c
 
 6. **PC deposit safety**: Can't deposit your last Pokemon. Simple guard but easy to forget.
 
+7. **Shared interior maps**: PokemonCenter and GenericHouse are single map instances with dynamic exits tracked by `last_pokecenter_map` / `last_house_map`. Saves ~200 lines per city vs. unique interiors.
+
+8. **Trainer battle system (Sprint 34)**: NPC `trainer_pokemon` field triggers battles on dialogue end. Party switching, forced switches on faint, and money rewards all work through the existing battle phase chain.
+
+9. **Stat stages in damage calc**: Stage multipliers apply at damage calculation time, not as permanent stat changes. This means stat stage effects are automatically cleared on battle end without any cleanup code.
+
 ## File Layout
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `mod.rs` | 2965 | Game logic: phases, battle, menus, overworld, camera |
-| `maps.rs` | 2811 | 14 maps with tiles, collision, NPCs, warps, encounters |
+| `mod.rs` | 3428 | Game logic: phases, battle, menus, overworld, camera, stat stages |
+| `maps.rs` | 5024 | 29 maps with tiles, collision, NPCs, warps, encounters |
 | `sprites.rs` | 1475 | Tile sprite data (indexed palette, 16x16 tiles) |
-| `data.rs` | 838 | Species DB, move DB, item DB, type chart, damage calc |
+| `data.rs` | 1248 | ~42 species, ~60 moves, item DB, type chart, damage calc |
 | `render.rs` | 608 | Rendering helpers: tiles, HP bars, menu boxes, text |
 
-## Species Implemented (23)
+## Species Implemented (~42)
 
-Chikorita/Bayleef, Cyndaquil/Quilava, Totodile/Croconaw, Pidgey, Rattata, Sentret, Hoothoot, Caterpie, Weedle, Geodude, Zubat, Bellsprout, Gastly, Onix, Magikarp, Ledyba, Spinarak, Mareep, Wooper, Hoppip
+**Starters**: Chikorita/Bayleef, Cyndaquil/Quilava, Totodile/Croconaw
+**Early routes**: Pidgey, Rattata/Raticate, Sentret, Hoothoot, Caterpie, Weedle, Ledyba, Spinarak, Mareep
+**Caves/special**: Geodude, Zubat, Bellsprout, Gastly, Onix, Magikarp, Wooper, Hoppip
+**Gym Pokemon**: Metapod/Butterfree, Kakuna/Beedrill, Scyther (Bugsy), Miltank/Clefairy (Whitney)
+**Route 35-37**: Nidoran♀, Nidoran♂, Growlithe, Vulpix, Stantler
+**Ecruteak**: Koffing, Magmar, Eevee/Vaporeon/Jolteon/Flareon/Espeon/Umbreon
 
-## Maps Implemented (14)
+## Maps Implemented (29)
 
-NewBarkTown, Route29, CherrygroveCity, Route30, Route31, VioletCity, VioletGym, SproutTower, PlayerHouse1F/2F, ElmLab, PokemonCenter, Route32, UnionCave
+**New Bark → Violet**: NewBarkTown, Route29, CherrygroveCity, Route30, Route31, VioletCity, VioletGym, SproutTower
+**Interiors**: PlayerHouse1F/2F, ElmLab, PokemonCenter, GenericHouse
+**Violet → Azalea**: Route32, UnionCave, Route33, AzaleaTown, AzaleaGym, IlexForest
+**Azalea → Goldenrod**: Route34, GoldenrodCity, GoldenrodGym
+**Goldenrod → Ecruteak**: Route35, NationalPark, Route36, Route37, EcruteakCity, BurnedTower, EcruteakGym
+
+## Badges Implemented (4/8)
+
+| Badge | Gym | Leader | Type |
+|-------|-----|--------|------|
+| Zephyr Badge | VioletGym | Falkner | Flying |
+| Hive Badge | AzaleaGym | Bugsy | Bug |
+| Plain Badge | GoldenrodGym | Whitney | Normal |
+| Fog Badge | EcruteakGym | Morty | Ghost |
+
+## QA Sprint History
+
+**Sprint 33**: First QA sweep. Fixed warp destinations landing on C_WARP tiles across early maps.
+**Sprint 36**: Stat stage system + accuracy/evasion modifiers.
+**Sprint 39**: Comprehensive QA. Fixed building entrance warps (PokemonCenter, PlayerHouse, ElmLab, all gyms). Fixed Acid/Miltank learnset. Fixed all route connection warps.
+**Sprint 42**: Move category audit (Pursuit→Special, Fire Punch→Special, Sonic Boom→Physical). Fixed IlexForest→Route34 warp landing on C_SOLID. Fixed EcruteakCity building entrance warps. Fixed accuracy check to apply stage modifiers to all moves including status.

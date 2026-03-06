@@ -3117,8 +3117,8 @@ fn build_ilex_forest() -> MapData {
 
     let warps = vec![
         // North exit → Route 34 (south end)
-        WarpData { x: 7, y: 1, dest_map: MapId::Route34, dest_x: 7, dest_y: 18 },
-        WarpData { x: 8, y: 1, dest_map: MapId::Route34, dest_x: 8, dest_y: 18 },
+        WarpData { x: 7, y: 1, dest_map: MapId::Route34, dest_x: 7, dest_y: 17 },
+        WarpData { x: 8, y: 1, dest_map: MapId::Route34, dest_x: 8, dest_y: 17 },
         // South exit → Azalea Town (north end)
         WarpData { x: 3, y: 19, dest_map: MapId::AzaleaTown, dest_x: 17, dest_y: 1 },
         WarpData { x: 4, y: 19, dest_map: MapId::AzaleaTown, dest_x: 18, dest_y: 1 },

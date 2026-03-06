@@ -810,6 +810,15 @@ impl PokemonSim {
             self.water_frame = 1 - self.water_frame;
         }
 
+        // Menu opens even during walk animation (original game behavior: cancel interrupts)
+        if is_cancel(engine) && self.has_starter {
+            self.phase = GamePhase::Menu;
+            self.menu_cursor = 0;
+            self.player.is_walking = false;
+            self.player.walk_offset = 0.0;
+            return;
+        }
+
         if self.player.is_walking {
             self.player.walk_offset += 1.0 / WALK_SPEED;
             self.player.frame_timer += dt;
@@ -841,6 +850,21 @@ impl PokemonSim {
                 let py = self.player.y as u8;
                 let warp_data = self.current_map.warp_at(px, py).cloned();
                 if let Some(warp) = warp_data {
+                    // Block Elm Lab exit until player has a starter
+                    if self.current_map_id == MapId::ElmLab && !self.has_starter {
+                        // Push player back one tile (away from door)
+                        self.player.y -= 1;
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                "PROF.ELM: Wait!".to_string(),
+                                "Pick a POKEMON first!".to_string(),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
                     // PokemonCenter: dynamic exit based on which city we entered from
                     if self.current_map_id == MapId::PokemonCenter {
                         let (dest_map, dx, dy) = match self.last_pokecenter_map {
@@ -1014,13 +1038,6 @@ impl PokemonSim {
             self.try_interact();
         }
 
-        // Start menu (B/Escape)
-        if is_cancel(engine) {
-            if self.has_starter {
-                self.phase = GamePhase::Menu;
-                self.menu_cursor = 0;
-            }
-        }
     }
 
     fn try_interact(&mut self) {
@@ -3931,7 +3948,7 @@ impl Simulation for PokemonSim {
                                 engine.global_state.set_str("game_phase", "overworld");
                             }
                         } else {
-                            // NEW GAME — clear save
+                            // NEW GAME — clear save and reset all state
                             engine.persist_queue.push(
                                 crate::chord_reps::persist::PersistCommand::Store {
                                     key: "pokemon_save".to_string(),
@@ -3939,6 +3956,23 @@ impl Simulation for PokemonSim {
                                 }
                             );
                             engine.global_state.set_str("pokemon_save", "");
+                            // Full state reset
+                            self.party.clear();
+                            self.pc_boxes.clear();
+                            self.bag = Bag::new();
+                            self.badges = 0;
+                            self.money = 3000;
+                            self.step_count = 0;
+                            self.has_starter = false;
+                            self.rival_starter = 0;
+                            self.rival_battle_done = false;
+                            self.defeated_trainers.clear();
+                            self.pokedex_seen.clear();
+                            self.pokedex_caught.clear();
+                            self.total_time = 0.0;
+                            self.repel_steps = 0;
+                            self.last_pokecenter_map = MapId::CherrygroveCity;
+                            self.last_house_map = MapId::NewBarkTown;
                             engine.global_state.set_str("game_phase", "overworld");
                             self.change_map(MapId::ElmLab, 5, 8);
                             self.phase = GamePhase::Overworld;

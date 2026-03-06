@@ -101,8 +101,18 @@ pub const VENONAT: SpeciesId = 48;
 pub const HAUNTER: SpeciesId = 93;
 pub const GENGAR: SpeciesId = 94;
 pub const SUDOWOODO: SpeciesId = 185;
+pub const KOFFING: SpeciesId = 109;
+pub const RATICATE: SpeciesId = 20;
+pub const MAGMAR: SpeciesId = 126;
+pub const EEVEE: SpeciesId = 133;
+pub const VAPOREON: SpeciesId = 134;
+pub const JOLTEON: SpeciesId = 135;
+pub const FLAREON: SpeciesId = 136;
+pub const ESPEON: SpeciesId = 196;
+pub const UMBREON: SpeciesId = 197;
 
 // ─── Move IDs ───────────────────────────────────────────
+pub const MOVE_SMOG: MoveId = 123;
 pub const MOVE_TACKLE: MoveId = 33;
 pub const MOVE_GROWL: MoveId = 45;
 pub const MOVE_RAZOR_LEAF: MoveId = 75;
@@ -177,6 +187,12 @@ pub const MOVE_LOW_KICK: MoveId = 67;
 pub const MOVE_FLAIL: MoveId = 175;
 pub const MOVE_ROCK_SLIDE: MoveId = 157;
 pub const MOVE_FURY_ATTACK: MoveId = 31;
+// ─── Ecruteak / Burned Tower / Eeveelution moves ────────
+pub const MOVE_SLUDGE: MoveId = 124;
+pub const MOVE_SELF_DESTRUCT: MoveId = 120;
+pub const MOVE_HAZE: MoveId = 114;
+pub const MOVE_PURSUIT: MoveId = 228;
+pub const MOVE_FIRE_PUNCH: MoveId = 7;
 
 /// Static species data
 #[derive(Debug)]
@@ -627,6 +643,89 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_ROCK_THROW), (1, MOVE_MIMIC), (10, MOVE_FLAIL), (15, MOVE_LOW_KICK), (20, MOVE_ROCK_SLIDE), (25, MOVE_SLAM)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Ecruteak / Burned Tower species ─────────────────
+    SpeciesData {
+        id: KOFFING, name: "Koffing",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 40, base_attack: 65, base_defense: 95,
+        base_sp_attack: 60, base_sp_defense: 45, base_speed: 35,
+        catch_rate: 190, base_exp_yield: 114, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_TACKLE), (9, MOVE_SMOG), (17, MOVE_SLUDGE), (21, MOVE_SMOKESCREEN), (25, MOVE_SELF_DESTRUCT), (33, MOVE_HAZE)],
+        evolution_level: Some(35), evolution_into: None, // Weezing not yet added
+    },
+    SpeciesData {
+        id: RATICATE, name: "Raticate",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 55, base_attack: 81, base_defense: 60,
+        base_sp_attack: 50, base_sp_defense: 70, base_speed: 97,
+        catch_rate: 127, base_exp_yield: 116, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (7, MOVE_QUICK_ATTACK), (13, MOVE_HYPER_FANG), (20, MOVE_SCARY_FACE), (30, MOVE_PURSUIT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MAGMAR, name: "Magmar",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 65, base_attack: 95, base_defense: 57,
+        base_sp_attack: 100, base_sp_defense: 85, base_speed: 93,
+        catch_rate: 45, base_exp_yield: 167, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_EMBER), (7, MOVE_LEER), (13, MOVE_SMOG), (19, MOVE_FIRE_PUNCH), (25, MOVE_SMOKESCREEN), (33, MOVE_FLAMETHROWER)],
+        evolution_level: None, evolution_into: None,
+    },
+    // ─── Eevee + Eeveelutions (Kimono Girls) ─────────────
+    SpeciesData {
+        id: EEVEE, name: "Eevee",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 55, base_attack: 55, base_defense: 50,
+        base_sp_attack: 45, base_sp_defense: 65, base_speed: 55,
+        catch_rate: 45, base_exp_yield: 92, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_GROWL), (23, MOVE_QUICK_ATTACK), (30, MOVE_BITE)],
+        evolution_level: None, evolution_into: None, // Stone/friendship evolution
+    },
+    SpeciesData {
+        id: VAPOREON, name: "Vaporeon",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 130, base_attack: 65, base_defense: 60,
+        base_sp_attack: 110, base_sp_defense: 95, base_speed: 65,
+        catch_rate: 45, base_exp_yield: 196, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_WATER_GUN), (23, MOVE_QUICK_ATTACK), (30, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: JOLTEON, name: "Jolteon",
+        type1: PokemonType::Electric, type2: None,
+        base_hp: 65, base_attack: 65, base_defense: 60,
+        base_sp_attack: 110, base_sp_defense: 95, base_speed: 130,
+        catch_rate: 45, base_exp_yield: 197, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_THUNDER_SHOCK), (23, MOVE_QUICK_ATTACK), (30, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: FLAREON, name: "Flareon",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 65, base_attack: 130, base_defense: 60,
+        base_sp_attack: 95, base_sp_defense: 110, base_speed: 65,
+        catch_rate: 45, base_exp_yield: 198, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_EMBER), (23, MOVE_QUICK_ATTACK), (30, MOVE_BITE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: ESPEON, name: "Espeon",
+        type1: PokemonType::Psychic, type2: None,
+        base_hp: 65, base_attack: 65, base_defense: 60,
+        base_sp_attack: 130, base_sp_defense: 95, base_speed: 110,
+        catch_rate: 45, base_exp_yield: 197, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_CONFUSION), (23, MOVE_QUICK_ATTACK), (30, MOVE_PSYBEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: UMBREON, name: "Umbreon",
+        type1: PokemonType::Dark, type2: None,
+        base_hp: 95, base_attack: 65, base_defense: 110,
+        base_sp_attack: 60, base_sp_defense: 130, base_speed: 65,
+        catch_rate: 45, base_exp_yield: 197, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_PURSUIT), (23, MOVE_QUICK_ATTACK), (30, MOVE_CONFUSE_RAY)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -708,6 +807,13 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_FLAIL, name: "Flail", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 15, description: "Stronger when HP is low." },
     MoveData { id: MOVE_ROCK_SLIDE, name: "Rock Slide", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 75, accuracy: 90, pp: 10, description: "May cause flinching." },
     MoveData { id: MOVE_FURY_ATTACK, name: "Fury Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 85, pp: 20, description: "Jabs the foe 2-5 times." },
+    // ─── Ecruteak / Burned Tower / Eeveelution moves ────
+    MoveData { id: MOVE_SMOG, name: "Smog", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 20, accuracy: 70, pp: 20, description: "May poison the foe." },
+    MoveData { id: MOVE_SLUDGE, name: "Sludge", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 20, description: "May poison the foe." },
+    MoveData { id: MOVE_SELF_DESTRUCT, name: "Selfdestruct", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 200, accuracy: 100, pp: 5, description: "Faints user; hurts foe hard." },
+    MoveData { id: MOVE_HAZE, name: "Haze", move_type: PokemonType::Ice, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Resets all stat changes." },
+    MoveData { id: MOVE_PURSUIT, name: "Pursuit", move_type: PokemonType::Dark, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 20, description: "Hits hard on switch-out." },
+    MoveData { id: MOVE_FIRE_PUNCH, name: "Fire Punch", move_type: PokemonType::Fire, category: MoveCategory::Physical, power: 75, accuracy: 100, pp: 15, description: "May burn the foe." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

@@ -4239,9 +4239,9 @@ fn build_route_37() -> MapData {
         // West exits → Route 36 (land one tile inside)
         WarpData { x: 0, y: 5, dest_map: MapId::Route36, dest_x: 18, dest_y: 6 },
         WarpData { x: 0, y: 6, dest_map: MapId::Route36, dest_x: 18, dest_y: 7 },
-        // East exits → Ecruteak City (land one tile inside)
-        WarpData { x: 15, y: 5, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 8 },
-        WarpData { x: 15, y: 6, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 9 },
+        // East exits → Ecruteak City (land one tile inside, past double warp edge)
+        WarpData { x: 15, y: 5, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 8 },
+        WarpData { x: 15, y: 6, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 9 },
     ];
 
     let npcs = vec![

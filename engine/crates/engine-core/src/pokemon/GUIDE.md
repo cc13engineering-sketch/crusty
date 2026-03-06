@@ -419,3 +419,16 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Total: 48 maps, 8 badges, ~118 species, ~144 moves**
 - **Phase 3 progress**: Route 44 ✓, Ice Path ✓, Blackthorn ✓, Route 45 ✓, Route 46 ✓. Next: Route 27, Route 26, Victory Road
 - **Next sprint (53)**: Route 27, Route 26 — connecting to Victory Road. Also investigate trainer battle detection bug (trainers not noticing player)
+
+### Sprint 53 (Content + Bugfix)
+- **Trainer walk-up mechanic**: Trainers now walk toward the player when spotted, matching original GSC behavior:
+  1. "!" exclamation appears above trainer for 0.5 seconds
+  2. Trainer walks one tile at a time toward the player along their facing direction
+  3. When adjacent, dialogue starts, then battle begins
+- Added `GamePhase::TrainerApproach` with approach position tracking, walk offset animation, and exclamation timer
+- Added `render_overworld_with_approach()` for rendering the approaching trainer at their animated position
+- Previously trainers jumped straight to dialogue — now they physically approach first
+- Detection uses 5-tile line-of-sight in trainer's facing direction, stops at walls
+- All tests pass (1264 total)
+- **Total: 48 maps, 8 badges, ~118 species, ~144 moves**
+- **Next sprint (54 QA)**: Full QA audit. Verify trainer approach works, warp audit, species data check

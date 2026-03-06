@@ -228,6 +228,9 @@ struct BattleState {
     // Flinch: set by first attacker's move, checked before second attacker moves
     enemy_flinched: bool,
     player_flinched: bool,
+    // Confusion: turns remaining (0 = not confused). 50% self-hit chance each turn.
+    player_confused: u8,
+    enemy_confused: u8,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -1016,6 +1019,8 @@ impl PokemonSim {
                                 enemy_stages: [0; 7],
                                 enemy_flinched: false,
                                 player_flinched: false,
+                                player_confused: 0,
+                                enemy_confused: 0,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -1353,6 +1358,55 @@ impl PokemonSim {
                         return;
                     }
 
+                    // Confusion check (Gen 2: 50% self-hit, typeless 40-power Physical attack)
+                    if battle.player_confused > 0 {
+                        battle.player_confused -= 1;
+                        if battle.player_confused == 0 {
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???").to_string();
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} snapped out of confusion!", pname),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::MoveSelect { cursor }),
+                            };
+                            self.battle = Some(battle);
+                            return;
+                        }
+                        if engine.rng.next_f64() < 0.5 {
+                            // Hit self: typeless 40-power physical attack using own stats
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???").to_string();
+                            let self_dmg = if let Some(p) = self.party.get(battle.player_idx) {
+                                let atk = p.attack as f64;
+                                let def = p.defense as f64;
+                                let lvl = p.level as f64;
+                                let base = ((2.0 * lvl / 5.0 + 2.0) * 40.0 * atk / def) / 50.0 + 2.0;
+                                base as u16
+                            } else { 10 };
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = p.hp.saturating_sub(self_dmg);
+                            }
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let next = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true) {
+                                BattlePhase::PlayerFainted
+                            } else {
+                                BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                }
+                            };
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} is confused!", pname),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::Text {
+                                    message: "It hurt itself in its confusion!".to_string(),
+                                    timer: 0.0,
+                                    next_phase: Box::new(next),
+                                }),
+                            };
+                            self.battle = Some(battle);
+                            return;
+                        }
+                        // Passed confusion check — continue to attack normally
+                    }
+
                     // Check PP — if all moves are empty, force Struggle
                     let all_pp_zero = self.party.get(battle.player_idx)
                         .map(|p| p.moves.iter().enumerate().all(|(i, m)| m.is_none() || p.move_pp[i] == 0))
@@ -1462,10 +1516,65 @@ impl PokemonSim {
                     } else {
                         // Enemy goes first — store player's move for after enemy's turn
                         battle.pending_player_move = Some((move_id, p_damage, p_eff, p_crit));
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
-                        battle.phase = BattlePhase::EnemyAttack {
-                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                        };
+                        // Check enemy confusion before their attack
+                        if battle.enemy_confused > 0 {
+                            battle.enemy_confused -= 1;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            if battle.enemy_confused == 0 {
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                battle.phase = BattlePhase::Text {
+                                    message: format!("{}{} snapped out of confusion!", prefix, battle.enemy.name()),
+                                    timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                    }),
+                                };
+                            } else if engine.rng.next_f64() < 0.5 {
+                                let atk = battle.enemy.attack as f64;
+                                let def = battle.enemy.defense as f64;
+                                let lvl = battle.enemy.level as f64;
+                                let self_dmg = ((2.0 * lvl / 5.0 + 2.0) * 40.0 * atk / def) / 50.0 + 2.0;
+                                battle.enemy.hp = battle.enemy.hp.saturating_sub(self_dmg as u16);
+                                let next = if battle.enemy.is_fainted() {
+                                    let exp = get_species(battle.enemy.species_id)
+                                        .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
+                                        .unwrap_or(10);
+                                    BattlePhase::EnemyFainted { exp_gained: exp }
+                                } else {
+                                    // Player gets their pending move next
+                                    if let Some((pm, pd, pe, pc)) = battle.pending_player_move.take() {
+                                        BattlePhase::PlayerAttack {
+                                            timer: 0.0, move_id: pm, damage: pd, effectiveness: pe, is_crit: pc, from_pending: true,
+                                        }
+                                    } else {
+                                        BattlePhase::ActionSelect { cursor: 0 }
+                                    }
+                                };
+                                battle.phase = BattlePhase::Text {
+                                    message: format!("{}{} is confused!", prefix, battle.enemy.name()),
+                                    timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::Text {
+                                        message: "It hurt itself in its confusion!".to_string(),
+                                        timer: 0.0,
+                                        next_phase: Box::new(next),
+                                    }),
+                                };
+                            } else {
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                battle.phase = BattlePhase::Text {
+                                    message: format!("{}{} is confused!", prefix, battle.enemy.name()),
+                                    timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                    }),
+                                };
+                            }
+                        } else {
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            battle.phase = BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            };
+                        }
                     }
                 }
             }
@@ -1486,6 +1595,13 @@ impl PokemonSim {
                         let recoil = (damage / 4).max(1);
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
                             p.hp = p.hp.saturating_sub(recoil);
+                        }
+                    }
+
+                    // Self-Destruct/Explosion: user faints
+                    if move_id == MOVE_SELF_DESTRUCT {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.hp = 0;
                         }
                     }
 
@@ -1537,7 +1653,20 @@ impl PokemonSim {
 
                     // Apply stat stage effects for player's status moves
                     let stage_msg = if !is_miss {
-                        if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                        if move_id == MOVE_HAZE {
+                            battle.player_stages = [0; 7];
+                            battle.enemy_stages = [0; 7];
+                            Some("All stat changes were reset!".to_string())
+                        } else if move_id == MOVE_CONFUSE_RAY {
+                            if battle.enemy_confused == 0 {
+                                battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; // 2-5 turns
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
+                            } else {
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
+                            }
+                        } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                             let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
                             let old = stages[stat_idx];
                             stages[stat_idx] = (old + delta).max(-6).min(6);
@@ -1641,6 +1770,64 @@ impl PokemonSim {
                                     next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
                                 }, &stage_msg),
                             };
+                        } else if battle.enemy_confused > 0 {
+                            // Enemy confusion check
+                            battle.enemy_confused -= 1;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            if battle.enemy_confused == 0 {
+                                // Snapped out — proceed to normal attack
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                battle.phase = BattlePhase::Text {
+                                    message: msg, timer: 0.0,
+                                    next_phase: wrap_stat(BattlePhase::Text {
+                                        message: format!("{}{} snapped out of confusion!", prefix, battle.enemy.name()),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::EnemyAttack {
+                                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                        }),
+                                    }, &stage_msg),
+                                };
+                            } else if engine.rng.next_f64() < 0.5 {
+                                // Self-hit: typeless 40-power
+                                let atk = battle.enemy.attack as f64;
+                                let def = battle.enemy.defense as f64;
+                                let lvl = battle.enemy.level as f64;
+                                let self_dmg = ((2.0 * lvl / 5.0 + 2.0) * 40.0 * atk / def) / 50.0 + 2.0;
+                                battle.enemy.hp = battle.enemy.hp.saturating_sub(self_dmg as u16);
+                                let next = if battle.enemy.is_fainted() {
+                                    let exp = get_species(battle.enemy.species_id)
+                                        .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
+                                        .unwrap_or(10);
+                                    BattlePhase::EnemyFainted { exp_gained: exp }
+                                } else {
+                                    BattlePhase::ActionSelect { cursor: 0 }
+                                };
+                                battle.phase = BattlePhase::Text {
+                                    message: msg, timer: 0.0,
+                                    next_phase: wrap_stat(BattlePhase::Text {
+                                        message: format!("{}{} is confused!", prefix, battle.enemy.name()),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::Text {
+                                            message: "It hurt itself in its confusion!".to_string(),
+                                            timer: 0.0,
+                                            next_phase: Box::new(next),
+                                        }),
+                                    }, &stage_msg),
+                                };
+                            } else {
+                                // Passed confusion — attack normally
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                battle.phase = BattlePhase::Text {
+                                    message: msg, timer: 0.0,
+                                    next_phase: wrap_stat(BattlePhase::Text {
+                                        message: format!("{}{} is confused!", prefix, battle.enemy.name()),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::EnemyAttack {
+                                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                        }),
+                                    }, &stage_msg),
+                                };
+                            }
                         } else {
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                             battle.phase = BattlePhase::Text {
@@ -1696,6 +1883,11 @@ impl PokemonSim {
                         }
                     }
 
+                    // Self-Destruct/Explosion: enemy faints
+                    if move_id == MOVE_SELF_DESTRUCT {
+                        battle.enemy.hp = 0;
+                    }
+
                     let move_data_ref = get_move(move_id);
                     let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
                     let ename = battle.enemy.name().to_string();
@@ -1716,7 +1908,20 @@ impl PokemonSim {
 
                     // Apply stat stage effects for enemy's status moves
                     let e_stage_msg = if !is_miss {
-                        if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                        if move_id == MOVE_HAZE {
+                            battle.player_stages = [0; 7];
+                            battle.enemy_stages = [0; 7];
+                            Some("All stat changes were reset!".to_string())
+                        } else if move_id == MOVE_CONFUSE_RAY {
+                            if battle.player_confused == 0 {
+                                battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; // 2-5 turns
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} became confused!", pname))
+                            } else {
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} is already confused!", pname))
+                            }
+                        } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                             // For enemy's move: target_enemy means target the "enemy" from the move's perspective,
                             // but the enemy's enemy is the player
                             let stages = if target_enemy { &mut battle.player_stages } else { &mut battle.enemy_stages };
@@ -2018,8 +2223,9 @@ impl PokemonSim {
                 sfx_faint(engine);
                 let any_alive = self.party.iter().any(|p| !p.is_fainted());
                 if any_alive {
-                    // Auto-switch to next alive Pokemon — reset player stages
+                    // Auto-switch to next alive Pokemon — reset player stages and confusion
                     battle.player_stages = [0; 7];
+                    battle.player_confused = 0;
                     for (i, p) in self.party.iter().enumerate() {
                         if !p.is_fainted() {
                             let pname = p.name().to_string();
@@ -2273,6 +2479,8 @@ impl PokemonSim {
                             enemy_stages: [0; 7],
                             enemy_flinched: false,
                             player_flinched: false,
+                            player_confused: 0,
+                            enemy_confused: 0,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -2359,6 +2567,7 @@ impl PokemonSim {
                     b.player_idx = selected;
                     b.player_hp_display = self.party[selected].hp as f64;
                     b.player_stages = [0; 7]; // Reset player stages on switch
+                    b.player_confused = 0; // Reset confusion on switch
                     b.pending_player_move = None;
                     let pname = self.party[selected].name().to_string();
                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
@@ -4851,5 +5060,29 @@ mod headless_tests {
 
         assert_eq!(sim.last_pokecenter_map, MapId::VioletCity,
             "Whiteout should preserve last PokeCenter, not overwrite with current map");
+    }
+
+    #[test]
+    fn test_self_destruct_data() {
+        // Verify Self-Destruct is a high-power Normal Physical move
+        let sd = get_move(MOVE_SELF_DESTRUCT).expect("Self-Destruct should exist");
+        assert_eq!(sd.power, 200);
+        assert_eq!(sd.move_type, PokemonType::Normal);
+        assert_eq!(sd.category, MoveCategory::Physical);
+    }
+
+    #[test]
+    fn test_haze_data() {
+        let haze = get_move(MOVE_HAZE).expect("Haze should exist");
+        assert_eq!(haze.power, 0);
+        assert_eq!(haze.category, MoveCategory::Status);
+    }
+
+    #[test]
+    fn test_confuse_ray_data() {
+        let cr = get_move(MOVE_CONFUSE_RAY).expect("Confuse Ray should exist");
+        assert_eq!(cr.power, 0);
+        assert_eq!(cr.category, MoveCategory::Status);
+        assert_eq!(cr.move_type, PokemonType::Ghost);
     }
 }

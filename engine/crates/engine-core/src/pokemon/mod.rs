@@ -4383,7 +4383,7 @@ fn try_inflict_status(target: &mut Pokemon, move_id: MoveId, rng_roll: f64) {
             if rng_roll < 0.3 { target.status = StatusCondition::Paralysis; }
         }
         // 30% poison
-        MOVE_POISON_STING | MOVE_SLUDGE => {
+        MOVE_POISON_STING | MOVE_SLUDGE | MOVE_SLUDGE_BOMB => {
             if rng_roll < 0.3 { target.status = StatusCondition::Poison; }
         }
         // 20% tri-attack: ~6.67% each for burn/freeze/paralysis

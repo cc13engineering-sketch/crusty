@@ -363,6 +363,8 @@ pub const AERODACTYL: SpeciesId = 142;
 pub const CHARIZARD: SpeciesId = 6;
 pub const MOVE_PSYCHIC: MoveId = 94;
 pub const MOVE_CRUNCH: MoveId = 242;
+pub const MOVE_PETAL_DANCE: MoveId = 80;
+pub const MOVE_SLUDGE_BOMB: MoveId = 188;
 
 /// Static species data
 #[derive(Debug)]
@@ -612,7 +614,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 35, base_attack: 45, base_defense: 160,
         base_sp_attack: 30, base_sp_defense: 45, base_speed: 70,
         catch_rate: 255, base_exp_yield: 108, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_BIND), (9, MOVE_ROCK_THROW)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_BIND), (9, MOVE_ROCK_THROW), (14, MOVE_SCREECH), (23, MOVE_ROCK_SLIDE), (27, MOVE_BODY_SLAM), (36, MOVE_EARTHQUAKE), (43, MOVE_IRON_TAIL)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -932,7 +934,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 95, base_attack: 65, base_defense: 110,
         base_sp_attack: 60, base_sp_defense: 130, base_speed: 65,
         catch_rate: 45, base_exp_yield: 197, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_PURSUIT), (23, MOVE_QUICK_ATTACK), (30, MOVE_CONFUSE_RAY)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_PURSUIT), (23, MOVE_FAINT_ATTACK), (30, MOVE_CONFUSE_RAY), (36, MOVE_MEAN_LOOK), (42, MOVE_CRUNCH)],
         evolution_level: None, evolution_into: None,
     },
     // ─── Route 38-39 / Olivine species ──────────────────────
@@ -1269,7 +1271,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 95, base_attack: 125, base_defense: 79,
         base_sp_attack: 60, base_sp_defense: 100, base_speed: 81,
         catch_rate: 45, base_exp_yield: 214, growth_rate: GrowthRate::Slow,
-        learnset: &[(1, MOVE_THRASH), (1, MOVE_BITE), (1, MOVE_DRAGON_RAGE), (1, MOVE_LEER), (20, MOVE_TWISTER), (25, MOVE_HYDRO_PUMP)],
+        learnset: &[(1, MOVE_THRASH), (1, MOVE_BITE), (1, MOVE_DRAGON_RAGE), (1, MOVE_LEER), (20, MOVE_TWISTER), (25, MOVE_SURF), (30, MOVE_CRUNCH), (40, MOVE_HYDRO_PUMP), (50, MOVE_HYPER_BEAM)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1342,7 +1344,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 91, base_attack: 134, base_defense: 95,
         base_sp_attack: 100, base_sp_defense: 100, base_speed: 80,
         catch_rate: 45, base_exp_yield: 218, growth_rate: GrowthRate::Slow,
-        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (1, MOVE_THUNDER_WAVE), (1, MOVE_TWISTER), (22, MOVE_DRAGON_RAGE), (29, MOVE_SLAM), (38, MOVE_AGILITY), (47, MOVE_SAFEGUARD), (55, MOVE_WING_ATTACK), (61, MOVE_OUTRAGE), (75, MOVE_HYPER_BEAM)],
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (1, MOVE_THUNDER_WAVE), (1, MOVE_TWISTER), (22, MOVE_DRAGON_RAGE), (29, MOVE_SLAM), (38, MOVE_AGILITY), (42, MOVE_WING_ATTACK), (47, MOVE_OUTRAGE), (55, MOVE_HYPER_BEAM)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1498,7 +1500,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 65, base_attack: 75, base_defense: 70,
         base_sp_attack: 95, base_sp_defense: 70, base_speed: 95,
         catch_rate: 75, base_exp_yield: 147, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_PECK), (1, MOVE_LEER), (10, MOVE_NIGHT_SHADE), (20, MOVE_TELEPORT), (35, MOVE_CONFUSION), (50, MOVE_CONFUSE_RAY), (65, MOVE_PSYCHIC)],
+        learnset: &[(1, MOVE_PECK), (1, MOVE_LEER), (10, MOVE_NIGHT_SHADE), (20, MOVE_TELEPORT), (25, MOVE_CONFUSION), (35, MOVE_CONFUSE_RAY), (40, MOVE_PSYCHIC)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1507,7 +1509,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 95, base_attack: 75, base_defense: 110,
         base_sp_attack: 100, base_sp_defense: 80, base_speed: 30,
         catch_rate: 75, base_exp_yield: 164, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_WATER_GUN), (20, MOVE_CONFUSION), (29, MOVE_DISABLE), (34, MOVE_HEADBUTT), (46, MOVE_AMNESIA), (54, MOVE_PSYCHIC)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_WATER_GUN), (20, MOVE_CONFUSION), (29, MOVE_DISABLE), (34, MOVE_HEADBUTT), (40, MOVE_PSYCHIC), (46, MOVE_AMNESIA)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1525,7 +1527,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 70, base_attack: 90, base_defense: 70,
         base_sp_attack: 60, base_sp_defense: 60, base_speed: 40,
         catch_rate: 90, base_exp_yield: 140, growth_rate: GrowthRate::Fast,
-        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT), (1, MOVE_SCARY_FACE), (1, MOVE_CONSTRICT), (17, MOVE_NIGHT_SHADE), (25, MOVE_LEECH_LIFE), (34, MOVE_FURY_SWIPES), (53, MOVE_SCREECH), (53, MOVE_AGILITY)],
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT), (1, MOVE_SCARY_FACE), (1, MOVE_CONSTRICT), (17, MOVE_NIGHT_SHADE), (25, MOVE_SLUDGE), (30, MOVE_PURSUIT), (37, MOVE_SLUDGE_BOMB), (45, MOVE_AGILITY)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1534,7 +1536,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 75, base_attack: 90, base_defense: 140,
         base_sp_attack: 60, base_sp_defense: 60, base_speed: 40,
         catch_rate: 75, base_exp_yield: 163, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SELF_DESTRUCT), (22, MOVE_TAKE_DOWN), (36, MOVE_SWIFT)],
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SELF_DESTRUCT), (22, MOVE_TAKE_DOWN), (28, MOVE_SWIFT), (36, MOVE_IRON_TAIL), (43, MOVE_SELF_DESTRUCT)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1543,7 +1545,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 105, base_attack: 105, base_defense: 75,
         base_sp_attack: 65, base_sp_defense: 100, base_speed: 50,
         catch_rate: 75, base_exp_yield: 157, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_POUND), (1, MOVE_HARDEN), (23, MOVE_SLUDGE), (31, MOVE_SCREECH), (45, MOVE_ACID)],
+        learnset: &[(1, MOVE_POUND), (1, MOVE_HARDEN), (23, MOVE_SLUDGE), (31, MOVE_SCREECH), (37, MOVE_SLUDGE_BOMB), (42, MOVE_BODY_SLAM)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1570,7 +1572,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 50, base_attack: 95, base_defense: 95,
         base_sp_attack: 35, base_sp_defense: 110, base_speed: 70,
         catch_rate: 45, base_exp_yield: 138, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_TACKLE), (7, MOVE_FOCUS_ENERGY), (13, MOVE_PURSUIT), (19, MOVE_QUICK_ATTACK), (25, MOVE_DOUBLE_KICK), (31, MOVE_TAKE_DOWN)],
+        learnset: &[(1, MOVE_TACKLE), (7, MOVE_FOCUS_ENERGY), (13, MOVE_PURSUIT), (19, MOVE_QUICK_ATTACK), (25, MOVE_DOUBLE_KICK), (31, MOVE_TAKE_DOWN), (37, MOVE_SUBMISSION), (43, MOVE_CROSS_CHOP)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1579,7 +1581,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 50, base_attack: 120, base_defense: 53,
         base_sp_attack: 35, base_sp_defense: 110, base_speed: 87,
         catch_rate: 45, base_exp_yield: 139, growth_rate: GrowthRate::MediumFast,
-        learnset: &[(1, MOVE_DOUBLE_KICK), (6, MOVE_MEDITATE), (16, MOVE_LOW_KICK), (21, MOVE_FOCUS_ENERGY), (31, MOVE_FORESIGHT), (41, MOVE_ENDURE)],
+        learnset: &[(1, MOVE_DOUBLE_KICK), (6, MOVE_MEDITATE), (16, MOVE_LOW_KICK), (21, MOVE_FOCUS_ENERGY), (26, MOVE_SUBMISSION), (31, MOVE_FORESIGHT), (36, MOVE_TAKE_DOWN), (41, MOVE_ENDURE), (46, MOVE_CROSS_CHOP)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1597,7 +1599,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 75, base_attack: 80, base_defense: 85,
         base_sp_attack: 100, base_sp_defense: 90, base_speed: 50,
         catch_rate: 45, base_exp_yield: 184, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_ABSORB), (1, MOVE_STUN_SPORE), (1, MOVE_ACID), (1, MOVE_SLEEP_POWDER)],
+        learnset: &[(1, MOVE_ABSORB), (1, MOVE_STUN_SPORE), (1, MOVE_ACID), (1, MOVE_SLEEP_POWDER), (24, MOVE_RAZOR_LEAF), (35, MOVE_PETAL_DANCE), (44, MOVE_SLUDGE_BOMB)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1704,6 +1706,8 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_MEAN_LOOK, name: "Mean Look", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Prevents the foe from fleeing." },
     MoveData { id: MOVE_TOXIC, name: "Toxic", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 10, description: "Badly poisons the foe." },
     MoveData { id: MOVE_SWAGGER, name: "Swagger", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 15, description: "Confuses and raises Attack." },
+    MoveData { id: MOVE_PETAL_DANCE, name: "Petal Dance", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 70, accuracy: 100, pp: 20, description: "A 2-3 turn Grass attack." },
+    MoveData { id: MOVE_SLUDGE_BOMB, name: "Sludge Bomb", move_type: PokemonType::Poison, category: MoveCategory::Physical, power: 90, accuracy: 100, pp: 10, description: "30% chance of poisoning." },
     MoveData { id: MOVE_CURSE, name: "Curse", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Works differently for Ghosts." },
     MoveData { id: MOVE_MIMIC, name: "Mimic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies a foe's move." },
     MoveData { id: MOVE_HORN_ATTACK, name: "Horn Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 25, description: "Jabs with a sharp horn." },

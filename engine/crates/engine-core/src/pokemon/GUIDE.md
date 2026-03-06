@@ -349,4 +349,24 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Dynamic exits for CianwoodCity PokemonCenter and GenericHouse in mod.rs
 - All 34 tests pass
 - **Total: 37 maps, 6 badges, ~94 species, ~120 moves**
-- **Next sprint (47)**: Route 42, Mahogany Town, Mahogany Gym (Pryce, Glacier Badge)
+
+### Sprint 47 (Content)
+- Route 42 (20x14): Mountain pass connecting Ecruteak south to Mahogany, 2 trainers (Fisher, Hiker), Mankey/Spearow/Rattata/Golbat/Zubat/Mareep encounters
+- Mahogany Town (16x14): Small town with Gym, PokemonCenter, Mart, house, 3 NPCs. North exit (placeholder→self) for future Route 43
+- Mahogany Gym (10x10): Pryce — Seel lv27, Dewgong lv29, Piloswine lv31. Glacier Badge (#7). 2 gym trainers (Skier, Boarder)
+- 9 new species: Seel, Dewgong, Swinub, Piloswine, Girafarig, Golbat, Gyarados, Goldeen, Seaking
+- 14 new moves: Headbutt, Icy Wind, Aurora Beam, Ice Beam, Rest, Powder Snow, Earthquake, Blizzard, Hydro Pump, Dragon Rage, Twister, Endure, Amnesia, Thrash
+- EcruteakCity south exit warps to Route42, all bidirectional warps verified
+- All 34 tests pass
+- **Total: 40 maps, 7 badges, ~103 species, ~134 moves**
+
+### Sprint 48 (QA)
+- Full warp validation: all 40 maps, every warp destination verified on C_WALK/C_TALL — 34 tests pass
+- Full NPC placement audit: all NPCs on walkable tiles — pass
+- Species data audit: Seel, Dewgong, Swinub, Piloswine, Golbat, Gyarados, Girafarig, Goldeen, Seaking — all base stats, types, growth rates verified correct for Gen 2
+- Move data audit: Ice Beam, Earthquake, Blizzard, Hydro Pump, Thrash, Dragon Rage, Twister — all categories and stats verified correct
+- Pryce team verified: Seel lv27, Dewgong lv29, Piloswine lv31 — matches canonical GSC roster
+- MahoganyTown north exit (Route 43) and east exit (Route 44) are placeholder loops until those maps are built
+- **No bugs found. All data correct.**
+- **Total: 40 maps, 7 badges, ~103 species, ~134 moves**
+- **Next sprint (49)**: Route 43, Lake of Rage, Red Gyarados event area

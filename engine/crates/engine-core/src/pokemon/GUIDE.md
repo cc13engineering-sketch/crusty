@@ -105,7 +105,7 @@ _Items not yet implemented are marked with ☐. Completed items marked ✓._
 - ✓ **0B. Warp Validation Test** — `test_all_warps_valid()` implemented Sprint 44. Catches warp destinations on bad tiles. Update the map list whenever adding new `MapId` variants.
 - ☐ **0C. Story Flags + NPC Gating** — Add `StoryFlag` enum, `story_flags: u64` to `PokemonSim`, `has_flag()`/`set_flag()` helpers. Add `requires_flag`/`hidden_by_flag` to `NpcDef`. Blocking NPCs become data, not scattered if-statements.
 - ☐ **0D. NPC Action as Data** — Add `NpcAction` enum (`Talk`, `Heal`, `Mart`, `GiveBadge`, `SetFlag`, `ConditionalDialogue`, etc.) to `NpcDef`. Replace `match (map_id, npc_idx)` blocks with `match npc.action`. Adding a gym leader never requires touching `mod.rs`.
-- ☐ **0E. Debug State Export** — Export `player_x`, `player_y`, `current_map`, `badges`, `story_flags`, `party_size`, `step_count`, `defeated_count`, `lead_hp`, `lead_level` to `global_state` every `step()`. Enables headless regression detection.
+- ✓ **0E. Debug State Export** — Implemented Sprint 58. Exports `player_x`, `player_y`, `current_map`, `badges`, `party_size`, `step_count`, `defeated_count`, `money`, `lead_hp`, `lead_level`, `lead_species` to `global_state` every `step()`. 8 headless integration tests verify title screen, starter selection, walking, determinism.
 - ☐ **0F. File Splits** — Split `maps.rs` (currently >7,000 lines): keep types/enum/tests, move `build_*` to `maps_early.rs` and `maps_late.rs`. Split `mod.rs` when >4,000 lines: extract `battle.rs` and `menus.rs`.
 
 ### Phase 1: Data Tables ✓ (ongoing)
@@ -139,13 +139,92 @@ Requires Phase 0C (story flags). No story gating exists yet.
 - **Route blocks**: NPCs with `hidden_by_flag` at choke points
 
 ### Phase 7: Save System
-Not yet implemented. Serialize complete state as single JSON blob via `PersistCommand::Set`. One localStorage key (`pokemon_save`). Atomic write.
+Not yet implemented. This is the trickiest remaining feature because it crosses the Rust/JS boundary. Read this entire section before writing any code.
 
-**Includes**: map, position, facing, money, badges, story_flags, total_time, rng_state, full party, full PC, defeated_trainers, pokedex.
+#### Trap #1: Persist command JSON format vs Sound command JSON format
+Both `drain_persist_commands()` and `drain_sound_commands()` return JSON arrays from Rust. Both use a `"type"` field to identify command types. But the JS sound handler currently uses `if (cmd.PlayTone)` (checking for a nested object key) — this is WRONG for the flat `{"type":"PlayTone",...}` format that `to_json()` actually produces. The correct pattern for BOTH sound and persist is `cmd.type === "Set"` / `cmd.type === "PlayTone"`. When you implement persist handling, use `cmd.type`, not `cmd.Set`.
 
-**JS side**: Wire `drain_persist_commands()` → `localStorage`. On startup, read and push via `set_game_state_str()`.
+The persist JSON format from Rust is:
+```json
+[{"type":"Set","key":"pokemon_save","value":"{...escaped json...}"}]
+```
 
-**Title screen**: CONTINUE + NEW GAME. Auto-save on map transitions.
+The correct JS handler:
+```javascript
+// Replace the bare drain_persist_commands() call with:
+try {
+    const persistJson = drain_persist_commands();
+    if (persistJson && persistJson !== '[]') {
+        const cmds = JSON.parse(persistJson);
+        for (const cmd of cmds) {
+            if (cmd.type === 'Set') localStorage.setItem(cmd.key, cmd.value);
+            else if (cmd.type === 'Remove') localStorage.removeItem(cmd.key);
+            else if (cmd.type === 'Clear') {
+                Object.keys(localStorage).filter(k => k.startsWith('pokemon_')).forEach(k => localStorage.removeItem(k));
+            }
+        }
+    }
+} catch(e) { console.warn('persist error', e); }
+```
+
+#### Trap #2: The value field is double-escaped JSON
+When you `persist_set(queue, "pokemon_save", &json_blob)`, the `escape_json_string()` in `PersistCommand::to_json()` will escape the quotes inside your JSON blob. So the value arrives in JS as a string, not a parsed object. On the JS load side, you need `JSON.parse(localStorage.getItem("pokemon_save"))` — the value is a JSON string that needs a second parse.
+
+#### Trap #3: Load must happen BEFORE setup_test_pokemon()
+The init sequence in `index.html` is: `init(W, H)` → `set_url_param()` → `setup_test_pokemon()`. The `setup_test_pokemon()` call creates `PokemonSim::new()`. Your save-load check must be readable inside `PokemonSim::new()`. The approach:
+
+1. **JS side (before `setup_test_pokemon()`)**: Read localStorage and push into WASM:
+```javascript
+const saveData = localStorage.getItem('pokemon_save');
+if (saveData) {
+    set_game_state_str('pokemon_save', saveData);
+}
+setup_test_pokemon();
+```
+
+2. **Rust side (inside `PokemonSim::new()`)**: Check if save data exists in global_state:
+```rust
+// At the start of PokemonSim::new(), check for saved game
+let save_str = engine.global_state.get_str("pokemon_save");
+if !save_str.is_empty() {
+    // Parse JSON and reconstruct state
+    return Self::load_from_save(&save_str);
+}
+// Otherwise, normal new game initialization...
+```
+
+But note: `PokemonSim::new()` doesn't take `engine` as a parameter — it creates a fresh sim. You'll need to either pass the save string into `new()`, or check global_state after construction in the `setup_test_pokemon` WASM binding in `lib.rs`.
+
+#### Trap #4: MapId serialization/deserialization
+You'll serialize `current_map_id` as `format!("{:?}", self.current_map_id)` which produces strings like `"EcruteakCity"`. To deserialize, you need a `MapId::from_str()` that matches these debug strings back to enum variants. This doesn't exist yet — you'll need to add it. A match block with every variant, or use the `strum` crate. Don't forget to handle the case where a save references a MapId that doesn't exist (return a default).
+
+#### Trap #5: RNG state access
+The save needs `engine.rng.state`. But the `Simulation::step()` signature gives you `&mut Engine`, not during save. You'll need to either:
+- Save the rng state into a field on PokemonSim during each step (e.g., `self.last_rng_state = engine.rng.state`)
+- Or access it during the persist command push (which happens inside step)
+
+#### Recommended single-blob save format
+```json
+{
+  "map": "EcruteakCity",
+  "x": 5, "y": 8, "facing": 2,
+  "money": 3000, "badges": 15, "flags": 0,
+  "time": 12345.0, "rng": 8675309,
+  "party": [
+    {"species":155,"level":18,"hp":52,"max_hp":52,"exp":1200,"moves":[33,52,108,45],"pp":[35,25,20,40],"status":0}
+  ],
+  "pc": [],
+  "defeated": [["VioletGym",0],["AzaleaGym",0]],
+  "seen": [152,155,158,16,19],
+  "caught": [155]
+}
+```
+
+Build the JSON with `format!()` — don't pull in serde_json for this. The hand-built JSON in `persist.rs` and `sound.rs` shows the established pattern. Parse it back with a simple state machine or manual string splitting — the format is controlled by you so it doesn't need to be robust against arbitrary input.
+
+**Auto-save**: Call `serialize_save()` and push to persist queue in `change_map()`. This means every map transition auto-saves, protecting against browser crashes.
+
+**Title screen**: Add CONTINUE/NEW GAME options. If `global_state.get_str("pokemon_save")` is non-empty, show CONTINUE highlighted. CONTINUE calls `load_from_save()`. NEW GAME clears the save key and starts fresh.
 
 ### Phase 8: Credits
 Not yet implemented. `GamePhase::Credits { timer: f64 }`. Scrolling text on framebuffer. Return to title.
@@ -317,3 +396,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Victory Road encounters verified as reasonable substitutes (Rhyhorn/Rhydon not yet implemented)
 - All 1259 tests pass
 - **Next (Sprint 58)**: Tile art upgrade pipeline + music integration (see GUIDE.md sections 8-9)
+
+### Sprint 58 (Infrastructure)
+- **Phase 0E complete**: Debug state export — 11 keys exported to global_state every step()
+- 8 new headless integration tests using HeadlessRunner:
+  - Title screen state, enter Elm Lab, full starter selection sequence
+  - Walking changes position, deterministic same-seed replay
+  - Debug state keys present, money initial value
+- HeadlessRunner works correctly with PokemonSim — turbo mode ~0.2s for 200+ frames
+- All 1267 tests pass (1259 existing + 8 new headless)
+- **Next (Sprint 59)**: Tile art conversion tool + music_id wiring via global_state

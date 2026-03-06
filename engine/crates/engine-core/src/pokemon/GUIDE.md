@@ -138,8 +138,8 @@ Requires Phase 0C (story flags). No story gating exists yet.
 - **Rocket HQ** (not yet built): Clear trainers → `RocketMahogany` → unblocks Route 44
 - **Route blocks**: NPCs with `hidden_by_flag` at choke points
 
-### Phase 7: Save System
-Not yet implemented. This is the trickiest remaining feature because it crosses the Rust/JS boundary. Read this entire section before writing any code.
+### Phase 7: Save System ✓
+Implemented Sprint 61. Auto-saves on map transition. CONTINUE/NEW GAME title menu. Full state serialization including RNG. Read the traps below before modifying.
 
 #### Trap #1: Persist command JSON format vs Sound command JSON format
 Both `drain_persist_commands()` and `drain_sound_commands()` return JSON arrays from Rust. Both use a `"type"` field to identify command types. But the JS sound handler currently uses `if (cmd.PlayTone)` (checking for a nested object key) — this is WRONG for the flat `{"type":"PlayTone",...}` format that `to_json()` actually produces. The correct pattern for BOTH sound and persist is `cmd.type === "Set"` / `cmd.type === "PlayTone"`. When you implement persist handling, use `cmd.type`, not `cmd.Set`.
@@ -226,8 +226,8 @@ Build the JSON with `format!()` — don't pull in serde_json for this. The hand-
 
 **Title screen**: Add CONTINUE/NEW GAME options. If `global_state.get_str("pokemon_save")` is non-empty, show CONTINUE highlighted. CONTINUE calls `load_from_save()`. NEW GAME clears the save key and starts fresh.
 
-### Phase 8: Credits
-Not yet implemented. `GamePhase::Credits { timer: f64 }`. Scrolling text on framebuffer. Return to title.
+### Phase 8: Credits ✓
+Implemented Sprint 61. `GamePhase::Credits { scroll_y: f64 }`. Scrolling text on framebuffer. Triggered after Champion Lance. Returns to title.
 
 ---
 
@@ -456,4 +456,19 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Phase 0A partial**: Added `PokemonType::gen2_category()` and `MoveData::derived_category()` to data.rs
 - 4 validation tests: all move categories match Gen 2 type-based rules, physical/special type coverage, status moves have zero power
 - All 1271 tests pass (1267 + 4 new)
-- **Next (Sprint 61)**: Continue content development — Phase 5 move effects, Phase 0C story flags, or Phase 6 story gating
+- **Next (Sprint 61)**: Credits + Save System (DoD #4 + #10)
+
+### Sprint 61 (Content — Credits + Save System)
+- **Credits screen (DoD #4)**: `GamePhase::Credits` with scrolling text. Triggered after defeating Champion Lance. Shows congratulations, party, Hall of Fame, returns to title.
+- **Save system (DoD #10)**: Full implementation:
+  - `serialize_save()`: JSON blob with map, position, party (moves/PP/status), PC, bag, defeated trainers, badges, money, pokedex, RNG state
+  - `load_from_save()`: Hand-rolled JSON parser (no serde dependency)
+  - `MapId::from_str()`/`to_str()` for serialization
+  - Auto-save on every `change_map()` via persist queue
+  - Title screen: CONTINUE/NEW GAME menu when save exists
+  - JS: loads save from localStorage before WASM init, handles `Store` persist commands
+- Save/load round-trip test verifies all fields survive serialization
+- All 1272 tests pass (1271 + 1 new)
+- **Phase 7 (Save System) COMPLETE**
+- **Phase 8 (Credits) COMPLETE**
+- **Next (Sprint 62)**: Phase 5 move effects (secondary effects), Phase 0C story flags

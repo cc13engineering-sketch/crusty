@@ -1,10 +1,9 @@
-name: Deploy to GitHub Pages
-
-on:
-  push:
-    branches: [main, 'gravity-pong', 'claude/**']
-  workflow_dispatch:
-
+name: Deploy to GitHub Pages                                                                                                                                                                              
+on:                                                                                                      
+  push:                                                                                                  
+    branches: [main, 'gravity-pong', 'claude/**']                                                        
+  workflow_dispatch:                                                                                     
+                                                                                                          
 permissions:
   contents: read
   pages: write
@@ -63,10 +62,13 @@ jobs:
           # Copy bouncing ball demo
           cp site/demo-ball/index.html _site/demo-ball/
 
-          # Copy shared JS modules                                                              
+          # Copy shared assets (JS modules, CSS)
           cp site/browser-state.js _site/
+          cp site/crusty-ui.css _site/
+          [ -f site/crusty-ui.js ] && cp site/crusty-ui.js _site/ || true
 
-          # Copy all game demos (gravity-pong, chord-reps, etc.)                                                                                                                                    
+          # Copy all game demos (gravity-pong, chord-reps, etc.)
+  
           for demo_dir in site/gravity-pong* site/chord-reps; do
             [ -d "$demo_dir" ] || continue
             name=$(basename "$demo_dir")

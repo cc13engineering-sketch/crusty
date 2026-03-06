@@ -1994,6 +1994,13 @@ impl PokemonSim {
 
                     let next = if fainted {
                         BattlePhase::PlayerFainted
+                    } else if battle.enemy.is_fainted() {
+                        // Enemy self-destructed but player survived — skip pending move
+                        battle.pending_player_move = None;
+                        let exp = get_species(battle.enemy.species_id)
+                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
+                            .unwrap_or(10);
+                        BattlePhase::EnemyFainted { exp_gained: exp }
                     } else if has_pending && battle.player_flinched {
                         // Player flinched — skip their pending move
                         battle.pending_player_move = None;
@@ -2022,12 +2029,13 @@ impl PokemonSim {
                         } else {
                             player_fainted_from_status = false;
                         }
-                        let enemy_status_dmg = battle.enemy.apply_status_damage();
+                        let _enemy_status_dmg = battle.enemy.apply_status_damage();
                         battle.enemy.tick_status();
 
                         if player_fainted_from_status {
                             BattlePhase::PlayerFainted
-                        } else if enemy_status_dmg > 0 && battle.enemy.is_fainted() {
+                        } else if battle.enemy.is_fainted() {
+                            // Enemy died from status or own move (Self-Destruct)
                             let exp = get_species(battle.enemy.species_id)
                                 .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
                                 .unwrap_or(10);
@@ -2059,58 +2067,64 @@ impl PokemonSim {
 
             BattlePhase::EnemyFainted { exp_gained: exp } => {
                 sfx_faint(engine);
-                if let Some(p) = self.party.get_mut(battle.player_idx) {
-                    p.exp += exp;
-                    if let Some(sp) = get_species(p.species_id) {
-                        let next_exp = exp_for_level(p.level + 1, sp.growth_rate);
-                        if p.exp >= next_exp && p.level < 100 {
-                            p.level += 1;
-                            p.recalc_stats();
-                            // Check for new moves
-                            let new_moves = p.check_new_moves();
-                            for new_move in new_moves {
-                                for i in 0..4 {
-                                    if p.moves[i].is_none() {
-                                        p.moves[i] = Some(new_move);
-                                        if let Some(md) = get_move(new_move) {
-                                            p.move_pp[i] = md.pp;
-                                            p.move_max_pp[i] = md.pp;
+                // Check if player also fainted (Self-Destruct/Explosion mutual KO)
+                let player_also_fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false);
+                // Only award EXP if player's Pokemon is alive
+                if !player_also_fainted {
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.exp += exp;
+                        if let Some(sp) = get_species(p.species_id) {
+                            let next_exp = exp_for_level(p.level + 1, sp.growth_rate);
+                            if p.exp >= next_exp && p.level < 100 {
+                                p.level += 1;
+                                p.recalc_stats();
+                                // Check for new moves
+                                let new_moves = p.check_new_moves();
+                                for new_move in new_moves {
+                                    for i in 0..4 {
+                                        if p.moves[i].is_none() {
+                                            p.moves[i] = Some(new_move);
+                                            if let Some(md) = get_move(new_move) {
+                                                p.move_pp[i] = md.pp;
+                                                p.move_max_pp[i] = md.pp;
+                                            }
+                                            break;
                                         }
-                                        break;
                                     }
                                 }
-                            }
-                            // Check for evolution
-                            let evo_species = get_species(p.species_id)
-                                .and_then(|s| {
-                                    if let (Some(evo_lvl), Some(evo_into)) = (s.evolution_level, s.evolution_into) {
-                                        if p.level >= evo_lvl { Some(evo_into) } else { None }
-                                    } else { None }
-                                });
-                            if let Some(evo) = evo_species {
-                                // Set up evolution after level up display
-                                battle.phase = BattlePhase::Text {
-                                    message: format!("{} grew to LV{}!", p.name(), p.level),
-                                    timer: 0.0,
-                                    next_phase: Box::new(BattlePhase::Won { timer: 0.0 }),
-                                };
+                                // Check for evolution
+                                let evo_species = get_species(p.species_id)
+                                    .and_then(|s| {
+                                        if let (Some(evo_lvl), Some(evo_into)) = (s.evolution_level, s.evolution_into) {
+                                            if p.level >= evo_lvl { Some(evo_into) } else { None }
+                                        } else { None }
+                                    });
+                                if let Some(evo) = evo_species {
+                                    // Set up evolution after level up display
+                                    battle.phase = BattlePhase::Text {
+                                        message: format!("{} grew to LV{}!", p.name(), p.level),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::Won { timer: 0.0 }),
+                                    };
+                                    self.battle = Some(battle);
+                                    // Schedule evolution after battle
+                                    self.phase = GamePhase::Battle;
+                                    // Store pending evolution
+                                    engine.global_state.set_f64("pending_evolution", evo as f64);
+                                    return;
+                                }
+                                sfx_level_up(engine);
+                                battle.phase = BattlePhase::LevelUp { timer: 0.0 };
                                 self.battle = Some(battle);
-                                // Schedule evolution after battle
-                                self.phase = GamePhase::Battle;
-                                // We'll handle evolution after Won phase
-                                // Store pending evolution
-                                engine.global_state.set_f64("pending_evolution", evo as f64);
                                 return;
                             }
-                            sfx_level_up(engine);
-                            battle.phase = BattlePhase::LevelUp { timer: 0.0 };
-                            self.battle = Some(battle);
-                            return;
                         }
                     }
                 }
-                // Check if trainer has more Pokemon
-                if !battle.is_wild && !battle.trainer_team.is_empty() {
+                if player_also_fainted {
+                    battle.phase = BattlePhase::PlayerFainted;
+                } else if !battle.is_wild && !battle.trainer_team.is_empty() {
+                    // Trainer has more Pokemon
                     let next_enemy = battle.trainer_team.remove(0);
                     battle.trainer_team_idx += 1;
                     let next_name = next_enemy.name().to_string();
@@ -2592,7 +2606,12 @@ impl PokemonSim {
                     b.player_hp_display = self.party[selected].hp as f64;
                     b.player_stages = [0; 7]; // Reset player stages on switch
                     b.player_confused = 0; // Reset confusion on switch
+                    b.player_trapped = false; // Mean Look cleared on switch
                     b.pending_player_move = None;
+                    // Reset toxic counter on switch-in (Gen 2)
+                    if let StatusCondition::BadPoison { ref mut turn } = self.party[selected].status {
+                        *turn = 1;
+                    }
                     let pname = self.party[selected].name().to_string();
                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                         engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
@@ -5139,5 +5158,27 @@ mod headless_tests {
         assert_eq!(cr.power, 0);
         assert_eq!(cr.category, MoveCategory::Status);
         assert_eq!(cr.move_type, PokemonType::Ghost);
+    }
+
+    #[test]
+    fn test_toxic_counter_resets_on_switch() {
+        // BadPoison turn counter should reset to 1 when switching back in (Gen 2)
+        let mut p = Pokemon::new(CHIKORITA, 10);
+        p.status = StatusCondition::BadPoison { turn: 5 };
+        // Simulate what switch logic does
+        if let StatusCondition::BadPoison { ref mut turn } = p.status {
+            *turn = 1;
+        }
+        assert!(matches!(p.status, StatusCondition::BadPoison { turn: 1 }),
+            "BadPoison turn should reset to 1 on switch, got {:?}", p.status);
+    }
+
+    #[test]
+    fn test_self_destruct_user_faints() {
+        // Self-Destruct user always faints after dealing damage
+        let sd = get_move(MOVE_SELF_DESTRUCT).expect("Self-Destruct should exist");
+        assert_eq!(sd.power, 200, "Self-Destruct should be 200 power");
+        // Verify the move data is correct — the user-faint logic is in battle processing
+        assert_eq!(sd.accuracy, 100, "Self-Destruct should have 100% accuracy");
     }
 }

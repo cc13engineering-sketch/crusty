@@ -518,4 +518,14 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Fixed**: Clear pending_evolution on whiteout (prevents stale evolution after blackout)
 - Verified: HP formula correct (+10), heal() restores HP/PP/status, evolution chains work
 - 2 new tests (HP formula Gen 2, whiteout PokeCenter preservation). All 1280 pass.
-- **Next (Sprint 67)**: Continue implementation — candidates: Phase 5 Priority 2 (Haze, Toxic, Confuse Ray), Phase 0D (NPC Action as Data), wire more story flags
+- **Next (Sprint 67)**: Phase 5 Priority 2 status moves
+
+### Sprint 67 (Phase 5 Priority 2 — Haze, Self-Destruct, Confusion)
+- **Added**: Haze — resets all stat stages (both player and enemy) in battle
+- **Added**: Self-Destruct — user faints after dealing 200-power damage (works for both player and enemy)
+- **Added**: Confusion mechanic — Confuse Ray inflicts 2-5 turns, 50% self-hit (typeless 40 power)
+- Confusion handles both turn-order paths (player first / enemy first)
+- Confusion cleared on switch, auto-switch after faint
+- Added player_confused/enemy_confused fields to BattleState
+- 3 new tests (move data verification). All 1283 pass.
+- **Next (Sprint 68)**: Continue implementation — candidates: Toxic (escalating poison), Mean Look (trapped), more story flag wiring, or Phase 0D (NPC Action as Data)

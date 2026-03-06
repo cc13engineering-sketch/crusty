@@ -63,6 +63,10 @@ const PIKACHU: u16 = 25;
 const POLIWHIRL: u16 = 61;
 const KRABBY: u16 = 98;
 const STEELIX: u16 = 208;
+const SPEAROW: u16 = 21;
+const FEAROW: u16 = 22;
+const POLIWAG: u16 = 60;
+const MARILL: u16 = 183;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -138,6 +142,7 @@ pub enum MapId {
     Route39,
     OlivineCity,
     OlivineGym,
+    OlivineLighthouse,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -263,6 +268,7 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route39 => build_route_39(),
         MapId::OlivineCity => build_olivine_city(),
         MapId::OlivineGym => build_olivine_gym(),
+        MapId::OlivineLighthouse => build_olivine_lighthouse(),
     }
 }
 
@@ -4744,8 +4750,8 @@ fn build_route_38() -> MapData {
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
     let warps = vec![
-        WarpData { x: 19, y: 4, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 8 },
-        WarpData { x: 19, y: 5, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 9 },
+        WarpData { x: 19, y: 4, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 8 },
+        WarpData { x: 19, y: 5, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 9 },
         WarpData { x: 0, y: 4, dest_map: MapId::Route39, dest_x: 8, dest_y: 2 },
         WarpData { x: 0, y: 5, dest_map: MapId::Route39, dest_x: 9, dest_y: 2 },
         WarpData { x: 5, y: 9, dest_map: MapId::Route39, dest_x: 3, dest_y: 2 },
@@ -4933,16 +4939,16 @@ fn build_olivine_city() -> MapData {
         WarpData { x: 12, y: 1, dest_map: MapId::Route39, dest_x: 6, dest_y: 16 },
         WarpData { x: 13, y: 1, dest_map: MapId::Route39, dest_x: 7, dest_y: 16 },
         WarpData { x: 14, y: 1, dest_map: MapId::Route39, dest_x: 8, dest_y: 16 },
-        // Gym door (4,4) → OlivineGym
-        WarpData { x: 4, y: 4, dest_map: MapId::OlivineGym, dest_x: 5, dest_y: 8 },
+        // Gym door (4,4) → OlivineGym (land one tile above exit warp)
+        WarpData { x: 4, y: 4, dest_map: MapId::OlivineGym, dest_x: 5, dest_y: 7 },
         // House door (16,4) → GenericHouse
         WarpData { x: 16, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Pokemon Center door (4,7)
         WarpData { x: 4, y: 7, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
         // Cafe door (3,11) → GenericHouse
         WarpData { x: 3, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
-        // Lighthouse door (17,11) → GenericHouse (simplified)
-        WarpData { x: 17, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Lighthouse door (17,11) → OlivineLighthouse
+        WarpData { x: 17, y: 11, dest_map: MapId::OlivineLighthouse, dest_x: 5, dest_y: 9 },
     ];
     let npcs = vec![
         NpcDef { x: 8, y: 2, sprite_id: 5, facing: Direction::Down,
@@ -4967,6 +4973,112 @@ fn build_olivine_city() -> MapData {
         },
     ];
     MapData { id: MapId::OlivineCity, name: "OLIVINE CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], music_id: 3 }
+}
+// ─── Olivine Lighthouse (10x12) ────────────────────────
+// Simplified to single floor. Trainers from floors 3-5, Jasmine+Amphy at top.
+fn build_olivine_lighthouse() -> MapData {
+    let w: usize = 10;
+    let h: usize = 12;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    debug_assert_eq!(tiles.len(), w * h);
+    debug_assert_eq!(collision.len(), w * h);
+    let warps = vec![
+        WarpData { x: 5, y: 10, dest_map: MapId::OlivineCity, dest_x: 17, dest_y: 12 },
+    ];
+    let npcs = vec![
+        // Jasmine (non-trainer here, she's at the top with sick Amphy)
+        NpcDef {
+            x: 4, y: 1, sprite_id: 0, facing: Direction::Down,
+            dialogue: &["AMPHY is sick...", "I can't leave its", "side... Please, I", "need MEDICINE from", "CIANWOOD CITY."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Amphy (sick Ampharos, represented as NPC)
+        NpcDef {
+            x: 5, y: 1, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["... ... ...", "(AMPHY looks weak)"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Sailor Huey (floor 3)
+        NpcDef {
+            x: 2, y: 4, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Sailor HUEY", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: POLIWAG, level: 18 },
+                TrainerPokemon { species_id: POLIWHIRL, level: 20 },
+            ],
+        },
+        // Gentleman Preston (floor 3)
+        NpcDef {
+            x: 7, y: 3, sprite_id: 4, facing: Direction::Left,
+            dialogue: &["Gentleman PRESTON", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GROWLITHE, level: 18 },
+                TrainerPokemon { species_id: GROWLITHE, level: 18 },
+            ],
+        },
+        // Lass Connie (floor 4)
+        NpcDef {
+            x: 3, y: 6, sprite_id: 3, facing: Direction::Down,
+            dialogue: &["Lass CONNIE", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: MARILL, level: 21 },
+            ],
+        },
+        // Sailor Kent (floor 5)
+        NpcDef {
+            x: 7, y: 7, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["Sailor KENT", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: KRABBY, level: 20 },
+                TrainerPokemon { species_id: KRABBY, level: 20 },
+            ],
+        },
+        // Bird Keeper Denis (floor 5)
+        NpcDef {
+            x: 2, y: 8, sprite_id: 1, facing: Direction::Right,
+            dialogue: &["Bird Keeper DENIS", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SPEAROW, level: 18 },
+                TrainerPokemon { species_id: FEAROW, level: 20 },
+                TrainerPokemon { species_id: SPEAROW, level: 18 },
+            ],
+        },
+    ];
+    MapData { id: MapId::OlivineLighthouse, name: "LIGHTHOUSE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 5 }
 }
 // ─── Olivine Gym (10x10) ───────────────────────────────
 // Jasmine - Steel type. Available immediately (skip Lighthouse quest).
@@ -5002,7 +5114,7 @@ fn build_olivine_gym() -> MapData {
     debug_assert_eq!(tiles.len(), w * h);
     debug_assert_eq!(collision.len(), w * h);
     let warps = vec![
-        WarpData { x: 5, y: 8, dest_map: MapId::OlivineCity, dest_x: 3, dest_y: 12 },
+        WarpData { x: 5, y: 8, dest_map: MapId::OlivineCity, dest_x: 4, dest_y: 5 },
     ];
     let npcs = vec![
         NpcDef {
@@ -5132,6 +5244,7 @@ mod tests {
             MapId::Route39,
             MapId::OlivineCity,
             MapId::OlivineGym,
+            MapId::OlivineLighthouse,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -5147,6 +5260,77 @@ mod tests {
                 "collision size mismatch for {:?}",
                 id
             );
+        }
+    }
+
+    #[test]
+    fn test_all_warps_land_on_walk() {
+        let all_maps = [
+            MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
+            MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
+            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
+            MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
+            MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
+            MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
+            MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
+            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
+            MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
+            MapId::OlivineLighthouse,
+        ];
+        for src_id in &all_maps {
+            let src_map = load_map(*src_id);
+            for (wi, warp) in src_map.warps.iter().enumerate() {
+                let dest_map = load_map(warp.dest_map);
+                let dx = warp.dest_x as usize;
+                let dy = warp.dest_y as usize;
+                assert!(
+                    dx < dest_map.width && dy < dest_map.height,
+                    "Warp #{} in {:?} goes out of bounds: ({},{}) in {:?} ({}x{})",
+                    wi, src_id, dx, dy, warp.dest_map, dest_map.width, dest_map.height
+                );
+                let idx = dy * dest_map.width + dx;
+                let coll = dest_map.collision[idx];
+                assert!(
+                    coll == C_WALK || coll == C_TALL,
+                    "Warp #{} in {:?} lands on collision {} at ({},{}) in {:?}. Expected C_WALK(0) or C_TALL(2).",
+                    wi, src_id, coll, dx, dy, warp.dest_map
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_all_npcs_on_walkable() {
+        let all_maps = [
+            MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
+            MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
+            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
+            MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
+            MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
+            MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
+            MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
+            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
+            MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
+            MapId::OlivineLighthouse,
+        ];
+        for map_id in &all_maps {
+            let map = load_map(*map_id);
+            for (ni, npc) in map.npcs.iter().enumerate() {
+                let nx = npc.x as usize;
+                let ny = npc.y as usize;
+                assert!(
+                    nx < map.width && ny < map.height,
+                    "NPC #{} in {:?} at ({},{}) is out of bounds ({}x{})",
+                    ni, map_id, nx, ny, map.width, map.height
+                );
+                let idx = ny * map.width + nx;
+                let coll = map.collision[idx];
+                assert!(
+                    coll == C_WALK || coll == C_COUNTER,
+                    "NPC #{} in {:?} at ({},{}) on collision {} — expected C_WALK(0) or C_COUNTER(6).",
+                    ni, map_id, coll, nx, ny
+                );
+            }
         }
     }
 

@@ -181,6 +181,7 @@ pub const SEADRA: SpeciesId = 117;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
+pub const MOVE_STRUGGLE: MoveId = 165; // Gen 2: typeless, 50 power, 1/4 recoil
 pub const MOVE_TACKLE: MoveId = 33;
 pub const MOVE_GROWL: MoveId = 45;
 pub const MOVE_RAZOR_LEAF: MoveId = 75;
@@ -1746,6 +1747,8 @@ const MOVE_DB: &[MoveData] = &[
     // ─── Sprint 56: E4 moves ───────────────────────────────
     MoveData { id: MOVE_PSYCHIC, name: "Psychic", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 90, accuracy: 100, pp: 10, description: "May lower Sp.Def." },
     MoveData { id: MOVE_CRUNCH, name: "Crunch", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 80, accuracy: 100, pp: 15, description: "May lower Defense." },
+    // ─── Sprint 64: Struggle ───────────────────────────────
+    MoveData { id: MOVE_STRUGGLE, name: "Struggle", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 50, accuracy: 255, pp: 1, description: "Used only if all PP are gone. Also hurts the user." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -2020,6 +2023,16 @@ impl Pokemon {
             StatusCondition::Freeze => false,
             _ => true,
         }
+    }
+
+    /// Attempt to thaw a frozen Pokemon (Gen 2: 10% chance per turn).
+    /// Call before can_move() check. Returns true if thawed.
+    pub fn try_thaw(&mut self, rng_roll: f64) -> bool {
+        if matches!(self.status, StatusCondition::Freeze) && rng_roll < 0.1 {
+            self.status = StatusCondition::None;
+            return true;
+        }
+        false
     }
 
     /// Tick status at end of turn (decrements sleep counter, etc.)

@@ -1234,6 +1234,10 @@ impl PokemonSim {
                 if is_cancel(engine) {
                     battle.phase = BattlePhase::ActionSelect { cursor: 0 };
                 } else if is_confirm(engine) {
+                    // Freeze thaw: 10% chance per turn (Gen 2)
+                    let _thawed = if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.try_thaw(engine.rng.next_f64())
+                    } else { false };
                     // Check if player Pokemon can move (sleep/freeze)
                     let can_move = self.party.get(battle.player_idx).map(|p| p.can_move()).unwrap_or(true);
                     // Paralysis: 25% chance to be fully paralyzed
@@ -1242,10 +1246,13 @@ impl PokemonSim {
                     } else { false };
 
                     if !can_move || paralyzed {
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
                         let reason = if paralyzed {
-                            format!("{} is paralyzed! It can't move!", self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???"))
+                            format!("{} is paralyzed! It can't move!", pname)
+                        } else if matches!(self.party.get(battle.player_idx).map(|p| &p.status), Some(StatusCondition::Freeze)) {
+                            format!("{} is frozen solid!", pname)
                         } else {
-                            format!("{} is fast asleep!", self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???"))
+                            format!("{} is fast asleep!", pname)
                         };
                         let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
                         battle.phase = BattlePhase::Text {
@@ -1258,12 +1265,15 @@ impl PokemonSim {
                         return;
                     }
 
-                    // Check PP
-                    let has_pp = self.party.get(battle.player_idx)
+                    // Check PP — if all moves are empty, force Struggle
+                    let all_pp_zero = self.party.get(battle.player_idx)
+                        .map(|p| p.moves.iter().enumerate().all(|(i, m)| m.is_none() || p.move_pp[i] == 0))
+                        .unwrap_or(false);
+                    let has_pp = !all_pp_zero && self.party.get(battle.player_idx)
                         .map(|p| (cursor as usize) < 4 && p.move_pp[cursor as usize] > 0)
                         .unwrap_or(false);
-                    if !has_pp {
-                        // No PP for this move
+                    if !has_pp && !all_pp_zero {
+                        // No PP for this specific move, but other moves have PP
                         battle.phase = BattlePhase::Text {
                             message: "No PP left for this move!".to_string(),
                             timer: 0.0,
@@ -1273,14 +1283,21 @@ impl PokemonSim {
                         return;
                     }
 
-                    // Get player move
-                    let move_id = self.party.get(battle.player_idx)
-                        .and_then(|p| p.moves.get(cursor as usize).copied().flatten())
-                        .unwrap_or(MOVE_TACKLE);
+                    // Get player move (force Struggle if all PP = 0)
+                    let (move_id, use_struggle) = if all_pp_zero {
+                        (MOVE_STRUGGLE, true)
+                    } else {
+                        let mid = self.party.get(battle.player_idx)
+                            .and_then(|p| p.moves.get(cursor as usize).copied().flatten())
+                            .unwrap_or(MOVE_TACKLE);
+                        (mid, false)
+                    };
 
-                    // Consume PP
-                    if let Some(p) = self.party.get_mut(battle.player_idx) {
-                        p.move_pp[cursor as usize] -= 1;
+                    // Consume PP (not for Struggle)
+                    if !use_struggle {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.move_pp[cursor as usize] -= 1;
+                        }
                     }
 
                     // Accuracy check (apply accuracy/evasion stages)
@@ -1344,7 +1361,10 @@ impl PokemonSim {
                             player_speed /= 2;
                         }
                     }
-                    let enemy_speed = (battle.enemy.speed as f64 * enemy_spd_stage) as u16;
+                    let mut enemy_speed = (battle.enemy.speed as f64 * enemy_spd_stage) as u16;
+                    if matches!(battle.enemy.status, StatusCondition::Paralysis) {
+                        enemy_speed /= 2;
+                    }
                     if player_speed >= enemy_speed {
                         // Player goes first
                         battle.pending_player_move = None;
@@ -1373,10 +1393,22 @@ impl PokemonSim {
                 if t > 0.8 {
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
-                    // Check for secondary effects from move
-                    if damage > 0 {
+                    // Struggle recoil: 1/4 of damage dealt to self (Gen 2)
+                    if move_id == MOVE_STRUGGLE && damage > 0 {
+                        let recoil = (damage / 4).max(1);
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.hp = p.hp.saturating_sub(recoil);
+                        }
+                    }
+
+                    // Check for secondary effects from move (damaging moves only trigger on hit)
+                    // Status-inflicting moves (power=0, like Hypnosis/Thunder Wave) always call try_inflict_status
+                    let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
+                    if damage > 0 || is_status_move {
                         let roll = engine.rng.next_f64();
                         try_inflict_status(&mut battle.enemy, move_id, roll);
+                    }
+                    if damage > 0 {
                         // Check flinch (only matters if player goes first)
                         let fc = flinch_chance(move_id);
                         if fc > 0.0 && !from_pending {
@@ -1497,6 +1529,8 @@ impl PokemonSim {
                         }
                     } else {
                         // Player went first — enemy gets to attack now
+                        // Freeze thaw: 10% per turn (Gen 2)
+                        battle.enemy.try_thaw(engine.rng.next_f64());
                         let enemy_can_move = battle.enemy.can_move();
                         let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
                         let enemy_flinched = battle.enemy_flinched;
@@ -1507,6 +1541,8 @@ impl PokemonSim {
                                 format!("{}{} flinched!", prefix, battle.enemy.name())
                             } else if enemy_paralyzed {
                                 format!("{}{} is paralyzed!", prefix, battle.enemy.name())
+                            } else if matches!(battle.enemy.status, StatusCondition::Freeze) {
+                                format!("{}{} is frozen solid!", prefix, battle.enemy.name())
                             } else {
                                 format!("{}{} is fast asleep!", prefix, battle.enemy.name())
                             };
@@ -1542,10 +1578,14 @@ impl PokemonSim {
                 if t > 0.8 {
                     if let Some(p) = self.party.get_mut(battle.player_idx) {
                         p.hp = p.hp.saturating_sub(damage);
-                        if damage > 0 {
+                        // Status-inflicting moves (power=0) always trigger, damaging moves only on hit
+                        let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
+                        if damage > 0 || is_status_move {
                             let roll = engine.rng.next_f64();
                             try_inflict_status(p, move_id, roll);
-                            // Check flinch (only if enemy went first, i.e. no pending_player_move means enemy moved first)
+                        }
+                        if damage > 0 {
+                            // Check flinch (only if enemy went first, i.e. pending_player_move means player hasn't moved yet)
                             let fc = flinch_chance(move_id);
                             if fc > 0.0 && battle.pending_player_move.is_some() {
                                 let flinch_roll = engine.rng.next_f64();
@@ -2175,12 +2215,8 @@ impl PokemonSim {
                 1 => self.phase = GamePhase::BagMenu { cursor: 0 },
                 2 => self.phase = GamePhase::Pokedex { cursor: 0, scroll: 0 },
                 3 => {
-                    // Save: export state to global_state for JS to persist
-                    engine.global_state.set_f64("save_money", self.money as f64);
-                    engine.global_state.set_f64("save_party_size", self.party.len() as f64);
-                    engine.global_state.set_f64("savebadges", self.badges as f64);
-                    engine.global_state.set_f64("save_pokedex_seen", self.pokedex_seen.len() as f64);
-                    engine.global_state.set_f64("save_pokedex_caught", self.pokedex_caught.len() as f64);
+                    // Save: trigger actual save via persist queue
+                    self.needs_save = true;
                     self.dialogue = Some(DialogueState {
                         lines: vec!["Game saved!".to_string()],
                         current_line: 0, char_index: 0, timer: 0.0,
@@ -2226,17 +2262,25 @@ impl PokemonSim {
                     if pkmn.is_fainted() {
                         return;
                     }
-                    if let Some(battle) = &mut self.battle {
-                        battle.player_idx = selected;
-                        battle.player_hp_display = self.party[selected].hp as f64;
-                        battle.player_stages = [0; 7]; // Reset player stages on switch
-                        let pname = self.party[selected].name().to_string();
-                        battle.phase = BattlePhase::Text {
-                            message: format!("Go! {}!", pname),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                        };
-                    }
+                    // Switching costs a turn — enemy gets a free attack (Gen 2 rule)
+                    let mut b = self.battle.take().unwrap();
+                    b.player_idx = selected;
+                    b.player_hp_display = self.party[selected].hp as f64;
+                    b.player_stages = [0; 7]; // Reset player stages on switch
+                    b.pending_player_move = None;
+                    let pname = self.party[selected].name().to_string();
+                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                        engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                    );
+                    b.phase = BattlePhase::Text {
+                        message: format!("Go! {}!", pname),
+                        timer: 0.0,
+                        next_phase: Box::new(BattlePhase::EnemyAttack {
+                            timer: 0.0, move_id: e_move, damage: e_dmg,
+                            effectiveness: e_eff, is_crit: e_crit,
+                        }),
+                    };
+                    self.battle = Some(b);
                     self.phase = GamePhase::Battle;
                 }
             } else {
@@ -4565,5 +4609,52 @@ mod headless_tests {
         assert_eq!(sim2.pokedex_seen.len(), 2);
         assert_eq!(sim2.pokedex_caught.len(), 1);
         assert!(matches!(sim2.phase, GamePhase::Overworld));
+    }
+
+    #[test]
+    fn test_struggle_available_when_all_pp_zero() {
+        // Verify MOVE_STRUGGLE exists in the move database
+        let struggle = get_move(MOVE_STRUGGLE);
+        assert!(struggle.is_some(), "Struggle move must exist in MOVE_DB");
+        let s = struggle.unwrap();
+        assert_eq!(s.power, 50);
+        assert_eq!(s.accuracy, 255); // Never misses
+        assert_eq!(s.name, "Struggle");
+    }
+
+    #[test]
+    fn test_freeze_thaw_chance() {
+        // Verify try_thaw works: 10% chance with rng_roll < 0.1
+        let mut pkmn = Pokemon::new(CYNDAQUIL, 10);
+        pkmn.status = StatusCondition::Freeze;
+        assert!(!pkmn.can_move(), "Frozen Pokemon cannot move");
+
+        // Roll of 0.05 should thaw (< 0.1)
+        assert!(pkmn.try_thaw(0.05), "Should thaw with roll 0.05");
+        assert_eq!(pkmn.status, StatusCondition::None);
+        assert!(pkmn.can_move(), "Thawed Pokemon can move");
+
+        // Test that roll >= 0.1 doesn't thaw
+        pkmn.status = StatusCondition::Freeze;
+        assert!(!pkmn.try_thaw(0.15), "Should NOT thaw with roll 0.15");
+        assert!(matches!(pkmn.status, StatusCondition::Freeze));
+    }
+
+    #[test]
+    fn test_status_moves_inflict_status() {
+        // Verify that try_inflict_status works for status moves (power=0)
+        let mut target = Pokemon::new(PIDGEY, 10);
+        assert!(matches!(target.status, StatusCondition::None));
+
+        // Thunder Wave should inflict paralysis (guaranteed for status moves)
+        try_inflict_status(&mut target, MOVE_THUNDER_WAVE, 0.5);
+        assert!(matches!(target.status, StatusCondition::Paralysis),
+            "Thunder Wave should inflict Paralysis, got {:?}", target.status);
+
+        // Hypnosis on a fresh target should inflict sleep
+        let mut target2 = Pokemon::new(PIDGEY, 10);
+        try_inflict_status(&mut target2, MOVE_HYPNOSIS, 0.5);
+        assert!(matches!(target2.status, StatusCondition::Sleep { .. }),
+            "Hypnosis should inflict Sleep, got {:?}", target2.status);
     }
 }

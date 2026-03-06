@@ -3548,6 +3548,9 @@ impl Simulation for PokemonSim {
             engine.global_state.set_f64("lead_level", lead.level as f64);
             engine.global_state.set_f64("lead_species", lead.species_id as f64);
         }
+        // Music state for JS playback
+        engine.global_state.set_f64("music_id", self.current_map.music_id as f64);
+        engine.global_state.set_str("map_name", self.current_map.name);
     }
 
     fn render(&self, engine: &mut Engine) {

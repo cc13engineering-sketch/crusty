@@ -126,6 +126,7 @@ enum GamePhase {
     Healing { timer: f64 },
     Evolution { timer: f64, new_species: SpeciesId },
     TrainerApproach { npc_idx: u8, timer: f64 },
+    Credits { scroll_y: f64 },
 }
 
 // ─── Battle Phase ───────────────────────────────────────
@@ -229,6 +230,7 @@ enum DialogueAction {
     StartTrainerBattle { team: Vec<(SpeciesId, u8)> },
     OpenMart,
     GiveBadge { badge_num: u8 },
+    Credits,
 }
 
 // ─── Player State ───────────────────────────────────────
@@ -294,6 +296,10 @@ pub struct PokemonSim {
     approach_npc_y: i32,
     approach_walk_offset: f64,
     approach_exclaim_timer: f64,
+    // Save system
+    needs_save: bool,
+    last_rng_state: u64,
+    has_save: bool,
 }
 
 impl PokemonSim {
@@ -352,6 +358,9 @@ impl PokemonSim {
             approach_npc_y: 0,
             approach_walk_offset: 0.0,
             approach_exclaim_timer: 0.0,
+            needs_save: false,
+            last_rng_state: 0,
+            has_save: false,
         }
     }
 
@@ -402,6 +411,344 @@ impl PokemonSim {
         let vh = (VIEW_TILES_Y * TILE_PX) as f64;
         self.camera_x = target_x.max(0.0).min((map_pw - vw).max(0.0));
         self.camera_y = target_y.max(0.0).min((map_ph - vh).max(0.0));
+        // Auto-save on every map transition
+        self.needs_save = true;
+    }
+
+    // ─── Save System ─────────────────────────────────────
+
+    fn serialize_save(&self) -> String {
+        // Build party JSON array
+        let mut party_json = String::from("[");
+        for (i, p) in self.party.iter().enumerate() {
+            if i > 0 { party_json.push(','); }
+            let moves_json = format!("[{},{},{},{}]",
+                p.moves[0].unwrap_or(0), p.moves[1].unwrap_or(0),
+                p.moves[2].unwrap_or(0), p.moves[3].unwrap_or(0));
+            let pp_json = format!("[{},{},{},{}]", p.move_pp[0], p.move_pp[1], p.move_pp[2], p.move_pp[3]);
+            let max_pp_json = format!("[{},{},{},{}]", p.move_max_pp[0], p.move_max_pp[1], p.move_max_pp[2], p.move_max_pp[3]);
+            let status_val = match p.status {
+                StatusCondition::None => 0u8,
+                StatusCondition::Poison => 1,
+                StatusCondition::Burn => 2,
+                StatusCondition::Paralysis => 3,
+                StatusCondition::Sleep { turns } => 4 + turns,
+                StatusCondition::Freeze => 10,
+            };
+            party_json.push_str(&format!(
+                "{{\"s\":{},\"l\":{},\"hp\":{},\"mhp\":{},\"exp\":{},\"mv\":{},\"pp\":{},\"mpp\":{},\"st\":{}}}",
+                p.species_id, p.level, p.hp, p.max_hp, p.exp, moves_json, pp_json, max_pp_json, status_val
+            ));
+        }
+        party_json.push(']');
+
+        // Build PC JSON array
+        let mut pc_json = String::from("[");
+        for (i, p) in self.pc_boxes.iter().enumerate() {
+            if i > 0 { pc_json.push(','); }
+            let moves_json = format!("[{},{},{},{}]",
+                p.moves[0].unwrap_or(0), p.moves[1].unwrap_or(0),
+                p.moves[2].unwrap_or(0), p.moves[3].unwrap_or(0));
+            let pp_json = format!("[{},{},{},{}]", p.move_pp[0], p.move_pp[1], p.move_pp[2], p.move_pp[3]);
+            let max_pp_json = format!("[{},{},{},{}]", p.move_max_pp[0], p.move_max_pp[1], p.move_max_pp[2], p.move_max_pp[3]);
+            pc_json.push_str(&format!(
+                "{{\"s\":{},\"l\":{},\"hp\":{},\"mhp\":{},\"exp\":{},\"mv\":{},\"pp\":{},\"mpp\":{},\"st\":0}}",
+                p.species_id, p.level, p.hp, p.max_hp, p.exp, moves_json, pp_json, max_pp_json
+            ));
+        }
+        pc_json.push(']');
+
+        // Build defeated trainers JSON array
+        let mut defeated_json = String::from("[");
+        for (i, (map_id, npc_idx)) in self.defeated_trainers.iter().enumerate() {
+            if i > 0 { defeated_json.push(','); }
+            defeated_json.push_str(&format!("[\"{}\",{}]", map_id.to_str(), npc_idx));
+        }
+        defeated_json.push(']');
+
+        // Build bag JSON array
+        let mut bag_json = String::from("[");
+        for (i, (item_id, qty)) in self.bag.items.iter().enumerate() {
+            if i > 0 { bag_json.push(','); }
+            bag_json.push_str(&format!("[{},{}]", item_id, qty));
+        }
+        bag_json.push(']');
+
+        // Build seen/caught arrays
+        let seen_json = format!("{:?}", self.pokedex_seen);
+        let caught_json = format!("{:?}", self.pokedex_caught);
+
+        let facing = match self.player.facing {
+            Direction::Up => 0, Direction::Down => 1, Direction::Left => 2, Direction::Right => 3,
+        };
+
+        format!(
+            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"repel\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
+            self.current_map_id.to_str(),
+            self.player.x, self.player.y, facing,
+            self.money, self.badges, self.total_time, self.last_rng_state,
+            self.step_count, self.rival_starter,
+            self.rival_battle_done, self.has_starter,
+            self.last_pokecenter_map.to_str(), self.last_house_map.to_str(),
+            self.repel_steps,
+            party_json, pc_json, defeated_json, bag_json,
+            seen_json, caught_json,
+        )
+    }
+
+    fn load_from_save(&mut self, json: &str) {
+        // Minimal JSON parser — we control the format so this works.
+        // Extract string field: "key":"value"
+        fn get_str<'a>(json: &'a str, key: &str) -> &'a str {
+            let needle = format!("\"{}\":\"", key);
+            if let Some(start) = json.find(&needle) {
+                let rest = &json[start + needle.len()..];
+                if let Some(end) = rest.find('"') {
+                    return &rest[..end];
+                }
+            }
+            ""
+        }
+        // Extract number field: "key":number
+        fn get_num(json: &str, key: &str) -> f64 {
+            let needle = format!("\"{}\":", key);
+            if let Some(start) = json.find(&needle) {
+                let rest = &json[start + needle.len()..];
+                let end = rest.find(|c: char| !c.is_ascii_digit() && c != '.' && c != '-').unwrap_or(rest.len());
+                rest[..end].parse().unwrap_or(0.0)
+            } else {
+                0.0
+            }
+        }
+        // Extract bool field: "key":true/false
+        fn get_bool(json: &str, key: &str) -> bool {
+            let needle = format!("\"{}\":true", key);
+            json.contains(&needle)
+        }
+        // Extract array between balanced brackets starting after "key":[
+        fn get_array<'a>(json: &'a str, key: &str) -> &'a str {
+            let needle = format!("\"{}\":[", key);
+            if let Some(start) = json.find(&needle) {
+                let arr_start = start + needle.len() - 1; // include the [
+                let bytes = json.as_bytes();
+                let mut depth = 0;
+                for i in arr_start..bytes.len() {
+                    match bytes[i] {
+                        b'[' => depth += 1,
+                        b']' => {
+                            depth -= 1;
+                            if depth == 0 {
+                                return &json[arr_start..=i];
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            "[]"
+        }
+
+        // Parse map
+        let map_str = get_str(json, "map");
+        let map_id = MapId::from_str(map_str).unwrap_or(MapId::NewBarkTown);
+
+        self.current_map_id = map_id;
+        self.current_map = load_map(map_id);
+        self.player.x = get_num(json, "x") as i32;
+        self.player.y = get_num(json, "y") as i32;
+        self.player.facing = match get_num(json, "facing") as u8 {
+            0 => Direction::Up, 2 => Direction::Left, 3 => Direction::Right,
+            _ => Direction::Down,
+        };
+        self.money = get_num(json, "money") as u32;
+        self.badges = get_num(json, "badges") as u8;
+        self.total_time = get_num(json, "time");
+        self.last_rng_state = get_num(json, "rng") as u64;
+        self.step_count = get_num(json, "steps") as u32;
+        self.rival_starter = get_num(json, "rival_starter") as u16;
+        self.rival_battle_done = get_bool(json, "rival_done");
+        self.has_starter = get_bool(json, "has_starter");
+        self.last_pokecenter_map = MapId::from_str(get_str(json, "last_pc")).unwrap_or(MapId::CherrygroveCity);
+        self.last_house_map = MapId::from_str(get_str(json, "last_house")).unwrap_or(MapId::NewBarkTown);
+        self.repel_steps = get_num(json, "repel") as u32;
+
+        // Parse party: array of pokemon objects
+        let party_arr = get_array(json, "party");
+        self.party.clear();
+        // Split on "},{" to separate Pokemon objects
+        let inner = &party_arr[1..party_arr.len()-1]; // strip outer []
+        if !inner.is_empty() {
+            for obj_str in inner.split("},{") {
+                let obj = if obj_str.starts_with('{') { obj_str.to_string() }
+                    else { format!("{{{}", obj_str) };
+                let obj = if obj.ends_with('}') { obj } else { format!("{}}}", obj) };
+                let species = get_num(&obj, "s") as u16;
+                let level = get_num(&obj, "l") as u8;
+                let hp = get_num(&obj, "hp") as u16;
+                let max_hp = get_num(&obj, "mhp") as u16;
+                let exp = get_num(&obj, "exp") as u32;
+                let status_val = get_num(&obj, "st") as u8;
+
+                let mut pkmn = Pokemon::new(species, level);
+                pkmn.hp = hp;
+                pkmn.max_hp = max_hp;
+                pkmn.exp = exp;
+                pkmn.status = match status_val {
+                    0 => StatusCondition::None,
+                    1 => StatusCondition::Poison,
+                    2 => StatusCondition::Burn,
+                    3 => StatusCondition::Paralysis,
+                    10 => StatusCondition::Freeze,
+                    t if t >= 4 => StatusCondition::Sleep { turns: t - 4 },
+                    _ => StatusCondition::None,
+                };
+
+                // Parse moves array
+                let mv_arr = get_array(&obj, "mv");
+                let mv_inner = &mv_arr[1..mv_arr.len()-1];
+                let mvs: Vec<u16> = mv_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 {
+                    pkmn.moves[i] = mvs.get(i).copied().filter(|&m| m > 0).map(|m| m as MoveId);
+                }
+
+                // Parse PP arrays
+                let pp_arr = get_array(&obj, "pp");
+                let pp_inner = &pp_arr[1..pp_arr.len()-1];
+                let pps: Vec<u8> = pp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 {
+                    pkmn.move_pp[i] = pps.get(i).copied().unwrap_or(0);
+                }
+
+                let mpp_arr = get_array(&obj, "mpp");
+                let mpp_inner = &mpp_arr[1..mpp_arr.len()-1];
+                let mpps: Vec<u8> = mpp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 {
+                    pkmn.move_max_pp[i] = mpps.get(i).copied().unwrap_or(0);
+                }
+
+                self.party.push(pkmn);
+            }
+        }
+
+        // Parse PC boxes (same format as party)
+        let pc_arr = get_array(json, "pc");
+        self.pc_boxes.clear();
+        let pc_inner = &pc_arr[1..pc_arr.len()-1];
+        if !pc_inner.is_empty() {
+            for obj_str in pc_inner.split("},{") {
+                let obj = if obj_str.starts_with('{') { obj_str.to_string() }
+                    else { format!("{{{}", obj_str) };
+                let obj = if obj.ends_with('}') { obj } else { format!("{}}}", obj) };
+                let species = get_num(&obj, "s") as u16;
+                let level = get_num(&obj, "l") as u8;
+                let mut pkmn = Pokemon::new(species, level);
+                pkmn.hp = get_num(&obj, "hp") as u16;
+                pkmn.max_hp = get_num(&obj, "mhp") as u16;
+                pkmn.exp = get_num(&obj, "exp") as u32;
+                let mv_arr = get_array(&obj, "mv");
+                let mv_inner = &mv_arr[1..mv_arr.len()-1];
+                let mvs: Vec<u16> = mv_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 {
+                    pkmn.moves[i] = mvs.get(i).copied().filter(|&m| m > 0).map(|m| m as MoveId);
+                }
+                let pp_arr = get_array(&obj, "pp");
+                let pp_inner = &pp_arr[1..pp_arr.len()-1];
+                let pps: Vec<u8> = pp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 { pkmn.move_pp[i] = pps.get(i).copied().unwrap_or(0); }
+                let mpp_arr = get_array(&obj, "mpp");
+                let mpp_inner = &mpp_arr[1..mpp_arr.len()-1];
+                let mpps: Vec<u8> = mpp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                for i in 0..4 { pkmn.move_max_pp[i] = mpps.get(i).copied().unwrap_or(0); }
+                self.pc_boxes.push(pkmn);
+            }
+        }
+
+        // Parse defeated trainers: [["MapStr",idx],...]
+        let def_arr = get_array(json, "defeated");
+        self.defeated_trainers.clear();
+        let def_inner = &def_arr[1..def_arr.len()-1];
+        if !def_inner.is_empty() {
+            // Each entry is ["MapName",idx]
+            let mut i = 0;
+            let bytes = def_inner.as_bytes();
+            while i < bytes.len() {
+                if bytes[i] == b'[' {
+                    // Find the string value
+                    if let Some(q1) = def_inner[i..].find('"') {
+                        let rest = &def_inner[i + q1 + 1..];
+                        if let Some(q2) = rest.find('"') {
+                            let map_name = &rest[..q2];
+                            let after = &rest[q2 + 1..];
+                            if let Some(comma) = after.find(',') {
+                                let num_str = &after[comma + 1..];
+                                let end = num_str.find(']').unwrap_or(num_str.len());
+                                if let Ok(npc_idx) = num_str[..end].trim().parse::<u8>() {
+                                    if let Some(mid) = MapId::from_str(map_name) {
+                                        self.defeated_trainers.push((mid, npc_idx));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Skip to next entry
+                    if let Some(close) = def_inner[i..].find(']') {
+                        i += close + 1;
+                    } else {
+                        break;
+                    }
+                } else {
+                    i += 1;
+                }
+            }
+        }
+
+        // Parse bag: [[item_id, qty],...]
+        let bag_arr = get_array(json, "bag");
+        self.bag.items.clear();
+        let bag_inner = &bag_arr[1..bag_arr.len()-1];
+        if !bag_inner.is_empty() {
+            for chunk in bag_inner.split("],[") {
+                let clean = chunk.trim_start_matches('[').trim_end_matches(']');
+                let parts: Vec<&str> = clean.split(',').collect();
+                if parts.len() == 2 {
+                    if let (Ok(id), Ok(qty)) = (parts[0].trim().parse::<u8>(), parts[1].trim().parse::<u8>()) {
+                        self.bag.items.push((id, qty));
+                    }
+                }
+            }
+        }
+
+        // Parse seen/caught arrays: [id1,id2,...]
+        let seen_arr = get_array(json, "seen");
+        self.pokedex_seen.clear();
+        let seen_inner = &seen_arr[1..seen_arr.len()-1];
+        for s in seen_inner.split(',') {
+            if let Ok(id) = s.trim().parse::<u16>() {
+                self.pokedex_seen.push(id);
+            }
+        }
+
+        let caught_arr = get_array(json, "caught");
+        self.pokedex_caught.clear();
+        let caught_inner = &caught_arr[1..caught_arr.len()-1];
+        for s in caught_inner.split(',') {
+            if let Ok(id) = s.trim().parse::<u16>() {
+                self.pokedex_caught.push(id);
+            }
+        }
+
+        // Snap camera
+        let target_x = self.player.x as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_X * TILE_PX / 2) as f64;
+        let target_y = self.player.y as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_Y * TILE_PX / 2) as f64;
+        let map_pw = (self.current_map.width as i32 * TILE_PX) as f64;
+        let map_ph = (self.current_map.height as i32 * TILE_PX) as f64;
+        let vw = (VIEW_TILES_X * TILE_PX) as f64;
+        let vh = (VIEW_TILES_Y * TILE_PX) as f64;
+        self.camera_x = target_x.max(0.0).min((map_pw - vw).max(0.0));
+        self.camera_y = target_y.max(0.0).min((map_ph - vh).max(0.0));
+
+        // Set phase to overworld since we've loaded a valid save
+        self.phase = GamePhase::Overworld;
     }
 
     /// Trigger rival battle event (called from step_overworld)
@@ -1391,6 +1738,18 @@ impl PokemonSim {
                             if pending_evo > 0 {
                                 engine.global_state.set_f64("pending_evolution", 0.0);
                                 self.phase = GamePhase::Evolution { timer: 0.0, new_species: pending_evo };
+                            } else if map_id == MapId::ChampionLance && npc_idx == 0 {
+                                // Beat the Champion → credits!
+                                self.dialogue = Some(DialogueState {
+                                    lines: vec![
+                                        format!("Got ${} for winning!", reward),
+                                        "Congratulations!".to_string(),
+                                        "You are the new POKEMON CHAMPION!".to_string(),
+                                    ],
+                                    current_line: 0, char_index: 0, timer: 0.0,
+                                    on_complete: DialogueAction::Credits,
+                                });
+                                self.phase = GamePhase::Dialogue;
                             } else {
                                 // Check if this was a gym leader battle
                                 let badge_action = match (map_id, npc_idx) {
@@ -1675,6 +2034,9 @@ impl PokemonSim {
                         on_complete: DialogueAction::None,
                     });
                     self.phase = GamePhase::Dialogue;
+                }
+                DialogueAction::Credits => {
+                    self.phase = GamePhase::Credits { scroll_y: 0.0 };
                 }
                 DialogueAction::StartTrainerBattle { team } => {
                     if let Some(&(species, level)) = team.first() {
@@ -2010,6 +2372,8 @@ impl PokemonSim {
 
         let gold = Color::from_rgba(248, 208, 48, 255);
         let shadow = Color::from_rgba(128, 80, 0, 255);
+        let white = Color::from_rgba(248, 248, 248, 255);
+        let dim = Color::from_rgba(160, 160, 180, 255);
 
         draw_text_shadowed(fb, ctx, "POKEMON", 40, 25, gold, shadow);
         draw_text_shadowed(fb, ctx, "GOLD VERSION", 25, 45,
@@ -2017,12 +2381,23 @@ impl PokemonSim {
 
         fill_rect_v(fb, ctx, 20, 58, 120, 1, Color::from_rgba(248, 208, 48, 128));
 
-        if (self.title_blink_timer * 2.0) as u32 % 2 == 0 {
-            draw_text_pkmn(fb, ctx, "PRESS START", 32, 100, Color::from_rgba(248, 248, 248, 255));
+        if self.has_save {
+            // Show CONTINUE / NEW GAME menu
+            let continue_color = if self.menu_cursor == 0 { white } else { dim };
+            let new_color = if self.menu_cursor == 1 { white } else { dim };
+            draw_text_pkmn(fb, ctx, "CONTINUE", 50, 80, continue_color);
+            draw_text_pkmn(fb, ctx, "NEW GAME", 50, 100, new_color);
+            // Draw cursor arrow
+            let cursor_y = if self.menu_cursor == 0 { 80 } else { 100 };
+            draw_cursor(fb, ctx, 38, cursor_y, gold);
+        } else {
+            if (self.title_blink_timer * 2.0) as u32 % 2 == 0 {
+                draw_text_pkmn(fb, ctx, "PRESS START", 32, 100, white);
+            }
         }
 
         draw_text_pkmn(fb, ctx, "CRUSTY ENGINE", 28, 125, Color::from_rgba(120, 120, 140, 255));
-        draw_text_pkmn(fb, ctx, "V0.1", 65, 135, Color::from_rgba(80, 80, 100, 255));
+        draw_text_pkmn(fb, ctx, "V0.2", 65, 135, Color::from_rgba(80, 80, 100, 255));
     }
 
     fn render_starter_select(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
@@ -3202,6 +3577,62 @@ impl PokemonSim {
 
         draw_text_pkmn(fb, ctx, "PRESS Z", 50, 130, Color::from_rgba(120, 120, 140, 255));
     }
+
+    fn render_credits(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, scroll_y: f64) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        fill_virtual_screen(fb, ctx, Color::from_rgba(0, 0, 0, 255));
+
+        let white = Color::from_rgba(248, 248, 248, 255);
+        let gold = Color::from_rgba(248, 208, 48, 255);
+        let silver = Color::from_rgba(180, 180, 200, 255);
+
+        let lines: &[(&str, Color)] = &[
+            ("POKEMON", gold),
+            ("Gold Version", gold),
+            ("", white),
+            ("CONGRATULATIONS!", white),
+            ("", white),
+            ("Hall of Fame", gold),
+            ("", white),
+            ("Champion:", silver),
+            ("", white), // party line placeholder
+            ("", white),
+            ("Game Freak", gold),
+            ("Director", silver),
+            ("Satoshi Tajiri", white),
+            ("", white),
+            ("Built on", silver),
+            ("Crusty Engine", gold),
+            ("", white),
+            ("Thanks for", silver),
+            ("playing!", silver),
+            ("", white),
+            ("THE END", gold),
+        ];
+
+        // Insert party pokemon names
+        let party_str: String = self.party.iter().take(6).map(|p| {
+            format!("Lv{} {}", p.level, p.name())
+        }).collect::<Vec<_>>().join(", ");
+
+        let base_y = 144.0 - scroll_y;
+        let line_h = 14.0;
+
+        for (i, &(text, color)) in lines.iter().enumerate() {
+            let y = base_y + (i as f64 * line_h);
+            if y < -10.0 || y > 154.0 { continue; }
+            if i == 8 {
+                // Render party line instead
+                let trunc = if party_str.len() > 24 { &party_str[..24] } else { &party_str };
+                draw_text_pkmn(fb, ctx, trunc, 4, y as i32, silver);
+            } else if !text.is_empty() {
+                // Center text (rough: 6px per char)
+                let w = text.len() as i32 * 6;
+                let x = (160 - w) / 2;
+                draw_text_pkmn(fb, ctx, text, x.max(4), y as i32, color);
+            }
+        }
+    }
 }
 
 fn status_text(s: &StatusCondition) -> &'static str {
@@ -3336,17 +3767,67 @@ impl Simulation for PokemonSim {
 
     fn step(&mut self, engine: &mut Engine) {
         self.frame_count += 1;
+        // Capture RNG state for save system
+        self.last_rng_state = engine.rng.state;
+
+        // Auto-save: push to persist queue when flagged
+        if self.needs_save && !matches!(self.phase, GamePhase::TitleScreen | GamePhase::Credits { .. }) {
+            self.needs_save = false;
+            let save_json = self.serialize_save();
+            engine.persist_queue.push(
+                crate::chord_reps::persist::PersistCommand::Store {
+                    key: "pokemon_save".to_string(),
+                    value: save_json,
+                }
+            );
+        }
 
         match self.phase.clone() {
             GamePhase::TitleScreen => {
                 self.title_blink_timer += 1.0 / 60.0;
-                let start = is_confirm(engine);
-                if start {
-                    engine.global_state.set_str("game_phase", "overworld");
-                    if !self.has_starter {
-                        self.change_map(MapId::ElmLab, 5, 8);
+                let has_save = !engine.global_state.get_str("pokemon_save").unwrap_or("").is_empty();
+                self.has_save = has_save;
+
+                if has_save {
+                    // Two options: CONTINUE (cursor 0) or NEW GAME (cursor 1)
+                    if is_down(engine) && self.menu_cursor == 0 {
+                        self.menu_cursor = 1;
+                    } else if is_up(engine) && self.menu_cursor == 1 {
+                        self.menu_cursor = 0;
                     }
-                    self.phase = GamePhase::Overworld;
+                    if is_confirm(engine) {
+                        if self.menu_cursor == 0 {
+                            // CONTINUE — load save
+                            let save_str = engine.global_state.get_str("pokemon_save").unwrap_or("").to_string();
+                            if !save_str.is_empty() {
+                                self.load_from_save(&save_str);
+                                engine.rng.state = self.last_rng_state;
+                                engine.global_state.set_str("game_phase", "overworld");
+                            }
+                        } else {
+                            // NEW GAME — clear save
+                            engine.persist_queue.push(
+                                crate::chord_reps::persist::PersistCommand::Store {
+                                    key: "pokemon_save".to_string(),
+                                    value: String::new(),
+                                }
+                            );
+                            engine.global_state.set_str("pokemon_save", "");
+                            engine.global_state.set_str("game_phase", "overworld");
+                            self.change_map(MapId::ElmLab, 5, 8);
+                            self.phase = GamePhase::Overworld;
+                        }
+                    }
+                } else {
+                    // No save — original behavior: press Z to start
+                    let start = is_confirm(engine);
+                    if start {
+                        engine.global_state.set_str("game_phase", "overworld");
+                        if !self.has_starter {
+                            self.change_map(MapId::ElmLab, 5, 8);
+                        }
+                        self.phase = GamePhase::Overworld;
+                    }
                 }
             }
 
@@ -3514,6 +3995,18 @@ impl Simulation for PokemonSim {
                     self.phase = GamePhase::Evolution { timer: t, new_species };
                 }
             }
+
+            GamePhase::Credits { scroll_y } => {
+                let scroll_speed = if is_confirm(engine) { 1.5 } else { 0.5 };
+                let new_y = scroll_y + scroll_speed;
+                // Credits text is ~20 lines × 12px = 240px. After scrolling past all text + screen height, return to title.
+                if new_y > 144.0 + 300.0 {
+                    self.phase = GamePhase::TitleScreen;
+                    engine.global_state.set_str("game_phase", "title");
+                } else {
+                    self.phase = GamePhase::Credits { scroll_y: new_y };
+                }
+            }
         }
 
         // Decay screen effects
@@ -3578,6 +4071,7 @@ impl Simulation for PokemonSim {
                 // Render overworld, then draw "!" above approaching trainer
                 self.render_overworld_with_approach(fb, *npc_idx);
             }
+            GamePhase::Credits { scroll_y } => self.render_credits(fb, *scroll_y),
         }
 
         // Screen flash overlay (white flash for attacks)
@@ -3829,5 +4323,87 @@ mod headless_tests {
             RunConfig { turbo: true, capture_state_hashes: false },
         );
         assert_eq!(result.get_f64("money"), Some(3000.0));
+    }
+
+    #[test]
+    fn test_save_load_roundtrip() {
+        use crate::pokemon::data::Pokemon;
+        use crate::pokemon::maps::{MapId, Direction};
+
+        let mut sim = PokemonSim::new();
+        // Set up a realistic game state
+        sim.has_starter = true;
+        sim.money = 12345;
+        sim.badges = 0b00001111; // 4 badges
+        sim.step_count = 500;
+        sim.rival_starter = CYNDAQUIL;
+        sim.rival_battle_done = true;
+        sim.total_time = 7200.0;
+        sim.last_rng_state = 42424242;
+        sim.current_map_id = MapId::GoldenrodCity;
+        sim.current_map = load_map(MapId::GoldenrodCity);
+        sim.player.x = 10;
+        sim.player.y = 7;
+        sim.player.facing = Direction::Left;
+        sim.last_pokecenter_map = MapId::GoldenrodCity;
+        sim.last_house_map = MapId::EcruteakCity;
+
+        // Add party Pokemon
+        let mut p1 = Pokemon::new(CYNDAQUIL, 25);
+        p1.hp = 50;
+        sim.party.push(p1);
+        let p2 = Pokemon::new(PIDGEY, 18);
+        sim.party.push(p2);
+
+        // Add a defeated trainer
+        sim.defeated_trainers.push((MapId::VioletGym, 0));
+        sim.defeated_trainers.push((MapId::AzaleaGym, 0));
+
+        // Add bag items
+        sim.bag.add_item(1, 5); // 5 Potions
+        sim.bag.add_item(4, 2); // 2 Pokeballs
+
+        // Add pokedex entries
+        sim.pokedex_seen.push(CYNDAQUIL);
+        sim.pokedex_seen.push(PIDGEY);
+        sim.pokedex_caught.push(CYNDAQUIL);
+
+        // Serialize
+        let json = sim.serialize_save();
+        assert!(json.contains("\"map\":\"GoldenrodCity\""));
+        assert!(json.contains("\"money\":12345"));
+        assert!(json.contains("\"badges\":15"));
+
+        // Create a fresh sim and load the save
+        let mut sim2 = PokemonSim::new();
+        sim2.load_from_save(&json);
+
+        // Verify all fields restored
+        assert_eq!(sim2.current_map_id, MapId::GoldenrodCity);
+        assert_eq!(sim2.player.x, 10);
+        assert_eq!(sim2.player.y, 7);
+        assert_eq!(sim2.player.facing, Direction::Left);
+        assert_eq!(sim2.money, 12345);
+        assert_eq!(sim2.badges, 0b00001111);
+        assert_eq!(sim2.step_count, 500);
+        assert_eq!(sim2.rival_starter, CYNDAQUIL);
+        assert!(sim2.rival_battle_done);
+        assert!(sim2.has_starter);
+        assert_eq!(sim2.last_rng_state, 42424242);
+        assert_eq!(sim2.last_pokecenter_map, MapId::GoldenrodCity);
+        assert_eq!(sim2.last_house_map, MapId::EcruteakCity);
+        assert_eq!(sim2.party.len(), 2);
+        assert_eq!(sim2.party[0].species_id, CYNDAQUIL);
+        assert_eq!(sim2.party[0].level, 25);
+        assert_eq!(sim2.party[0].hp, 50);
+        assert_eq!(sim2.party[1].species_id, PIDGEY);
+        assert_eq!(sim2.party[1].level, 18);
+        assert_eq!(sim2.defeated_trainers.len(), 2);
+        assert_eq!(sim2.defeated_trainers[0], (MapId::VioletGym, 0));
+        assert_eq!(sim2.defeated_trainers[1], (MapId::AzaleaGym, 0));
+        assert_eq!(sim2.bag.items.len(), 2);
+        assert_eq!(sim2.pokedex_seen.len(), 2);
+        assert_eq!(sim2.pokedex_caught.len(), 1);
+        assert!(matches!(sim2.phase, GamePhase::Overworld));
     }
 }

@@ -211,6 +211,7 @@
             get_game_state_f64, get_game_state_str,
             setup_test_pokemon,
             set_url_param,
+            set_game_state_str,
             drain_sound_commands,
             drain_persist_commands,
             browser_state_ptr, browser_state_len
@@ -498,6 +499,12 @@
                 set_url_param(k, v);
             }
 
+            // Load save data from localStorage into global_state before sim init
+            const saveData = localStorage.getItem('pokemon_save');
+            if (saveData) {
+                set_game_state_str('pokemon_save', saveData);
+            }
+
             setup_test_pokemon();
 
             const updateBrowserState = initBrowserState(memory, browser_state_ptr, browser_state_len, {
@@ -528,7 +535,22 @@
                     }
                 } catch(e) {}
 
-                drain_persist_commands();
+                // Process persist commands (save to localStorage)
+                try {
+                    const persistJson = drain_persist_commands();
+                    if (persistJson && persistJson !== '[]') {
+                        const cmds = JSON.parse(persistJson);
+                        for (const cmd of cmds) {
+                            if (cmd.type === 'Store') {
+                                if (cmd.value) {
+                                    localStorage.setItem(cmd.key, cmd.value);
+                                } else {
+                                    localStorage.removeItem(cmd.key);
+                                }
+                            }
+                        }
+                    }
+                } catch(e) { console.warn('persist error', e); }
 
                 // --- Render WASM framebuffer ---
                 const ptr = framebuffer_ptr();

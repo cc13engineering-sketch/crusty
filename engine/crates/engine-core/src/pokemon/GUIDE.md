@@ -472,3 +472,19 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Phase 7 (Save System) COMPLETE**
 - **Phase 8 (Credits) COMPLETE**
 - **Next (Sprint 62)**: Phase 5 move effects (secondary effects), Phase 0C story flags
+
+### Sprint 62 (Content — Secondary Move Effects)
+- **Phase 5 Priority 1**: Expanded `try_inflict_status` with Gen 2 secondary effects:
+  - 10% burn (Flamethrower, Fire Blast, Flame Wheel, Fire Punch), 10% freeze (Ice Beam, Blizzard, Powder Snow, Ice Punch)
+  - 10% paralysis (Thunderbolt), 30% paralysis (Body Slam, Twister), 30% poison (Sludge)
+  - 20% tri-status (Tri Attack), sleep/para/poison status moves
+- New `damaging_move_stat_effect`: Psychic/Shadow Ball/Crunch SpDef drops, Acid/Iron Tail Def drops, Aurora Beam Atk drop, Bubblebeam Speed drop, Steel Wing user Def boost, Mud Slap/Icy Wind guaranteed stat drops
+- **New flinch mechanic**: Headbutt/Bite/Stomp/Rock Slide 30%, Twister 20%, Hyper Fang 10%
+- All 1272 tests pass
+
+### Sprint 63 (QA — Critical Bug Fixes)
+- **Fixed**: Can no longer leave Elm Lab without picking a starter (warp blocked with dialogue nudge)
+- **Fixed**: Menu opens during walk animation (cancel key checked before walk processing)
+- **Fixed**: NEW GAME fully resets all game state (party, PC, bag, badges, money, defeated trainers, pokedex)
+- All 1272 tests pass
+- **Next (Sprint 64)**: Phase 0C story flags, Phase 5 Priority 2 status moves (Haze, Toxic, Confuse Ray), or more content

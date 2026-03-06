@@ -330,4 +330,23 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 
 **Added:** OlivineLighthouse (10x12) — Jasmine+Amphy at top, 4 trainers (Sailor, Gentleman, Lass, Bird Keeper). OlivineCity lighthouse door now warps to OlivineLighthouse.
 - **Total: 34 maps, 5 badges, ~87 species, ~114 moves**
-- **Next sprint (45)**: Continue Phase 2 — Route 40, Cianwood City, Cianwood Gym (Chuck, Storm Badge)
+
+### Sprint 45 (QA)
+- Comprehensive warp audit across all 34 maps — all warps verified correct
+- Fixed Faint Attack accuracy: 100→255 (never-miss sentinel, matching Gen 2 convention)
+- Added accuracy >= 255 bypass in both player and enemy accuracy check paths
+- Added 7 new species: Mankey, Primeape, Poliwrath, Tentacool, Tentacruel, Machoke, Machamp
+- Added 6 new moves: Cross Chop, Submission, DynamicPunch, Surf, Constrict, Wrap
+- Fixed constant name mismatches: MOVE_DOUBLE_SLAP→MOVE_DOUBLESLAP, MOVE_BUBBLE_BEAM→MOVE_BUBBLEBEAM
+- Updated ENGINE_POKEMON.md with Sprint 45 data
+- **Total: 34 maps, 5 badges, ~94 species, ~120 moves**
+
+### Sprint 46 (Content)
+- Route 40 (8x20): Pier walkway over ocean (Surf not implemented), 3 swimmer trainers, Tentacool/Tentacruel/Krabby encounters
+- Cianwood City (20x14): Gym, Pharmacy, PokemonCenter, 2 houses, 5 NPCs with mart
+- Cianwood Gym (10x10): Chuck — Primeape lv27, Poliwrath lv30, 2 Blackbelt trainers. Storm Badge (#6)
+- OlivineCity south exit warps to Route40, all bidirectional warps verified
+- Dynamic exits for CianwoodCity PokemonCenter and GenericHouse in mod.rs
+- All 34 tests pass
+- **Total: 37 maps, 6 badges, ~94 species, ~120 moves**
+- **Next sprint (47)**: Route 42, Mahogany Town, Mahogany Gym (Pryce, Glacier Badge)

@@ -95,6 +95,12 @@ const GRAVELER: u16 = 75;
 const GLIGAR: u16 = 207;
 const TEDDIURSA: u16 = 216;
 const SKARMORY: u16 = 227;
+const PONYTA: u16 = 77;
+const SANDSHREW: u16 = 27;
+const SANDSLASH: u16 = 28;
+const DODRIO: u16 = 85;
+const ARCANINE: u16 = 59;
+const QUAGSIRE: u16 = 195;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -185,6 +191,8 @@ pub enum MapId {
     BlackthornGym,
     Route45,
     Route46,
+    Route27,
+    Route26,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -325,6 +333,8 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::BlackthornGym => build_blackthorn_gym(),
         MapId::Route45 => build_route_45(),
         MapId::Route46 => build_route_46(),
+        MapId::Route27 => build_route_27(),
+        MapId::Route26 => build_route_26(),
     }
 }
 
@@ -379,8 +389,8 @@ fn build_new_bark_town() -> MapData {
         // Row 9: tree bottom | grass | path leads to sign
         TREE_BOTTOM, TREE_BOTTOM, GRASS, GRASS, GRASS, PATH, GRASS, GRASS, GRASS, GRASS,
         GRASS, GRASS, PATH, GRASS, GRASS, GRASS, GRASS, GRASS, SIGN, GRASS,
-        // Row 10: grass with path going right to exit
-        GRASS, GRASS, GRASS, GRASS, GRASS, PATH, PATH, PATH, PATH, PATH,
+        // Row 10: path going left to Route 27 and right to Route 29
+        PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH,
         PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH, PATH,
         // Row 11: grass area
         GRASS, GRASS, FLOWER, GRASS, GRASS, GRASS, GRASS, GRASS, GRASS, GRASS,
@@ -437,8 +447,8 @@ fn build_new_bark_town() -> MapData {
         // Row 9: trees | grass | path | sign
         C_SOLID, C_SOLID, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK,
         C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_SIGN, C_WALK,
-        // Row 10: path going right to exit (rightmost = warp to Route 29)
-        C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK,
+        // Row 10: path left→Route27 (x=0) and right→Route29 (x=19)
+        C_WARP, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK,
         C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WARP,
         // Row 11: grass
         C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK, C_WALK,
@@ -475,6 +485,8 @@ fn build_new_bark_town() -> MapData {
         WarpData { x: 17, y: 4, dest_map: MapId::ElmLab, dest_x: 4, dest_y: 8 },
         // Right edge exit -> Route 29
         WarpData { x: 19, y: 10, dest_map: MapId::Route29, dest_x: 1, dest_y: 7 },
+        // Left edge exit -> Route 27
+        WarpData { x: 0, y: 10, dest_map: MapId::Route27, dest_x: 22, dest_y: 6 },
     ];
 
     let npcs = vec![
@@ -6602,6 +6614,306 @@ fn build_route_46() -> MapData {
     MapData { id: MapId::Route46, name: "ROUTE 46", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
 }
 
+// ─── Route 27 (24x12) ──────────────────────────────────
+// Connects New Bark Town (east/right) to Route 26 (west/left).
+// Long east-west route with tall grass, trainers, and strong wild Pokemon.
+// In GSC this is east of New Bark but we have it west for map layout.
+
+fn build_route_27() -> MapData {
+    let width: usize = 24;
+    let height: usize = 12;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: trees across top
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: tree bottoms
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: trees | grass | tall grass patches
+        TREE_TOP,TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3: trees | grass corridor
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: open area with path
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,
+        GRASS,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: water edge | path
+        WATER,WATER,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,
+        GRASS,PATH,GRASS,GRASS,SIGN,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 6: water | main east-west path
+        WATER,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        // Row 7: water edge | grass
+        WATER,WATER,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: grass | tall grass
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9: grass | tall grass
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
+        TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10: tree tops along bottom
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 11: tree bottoms along bottom
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: trees | walk | tall grass
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3: trees | walk | tall grass
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4: open path area
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: water | path | sign
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6: water at x=0 | main path | right warp to NewBarkTown
+        C_WATER,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 7: water | grass
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: grass | tall grass
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9: grass | tall grass
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,
+        C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 11: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "Route27 tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "Route27 collision count mismatch");
+
+    let warps = vec![
+        // Right edge → New Bark Town (left exit)
+        WarpData { x: 23, y: 6, dest_map: MapId::NewBarkTown, dest_x: 2, dest_y: 10 },
+        // Left edge → Route 26
+        WarpData { x: 1, y: 6, dest_map: MapId::Route26, dest_x: 5, dest_y: 17 },
+    ];
+
+    let npcs = vec![
+        // Cooltrainer (female)
+        NpcDef {
+            x: 8, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &["The road ahead is long.", "Make sure your POKEMON", "are ready for battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: DODRIO, level: 30 },
+                TrainerPokemon { species_id: RATICATE, level: 30 },
+            ],
+        },
+        // Psychic (male)
+        NpcDef {
+            x: 15, y: 7, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["I can see your future...", "You will face the ELITE", "FOUR soon!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: QUAGSIRE, level: 32 },
+                TrainerPokemon { species_id: NOCTOWL, level: 32 },
+            ],
+        },
+        // Bird Keeper
+        NpcDef {
+            x: 20, y: 4, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["My birds are the", "fastest around!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: FEAROW, level: 29 },
+                TrainerPokemon { species_id: DODRIO, level: 31 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: DODUO, min_level: 28, max_level: 30, weight: 30 },
+        EncounterEntry { species_id: RATICATE, min_level: 28, max_level: 30, weight: 25 },
+        EncounterEntry { species_id: PONYTA, min_level: 28, max_level: 30, weight: 15 },
+        EncounterEntry { species_id: SANDSLASH, min_level: 28, max_level: 30, weight: 10 },
+        EncounterEntry { species_id: DODRIO, min_level: 30, max_level: 32, weight: 5 },
+        EncounterEntry { species_id: ARCANINE, min_level: 30, max_level: 30, weight: 5 },
+        EncounterEntry { species_id: QUAGSIRE, min_level: 28, max_level: 30, weight: 10 },
+    ];
+
+    MapData { id: MapId::Route27, name: "ROUTE 27", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
+// ─── Route 26 (12x20) ──────────────────────────────────
+// North-south route connecting Route 27 (south) to Victory Road (north).
+// Trainers, tall grass, path going north toward Indigo Plateau.
+
+fn build_route_26() -> MapData {
+    let width: usize = 12;
+    let height: usize = 20;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: trees across top
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: tree bottoms + gap for north exit
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: trees | pokecenter | path
+        TREE_TOP,TREE_TOP,POKECENTER_ROOF,POKECENTER_ROOF,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3: trees | pokecenter | path
+        TREE_BOTTOM,TREE_BOTTOM,POKECENTER_WALL,POKECENTER_DOOR,GRASS,PATH,GRASS,GRASS,SIGN,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: grass | path
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: tall grass | path | tall grass
+        TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 6: tall grass | path | grass
+        TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 7: grass | path winds east
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,
+        // Row 8: trees | path continues | grass
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        // Row 9: trees | path
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,
+        // Row 10: grass | path winds west
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,
+        // Row 11: tall grass | path | tall grass
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 12: tall grass | path
+        GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 13: grass | path continues south
+        GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14: trees | path | trees
+        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 15: trees | path | trees
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 16: grass | path going south
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 17: grass | path
+        GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 18: grass | path south exit area
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 19: trees along bottom
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: solid + north exit warps (y=1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: trees | pokecenter roof (solid) | walk | path
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3: trees | pokecenter wall + door | walk | sign
+        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_SOLID,C_SOLID,
+        // Row 4: walkable
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: tall grass | path
+        C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 6: tall grass | path
+        C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 7: walk | path east
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: trees | walk | path
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9: trees | walk | path
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: walk | path west
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11: walk | tall grass | path
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 12: walk | tall grass | path
+        C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 13: walk | path
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14: trees | walk | path
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 15: trees | walk | path
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 16: walk | path
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 17: walk | tall grass | path
+        C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 18: south exit warps
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 19: solid trees
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "Route26 tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "Route26 collision count mismatch");
+
+    let warps = vec![
+        // North exit → Victory Road (placeholder self-loop until next sprint)
+        WarpData { x: 5, y: 1, dest_map: MapId::Route26, dest_x: 5, dest_y: 3 },
+        WarpData { x: 6, y: 1, dest_map: MapId::Route26, dest_x: 6, dest_y: 3 },
+        // PokemonCenter door
+        WarpData { x: 3, y: 3, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // South exit → Route 27
+        WarpData { x: 5, y: 18, dest_map: MapId::Route27, dest_x: 2, dest_y: 6 },
+    ];
+
+    let npcs = vec![
+        // Cooltrainer (male) — strong trainer near top
+        NpcDef {
+            x: 8, y: 5, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["You're headed for the", "POKEMON LEAGUE?", "I'll test your strength!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ARCANINE, level: 33 },
+                TrainerPokemon { species_id: SANDSLASH, level: 33 },
+            ],
+        },
+        // Cooltrainer (female) — middle area
+        NpcDef {
+            x: 3, y: 11, sprite_id: 3, facing: Direction::Right,
+            dialogue: &["My POKEMON and I have", "trained together for", "years!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: PONYTA, level: 32 },
+                TrainerPokemon { species_id: DODRIO, level: 34 },
+            ],
+        },
+        // Psychic — south section
+        NpcDef {
+            x: 7, y: 16, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["The ELITE FOUR awaits", "at the end of this road."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: QUAGSIRE, level: 34 },
+                TrainerPokemon { species_id: NOCTOWL, level: 34 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: DODUO, min_level: 28, max_level: 30, weight: 30 },
+        EncounterEntry { species_id: RATICATE, min_level: 28, max_level: 30, weight: 20 },
+        EncounterEntry { species_id: PONYTA, min_level: 28, max_level: 30, weight: 20 },
+        EncounterEntry { species_id: SANDSLASH, min_level: 28, max_level: 30, weight: 10 },
+        EncounterEntry { species_id: DODRIO, min_level: 30, max_level: 32, weight: 5 },
+        EncounterEntry { species_id: ARCANINE, min_level: 30, max_level: 30, weight: 5 },
+        EncounterEntry { species_id: SANDSHREW, min_level: 26, max_level: 28, weight: 10 },
+    ];
+
+    MapData { id: MapId::Route26, name: "ROUTE 26", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6729,6 +7041,8 @@ mod tests {
             MapId::BlackthornGym,
             MapId::Route45,
             MapId::Route46,
+            MapId::Route27,
+            MapId::Route26,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -6765,6 +7079,7 @@ mod tests {
             MapId::Route43, MapId::LakeOfRage,
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
             MapId::Route45, MapId::Route46,
+            MapId::Route27, MapId::Route26,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -7012,6 +7327,7 @@ mod tests {
             MapId::Route43, MapId::LakeOfRage,
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
             MapId::Route45, MapId::Route46,
+            MapId::Route27, MapId::Route26,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

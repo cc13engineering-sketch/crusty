@@ -309,6 +309,17 @@ pub const SKARMORY: SpeciesId = 227;
 pub const GOLEM: SpeciesId = 76;
 pub const MOVE_SWIFT: MoveId = 129;
 pub const MOVE_STEEL_WING: MoveId = 211;
+// ─── Sprint 55: Route 27/26 species + moves ────────────
+pub const PONYTA: SpeciesId = 77;
+pub const RAPIDASH: SpeciesId = 78;
+pub const SANDSHREW: SpeciesId = 27;
+pub const SANDSLASH: SpeciesId = 28;
+pub const DODRIO: SpeciesId = 85;
+pub const ARCANINE: SpeciesId = 59;
+pub const QUAGSIRE: SpeciesId = 195;
+pub const MOVE_FIRE_BLAST: MoveId = 126;
+pub const MOVE_EXTREME_SPEED: MoveId = 245;
+pub const MOVE_FLAME_WHEEL: MoveId = 172;
 
 /// Static species data
 #[derive(Debug)]
@@ -565,7 +576,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 25, base_sp_defense: 25, base_speed: 15,
         catch_rate: 255, base_exp_yield: 52, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP), (11, MOVE_SLAM)],
-        evolution_level: Some(20), evolution_into: Some(195), // Quagsire
+        evolution_level: Some(20), evolution_into: Some(QUAGSIRE),
     },
     SpeciesData {
         id: HOPPIP, name: "Hoppip",
@@ -693,8 +704,8 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 55, base_attack: 70, base_defense: 45,
         base_sp_attack: 70, base_sp_defense: 50, base_speed: 60,
         catch_rate: 190, base_exp_yield: 91, growth_rate: GrowthRate::Slow,
-        learnset: &[(1, MOVE_BITE), (1, MOVE_ROAR), (7, MOVE_EMBER), (13, MOVE_LEER), (19, MOVE_TAKE_DOWN), (25, MOVE_FLAMETHROWER)],
-        evolution_level: None, evolution_into: None, // Fire Stone evolution
+        learnset: &[(1, MOVE_BITE), (1, MOVE_ROAR), (7, MOVE_EMBER), (13, MOVE_LEER), (19, MOVE_TAKE_DOWN), (25, MOVE_FLAMETHROWER), (31, MOVE_FLAME_WHEEL), (37, MOVE_AGILITY)],
+        evolution_level: Some(36), evolution_into: Some(ARCANINE),
     },
     SpeciesData {
         id: VULPIX, name: "Vulpix",
@@ -895,7 +906,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 35, base_sp_defense: 35, base_speed: 75,
         catch_rate: 190, base_exp_yield: 96, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_PECK), (1, MOVE_GROWL), (9, MOVE_PURSUIT), (13, MOVE_FURY_ATTACK), (21, MOVE_TRI_ATTACK), (25, MOVE_RAGE)],
-        evolution_level: Some(31), evolution_into: None,
+        evolution_level: Some(31), evolution_into: Some(DODRIO),
     },
     SpeciesData {
         id: FLAAFFY, name: "Flaaffy",
@@ -1325,6 +1336,70 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_LEER), (1, MOVE_PECK), (13, MOVE_SAND_ATTACK), (19, MOVE_SWIFT), (25, MOVE_AGILITY), (31, MOVE_FURY_ATTACK), (37, MOVE_SLASH), (43, MOVE_STEEL_WING)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 55: Route 27/26 species ──────────────────
+    SpeciesData {
+        id: PONYTA, name: "Ponyta",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 50, base_attack: 85, base_defense: 55,
+        base_sp_attack: 65, base_sp_defense: 65, base_speed: 90,
+        catch_rate: 190, base_exp_yield: 152, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (4, MOVE_GROWL), (8, MOVE_TAIL_WHIP), (13, MOVE_EMBER), (19, MOVE_STOMP), (26, MOVE_FIRE_SPIN), (34, MOVE_TAKE_DOWN), (40, MOVE_FURY_ATTACK), (47, MOVE_AGILITY), (61, MOVE_FIRE_BLAST)],
+        evolution_level: Some(40), evolution_into: Some(RAPIDASH),
+    },
+    SpeciesData {
+        id: RAPIDASH, name: "Rapidash",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 65, base_attack: 100, base_defense: 70,
+        base_sp_attack: 80, base_sp_defense: 80, base_speed: 105,
+        catch_rate: 60, base_exp_yield: 192, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_TAIL_WHIP), (1, MOVE_EMBER), (19, MOVE_STOMP), (26, MOVE_FIRE_SPIN), (34, MOVE_TAKE_DOWN), (40, MOVE_FURY_ATTACK), (47, MOVE_AGILITY), (61, MOVE_FIRE_BLAST)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SANDSHREW, name: "Sandshrew",
+        type1: PokemonType::Ground, type2: None,
+        base_hp: 50, base_attack: 75, base_defense: 85,
+        base_sp_attack: 20, base_sp_defense: 30, base_speed: 40,
+        catch_rate: 255, base_exp_yield: 93, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (6, MOVE_DEFENSE_CURL), (11, MOVE_SAND_ATTACK), (17, MOVE_POISON_STING), (23, MOVE_SLASH), (30, MOVE_SWIFT), (37, MOVE_FURY_SWIPES), (45, MOVE_EARTHQUAKE)],
+        evolution_level: Some(22), evolution_into: Some(SANDSLASH),
+    },
+    SpeciesData {
+        id: SANDSLASH, name: "Sandslash",
+        type1: PokemonType::Ground, type2: None,
+        base_hp: 75, base_attack: 100, base_defense: 110,
+        base_sp_attack: 45, base_sp_defense: 55, base_speed: 65,
+        catch_rate: 90, base_exp_yield: 163, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_DEFENSE_CURL), (1, MOVE_SAND_ATTACK), (17, MOVE_POISON_STING), (24, MOVE_SLASH), (33, MOVE_SWIFT), (42, MOVE_FURY_SWIPES), (52, MOVE_EARTHQUAKE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: DODRIO, name: "Dodrio",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 60, base_attack: 110, base_defense: 70,
+        base_sp_attack: 60, base_sp_defense: 60, base_speed: 100,
+        catch_rate: 45, base_exp_yield: 158, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_GROWL), (1, MOVE_PURSUIT), (1, MOVE_FURY_ATTACK), (21, MOVE_TRI_ATTACK), (25, MOVE_RAGE), (38, MOVE_DRILL_PECK), (47, MOVE_AGILITY)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: ARCANINE, name: "Arcanine",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 90, base_attack: 110, base_defense: 80,
+        base_sp_attack: 100, base_sp_defense: 80, base_speed: 95,
+        catch_rate: 75, base_exp_yield: 213, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_ROAR), (1, MOVE_LEER), (1, MOVE_TAKE_DOWN), (1, MOVE_FLAME_WHEEL), (50, MOVE_EXTREME_SPEED)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: QUAGSIRE, name: "Quagsire",
+        type1: PokemonType::Water, type2: Some(PokemonType::Ground),
+        base_hp: 95, base_attack: 85, base_defense: 85,
+        base_sp_attack: 65, base_sp_defense: 65, base_speed: 35,
+        catch_rate: 90, base_exp_yield: 137, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP), (11, MOVE_SLAM), (23, MOVE_AMNESIA), (35, MOVE_EARTHQUAKE), (47, MOVE_HAZE)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1472,6 +1547,10 @@ const MOVE_DB: &[MoveData] = &[
     // ─── Sprint 52: Route 45/46 moves ──────────────────────
     MoveData { id: MOVE_SWIFT, name: "Swift", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 60, accuracy: 255, pp: 20, description: "Never misses." },
     MoveData { id: MOVE_STEEL_WING, name: "Steel Wing", move_type: PokemonType::Steel, category: MoveCategory::Physical, power: 70, accuracy: 90, pp: 25, description: "May raise Defense." },
+    // ─── Sprint 55: Route 27/26 moves ──────────────────────
+    MoveData { id: MOVE_FIRE_BLAST, name: "Fire Blast", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 120, accuracy: 85, pp: 5, description: "May burn the foe." },
+    MoveData { id: MOVE_EXTREME_SPEED, name: "ExtremeSpeed", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 5, description: "Always strikes first." },
+    MoveData { id: MOVE_FLAME_WHEEL, name: "Flame Wheel", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 25, description: "May burn the foe." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

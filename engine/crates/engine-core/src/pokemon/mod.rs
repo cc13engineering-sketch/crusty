@@ -502,6 +502,7 @@ impl PokemonSim {
                             MapId::CianwoodCity => (MapId::CianwoodCity, 19, 5),
                             MapId::MahoganyTown => (MapId::MahoganyTown, 5, 12),
                             MapId::BlackthornCity => (MapId::BlackthornCity, 3, 7),
+                            MapId::Route26 => (MapId::Route26, 3, 4),
                             _ => (MapId::CherrygroveCity, 7, 5),
                         };
                         self.change_map(dest_map, dx, dy);

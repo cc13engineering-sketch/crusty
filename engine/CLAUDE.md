@@ -1,5 +1,9 @@
 # Engine Conventions — Claude Code reads this automatically
 
+## When modifying or adding engine crate modules
+
+- always make sure there is an up to date "AI-INSTRUCTIONS" labelled comment at the top of the .mod file. This must be up to date because it allows our assistants to more quickly reason about existing code.
+
 ## Rust Patterns
 - Use `f64` for ALL math. No `f32` anywhere.
 - Destructure `World` at the top of every system function to access multiple stores without borrow conflicts.
@@ -40,91 +44,41 @@ This is a deterministic simulation platform. Games implement the `Simulation` tr
 
 ### `ship <game-name>`
 
-When the user says `ship <game-name>`, build a fully self-contained, static-host-ready deployment folder. This is an "eject" mechanism — it does NOT touch GitHub Pages, `_site/`, or any existing deployment infrastructure.
+Build a self-contained, static-host-ready deployment folder. Does NOT touch `site/`, `_site/`, or any existing infrastructure.
 
 **Steps:**
 
-1. **Resolve the game.** Match `<game-name>` (case-insensitive, hyphen/space flexible) to a directory under `site/`. Known games and their aliases:
-   - `chord-reps` — aka "chord reps", "chordreps", "music theory" (game config at `games/chord-reps/`)
-   - `gravity-pong` — aka "gravity pong"
-   - `demo-ball` — aka "demo ball"
-   - Any other directory under `site/` that contains an `index.html`
+1. **Resolve the game.** Match `<game-name>` (case-insensitive) to a directory under `site/` containing `index.html`.
 
-2. **Build WASM.** From the `engine/` directory:
+2. **Build WASM.** From `engine/`:
    ```bash
    wasm-pack build crates/engine-core --target web --out-dir "$ROOT/_pkg" -- --no-default-features
    ```
-   Skip this step if `_pkg/engine_core_bg.wasm` already exists and the user says to skip the build, or if a recent build is already available. When in doubt, rebuild.
+   Skip if the user says to skip or a recent build exists. When in doubt, rebuild.
 
-3. **Determine version.** Read the version from `engine/crates/engine-core/Cargo.toml` (currently `0.1.0`). Compute WASM hash: first 12 chars of SHA-256 of `_pkg/engine_core_bg.wasm`. The deployment folder name is: `deployments/<game-name>-<version>` (e.g., `deployments/gravity-pong-0.1.0`).
+3. **Determine version.** The user specifies one of: `patch`, `minor`, `major`, or `canary`. If not specified, ask. Read the current version from `engine/crates/engine-core/Cargo.toml` and increment accordingly (`canary` appends `-canary.<git-short-hash>` without bumping the number). Update `Cargo.toml` with the new version. Deployment folder: `deployments/<game-name>-<version>/`.
 
-4. **Assemble the deployment folder.** Create `deployments/<game-name>-<version>/` at the project root:
-   ```
-   deployments/<game-name>-<version>/
-   ├── index.html              # Game HTML (paths rewritten)
-   ├── pkg/
-   │   ├── engine_core.js      # WASM JS glue
-   │   └── engine_core_bg.wasm # WASM binary
-   └── browser-state.js        # Only if the game imports it
-   ```
+4. **Assemble the folder.** Copy into `deployments/<game-name>-<version>/`:
+   - `site/<game-name>/index.html` → root
+   - `_pkg/engine_core.js` and `engine_core_bg.wasm` → `pkg/`
+   - Any parent-directory JS/CSS imports (e.g. `../browser-state.js`) → root
+   - Asset subdirectories from `site/<game-name>/` (skip base64-embedded assets)
+   - `games/<game-name>/public/` → `public/` (if it exists — OG images, favicons, robots.txt, etc.)
 
-5. **Copy files:**
-   - Copy `site/<game-name>/index.html` to the deployment root
-   - Copy `_pkg/engine_core.js` and `_pkg/engine_core_bg.wasm` into `pkg/`
-   - If the game's HTML imports `../browser-state.js`, copy `site/browser-state.js` to the deployment root
-   - Copy any other asset subdirectories from `site/<game-name>/` (but NOT `samples/` if its contents are already base64-embedded in the HTML)
-   - If `games/<game-name>/public/` exists at the project root, copy it into the deployment as `public/` (preserving the subdirectory). This is for static assets like Open Graph images, favicons, `robots.txt`, etc. Cloudflare Pages and similar hosts serve from `public/`.
+5. **Rewrite paths in `index.html`.** Change `../pkg/` → `./pkg/`, `../` imports → `./`, etc. All references must be self-contained (no parent paths).
 
-6. **Inject SEO from JSON-LD.** Look for `games/<game-name>/seo.jsonld` at the project root (i.e., `crusty/games/<game-name>/seo.jsonld`). This file is the **single source of truth** for all SEO metadata. If it exists:
+6. **Inject SEO metadata.** If `games/<game-name>/seo.jsonld` exists: extract the `_seo_meta` key for HTML metadata (title, description, theme-color, canonical, og:*, twitter:*); inject the rest as `<script type="application/ld+json">`. If missing, warn and continue.
 
-   **a) Inject structured data:** Strip the `_seo_meta` key (it's not valid schema.org), then inject the remaining JSON as a `<script type="application/ld+json">` block into `<head>` (before `</head>`).
+7. **Validate.** Scan deployed HTML for asset references. Warn about any missing files and fix mismatches in the deployment folder.
 
-   **b) Set HTML `<title>`:** Read `_seo_meta.title` and set/replace the page's `<title>` tag.
+8. **Report.** Print deployment path, WASM size, total size, SEO status. Remind: "Ready to deploy to any static host."
 
-   **c) Inject meta tags:** From `_seo_meta`, inject or replace these in `<head>`:
-   - `<meta name="description" content="...">` from `meta_description`
-   - `<meta name="theme-color" content="...">` from `theme_color`
-   - `<link rel="canonical" href="...">` from `canonical`
-
-   **d) Inject Open Graph tags:** From `_seo_meta`, inject:
-   - `<meta property="og:title" content="...">` from `og_title`
-   - `<meta property="og:description" content="...">` from `og_description`
-   - `<meta property="og:type" content="...">` from `og_type`
-   - `<meta property="og:url" content="...">` from `og_url`
-   - `<meta property="og:image" content="...">` from `og_image`
-
-   **e) Inject Twitter card tags:** From `_seo_meta`, inject:
-   - `<meta name="twitter:card" content="...">` from `twitter_card`
-   - `<meta name="twitter:title" content="...">` from `og_title`
-   - `<meta name="twitter:description" content="...">` from `og_description`
-   - `<meta name="twitter:image" content="...">` from `og_image`
-
-   If the file doesn't exist, warn the user: "No seo.jsonld found at `games/<game-name>/seo.jsonld` — deploy will proceed without SEO metadata. Create one for better SEO."
-
-7. **Rewrite paths in `index.html`:**
-   - `../pkg/` → `./pkg/` (WASM imports)
-   - `../browser-state.js` → `./browser-state.js` (if present)
-   - `__WASM_HASH__` → the 12-char SHA-256 hash computed in step 3
-
-8. **Validate asset references.** Scan the deployed `index.html` and `seo.jsonld` metadata for all image/asset URLs (og:image, favicon hrefs, etc.). For each referenced path, verify the file exists in the deployment folder. If a filename mismatch is found (e.g., `og-image.png` referenced but `opengraph.jpg` exists), **rename the file** to match the reference. Ship must produce a working site with zero broken links — no human in the loop.
-
-9. **Report results.** Print:
-   - Deployment path
-   - WASM binary size
-   - Total folder size
-   - Whether SEO JSON-LD was injected
-   - Remind the user: "Ready to deploy — drag this folder into Cloudflare Pages, Netlify, Vercel, or any static host."
-
-10. **If there is a finer piece of instruction detail that would have been helpful to have when setting up a deployable static site game, review this claude.md file section and improve instructions - let this cammand be self-healing and growing (though go easy on adding too many things - keep it simple, short, and sweet)
-
-**Important rules:**
-- **Renaming/fixing files in the deployment folder is always allowed.** The goal is a working site — if filenames don't match their references, fix them. Never leave broken asset links.
-- Never modify files under `site/`, `_site/`, or any existing build output
-- The `deployments/` directory is gitignored (add to `.gitignore` if not already)
-- If the deployment folder already exists, warn the user and ask before overwriting
-- Each game deployment is fully self-contained — no parent directory references
-- Per-game config lives at `games/<game-name>/` (project root). This includes `seo.jsonld` and `public/` (NOT inside `site/` or `engine/`)
-- Static deploy assets (OG images, favicons, `robots.txt`, etc.) live at `games/<game-name>/public/`. When creating or updating `seo.jsonld`, reference OG images and icon files from this directory
+**Rules:**
+- Fixing files in the deployment folder is always allowed — the goal is zero broken links
+- Never modify `site/`, `_site/`, or existing build output
+- `deployments/` is gitignored
+- If the deployment folder already exists, warn before overwriting
+- Per-game config (seo.jsonld, public/) lives at `games/<game-name>/` (project root)
 
 ## Autonomy Level
 

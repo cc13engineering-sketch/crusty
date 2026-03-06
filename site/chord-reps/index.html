@@ -22,7 +22,6 @@
             height: 100vh;
             height: 100dvh;
         }
-        h1 { display: none; }
         #game-canvas {
             cursor: pointer;
             display: block;
@@ -31,43 +30,9 @@
             top: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
         }
-        #attribution {
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            pointer-events: auto;
-            font-size: 0.65rem;
-            color: #aa88aa;
-            letter-spacing: 0.04em;
-            text-align: center;
-            background: rgba(10, 10, 30, 0.7);
-            padding: 2px 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 102, 178, 0.07);
-        }
-        #attribution a {
-            color: #ff66b2;
-            text-decoration: none;
-        }
-        #attribution a:hover {
-            color: #00d4aa;
-            text-decoration: underline;
-        }
-        .info { display: none; }
         a { color: #00d4aa; }
-        .version {
-            position: fixed;
-            bottom: 6px;
-            right: 10px;
-            color: #333;
-            font-size: 0.6rem;
-            letter-spacing: 0.05em;
-            z-index: 10;
-            pointer-events: none;
-        }
     </style>
 </head>
 <body>
@@ -191,10 +156,17 @@
         let cmds;
         try { cmds = JSON.parse(json); } catch { return; }
         for (const cmd of cmds) {
-            if (cmd.type === 'Store') {
+            if (cmd.type === 'Set') {
                 localStorage.setItem('crusty_mt_' + cmd.key, cmd.value);
+            } else if (cmd.type === 'Remove') {
+                localStorage.removeItem('crusty_mt_' + cmd.key);
+            } else if (cmd.type === 'Clear') {
+                // Remove all crusty_mt_ prefixed keys
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith('crusty_mt_')) localStorage.removeItem(k);
+                }
             }
-            // OpenUrl is handled via pending_url in click handlers (user gesture context)
         }
     }
 

@@ -80,14 +80,12 @@ pub fn compute_arc(
                     vy = -vy * config.restitution;
                 }
                 (true, false) => {
-                    // Hit a wall on the X axis
+                    // Hit a wall on the X axis — reflect normal, preserve tangential
                     vx = -vx * config.restitution;
-                    vy *= config.restitution;
                 }
                 (false, true) => {
-                    // Hit a wall on the Y axis
+                    // Hit a wall on the Y axis — reflect normal, preserve tangential
                     vy = -vy * config.restitution;
-                    vx *= config.restitution;
                 }
                 (false, false) => {
                     // Diagonal entry only — reflect both

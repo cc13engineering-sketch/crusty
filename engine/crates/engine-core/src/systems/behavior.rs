@@ -10,7 +10,7 @@ use crate::physics::math;
 pub fn run(world: &mut World, dt: f64) {
     // Collect target positions by tag
     let player_positions: Vec<(Entity, (f64, f64))> = world.tags.iter()
-        .filter(|(_, t)| t.has("player"))
+        .filter(|(_, t)| t.has(crate::components::Tag::Player))
         .filter_map(|(e, _)| world.transforms.get(e).map(|t| (e, (t.x, t.y))))
         .collect();
 
@@ -72,20 +72,26 @@ pub fn run(world: &mut World, dt: f64) {
 }
 
 fn find_nearest_with_tag(
-    tag: &str,
+    tag: &crate::components::Tag,
     from: (f64, f64),
     cached_players: &[(Entity, (f64, f64))],
     world: &World,
 ) -> Option<(f64, f64)> {
-    // Check cached player positions first
-    if tag == "player" {
-        return cached_players.first().map(|(_, pos)| *pos);
+    // Find the nearest cached player position
+    if *tag == crate::components::Tag::Player {
+        return cached_players.iter()
+            .min_by(|(_, a_pos), (_, b_pos)| {
+                math::distance_sq(from, *a_pos)
+                    .partial_cmp(&math::distance_sq(from, *b_pos))
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|(_, pos)| *pos);
     }
     // General lookup for other tags
     let mut best_pos = None;
     let mut best_dist = f64::MAX;
     for (e, t) in world.tags.iter() {
-        if t.has(tag) {
+        if t.has(*tag) {
             if let Some(transform) = world.transforms.get(e) {
                 let dist = math::distance_sq(from, (transform.x, transform.y));
                 if dist < best_dist {

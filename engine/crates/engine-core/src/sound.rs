@@ -9,6 +9,56 @@
 /// parameters.
 
 use std::collections::HashMap;
+use std::fmt;
+
+// ─── SoundEvent ──────────────────────────────────────────────────────
+
+/// Engine-level sound events for the default palette.
+/// Games define their own sound events as game-specific enums and use the
+/// string-based `register()`/`play()` API, or wrap their own enum with
+/// `register_event()`/`play_event()` via the `as_str()` convention.
+///
+/// Only common, engine-universal sounds belong here.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SoundEvent {
+    Impact,
+    Pickup,
+    Explosion,
+    UiClick,
+    AmbientWind,
+    GameOver,
+}
+
+impl fmt::Display for SoundEvent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl SoundEvent {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            SoundEvent::Impact => "impact",
+            SoundEvent::Pickup => "pickup",
+            SoundEvent::Explosion => "explosion",
+            SoundEvent::UiClick => "ui_click",
+            SoundEvent::AmbientWind => "ambient_wind",
+            SoundEvent::GameOver => "game_over",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<SoundEvent> {
+        match s {
+            "impact" => Some(SoundEvent::Impact),
+            "pickup" => Some(SoundEvent::Pickup),
+            "explosion" => Some(SoundEvent::Explosion),
+            "ui_click" => Some(SoundEvent::UiClick),
+            "ambient_wind" => Some(SoundEvent::AmbientWind),
+            "game_over" => Some(SoundEvent::GameOver),
+            _ => None,
+        }
+    }
+}
 
 // ─── Waveform ────────────────────────────────────────────────────────
 
@@ -159,6 +209,10 @@ fn escape_json_string(s: &str) -> String {
             '\n' => out.push_str("\\n"),
             '\r' => out.push_str("\\r"),
             '\t' => out.push_str("\\t"),
+            // RFC 8259: all control chars U+0000–U+001F must be escaped
+            c if c < '\u{0020}' => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
             c => out.push(c),
         }
     }
@@ -188,6 +242,7 @@ impl SoundCommandQueue {
 
     /// Drain all queued commands, returning them as a JSON array string.
     /// The internal queue is emptied after this call.
+    #[must_use]
     pub fn drain_json(&mut self) -> String {
         if self.commands.is_empty() {
             return "[]".to_string();
@@ -243,9 +298,14 @@ impl SoundPalette {
         }
     }
 
-    /// Register a named profile (replaces any existing profile with the same name).
+    /// Register a named profile (string key, for compat).
     pub fn register(&mut self, name: &str, commands: Vec<SoundCommand>) {
         self.profiles.insert(name.to_string(), commands);
+    }
+
+    /// Register a typed sound event profile.
+    pub fn register_event(&mut self, event: SoundEvent, commands: Vec<SoundCommand>) {
+        self.profiles.insert(event.as_str().to_string(), commands);
     }
 
     /// Check whether a profile with the given name exists.
@@ -255,6 +315,7 @@ impl SoundPalette {
 
     /// Play a named sound profile by pushing its commands into the queue.
     /// Returns `true` if the profile was found.
+    #[must_use]
     pub fn play(&self, event_name: &str, queue: &mut SoundCommandQueue) -> bool {
         if let Some(commands) = self.profiles.get(event_name) {
             for cmd in commands {
@@ -264,6 +325,12 @@ impl SoundPalette {
         } else {
             false
         }
+    }
+
+    /// Play a typed sound event.
+    #[must_use]
+    pub fn play_event(&self, event: SoundEvent, queue: &mut SoundCommandQueue) -> bool {
+        self.play(event.as_str(), queue)
     }
 
     /// Number of registered profiles.
@@ -557,7 +624,7 @@ mod tests {
         assert_eq!(palette.len(), 1);
 
         let mut queue = SoundCommandQueue::new();
-        palette.play("laser", &mut queue);
+        let _ = palette.play("laser", &mut queue);
         assert_eq!(queue.len(), 1);
     }
 

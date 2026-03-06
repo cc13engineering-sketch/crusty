@@ -7,16 +7,17 @@
 /// tagged 'asteroid', despawn both and add 10 to score."
 
 use crate::ecs::Entity;
+use crate::components::Tag;
 
 /// A condition that must be met for a rule to fire.
 #[derive(Clone, Debug)]
 pub enum Condition {
     /// Fires when two entities with the given tags collide.
     /// (tag_a, tag_b) — order does not matter.
-    Collision { tag_a: String, tag_b: String },
+    Collision { tag_a: Tag, tag_b: Tag },
 
     /// Fires when an entity with `visitor_tag` enters a trigger with `trigger_tag`.
-    TriggerEnter { trigger_tag: String, visitor_tag: String },
+    TriggerEnter { trigger_tag: Tag, visitor_tag: Tag },
 
     /// Fires when a named timer fires.
     TimerFired { timer_name: String },

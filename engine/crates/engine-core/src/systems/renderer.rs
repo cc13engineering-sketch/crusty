@@ -118,7 +118,7 @@ fn render_drawables(
         if let Some((start_x, start_y)) = input.drag_start {
             // Find player position
             for (entity, tag) in world.tags.iter() {
-                if tag.has("player") {
+                if tag.has(crate::components::Tag::Player) {
                     if let Some(t) = world.transforms.get(entity) {
                         let (px, py) = camera.world_to_screen(t.x, t.y);
                         let dx = start_x - input.mouse_x;

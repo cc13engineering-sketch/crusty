@@ -46,10 +46,10 @@ impl Color {
         let t = t.max(0.0).min(1.0);
         let inv = 1.0 - t;
         Color {
-            r: (a.r as f64 * inv + b.r as f64 * t) as u8,
-            g: (a.g as f64 * inv + b.g as f64 * t) as u8,
-            b: (a.b as f64 * inv + b.b as f64 * t) as u8,
-            a: (a.a as f64 * inv + b.a as f64 * t) as u8,
+            r: (a.r as f64 * inv + b.r as f64 * t).round() as u8,
+            g: (a.g as f64 * inv + b.g as f64 * t).round() as u8,
+            b: (a.b as f64 * inv + b.b as f64 * t).round() as u8,
+            a: (a.a as f64 * inv + b.a as f64 * t).round() as u8,
         }
     }
 }

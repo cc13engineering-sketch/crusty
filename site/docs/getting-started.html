@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Getting Started with Crusty Engine — Crusty Engine</title>
+    <title>Getting Started — Crusty Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -40,20 +40,18 @@
     <a href="../">&larr; Home</a>
     <a href="./">Docs</a>
     <a href="engine.html">Engine</a>
-    <a href="architecture.html">Architecture</a>
+    <a href="architecture.html">Headless</a>
     <a href="api-reference.html">API</a>
     <a href="getting-started.html">Getting Started</a>
-    <a href="ai-iteration.html">AI Iteration</a>
-    <a href="codebase-explainer.html">Codebase Explainer</a>
 </nav>
-<h1>Getting Started with Crusty Engine</h1>
+<h1>Getting Started</h1>
 
-<p>From zero to running your first simulation and headless analysis.</p>
+<p>From zero to running simulations and headless analysis.</p>
 
 <h2>Prerequisites</h2>
 
 <pre><code>
-cd /home/user/crusty/engine
+cd engine
 cargo test  # Verify everything compiles and passes
 </code></pre>
 
@@ -74,18 +72,18 @@ pub struct MyGame {
 impl Simulation for MyGame {
     fn setup(&amp;mut self, engine: &amp;mut Engine) {
         engine.reset(42);
-        // Create entities, set initial state
         engine.global_state.set_f64(&quot;score&quot;, 0.0);
+        // Create entities via engine.world.spawn()
     }
 
     fn step(&amp;mut self, engine: &amp;mut Engine) {
         // Game logic runs every fixed tick (1/60s)
-        // Read input from engine.input
-        // Update entities via engine.world
+        // Read input: engine.input.mouse_pos, engine.input.is_key_down(&quot;Space&quot;)
+        // Update state: engine.global_state.set_f64(&quot;score&quot;, new_score)
     }
 
     fn render(&amp;self, engine: &amp;mut Engine) {
-        // Draw to engine.framebuffer
+        // Draw to engine.framebuffer via rendering helpers
     }
 }
 </code></pre>
@@ -109,12 +107,14 @@ let result = runner.run_sim(&amp;mut sim, 42, &amp;[], config);
 println!(&quot;Frames: {}, State hash: {}&quot;, result.frames_run, result.state_hash);
 </code></pre>
 
+<p><code>turbo: true</code> skips rendering for 10-100x faster throughput.</p>
+
 <h2>Using Policies</h2>
 
 <p>Policies generate input automatically:</p>
 
 <pre><code>
-use crate::policy::{RandomPolicy, NullPolicy};
+use crate::policy::{RandomPolicy, NullPolicy, ScriptedPolicy};
 
 // Random input exploration
 let mut policy = RandomPolicy::new(123);
@@ -123,11 +123,13 @@ let result = runner.run_with_policy(&amp;mut sim, &amp;mut policy, 42, 600, conf
 // No input (idle baseline)
 let mut null = NullPolicy;
 let result = runner.run_with_policy(&amp;mut sim, &amp;mut null, 42, 60, config);
+
+// Scripted replay
+let mut scripted = ScriptedPolicy::new(recorded_inputs);
+let result = runner.run_with_policy(&amp;mut sim, &amp;mut scripted, 42, 600, config);
 </code></pre>
 
 <h2>CLI Commands</h2>
-
-<p>The <code>engine-cli</code> tool exposes all headless capabilities:</p>
 
 <pre><code>
 # Record a playthrough
@@ -158,8 +160,9 @@ cargo run -p engine-cli -- ablation --seeds 50 --frames 600
 # Dashboard data
 cargo run -p engine-cli -- dashboard-data --seeds 100 --frames 600
 
-# Engine info
+# Engine info and schema
 cargo run -p engine-cli -- info
+cargo run -p engine-cli -- schema
 </code></pre>
 
 <h2>Determinism Verification</h2>
@@ -173,6 +176,18 @@ assert_eq!(r1.state_hash, r2.state_hash);
 assert_eq!(r1.state_hashes, r2.state_hashes);
 </code></pre>
 
+<p>The engine guarantees this through: one canonical RNG (xorshift64), fixed DT for all simulation systems, <code>BTreeMap</code> iteration everywhere, and no floating-point non-determinism sources.</p>
+
+<h2>WASM Build</h2>
+
+<pre><code>
+# Build for browser
+wasm-pack build crates/engine-core --target web --out-dir ../../_pkg -- --no-default-features
+
+# Serve locally
+python3 -m http.server 8000 --directory ../site
+</code></pre>
+
 <h2>Module Cheat Sheet</h2>
 
 <table>
@@ -182,8 +197,8 @@ assert_eq!(r1.state_hashes, r2.state_hashes);
 <tr><td>Parameter sweep</td><td><code>run_sweep</code></td><td><code>run_sweep(configs, ...)</code></td></tr>
 <tr><td>Quality scoring</td><td><code>FitnessEvaluator</code></td><td><code>evaluator.evaluate(&amp;sim_result)</code></td></tr>
 <tr><td>Regression check</td><td><code>RegressionSuite</code></td><td><code>suite.diff_against(&amp;baselines)</code></td></tr>
-<tr><td>Full replay</td><td><code>record_replay</code></td><td><code>record_replay(...)</code></td></tr>
-<tr><td>Compare replays</td><td><code>compare_replays</code></td><td><code>compare_replays(&amp;a, &amp;b, &amp;keys, tolerance)</code></td></tr>
+<tr><td>Replay recording</td><td><code>record_replay</code></td><td><code>record_replay(...)</code></td></tr>
+<tr><td>Replay comparison</td><td><code>compare_replays</code></td><td><code>compare_replays(&amp;a, &amp;b, &amp;keys, tolerance)</code></td></tr>
 <tr><td>Anomaly scan</td><td><code>AnomalyDetector</code></td><td><code>detector.scan(&amp;replay, &amp;keys)</code></td></tr>
 <tr><td>Hill climbing</td><td><code>HillClimber</code></td><td><code>climber.run()</code></td></tr>
 <tr><td>Golden file</td><td><code>GoldenTest</code></td><td><code>test.record_golden() / test.compare_against()</code></td></tr>

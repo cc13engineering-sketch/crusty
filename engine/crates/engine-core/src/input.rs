@@ -1,5 +1,85 @@
 use std::collections::HashSet;
 
+/// Compiler-enforced keyboard key codes.
+/// Parse from JS string once at the WASM boundary; everything downstream is typed.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum KeyCode {
+    // Letters
+    KeyA, KeyB, KeyC, KeyD, KeyE, KeyF, KeyG, KeyH, KeyI, KeyJ, KeyK, KeyL, KeyM,
+    KeyN, KeyO, KeyP, KeyQ, KeyR, KeyS, KeyT, KeyU, KeyV, KeyW, KeyX, KeyY, KeyZ,
+    // Digits
+    Digit0, Digit1, Digit2, Digit3, Digit4, Digit5, Digit6, Digit7, Digit8, Digit9,
+    // Arrows
+    ArrowUp, ArrowDown, ArrowLeft, ArrowRight,
+    // Common
+    Space, Enter, Escape, Tab, Backspace,
+    // Modifiers
+    ShiftLeft, ShiftRight, ControlLeft, ControlRight, AltLeft, AltRight,
+}
+
+impl KeyCode {
+    /// Parse a JS KeyboardEvent.code string into a KeyCode.
+    /// Returns None for unrecognized keys (silently ignored).
+    pub fn from_js_str(s: &str) -> Option<KeyCode> {
+        match s {
+            "KeyA" => Some(KeyCode::KeyA), "KeyB" => Some(KeyCode::KeyB),
+            "KeyC" => Some(KeyCode::KeyC), "KeyD" => Some(KeyCode::KeyD),
+            "KeyE" => Some(KeyCode::KeyE), "KeyF" => Some(KeyCode::KeyF),
+            "KeyG" => Some(KeyCode::KeyG), "KeyH" => Some(KeyCode::KeyH),
+            "KeyI" => Some(KeyCode::KeyI), "KeyJ" => Some(KeyCode::KeyJ),
+            "KeyK" => Some(KeyCode::KeyK), "KeyL" => Some(KeyCode::KeyL),
+            "KeyM" => Some(KeyCode::KeyM), "KeyN" => Some(KeyCode::KeyN),
+            "KeyO" => Some(KeyCode::KeyO), "KeyP" => Some(KeyCode::KeyP),
+            "KeyQ" => Some(KeyCode::KeyQ), "KeyR" => Some(KeyCode::KeyR),
+            "KeyS" => Some(KeyCode::KeyS), "KeyT" => Some(KeyCode::KeyT),
+            "KeyU" => Some(KeyCode::KeyU), "KeyV" => Some(KeyCode::KeyV),
+            "KeyW" => Some(KeyCode::KeyW), "KeyX" => Some(KeyCode::KeyX),
+            "KeyY" => Some(KeyCode::KeyY), "KeyZ" => Some(KeyCode::KeyZ),
+            "Digit0" => Some(KeyCode::Digit0), "Digit1" => Some(KeyCode::Digit1),
+            "Digit2" => Some(KeyCode::Digit2), "Digit3" => Some(KeyCode::Digit3),
+            "Digit4" => Some(KeyCode::Digit4), "Digit5" => Some(KeyCode::Digit5),
+            "Digit6" => Some(KeyCode::Digit6), "Digit7" => Some(KeyCode::Digit7),
+            "Digit8" => Some(KeyCode::Digit8), "Digit9" => Some(KeyCode::Digit9),
+            "ArrowUp" => Some(KeyCode::ArrowUp), "ArrowDown" => Some(KeyCode::ArrowDown),
+            "ArrowLeft" => Some(KeyCode::ArrowLeft), "ArrowRight" => Some(KeyCode::ArrowRight),
+            "Space" => Some(KeyCode::Space), "Enter" => Some(KeyCode::Enter),
+            "Escape" => Some(KeyCode::Escape), "Tab" => Some(KeyCode::Tab),
+            "Backspace" => Some(KeyCode::Backspace),
+            "ShiftLeft" => Some(KeyCode::ShiftLeft), "ShiftRight" => Some(KeyCode::ShiftRight),
+            "ControlLeft" => Some(KeyCode::ControlLeft), "ControlRight" => Some(KeyCode::ControlRight),
+            "AltLeft" => Some(KeyCode::AltLeft), "AltRight" => Some(KeyCode::AltRight),
+            _ => None,
+        }
+    }
+
+    pub fn as_js_str(&self) -> &'static str {
+        match self {
+            KeyCode::KeyA => "KeyA", KeyCode::KeyB => "KeyB", KeyCode::KeyC => "KeyC",
+            KeyCode::KeyD => "KeyD", KeyCode::KeyE => "KeyE", KeyCode::KeyF => "KeyF",
+            KeyCode::KeyG => "KeyG", KeyCode::KeyH => "KeyH", KeyCode::KeyI => "KeyI",
+            KeyCode::KeyJ => "KeyJ", KeyCode::KeyK => "KeyK", KeyCode::KeyL => "KeyL",
+            KeyCode::KeyM => "KeyM", KeyCode::KeyN => "KeyN", KeyCode::KeyO => "KeyO",
+            KeyCode::KeyP => "KeyP", KeyCode::KeyQ => "KeyQ", KeyCode::KeyR => "KeyR",
+            KeyCode::KeyS => "KeyS", KeyCode::KeyT => "KeyT", KeyCode::KeyU => "KeyU",
+            KeyCode::KeyV => "KeyV", KeyCode::KeyW => "KeyW", KeyCode::KeyX => "KeyX",
+            KeyCode::KeyY => "KeyY", KeyCode::KeyZ => "KeyZ",
+            KeyCode::Digit0 => "Digit0", KeyCode::Digit1 => "Digit1",
+            KeyCode::Digit2 => "Digit2", KeyCode::Digit3 => "Digit3",
+            KeyCode::Digit4 => "Digit4", KeyCode::Digit5 => "Digit5",
+            KeyCode::Digit6 => "Digit6", KeyCode::Digit7 => "Digit7",
+            KeyCode::Digit8 => "Digit8", KeyCode::Digit9 => "Digit9",
+            KeyCode::ArrowUp => "ArrowUp", KeyCode::ArrowDown => "ArrowDown",
+            KeyCode::ArrowLeft => "ArrowLeft", KeyCode::ArrowRight => "ArrowRight",
+            KeyCode::Space => "Space", KeyCode::Enter => "Enter",
+            KeyCode::Escape => "Escape", KeyCode::Tab => "Tab",
+            KeyCode::Backspace => "Backspace",
+            KeyCode::ShiftLeft => "ShiftLeft", KeyCode::ShiftRight => "ShiftRight",
+            KeyCode::ControlLeft => "ControlLeft", KeyCode::ControlRight => "ControlRight",
+            KeyCode::AltLeft => "AltLeft", KeyCode::AltRight => "AltRight",
+        }
+    }
+}
+
 pub struct Input {
     pub keys_held: HashSet<String>,
     pub keys_pressed: HashSet<String>,
@@ -55,9 +135,29 @@ impl Input {
         self.keys_held.insert(code);
     }
 
+    /// Typed key down — preferred over string version.
+    pub fn on_key_down_typed(&mut self, code: KeyCode) {
+        self.on_key_down(code.as_js_str().to_string());
+    }
+
     pub fn on_key_up(&mut self, code: String) {
         self.keys_held.remove(&code);
         self.keys_released.insert(code);
+    }
+
+    /// Typed key up — preferred over string version.
+    pub fn on_key_up_typed(&mut self, code: KeyCode) {
+        self.on_key_up(code.as_js_str().to_string());
+    }
+
+    /// Check if a typed key is currently held.
+    pub fn is_key_held(&self, code: KeyCode) -> bool {
+        self.keys_held.contains(code.as_js_str())
+    }
+
+    /// Check if a typed key was pressed this frame.
+    pub fn is_key_pressed(&self, code: KeyCode) -> bool {
+        self.keys_pressed.contains(code.as_js_str())
     }
 
     /// Tick hover state each frame. Call early in the engine tick.

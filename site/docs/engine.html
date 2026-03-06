@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crusty Engine Architecture — Crusty Engine</title>
+    <title>Engine Architecture — Crusty Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -40,55 +40,48 @@
     <a href="../">&larr; Home</a>
     <a href="./">Docs</a>
     <a href="engine.html">Engine</a>
-    <a href="architecture.html">Architecture</a>
+    <a href="architecture.html">Headless</a>
     <a href="api-reference.html">API</a>
     <a href="getting-started.html">Getting Started</a>
-    <a href="ai-iteration.html">AI Iteration</a>
-    <a href="codebase-explainer.html">Codebase Explainer</a>
 </nav>
-<h1>Crusty Engine Architecture</h1>
+<h1>Engine Architecture</h1>
 
-<p>Complete technical reference for the Crusty Engine: ECS, rendering, physics, systems, and runtime.</p>
-
-<h2>Overview</h2>
-
-<p>Crusty Engine is a Rust-native deterministic simulation engine that compiles to WebAssembly (browser) and native targets (headless testing, CLI). Features a custom ECS, software framebuffer renderer, fixed-timestep physics (60Hz), seeded RNG, and a 5-phase system execution pipeline.</p>
-
-<p>All math uses <code>f64</code>. The framebuffer is a flat <code>Vec&lt;u8&gt;</code> in RGBA format, shared with JavaScript via WASM linear memory (zero-copy).</p>
+<p>Crusty Engine is a deterministic simulation engine written in Rust that compiles to WebAssembly (browser) and native targets (headless testing, CLI). It features a custom ECS, software framebuffer renderer with SDF anti-aliasing, fixed-timestep physics with continuous collision detection, and seeded RNG for perfect reproducibility.</p>
 
 <h2>Workspace</h2>
 
 <pre><code>
-/engine
-  /crates
-    /engine-core    cdylib + rlib (WASM + native)
-    /engine-cli     Native binary (14 CLI commands)
-  Cargo.toml        Workspace root (opt-level=&quot;s&quot;, lto=true)
+engine/
+  crates/
+    engine-core/    cdylib + rlib (WASM + native, ~47K lines)
+    engine-cli/     Native binary (15 CLI commands)
+  Cargo.toml        Workspace root (opt-level="s", lto=true, codegen-units=1)
 </code></pre>
 
 <h2>The Engine Struct</h2>
 
-<p>Central object. Every subsystem is a field:</p>
+<p>Central object owning all subsystems:</p>
 
-<ul>
-<li><strong>Core</strong>: <code>world</code> (ECS), <code>framebuffer</code>, <code>input</code>, <code>events</code>, <code>config</code>, <code>camera</code>, <code>time</code>, <code>frame</code>, <code>rng</code> (SeededRng)</li>
-<li><strong>Rendering</strong>: <code>particles</code>, <code>post_fx</code>, <code>layers</code>, <code>sprite_sheets</code>, <code>screen_fx</code>, <code>transition</code></li>
-<li><strong>Gameplay</strong>: <code>global_state</code>, <code>timers</code>, <code>templates</code>, <code>rules</code>, <code>game_flow</code>, <code>scene_manager</code></li>
-<li><strong>Spatial</strong>: <code>tilemap</code>, <code>pool_registry</code></li>
-<li><strong>Events/Input</strong>: <code>event_bus</code>, <code>input_map</code>, <code>gestures</code></li>
-<li><strong>Advanced</strong>: <code>flow_network</code>, <code>environment_clock</code>, <code>sound_queue</code>, <code>auto_juice</code>, <code>camera_director</code>, <code>level_curve</code>, <code>color_palette</code>, <code>ui_canvas</code>, <code>diagnostic_bus</code>, <code>frame_metrics</code></li>
-</ul>
+<table>
+<tr><th>Category</th><th>Fields</th></tr>
+<tr><td>Core</td><td><code>world</code> (ECS), <code>framebuffer</code>, <code>input</code>, <code>events</code>, <code>config</code>, <code>camera</code>, <code>time</code>, <code>frame</code>, <code>rng</code> (SeededRng)</td></tr>
+<tr><td>Rendering</td><td><code>particles</code>, <code>post_fx</code>, <code>layers</code>, <code>sprite_sheets</code>, <code>screen_fx</code>, <code>transition</code></td></tr>
+<tr><td>Gameplay</td><td><code>global_state</code>, <code>timers</code>, <code>templates</code>, <code>rules</code>, <code>game_flow</code>, <code>scene_manager</code></td></tr>
+<tr><td>Spatial</td><td><code>tilemap</code>, <code>pool_registry</code></td></tr>
+<tr><td>Events/Input</td><td><code>event_bus</code>, <code>input_map</code>, <code>gestures</code></td></tr>
+<tr><td>Advanced</td><td><code>flow_network</code>, <code>environment_clock</code>, <code>sound_queue</code>, <code>auto_juice</code>, <code>camera_director</code>, <code>level_curve</code>, <code>color_palette</code>, <code>ui_canvas</code>, <code>diagnostic_bus</code>, <code>frame_metrics</code></td></tr>
+</table>
 
 <h2>Simulation Trait</h2>
 
-<p>Games implement the <code>Simulation</code> trait — the formal boundary between engine and game logic:</p>
+<p>The formal boundary between engine and game logic. Games implement three methods:</p>
 
 <pre><code>
 pub trait Simulation {
-    fn setup(&amp;mut self, engine: &amp;mut Engine);
-    fn step(&amp;mut self, engine: &amp;mut Engine);
-    fn render(&amp;self, engine: &amp;mut Engine);
-    fn variants(&amp;self) -&gt; Vec&lt;ParamSet&gt; { vec![] }
+    fn setup(&amp;mut self, engine: &amp;mut Engine);   // Initialize entities and state
+    fn step(&amp;mut self, engine: &amp;mut Engine);    // Game logic every fixed tick (1/60s)
+    fn render(&amp;self, engine: &amp;mut Engine);      // Draw to engine.framebuffer
+    fn variants(&amp;self) -&gt; Vec&lt;ParamSet&gt; { vec![] }  // A/B test parameters
 }
 </code></pre>
 
@@ -98,79 +91,268 @@ pub trait Simulation {
 
 <table>
 <tr><th>Phase</th><th>Name</th><th>Runs</th><th>Key Systems</th></tr>
-<tr><td>0</td><td>Input</td><td>Once</td><td>Debug toggle, gesture recognition, gesture -&gt; EventBus</td></tr>
-<tr><td>1</td><td>Simulation</td><td>Fixed dt</td><td>lifecycle, hierarchy, signal, state_machine, coroutine, environment_clock, flow_network, sprite_animator, behavior, tween, flash, waypoint</td></tr>
-<tr><td>2</td><td>Physics</td><td>Fixed 60Hz</td><td>force_accumulator, integrator, collision, physics_joint</td></tr>
-<tr><td>3</td><td>PostPhysics</td><td>Once</td><td>ghost_trail, particles, transition, dialogue, camera</td></tr>
-<tr><td>4</td><td>RenderingPrep</td><td>Once</td><td>clear, entities, particles, debug, screen_fx, transition, post_fx, cleanup</td></tr>
+<tr><td>0</td><td>Input</td><td>Once per frame</td><td>Debug toggle, gesture recognition, gesture &rarr; EventBus</td></tr>
+<tr><td>1</td><td>Simulation</td><td>Once at FIXED_DT</td><td>lifecycle, hierarchy, signal, state_machine, coroutine, environment_clock, flow_network, sprite_animator, behavior, tween, flash, waypoint</td></tr>
+<tr><td>2</td><td>Physics</td><td>Accumulator loop at 60Hz</td><td>force_accumulator, integrator, collision, physics_joint</td></tr>
+<tr><td>3</td><td>PostPhysics</td><td>Once per frame</td><td>ghost_trail, particles, transition, dialogue, camera</td></tr>
+<tr><td>4</td><td>RenderingPrep</td><td>Once per frame</td><td>clear, entities, particles, debug, screen_fx, transition, post_fx, cleanup</td></tr>
 </table>
 
-<p>All simulation-phase systems receive <code>FIXED_DT</code> (1/60s). Variable dt from the host is used only for the physics accumulator.</p>
+<p>Wall-clock dt is clamped to 50ms (prevents spiral-of-death). The accumulator is further clamped to <code>5 * FIXED_DT</code> to prevent runaway physics catch-up.</p>
+
+<hr>
 
 <h2>ECS</h2>
 
 <ul>
-<li><code>Entity</code> — <code>u64</code> newtype, <code>Entity(0)</code> is null</li>
-<li><code>ComponentStore&lt;T&gt;</code> — <code>HashMap&lt;Entity, T&gt;</code> with ergonomic API</li>
-<li><code>World</code> — holds all entities + 32 component stores</li>
+<li><strong><code>Entity</code></strong> &mdash; <code>u64</code> newtype. <code>Entity(0)</code> is null.</li>
+<li><strong><code>ComponentStore&lt;T&gt;</code></strong> &mdash; <code>HashMap&lt;Entity, T&gt;</code> with ergonomic API. No <code>T: Default</code> bound.</li>
+<li><strong><code>World</code></strong> &mdash; holds all entities + 32 component stores. <code>spawn()</code> / <code>despawn()</code> manage lifecycle.</li>
 </ul>
 
 <h3>32 Components</h3>
 
-<p>Transform, RigidBody, Collider, Renderable, ForceField, Tags, Role, Lifetime, GameState, Behavior, PhysicsMaterial, Impulse, MotionConstraint, ZoneEffect, PropertyTween, EntityFlash, GhostTrail, TimeScale, Active, WaypointPath, SignalEmitter, SignalReceiver, Parent, Children, WorldTransform, StateMachine, Coroutine, SpriteAnimator, PhysicsJoint, ResourceInventory, GraphNode, VisualConnection</p>
+<table>
+<tr><th>Category</th><th>Components</th></tr>
+<tr><td>Spatial</td><td>Transform, RigidBody, Collider, PhysicsMaterial, MotionConstraint, PhysicsJoint</td></tr>
+<tr><td>Visual</td><td>Renderable, GhostTrail, EntityFlash, SpriteAnimator, VisualConnection</td></tr>
+<tr><td>Logic</td><td>Tags, Role, Lifetime, GameState, Behavior, StateMachine, Coroutine, Active</td></tr>
+<tr><td>Physics</td><td>ForceField, Impulse, ZoneEffect</td></tr>
+<tr><td>Animation</td><td>PropertyTween, TimeScale</td></tr>
+<tr><td>Structure</td><td>Parent, Children, WorldTransform, WaypointPath, SignalEmitter, SignalReceiver, ResourceInventory, GraphNode</td></tr>
+</table>
 
 <h3>17 Systems</h3>
 
 <p>lifecycle, hierarchy, signal, state_machine, coroutine, sprite_animator, behavior, tween, flash, ghost_trail, waypoint, force_accumulator, integrator, collision, physics_joint, renderer, debug_render</p>
 
-<h2>Rendering (10 modules)</h2>
+<p>Systems destructure <code>World</code> at the top of each function to access multiple stores without borrow conflicts &mdash; a deliberate pattern documented in CLAUDE.md.</p>
 
-<p>Pure software. No GPU. Modules: framebuffer, color, shapes, text, particles, post_fx, layers, sprite, transition, screen_fx.</p>
-
-<p>Post-processing: vignette, CRT scanlines, screen shake, bloom.</p>
+<hr>
 
 <h2>Physics</h2>
 
-<p>Fixed timestep at 60Hz. Semi-implicit Euler. Circle-circle and circle-rect collision. Continuous collision detection (CCD). Spatial grid broadphase. Joint constraints: distance, spring, rope, hinge.</p>
-
-<h2>Key Subsystems</h2>
-
+<h3>Integration</h3>
+<p><strong>Semi-implicit (symplectic) Euler.</strong> Velocity is updated from acceleration first, then the collision system applies the new velocity to compute position. This conserves energy in oscillatory systems (orbits, springs) much better than explicit Euler.</p>
 <ul>
-<li><strong>GameState</strong> — <code>HashMap&lt;String, StateValue&gt;</code> (F64/Bool/Str). Primary game-testing interface.</li>
-<li><strong>EventBus</strong> — Frame-scoped pub/sub. Central integration point for cross-system communication.</li>
-<li><strong>Sound</strong> — Command-buffer pattern. Rust queues, JS polls via <code>drain_sound_commands()</code>.</li>
-<li><strong>Tilemap</strong> — Multi-layer grid. Tile types: Empty, Solid, Platform, Custom(u16).</li>
-<li><strong>GameFlow</strong> — Declarative lifecycle FSM (Title, Playing, Paused, GameOver, Victory).</li>
-<li><strong>AutoJuice</strong> — Trigger-based automatic game feel (particles, shake, flash, sound on collision/spawn/despawn).</li>
-<li><strong>CameraDirector</strong> — Stack-based cinematic camera (Follow, Pan, Zoom, Shake, Letterbox).</li>
-<li><strong>GestureRecognizer</strong> — Touch gesture recognition (Tap, DoubleTap, LongPress, Swipe, Pinch).</li>
+<li>Frame-rate independent damping: <code>(1.0 - damping).powf(dt)</code></li>
+<li>ContinuousDrag with exponential decay: <code>(-drag * dt).exp()</code></li>
 </ul>
+
+<h3>Collision Detection</h3>
+<p><strong>Continuous Collision Detection (CCD)</strong> prevents tunneling:</p>
+<ul>
+<li><strong>Circle vs Circle</strong> &mdash; quadratic ray-sphere intersection on the Minkowski sum</li>
+<li><strong>Circle vs Line Segment</strong> &mdash; tests both sides of the line normal, checks segment bounds, falls back to endpoint sweeps</li>
+<li><strong>Circle vs AABB</strong> &mdash; decomposes into 4 edges + 4 corners</li>
+</ul>
+<p>All three handle edge cases correctly: zero-length segments, stationary objects, already-overlapping objects, degenerate cases.</p>
+
+<h3>Collision Response</h3>
+<p>Iterative bounce loop with <code>max_bounces = 4</code> handles multi-bounce scenarios (ball trapped in corners). <code>remaining_t</code> tracking ensures no simulation time is lost. Epsilon separation of 0.01 prevents surface sinking. Trigger zones are detected separately from physical collisions.</p>
+
+<h3>Spatial Grid</h3>
+<p>Uniform grid broadphase with pre-computed <code>inv_cell_size</code>. Cell size 128px. Rebuilt each frame. Deduplication via <code>sort_unstable + dedup</code>.</p>
+
+<h3>Force Accumulation</h3>
+<p>Clean zero-then-accumulate pattern. Two force falloff models:</p>
+<ul>
+<li><strong>Plummer softening</strong> &mdash; <code>F(r) = strength * r / (r&sup2; + &epsilon;&sup2;)^(3/2)</code>. Standard N-body kernel, smooth at r=0, falls off as 1/r&sup2; at distance. Used for gravity wells.</li>
+<li><strong>InverseSquare</strong> with min-distance clamping to prevent singularities.</li>
+</ul>
+<p>Zone effects: Wind, Drag, SpeedMultiplier, Conveyor.</p>
+
+<h3>Joints</h3>
+<p>Distance, spring, rope, and hinge constraints.</p>
+
+<hr>
+
+<h2>Rendering</h2>
+
+<p>Pure CPU software renderer. No GPU dependency. The framebuffer is a flat <code>Vec&lt;u8&gt;</code> in RGBA format.</p>
+
+<h3>Anti-Aliasing</h3>
+<p>All curved and diagonal primitives use <strong>signed distance field (SDF) evaluation</strong> with a 1-pixel feather zone. The pattern: pixels inside the shape get full alpha; pixels in the feather zone get alpha proportional to distance; pixels outside are skipped.</p>
+
+<h3>Shape Primitives</h3>
+<table>
+<tr><th>Primitive</th><th>Notes</th></tr>
+<tr><td><code>fill_circle</code> / <code>draw_circle</code></td><td>AA via SDF distance. Sub-pixel positioning with +0.5 center offset.</td></tr>
+<tr><td><code>fill_pill</code></td><td>Stadium/capsule shape via proper SDF.</td></tr>
+<tr><td><code>fill_triangle</code></td><td>Edge-function rasterization with minimum signed edge distance for AA.</td></tr>
+<tr><td><code>draw_line_thick</code></td><td>AA thick line via distance field. Degenerates to circle for zero-length.</td></tr>
+<tr><td><code>fill_tapered_trail</code></td><td>Multi-segment polyline with tapering width/alpha. Evaluates each pixel against all segments &mdash; no seams at joints. Standout feature.</td></tr>
+<tr><td><code>fill_rect</code> / <code>draw_rect</code></td><td>Axis-aligned, integer coordinates.</td></tr>
+<tr><td><code>draw_dashed_circle</code></td><td>Parametric stepping for dashed ring effects.</td></tr>
+</table>
+
+<h3>Text</h3>
+<p>Embedded 5&times;7 bitmap font covering ASCII 32-126. Zero external dependencies. Integer-multiple scaling. Functions: <code>draw_text</code>, <code>draw_text_centered</code>, <code>text_width</code>.</p>
+
+<h3>Particles</h3>
+<p>Hard cap of 2048 particles. Small particles (&le;1.5px) render as single blended pixels for efficiency. <code>retain_mut</code> for single-pass update+removal. Deterministic via seeded RNG.</p>
+
+<h3>Post-Processing</h3>
+<ul>
+<li><strong>Vignette</strong> &mdash; per-pixel distance-based edge darkening</li>
+<li><strong>CRT scanlines</strong> &mdash; periodic row dimming</li>
+<li><strong>Screen shake</strong> &mdash; sine-based offset with linear decay</li>
+<li><strong>ScreenFxStack</strong> &mdash; composable tint, desaturate (BT.601 luminance), flash effects with automatic expiration</li>
+</ul>
+
+<h3>Rendering Bridge</h3>
+<p>Two paths for browser display:</p>
+<ul>
+<li><strong>Canvas 2D</strong> (demo-ball, gravity-pong) &mdash; <code>ImageData</code> from WASM memory via <code>framebuffer_ptr()</code></li>
+<li><strong>WebGL2</strong> (chord-reps) &mdash; framebuffer uploaded as texture, multi-pass post-processing (bloom, Gaussian blur, chromatic aberration, scanlines, vignette)</li>
+</ul>
+
+<hr>
+
+<h2>Sound</h2>
+
+<p>Command-buffer architecture. Rust queues JSON commands; JS polls via <code>drain_sound_commands()</code> each frame and dispatches to Web Audio API.</p>
+
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>PlayTone</code></td><td>Oscillator with ADSR envelope (attack, decay)</td></tr>
+<tr><td><code>PlayNoise</code></td><td>Filtered white noise</td></tr>
+<tr><td><code>PlayNote</code></td><td>MIDI note via WebAudioFont sample bank</td></tr>
+<tr><td><code>PlaySample</code></td><td>Named audio sample</td></tr>
+<tr><td><code>StartLoop</code> / <code>StopLoop</code></td><td>Looping audio control</td></tr>
+<tr><td><code>SetVolume</code></td><td>Master volume control</td></tr>
+</table>
+
+<p><code>SoundPalette</code> provides named profiles: impact, pickup, explosion, ui_click, ambient_wind, game_over.</p>
+
+<hr>
 
 <h2>Determinism</h2>
 
 <ul>
-<li><strong>SeededRng</strong> (xorshift64) owned by Engine — the single canonical RNG</li>
-<li><strong>State hashing</strong> via <code>Engine::state_hash()</code> — deterministic u64 independent of rendering</li>
-<li><strong>Seeded reset</strong> via <code>Engine::reset(seed)</code> — single entry point for reproducible simulation</li>
-<li><strong>Fixed DT</strong> for all simulation systems</li>
-<li><strong>InputFrame</strong> as canonical input representation for replays and policies</li>
+<li><strong>SeededRng</strong> (xorshift64) &mdash; the single canonical RNG, owned by Engine</li>
+<li><strong><code>Engine::state_hash()</code></strong> &mdash; deterministic u64 from simulation state, independent of rendering</li>
+<li><strong><code>Engine::reset(seed)</code></strong> &mdash; single entry point for reproducible simulation</li>
+<li><strong>Fixed DT</strong> (1/60s) for all simulation systems</li>
+<li><strong>InputFrame</strong> &mdash; canonical input representation for replays and policies</li>
+<li><strong>BTreeMap</strong> used throughout for deterministic iteration order</li>
 </ul>
 
-<h2>WASM API</h2>
+<p>Same seed + same inputs = identical state hashes. Verified by the headless testing infrastructure across thousands of seeds.</p>
 
-<p>Thread-local <code>Engine</code> singleton. Key exports: <code>init</code>, <code>tick</code>, <code>framebuffer_ptr/len</code>, keyboard/mouse/touch input, <code>setup_demo_ball</code>, <code>get_game_state</code>, <code>drain_sound_commands</code>, <code>get_diagnostics</code>, <code>get_frame_metrics</code>.</p>
+<hr>
+
+<h2>WASM Integration</h2>
+
+<h3>Zero-Copy Framebuffer</h3>
+<p>JS reads pixels directly from WASM linear memory via <code>framebuffer_ptr()</code>. No serialization, no copying on the Rust side.</p>
+
+<h3>BrowserState Shared Memory</h3>
+<p>Rather than calling back into WASM for browser metadata, JS writes a fixed <code>Float64Array</code> view into WASM linear memory. Rust reads typed slots by index. Zero-copy, zero-allocation per-frame data flow. Correctly handles WASM memory growth (buffer regrowth check).</p>
+
+<h3>Feature Gating</h3>
+<p><code>console_error_panic_hook</code> and <code>web-sys</code> are properly cfg-gated under <code>#[cfg(target_arch = "wasm32")]</code>. The <code>log.rs</code> module abstracts over <code>console::log</code> (WASM) and <code>println!</code> (native).</p>
+
+<h3>Binary Size</h3>
+<p>Optimized with <code>opt-level = "s"</code>, <code>lto = true</code>, <code>codegen-units = 1</code>. Minimal dependency set.</p>
+
+<hr>
+
+<h2>Game Support Systems</h2>
+
+<h3>CameraDirector</h3>
+<p>Stack-based cinematic camera with 5 modes: Follow (entity tracking with dead zone), Pan (eased position), Zoom (eased scale), Shake (procedural sine-based), Letterbox (cinematic bars). Declarative rules trigger modes from EventBus events.</p>
+
+<h3>AutoJuice</h3>
+<p>Declarative game feel. 4 triggers (OnCollision, OnDespawn, OnSpawn, OnEvent) &times; 5 effects (particles, screen shake, screen flash, sound, freeze frame). Builder pattern for composing effects.</p>
+
+<h3>GameFlow</h3>
+<p>Declarative lifecycle FSM with states (Title, Playing, Paused, GameOver, Victory) and conditions (StateReaches, EventFired, ButtonTapped, AfterSeconds). First-matching-transition semantics.</p>
+
+<h3>FeelPreset</h3>
+<p>Named physics profiles. 6 built-in: tight_platformer, floaty_astronaut, heavy_tank, snappy_cursor, underwater, ice_skating. JSON/TOML serialization.</p>
+
+<h3>GestureRecognizer</h3>
+<p>Touch gesture recognition: Tap, DoubleTap, LongPress, Swipe (with direction + velocity), Pinch. Configurable thresholds. Primary touch forwarding for mouse compatibility.</p>
+
+<h3>Behavior Rules</h3>
+<p>Declarative condition-action rules. Conditions: Collision, TriggerEnter, Timer, StateCheck, KeyPress, Always. Actions: Despawn, SetState, SpawnTemplate, TimerControl, Log. One-shot support. Snapshot-then-commit pattern prevents ordering bugs.</p>
+
+<h3>State Machine</h3>
+<p>Per-entity FSM with one-frame edge detection (<code>just_entered</code>, <code>prev_state</code>). Transition conditions with duration and state checks. TimeScale integration for time-scaled entities.</p>
+
+<h3>Coroutines</h3>
+<p>Simulated async without Rust async. <code>VecDeque&lt;CoroutineStep&gt;</code> with front-popping. Non-blocking steps (SetState, Log, SpawnTemplate) cascade within the same frame. Wait steps yield.</p>
+
+<h3>Tween System</h3>
+<p>9 easing functions (Linear, EaseIn/Out/InOut, Back, Bounce, Elastic, Quad, Cubic). 7 tween targets (X, Y, Rotation, Scale, VelocityX, VelocityY, Alpha). Loop and ping-pong modes. TimeScale integration.</p>
+
+<h3>EventBus</h3>
+<p>Frame-scoped pub/sub. Dual string/typed channels. Builder pattern for event construction. Zero-allocation query API via iterators. Central integration point for cross-system communication.</p>
+
+<h3>Scene Manager</h3>
+<p>Stack-based push/pop semantics for nested scenes (overworld &rarr; dungeon &rarr; fight). Captures full World snapshots on push, restores on pop.</p>
+
+<h3>Telemetry</h3>
+<p>Delta-compressed state recording. Bitwise NaN comparison prevents spurious deltas. RFC 8259-compliant JSON escaping. Handles NaN, Infinity, and integer formatting.</p>
+
+<h3>Diagnostics</h3>
+<p>Runtime health checks: NaN transforms, out-of-bounds entities, entity count warnings.</p>
+
+<hr>
+
+<h2>Spatial &amp; Procedural Systems</h2>
+
+<ul>
+<li><strong>SpatialHashGrid</strong> &mdash; broad-phase with pre-computed <code>inv_cell_size</code>. <code>nearest()</code> queries.</li>
+<li><strong>Tilemap</strong> &mdash; multi-layer grid. Tile types: Empty, Solid, Platform, Custom(u16).</li>
+<li><strong>A* Pathfinding</strong> &mdash; octile heuristic, corner-cutting prevention, max-iteration safety valve.</li>
+<li><strong>Procedural Generation</strong> &mdash; value noise (smoothstep interpolation, multi-octave), cellular automata (birth/death thresholds), dungeon rooms (overlap detection, L-corridor connection). All deterministic via SeededRng.</li>
+<li><strong>DensityField</strong>, <strong>FlowNetwork</strong>, <strong>Raycast</strong> &mdash; specialized spatial query tools.</li>
+</ul>
+
+<hr>
+
+<h2>Games</h2>
+
+<h3>Gravity Pong</h3>
+<p>A 10-level physics puzzle game &mdash; not a Pong clone. Players guide particles into targets using gravitational force fields.</p>
+<ul>
+<li><strong>Entity vocabulary:</strong> gravity wells (Plummer softening), repulsors, black holes (kill zones), wormholes (bidirectional teleporters), plasma currents (directional corridors), supernovas (timed explosives), walls (line-segment reflectors), waypoints (particle capture zones)</li>
+<li><strong>Core mechanic:</strong> tap to place waypoints that capture stopped particles, then sling-launch toward targets through gravitational fields</li>
+<li><strong>Visual juice:</strong> 300 field dust motes that respond to gravity (creating visible "field lines"), 50&times;50 gravitational field grid overlay, particle trails, screen shake, screen flash, expanding rings on supernova detonation</li>
+<li><strong>10 levels</strong> with progressive introduction of mechanics: First Contact &rarr; The Sling &rarr; Orbital &rarr; Through the Wormhole &rarr; Current Affairs &rarr; Dark Side &rarr; Chaos Theory &rarr; The Gauntlet &rarr; Countdown &rarr; Final Frontier</li>
+</ul>
+
+<h3>Chord Reps</h3>
+<p>Interactive ear training game with spaced repetition.</p>
+<ul>
+<li><strong>5 concept types:</strong> scale degrees, roman numerals, intervals, chord qualities, cadences (35 SRS cards total)</li>
+<li><strong>SM-2 SRS variant</strong> with custom modifications: hint-used gives 0.5-day interval (forgiving), fail gives 0.1-day interval (aggressive retry)</li>
+<li><strong>Music theory:</strong> major scale, diatonic chord qualities, triad intervals, cadence definitions &mdash; all musically verified</li>
+<li><strong>Pedagogy:</strong> 40+ educational insight texts with historical context, song references for ear training, functional harmonic analysis</li>
+<li><strong>Audio:</strong> synthesized via Web Audio API + WebAudioFont. Challenge audio: tonic triad context, arpeggiated chords, sequential intervals</li>
+<li><strong>Piano visualization:</strong> interactive keyboard showing played keys, toggle-to-hear, mobile zoom + scroll</li>
+<li><strong>WebGL2 post-processing:</strong> bloom, Gaussian blur, chromatic aberration, scanlines, vignette</li>
+</ul>
+
+<h3>Demo Ball</h3>
+<p>Minimal reference implementation of the Simulation trait. Click to launch a bouncing ball. Score = distance traveled. Validates the ECS pipeline and demonstrates variant system with tunable parameters.</p>
+
+<hr>
 
 <h2>Design Decisions</h2>
 
 <ul>
-<li>Single cdylib+rlib crate — same code for WASM and native</li>
-<li>Zero-copy framebuffer — JS reads directly from WASM linear memory</li>
-<li>All f64 math — no f32 anywhere</li>
-<li>Sound as JSON drain — no JS callbacks from Rust</li>
-<li>Fixed 60Hz physics — deterministic, independent of display rate</li>
-<li>Simulation trait boundary — games implement setup/step/render, engine owns timing and input</li>
-<li>Deferred mutation — SpawnQueue, SoundQueue, EventBus stage changes for phase boundaries</li>
-<li>EventBus as integration point — nearly all cross-system communication flows through it</li>
+<li><strong>Single cdylib+rlib crate</strong> &mdash; same code for WASM and native</li>
+<li><strong>Zero-copy framebuffer</strong> &mdash; JS reads directly from WASM linear memory</li>
+<li><strong>All f64 math</strong> &mdash; no f32 anywhere, giving 15-16 significant digits</li>
+<li><strong>Sound as JSON drain</strong> &mdash; no JS callbacks from Rust, unidirectional command flow</li>
+<li><strong>Fixed 60Hz physics</strong> &mdash; deterministic, independent of display rate</li>
+<li><strong>Simulation trait boundary</strong> &mdash; games implement setup/step/render, engine owns timing and input</li>
+<li><strong>Deferred mutation</strong> &mdash; SpawnQueue, SoundQueue, EventBus stage changes for phase boundaries</li>
+<li><strong>Snapshot-then-commit</strong> &mdash; collision.rs collects data into Vec, processes, writes back in separate loop</li>
+<li><strong>EventBus as integration point</strong> &mdash; nearly all cross-system communication flows through frame-scoped pub/sub</li>
 </ul>
 
 </body>

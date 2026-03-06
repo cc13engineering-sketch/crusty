@@ -10,10 +10,12 @@ Explicit separation rules to prevent platform bleed and hidden coupling.
 - Network sockets or HTTP
 
 ## All host interaction goes through thin interfaces:
-- **Input**: `InputFrame` applied via `Engine::apply_input()`, or raw key/mouse/touch events via WASM bindings
+- **Input**: Raw key/mouse/touch events via WASM bindings. `InputFrame` + `apply_input()` exist for headless/replay use only — not exposed to the host layer.
 - **Output**: `Framebuffer` pixel buffer read by JS via shared memory
 - **Sound**: `SoundCommandQueue` drained as JSON by JS
+- **Persistence**: `PersistQueue` drained as JSON by JS (key-value set/remove/clear commands)
 - **Diagnostics**: `DiagnosticBus` drained as JSON by JS
+- **Browser metadata**: `BrowserState` shared-memory buffer (viewport, DPR, touch, focus, online status) — JS writes, WASM reads
 - **State**: `GameState` read/written via WASM string APIs
 - **Simulation**: Games implement the `Simulation` trait (`setup`, `step`, `render`). The engine owns timing, input application, and determinism.
 

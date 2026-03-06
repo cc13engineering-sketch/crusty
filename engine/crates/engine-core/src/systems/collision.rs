@@ -35,7 +35,7 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
 
     // SNAPSHOT all collidable entities
     let mut snaps: Vec<EntitySnap> = Vec::new();
-    let entities: Vec<Entity> = colliders.entities().collect();
+    let entities: Vec<Entity> = colliders.sorted_entities();
     for entity in &entities {
         let t = match transforms.get(*entity) {
             Some(t) => t,
@@ -171,8 +171,12 @@ pub fn run(world: &mut World, events: &mut EventQueue, dt: f64) {
                     );
 
                     let e = snap.restitution.max(other.restitution);
-                    let reflected = math::reflect(current_vel, hit.normal);
-                    let new_vel = math::scale(reflected, e);
+                    // Decompose velocity into normal and tangential components.
+                    // Restitution only affects the normal component; tangential
+                    // velocity is preserved (no artificial friction on glancing blows).
+                    let vn = math::dot(current_vel, hit.normal);
+                    let tangent = math::sub(current_vel, math::scale(hit.normal, vn));
+                    let new_vel = math::add(tangent, math::scale(hit.normal, -vn * e));
 
                     new_events.push(EventKind::Collision {
                         entity_a: snap.entity,

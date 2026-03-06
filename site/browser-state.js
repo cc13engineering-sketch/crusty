@@ -140,8 +140,10 @@ export function initBrowserState(memory, ptrFn, lenFn, opts) {
      * @param {number} dt - Frame delta in milliseconds
      */
     return function updateBrowserState(dt) {
-        // Re-create Float64Array view if WASM memory grew (buffer detached)
+        // Re-create Float64Array view if WASM memory grew (buffer detached).
+        // Re-call ptrFn() in case the allocation moved during growth.
         if (slots.buffer !== memory.buffer) {
+            bsPtr = ptrFn();
             slots = new Float64Array(memory.buffer, bsPtr, bsLen);
         }
 

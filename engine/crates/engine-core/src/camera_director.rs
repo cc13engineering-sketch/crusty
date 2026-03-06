@@ -53,23 +53,31 @@ pub enum CameraMode {
         dead_zone: f64,
     },
     /// Animate the camera position to (`to_x`, `to_y`) over `duration` seconds.
+    /// `from_x`/`from_y` are captured automatically on first application.
     Pan {
         to_x: f64,
         to_y: f64,
         duration: f64,
         easing: Easing,
+        from_x: Option<f64>,
+        from_y: Option<f64>,
     },
     /// Animate camera zoom to `scale` over `duration` seconds.
+    /// `from_scale` is captured automatically on first application.
     Zoom {
         scale: f64,
         duration: f64,
         easing: Easing,
+        from_scale: Option<f64>,
     },
-    /// Additive procedural shake applied on top of the current camera position.
+    /// Procedural shake around the camera position at push time.
+    /// `base_x`/`base_y` are captured automatically on first application.
     Shake {
         intensity: f64,
         frequency: f64,
         duration: f64,
+        base_x: Option<f64>,
+        base_y: Option<f64>,
     },
     /// Draw horizontal letterbox bars (cinematic bars) over the framebuffer.
     Letterbox {
@@ -223,17 +231,21 @@ impl CameraDirector {
         }
 
         // ── Apply top-most mode to camera ─────────────────────────────────
-        if let Some((mode, elapsed)) = self.stack.last() {
+        if let Some((mode, elapsed)) = self.stack.last_mut() {
             let elapsed = *elapsed;
             match mode {
                 CameraMode::Follow { tag, lead: _, dead_zone } => {
                     // Locate the first entity with the requested tag.
+                    // Use sorted_entities for deterministic selection when
+                    // multiple entities share the same tag.
                     let mut target: Option<(f64, f64)> = None;
-                    for (entity, tags) in world.tags.iter() {
-                        if tags.has(tag) {
-                            if let Some(t) = world.transforms.get(entity) {
-                                target = Some((t.x, t.y));
-                                break;
+                    for entity in world.tags.sorted_entities() {
+                        if let Some(tags) = world.tags.get(entity) {
+                            if tags.has_str(tag) {
+                                if let Some(t) = world.transforms.get(entity) {
+                                    target = Some((t.x, t.y));
+                                    break;
+                                }
                             }
                         }
                     }
@@ -248,36 +260,48 @@ impl CameraDirector {
                         }
                     }
                 }
-                CameraMode::Pan { to_x, to_y, duration, easing } => {
+                CameraMode::Pan { to_x, to_y, duration, easing, from_x, from_y } => {
                     if *duration > 0.0 {
-                        let t = easing.apply((elapsed / duration).min(1.0));
-                        camera.x = camera.x + (to_x - camera.x) * t;
-                        camera.y = camera.y + (to_y - camera.y) * t;
+                        // Capture start position on first application
+                        let sx = *from_x.get_or_insert(camera.x);
+                        let sy = *from_y.get_or_insert(camera.y);
+                        let t = easing.apply((elapsed / *duration).min(1.0));
+                        camera.x = sx + (*to_x - sx) * t;
+                        camera.y = sy + (*to_y - sy) * t;
                     } else {
                         camera.x = *to_x;
                         camera.y = *to_y;
                     }
                 }
-                CameraMode::Zoom { scale, duration, easing } => {
+                CameraMode::Zoom { scale, duration, easing, from_scale } => {
                     if *duration > 0.0 {
-                        let t = easing.apply((elapsed / duration).min(1.0));
-                        camera.zoom = camera.zoom + (scale - camera.zoom) * t;
+                        // Capture start scale on first application
+                        let ss = *from_scale.get_or_insert(camera.zoom);
+                        let t = easing.apply((elapsed / *duration).min(1.0));
+                        camera.zoom = ss + (*scale - ss) * t;
                     } else {
                         camera.zoom = *scale;
                     }
                 }
-                CameraMode::Shake { intensity, frequency, duration } => {
+                CameraMode::Shake { intensity, frequency, duration, base_x, base_y } => {
+                    // Capture base position on first application
+                    let bx = *base_x.get_or_insert(camera.x);
+                    let by = *base_y.get_or_insert(camera.y);
                     if elapsed < *duration {
                         // Decay intensity linearly toward zero as the shake expires.
-                        let remaining = (duration - elapsed).max(0.0);
-                        let factor = remaining / duration;
-                        let decayed = intensity * factor;
+                        let remaining = (*duration - elapsed).max(0.0);
+                        let factor = remaining / *duration;
+                        let decayed = *intensity * factor;
                         // Use elapsed time + frequency to produce deterministic
                         // pseudo-random offsets without requiring a PRNG state.
-                        let phase_x = elapsed * frequency * std::f64::consts::TAU;
-                        let phase_y = elapsed * frequency * std::f64::consts::TAU + 1.5707963;
-                        camera.x += phase_x.sin() * decayed;
-                        camera.y += phase_y.sin() * decayed;
+                        let phase_x = elapsed * *frequency * std::f64::consts::TAU;
+                        let phase_y = elapsed * *frequency * std::f64::consts::TAU + 1.5707963;
+                        camera.x = bx + phase_x.sin() * decayed;
+                        camera.y = by + phase_y.sin() * decayed;
+                    } else {
+                        // Shake expired — restore base position
+                        camera.x = bx;
+                        camera.y = by;
                     }
                 }
                 CameraMode::Letterbox { .. } => {
@@ -372,17 +396,17 @@ mod tests {
     #[test]
     fn push_increases_depth() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Shake { intensity: 5.0, frequency: 10.0, duration: 0.5 });
+        d.push(CameraMode::Shake { intensity: 5.0, frequency: 10.0, duration: 0.5, base_x: None, base_y: None });
         assert_eq!(d.stack_depth(), 1);
-        d.push(CameraMode::Zoom { scale: 2.0, duration: 1.0, easing: Easing::Linear });
+        d.push(CameraMode::Zoom { scale: 2.0, duration: 1.0, easing: Easing::Linear, from_scale: None });
         assert_eq!(d.stack_depth(), 2);
     }
 
     #[test]
     fn pop_decreases_depth() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Shake { intensity: 5.0, frequency: 10.0, duration: 0.5 });
-        d.push(CameraMode::Zoom { scale: 2.0, duration: 1.0, easing: Easing::Linear });
+        d.push(CameraMode::Shake { intensity: 5.0, frequency: 10.0, duration: 0.5, base_x: None, base_y: None });
+        d.push(CameraMode::Zoom { scale: 2.0, duration: 1.0, easing: Easing::Linear, from_scale: None });
         d.pop();
         assert_eq!(d.stack_depth(), 1);
         d.pop();
@@ -399,10 +423,10 @@ mod tests {
     #[test]
     fn clear_resets_everything() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Shake { intensity: 1.0, frequency: 5.0, duration: 1.0 });
+        d.push(CameraMode::Shake { intensity: 1.0, frequency: 5.0, duration: 1.0, base_x: None, base_y: None });
         d.add_rule(CameraRule {
             on_event: "boom".into(),
-            push_mode: CameraMode::Shake { intensity: 8.0, frequency: 12.0, duration: 0.3 },
+            push_mode: CameraMode::Shake { intensity: 8.0, frequency: 12.0, duration: 0.3, base_x: None, base_y: None },
             pop_after: Some(0.3),
         });
         d.auto_pops.push((0, 0.5));
@@ -506,7 +530,7 @@ mod tests {
     #[test]
     fn shake_applies_nonzero_offset_early_in_duration() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Shake { intensity: 20.0, frequency: 5.0, duration: 1.0 });
+        d.push(CameraMode::Shake { intensity: 20.0, frequency: 5.0, duration: 1.0, base_x: None, base_y: None });
 
         let mut camera = make_camera();
         let bus = make_bus();
@@ -521,7 +545,7 @@ mod tests {
     #[test]
     fn shake_has_no_effect_after_duration() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Shake { intensity: 20.0, frequency: 5.0, duration: 0.5 });
+        d.push(CameraMode::Shake { intensity: 20.0, frequency: 5.0, duration: 0.5, base_x: None, base_y: None });
 
         let mut camera = make_camera();
         let bus = make_bus();
@@ -603,7 +627,7 @@ mod tests {
         let mut d = CameraDirector::new();
         d.add_rule(CameraRule {
             on_event: "explosion".into(),
-            push_mode: CameraMode::Shake { intensity: 10.0, frequency: 8.0, duration: 0.5 },
+            push_mode: CameraMode::Shake { intensity: 10.0, frequency: 8.0, duration: 0.5, base_x: None, base_y: None },
             pop_after: None,
         });
 
@@ -622,7 +646,7 @@ mod tests {
         let mut d = CameraDirector::new();
         d.add_rule(CameraRule {
             on_event: "explosion".into(),
-            push_mode: CameraMode::Shake { intensity: 10.0, frequency: 8.0, duration: 0.5 },
+            push_mode: CameraMode::Shake { intensity: 10.0, frequency: 8.0, duration: 0.5, base_x: None, base_y: None },
             pop_after: None,
         });
 
@@ -642,7 +666,7 @@ mod tests {
         let mut d = CameraDirector::new();
         d.add_rule(CameraRule {
             on_event: "cutscene".into(),
-            push_mode: CameraMode::Zoom { scale: 2.0, duration: 0.0, easing: Easing::Linear },
+            push_mode: CameraMode::Zoom { scale: 2.0, duration: 0.0, easing: Easing::Linear, from_scale: None },
             pop_after: Some(0.1),
         });
 
@@ -669,7 +693,7 @@ mod tests {
     #[test]
     fn manual_push_without_auto_pop_persists() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Zoom { scale: 1.5, duration: 1.0, easing: Easing::EaseInOut });
+        d.push(CameraMode::Zoom { scale: 1.5, duration: 1.0, easing: Easing::EaseInOut, from_scale: None });
 
         let bus = make_bus();
         let world = make_world();
@@ -687,7 +711,7 @@ mod tests {
     #[test]
     fn zoom_mode_instant_sets_zoom() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Zoom { scale: 3.0, duration: 0.0, easing: Easing::Linear });
+        d.push(CameraMode::Zoom { scale: 3.0, duration: 0.0, easing: Easing::Linear, from_scale: None });
 
         let mut camera = make_camera();
         let bus = make_bus();
@@ -700,7 +724,7 @@ mod tests {
     #[test]
     fn pan_mode_instant_sets_position() {
         let mut d = CameraDirector::new();
-        d.push(CameraMode::Pan { to_x: 400.0, to_y: 300.0, duration: 0.0, easing: Easing::Linear });
+        d.push(CameraMode::Pan { to_x: 400.0, to_y: 300.0, duration: 0.0, easing: Easing::Linear, from_x: None, from_y: None });
 
         let mut camera = make_camera();
         let bus = make_bus();
@@ -716,12 +740,12 @@ mod tests {
         let mut d = CameraDirector::new();
         d.add_rule(CameraRule {
             on_event: "a".into(),
-            push_mode: CameraMode::Shake { intensity: 5.0, frequency: 5.0, duration: 0.2 },
+            push_mode: CameraMode::Shake { intensity: 5.0, frequency: 5.0, duration: 0.2, base_x: None, base_y: None },
             pop_after: None,
         });
         d.add_rule(CameraRule {
             on_event: "b".into(),
-            push_mode: CameraMode::Zoom { scale: 2.0, duration: 0.5, easing: Easing::EaseOut },
+            push_mode: CameraMode::Zoom { scale: 2.0, duration: 0.5, easing: Easing::EaseOut, from_scale: None },
             pop_after: None,
         });
 

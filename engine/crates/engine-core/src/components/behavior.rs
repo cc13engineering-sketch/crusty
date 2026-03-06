@@ -1,4 +1,5 @@
 use super::SchemaInfo;
+use super::Tag;
 
 /// Autonomous entity movement behavior.
 #[derive(Clone, Debug)]
@@ -6,7 +7,7 @@ pub struct Behavior {
     pub mode: BehaviorMode,
     pub speed: f64,
     pub turn_rate: f64,
-    pub target_tag: Option<String>,
+    pub target_tag: Option<Tag>,
 }
 
 #[derive(Clone, Debug)]
@@ -42,7 +43,7 @@ impl SchemaInfo for Behavior {
                 "mode": { "type": "enum", "variants": ["Drift", "Chase", "Flee", "Seek", "Orbit"] },
                 "speed": { "type": "f64", "default": 100.0 },
                 "turn_rate": { "type": "f64", "default": 3.0 },
-                "target_tag": { "type": "Option<String>" }
+                "target_tag": { "type": "Option<Tag>" }
             }
         })
     }

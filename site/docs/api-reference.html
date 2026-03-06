@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crusty Engine: API Reference — Crusty Engine</title>
+    <title>API Reference — Crusty Engine</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -40,21 +40,17 @@
     <a href="../">&larr; Home</a>
     <a href="./">Docs</a>
     <a href="engine.html">Engine</a>
-    <a href="architecture.html">Architecture</a>
+    <a href="architecture.html">Headless</a>
     <a href="api-reference.html">API</a>
     <a href="getting-started.html">Getting Started</a>
-    <a href="ai-iteration.html">AI Iteration</a>
-    <a href="codebase-explainer.html">Codebase Explainer</a>
 </nav>
-<h1>Crusty Engine: API Reference</h1>
+<h1>API Reference</h1>
 
-<p>API reference for the core simulation infrastructure and headless testing modules.</p>
+<p>Core types, headless modules, and CLI commands.</p>
 
 <h2>Core Types</h2>
 
 <h3><code>Simulation</code> Trait</h3>
-
-<p>The contract between a game and the engine.</p>
 
 <pre><code>
 pub trait Simulation {
@@ -67,8 +63,6 @@ pub trait Simulation {
 
 <h3><code>InputFrame</code></h3>
 
-<p>Canonical input representation. Serializable for replays.</p>
-
 <pre><code>
 pub struct InputFrame {
     pub keys_pressed: Vec&lt;String&gt;,
@@ -79,12 +73,9 @@ pub struct InputFrame {
     pub pointer_up: Option&lt;(f64, f64)&gt;,
 }
 </code></pre>
-
 <p><strong>Methods:</strong> <code>is_empty() -&gt; bool</code></p>
 
 <h3><code>Observation</code></h3>
-
-<p>Zero-allocation view into engine state.</p>
 
 <pre><code>
 pub struct Observation&lt;&#x27;a&gt; {
@@ -98,28 +89,129 @@ pub struct Observation&lt;&#x27;a&gt; {
 
 <h3><code>Policy</code> Trait</h3>
 
-<p>Pluggable input generator for automated simulation.</p>
-
 <pre><code>
 pub trait Policy {
     fn next_input(&amp;mut self, obs: &amp;Observation) -&gt; InputFrame;
 }
 </code></pre>
+<p><strong>Built-in:</strong> <code>NullPolicy</code>, <code>RandomPolicy::new(seed)</code>, <code>ScriptedPolicy::new(inputs)</code></p>
 
-<p><strong>Built-in implementations:</strong></p>
-<ul>
-<li><code>NullPolicy</code> — empty InputFrame every tick</li>
-<li><code>RandomPolicy::new(seed)</code> — random events from a separate seeded RNG</li>
-<li><code>ScriptedPolicy::new(inputs)</code> — replay a fixed <code>Vec&lt;InputFrame&gt;</code></li>
-</ul>
+<h3><code>GameState</code></h3>
+
+<pre><code>
+// Typed key-value store
+engine.global_state.set_f64(&quot;score&quot;, 100.0);
+engine.global_state.set_bool(&quot;game_over&quot;, true);
+engine.global_state.set_str(&quot;level&quot;, &quot;forest&quot;);
+
+let score = engine.global_state.get_f64(&quot;score&quot;);  // Option&lt;f64&gt;
+engine.global_state.add_f64(&quot;score&quot;, 10.0);        // Increment
+</code></pre>
+
+<hr>
+
+<h2>ECS</h2>
+
+<h3><code>Entity</code></h3>
+<pre><code>
+let entity = engine.world.spawn();      // Returns Entity(u64)
+engine.world.despawn(entity);           // Removes entity + all components
+engine.world.is_alive(entity) -&gt; bool;
+engine.world.entity_count() -&gt; usize;
+</code></pre>
+
+<h3><code>ComponentStore&lt;T&gt;</code></h3>
+<pre><code>
+engine.world.transforms.insert(entity, Transform::new(100.0, 200.0));
+engine.world.transforms.get(entity) -&gt; Option&lt;&amp;Transform&gt;;
+engine.world.transforms.get_mut(entity) -&gt; Option&lt;&amp;mut Transform&gt;;
+engine.world.transforms.remove(entity);
+engine.world.transforms.has(entity) -&gt; bool;
+
+// Iteration
+for (entity, transform) in engine.world.transforms.iter() { ... }
+for (entity, transform) in engine.world.transforms.iter_mut() { ... }
+</code></pre>
+
+<h3><code>Tags</code></h3>
+<pre><code>
+// 18 compile-time tag variants: Player, Enemy, Projectile, Wall, etc.
+let mut tags = Tags::new();
+tags.add(Tag::Player);
+tags.has(Tag::Player) -&gt; bool;
+</code></pre>
+
+<hr>
+
+<h2>Physics</h2>
+
+<h3><code>RigidBody</code></h3>
+<pre><code>
+RigidBody {
+    vx, vy: f64,          // Velocity
+    ax, ay: f64,          // Acceleration (set by force_accumulator)
+    mass: f64,            // Default 1.0
+    restitution: f64,     // Bounce (0.0 = no bounce, 1.0 = perfect)
+    damping: f64,         // Velocity damping per frame [0.0, 1.0]
+    is_static: bool,      // Static bodies don't move
+}
+</code></pre>
+
+<h3><code>Collider</code></h3>
+<pre><code>
+Collider::Circle { radius: f64 }
+Collider::Rect { width: f64, height: f64 }
+Collider::Line { x1, y1, x2, y2: f64 }
+</code></pre>
+
+<h3><code>ForceField</code></h3>
+<pre><code>
+ForceField {
+    strength: f64,
+    radius: f64,
+    falloff: Falloff,  // Plummer, InverseSquare, Linear, Constant
+}
+</code></pre>
+
+<hr>
+
+<h2>Rendering</h2>
+
+<h3>Shapes</h3>
+<pre><code>
+use crate::rendering::shapes::*;
+use crate::rendering::color::Color;
+
+fill_circle(fb, cx, cy, radius, color);
+fill_rect(fb, x, y, w, h, color);
+fill_triangle(fb, x1, y1, x2, y2, x3, y3, color);
+fill_pill(fb, x1, y1, x2, y2, radius, color);
+draw_line_thick(fb, x1, y1, x2, y2, thickness, color);
+fill_tapered_trail(fb, &amp;points, start_width, end_width, color);
+draw_circle(fb, cx, cy, radius, thickness, color);
+</code></pre>
+
+<h3>Text</h3>
+<pre><code>
+use crate::rendering::text::*;
+
+draw_text(fb, &quot;Hello&quot;, x, y, scale, color);
+draw_text_centered(fb, &quot;Centered&quot;, cx, cy, scale, color);
+let w = text_width(&quot;Hello&quot;, scale);
+</code></pre>
+
+<h3>Color</h3>
+<pre><code>
+Color::rgba(255, 200, 100, 255);
+Color::rgb(255, 200, 100);
+Color::WHITE, Color::BLACK, Color::TRANSPARENT;
+color.with_alpha(128);
+Color::lerp(&amp;a, &amp;b, t);  // t in [0, 1]
+</code></pre>
 
 <hr>
 
 <h2>Headless Runner</h2>
-
-<h3><code>HeadlessRunner</code></h3>
-
-<p>The foundation. Wraps an <code>Engine</code> instance and drives simulations.</p>
 
 <pre><code>
 let mut runner = HeadlessRunner::new(480, 720);
@@ -127,7 +219,7 @@ let mut runner = HeadlessRunner::new(480, 720);
 // Run with fixed inputs
 let result = runner.run_sim(&amp;mut sim, seed, &amp;inputs, config);
 
-// Run for N frames with fixed inputs
+// Run for N frames
 let result = runner.run_sim_frames(&amp;mut sim, seed, &amp;inputs, frames, config);
 
 // Run with a policy
@@ -135,94 +227,57 @@ let result = runner.run_with_policy(&amp;mut sim, &amp;mut policy, seed, frames,
 </code></pre>
 
 <h3><code>RunConfig</code></h3>
-
 <pre><code>
-pub struct RunConfig {
-    pub turbo: bool,              // Skip rendering
-    pub capture_state_hashes: bool, // Per-frame hashes
+RunConfig {
+    turbo: bool,               // Skip rendering (10-100x faster)
+    capture_state_hashes: bool, // Per-frame hash capture
 }
 </code></pre>
 
 <h3><code>SimResult</code></h3>
-
-<p>Universal output of every simulation run.</p>
-
 <pre><code>
-pub struct SimResult {
-    pub frames_run: u64,
-    pub final_metrics: FrameMetrics,
-    pub game_state: HashMap&lt;String, StateValue&gt;,
-    pub framebuffer_hash: u64,
-    pub elapsed_sim_time: f64,
-    pub state_hash: u64,
-    pub state_hashes: Vec&lt;u64&gt;,
+SimResult {
+    frames_run: u64,
+    game_state: HashMap&lt;String, StateValue&gt;,
+    framebuffer_hash: u64,       // FNV-1a
+    state_hash: u64,
+    state_hashes: Vec&lt;u64&gt;,      // Per-frame (if captured)
+    elapsed_sim_time: f64,
 }
-</code></pre>
 
-<p><strong>Methods:</strong> <code>get_f64(key: &amp;str) -&gt; Option&lt;f64&gt;</code></p>
-
-<h3><code>PlaythroughFile</code></h3>
-
-<p>Serializable replay format.</p>
-
-<pre><code>
-pub struct PlaythroughFile {
-    pub engine_version: String,
-    pub seed: u64,
-    pub inputs: Vec&lt;InputFrame&gt;,
-    pub frame_count: u64,
-    pub final_state_hash: u64,
-    pub final_fb_hash: u64,
-    pub state_hashes: Vec&lt;u64&gt;,
-    pub metadata: HashMap&lt;String, String&gt;,
-}
+result.get_f64(&quot;score&quot;) -&gt; Option&lt;f64&gt;;
 </code></pre>
 
 <hr>
 
-<h2>Analysis Layer</h2>
+<h2>Analysis Modules</h2>
 
 <h3><code>FitnessEvaluator</code></h3>
-
-<p>Composable weighted scoring system.</p>
-
 <pre><code>
 let evaluator = FitnessEvaluator::new()
-    .add(&quot;proximity&quot;, 3.0, |sim| { /* -&gt; f64 in [0, 1] */ })
-    .add(&quot;efficiency&quot;, 1.0, |sim| { /* -&gt; f64 in [0, 1] */ });
+    .add(&quot;proximity&quot;, 3.0, |sim| { /* -&gt; f64 in [0,1] */ })
+    .add(&quot;efficiency&quot;, 1.0, |sim| { /* -&gt; f64 in [0,1] */ });
 
 let fitness: FitnessResult = evaluator.evaluate(&amp;sim_result);
 // fitness.total, fitness.grade(), fitness.summary()
 </code></pre>
+<p><strong>Helpers:</strong> <code>score_distance()</code>, <code>score_state_match()</code>, <code>score_ratio()</code></p>
+<p><strong>Grades:</strong> A+ (&ge;0.95), A (&ge;0.85), B (&ge;0.70), C (&ge;0.50), D (&ge;0.30), F (&lt;0.30)</p>
 
-<p><strong>Scoring helpers:</strong></p>
-<ul>
-<li><code>score_distance(x1, y1, x2, y2, max_dist, sim)</code> — 1.0 at distance 0</li>
-<li><code>score_state_match(key, target, tolerance, sim)</code> — 1.0 if key equals target</li>
-<li><code>score_ratio(key, target, sim)</code> — target/actual, capped at 1.0</li>
-</ul>
-
-<p><strong>Grade scale:</strong> A+ (&gt;=0.95), A (&gt;=0.85), B (&gt;=0.70), C (&gt;=0.50), D (&gt;=0.30), F (&lt;0.30)</p>
-
-<h3><code>RegressionSuite</code></h3>
-
-<p>Capture baselines and diff against future runs.</p>
-
+<h3><code>HillClimber</code></h3>
 <pre><code>
-let suite = RegressionSuite::new(&amp;[&quot;score&quot;, &quot;game_length&quot;])
-    .with_tolerance(0.5)
-    .with_classifier(classify_lower_is_better);
+let result = HillClimber::new(setup_fn, update_fn, render_fn, dispatch_fn, fitness_fn)
+    .with_param(ParamRange::new(&quot;gravity&quot;, 200.0, 800.0, 50.0))
+    .with_max_iterations(20)
+    .run();
 
-let baselines = suite.capture_baseline();
-// ... make changes ...
-let diff = suite.diff_against(&amp;baselines);
-assert!(!diff.has_regressions());
+result.summary();           // Human-readable output
+result.best.fitness;        // Best score found
+result.best.params;         // Best parameter values
+result.fitness_history;     // Convergence curve
 </code></pre>
 
 <h3><code>AnomalyDetector</code></h3>
-
-<p>Scans replay data for anomalies.</p>
-
 <pre><code>
 let detector = AnomalyDetector::new()
     .with_spike_threshold(50.0)
@@ -230,54 +285,10 @@ let detector = AnomalyDetector::new()
     .with_bounds(0.0, 720.0);
 
 let anomalies = detector.scan(&amp;replay, &amp;[&quot;ball_x&quot;, &quot;ball_y&quot;]);
+// Anomaly types: Spike, Plateau, OutOfBounds
 </code></pre>
-
-<p><strong>Anomaly types:</strong> Spike, Plateau, OutOfBounds</p>
-
-<hr>
-
-<h2>Optimization Layer</h2>
-
-<h3><code>HillClimber</code></h3>
-
-<p>Coordinate-descent optimizer for game parameters.</p>
-
-<pre><code>
-let result = HillClimber::new(setup_fn, update_fn, render_fn, dispatch_fn, fitness_fn)
-    .with_param(ParamRange::new(&quot;gravity&quot;, 200.0, 800.0, 50.0))
-    .with_max_iterations(20)
-    .run();
-
-println!(&quot;{}&quot;, result.summary());
-println!(&quot;Best fitness: {:.4}&quot;, result.best.fitness);
-</code></pre>
-
-<h3>Action Generators (<code>action_gen</code>)</h3>
-
-<p>Programmatic input sequence generation.</p>
-
-<pre><code>
-// Systematic grid search
-let shots = action_gen::grid_shots(origin_x, origin_y, angle_min, angle_max, angle_steps, power_min, power_max, power_steps);
-
-// Deterministic random exploration
-let shots = action_gen::random_shots(x, y, count, seed);
-
-// UI interaction testing
-let (actions, frames) = action_gen::tap_sequence(&amp;[(frame, x, y), ...]);
-
-// Drag gestures
-let (actions, frames) = action_gen::drag(start_frame, from_x, from_y, to_x, to_y, duration);
-</code></pre>
-
-<hr>
-
-<h2>Orchestration Layer</h2>
 
 <h3><code>GoldenTest</code></h3>
-
-<p>Reference replay comparison.</p>
-
 <pre><code>
 let test = GoldenTest::new(...)
     .with_keys(&amp;[&quot;score&quot;, &quot;ball_x&quot;])
@@ -289,9 +300,6 @@ assert!(result.matches, &quot;{}&quot;, result.summary());
 </code></pre>
 
 <h3><code>TestHarness</code></h3>
-
-<p>Battery testing across multiple scenarios.</p>
-
 <pre><code>
 let report = TestHarness::new(...)
     .add(&quot;idle test&quot;, vec![], 60, assertions)
@@ -301,99 +309,50 @@ let report = TestHarness::new(...)
 assert!(report.all_passed());
 </code></pre>
 
-<hr>
-
-<h2>Design Acceleration Layer</h2>
-
 <h3>Death Classification</h3>
-
 <pre><code>
-use crate::headless::death_classify::{classify, ClassifierConfig, DeathClass};
-use crate::headless::death_report::classify_batch;
-
 let report = classify_batch(results, config);
 // report.breakdown: HashMap&lt;DeathClass, usize&gt;
 // DeathClass: CloseCall, Blowout, Cliff, Attrition, Unclassified
 </code></pre>
 
-<h3>Divergence Replay</h3>
-
+<h3>Ablation Study</h3>
 <pre><code>
-use crate::headless::divergence::compare_hash_sequences;
-
-let report = compare_hash_sequences(&amp;hashes_a, &amp;hashes_b);
-// report.divergence_frame, report.total_divergent
+let report = run_ablation_study(sim_factory, ablations, seeds, frames, metrics, config);
+report.ranked();    // Vec sorted by impact
+report.summary();   // Human-readable table
 </code></pre>
 
-<h3>Feel Presets</h3>
-
+<h3>Highlights</h3>
 <pre><code>
-use crate::feel_preset::FeelPresetLibrary;
-
-let lib = FeelPresetLibrary::built_in();
-let preset = lib.get(&quot;tight_platformer&quot;).unwrap();
-preset.apply(&amp;mut engine.global_state);
-</code></pre>
-
-<p><strong>Built-in presets:</strong> tight_platformer, floaty_astronaut, heavy_tank, snappy_cursor, underwater, ice_skating</p>
-
-<h3>Variant Branching</h3>
-
-<pre><code>
-use crate::headless::variant_runner::sweep_variants;
-
-// Games declare variants via Simulation::variants()
-let report = sweep_variants(sim_factory, seeds, frames, config);
-</code></pre>
-
-<h3>Interesting Moments</h3>
-
-<pre><code>
-use crate::headless::highlights::HighlightScanner;
-
 let report = scanner.scan(sim_factory, seeds, frames, config);
 // report.highlights: Vec&lt;Highlight&gt; with kind, seed, frame, score
 </code></pre>
 
-<h3>Mechanic Ablation</h3>
-
-<pre><code>
-use crate::headless::ablation::run_ablation_study;
-
-let report = run_ablation_study(sim_factory, ablations, seeds, frames, metrics, config);
-// report.ranked(): Vec sorted by impact
-</code></pre>
-
-<h3>Dashboard</h3>
-
-<pre><code>
-use crate::headless::dashboard::generate_dashboard_data;
-
-let data = generate_dashboard_data(sim_factory, config);
-// Writes dashboard.json for the static HTML frontend
-</code></pre>
-
 <hr>
 
-<h2>CLI Command Reference</h2>
+<h2>CLI Commands</h2>
 
 <table>
-<tr><th>Command</th><th>Purpose</th></tr>
-<tr><td><code>record</code></td><td>Record a playthrough to JSON</td></tr>
-<tr><td><code>replay</code></td><td>Replay and optionally verify determinism</td></tr>
-<tr><td><code>batch</code></td><td>Run seed range with no input</td></tr>
-<tr><td><code>sweep</code></td><td>Policy-driven seed sweep</td></tr>
-<tr><td><code>golden record/check</code></td><td>Golden baseline testing</td></tr>
-<tr><td><code>deaths</code></td><td>Death classification report</td></tr>
-<tr><td><code>divergence files/sweep</code></td><td>Compare playthroughs or sweeps</td></tr>
-<tr><td><code>preset list/show/apply</code></td><td>Physics feel presets</td></tr>
-<tr><td><code>variants</code></td><td>List declared game variants</td></tr>
-<tr><td><code>variant-sweep</code></td><td>Sweep across variants and seeds</td></tr>
-<tr><td><code>highlights</code></td><td>Interesting moment detection</td></tr>
-<tr><td><code>ablation</code></td><td>Mechanic ablation study</td></tr>
-<tr><td><code>dashboard-data</code></td><td>Generate dashboard JSON</td></tr>
-<tr><td><code>info</code></td><td>Print engine info</td></tr>
-<tr><td><code>schema</code></td><td>Generate JSON schema</td></tr>
+<tr><th>Command</th><th>Purpose</th><th>Key Flags</th></tr>
+<tr><td><code>record</code></td><td>Record playthrough to JSON</td><td><code>--seed</code>, <code>--frames</code>, <code>--out</code></td></tr>
+<tr><td><code>replay</code></td><td>Replay and verify determinism</td><td><code>--verify</code></td></tr>
+<tr><td><code>batch</code></td><td>Run seed range, no input</td><td><code>--seed-range</code>, <code>--turbo</code></td></tr>
+<tr><td><code>sweep</code></td><td>Policy-driven seed sweep</td><td><code>--policy</code>, <code>--seed-range</code></td></tr>
+<tr><td><code>golden record</code></td><td>Record golden baseline</td><td><code>--seed</code>, <code>--frames</code>, <code>--out</code></td></tr>
+<tr><td><code>golden check</code></td><td>Verify against golden</td><td>file path</td></tr>
+<tr><td><code>deaths</code></td><td>Death classification report</td><td><code>--metric</code>, <code>--seed-range</code></td></tr>
+<tr><td><code>divergence files</code></td><td>Compare two playthroughs</td><td>file paths</td></tr>
+<tr><td><code>divergence sweep</code></td><td>Compare seed sweeps</td><td><code>--seed-range</code></td></tr>
+<tr><td><code>preset list</code></td><td>List feel presets</td><td>&mdash;</td></tr>
+<tr><td><code>preset show</code></td><td>Show preset parameters</td><td>name</td></tr>
+<tr><td><code>variants</code></td><td>List game variants</td><td>&mdash;</td></tr>
+<tr><td><code>variant-sweep</code></td><td>Sweep across variants</td><td><code>--seed-range</code></td></tr>
+<tr><td><code>highlights</code></td><td>Interesting moment scan</td><td><code>--seed-range</code>, <code>--frames</code></td></tr>
+<tr><td><code>ablation</code></td><td>Mechanic ablation study</td><td><code>--seeds</code>, <code>--frames</code></td></tr>
+<tr><td><code>dashboard-data</code></td><td>Generate dashboard JSON</td><td><code>--seeds</code>, <code>--frames</code></td></tr>
+<tr><td><code>info</code></td><td>Print engine info</td><td>&mdash;</td></tr>
+<tr><td><code>schema</code></td><td>Print JSON schema</td><td>&mdash;</td></tr>
 </table>
 
 </body>

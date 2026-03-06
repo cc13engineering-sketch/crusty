@@ -63,7 +63,7 @@
 
     <!-- HUD overlay using crusty-hud grid -->
     <div class="crusty-hud">
-        <div class="hud-bc" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <div class="hud-bc" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; pointer-events:none;">
             <div class="hud-stat">
                 <span class="hud-label">Score</span>
                 <span class="hud-value" id="scored">0</span>
@@ -96,6 +96,8 @@
         const WASM_VER = '__WASM_HASH__';
         const cacheBust = WASM_VER.startsWith('__') ? '' : `?v=${WASM_VER}`;
 
+        import { initBrowserState } from '../browser-state.js';
+
         const { default: initWasm, ...api } = await import(`../pkg/engine_core.js${cacheBust}`);
         const {
             init, tick,
@@ -105,7 +107,10 @@
             key_down, key_up,
             get_game_state_f64,
             setup_gravity_pong,
-            set_url_param
+            set_url_param,
+            drain_sound_commands,
+            drain_persist_commands,
+            browser_state_ptr, browser_state_len
         } = api;
 
         // Full-screen canvas — always fills entire viewport
@@ -169,11 +174,22 @@
 
         // Keyboard events
         window.addEventListener('keydown', e => {
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+                e.preventDefault();
+            }
             key_down(e.code);
         });
         window.addEventListener('keyup', e => {
             key_up(e.code);
         });
+
+        // Resize handler — update CSS sizing (framebuffer stays fixed)
+        function resizeCanvas() {
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         async function main() {
             const wasm = await initWasm();
@@ -188,6 +204,13 @@
 
             setup_gravity_pong();
 
+            // Browser → WASM shared state (viewport, touch detection, etc.)
+            const updateBrowserState = initBrowserState(memory, browser_state_ptr, browser_state_len, {
+                canvasSizeFn: function() {
+                    return { w: parseFloat(canvas.style.width) || W, h: parseFloat(canvas.style.height) || H };
+                }
+            });
+
             const imageData = ctx.createImageData(W, H);
             let last = performance.now();
 
@@ -195,7 +218,12 @@
                 const dt = now - last;
                 last = now;
 
+                updateBrowserState(dt);
                 tick(dt);
+
+                // Drain command queues to prevent memory leaks
+                drain_sound_commands();
+                drain_persist_commands();
 
                 // Read framebuffer from WASM memory
                 const ptr = framebuffer_ptr();

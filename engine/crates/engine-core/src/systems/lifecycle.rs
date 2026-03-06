@@ -94,13 +94,13 @@ pub fn run(
                 for event in events.iter() {
                     if let EventKind::Collision { entity_a, entity_b, .. } = &event.kind {
                         let a_has_tag_a = world.tags.get(*entity_a)
-                            .map_or(false, |t| t.has(tag_a));
+                            .map_or(false, |t| t.has(*tag_a));
                         let b_has_tag_b = world.tags.get(*entity_b)
-                            .map_or(false, |t| t.has(tag_b));
+                            .map_or(false, |t| t.has(*tag_b));
                         let a_has_tag_b = world.tags.get(*entity_a)
-                            .map_or(false, |t| t.has(tag_b));
+                            .map_or(false, |t| t.has(*tag_b));
                         let b_has_tag_a = world.tags.get(*entity_b)
-                            .map_or(false, |t| t.has(tag_a));
+                            .map_or(false, |t| t.has(*tag_a));
 
                         if (a_has_tag_a && b_has_tag_b) || (a_has_tag_b && b_has_tag_a) {
                             let (ea, eb) = if a_has_tag_a && b_has_tag_b {
@@ -119,9 +119,9 @@ pub fn run(
                 for event in events.iter() {
                     if let EventKind::TriggerEnter { trigger, visitor } = &event.kind {
                         let trigger_matches = world.tags.get(*trigger)
-                            .map_or(false, |t| t.has(trigger_tag));
+                            .map_or(false, |t| t.has(*trigger_tag));
                         let visitor_matches = world.tags.get(*visitor)
-                            .map_or(false, |t| t.has(visitor_tag));
+                            .map_or(false, |t| t.has(*visitor_tag));
 
                         if trigger_matches && visitor_matches {
                             execute_actions(&rule.actions, Some(*trigger), Some(*visitor), world, &mut action_queue, world_bounds);
@@ -386,7 +386,7 @@ mod tests {
         let mut rules = BehaviorRules::new();
         rules.add(BehaviorRule::new(
             "bullet_hits_asteroid",
-            Condition::Collision { tag_a: "bullet".into(), tag_b: "asteroid".into() },
+            Condition::Collision { tag_a: Tag::Bullet, tag_b: Tag::Asteroid },
             vec![
                 Action::Despawn { entity_ref: EntityRef::Both },
                 Action::AddState { key: "score".into(), delta: 10.0 },

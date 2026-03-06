@@ -66,9 +66,10 @@ impl ParticlePool {
         self.particles.retain_mut(|p| {
             p.x += p.vx * dt;
             p.y += p.vy * dt;
-            // Slight drag
-            p.vx *= 0.99;
-            p.vy *= 0.99;
+            // Slight drag (dt-independent: same decay rate regardless of frame rate)
+            let drag = 0.99_f64.powf(dt * 60.0);
+            p.vx *= drag;
+            p.vy *= drag;
             p.life -= dt;
             p.life > 0.0
         });

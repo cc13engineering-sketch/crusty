@@ -27,6 +27,7 @@ use crate::gesture::GestureRecognizer;
 use crate::auto_juice::AutoJuiceSystem;
 use crate::game_flow::GameFlow;
 use crate::camera_director::CameraDirector;
+use crate::components::Tag;
 use crate::level_curve::LevelCurve;
 use crate::ui_canvas::UiCanvas;
 use crate::color_palette::ColorPalette;
@@ -138,7 +139,7 @@ pub struct Camera {
     pub x: f64,
     pub y: f64,
     pub zoom: f64,
-    pub target_tag: Option<String>,
+    pub target_tag: Option<Tag>,
     pub smoothing: f64,
     pub clamp_to_bounds: bool,
 }
@@ -179,7 +180,7 @@ impl Camera {
         if let Some(ref tag) = self.target_tag {
             let mut target_pos: Option<(f64, f64)> = None;
             for (entity, tags) in world.tags.iter() {
-                if tags.has(tag) {
+                if tags.has(*tag) {
                     if let Some(t) = world.transforms.get(entity) {
                         target_pos = Some((t.x, t.y));
                         break;
@@ -637,7 +638,7 @@ impl Engine {
         let is_touch = self.browser_state.is_touch_device();
         self.input.update_hover(dt, is_touch);
 
-        if self.input.keys_pressed.contains("KeyD") {
+        if self.input.is_key_pressed(crate::input::KeyCode::KeyD) {
             self.debug_mode = !self.debug_mode;
         }
 
@@ -647,21 +648,21 @@ impl Engine {
             match &gesture {
                 crate::gesture::Gesture::Tap { x, y } => {
                     self.event_bus.publish(
-                        crate::event_bus::BusEvent::new("gesture:tap")
+                        crate::event_bus::BusEvent::typed(crate::event_bus::EventChannel::GestureTap)
                             .with_f64("x", *x)
                             .with_f64("y", *y)
                     );
                 }
                 crate::gesture::Gesture::DoubleTap { x, y } => {
                     self.event_bus.publish(
-                        crate::event_bus::BusEvent::new("gesture:double_tap")
+                        crate::event_bus::BusEvent::typed(crate::event_bus::EventChannel::GestureDoubleTap)
                             .with_f64("x", *x)
                             .with_f64("y", *y)
                     );
                 }
                 crate::gesture::Gesture::LongPress { x, y } => {
                     self.event_bus.publish(
-                        crate::event_bus::BusEvent::new("gesture:long_press")
+                        crate::event_bus::BusEvent::typed(crate::event_bus::EventChannel::GestureLongPress)
                             .with_f64("x", *x)
                             .with_f64("y", *y)
                     );
@@ -674,7 +675,7 @@ impl Engine {
                         crate::gesture::SwipeDirection::Right => "right",
                     };
                     self.event_bus.publish(
-                        crate::event_bus::BusEvent::new("gesture:swipe")
+                        crate::event_bus::BusEvent::typed(crate::event_bus::EventChannel::GestureSwipe)
                             .with_text("direction", dir_str)
                             .with_f64("velocity", *velocity)
                             .with_f64("start_x", *start_x)
@@ -685,7 +686,7 @@ impl Engine {
                 }
                 crate::gesture::Gesture::Pinch { scale_delta } => {
                     self.event_bus.publish(
-                        crate::event_bus::BusEvent::new("gesture:pinch")
+                        crate::event_bus::BusEvent::typed(crate::event_bus::EventChannel::GesturePinch)
                             .with_f64("scale_delta", *scale_delta)
                     );
                 }

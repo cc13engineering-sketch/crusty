@@ -1,145 +1,81 @@
 # Crusty Engine
 
-Deterministic simulation engine in Rust, designed for AI-driven game development.
+Deterministic 2D simulation engine in Rust. Compiles to WASM for browser play, runs headless for automated testing and AI-driven optimization.
 
----
+## Games
 
-## What This Is
+**Gravity Pong** — Physics puzzle game. Guide particles into targets using gravity wells, repulsors, black holes, wormholes, and plasma currents. 10 levels with progressive mechanic introduction. Dust motes visualize gravitational field lines.
 
-Crusty is a modular Rust game engine built around:
+**Chord Reps** — Music theory ear training with spaced repetition. Identify scale degrees, intervals, chord qualities, roman numerals, and cadences. SM-2 SRS algorithm with WebAudio synthesis. Piano visualization with touch support.
 
-- **Deterministic simulation** — same seed + same inputs = identical state, always
-- **Headless-first execution** — thousands of runs in seconds, no browser needed
-- **AI-driven iteration** — structured observation, sweep analysis, and automated optimization
-- **The Simulation trait** — clean boundary between engine and game logic
+**Demo Ball** — Minimal bouncing ball simulation. Smoke test for the Simulation trait and ECS.
 
-Games implement `setup`, `step`, and `render`. The engine owns timing, input, RNG, and determinism.
-
----
-
-## Repository Structure
+## Architecture
 
 ```
 engine/
   crates/
-    engine-core/     Main engine (ECS, physics, rendering, headless)
-    engine-cli/      CLI tool (14 commands)
-docs/                Technical documentation
-site/                Static site + web demo
+    engine-core/     ECS, physics, rendering, headless testing (~12K LOC)
+    engine-cli/      15 CLI commands for headless analysis
+site/                Static site, game pages, docs
 ```
 
----
+**Core design**: Games implement `Simulation { setup, step, render }`. Engine owns timing, input, RNG, and determinism. Software framebuffer renders to WASM shared memory; JS blits to canvas.
+
+**ECS**: 32 component types, 17 systems, fixed execution order. HashMap-backed stores, monotonic entity IDs.
+
+**Physics**: Semi-implicit Euler at 60Hz fixed timestep. CCD (circle vs circle/segment/AABB). Plummer-softened force fields. Spatial grid broadphase.
+
+**Rendering**: CPU framebuffer with SDF-based anti-aliasing. Shapes, bitmap text, particles, post-fx (vignette, scanlines, screen shake, tint). Chord Reps adds a WebGL2 bloom pipeline on the JS side.
+
+**Determinism**: Single `SeededRng` (xorshift64). `Engine::state_hash()` for verification. `Engine::reset(seed)` for reproducible runs.
+
+**Headless infrastructure** (26 modules): Replay recording, golden tests, parameter sweeps, fitness evaluation, hill climbing, death classification, highlight detection, ablation studies, variant branching, dashboard generation.
 
 ## Quick Start
 
 ```bash
 cd engine
-cargo test              # 1157+ tests
-cargo run -p engine-cli -- info
-cargo run -p engine-cli -- batch --seed-range 0..10 --frames 600 --turbo
+cargo test                                              # 1200+ tests
+cargo run -p engine-cli -- info                         # engine metadata
+cargo run -p engine-cli -- batch --seed-range 0..10     # headless batch
 ```
 
----
-
-## Core Architecture
-
-- **ECS**: 32 component types, 21 systems, fixed execution order
-- **Physics**: Fixed 60Hz timestep, CCD, spatial grid broadphase
-- **Rendering**: Software framebuffer (shapes, text, particles, post-fx)
-- **RNG**: Single `SeededRng` (xorshift64) owned by engine
-- **State hashing**: `Engine::state_hash()` for determinism verification
-
-### Simulation Trait
-
-```rust
-pub trait Simulation {
-    fn setup(&mut self, engine: &mut Engine);
-    fn step(&mut self, engine: &mut Engine);
-    fn render(&self, engine: &mut Engine);
-}
+WASM build:
+```bash
+wasm-pack build crates/engine-core --target web --out-dir ../../_pkg -- --no-default-features
 ```
 
-### Headless Infrastructure (22 modules)
-
-Replay recording, golden tests, parameter sweeps, fitness evaluation, hill climbing, anomaly detection, death classification, divergence replay, interesting moment detection, mechanic ablation, variant branching, dashboard generation.
-
-### CLI Commands
+## CLI Commands
 
 ```
-record / replay / batch / sweep / golden / deaths / divergence
-preset / variants / variant-sweep / highlights / ablation
-dashboard-data / info / schema
+record / replay          Record and replay deterministic playthroughs
+batch / sweep            Run seeds in bulk, sweep parameter ranges
+golden record / check    Regression testing via recorded baselines
+deaths / highlights      Classify game-overs, detect interesting moments
+ablation                 A/B test mechanic contributions
+hill-climb               Coordinate-descent parameter optimization
+divergence               Pinpoint frame-level determinism breaks
+preset / variants        Manage feel presets and parameter variants
+dashboard-data           Generate full analysis JSON
+info / schema            Engine metadata and component schema
 ```
-
-All data-producing commands emit JSON/JSONL.
-
----
 
 ## Documentation
 
-| Document | Contents |
-|----------|----------|
-| `docs/getting-started.md` | Quick-start tutorial |
-| `docs/architecture.md` | Headless testing architecture |
-| `docs/engine.md` | Engine technical reference |
-| `docs/ai-iteration.md` | AI-driven development guide |
-| `docs/api-reference.md` | API reference |
-| `engine/ARCHITECTURE.md` | Engine internals (for contributors) |
-| `engine/CLAUDE.md` | Conventions for AI code generation |
-| `ENGINE_BOUNDARIES.md` | Platform separation rules |
-| `RENDERER_FUTURE.md` | Rendering layer roadmap |
+| Document | Purpose |
+|----------|---------|
+| [engine/ARCHITECTURE.md](engine/ARCHITECTURE.md) | Engine internals, system execution, ECS design |
+| [engine/CLAUDE.md](engine/CLAUDE.md) | Coding conventions for AI-assisted development |
+| [ENGINE_BOUNDARIES.md](ENGINE_BOUNDARIES.md) | Platform separation rules |
+| [REVIEW.md](REVIEW.md) | Expert review with ratings and findings |
+| [site/docs/](site/docs/) | Web-hosted docs (getting started, API reference) |
 
----
+## Design Priorities
 
-## Project Status
+Optimizing for: deterministic reproducibility, headless-first testing, AI-assisted iteration, fast development cycles.
 
-**What is solid:**
-
-- ECS foundation (32 components, 21 systems)
-- Deterministic simulation (seeded RNG, fixed dt, state hashing)
-- Simulation trait boundary (InputFrame, Policy, Observation)
-- Headless infrastructure (22 modules, 14 CLI commands)
-- 1157+ passing tests
-- WASM builds for browser deployment
-
-**What is evolving:**
-
-- Validation games beyond DemoBall
-- Declarative game definition format
-- Cross-platform determinism (native vs WASM)
-- Production ergonomics
-
----
-
-## Design Goals
-
-Optimizing for:
-
-- Deterministic reproducibility
-- AI-assisted development workflows
-- Fast iteration cycles
-- Clear system boundaries
-
-Not optimizing for:
-
-- GPU rendering
-- Editor tooling
-- Network multiplayer
-- Asset pipelines
-
----
-
-## Contributing
-
-Before making changes:
-
-1. Read `engine/CLAUDE.md` (coding conventions)
-2. Read `engine/ARCHITECTURE.md` (system architecture)
-3. Read `ENGINE_BOUNDARIES.md` (platform separation)
-4. Preserve determinism — use `Engine.rng`, not external RNG
-5. All simulation-phase systems use `FIXED_DT`
-
----
+Not optimizing for: GPU rendering, editor tooling, network multiplayer, asset pipelines.
 
 ## License
 

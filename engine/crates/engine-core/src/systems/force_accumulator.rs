@@ -94,6 +94,7 @@ pub fn run(world: &mut World) {
                 }
             };
 
+            if rb.mass <= 0.0 { continue; }
             let accel = magnitude / rb.mass;
             rb.ax += dir.0 * accel;
             rb.ay += dir.1 * accel;

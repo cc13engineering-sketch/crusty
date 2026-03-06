@@ -34,22 +34,61 @@ pub fn scanlines(fb: &mut Framebuffer, spacing: u32, darkness: f64) {
 }
 
 /// Shifts all pixels by (dx, dy). Used for screen shake.
+/// Zero-allocation: uses row-by-row copy_within, iterating in the
+/// correct order to avoid overwriting source data.
 pub fn shift(fb: &mut Framebuffer, dx: i32, dy: i32) {
     if dx == 0 && dy == 0 { return; }
     let w = fb.width as i32;
     let h = fb.height as i32;
-    let old = fb.pixels.clone();
-    fb.clear(Color::BLACK);
-    for y in 0..h {
+    let stride = (w * 4) as usize;
+
+    // Determine valid source/dest row ranges
+    let (y_start, y_end, y_step): (i32, i32, i32) = if dy >= 0 {
+        (h - 1, -1, -1) // bottom-up to avoid overwriting
+    } else {
+        (0, h, 1) // top-down
+    };
+
+    // Horizontal pixel range that survives the shift (computed in signed i32
+    // to avoid wrapping when |dx| >= w).
+    let src_x0_i = 0i32.max(-dx);
+    let src_x1_i = w.min(w - dx);
+    if src_x1_i <= src_x0_i { fb.clear(Color::BLACK); return; }
+    let src_x0 = src_x0_i as usize;
+    let src_x1 = src_x1_i as usize;
+    let dst_x0 = 0i32.max(dx) as usize;
+    let row_bytes = (src_x1 - src_x0) * 4;
+
+    let mut y = y_start;
+    while y != y_end {
         let src_y = y - dy;
-        if src_y < 0 || src_y >= h { continue; }
-        for x in 0..w {
-            let src_x = x - dx;
-            if src_x < 0 || src_x >= w { continue; }
-            let si = ((src_y * w + src_x) * 4) as usize;
-            let di = ((y * w + x) * 4) as usize;
-            fb.pixels[di..di + 4].copy_from_slice(&old[si..si + 4]);
+        let dy_idx = y as usize * stride;
+        if src_y >= 0 && src_y < h {
+            let sy_idx = src_y as usize * stride;
+            let src_start = sy_idx + src_x0 * 4;
+            let dst_start = dy_idx + dst_x0 * 4;
+            fb.pixels.copy_within(src_start..src_start + row_bytes, dst_start);
+            // Clear exposed pixels on left (opaque black to maintain alpha=255 convention)
+            if dst_x0 > 0 {
+                for chunk in fb.pixels[dy_idx..dy_idx + dst_x0 * 4].chunks_exact_mut(4) {
+                    chunk.copy_from_slice(&[0, 0, 0, 255]);
+                }
+            }
+            // Clear exposed pixels on right
+            let right_start = dy_idx + (dst_x0 + src_x1 - src_x0) * 4;
+            let row_end = dy_idx + stride;
+            if right_start < row_end {
+                for chunk in fb.pixels[right_start..row_end].chunks_exact_mut(4) {
+                    chunk.copy_from_slice(&[0, 0, 0, 255]);
+                }
+            }
+        } else {
+            // Row is entirely outside source — clear to opaque black
+            for chunk in fb.pixels[dy_idx..dy_idx + stride].chunks_exact_mut(4) {
+                chunk.copy_from_slice(&[0, 0, 0, 255]);
+            }
         }
+        y += y_step;
     }
 }
 

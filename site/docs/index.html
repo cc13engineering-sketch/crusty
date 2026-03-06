@@ -15,7 +15,8 @@
             padding: 40px 24px;
             line-height: 1.7;
         }
-        h1 { color: #f0e060; margin-bottom: 24px; }
+        h1 { color: #f0e060; margin-bottom: 8px; }
+        .subtitle { color: #888; margin-bottom: 24px; }
         a { color: #f0e060; }
         .doc-list { list-style: none; padding: 0; }
         .doc-list li {
@@ -30,18 +31,29 @@
         .doc-list p { color: #888; font-size: 0.9rem; margin-top: 4px; }
         .nav { margin-bottom: 32px; }
         .nav a { margin-right: 16px; font-size: 0.9rem; }
+        .stats { color: #888; font-size: 0.85rem; margin-top: 32px; border-top: 1px solid #2a2a3a; padding-top: 16px; }
+        .stats code { background: #1a1a28; padding: 2px 6px; border-radius: 3px; }
     </style>
 </head>
 <body>
 <nav class="nav"><a href="../">&larr; Home</a></nav>
 <h1>Crusty Engine Documentation</h1>
+<p class="subtitle">Deterministic simulation platform. Rust &rarr; WASM. ~47K lines of Rust.</p>
 <ul class="doc-list">
-    <li><a href="getting-started.html">Getting Started</a><p>From zero to running simulations and headless analysis.</p></li>
-    <li><a href="engine.html">Engine Architecture</a><p>ECS, 5-phase tick loop, rendering, physics, determinism.</p></li>
-    <li><a href="architecture.html">Headless Testing Architecture</a><p>22-module infrastructure for AI-driven game testing.</p></li>
-    <li><a href="api-reference.html">API Reference</a><p>Core types, headless modules, CLI commands.</p></li>
-    <li><a href="ai-iteration.html">AI Iteration Guide</a><p>How AI agents use the engine to build and test games.</p></li>
-    <li><a href="codebase-explainer.html">Codebase Explainer</a><p>Complete walkthrough of the engine for senior TypeScript engineers new to Rust and game dev.</p></li>
+    <li><a href="getting-started.html">Getting Started</a><p>From zero to running simulations and headless analysis. Simulation trait, CLI commands, determinism verification.</p></li>
+    <li><a href="engine.html">Engine Architecture</a><p>ECS, 5-phase tick loop, physics (semi-implicit Euler + CCD), software rendering (SDF anti-aliasing), sound, determinism, WASM integration, and the three shipped games.</p></li>
+    <li><a href="architecture.html">Headless Testing</a><p>22-module infrastructure for automated game testing: replay, sweep, fitness scoring, hill climbing, ablation studies, death classification, and highlight detection.</p></li>
+    <li><a href="api-reference.html">API Reference</a><p>Core types, headless modules, CLI commands. Copy-pasteable code examples.</p></li>
 </ul>
+<div class="stats">
+    <strong>Engine at a glance:</strong>
+    <code>32</code> components &middot;
+    <code>17</code> systems &middot;
+    <code>10</code> rendering modules &middot;
+    <code>22</code> headless modules &middot;
+    <code>3</code> shipped games &middot;
+    <code>60Hz</code> fixed timestep &middot;
+    <code>f64</code> everywhere
+</div>
 </body>
 </html>

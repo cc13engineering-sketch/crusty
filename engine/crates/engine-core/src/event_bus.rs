@@ -5,7 +5,75 @@
 /// Systems can subscribe by checking for events on specific channels.
 
 use std::collections::HashMap;
+use std::fmt;
 use crate::ecs::Entity;
+
+/// Compiler-enforced event channel names for the bus.
+/// Using an enum catches typos at compile time.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum EventChannel {
+    Attack,
+    Damage,
+    Heal,
+    PlayerDied,
+    PlayerWon,
+    Tick,
+    Transfer,
+    Explosion,
+    Cutscene,
+    GestureTap,
+    GestureDoubleTap,
+    GestureLongPress,
+    GestureSwipe,
+    GesturePinch,
+}
+
+impl fmt::Display for EventChannel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl EventChannel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            EventChannel::Attack => "attack",
+            EventChannel::Damage => "damage",
+            EventChannel::Heal => "heal",
+            EventChannel::PlayerDied => "player_died",
+            EventChannel::PlayerWon => "player_won",
+            EventChannel::Tick => "tick",
+            EventChannel::Transfer => "transfer",
+            EventChannel::Explosion => "explosion",
+            EventChannel::Cutscene => "cutscene",
+            EventChannel::GestureTap => "gesture:tap",
+            EventChannel::GestureDoubleTap => "gesture:double_tap",
+            EventChannel::GestureLongPress => "gesture:long_press",
+            EventChannel::GestureSwipe => "gesture:swipe",
+            EventChannel::GesturePinch => "gesture:pinch",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<EventChannel> {
+        match s {
+            "attack" => Some(EventChannel::Attack),
+            "damage" => Some(EventChannel::Damage),
+            "heal" => Some(EventChannel::Heal),
+            "player_died" => Some(EventChannel::PlayerDied),
+            "player_won" => Some(EventChannel::PlayerWon),
+            "tick" => Some(EventChannel::Tick),
+            "transfer" => Some(EventChannel::Transfer),
+            "explosion" => Some(EventChannel::Explosion),
+            "cutscene" => Some(EventChannel::Cutscene),
+            "gesture:tap" => Some(EventChannel::GestureTap),
+            "gesture:double_tap" => Some(EventChannel::GestureDoubleTap),
+            "gesture:long_press" => Some(EventChannel::GestureLongPress),
+            "gesture:swipe" => Some(EventChannel::GestureSwipe),
+            "gesture:pinch" => Some(EventChannel::GesturePinch),
+            _ => None,
+        }
+    }
+}
 
 /// A single event on the bus.
 #[derive(Clone, Debug)]
@@ -62,7 +130,7 @@ impl EventValue {
 }
 
 impl BusEvent {
-    /// Create a simple event with no payload.
+    /// Create a simple event with no payload (string channel, for compat).
     pub fn new(channel: &str) -> Self {
         Self {
             channel: channel.to_string(),
@@ -70,6 +138,11 @@ impl BusEvent {
             target: None,
             data: HashMap::new(),
         }
+    }
+
+    /// Create a typed event with no payload.
+    pub fn typed(channel: EventChannel) -> Self {
+        Self::new(channel.as_str())
     }
 
     /// Create an event with a source entity.
@@ -144,9 +217,14 @@ impl EventBus {
         self.events.push(event);
     }
 
-    /// Shorthand: publish a simple named event.
+    /// Shorthand: publish a simple named event (string channel).
     pub fn emit(&mut self, channel: &str) {
         self.publish(BusEvent::new(channel));
+    }
+
+    /// Shorthand: publish a typed event.
+    pub fn emit_typed(&mut self, channel: EventChannel) {
+        self.publish(BusEvent::typed(channel));
     }
 
     /// Shorthand: publish an event from an entity.
@@ -154,14 +232,26 @@ impl EventBus {
         self.publish(BusEvent::from_entity(channel, source));
     }
 
-    /// Get all events on a specific channel.
+    /// Get all events on a specific channel (string).
     pub fn on<'a>(&'a self, channel: &'a str) -> impl Iterator<Item = &'a BusEvent> + 'a {
         self.events.iter().filter(move |e| e.channel == channel)
     }
 
-    /// Check if any event was published on a channel this frame.
+    /// Get all events on a typed channel.
+    pub fn on_typed(&self, channel: EventChannel) -> impl Iterator<Item = &BusEvent> + '_ {
+        let key = channel.as_str();
+        self.events.iter().filter(move |e| e.channel == key)
+    }
+
+    /// Check if any event was published on a channel this frame (string).
     pub fn has(&self, channel: &str) -> bool {
         self.events.iter().any(|e| e.channel == channel)
+    }
+
+    /// Check if any typed event was published on a channel this frame.
+    pub fn has_typed(&self, channel: EventChannel) -> bool {
+        let key = channel.as_str();
+        self.events.iter().any(|e| e.channel == key)
     }
 
     /// Get all events from a specific source entity.
@@ -194,6 +284,7 @@ impl EventBus {
     }
 
     /// Drain all events, consuming them.
+    #[must_use]
     pub fn drain(&mut self) -> Vec<BusEvent> {
         std::mem::take(&mut self.events)
     }

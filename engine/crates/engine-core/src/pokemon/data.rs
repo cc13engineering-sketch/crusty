@@ -91,6 +91,16 @@ pub const MILTANK: SpeciesId = 241;
 pub const SNUBBULL: SpeciesId = 209;
 pub const JIGGLYPUFF: SpeciesId = 39;
 pub const MEOWTH: SpeciesId = 52;
+pub const NIDORAN_F: SpeciesId = 29;
+pub const NIDORAN_M: SpeciesId = 32;
+pub const GROWLITHE: SpeciesId = 58;
+pub const VULPIX: SpeciesId = 37;
+pub const STANTLER: SpeciesId = 234;
+pub const YANMA: SpeciesId = 193;
+pub const VENONAT: SpeciesId = 48;
+pub const HAUNTER: SpeciesId = 93;
+pub const GENGAR: SpeciesId = 94;
+pub const SUDOWOODO: SpeciesId = 185;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_TACKLE: MoveId = 33;
@@ -147,6 +157,26 @@ pub const MOVE_METRONOME: MoveId = 118;
 pub const MOVE_SING: MoveId = 47;
 pub const MOVE_DISABLE: MoveId = 50;
 pub const MOVE_ENCORE: MoveId = 227;
+// ─── Morty / Ecruteak + Route 35-37 moves ──────────────
+pub const MOVE_SHADOW_BALL: MoveId = 247;
+pub const MOVE_DREAM_EATER: MoveId = 138;
+pub const MOVE_SPITE: MoveId = 180;
+pub const MOVE_MEAN_LOOK: MoveId = 212;
+pub const MOVE_CURSE: MoveId = 174;
+pub const MOVE_MIMIC: MoveId = 102;
+pub const MOVE_HORN_ATTACK: MoveId = 30;
+pub const MOVE_FOCUS_ENERGY: MoveId = 116;
+pub const MOVE_TAKE_DOWN: MoveId = 36;
+pub const MOVE_ROAR: MoveId = 46;
+pub const MOVE_FLAMETHROWER: MoveId = 53;
+pub const MOVE_FIRE_SPIN: MoveId = 83;
+pub const MOVE_SUPERSONIC: MoveId = 48;
+pub const MOVE_SONIC_BOOM: MoveId = 49;
+pub const MOVE_PSYBEAM: MoveId = 60;
+pub const MOVE_LOW_KICK: MoveId = 67;
+pub const MOVE_FLAIL: MoveId = 175;
+pub const MOVE_ROCK_SLIDE: MoveId = 157;
+pub const MOVE_FURY_ATTACK: MoveId = 31;
 
 /// Static species data
 #[derive(Debug)]
@@ -348,7 +378,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_hp: 30, base_attack: 35, base_defense: 30,
         base_sp_attack: 100, base_sp_defense: 35, base_speed: 80,
         catch_rate: 255, base_exp_yield: 95, growth_rate: GrowthRate::MediumSlow,
-        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (16, MOVE_NIGHT_SHADE), (21, MOVE_CONFUSE_RAY)],
+        learnset: &[(1, MOVE_LICK), (1, MOVE_SPITE), (1, MOVE_HYPNOSIS), (8, MOVE_MEAN_LOOK), (13, MOVE_CURSE), (16, MOVE_NIGHT_SHADE), (21, MOVE_CONFUSE_RAY), (28, MOVE_DREAM_EATER)],
         evolution_level: Some(25), evolution_into: Some(93), // Haunter
     },
     SpeciesData {
@@ -506,6 +536,97 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (11, MOVE_BITE), (20, MOVE_FURY_SWIPES)],
         evolution_level: Some(28), evolution_into: Some(53), // Persian
     },
+    // ─── Route 35-37, Ecruteak, Morty species ───────────────
+    SpeciesData {
+        id: NIDORAN_F, name: "Nidoran F",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 55, base_attack: 47, base_defense: 52,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 41,
+        catch_rate: 235, base_exp_yield: 59, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_GROWL), (1, MOVE_TACKLE), (8, MOVE_SCRATCH), (12, MOVE_DOUBLE_KICK), (17, MOVE_POISON_STING), (23, MOVE_BITE)],
+        evolution_level: Some(16), evolution_into: Some(30), // Nidorina
+    },
+    SpeciesData {
+        id: NIDORAN_M, name: "Nidoran M",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 46, base_attack: 57, base_defense: 40,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 50,
+        catch_rate: 235, base_exp_yield: 60, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LEER), (1, MOVE_TACKLE), (8, MOVE_HORN_ATTACK), (12, MOVE_DOUBLE_KICK), (17, MOVE_POISON_STING), (23, MOVE_FOCUS_ENERGY)],
+        evolution_level: Some(16), evolution_into: Some(33), // Nidorino
+    },
+    SpeciesData {
+        id: GROWLITHE, name: "Growlithe",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 55, base_attack: 70, base_defense: 45,
+        base_sp_attack: 70, base_sp_defense: 50, base_speed: 60,
+        catch_rate: 190, base_exp_yield: 91, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_BITE), (1, MOVE_ROAR), (7, MOVE_EMBER), (13, MOVE_LEER), (19, MOVE_TAKE_DOWN), (25, MOVE_FLAMETHROWER)],
+        evolution_level: None, evolution_into: None, // Fire Stone evolution
+    },
+    SpeciesData {
+        id: VULPIX, name: "Vulpix",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 38, base_attack: 41, base_defense: 40,
+        base_sp_attack: 50, base_sp_defense: 65, base_speed: 65,
+        catch_rate: 190, base_exp_yield: 63, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_EMBER), (1, MOVE_TAIL_WHIP), (7, MOVE_QUICK_ATTACK), (13, MOVE_CONFUSE_RAY), (19, MOVE_FIRE_SPIN), (25, MOVE_FLAMETHROWER)],
+        evolution_level: None, evolution_into: None, // Fire Stone evolution
+    },
+    SpeciesData {
+        id: STANTLER, name: "Stantler",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 73, base_attack: 95, base_defense: 62,
+        base_sp_attack: 85, base_sp_defense: 65, base_speed: 85,
+        catch_rate: 45, base_exp_yield: 165, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_TACKLE), (7, MOVE_LEER), (11, MOVE_HYPNOSIS), (16, MOVE_STOMP), (23, MOVE_SAND_ATTACK), (28, MOVE_TAKE_DOWN), (33, MOVE_CONFUSE_RAY)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: YANMA, name: "Yanma",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Flying),
+        base_hp: 65, base_attack: 65, base_defense: 45,
+        base_sp_attack: 75, base_sp_defense: 45, base_speed: 95,
+        catch_rate: 75, base_exp_yield: 147, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_FORESIGHT), (7, MOVE_QUICK_ATTACK), (13, MOVE_DOUBLE_KICK), (19, MOVE_SONIC_BOOM), (25, MOVE_SUPERSONIC)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: VENONAT, name: "Venonat",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 60, base_attack: 55, base_defense: 50,
+        base_sp_attack: 40, base_sp_defense: 55, base_speed: 45,
+        catch_rate: 190, base_exp_yield: 75, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DISABLE), (9, MOVE_FORESIGHT), (13, MOVE_SUPERSONIC), (17, MOVE_CONFUSION), (20, MOVE_POISON_POWDER), (25, MOVE_LEECH_LIFE), (28, MOVE_STUN_SPORE), (33, MOVE_PSYBEAM)],
+        evolution_level: Some(31), evolution_into: Some(49), // Venomoth
+    },
+    SpeciesData {
+        id: HAUNTER, name: "Haunter",
+        type1: PokemonType::Ghost, type2: Some(PokemonType::Poison),
+        base_hp: 45, base_attack: 50, base_defense: 45,
+        base_sp_attack: 115, base_sp_defense: 55, base_speed: 95,
+        catch_rate: 90, base_exp_yield: 126, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (1, MOVE_SPITE), (8, MOVE_MEAN_LOOK), (13, MOVE_CURSE), (16, MOVE_NIGHT_SHADE), (21, MOVE_CONFUSE_RAY), (25, MOVE_SHADOW_BALL), (31, MOVE_DREAM_EATER)],
+        evolution_level: None, evolution_into: None, // Trade evolution
+    },
+    SpeciesData {
+        id: GENGAR, name: "Gengar",
+        type1: PokemonType::Ghost, type2: Some(PokemonType::Poison),
+        base_hp: 60, base_attack: 65, base_defense: 60,
+        base_sp_attack: 130, base_sp_defense: 75, base_speed: 110,
+        catch_rate: 45, base_exp_yield: 190, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LICK), (1, MOVE_HYPNOSIS), (1, MOVE_SPITE), (8, MOVE_MEAN_LOOK), (13, MOVE_CURSE), (16, MOVE_NIGHT_SHADE), (21, MOVE_CONFUSE_RAY), (25, MOVE_SHADOW_BALL), (31, MOVE_DREAM_EATER)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SUDOWOODO, name: "Sudowoodo",
+        type1: PokemonType::Rock, type2: None,
+        base_hp: 70, base_attack: 100, base_defense: 115,
+        base_sp_attack: 30, base_sp_defense: 65, base_speed: 30,
+        catch_rate: 65, base_exp_yield: 135, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_ROCK_THROW), (1, MOVE_MIMIC), (10, MOVE_FLAIL), (15, MOVE_LOW_KICK), (20, MOVE_ROCK_SLIDE), (25, MOVE_SLAM)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -567,6 +688,26 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SING, name: "Sing", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 15, description: "May put the foe to sleep." },
     MoveData { id: MOVE_DISABLE, name: "Disable", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 20, description: "Disables the foe's move." },
     MoveData { id: MOVE_ENCORE, name: "Encore", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Forces move repetition." },
+    // ─── Morty / Ecruteak + Route 35-37 moves ──────────────
+    MoveData { id: MOVE_SHADOW_BALL, name: "Shadow Ball", move_type: PokemonType::Ghost, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 15, description: "May lower Sp.Def." },
+    MoveData { id: MOVE_DREAM_EATER, name: "Dream Eater", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 100, accuracy: 100, pp: 15, description: "Drains a sleeping foe." },
+    MoveData { id: MOVE_SPITE, name: "Spite", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Cuts the foe's PP." },
+    MoveData { id: MOVE_MEAN_LOOK, name: "Mean Look", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Prevents the foe from fleeing." },
+    MoveData { id: MOVE_CURSE, name: "Curse", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Works differently for Ghosts." },
+    MoveData { id: MOVE_MIMIC, name: "Mimic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies a foe's move." },
+    MoveData { id: MOVE_HORN_ATTACK, name: "Horn Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 25, description: "Jabs with a sharp horn." },
+    MoveData { id: MOVE_FOCUS_ENERGY, name: "Focus Energy", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Raises critical hit ratio." },
+    MoveData { id: MOVE_TAKE_DOWN, name: "Take Down", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 90, accuracy: 85, pp: 20, description: "A tackle that also hurts." },
+    MoveData { id: MOVE_ROAR, name: "Roar", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Scares wild foe away." },
+    MoveData { id: MOVE_FLAMETHROWER, name: "Flamethrower", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "May burn the foe." },
+    MoveData { id: MOVE_FIRE_SPIN, name: "Fire Spin", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 15, accuracy: 70, pp: 15, description: "Traps foe in fire 2-5 turns." },
+    MoveData { id: MOVE_SUPERSONIC, name: "Supersonic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 20, description: "May confuse the foe." },
+    MoveData { id: MOVE_SONIC_BOOM, name: "Sonic Boom", move_type: PokemonType::Normal, category: MoveCategory::Special, power: 1, accuracy: 90, pp: 20, description: "Always inflicts 20 HP damage." },
+    MoveData { id: MOVE_PSYBEAM, name: "Psybeam", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 65, accuracy: 100, pp: 20, description: "May confuse the foe." },
+    MoveData { id: MOVE_LOW_KICK, name: "Low Kick", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 50, accuracy: 90, pp: 20, description: "A low, tripping kick." },
+    MoveData { id: MOVE_FLAIL, name: "Flail", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 15, description: "Stronger when HP is low." },
+    MoveData { id: MOVE_ROCK_SLIDE, name: "Rock Slide", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 75, accuracy: 90, pp: 10, description: "May cause flinching." },
+    MoveData { id: MOVE_FURY_ATTACK, name: "Fury Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 85, pp: 20, description: "Jabs the foe 2-5 times." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

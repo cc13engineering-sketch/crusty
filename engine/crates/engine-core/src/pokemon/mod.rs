@@ -1596,7 +1596,14 @@ impl PokemonSim {
         if done {
             self.dialogue = None;
             match action {
-                DialogueAction::None => self.phase = GamePhase::Overworld,
+                DialogueAction::None => {
+                    if self.battle.is_some() {
+                        // Return to battle (e.g. after using potion/item in battle)
+                        self.phase = GamePhase::Battle;
+                    } else {
+                        self.phase = GamePhase::Overworld;
+                    }
+                }
                 DialogueAction::Heal => {
                     for p in &mut self.party { p.heal(); }
                     sfx_heal(engine);
@@ -2525,15 +2532,33 @@ impl PokemonSim {
                         pkmn.hp = pkmn.max_hp / 2;
                         pkmn.clear_status();
                         self.bag.use_item(item_id);
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                format!("Used {} on {}!", item_name, name),
-                                format!("{} was revived!", name),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
+                        let msg1 = format!("Used {} on {}!", item_name, name);
+                        let msg2 = format!("{} was revived!", name);
+                        if self.battle.is_some() {
+                            let mut b = self.battle.take().unwrap();
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                            );
+                            b.phase = BattlePhase::Text {
+                                message: msg1, timer: 0.0,
+                                next_phase: Box::new(BattlePhase::Text {
+                                    message: msg2, timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg,
+                                        effectiveness: e_eff, is_crit: e_crit,
+                                    }),
+                                }),
+                            };
+                            self.battle = Some(b);
+                            self.phase = GamePhase::Battle;
+                        } else {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![msg1, msg2],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                        }
                         return;
                     }
 
@@ -2550,12 +2575,29 @@ impl PokemonSim {
                         }
                         pkmn.clear_status();
                         self.bag.use_item(item_id);
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![format!("{} was cured!", name)],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
+                        let msg = format!("{} was cured!", name);
+                        if self.battle.is_some() {
+                            let mut b = self.battle.take().unwrap();
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                            );
+                            b.phase = BattlePhase::Text {
+                                message: msg, timer: 0.0,
+                                next_phase: Box::new(BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: e_move, damage: e_dmg,
+                                    effectiveness: e_eff, is_crit: e_crit,
+                                }),
+                            };
+                            self.battle = Some(b);
+                            self.phase = GamePhase::Battle;
+                        } else {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![msg],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                        }
                         return;
                     }
 
@@ -2582,15 +2624,34 @@ impl PokemonSim {
                     pkmn.hp = (pkmn.hp + item_data.heal_amount).min(pkmn.max_hp);
                     let healed = pkmn.hp - old_hp;
                     self.bag.use_item(item_id);
-                    self.dialogue = Some(DialogueState {
-                        lines: vec![
-                            format!("Used {} on {}!", item_name, name),
-                            format!("Restored {} HP!", healed),
-                        ],
-                        current_line: 0, char_index: 0, timer: 0.0,
-                        on_complete: DialogueAction::None,
-                    });
-                    self.phase = GamePhase::Dialogue;
+                    let msg1 = format!("Used {} on {}!", item_name, name);
+                    let msg2 = format!("Restored {} HP!", healed);
+                    if self.battle.is_some() {
+                        // In battle: use battle text system, enemy gets a turn
+                        let mut b = self.battle.take().unwrap();
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                            engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                        );
+                        b.phase = BattlePhase::Text {
+                            message: msg1, timer: 0.0,
+                            next_phase: Box::new(BattlePhase::Text {
+                                message: msg2, timer: 0.0,
+                                next_phase: Box::new(BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: e_move, damage: e_dmg,
+                                    effectiveness: e_eff, is_crit: e_crit,
+                                }),
+                            }),
+                        };
+                        self.battle = Some(b);
+                        self.phase = GamePhase::Battle;
+                    } else {
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![msg1, msg2],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                    }
                 }
             }
         }

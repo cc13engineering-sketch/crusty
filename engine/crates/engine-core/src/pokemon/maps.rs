@@ -36,6 +36,16 @@ const MILTANK: u16 = 241;
 const SNUBBULL: u16 = 209;
 const JIGGLYPUFF: u16 = 39;
 const MEOWTH: u16 = 52;
+const NIDORAN_F: u16 = 29;
+const NIDORAN_M: u16 = 32;
+const GROWLITHE: u16 = 58;
+const VULPIX: u16 = 37;
+const STANTLER: u16 = 234;
+const YANMA: u16 = 193;
+const VENONAT: u16 = 48;
+const HAUNTER: u16 = 93;
+const GENGAR: u16 = 94;
+const SUDOWOODO: u16 = 185;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -100,6 +110,10 @@ pub enum MapId {
     Route34,
     GoldenrodCity,
     GoldenrodGym,
+    Route35,
+    NationalPark,
+    Route36,
+    Route37,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -214,6 +228,10 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route34 => build_route_34(),
         MapId::GoldenrodCity => build_goldenrod_city(),
         MapId::GoldenrodGym => build_goldenrod_gym(),
+        MapId::Route35 => build_route_35(),
+        MapId::NationalPark => build_national_park(),
+        MapId::Route36 => build_route_36(),
+        MapId::Route37 => build_route_37(),
     }
 }
 
@@ -3499,9 +3517,9 @@ fn build_goldenrod_city() -> MapData {
     ];
 
     let warps = vec![
-        // North exit → Route 35 (placeholder - loops back for now)
-        WarpData { x: 11, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 11, dest_y: 1 },
-        WarpData { x: 12, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 12, dest_y: 1 },
+        // North exit → Route 35
+        WarpData { x: 11, y: 0, dest_map: MapId::Route35, dest_x: 6, dest_y: 18 },
+        WarpData { x: 12, y: 0, dest_map: MapId::Route35, dest_x: 7, dest_y: 18 },
         // South exit → Route 34
         WarpData { x: 11, y: 19, dest_map: MapId::Route34, dest_x: 6, dest_y: 1 },
         WarpData { x: 12, y: 19, dest_map: MapId::Route34, dest_x: 7, dest_y: 1 },
@@ -3702,6 +3720,556 @@ fn build_goldenrod_gym() -> MapData {
     }
 }
 
+// ─── Route 35 (16x20) ───────────────────────────────────
+// Connects Goldenrod City (south) to National Park (north).
+// S-curve path, lake on west side, grass patches east.
+fn build_route_35() -> MapData {
+    let w: usize = 16;
+    let h: usize = 20;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north border / warp to National Park
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        WATER,WATER,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 5
+        WATER,WATER,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 6
+        WATER,WATER,WATER,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 7
+        WATER,WATER,WATER,GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8
+        WATER,WATER,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 12
+        GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 13
+        GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14
+        TREE_TOP,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 15
+        TREE_BOTTOM,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 16
+        TREE_TOP,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 17
+        TREE_BOTTOM,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 18
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,PATH,PATH,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 19: south border / warp to Goldenrod
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: north warps
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 5
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 6
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 7
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 13
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 16
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 17
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 18
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 19: south warps
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "Route35 tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "Route35 collision count mismatch");
+
+    let warps = vec![
+        // North exits → National Park (land one tile inside)
+        WarpData { x: 6, y: 0, dest_map: MapId::NationalPark, dest_x: 9, dest_y: 15 },
+        WarpData { x: 7, y: 0, dest_map: MapId::NationalPark, dest_x: 10, dest_y: 15 },
+        // South exits → Goldenrod City (land one tile inside)
+        WarpData { x: 6, y: 19, dest_map: MapId::GoldenrodCity, dest_x: 11, dest_y: 1 },
+        WarpData { x: 7, y: 19, dest_map: MapId::GoldenrodCity, dest_x: 12, dest_y: 1 },
+    ];
+
+    let npcs = vec![
+        // Bird Keeper
+        NpcDef {
+            x: 8, y: 3, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["Bird Keeper wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: PIDGEY, level: 12 },
+                TrainerPokemon { species_id: PIDGEY, level: 14 },
+            ],
+        },
+        // Bug Catcher
+        NpcDef {
+            x: 11, y: 7, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["Bug Catcher wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: CATERPIE, level: 15 },
+                TrainerPokemon { species_id: WEEDLE, level: 15 },
+            ],
+        },
+        // Officer
+        NpcDef {
+            x: 4, y: 13, sprite_id: 3, facing: Direction::Right,
+            dialogue: &["Officer wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GROWLITHE, level: 14 },
+                TrainerPokemon { species_id: GROWLITHE, level: 14 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: NIDORAN_F, min_level: 12, max_level: 14, weight: 25 },
+        EncounterEntry { species_id: NIDORAN_M, min_level: 12, max_level: 14, weight: 25 },
+        EncounterEntry { species_id: DROWZEE,   min_level: 13, max_level: 15, weight: 20 },
+        EncounterEntry { species_id: PIDGEY,    min_level: 13, max_level: 15, weight: 15 },
+        EncounterEntry { species_id: YANMA,     min_level: 12, max_level: 13, weight: 5  },
+    ];
+
+    MapData {
+        id: MapId::Route35,
+        name: "ROUTE 35",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 1,
+    }
+}
+
+// ─── National Park (20x18) ──────────────────────────────
+// Large open park. Connects Route 35 (south) to Route 36 (east).
+fn build_national_park() -> MapData {
+    let w: usize = 20;
+    let h: usize = 18;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,FLOWER,FLOWER,GRASS,PATH,PATH,GRASS,FLOWER,FLOWER,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,FLOWER,FLOWER,GRASS,GRASS,PATH,PATH,GRASS,GRASS,FLOWER,FLOWER,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 6
+        GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,
+        // Row 7
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: east exit to Route 36
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,
+        // Row 9: east exit to Route 36
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,
+        // Row 10
+        GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 12
+        GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,
+        // Row 13
+        GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,
+        // Row 14
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 15
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 16: south border (warp to Route 35)
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 17: south warp row
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 6
+        C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: east warp
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 9: east warp
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 13
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 14
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 15
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 16: south warp
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 17
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "NationalPark tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "NationalPark collision count mismatch");
+
+    let warps = vec![
+        // South exits → Route 35 (land one tile inside)
+        WarpData { x: 9,  y: 16, dest_map: MapId::Route35, dest_x: 6, dest_y: 1 },
+        WarpData { x: 10, y: 16, dest_map: MapId::Route35, dest_x: 7, dest_y: 1 },
+        // East exits → Route 36 (land one tile inside)
+        WarpData { x: 19, y: 8, dest_map: MapId::Route36, dest_x: 1, dest_y: 6 },
+        WarpData { x: 19, y: 9, dest_map: MapId::Route36, dest_x: 1, dest_y: 7 },
+    ];
+
+    let npcs = vec![
+        // Park info NPC
+        NpcDef {
+            x: 9, y: 7, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "Welcome to",
+                "NATIONAL PARK!",
+                "Many rare Bug POKeMON",
+                "live here.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Pokefan trainer
+        NpcDef {
+            x: 14, y: 11, sprite_id: 4, facing: Direction::Left,
+            dialogue: &["Pokefan wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SENTRET, level: 14 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: CATERPIE, min_level: 10, max_level: 13, weight: 30 },
+        EncounterEntry { species_id: WEEDLE,   min_level: 10, max_level: 13, weight: 30 },
+        EncounterEntry { species_id: PIDGEY,   min_level: 12, max_level: 14, weight: 25 },
+        EncounterEntry { species_id: HOPPIP,   min_level: 12, max_level: 14, weight: 15 },
+    ];
+
+    MapData {
+        id: MapId::NationalPark,
+        name: "NATIONAL PARK",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 5,
+    }
+}
+
+// ─── Route 36 (20x14) ──────────────────────────────────
+// Connects National Park (west) to Route 37 (east). Sudowoodo roadblock.
+fn build_route_36() -> MapData {
+    let w: usize = 20;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 6: west warp row
+        PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,
+        // Row 7: west warp row
+        PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,
+        // Row 8
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 9
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,PATH,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 12
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 13: south border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6: west warp + east warp
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 7: west warp + east warp
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 8
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "Route36 tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "Route36 collision count mismatch");
+
+    let warps = vec![
+        // West exits → National Park (land one tile inside)
+        WarpData { x: 0, y: 6, dest_map: MapId::NationalPark, dest_x: 18, dest_y: 8 },
+        WarpData { x: 0, y: 7, dest_map: MapId::NationalPark, dest_x: 18, dest_y: 9 },
+        // East exits → Route 37 (land one tile inside)
+        WarpData { x: 19, y: 6, dest_map: MapId::Route37, dest_x: 1, dest_y: 5 },
+        WarpData { x: 19, y: 7, dest_map: MapId::Route37, dest_x: 1, dest_y: 6 },
+    ];
+
+    let npcs = vec![
+        // NPC mentioning weird tree
+        NpcDef {
+            x: 12, y: 6, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "A weird tree is",
+                "blocking the road",
+                "to ECRUTEAK CITY.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Psychic trainer
+        NpcDef {
+            x: 4, y: 5, sprite_id: 3, facing: Direction::Right,
+            dialogue: &["Psychic wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: DROWZEE, level: 13 },
+                TrainerPokemon { species_id: DROWZEE, level: 15 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: PIDGEY,    min_level: 12, max_level: 14, weight: 30 },
+        EncounterEntry { species_id: BELLSPROUT, min_level: 12, max_level: 14, weight: 25 },
+        EncounterEntry { species_id: HOPPIP,    min_level: 12, max_level: 14, weight: 20 },
+        EncounterEntry { species_id: RATTATA,   min_level: 12, max_level: 14, weight: 15 },
+        EncounterEntry { species_id: STANTLER,  min_level: 13, max_level: 14, weight: 10 },
+    ];
+
+    MapData {
+        id: MapId::Route36,
+        name: "ROUTE 36",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 1,
+    }
+}
+
+// ─── Route 37 (16x14) ──────────────────────────────────
+// Short route connecting Route 36 (west) to Ecruteak City (east, placeholder).
+fn build_route_37() -> MapData {
+    let w: usize = 16;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2
+        TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 3
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 4
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5: west warp row
+        PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 6: west warp row
+        PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 7
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8
+        GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,
+        // Row 9
+        GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,
+        // Row 10
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 12
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 13: south border
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5: west warp + east warp
+        C_WARP,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 6: west warp + east warp
+        C_WARP,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 9
+        C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "Route37 tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "Route37 collision count mismatch");
+
+    let warps = vec![
+        // West exits → Route 36 (land one tile inside)
+        WarpData { x: 0, y: 5, dest_map: MapId::Route36, dest_x: 18, dest_y: 6 },
+        WarpData { x: 0, y: 6, dest_map: MapId::Route36, dest_x: 18, dest_y: 7 },
+        // East exits → placeholder self-loop (Route37 14,5/14,6)
+        WarpData { x: 15, y: 5, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
+        WarpData { x: 15, y: 6, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
+    ];
+
+    let npcs = vec![
+        // Psychic trainer
+        NpcDef {
+            x: 7, y: 6, sprite_id: 3, facing: Direction::Down,
+            dialogue: &["Psychic wants", "to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: DROWZEE, level: 17 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: PIDGEY,   min_level: 13, max_level: 15, weight: 30 },
+        EncounterEntry { species_id: STANTLER,  min_level: 14, max_level: 16, weight: 25 },
+        EncounterEntry { species_id: GROWLITHE, min_level: 14, max_level: 15, weight: 20 },
+        EncounterEntry { species_id: HOPPIP,   min_level: 13, max_level: 15, weight: 15 },
+        EncounterEntry { species_id: HOOTHOOT,  min_level: 14, max_level: 15, weight: 10 },
+    ];
+
+    MapData {
+        id: MapId::Route37,
+        name: "ROUTE 37",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 1,
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -3803,6 +4371,10 @@ mod tests {
             MapId::Route34,
             MapId::GoldenrodCity,
             MapId::GoldenrodGym,
+            MapId::Route35,
+            MapId::NationalPark,
+            MapId::Route36,
+            MapId::Route37,
         ];
         for id in &maps {
             let map = load_map(*id);

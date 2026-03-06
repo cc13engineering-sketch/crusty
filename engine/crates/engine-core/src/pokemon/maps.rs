@@ -262,6 +262,7 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route38 => build_route_38(),
         MapId::Route39 => build_route_39(),
         MapId::OlivineCity => build_olivine_city(),
+        MapId::OlivineGym => build_olivine_gym(),
     }
 }
 
@@ -4932,11 +4933,16 @@ fn build_olivine_city() -> MapData {
         WarpData { x: 12, y: 1, dest_map: MapId::Route39, dest_x: 6, dest_y: 16 },
         WarpData { x: 13, y: 1, dest_map: MapId::Route39, dest_x: 7, dest_y: 16 },
         WarpData { x: 14, y: 1, dest_map: MapId::Route39, dest_x: 8, dest_y: 16 },
-        WarpData { x: 4, y: 4, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 16, y: 4, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
+        // Gym door (4,4) → OlivineGym
+        WarpData { x: 4, y: 4, dest_map: MapId::OlivineGym, dest_x: 5, dest_y: 8 },
+        // House door (16,4) → GenericHouse
+        WarpData { x: 16, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Pokemon Center door (4,7)
         WarpData { x: 4, y: 7, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
-        WarpData { x: 3, y: 11, dest_map: MapId::OlivineCity, dest_x: 3, dest_y: 12 },
-        WarpData { x: 17, y: 11, dest_map: MapId::OlivineCity, dest_x: 17, dest_y: 12 },
+        // Cafe door (3,11) → GenericHouse
+        WarpData { x: 3, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Lighthouse door (17,11) → GenericHouse (simplified)
+        WarpData { x: 17, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
     ];
     let npcs = vec![
         NpcDef { x: 8, y: 2, sprite_id: 5, facing: Direction::Down,
@@ -4962,269 +4968,6 @@ fn build_olivine_city() -> MapData {
     ];
     MapData { id: MapId::OlivineCity, name: "OLIVINE CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], music_id: 3 }
 }
-
-// ─── Route 38 (20x10) ──────────────────────────────────
-// Connects Ecruteak City (west) to Route 39 (south/east).
-fn build_route_38() -> MapData {
-    let w: usize = 20;
-    let h: usize = 10;
-    #[rustfmt::skip]
-    let tiles: Vec<u8> = vec![
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_TOP,TREE_TOP,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TALL_GRASS,TALL_GRASS,TALL_GRASS,PATH,PATH,TALL_GRASS,TALL_GRASS,TALL_GRASS,PATH,PATH,PATH,PATH,TALL_GRASS,TALL_GRASS,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,
-        PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
-        PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
-        TREE_TOP,TREE_TOP,TALL_GRASS,TALL_GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-    ];
-    #[rustfmt::skip]
-    let collision: Vec<u8> = vec![
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
-        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
-        C_SOLID,C_SOLID,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-    ];
-    debug_assert_eq!(tiles.len(), w * h);
-    debug_assert_eq!(collision.len(), w * h);
-    let warps = vec![
-        WarpData { x: 0, y: 4, dest_map: MapId::EcruteakCity, dest_x: 18, dest_y: 8 },
-        WarpData { x: 0, y: 5, dest_map: MapId::EcruteakCity, dest_x: 18, dest_y: 9 },
-        WarpData { x: 19, y: 4, dest_map: MapId::Route39, dest_x: 8, dest_y: 1 },
-        WarpData { x: 19, y: 5, dest_map: MapId::Route39, dest_x: 8, dest_y: 1 },
-    ];
-    let npcs = vec![
-        NpcDef {
-            x: 6, y: 3, sprite_id: 2, facing: Direction::Down,
-            dialogue: &["Bird Keeper TOBY","wants to battle!"],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[
-                TrainerPokemon { species_id: DODUO, level: 17 },
-                TrainerPokemon { species_id: DODUO, level: 17 },
-                TrainerPokemon { species_id: PIDGEOTTO, level: 19 },
-            ],
-        },
-        NpcDef {
-            x: 12, y: 6, sprite_id: 3, facing: Direction::Up,
-            dialogue: &["Lass DANA","wants to battle!"],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[
-                TrainerPokemon { species_id: FLAAFFY, level: 19 },
-                TrainerPokemon { species_id: PSYDUCK, level: 19 },
-            ],
-        },
-        NpcDef {
-            x: 16, y: 3, sprite_id: 2, facing: Direction::Down,
-            dialogue: &["Schoolboy CHAD","wants to battle!"],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[TrainerPokemon { species_id: MAGNEMITE, level: 20 }],
-        },
-    ];
-    let encounters = vec![
-        EncounterEntry { species_id: RATTATA, min_level: 16, max_level: 16, weight: 30 },
-        EncounterEntry { species_id: RATICATE, min_level: 18, max_level: 18, weight: 10 },
-        EncounterEntry { species_id: PIDGEOTTO, min_level: 16, max_level: 16, weight: 15 },
-        EncounterEntry { species_id: NOCTOWL, min_level: 18, max_level: 18, weight: 5 },
-        EncounterEntry { species_id: FARFETCHD, min_level: 16, max_level: 16, weight: 10 },
-        EncounterEntry { species_id: SKIPLOOM, min_level: 17, max_level: 17, weight: 15 },
-        EncounterEntry { species_id: MAGNEMITE, min_level: 16, max_level: 16, weight: 15 },
-    ];
-    MapData { id: MapId::Route38, name: "ROUTE 38", width: w, height: h, tiles, collision, warps, npcs, encounters, music_id: 2 }
-}
-
-// ─── Route 39 (16x20) ──────────────────────────────────
-// Connects Route 38 (north) to Olivine City (south). MooMoo Farm.
-fn build_route_39() -> MapData {
-    let w: usize = 16;
-    let h: usize = 20;
-    #[rustfmt::skip]
-    let tiles: Vec<u8> = vec![
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_TOP,GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,PATH,PATH,GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,PATH,PATH,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        TREE_BOTTOM,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        TREE_TOP,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-    ];
-    #[rustfmt::skip]
-    let collision: Vec<u8> = vec![
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-    ];
-    debug_assert_eq!(tiles.len(), w * h);
-    debug_assert_eq!(collision.len(), w * h);
-    let warps = vec![
-        WarpData { x: 7, y: 0, dest_map: MapId::Route38, dest_x: 18, dest_y: 4 },
-        WarpData { x: 8, y: 0, dest_map: MapId::Route38, dest_x: 18, dest_y: 5 },
-        WarpData { x: 4, y: 5, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 11, y: 5, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 5, y: 18, dest_map: MapId::OlivineCity, dest_x: 7, dest_y: 1 },
-        WarpData { x: 6, y: 18, dest_map: MapId::OlivineCity, dest_x: 8, dest_y: 1 },
-        WarpData { x: 7, y: 18, dest_map: MapId::OlivineCity, dest_x: 9, dest_y: 1 },
-        WarpData { x: 8, y: 18, dest_map: MapId::OlivineCity, dest_x: 10, dest_y: 1 },
-    ];
-    let npcs = vec![
-        NpcDef {
-            x: 6, y: 8, sprite_id: 5, facing: Direction::Right,
-            dialogue: &["Pokefan DEREK","wants to battle!"],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[TrainerPokemon { species_id: PIDGEOTTO, level: 18 }],
-        },
-        NpcDef {
-            x: 10, y: 12, sprite_id: 2, facing: Direction::Left,
-            dialogue: &["Sailor EUGENE","wants to battle!"],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[
-                TrainerPokemon { species_id: RATICATE, level: 19 },
-                TrainerPokemon { species_id: RATTATA, level: 17 },
-            ],
-        },
-        NpcDef {
-            x: 3, y: 6, sprite_id: 3, facing: Direction::Down,
-            dialogue: &["Our MILTANK has been","sick lately...","It won't give milk."],
-            is_trainer: false, is_mart: false, wanders: false,
-            trainer_team: &[],
-        },
-    ];
-    let encounters = vec![
-        EncounterEntry { species_id: RATTATA, min_level: 16, max_level: 16, weight: 25 },
-        EncounterEntry { species_id: RATICATE, min_level: 18, max_level: 18, weight: 10 },
-        EncounterEntry { species_id: PIDGEOTTO, min_level: 16, max_level: 16, weight: 15 },
-        EncounterEntry { species_id: NOCTOWL, min_level: 18, max_level: 18, weight: 5 },
-        EncounterEntry { species_id: FARFETCHD, min_level: 16, max_level: 16, weight: 10 },
-        EncounterEntry { species_id: TAUROS, min_level: 15, max_level: 15, weight: 5 },
-        EncounterEntry { species_id: MAGNEMITE, min_level: 16, max_level: 16, weight: 15 },
-        EncounterEntry { species_id: MILTANK, min_level: 15, max_level: 15, weight: 15 },
-    ];
-    MapData { id: MapId::Route39, name: "ROUTE 39", width: w, height: h, tiles, collision, warps, npcs, encounters, music_id: 2 }
-}
-
-// ─── Olivine City (20x18) ──────────────────────────────
-// Port city. Jasmine's Steel-type Gym, Lighthouse, Pokemon Center.
-fn build_olivine_city() -> MapData {
-    let w: usize = 20;
-    let h: usize = 18;
-    #[rustfmt::skip]
-    let tiles: Vec<u8> = vec![
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,PATH,PATH,PATH,PATH,PATH,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,GRASS,GRASS,GRASS,
-        GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,GRASS,GRASS,GRASS,
-        GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,GRASS,GRASS,GRASS,
-        GRASS,ROOF_BLUE,ROOF_BLUE,ROOF_BLUE,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,GRASS,GRASS,GRASS,
-        GRASS,WALL_STONE,DOOR,WALL_STONE,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,ROOF_RED,ROOF_RED,ROOF_RED,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,ROOF_BLUE,ROOF_BLUE,ROOF_BLUE,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,WALL_STONE,DOOR,WALL_STONE,GRASS,GRASS,
-        GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-    ];
-    #[rustfmt::skip]
-    let collision: Vec<u8> = vec![
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-    ];
-    debug_assert_eq!(tiles.len(), w * h);
-    debug_assert_eq!(collision.len(), w * h);
-    let warps = vec![
-        WarpData { x: 6, y: 0, dest_map: MapId::Route39, dest_x: 5, dest_y: 17 },
-        WarpData { x: 7, y: 0, dest_map: MapId::Route39, dest_x: 6, dest_y: 17 },
-        WarpData { x: 8, y: 0, dest_map: MapId::Route39, dest_x: 7, dest_y: 17 },
-        WarpData { x: 9, y: 0, dest_map: MapId::Route39, dest_x: 8, dest_y: 17 },
-        WarpData { x: 10, y: 0, dest_map: MapId::Route39, dest_x: 8, dest_y: 17 },
-        WarpData { x: 3, y: 4, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 15, y: 3, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 15, y: 7, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-        WarpData { x: 2, y: 8, dest_map: MapId::OlivineGym, dest_x: 5, dest_y: 7 },
-        WarpData { x: 12, y: 11, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
-        WarpData { x: 16, y: 13, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
-    ];
-    let npcs = vec![
-        NpcDef {
-            x: 5, y: 14, sprite_id: 2, facing: Direction::Up,
-            dialogue: &["The S.S. AQUA docks","here sometimes.","It sails to KANTO!"],
-            is_trainer: false, is_mart: false, wanders: false,
-            trainer_team: &[],
-        },
-        NpcDef {
-            x: 4, y: 7, sprite_id: 3, facing: Direction::Right,
-            dialogue: &["JASMINE is the GYM","LEADER, but she's at","the LIGHTHOUSE caring","for a sick POKEMON."],
-            is_trainer: false, is_mart: false, wanders: false,
-            trainer_team: &[],
-        },
-        NpcDef {
-            x: 14, y: 12, sprite_id: 5, facing: Direction::Right,
-            dialogue: &["The LIGHTHOUSE is","OLIVINE's pride.","The light guides","ships safely to port."],
-            is_trainer: false, is_mart: false, wanders: false,
-            trainer_team: &[],
-        },
-    ];
-    MapData { id: MapId::OlivineCity, name: "OLIVINE CITY", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 1 }
-}
-
 // ─── Olivine Gym (10x10) ───────────────────────────────
 // Jasmine - Steel type. Available immediately (skip Lighthouse quest).
 fn build_olivine_gym() -> MapData {
@@ -5259,7 +5002,7 @@ fn build_olivine_gym() -> MapData {
     debug_assert_eq!(tiles.len(), w * h);
     debug_assert_eq!(collision.len(), w * h);
     let warps = vec![
-        WarpData { x: 5, y: 8, dest_map: MapId::OlivineCity, dest_x: 2, dest_y: 9 },
+        WarpData { x: 5, y: 8, dest_map: MapId::OlivineCity, dest_x: 3, dest_y: 12 },
     ];
     let npcs = vec![
         NpcDef {
@@ -5269,7 +5012,7 @@ fn build_olivine_gym() -> MapData {
             trainer_team: &[
                 TrainerPokemon { species_id: MAGNEMITE, level: 30 },
                 TrainerPokemon { species_id: MAGNEMITE, level: 30 },
-                TrainerPokemon { species_id: ONIX, level: 35 }, // Steelix placeholder
+                TrainerPokemon { species_id: STEELIX, level: 35 },
             ],
         },
     ];
@@ -5385,6 +5128,10 @@ mod tests {
             MapId::EcruteakCity,
             MapId::BurnedTower,
             MapId::EcruteakGym,
+            MapId::Route38,
+            MapId::Route39,
+            MapId::OlivineCity,
+            MapId::OlivineGym,
         ];
         for id in &maps {
             let map = load_map(*id);

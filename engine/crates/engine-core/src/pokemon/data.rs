@@ -127,6 +127,13 @@ pub const PIKACHU: SpeciesId = 25;
 pub const POLIWHIRL: SpeciesId = 61;
 pub const KRABBY: SpeciesId = 98;
 pub const STEELIX: SpeciesId = 208;
+// ─── Lighthouse / Jasmine species ───────────────────────
+pub const POLIWAG: SpeciesId = 60;
+pub const MARILL: SpeciesId = 183;
+pub const SPEAROW: SpeciesId = 21;
+pub const FEAROW: SpeciesId = 22;
+pub const MACHOP: SpeciesId = 66;
+pub const AMPHAROS: SpeciesId = 181;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -231,6 +238,9 @@ pub const MOVE_PAY_DAY: MoveId = 6;
 pub const MOVE_IRON_TAIL: MoveId = 231;
 pub const MOVE_SCREECH: MoveId = 103;
 pub const MOVE_SUNNY_DAY: MoveId = 241;
+pub const MOVE_KARATE_CHOP: MoveId = 2;
+pub const MOVE_BODY_SLAM: MoveId = 34;
+pub const MOVE_SEISMIC_TOSS: MoveId = 69;
 
 /// Static species data
 #[derive(Debug)]
@@ -909,6 +919,61 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_SCREECH), (9, MOVE_ROCK_THROW), (13, MOVE_BIND), (21, MOVE_ROCK_SLIDE), (25, MOVE_SLAM), (33, MOVE_IRON_TAIL)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Lighthouse / Jasmine species ───────────────────────
+    SpeciesData {
+        id: POLIWAG, name: "Poliwag",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 40, base_attack: 50, base_defense: 40,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 90,
+        catch_rate: 255, base_exp_yield: 77, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_BUBBLE), (7, MOVE_HYPNOSIS), (13, MOVE_WATER_GUN), (19, MOVE_DOUBLESLAP), (31, MOVE_BODY_SLAM)],
+        evolution_level: Some(25), evolution_into: Some(POLIWHIRL),
+    },
+    SpeciesData {
+        id: MARILL, name: "Marill",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 70, base_attack: 20, base_defense: 50,
+        base_sp_attack: 20, base_sp_defense: 50, base_speed: 40,
+        catch_rate: 190, base_exp_yield: 58, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_TACKLE), (3, MOVE_DEFENSE_CURL), (6, MOVE_TAIL_WHIP), (10, MOVE_WATER_GUN), (15, MOVE_ROLLOUT), (21, MOVE_BUBBLEBEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SPEAROW, name: "Spearow",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 40, base_attack: 60, base_defense: 30,
+        base_sp_attack: 31, base_sp_defense: 31, base_speed: 70,
+        catch_rate: 255, base_exp_yield: 58, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_GROWL), (7, MOVE_LEER), (13, MOVE_FURY_ATTACK), (25, MOVE_PURSUIT)],
+        evolution_level: Some(20), evolution_into: Some(FEAROW),
+    },
+    SpeciesData {
+        id: FEAROW, name: "Fearow",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 65, base_attack: 90, base_defense: 65,
+        base_sp_attack: 61, base_sp_defense: 61, base_speed: 100,
+        catch_rate: 90, base_exp_yield: 162, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_GROWL), (1, MOVE_LEER), (1, MOVE_FURY_ATTACK), (26, MOVE_PURSUIT), (32, MOVE_DRILL_PECK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MACHOP, name: "Machop",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 70, base_attack: 80, base_defense: 50,
+        base_sp_attack: 35, base_sp_defense: 35, base_speed: 35,
+        catch_rate: 180, base_exp_yield: 70, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_LOW_KICK), (1, MOVE_LEER), (7, MOVE_FOCUS_ENERGY), (13, MOVE_KARATE_CHOP), (19, MOVE_SEISMIC_TOSS), (25, MOVE_FORESIGHT)],
+        evolution_level: Some(28), evolution_into: None,
+    },
+    SpeciesData {
+        id: AMPHAROS, name: "Ampharos",
+        type1: PokemonType::Electric, type2: None,
+        base_hp: 90, base_attack: 75, base_defense: 85,
+        base_sp_attack: 115, base_sp_defense: 90, base_speed: 55,
+        catch_rate: 45, base_exp_yield: 194, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_THUNDER_SHOCK), (9, MOVE_THUNDER_SHOCK), (18, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1018,6 +1083,10 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_IRON_TAIL, name: "Iron Tail", move_type: PokemonType::Steel, category: MoveCategory::Physical, power: 100, accuracy: 75, pp: 15, description: "Attacks with a steel tail." },
     MoveData { id: MOVE_SCREECH, name: "Screech", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 40, description: "Sharply lowers Defense." },
     MoveData { id: MOVE_SUNNY_DAY, name: "Sunny Day", move_type: PokemonType::Fire, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Boosts Fire moves for 5 turns." },
+    // ─── Lighthouse / Jasmine moves ─────────────────────────
+    MoveData { id: MOVE_KARATE_CHOP, name: "Karate Chop", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 50, accuracy: 100, pp: 25, description: "High critical-hit ratio." },
+    MoveData { id: MOVE_BODY_SLAM, name: "Body Slam", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 85, accuracy: 100, pp: 15, description: "May paralyze the foe." },
+    MoveData { id: MOVE_SEISMIC_TOSS, name: "Seismic Toss", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 20, description: "Damage equals user's level." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

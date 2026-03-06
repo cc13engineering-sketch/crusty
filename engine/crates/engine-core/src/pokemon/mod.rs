@@ -231,6 +231,8 @@ struct BattleState {
     // Confusion: turns remaining (0 = not confused). 50% self-hit chance each turn.
     player_confused: u8,
     enemy_confused: u8,
+    // Mean Look: prevents fleeing from wild battle
+    player_trapped: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -462,6 +464,7 @@ impl PokemonSim {
                 StatusCondition::Paralysis => 3,
                 StatusCondition::Sleep { turns } => 4 + turns,
                 StatusCondition::Freeze => 10,
+                StatusCondition::BadPoison { turn } => 11 + turn, // 11-26
             };
             party_json.push_str(&format!(
                 "{{\"s\":{},\"l\":{},\"hp\":{},\"mhp\":{},\"exp\":{},\"mv\":{},\"pp\":{},\"mpp\":{},\"st\":{}}}",
@@ -628,6 +631,7 @@ impl PokemonSim {
                     2 => StatusCondition::Burn,
                     3 => StatusCondition::Paralysis,
                     10 => StatusCondition::Freeze,
+                    t if t >= 11 => StatusCondition::BadPoison { turn: t - 11 },
                     t if t >= 4 => StatusCondition::Sleep { turns: t - 4 },
                     _ => StatusCondition::None,
                 };
@@ -1021,6 +1025,7 @@ impl PokemonSim {
                                 player_flinched: false,
                                 player_confused: 0,
                                 enemy_confused: 0,
+                                player_trapped: false,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -1289,7 +1294,13 @@ impl PokemonSim {
                             return;
                         }
                         3 => {
-                            if battle.is_wild {
+                            if battle.is_wild && battle.player_trapped {
+                                // Mean Look prevents escape
+                                battle.phase = BattlePhase::Text {
+                                    message: "Can't escape!".to_string(), timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                };
+                            } else if battle.is_wild {
                                 let mut pspeed = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(50);
                                 if self.party.get(battle.player_idx).map(|p| matches!(p.status, StatusCondition::Paralysis)).unwrap_or(false) {
                                     pspeed /= 2;
@@ -1666,6 +1677,10 @@ impl PokemonSim {
                                 let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                                 Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
                             }
+                        } else if move_id == MOVE_MEAN_LOOK {
+                            // Mean Look is only meaningful in wild battles
+                            // Player uses Mean Look on wild — prevent it from fleeing (no effect in trainer battles)
+                            None // Visual-only for now; wild Pokemon don't try to flee in our implementation
                         } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                             let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
                             let old = stages[stat_idx];
@@ -1920,6 +1935,14 @@ impl PokemonSim {
                             } else {
                                 let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                                 Some(format!("{} is already confused!", pname))
+                            }
+                        } else if move_id == MOVE_MEAN_LOOK {
+                            if battle.is_wild {
+                                battle.player_trapped = true;
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} can't escape now!", pname))
+                            } else {
+                                None // No effect in trainer battles
                             }
                         } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                             // For enemy's move: target_enemy means target the "enemy" from the move's perspective,
@@ -2481,6 +2504,7 @@ impl PokemonSim {
                             player_flinched: false,
                             player_confused: 0,
                             enemy_confused: 0,
+                            player_trapped: false,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -3623,7 +3647,7 @@ impl PokemonSim {
         // Gen 2 status multiplier: sleep/freeze = 2x, other status = 1.5x
         let status_mult = match battle.enemy.status {
             StatusCondition::Sleep { .. } | StatusCondition::Freeze => 2.0,
-            StatusCondition::Poison | StatusCondition::Burn | StatusCondition::Paralysis => 1.5,
+            StatusCondition::Poison | StatusCondition::BadPoison { .. } | StatusCondition::Burn | StatusCondition::Paralysis => 1.5,
             StatusCondition::None => 1.0,
         };
         let rate = ((3.0 * max_hp - 2.0 * cur_hp) * catch_rate * ball_mult * status_mult) / (3.0 * max_hp);
@@ -4066,7 +4090,7 @@ impl PokemonSim {
 fn status_text(s: &StatusCondition) -> &'static str {
     match s {
         StatusCondition::None => "",
-        StatusCondition::Poison => "PSN",
+        StatusCondition::Poison | StatusCondition::BadPoison { .. } => "PSN",
         StatusCondition::Burn => "BRN",
         StatusCondition::Paralysis => "PAR",
         StatusCondition::Sleep { .. } => "SLP",
@@ -4076,7 +4100,7 @@ fn status_text(s: &StatusCondition) -> &'static str {
 
 fn status_color(s: &StatusCondition) -> Color {
     match s {
-        StatusCondition::Poison => Color::from_rgba(160, 64, 160, 255),
+        StatusCondition::Poison | StatusCondition::BadPoison { .. } => Color::from_rgba(160, 64, 160, 255),
         StatusCondition::Burn => Color::from_rgba(240, 128, 48, 255),
         StatusCondition::Paralysis => Color::from_rgba(248, 208, 48, 255),
         StatusCondition::Sleep { .. } => Color::from_rgba(120, 120, 160, 255),
@@ -4205,6 +4229,10 @@ fn try_inflict_status(target: &mut Pokemon, move_id: MoveId, rng_roll: f64) {
         // Poison (status moves)
         MOVE_POISON_POWDER => {
             target.status = StatusCondition::Poison;
+        }
+        // Toxic: badly poisoned (escalating damage)
+        MOVE_TOXIC => {
+            target.status = StatusCondition::BadPoison { turn: 1 };
         }
         _ => {}
     }
@@ -5060,6 +5088,33 @@ mod headless_tests {
 
         assert_eq!(sim.last_pokecenter_map, MapId::VioletCity,
             "Whiteout should preserve last PokeCenter, not overwrite with current map");
+    }
+
+    #[test]
+    fn test_toxic_escalating_damage() {
+        let mut p = Pokemon::new(PIDGEY, 50);
+        // Pidgey at lv50: HP = ((40*2+15)*50/100)+50+10 = 47+50+10 = 107
+        let max_hp = p.max_hp;
+        p.status = StatusCondition::BadPoison { turn: 1 };
+
+        // Turn 1: 1/16 of max HP
+        let d1 = p.apply_status_damage();
+        assert_eq!(d1, max_hp / 16, "Turn 1 toxic damage should be max_hp/16");
+        // Status should now be turn 2
+        assert!(matches!(p.status, StatusCondition::BadPoison { turn: 2 }));
+
+        // Turn 2: 2/16 of max HP
+        let d2 = p.apply_status_damage();
+        assert_eq!(d2, (max_hp as u32 * 2 / 16).max(1) as u16, "Turn 2 toxic damage should be 2*max_hp/16");
+        assert!(matches!(p.status, StatusCondition::BadPoison { turn: 3 }));
+    }
+
+    #[test]
+    fn test_toxic_infliction() {
+        let mut target = Pokemon::new(PIDGEY, 10);
+        try_inflict_status(&mut target, MOVE_TOXIC, 0.5);
+        assert!(matches!(target.status, StatusCondition::BadPoison { turn: 1 }),
+            "Toxic should inflict BadPoison, got {:?}", target.status);
     }
 
     #[test]

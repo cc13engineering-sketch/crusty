@@ -62,6 +62,7 @@ pub enum GrowthRate {
 pub enum StatusCondition {
     None,
     Poison,
+    BadPoison { turn: u8 }, // Toxic: damage = turn/16 of max HP, escalates each turn
     Burn,
     Paralysis,
     Sleep { turns: u8 },
@@ -245,6 +246,7 @@ pub const MOVE_SHADOW_BALL: MoveId = 247;
 pub const MOVE_DREAM_EATER: MoveId = 138;
 pub const MOVE_SPITE: MoveId = 180;
 pub const MOVE_MEAN_LOOK: MoveId = 212;
+pub const MOVE_TOXIC: MoveId = 92;
 pub const MOVE_CURSE: MoveId = 174;
 pub const MOVE_MIMIC: MoveId = 102;
 pub const MOVE_HORN_ATTACK: MoveId = 30;
@@ -1699,6 +1701,7 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_DREAM_EATER, name: "Dream Eater", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 100, accuracy: 100, pp: 15, description: "Drains a sleeping foe." },
     MoveData { id: MOVE_SPITE, name: "Spite", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Cuts the foe's PP." },
     MoveData { id: MOVE_MEAN_LOOK, name: "Mean Look", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Prevents the foe from fleeing." },
+    MoveData { id: MOVE_TOXIC, name: "Toxic", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 10, description: "Badly poisons the foe." },
     MoveData { id: MOVE_CURSE, name: "Curse", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Works differently for Ghosts." },
     MoveData { id: MOVE_MIMIC, name: "Mimic", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies a foe's move." },
     MoveData { id: MOVE_HORN_ATTACK, name: "Horn Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 65, accuracy: 100, pp: 25, description: "Jabs with a sharp horn." },
@@ -2047,6 +2050,13 @@ impl Pokemon {
     pub fn apply_status_damage(&mut self) -> u16 {
         let damage = match self.status {
             StatusCondition::Poison | StatusCondition::Burn => self.max_hp / 8,
+            StatusCondition::BadPoison { turn } => {
+                // Toxic: damage = turn/16 of max HP, capped at max_hp/16 * 15
+                let dmg = (self.max_hp as u32 * turn as u32 / 16).max(1) as u16;
+                // Escalate turn counter
+                self.status = StatusCondition::BadPoison { turn: turn.saturating_add(1).min(15) };
+                dmg
+            }
             _ => 0,
         };
         if damage > 0 {

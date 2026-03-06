@@ -77,10 +77,6 @@ jobs:
           # Copy generated docs (built from docs/*.md by build-docs.sh)
           cp site/docs/*.html _site/docs/
 
-          # Copy dashboard
-          mkdir -p _site/dashboard
-          cp site/dashboard/index.html _site/dashboard/
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

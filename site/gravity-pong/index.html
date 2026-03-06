@@ -120,11 +120,238 @@
         const H = Math.round(window.innerHeight * dpr);
         canvas.width = W;
         canvas.height = H;
-        const ctx = canvas.getContext('2d');
+
         const scoredEl = document.getElementById('scored');
         const goalEl   = document.getElementById('goal');
         const levelEl  = document.getElementById('level');
         const timeEl   = document.getElementById('time');
+
+        // --- WebGL2 Init ---
+        const gl = canvas.getContext('webgl2', {
+            alpha: false,
+            antialias: false,
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: false,
+            powerPreference: 'high-performance'
+        });
+
+        if (!gl) {
+            document.body.innerHTML = '<p style="color:#f44;padding:2em;">WebGL2 not supported. Please use a modern browser.</p>';
+            throw new Error('WebGL2 not available');
+        }
+
+        // --- Shader Sources ---
+
+        const FULLSCREEN_VS = `#version 300 es
+        precision highp float;
+        out vec2 vUv;
+        void main() {
+            float x = float((gl_VertexID & 1) << 2);
+            float y = float((gl_VertexID & 2) << 1);
+            vUv = vec2(x * 0.5, y * 0.5);
+            gl_Position = vec4(x - 1.0, y - 1.0, 0.0, 1.0);
+        }`;
+
+        const GLOW_FS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D uScene;
+        uniform float uGlowRadius;
+        uniform float uGlowIntensity;
+        void main() {
+            vec4 center = texture(uScene, vUv);
+            float brightness = dot(center.rgb, vec3(0.2126, 0.7152, 0.0722));
+
+            if (brightness < 0.25) {
+                fragColor = center;
+                return;
+            }
+
+            vec2 texelSize = 1.0 / vec2(textureSize(uScene, 0));
+            vec3 glow = vec3(0.0);
+            float totalWeight = 0.0;
+
+            for (float i = -3.0; i <= 3.0; i += 1.0) {
+                for (float j = -3.0; j <= 3.0; j += 1.0) {
+                    float w = exp(-(i*i + j*j) / (2.0 * uGlowRadius * uGlowRadius));
+                    vec2 offset = vec2(i, j) * texelSize * 2.0;
+                    vec3 s = texture(uScene, vUv + offset).rgb;
+                    float sb = dot(s, vec3(0.2126, 0.7152, 0.0722));
+                    glow += s * w * step(0.25, sb);
+                    totalWeight += w;
+                }
+            }
+
+            glow /= totalWeight;
+            fragColor = vec4(center.rgb + glow * uGlowIntensity, 1.0);
+        }`;
+
+        const BLOOM_THRESHOLD_FS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D uScene;
+        uniform float uThreshold;
+        void main() {
+            vec4 c = texture(uScene, vUv);
+            float brightness = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
+            float contrib = max(brightness - uThreshold, 0.0);
+            fragColor = vec4(c.rgb * (contrib / max(brightness, 0.001)), 1.0);
+        }`;
+
+        const BLUR_FS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+        uniform sampler2D uTex;
+        uniform vec2 uDirection;
+        void main() {
+            float weights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+            vec3 result = texture(uTex, vUv).rgb * weights[0];
+            for (int i = 1; i < 5; i++) {
+                vec2 off = uDirection * float(i);
+                result += texture(uTex, vUv + off).rgb * weights[i];
+                result += texture(uTex, vUv - off).rgb * weights[i];
+            }
+            fragColor = vec4(result, 1.0);
+        }`;
+
+        const COMPOSITE_FS = `#version 300 es
+        precision highp float;
+        in vec2 vUv;
+        out vec4 fragColor;
+
+        uniform sampler2D uScene;
+        uniform sampler2D uBloom;
+        uniform float uTime;
+        uniform float uBloomIntensity;
+        uniform float uVignetteStrength;
+        uniform float uScanlineIntensity;
+        uniform float uChromaticAberration;
+
+        void main() {
+            vec2 uv = vUv;
+
+            // Chromatic aberration (subtle neon feel)
+            vec2 caOffset = (uv - 0.5) * uChromaticAberration;
+            float r = texture(uScene, uv + caOffset).r;
+            float g = texture(uScene, uv).g;
+            float b = texture(uScene, uv - caOffset).b;
+            vec3 scene = vec3(r, g, b);
+
+            // Add bloom
+            vec3 bloom = texture(uBloom, vUv).rgb;
+            scene += bloom * uBloomIntensity;
+
+            // Scanlines (subtle horizontal lines)
+            float scanline = sin(uv.y * float(${H}) * 3.14159) * 0.5 + 0.5;
+            scanline = mix(1.0, scanline, uScanlineIntensity);
+            scene *= scanline;
+
+            // Vignette
+            vec2 vigUv = uv - 0.5;
+            float vigDist = dot(vigUv, vigUv);
+            float vignette = 1.0 - vigDist * uVignetteStrength;
+            scene *= clamp(vignette, 0.0, 1.0);
+
+            // Subtle warm glow
+            scene = pow(scene, vec3(0.96));
+
+            fragColor = vec4(scene, 1.0);
+        }`;
+
+        // --- Shader Compilation ---
+
+        function compileShader(type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                const info = gl.getShaderInfoLog(shader);
+                gl.deleteShader(shader);
+                throw new Error(`Shader compile error: ${info}`);
+            }
+            return shader;
+        }
+
+        function createProgram(vsSource, fsSource) {
+            const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+            const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+            const prog = gl.createProgram();
+            gl.attachShader(prog, vs);
+            gl.attachShader(prog, fs);
+            gl.linkProgram(prog);
+            if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+                const info = gl.getProgramInfoLog(prog);
+                throw new Error(`Program link error: ${info}`);
+            }
+            const uniforms = {};
+            const count = gl.getProgramParameter(prog, gl.ACTIVE_UNIFORMS);
+            for (let i = 0; i < count; i++) {
+                const info = gl.getActiveUniform(prog, i);
+                uniforms[info.name] = gl.getUniformLocation(prog, info.name);
+            }
+            return { program: prog, uniforms };
+        }
+
+        // --- Create Programs ---
+        const glowProg = createProgram(FULLSCREEN_VS, GLOW_FS);
+        const bloomThresholdProg = createProgram(FULLSCREEN_VS, BLOOM_THRESHOLD_FS);
+        const blurProg = createProgram(FULLSCREEN_VS, BLUR_FS);
+        const compositeProg = createProgram(FULLSCREEN_VS, COMPOSITE_FS);
+
+        // --- Textures & FBOs ---
+
+        function createTexture(w, h, filter) {
+            const tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return tex;
+        }
+
+        function createFBO(tex) {
+            const fbo = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+            return fbo;
+        }
+
+        const sceneTex = createTexture(W, H, gl.NEAREST);
+        const glowTex = createTexture(W, H, gl.LINEAR);
+        const glowFBO = createFBO(glowTex);
+
+        const BLOOM_W = Math.floor(W / 4);
+        const BLOOM_H = Math.floor(H / 4);
+        const bloomThreshTex = createTexture(BLOOM_W, BLOOM_H, gl.LINEAR);
+        const bloomThreshFBO = createFBO(bloomThreshTex);
+        const bloomBlurATex = createTexture(BLOOM_W, BLOOM_H, gl.LINEAR);
+        const bloomBlurAFBO = createFBO(bloomBlurATex);
+        const bloomBlurBTex = createTexture(BLOOM_W, BLOOM_H, gl.LINEAR);
+        const bloomBlurBFBO = createFBO(bloomBlurBTex);
+
+        const vao = gl.createVertexArray();
+
+        function drawFullscreen() {
+            gl.bindVertexArray(vao);
+            gl.drawArrays(gl.TRIANGLES, 0, 3);
+        }
+
+        // --- Effect Parameters ---
+        const FX = {
+            bloomThreshold: 0.35,
+            bloomIntensity: 0.7,
+            bloomPasses: 3,
+            vignetteStrength: 1.5,
+            scanlineIntensity: 0.04,
+            chromaticAberration: 0.0015,
+            glowRadius: 2.0,
+            glowIntensity: 0.5,
+        };
 
         // Convert page coords to engine coords
         function toEngine(pageX, pageY) {
@@ -211,12 +438,13 @@
                 }
             });
 
-            const imageData = ctx.createImageData(W, H);
             let last = performance.now();
+            let totalTime = 0;
 
             function frame(now) {
                 const dt = now - last;
                 last = now;
+                totalTime += dt * 0.001;
 
                 updateBrowserState(dt);
                 tick(dt);
@@ -225,12 +453,81 @@
                 drain_sound_commands();
                 drain_persist_commands();
 
-                // Read framebuffer from WASM memory
+                // --- Upload WASM Framebuffer ---
                 const ptr = framebuffer_ptr();
                 const len = framebuffer_len();
-                const pixels = new Uint8ClampedArray(memory.buffer, ptr, len);
-                imageData.data.set(pixels);
-                ctx.putImageData(imageData, 0, 0);
+                const pixels = new Uint8Array(memory.buffer, ptr, len);
+
+                gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+                // ==== PASS 1: Glow ====
+                gl.bindFramebuffer(gl.FRAMEBUFFER, glowFBO);
+                gl.viewport(0, 0, W, H);
+                gl.useProgram(glowProg.program);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, sceneTex);
+                gl.uniform1i(glowProg.uniforms['uScene'], 0);
+                gl.uniform1f(glowProg.uniforms['uGlowRadius'], FX.glowRadius);
+                gl.uniform1f(glowProg.uniforms['uGlowIntensity'], FX.glowIntensity);
+                drawFullscreen();
+
+                // ==== PASS 2: Bloom Threshold ====
+                gl.bindFramebuffer(gl.FRAMEBUFFER, bloomThreshFBO);
+                gl.viewport(0, 0, BLOOM_W, BLOOM_H);
+                gl.useProgram(bloomThresholdProg.program);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, glowTex);
+                gl.uniform1i(bloomThresholdProg.uniforms['uScene'], 0);
+                gl.uniform1f(bloomThresholdProg.uniforms['uThreshold'], FX.bloomThreshold);
+                drawFullscreen();
+
+                // ==== PASS 3: Bloom Blur (ping-pong) ====
+                let readTex = bloomThreshTex;
+                for (let pass = 0; pass < FX.bloomPasses; pass++) {
+                    // Horizontal
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBlurAFBO);
+                    gl.viewport(0, 0, BLOOM_W, BLOOM_H);
+                    gl.useProgram(blurProg.program);
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, readTex);
+                    gl.uniform1i(blurProg.uniforms['uTex'], 0);
+                    gl.uniform2f(blurProg.uniforms['uDirection'], 1.0 / BLOOM_W, 0.0);
+                    drawFullscreen();
+
+                    // Vertical
+                    gl.bindFramebuffer(gl.FRAMEBUFFER, bloomBlurBFBO);
+                    gl.viewport(0, 0, BLOOM_W, BLOOM_H);
+                    gl.activeTexture(gl.TEXTURE0);
+                    gl.bindTexture(gl.TEXTURE_2D, bloomBlurATex);
+                    gl.uniform2f(blurProg.uniforms['uDirection'], 0.0, 1.0 / BLOOM_H);
+                    drawFullscreen();
+
+                    readTex = bloomBlurBTex;
+                }
+
+                // ==== PASS 4: Final Composite ====
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                gl.viewport(0, 0, W, H);
+                gl.useProgram(compositeProg.program);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, glowTex);
+                gl.uniform1i(compositeProg.uniforms['uScene'], 0);
+
+                gl.activeTexture(gl.TEXTURE1);
+                gl.bindTexture(gl.TEXTURE_2D, bloomBlurBTex);
+                gl.uniform1i(compositeProg.uniforms['uBloom'], 1);
+
+                gl.uniform1f(compositeProg.uniforms['uTime'], totalTime);
+                gl.uniform1f(compositeProg.uniforms['uBloomIntensity'], FX.bloomIntensity);
+                gl.uniform1f(compositeProg.uniforms['uVignetteStrength'], FX.vignetteStrength);
+                gl.uniform1f(compositeProg.uniforms['uScanlineIntensity'], FX.scanlineIntensity);
+                gl.uniform1f(compositeProg.uniforms['uChromaticAberration'], FX.chromaticAberration);
+
+                drawFullscreen();
 
                 // Update HUD
                 scoredEl.textContent = Math.floor(get_game_state_f64('scored'));

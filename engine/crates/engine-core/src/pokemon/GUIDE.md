@@ -393,3 +393,17 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Total: 46 maps, 8 badges, ~112 species, ~142 moves**
 - **Phase 3 progress**: Route 44 ✓, Ice Path ✓, Blackthorn City ✓, Blackthorn Gym ✓. Next: Route 45, Route 46
 - **Next sprint (51 QA)**: Full warp/NPC audit, species data verification for Sprint 50 additions
+
+### Sprint 51 (QA)
+- Full warp validation: all 46 maps, every warp destination verified on C_WALK/C_TALL — 34 tests pass
+- Full NPC placement audit: all NPCs on walkable tiles — pass
+- Species data audit: Jynx, Sneasel, Delibird, Dratini, Dragonair, Dragonite, Kingdra, Horsea, Seadra — all base stats, types, growth rates verified correct
+- Move data audit: Agility, Outrage, Hyper Beam, Present, Ice Punch, Lovely Kiss, Slash, Safeguard — all verified correct
+- Clair team verified: 3x Dragonair lv37, Kingdra lv40 — matches canonical Crystal
+**Bugs fixed:**
+1. Jynx learnset: corrected to canonical Gen 2 levels (DoubleSlap lv21, Ice Punch lv25, Mean Look lv35, Body Slam lv41, Thrash lv51, Blizzard lv57)
+2. Seadra evolution_level: 40→38 (trade evo converted to level-based, matching Haunter/Machoke convention)
+- Present power=40 accepted as simplification (canonical is variable 40/80/120)
+- Sneasel missing Beat Up/Metal Claw — deferred until those moves are implemented
+- **Total: 46 maps, 8 badges, ~112 species, ~142 moves**
+- **Next sprint (52)**: Route 45, Route 46 — connecting Blackthorn south to Route 29/Cherrygrove area

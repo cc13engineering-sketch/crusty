@@ -46,6 +46,9 @@ const VENONAT: u16 = 48;
 const HAUNTER: u16 = 93;
 const GENGAR: u16 = 94;
 const SUDOWOODO: u16 = 185;
+const RATICATE: u16 = 20;
+const MAGMAR: u16 = 126;
+const KOFFING: u16 = 109;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -114,6 +117,9 @@ pub enum MapId {
     NationalPark,
     Route36,
     Route37,
+    EcruteakCity,
+    BurnedTower,
+    EcruteakGym,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -232,6 +238,9 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::NationalPark => build_national_park(),
         MapId::Route36 => build_route_36(),
         MapId::Route37 => build_route_37(),
+        MapId::EcruteakCity => build_ecruteak_city(),
+        MapId::BurnedTower => build_burned_tower(),
+        MapId::EcruteakGym => build_ecruteak_gym(),
     }
 }
 
@@ -4230,9 +4239,9 @@ fn build_route_37() -> MapData {
         // West exits → Route 36 (land one tile inside)
         WarpData { x: 0, y: 5, dest_map: MapId::Route36, dest_x: 18, dest_y: 6 },
         WarpData { x: 0, y: 6, dest_map: MapId::Route36, dest_x: 18, dest_y: 7 },
-        // East exits → placeholder self-loop (Route37 14,5/14,6)
-        WarpData { x: 15, y: 5, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
-        WarpData { x: 15, y: 6, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
+        // East exits → Ecruteak City (land one tile inside)
+        WarpData { x: 15, y: 5, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 8 },
+        WarpData { x: 15, y: 6, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 9 },
     ];
 
     let npcs = vec![
@@ -4266,6 +4275,419 @@ fn build_route_37() -> MapData {
         npcs,
         encounters,
         music_id: 1,
+    }
+}
+
+// ─── Ecruteak City (20x18) ─────────────────────────────
+// Historic city known for its Burned Tower and Dance Theater.
+// Connections: west to Route 37, east to Route 38 (future), north to Route 42 (future).
+// Buildings: Burned Tower, Ecruteak Gym, Pokemon Center, Dance Theater.
+fn build_ecruteak_city() -> MapData {
+    let w: usize = 20;
+    let h: usize = 18;
+
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: Burned Tower roof
+        TREE_TOP,TREE_TOP,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3: Burned Tower wall / Gym roof
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: Burned Tower door / Gym wall
+        GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,PATH,PATH,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 6: paths
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 7
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: west exit
+        PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 9: west/east exits
+        PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 10: Dance Theater roof / PokemonCenter roof
+        GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,POKECENTER_ROOF,POKECENTER_ROOF,POKECENTER_ROOF,GRASS,GRASS,GRASS,
+        // Row 11: Dance Theater wall / PokemonCenter wall
+        GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,POKECENTER_WALL,POKECENTER_WALL,POKECENTER_WALL,GRASS,GRASS,GRASS,
+        // Row 12: Dance Theater door / PokemonCenter door
+        GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,POKECENTER_WALL,POKECENTER_DOOR,POKECENTER_WALL,GRASS,GRASS,GRASS,
+        // Row 13
+        GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 14
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 15
+        TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,SIGN,GRASS,GRASS,GRASS,GRASS,SIGN,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 16
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 17
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4: Burned Tower door at (4,4), Gym door at (13,4)
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: west exit warps, east exit warps
+        C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
+        // Row 9
+        C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
+        // Row 10
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 11
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 12: Dance Theater door at (4,12), PokemonCenter door at (15,12)
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,
+        // Row 13
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 14
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 15
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 16
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 17
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EcruteakCity tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EcruteakCity collision count mismatch");
+
+    let warps = vec![
+        // West exit → Route 37
+        WarpData { x: 0, y: 8, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
+        WarpData { x: 0, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
+        WarpData { x: 1, y: 8, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
+        WarpData { x: 1, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
+        // East exit → placeholder self-loop (Route 38 future)
+        WarpData { x: 18, y: 8, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 8 },
+        WarpData { x: 18, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
+        WarpData { x: 19, y: 8, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 8 },
+        WarpData { x: 19, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
+        // Burned Tower entrance (4,4)
+        WarpData { x: 4, y: 4, dest_map: MapId::BurnedTower, dest_x: 7, dest_y: 12 },
+        // Ecruteak Gym entrance (13,4)
+        WarpData { x: 13, y: 4, dest_map: MapId::EcruteakGym, dest_x: 5, dest_y: 8 },
+        // Dance Theater → GenericHouse (4,12)
+        WarpData { x: 4, y: 12, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
+        // Pokemon Center (15,12)
+        WarpData { x: 15, y: 12, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+    ];
+
+    let npcs = vec![
+        // Old man near Burned Tower
+        NpcDef {
+            x: 6, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "The BURNED TOWER",
+                "was once a glorious",
+                "bell tower...",
+                "It burned 150 years",
+                "ago.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Kimono Girl NPC
+        NpcDef {
+            x: 4, y: 13, sprite_id: 4, facing: Direction::Up,
+            dialogue: &[
+                "The DANCE THEATER",
+                "features the",
+                "KIMONO GIRLS!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Sign text guide
+        NpcDef {
+            x: 10, y: 14, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "ECRUTEAK CITY",
+                "A Historical and",
+                "Mystical City",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    MapData {
+        id: MapId::EcruteakCity,
+        name: "ECRUTEAK CITY",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 5,
+    }
+}
+
+// ─── Burned Tower (14x14) ──────────────────────────────
+// Ruined interior. Wild Rattata, Koffing, Zubat. Legendary beast encounter (visual only).
+// Eusine and rival appear here. Floor has holes.
+fn build_burned_tower() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2
+        BLACK,FLOOR,BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,FLOOR,BLACK,
+        // Row 3
+        BLACK,FLOOR,BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6: center area with legendary beast spots
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 8
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 10
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 11
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 12
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 13: exit
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5: holes (solid)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7: more holes
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12: exit at bottom
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "BurnedTower tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "BurnedTower collision count mismatch");
+
+    let warps = vec![
+        // Exit → Ecruteak City
+        WarpData { x: 7, y: 12, dest_map: MapId::EcruteakCity, dest_x: 4, dest_y: 5 },
+    ];
+
+    let npcs = vec![
+        // Eusine
+        NpcDef {
+            x: 7, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "I'm EUSINE.",
+                "I've been chasing",
+                "SUICUNE for ten",
+                "years...",
+                "It's said the three",
+                "legendary beasts",
+                "rest in this tower.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // Rival
+        NpcDef {
+            x: 5, y: 6, sprite_id: 6, facing: Direction::Right,
+            dialogue: &[
+                "...What are YOU",
+                "doing here?",
+                "The legendary POKe-",
+                "MON are mine!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GASTLY, level: 20 },
+                TrainerPokemon { species_id: ZUBAT, level: 20 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: KOFFING, min_level: 14, max_level: 16, weight: 35 },
+        EncounterEntry { species_id: RATTATA, min_level: 13, max_level: 15, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 14, max_level: 14, weight: 15 },
+        EncounterEntry { species_id: RATICATE, min_level: 15, max_level: 15, weight: 10 },
+        EncounterEntry { species_id: MAGMAR, min_level: 14, max_level: 16, weight: 10 },
+    ];
+
+    MapData {
+        id: MapId::BurnedTower,
+        name: "BURNED TOWER",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        music_id: 9,
+    }
+}
+
+// ─── Ecruteak Gym (10x10) ──────────────────────────────
+// Morty's Ghost-type Gym. Dark room with invisible path.
+// Morty: Gastly lv21, Haunter lv21, Gengar lv25, Haunter lv23.
+// Trainers: Medium (Gastly), Sage (Haunter), Medium (Gastly x2).
+fn build_ecruteak_gym() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: Morty at top
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 3
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,BLACK,BLACK,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 8
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: exit
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2: invisible walls
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8: exit
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EcruteakGym tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EcruteakGym collision count mismatch");
+
+    let warps = vec![
+        // Exit → Ecruteak City
+        WarpData { x: 5, y: 8, dest_map: MapId::EcruteakCity, dest_x: 13, dest_y: 5 },
+    ];
+
+    let npcs = vec![
+        // Morty (gym leader, NPC index 0)
+        NpcDef {
+            x: 5, y: 1, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "Gym Leader MORTY",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GASTLY, level: 21 },
+                TrainerPokemon { species_id: HAUNTER, level: 21 },
+                TrainerPokemon { species_id: HAUNTER, level: 23 },
+                TrainerPokemon { species_id: GENGAR, level: 25 },
+            ],
+        },
+        // Medium Martha
+        NpcDef {
+            x: 3, y: 3, sprite_id: 4, facing: Direction::Right,
+            dialogue: &[
+                "Medium MARTHA",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GASTLY, level: 20 },
+                TrainerPokemon { species_id: GASTLY, level: 20 },
+            ],
+        },
+        // Sage Ping
+        NpcDef {
+            x: 7, y: 5, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "Sage PING",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: HAUNTER, level: 22 },
+            ],
+        },
+    ];
+
+    MapData {
+        id: MapId::EcruteakGym,
+        name: "ECRUTEAK GYM",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters: vec![],
+        music_id: 8,
     }
 }
 
@@ -4375,6 +4797,9 @@ mod tests {
             MapId::NationalPark,
             MapId::Route36,
             MapId::Route37,
+            MapId::EcruteakCity,
+            MapId::BurnedTower,
+            MapId::EcruteakGym,
         ];
         for id in &maps {
             let map = load_map(*id);

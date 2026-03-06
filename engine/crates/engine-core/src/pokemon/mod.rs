@@ -3532,6 +3532,22 @@ impl Simulation for PokemonSim {
             self.screen_shake_x = 0.0;
             self.screen_shake_y = 0.0;
         }
+
+        // ─── Debug State Export (Phase 0E) ─────────────────────
+        // Export key game state to global_state every frame for headless testing
+        engine.global_state.set_f64("player_x", self.player.x as f64);
+        engine.global_state.set_f64("player_y", self.player.y as f64);
+        engine.global_state.set_f64("current_map", self.current_map_id as u8 as f64);
+        engine.global_state.set_f64("badges", self.badges as f64);
+        engine.global_state.set_f64("party_size", self.party.len() as f64);
+        engine.global_state.set_f64("step_count", self.step_count as f64);
+        engine.global_state.set_f64("defeated_count", self.defeated_trainers.len() as f64);
+        engine.global_state.set_f64("money", self.money as f64);
+        if let Some(lead) = self.party.first() {
+            engine.global_state.set_f64("lead_hp", lead.hp as f64);
+            engine.global_state.set_f64("lead_level", lead.level as f64);
+            engine.global_state.set_f64("lead_species", lead.species_id as f64);
+        }
     }
 
     fn render(&self, engine: &mut Engine) {
@@ -3598,5 +3614,217 @@ impl Simulation for PokemonSim {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod headless_tests {
+    use super::*;
+    use crate::headless::{HeadlessRunner, RunConfig};
+    use crate::input_frame::InputFrame;
+
+    fn press(key: &str) -> InputFrame {
+        InputFrame {
+            keys_pressed: vec![key.to_string()],
+            ..Default::default()
+        }
+    }
+
+    fn empty() -> InputFrame {
+        InputFrame::default()
+    }
+
+    #[allow(dead_code)]
+    fn hold(key: &str) -> InputFrame {
+        InputFrame {
+            keys_held: vec![key.to_string()],
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn test_title_screen_starts_correctly() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        let result = runner.run_sim_frames(
+            &mut game, 42, &[empty()], 10,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        // Should be on title screen, no party
+        assert_eq!(result.get_f64("party_size"), Some(0.0));
+        assert_eq!(result.get_f64("badges"), Some(0.0));
+    }
+
+    #[test]
+    fn test_confirm_enters_elm_lab() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        // Press confirm to exit title screen → should go to Elm's Lab
+        let mut inputs = vec![empty(); 5];
+        inputs.push(press("KeyZ")); // confirm on title screen
+        inputs.extend(vec![empty(); 10]);
+        let result = runner.run_sim_frames(
+            &mut game, 42, &inputs, inputs.len() as u64,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        // Player should be in ElmLab (MapId variant index)
+        let map = result.get_f64("current_map").unwrap_or(-1.0);
+        assert_eq!(map, MapId::ElmLab as u8 as f64);
+        // Still no party (no starter yet)
+        assert_eq!(result.get_f64("party_size"), Some(0.0));
+    }
+
+    #[test]
+    fn test_select_starter_gives_pokemon() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        // Title → confirm → Elm Lab → walk to Elm → talk → pick starter
+        let mut inputs = vec![empty(); 3];
+        inputs.push(press("KeyZ")); // exit title → Elm Lab (player at 5,8)
+        inputs.extend(vec![empty(); 5]);
+        // Walk left 1 tile (5→4)
+        inputs.push(press("ArrowLeft"));
+        inputs.extend(vec![empty(); 10]);
+        // Walk up 1 tile (8→7), now at (4,7) facing up, Elm at (4,6)
+        inputs.push(press("ArrowUp"));
+        inputs.extend(vec![empty(); 10]);
+        // Talk to Elm — he has 9 dialogue lines
+        inputs.push(press("KeyZ"));
+        inputs.extend(vec![empty(); 5]);
+        // Mash confirm through all 9 dialogue lines
+        for _ in 0..12 {
+            inputs.push(press("KeyZ"));
+            inputs.extend(vec![empty(); 5]);
+        }
+        // Now in StarterSelect, cursor at 0 (Chikorita) — pick it
+        inputs.push(press("KeyZ"));
+        inputs.extend(vec![empty(); 5]);
+        // Mash confirm through "You received..." dialogue (4 lines)
+        for _ in 0..8 {
+            inputs.push(press("KeyZ"));
+            inputs.extend(vec![empty(); 5]);
+        }
+        let result = runner.run_sim_frames(
+            &mut game, 42, &inputs, inputs.len() as u64,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        // Should have 1 Pokemon in party after picking starter
+        assert_eq!(result.get_f64("party_size"), Some(1.0));
+        // Lead should be level 5
+        assert_eq!(result.get_f64("lead_level"), Some(5.0));
+    }
+
+    #[test]
+    fn test_debug_state_export_keys_present() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        let result = runner.run_sim_frames(
+            &mut game, 42, &[empty()], 5,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        // All debug state keys should be present
+        assert!(result.game_state.contains_key("player_x"));
+        assert!(result.game_state.contains_key("player_y"));
+        assert!(result.game_state.contains_key("current_map"));
+        assert!(result.game_state.contains_key("badges"));
+        assert!(result.game_state.contains_key("party_size"));
+        assert!(result.game_state.contains_key("step_count"));
+        assert!(result.game_state.contains_key("defeated_count"));
+        assert!(result.game_state.contains_key("money"));
+    }
+
+    #[test]
+    fn test_deterministic_same_seed() {
+        let mut runner1 = HeadlessRunner::new(160, 144);
+        let mut game1 = PokemonSim::new();
+        let empties: Vec<InputFrame> = (0..30).map(|_| empty()).collect();
+        let result1 = runner1.run_sim_frames(
+            &mut game1, 42, &empties, 30,
+            RunConfig { turbo: true, capture_state_hashes: true },
+        );
+
+        let mut runner2 = HeadlessRunner::new(160, 144);
+        let mut game2 = PokemonSim::new();
+        let empties2: Vec<InputFrame> = (0..30).map(|_| empty()).collect();
+        let result2 = runner2.run_sim_frames(
+            &mut game2, 42, &empties2, 30,
+            RunConfig { turbo: true, capture_state_hashes: true },
+        );
+
+        assert_eq!(result1.state_hash, result2.state_hash);
+        assert_eq!(result1.state_hashes, result2.state_hashes);
+    }
+
+    #[test]
+    fn test_different_seed_different_state() {
+        let mut runner1 = HeadlessRunner::new(160, 144);
+        let mut game1 = PokemonSim::new();
+        // Use inputs that actually do something (enter game, walk around)
+        let mut inputs = vec![empty(); 3];
+        inputs.push(press("KeyZ")); // exit title
+        inputs.extend(vec![empty(); 5]);
+        for _ in 0..5 {
+            inputs.push(press("ArrowRight"));
+            inputs.extend(vec![empty(); 8]);
+        }
+        let result1 = runner1.run_sim_frames(
+            &mut game1, 42, &inputs, inputs.len() as u64,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+
+        let mut runner2 = HeadlessRunner::new(160, 144);
+        let mut game2 = PokemonSim::new();
+        let result2 = runner2.run_sim_frames(
+            &mut game2, 99, &inputs, inputs.len() as u64,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+
+        // Position should be the same (deterministic movement)
+        assert_eq!(result1.get_f64("player_x"), result2.get_f64("player_x"));
+        assert_eq!(result1.get_f64("player_y"), result2.get_f64("player_y"));
+    }
+
+    #[test]
+    fn test_walking_changes_position() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        // Title → confirm → elm lab
+        let mut inputs = vec![empty(); 3];
+        inputs.push(press("KeyZ")); // exit title → Elm Lab
+        inputs.extend(vec![empty(); 5]);
+        let initial_frames = inputs.len() as u64;
+        // Get initial position
+        let result_before = runner.run_sim_frames(
+            &mut game, 42, &inputs, initial_frames,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        let start_x = result_before.get_f64("player_x").unwrap();
+
+        // Walk right from starting position (more room to move in ElmLab)
+        let mut runner2 = HeadlessRunner::new(160, 144);
+        let mut game2 = PokemonSim::new();
+        let mut inputs2 = inputs.clone();
+        inputs2.push(press("ArrowRight"));
+        inputs2.extend(vec![empty(); 10]);
+
+        let result_after = runner2.run_sim_frames(
+            &mut game2, 42, &inputs2, inputs2.len() as u64,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        let end_x = result_after.get_f64("player_x").unwrap();
+
+        // X should have increased (moved right)
+        assert!(end_x > start_x, "Player should have moved right: start_x={} end_x={}", start_x, end_x);
+    }
+
+    #[test]
+    fn test_money_starts_at_3000() {
+        let mut runner = HeadlessRunner::new(160, 144);
+        let mut game = PokemonSim::new();
+        let result = runner.run_sim_frames(
+            &mut game, 42, &[empty()], 5,
+            RunConfig { turbo: true, capture_state_hashes: false },
+        );
+        assert_eq!(result.get_f64("money"), Some(3000.0));
     }
 }

@@ -313,4 +313,21 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - 15 new species + Steelix, 17 new moves pre-staged from data.rs
 - Trainer battle fix: first non-fainted Pokemon now selected as battle lead
 - **Total: 33 maps, 5 badges, ~83 species, ~114 moves**
-- **Next sprint (44 QA)**: Warp audit for all 33 maps, NPC placement audit, encounter table accuracy check, Olivine warps verification
+- **Next sprint (44 QA)**: Warp audit for all 34 maps, NPC placement audit, encounter table accuracy check, Olivine warps verification
+
+### Sprint 44 (QA)
+**New automated tests:**
+- `test_all_warps_land_on_walk()` — verifies every warp across all 34 maps lands on C_WALK/C_TALL
+- `test_all_npcs_on_walkable()` — verifies every NPC across all 34 maps is on walkable tile
+- These tests catch the #1 bug class (warp dest on C_WARP/C_SOLID, NPC on C_SOLID)
+
+**Bugs fixed:**
+1. Route38→EcruteakCity warps landed on C_WARP tiles — dest_x shifted from 1→2
+2. OlivineCity NPC#1 (SS Aqua guide) at (9,14) on C_SOLID — moved to (9,13)
+3. OlivineCity NPC#2 (Jasmine hint) at (2,10) on C_SOLID — moved to (4,10)
+4. OlivineCity NPC#4 (Mart) at (15,4) on C_SOLID — moved to (17,4)
+5. GoldenrodCity NPC#1 (Bike Shop) at (20,15) on C_SOLID — moved to (21,15)
+
+**Added:** OlivineLighthouse (10x12) — Jasmine+Amphy at top, 4 trainers (Sailor, Gentleman, Lass, Bird Keeper). OlivineCity lighthouse door now warps to OlivineLighthouse.
+- **Total: 34 maps, 5 badges, ~87 species, ~114 moves**
+- **Next sprint (45)**: Continue Phase 2 — Route 40, Cianwood City, Cianwood Gym (Chuck, Storm Badge)

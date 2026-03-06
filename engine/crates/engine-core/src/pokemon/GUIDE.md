@@ -547,4 +547,14 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Fixed**: Mean Look (player_trapped) clears on switch
 - Verified working: confusion mechanic, Toxic escalation, antidote cures BadPoison, evolution chains, Victory Road gate, flinch/paralysis/freeze timing
 - 2 new tests. All 1287 pass.
-- **Next (Sprint 70)**: Continue Phase 5 — more moves/mechanics
+- **Next (Sprint 70)**: Swagger + story events
+
+### Sprint 70 (Swagger + Story Events)
+- **Added**: Swagger (Normal/Status, 90 acc, 15 PP) — confuses target + raises Attack by 2 stages
+- **Wired**: FLAG_SPROUT_CLEAR — Elder Li battle at top of Sprout Tower (3 Bellsprout)
+- **Wired**: FLAG_RED_GYARADOS — forced Gyarados L30 encounter at Lake of Rage
+- **Wired**: FLAG_SUDOWOODO — forced Sudowoodo L20 battle on Route 36 (requires 3+ badges)
+- 5 of 10 story flags now active (Rival Route 29, Rival Victory Road, Sprout Clear, Red Gyarados, Sudowoodo)
+- Phase 5 Priority 2 complete: Haze, Self-Destruct, Confusion, Toxic, Mean Look, Swagger all done
+- 3 new tests. All 1290 pass.
+- **Next (Sprint 71)**: Phase 5 Priority 3 (multi-turn moves) or more story flag wiring

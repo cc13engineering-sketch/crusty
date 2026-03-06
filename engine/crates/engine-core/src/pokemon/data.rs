@@ -143,6 +143,16 @@ pub const TENTACRUEL: SpeciesId = 73;
 pub const MACHOKE: SpeciesId = 67;
 pub const MACHAMP: SpeciesId = 68;
 
+pub const SEEL: SpeciesId = 86;
+pub const DEWGONG: SpeciesId = 87;
+pub const SWINUB: SpeciesId = 220;
+pub const PILOSWINE: SpeciesId = 221;
+pub const GIRAFARIG: SpeciesId = 203;
+pub const GOLBAT: SpeciesId = 42;
+pub const GYARADOS: SpeciesId = 130;
+pub const GOLDEEN: SpeciesId = 118;
+pub const SEAKING: SpeciesId = 119;
+
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
 pub const MOVE_TACKLE: MoveId = 33;
@@ -256,6 +266,21 @@ pub const MOVE_DYNAMIC_PUNCH: MoveId = 223;
 pub const MOVE_SURF: MoveId = 57;
 pub const MOVE_CONSTRICT: MoveId = 132;
 pub const MOVE_WRAP: MoveId = 35;
+// ─── Mahogany / Ice moves ──────────────────────────────
+pub const MOVE_HEADBUTT: MoveId = 29;
+pub const MOVE_ICY_WIND: MoveId = 196;
+pub const MOVE_AURORA_BEAM: MoveId = 62;
+pub const MOVE_ICE_BEAM: MoveId = 58;
+pub const MOVE_REST: MoveId = 156;
+pub const MOVE_POWDER_SNOW: MoveId = 181;
+pub const MOVE_EARTHQUAKE: MoveId = 89;
+pub const MOVE_BLIZZARD: MoveId = 59;
+pub const MOVE_HYDRO_PUMP: MoveId = 56;
+pub const MOVE_DRAGON_RAGE: MoveId = 82;
+pub const MOVE_TWISTER: MoveId = 239;
+pub const MOVE_ENDURE: MoveId = 203;
+pub const MOVE_AMNESIA: MoveId = 133;
+pub const MOVE_THRASH: MoveId = 37;
 
 /// Static species data
 #[derive(Debug)]
@@ -1053,6 +1078,88 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_LOW_KICK), (1, MOVE_LEER), (1, MOVE_FOCUS_ENERGY), (13, MOVE_KARATE_CHOP), (19, MOVE_SEISMIC_TOSS), (25, MOVE_FORESIGHT), (34, MOVE_SUBMISSION), (43, MOVE_CROSS_CHOP), (52, MOVE_DYNAMIC_PUNCH)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 47: Mahogany / Ice species ──────────────────
+    SpeciesData {
+        id: SEEL, name: "Seel",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 65, base_attack: 45, base_defense: 55,
+        base_sp_attack: 45, base_sp_defense: 70, base_speed: 45,
+        catch_rate: 190, base_exp_yield: 100, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_HEADBUTT), (9, MOVE_GROWL), (13, MOVE_ICY_WIND), (21, MOVE_AURORA_BEAM), (29, MOVE_REST), (37, MOVE_ICE_BEAM)],
+        evolution_level: Some(34), evolution_into: Some(DEWGONG),
+    },
+    SpeciesData {
+        id: DEWGONG, name: "Dewgong",
+        type1: PokemonType::Water, type2: Some(PokemonType::Ice),
+        base_hp: 90, base_attack: 70, base_defense: 80,
+        base_sp_attack: 70, base_sp_defense: 95, base_speed: 70,
+        catch_rate: 75, base_exp_yield: 176, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_HEADBUTT), (1, MOVE_GROWL), (1, MOVE_ICY_WIND), (1, MOVE_AURORA_BEAM), (29, MOVE_REST), (34, MOVE_TAKE_DOWN), (42, MOVE_ICE_BEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SWINUB, name: "Swinub",
+        type1: PokemonType::Ice, type2: Some(PokemonType::Ground),
+        base_hp: 50, base_attack: 50, base_defense: 40,
+        base_sp_attack: 30, base_sp_defense: 30, base_speed: 50,
+        catch_rate: 225, base_exp_yield: 78, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_POWDER_SNOW), (10, MOVE_MUD_SLAP), (19, MOVE_ENDURE), (28, MOVE_ICY_WIND), (37, MOVE_AMNESIA), (46, MOVE_BLIZZARD)],
+        evolution_level: Some(33), evolution_into: Some(PILOSWINE),
+    },
+    SpeciesData {
+        id: PILOSWINE, name: "Piloswine",
+        type1: PokemonType::Ice, type2: Some(PokemonType::Ground),
+        base_hp: 100, base_attack: 100, base_defense: 80,
+        base_sp_attack: 60, base_sp_defense: 60, base_speed: 50,
+        catch_rate: 75, base_exp_yield: 160, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_POWDER_SNOW), (1, MOVE_MUD_SLAP), (1, MOVE_ENDURE), (10, MOVE_MUD_SLAP), (19, MOVE_ENDURE), (28, MOVE_ICY_WIND), (33, MOVE_FURY_ATTACK), (42, MOVE_BLIZZARD), (56, MOVE_EARTHQUAKE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GIRAFARIG, name: "Girafarig",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Psychic),
+        base_hp: 70, base_attack: 80, base_defense: 65,
+        base_sp_attack: 90, base_sp_defense: 65, base_speed: 85,
+        catch_rate: 60, base_exp_yield: 149, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_CONFUSION), (7, MOVE_STOMP), (13, MOVE_PSYBEAM), (20, MOVE_FAINT_ATTACK), (30, MOVE_TAKE_DOWN)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GOLBAT, name: "Golbat",
+        type1: PokemonType::Poison, type2: Some(PokemonType::Flying),
+        base_hp: 75, base_attack: 80, base_defense: 70,
+        base_sp_attack: 65, base_sp_defense: 75, base_speed: 90,
+        catch_rate: 90, base_exp_yield: 171, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_LEECH_LIFE), (1, MOVE_SUPERSONIC), (1, MOVE_BITE), (12, MOVE_CONFUSE_RAY), (19, MOVE_WING_ATTACK), (30, MOVE_MEAN_LOOK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GYARADOS, name: "Gyarados",
+        type1: PokemonType::Water, type2: Some(PokemonType::Flying),
+        base_hp: 95, base_attack: 125, base_defense: 79,
+        base_sp_attack: 60, base_sp_defense: 100, base_speed: 81,
+        catch_rate: 45, base_exp_yield: 214, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_THRASH), (1, MOVE_BITE), (1, MOVE_DRAGON_RAGE), (1, MOVE_LEER), (20, MOVE_TWISTER), (25, MOVE_HYDRO_PUMP)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GOLDEEN, name: "Goldeen",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 45, base_attack: 67, base_defense: 60,
+        base_sp_attack: 35, base_sp_defense: 50, base_speed: 63,
+        catch_rate: 225, base_exp_yield: 111, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_TAIL_WHIP), (10, MOVE_SUPERSONIC), (15, MOVE_HORN_ATTACK), (24, MOVE_FURY_ATTACK), (33, MOVE_WATER_GUN)],
+        evolution_level: Some(33), evolution_into: Some(SEAKING),
+    },
+    SpeciesData {
+        id: SEAKING, name: "Seaking",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 80, base_attack: 92, base_defense: 65,
+        base_sp_attack: 65, base_sp_defense: 80, base_speed: 68,
+        catch_rate: 60, base_exp_yield: 170, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_TAIL_WHIP), (1, MOVE_SUPERSONIC), (1, MOVE_HORN_ATTACK), (24, MOVE_FURY_ATTACK), (33, MOVE_WATER_GUN), (41, MOVE_HYDRO_PUMP)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1173,6 +1280,21 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SURF, name: "Surf", move_type: PokemonType::Water, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "A big wave hits all." },
     MoveData { id: MOVE_CONSTRICT, name: "Constrict", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 10, accuracy: 100, pp: 35, description: "May lower Speed." },
     MoveData { id: MOVE_WRAP, name: "Wrap", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 15, accuracy: 85, pp: 20, description: "Traps the foe for 2-5 turns." },
+    // ─── Mahogany / Ice moves ──────────────────────────────
+    MoveData { id: MOVE_HEADBUTT, name: "Headbutt", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 70, accuracy: 100, pp: 15, description: "May cause flinching." },
+    MoveData { id: MOVE_ICY_WIND, name: "Icy Wind", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 55, accuracy: 95, pp: 15, description: "Lowers the foe's Speed." },
+    MoveData { id: MOVE_AURORA_BEAM, name: "Aurora Beam", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 65, accuracy: 100, pp: 20, description: "May lower Attack." },
+    MoveData { id: MOVE_ICE_BEAM, name: "Ice Beam", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 10, description: "May freeze the foe." },
+    MoveData { id: MOVE_REST, name: "Rest", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Sleep 2 turns, full HP restore." },
+    MoveData { id: MOVE_POWDER_SNOW, name: "Powder Snow", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 25, description: "May freeze the foe." },
+    MoveData { id: MOVE_EARTHQUAKE, name: "Earthquake", move_type: PokemonType::Ground, category: MoveCategory::Physical, power: 100, accuracy: 100, pp: 10, description: "Tough but can't hit airborne." },
+    MoveData { id: MOVE_BLIZZARD, name: "Blizzard", move_type: PokemonType::Ice, category: MoveCategory::Special, power: 120, accuracy: 70, pp: 5, description: "May freeze the foe." },
+    MoveData { id: MOVE_HYDRO_PUMP, name: "Hydro Pump", move_type: PokemonType::Water, category: MoveCategory::Special, power: 120, accuracy: 80, pp: 5, description: "Blasts water at high pressure." },
+    MoveData { id: MOVE_DRAGON_RAGE, name: "Dragon Rage", move_type: PokemonType::Dragon, category: MoveCategory::Special, power: 1, accuracy: 100, pp: 10, description: "Always does 40 damage." },
+    MoveData { id: MOVE_TWISTER, name: "Twister", move_type: PokemonType::Dragon, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 20, description: "May cause flinching." },
+    MoveData { id: MOVE_ENDURE, name: "Endure", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Always leaves at least 1 HP." },
+    MoveData { id: MOVE_AMNESIA, name: "Amnesia", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Sharply raises Sp. Def." },
+    MoveData { id: MOVE_THRASH, name: "Thrash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 90, accuracy: 100, pp: 20, description: "Rampages 2-3 turns, confuses." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

@@ -490,6 +490,7 @@ impl PokemonSim {
                             MapId::EcruteakCity => (MapId::EcruteakCity, 15, 13),
                             MapId::OlivineCity => (MapId::OlivineCity, 4, 8),
                             MapId::CianwoodCity => (MapId::CianwoodCity, 19, 5),
+                            MapId::MahoganyTown => (MapId::MahoganyTown, 5, 12),
                             _ => (MapId::CherrygroveCity, 7, 5),
                         };
                         self.change_map(dest_map, dx, dy);
@@ -505,6 +506,7 @@ impl PokemonSim {
                             MapId::OlivineCity => (MapId::OlivineCity, 16, 5),
                             MapId::Route39 => (MapId::Route39, 4, 5),
                             MapId::CianwoodCity => (MapId::CianwoodCity, 6, 5),
+                            MapId::MahoganyTown => (MapId::MahoganyTown, 3, 7),
                             _ => (MapId::NewBarkTown, 12, 5),
                         };
                         self.change_map(dest_map, dx, dy);
@@ -1388,6 +1390,7 @@ impl PokemonSim {
                                     (MapId::EcruteakGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 3 }),
                                     (MapId::OlivineGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 4 }),
                                     (MapId::CianwoodGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 5 }),
+                                    (MapId::MahoganyGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 6 }),
                                     _ => None,
                                 };
 
@@ -1648,6 +1651,7 @@ impl PokemonSim {
                         3 => "FOG BADGE",
                         4 => "MINERAL BADGE",
                         5 => "STORM BADGE",
+                        6 => "GLACIER BADGE",
                         _ => "BADGE",
                     };
                     self.dialogue = Some(DialogueState {

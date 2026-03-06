@@ -444,3 +444,16 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - HeadlessRunner works correctly with PokemonSim — turbo mode ~0.2s for 200+ frames
 - All 1267 tests pass (1259 existing + 8 new headless)
 - **Next (Sprint 59)**: Tile art conversion tool + music_id wiring via global_state
+
+### Sprint 59 (Infrastructure)
+- Added `music_id` and `map_name` export to global_state in debug state block
+- Created `tools/png_to_sprites.py` — PNG tilesheet → sprites.rs converter
+  - Auto-detects 4-color palette, supports 8×8 and 16×16 tiles
+  - Outputs `pub const TILE_XXX: &str = "..."` format compatible with engine
+- All 1267 tests pass
+
+### Sprint 60 (QA)
+- **Phase 0A partial**: Added `PokemonType::gen2_category()` and `MoveData::derived_category()` to data.rs
+- 4 validation tests: all move categories match Gen 2 type-based rules, physical/special type coverage, status moves have zero power
+- All 1271 tests pass (1267 + 4 new)
+- **Next (Sprint 61)**: Continue content development — Phase 5 move effects, Phase 0C story flags, or Phase 6 story gating

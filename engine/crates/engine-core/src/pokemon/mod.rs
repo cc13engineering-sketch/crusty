@@ -1647,7 +1647,8 @@ impl PokemonSim {
                     if let Some(&(species, level)) = team.first() {
                         self.register_seen(species);
                         let enemy = Pokemon::new(species, level);
-                        let player_hp = self.party.first().map(|p| p.hp as f64).unwrap_or(0.0);
+                        let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                        let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                         // Build remaining team (all except the lead)
                         let remaining: Vec<Pokemon> = team.iter().skip(1)
                             .map(|&(s, l)| {
@@ -1658,7 +1659,7 @@ impl PokemonSim {
                         self.battle = Some(BattleState {
                             phase: BattlePhase::Intro { timer: 0.0 },
                             enemy,
-                            player_idx: 0,
+                            player_idx,
                             is_wild: false,
                             player_hp_display: player_hp,
                             enemy_hp_display: 0.0,
@@ -1671,6 +1672,9 @@ impl PokemonSim {
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                    } else {
+                        // Safety fallback: empty team, return to overworld
+                        self.phase = GamePhase::Overworld;
                     }
                 }
             }

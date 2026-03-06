@@ -126,6 +126,7 @@ pub const SLOWPOKE: SpeciesId = 79;
 pub const PIKACHU: SpeciesId = 25;
 pub const POLIWHIRL: SpeciesId = 61;
 pub const KRABBY: SpeciesId = 98;
+pub const STEELIX: SpeciesId = 208;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -227,6 +228,9 @@ pub const MOVE_BUBBLEBEAM: MoveId = 61;
 pub const MOVE_THUNDERBOLT: MoveId = 85;
 pub const MOVE_FAINT_ATTACK: MoveId = 185;
 pub const MOVE_PAY_DAY: MoveId = 6;
+pub const MOVE_IRON_TAIL: MoveId = 231;
+pub const MOVE_SCREECH: MoveId = 103;
+pub const MOVE_SUNNY_DAY: MoveId = 241;
 
 /// Static species data
 #[derive(Debug)]
@@ -873,7 +877,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         id: PIKACHU, name: "Pikachu",
         type1: PokemonType::Electric, type2: None,
         base_hp: 35, base_attack: 55, base_defense: 40,
-        base_sp_attack: 50, base_sp_defense: 50, base_speed: 90,
+        base_sp_attack: 50, base_sp_defense: 40, base_speed: 90,
         catch_rate: 190, base_exp_yield: 82, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_THUNDER_SHOCK), (1, MOVE_GROWL), (6, MOVE_TAIL_WHIP), (8, MOVE_THUNDER_WAVE), (11, MOVE_QUICK_ATTACK), (15, MOVE_DOUBLE_TEAM), (20, MOVE_SLAM), (26, MOVE_THUNDERBOLT)],
         evolution_level: None, evolution_into: None,
@@ -895,6 +899,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         catch_rate: 225, base_exp_yield: 115, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_BUBBLE), (5, MOVE_LEER), (12, MOVE_VICEGRIP), (16, MOVE_HARDEN), (23, MOVE_STOMP)],
         evolution_level: Some(28), evolution_into: None,
+    },
+    SpeciesData {
+        id: STEELIX, name: "Steelix",
+        type1: PokemonType::Steel, type2: Some(PokemonType::Ground),
+        base_hp: 75, base_attack: 85, base_defense: 200,
+        base_sp_attack: 55, base_sp_defense: 65, base_speed: 30,
+        catch_rate: 25, base_exp_yield: 196, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SCREECH), (9, MOVE_ROCK_THROW), (13, MOVE_BIND), (21, MOVE_ROCK_SLIDE), (25, MOVE_SLAM), (33, MOVE_IRON_TAIL)],
+        evolution_level: None, evolution_into: None,
     },
 ];
 
@@ -1002,6 +1015,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_THUNDERBOLT, name: "Thunderbolt", move_type: PokemonType::Electric, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "May paralyze the foe." },
     MoveData { id: MOVE_FAINT_ATTACK, name: "Faint Attack", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 20, description: "Never misses the foe." },
     MoveData { id: MOVE_PAY_DAY, name: "Pay Day", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 20, description: "Scatters coins after battle." },
+    MoveData { id: MOVE_IRON_TAIL, name: "Iron Tail", move_type: PokemonType::Steel, category: MoveCategory::Physical, power: 100, accuracy: 75, pp: 15, description: "Attacks with a steel tail." },
+    MoveData { id: MOVE_SCREECH, name: "Screech", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 85, pp: 40, description: "Sharply lowers Defense." },
+    MoveData { id: MOVE_SUNNY_DAY, name: "Sunny Day", move_type: PokemonType::Fire, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Boosts Fire moves for 5 turns." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

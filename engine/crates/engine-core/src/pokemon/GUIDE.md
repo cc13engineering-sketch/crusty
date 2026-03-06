@@ -510,3 +510,12 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - 10 story flag constants defined (8 reserved for future events: egg, Sprout Tower, Sudowoodo, etc.)
 - 3 new tests (flags save/load, Victory Road rival requires 8 badges, final evolutions exist). All 1278 pass.
 - **Next (Sprint 66)**: QA sprint
+
+### Sprint 66 (QA — Catch/Run/Whiteout Audit)
+- **Fixed**: Catch formula now applies Gen 2 status multipliers (sleep/freeze 2x, poison/burn/paralysis 1.5x)
+- **Fixed**: Run formula halves player speed when paralyzed (Gen 2 rule)
+- **Fixed**: Whiteout preserves last_pokecenter_map — player returns to correct city's PokeCenter
+- **Fixed**: Clear pending_evolution on whiteout (prevents stale evolution after blackout)
+- Verified: HP formula correct (+10), heal() restores HP/PP/status, evolution chains work
+- 2 new tests (HP formula Gen 2, whiteout PokeCenter preservation). All 1280 pass.
+- **Next (Sprint 67)**: Continue implementation — candidates: Phase 5 Priority 2 (Haze, Toxic, Confuse Ray), Phase 0D (NPC Action as Data), wire more story flags

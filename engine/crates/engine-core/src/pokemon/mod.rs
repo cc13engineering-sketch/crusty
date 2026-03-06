@@ -10,6 +10,8 @@
 // NPC trainers have trainer_team field with typed Pokemon lists (TrainerPokemon in maps.rs).
 // Input helpers: is_confirm/is_cancel/is_up/is_down/is_left/is_right + held_ variants.
 // Camera: smooth lerp (CAMERA_LERP), snaps on map transition. Ledge tiles: south-only traversal.
+// Story flags: u64 bitfield (has_flag/set_flag) persisted in save. Route gates: Victory Road needs 8 badges.
+// Struggle: forced when all PP=0, 50 power, never-miss, 1/4 recoil. Freeze: 10% thaw per turn.
 
 pub mod data;
 pub mod sprites;
@@ -104,6 +106,20 @@ const PARALYSIS_SKIP_CHANCE: f64 = 0.25; // 25% chance to be fully paralyzed
 const DAMAGE_ROLL_MIN: f64 = 0.85;
 const DAMAGE_ROLL_RANGE: f64 = 0.15;
 const CAMERA_LERP: f64 = 0.2;
+
+// ─── Story Flags (Phase 0C) ─────────────────────────────
+// Bitfield stored in story_flags: u64. Use has_flag/set_flag helpers.
+// Some flags are defined ahead for future story events.
+#[allow(dead_code)] const FLAG_GOT_EGG: u64           = 1 << 0;  // Elm's aide gives Mystery Egg
+#[allow(dead_code)] const FLAG_DELIVERED_EGG: u64     = 1 << 1;  // Returned egg to Elm
+const FLAG_RIVAL_ROUTE29: u64   = 1 << 2;  // Fought rival on Route 29
+#[allow(dead_code)] const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
+#[allow(dead_code)] const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
+#[allow(dead_code)] const FLAG_RED_GYARADOS: u64      = 1 << 5;  // Red Gyarados event
+#[allow(dead_code)] const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
+#[allow(dead_code)] const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion
+#[allow(dead_code)] const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine
+const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -299,6 +315,8 @@ pub struct PokemonSim {
     approach_npc_y: i32,
     approach_walk_offset: f64,
     approach_exclaim_timer: f64,
+    // Story flags (Phase 0C): bitfield for progression gates
+    story_flags: u64,
     // Save system
     needs_save: bool,
     last_rng_state: u64,
@@ -306,6 +324,9 @@ pub struct PokemonSim {
 }
 
 impl PokemonSim {
+    fn has_flag(&self, flag: u64) -> bool { self.story_flags & flag != 0 }
+    fn set_flag(&mut self, flag: u64) { self.story_flags |= flag; }
+
     pub fn new() -> Self {
         let start_map = load_map(MapId::NewBarkTown);
         PokemonSim {
@@ -361,6 +382,7 @@ impl PokemonSim {
             approach_npc_y: 0,
             approach_walk_offset: 0.0,
             approach_exclaim_timer: 0.0,
+            story_flags: 0,
             needs_save: false,
             last_rng_state: 0,
             has_save: false,
@@ -486,14 +508,14 @@ impl PokemonSim {
         };
 
         format!(
-            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"repel\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
+            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"repel\":{},\"flags\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
             self.current_map_id.to_str(),
             self.player.x, self.player.y, facing,
             self.money, self.badges, self.total_time, self.last_rng_state,
             self.step_count, self.rival_starter,
             self.rival_battle_done, self.has_starter,
             self.last_pokecenter_map.to_str(), self.last_house_map.to_str(),
-            self.repel_steps,
+            self.repel_steps, self.story_flags,
             party_json, pc_json, defeated_json, bag_json,
             seen_json, caught_json,
         )
@@ -574,6 +596,7 @@ impl PokemonSim {
         self.last_pokecenter_map = MapId::from_str(get_str(json, "last_pc")).unwrap_or(MapId::CherrygroveCity);
         self.last_house_map = MapId::from_str(get_str(json, "last_house")).unwrap_or(MapId::NewBarkTown);
         self.repel_steps = get_num(json, "repel") as u32;
+        self.story_flags = get_num(json, "flags") as u64;
 
         // Parse party: array of pokemon objects
         let party_arr = get_array(json, "party");
@@ -761,6 +784,7 @@ impl PokemonSim {
             && self.rival_starter > 0
         {
             self.rival_battle_done = true;
+            self.set_flag(FLAG_RIVAL_ROUTE29);
             self.dialogue = Some(DialogueState {
                 lines: vec![
                     "???: Hey, wait!".to_string(),
@@ -772,6 +796,46 @@ impl PokemonSim {
                 current_line: 0, char_index: 0, timer: 0.0,
                 on_complete: DialogueAction::StartTrainerBattle {
                     team: vec![(self.rival_starter, 5)],
+                },
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
+    }
+
+    /// Trigger Victory Road rival battle (called from step_overworld)
+    fn check_victory_road_rival(&mut self) -> bool {
+        if self.current_map_id == MapId::VictoryRoad
+            && self.rival_starter > 0
+            && !self.has_flag(FLAG_RIVAL_VICTORY)
+            && self.badges.count_ones() >= 8
+        {
+            self.set_flag(FLAG_RIVAL_VICTORY);
+            // Map rival's starter to final form
+            let rival_final = match self.rival_starter {
+                CHIKORITA => MEGANIUM,
+                CYNDAQUIL => TYPHLOSION,
+                TOTODILE => FERALIGATR,
+                _ => TYPHLOSION,
+            };
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "RIVAL: …So you".to_string(),
+                    "made it here too.".to_string(),
+                    "Good. I wanted to".to_string(),
+                    "test my team before".to_string(),
+                    "the ELITE FOUR!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::StartTrainerBattle {
+                    team: vec![
+                        (rival_final, 36),
+                        (HAUNTER, 35),
+                        (SNEASEL, 34),
+                        (MAGNETON, 34),
+                        (GOLBAT, 36),
+                    ],
                 },
             });
             self.phase = GamePhase::Dialogue;
@@ -865,6 +929,26 @@ impl PokemonSim {
                         self.phase = GamePhase::Dialogue;
                         return;
                     }
+                    // Block Victory Road without 8 badges (Route 26 entrance)
+                    if warp.dest_map == MapId::VictoryRoad && self.badges.count_ones() < 8 {
+                        match self.player.facing {
+                            Direction::Up => self.player.y += 1,
+                            Direction::Down => self.player.y -= 1,
+                            Direction::Left => self.player.x += 1,
+                            Direction::Right => self.player.x -= 1,
+                        }
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                "You need all 8".to_string(),
+                                "BADGES to enter".to_string(),
+                                "VICTORY ROAD!".to_string(),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
                     // PokemonCenter: dynamic exit based on which city we entered from
                     if self.current_map_id == MapId::PokemonCenter {
                         let (dest_map, dx, dy) = match self.last_pokecenter_map {
@@ -941,8 +1025,9 @@ impl PokemonSim {
                     }
                 }
 
-                // Check for rival battle event
+                // Check for rival battle events
                 if self.check_rival_battle() { return; }
+                if self.check_victory_road_rival() { return; }
 
                 // Check trainer line-of-sight (5 tiles in their facing direction)
                 if self.party.iter().any(|p| !p.is_fainted()) {
@@ -4015,6 +4100,7 @@ impl Simulation for PokemonSim {
                             self.pokedex_caught.clear();
                             self.total_time = 0.0;
                             self.repel_steps = 0;
+                            self.story_flags = 0;
                             self.last_pokecenter_map = MapId::CherrygroveCity;
                             self.last_house_map = MapId::NewBarkTown;
                             engine.global_state.set_str("game_phase", "overworld");
@@ -4656,5 +4742,74 @@ mod headless_tests {
         try_inflict_status(&mut target2, MOVE_HYPNOSIS, 0.5);
         assert!(matches!(target2.status, StatusCondition::Sleep { .. }),
             "Hypnosis should inflict Sleep, got {:?}", target2.status);
+    }
+
+    #[test]
+    fn test_story_flags_save_load() {
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CYNDAQUIL, 5));
+        sim.story_flags = FLAG_RIVAL_ROUTE29 | FLAG_RIVAL_VICTORY;
+
+        let json = sim.serialize_save();
+        assert!(json.contains("\"flags\":"), "Save should contain flags field");
+        // The value should be FLAG_RIVAL_ROUTE29 | FLAG_RIVAL_VICTORY = (1<<2)|(1<<9) = 4+512 = 516
+        assert!(json.contains("\"flags\":516"), "Flags should serialize as 516, got: {}", json);
+
+        let mut sim2 = PokemonSim::new();
+        sim2.load_from_save(&json);
+        assert_eq!(sim2.story_flags, FLAG_RIVAL_ROUTE29 | FLAG_RIVAL_VICTORY);
+        assert!(sim2.has_flag(FLAG_RIVAL_ROUTE29));
+        assert!(sim2.has_flag(FLAG_RIVAL_VICTORY));
+        assert!(!sim2.has_flag(FLAG_SPROUT_CLEAR));
+    }
+
+    #[test]
+    fn test_victory_road_rival_requires_8_badges() {
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.rival_starter = CYNDAQUIL;
+        sim.party.push(Pokemon::new(CHIKORITA, 36));
+        sim.change_map(MapId::VictoryRoad, 7, 6);
+
+        // With only 7 badges, rival should NOT trigger
+        sim.badges = 0b01111111; // 7 badges
+        assert!(!sim.check_victory_road_rival());
+
+        // With 8 badges, rival SHOULD trigger
+        sim.badges = 0b11111111; // 8 badges
+        assert!(sim.check_victory_road_rival());
+        assert!(sim.has_flag(FLAG_RIVAL_VICTORY));
+        // Should not trigger again
+        assert!(!sim.check_victory_road_rival());
+    }
+
+    #[test]
+    fn test_final_evolutions_exist() {
+        // Verify final starter forms and Magneton have species data
+        assert!(get_species(MEGANIUM).is_some(), "Meganium should exist");
+        assert!(get_species(TYPHLOSION).is_some(), "Typhlosion should exist");
+        assert!(get_species(FERALIGATR).is_some(), "Feraligatr should exist");
+        assert!(get_species(MAGNETON).is_some(), "Magneton should exist");
+
+        // Check correct types
+        let meg = get_species(MEGANIUM).unwrap();
+        assert_eq!(meg.type1, PokemonType::Grass);
+        let typh = get_species(TYPHLOSION).unwrap();
+        assert_eq!(typh.type1, PokemonType::Fire);
+        let fera = get_species(FERALIGATR).unwrap();
+        assert_eq!(fera.type1, PokemonType::Water);
+        let magn = get_species(MAGNETON).unwrap();
+        assert_eq!(magn.type1, PokemonType::Electric);
+
+        // Check evolution chains
+        let bay = get_species(BAYLEEF).unwrap();
+        assert_eq!(bay.evolution_into, Some(MEGANIUM));
+        let quil = get_species(QUILAVA).unwrap();
+        assert_eq!(quil.evolution_into, Some(TYPHLOSION));
+        let croc = get_species(CROCONAW).unwrap();
+        assert_eq!(croc.evolution_into, Some(FERALIGATR));
+        let mite = get_species(MAGNEMITE).unwrap();
+        assert_eq!(mite.evolution_into, Some(MAGNETON));
     }
 }

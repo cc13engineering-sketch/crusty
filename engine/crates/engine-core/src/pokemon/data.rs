@@ -76,10 +76,13 @@ pub type MoveId = u16;
 // ─── Species IDs ────────────────────────────────────────
 pub const CHIKORITA: SpeciesId = 152;
 pub const BAYLEEF: SpeciesId = 153;
+pub const MEGANIUM: SpeciesId = 154;
 pub const CYNDAQUIL: SpeciesId = 155;
 pub const QUILAVA: SpeciesId = 156;
+pub const TYPHLOSION: SpeciesId = 157;
 pub const TOTODILE: SpeciesId = 158;
 pub const CROCONAW: SpeciesId = 159;
+pub const FERALIGATR: SpeciesId = 160;
 pub const PIDGEY: SpeciesId = 16;
 pub const RATTATA: SpeciesId = 19;
 pub const SENTRET: SpeciesId = 161;
@@ -132,6 +135,7 @@ pub const NOCTOWL: SpeciesId = 164;
 pub const FARFETCHD: SpeciesId = 83;
 pub const TAUROS: SpeciesId = 128;
 pub const MAGNEMITE: SpeciesId = 81;
+pub const MAGNETON: SpeciesId = 82;
 pub const DODUO: SpeciesId = 84;
 pub const FLAAFFY: SpeciesId = 180;
 pub const PSYDUCK: SpeciesId = 54;
@@ -443,6 +447,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 63, base_sp_defense: 80, base_speed: 60,
         catch_rate: 45, base_exp_yield: 141, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP), (15, MOVE_POISON_POWDER)],
+        evolution_level: Some(32), evolution_into: Some(MEGANIUM),
+    },
+    SpeciesData {
+        id: MEGANIUM, name: "Meganium",
+        type1: PokemonType::Grass, type2: None,
+        base_hp: 80, base_attack: 82, base_defense: 100,
+        base_sp_attack: 83, base_sp_defense: 100, base_speed: 80,
+        catch_rate: 45, base_exp_yield: 208, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (8, MOVE_RAZOR_LEAF), (12, MOVE_VINE_WHIP), (15, MOVE_POISON_POWDER), (26, MOVE_BODY_SLAM), (32, MOVE_RAZOR_LEAF)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -461,6 +474,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 80, base_sp_defense: 65, base_speed: 80,
         catch_rate: 45, base_exp_yield: 142, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER), (21, MOVE_QUICK_ATTACK)],
+        evolution_level: Some(36), evolution_into: Some(TYPHLOSION),
+    },
+    SpeciesData {
+        id: TYPHLOSION, name: "Typhlosion",
+        type1: PokemonType::Fire, type2: None,
+        base_hp: 78, base_attack: 84, base_defense: 78,
+        base_sp_attack: 109, base_sp_defense: 85, base_speed: 100,
+        catch_rate: 45, base_exp_yield: 209, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_LEER), (6, MOVE_SMOKESCREEN), (12, MOVE_EMBER), (21, MOVE_QUICK_ATTACK), (31, MOVE_FLAME_WHEEL), (36, MOVE_FLAMETHROWER), (45, MOVE_SWIFT)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -479,6 +501,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 59, base_sp_defense: 63, base_speed: 58,
         catch_rate: 45, base_exp_yield: 143, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (21, MOVE_BITE)],
+        evolution_level: Some(30), evolution_into: Some(FERALIGATR),
+    },
+    SpeciesData {
+        id: FERALIGATR, name: "Feraligatr",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 85, base_attack: 105, base_defense: 100,
+        base_sp_attack: 79, base_sp_defense: 83, base_speed: 78,
+        catch_rate: 45, base_exp_yield: 210, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (7, MOVE_RAGE), (13, MOVE_WATER_GUN), (21, MOVE_BITE), (28, MOVE_SCARY_FACE), (33, MOVE_SLASH), (37, MOVE_SURF)],
         evolution_level: None, evolution_into: None,
     },
     // Wild Pokemon
@@ -945,7 +976,16 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 95, base_sp_defense: 55, base_speed: 45,
         catch_rate: 190, base_exp_yield: 89, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_TACKLE), (6, MOVE_THUNDER_SHOCK), (11, MOVE_SUPERSONIC), (16, MOVE_SONIC_BOOM), (21, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
-        evolution_level: Some(30), evolution_into: None,
+        evolution_level: Some(30), evolution_into: Some(MAGNETON),
+    },
+    SpeciesData {
+        id: MAGNETON, name: "Magneton",
+        type1: PokemonType::Electric, type2: Some(PokemonType::Steel),
+        base_hp: 50, base_attack: 60, base_defense: 95,
+        base_sp_attack: 120, base_sp_defense: 70, base_speed: 70,
+        catch_rate: 60, base_exp_yield: 161, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_THUNDER_SHOCK), (1, MOVE_SUPERSONIC), (16, MOVE_SONIC_BOOM), (21, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT), (35, MOVE_TRI_ATTACK)],
+        evolution_level: None, evolution_into: None,
     },
     SpeciesData {
         id: DODUO, name: "Doduo",

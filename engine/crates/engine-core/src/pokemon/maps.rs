@@ -67,6 +67,13 @@ const SPEAROW: u16 = 21;
 const FEAROW: u16 = 22;
 const POLIWAG: u16 = 60;
 const MARILL: u16 = 183;
+const TENTACOOL: u16 = 72;
+const TENTACRUEL: u16 = 73;
+const PRIMEAPE: u16 = 57;
+const POLIWRATH: u16 = 62;
+const MANKEY: u16 = 56;
+const MACHOP: u16 = 66;
+const MACHOKE: u16 = 67;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -143,6 +150,9 @@ pub enum MapId {
     OlivineCity,
     OlivineGym,
     OlivineLighthouse,
+    Route40,
+    CianwoodCity,
+    CianwoodGym,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -269,6 +279,9 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::OlivineCity => build_olivine_city(),
         MapId::OlivineGym => build_olivine_gym(),
         MapId::OlivineLighthouse => build_olivine_lighthouse(),
+        MapId::Route40 => build_route_40(),
+        MapId::CianwoodCity => build_cianwood_city(),
+        MapId::CianwoodGym => build_cianwood_gym(),
     }
 }
 
@@ -4928,7 +4941,7 @@ fn build_olivine_city() -> MapData {
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
     ];
@@ -4949,6 +4962,9 @@ fn build_olivine_city() -> MapData {
         WarpData { x: 3, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Lighthouse door (17,11) → OlivineLighthouse
         WarpData { x: 17, y: 11, dest_map: MapId::OlivineLighthouse, dest_x: 5, dest_y: 9 },
+        // South dock exit → Route 40 (both land on walkable tiles x=3,4 in Route40)
+        WarpData { x: 5, y: 15, dest_map: MapId::Route40, dest_x: 3, dest_y: 1 },
+        WarpData { x: 6, y: 15, dest_map: MapId::Route40, dest_x: 4, dest_y: 1 },
     ];
     let npcs = vec![
         NpcDef { x: 8, y: 2, sprite_id: 5, facing: Direction::Down,
@@ -5131,6 +5147,221 @@ fn build_olivine_gym() -> MapData {
     MapData { id: MapId::OlivineGym, name: "OLIVINE GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 8 }
 }
 
+// ─── Route 40 (8×20) ─── Pier walkway over ocean ──────────
+// In the real game this is a surf route. We use a pier/dock path instead.
+fn build_route_40() -> MapData {
+    let width = 8;
+    let height = 20;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+        WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_WATER,C_WATER,C_WATER,C_WARP,C_WARP,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WARP,C_WARP,C_WATER,C_WATER,C_WATER,
+    ];
+    let warps = vec![
+        WarpData { x: 3, y: 0, dest_map: MapId::OlivineCity, dest_x: 5, dest_y: 14 },
+        WarpData { x: 4, y: 0, dest_map: MapId::OlivineCity, dest_x: 6, dest_y: 14 },
+        WarpData { x: 3, y: 19, dest_map: MapId::CianwoodCity, dest_x: 9, dest_y: 1 },
+        WarpData { x: 4, y: 19, dest_map: MapId::CianwoodCity, dest_x: 10, dest_y: 1 },
+    ];
+    let npcs = vec![
+        NpcDef { x: 3, y: 4, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["Swimmer SIMON", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: TENTACOOL, level: 20 }, TrainerPokemon { species_id: TENTACOOL, level: 20 }],
+        },
+        NpcDef { x: 4, y: 9, sprite_id: 1, facing: Direction::Up,
+            dialogue: &["Swimmer ELAINE", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: KRABBY, level: 21 }],
+        },
+        NpcDef { x: 3, y: 14, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["Swimmer RANDALL", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: TENTACOOL, level: 18 }, TrainerPokemon { species_id: TENTACRUEL, level: 22 }],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 60 },
+        EncounterEntry { species_id: TENTACRUEL, min_level: 24, max_level: 24, weight: 20 },
+        EncounterEntry { species_id: KRABBY, min_level: 20, max_level: 22, weight: 20 },
+    ];
+    MapData { id: MapId::Route40, name: "ROUTE 40", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
+// ─── Cianwood City (20×14) ───────────────────────────────
+fn build_cianwood_city() -> MapData {
+    let width = 20;
+    let height = 14;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,
+        WATER,WATER,WATER,WATER,WATER,WATER,WATER,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,WATER,WATER,WATER,WATER,WATER,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,PATH,PATH,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,POKECENTER_ROOF,POKECENTER_ROOF,POKECENTER_ROOF,
+        GRASS,BUILDING_WALL,DOOR,GRASS,GRASS,BUILDING_WALL,DOOR,GRASS,GRASS,PATH,PATH,GRASS,GRASS,BUILDING_WALL,DOOR,GRASS,GRASS,POKECENTER_WALL,POKECENTER_WALL,DOOR,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,PATH,PATH,GRASS,GRASS,PATH,PATH,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,GRASS,
+        GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,DOOR,GRASS,PATH,PATH,GRASS,GRASS,PATH,PATH,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,
+        WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WARP,C_WARP,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_WALK,C_SOLID,C_WARP,C_WALK,C_WALK,C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WARP,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,
+    ];
+    let warps = vec![
+        WarpData { x: 9, y: 0, dest_map: MapId::Route40, dest_x: 3, dest_y: 18 },
+        WarpData { x: 10, y: 0, dest_map: MapId::Route40, dest_x: 4, dest_y: 18 },
+        WarpData { x: 2, y: 4, dest_map: MapId::CianwoodGym, dest_x: 5, dest_y: 7 },
+        WarpData { x: 6, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        WarpData { x: 14, y: 4, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        WarpData { x: 19, y: 4, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        WarpData { x: 5, y: 8, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+    ];
+    let npcs = vec![
+        NpcDef { x: 9, y: 2, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["CIANWOOD CITY", "A Port of Winds"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef { x: 8, y: 5, sprite_id: 1, facing: Direction::Right,
+            dialogue: &["The PHARMACY has", "rare medicines!", "CHUCK is in the GYM."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef { x: 12, y: 6, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["CHUCK trains under", "the waterfall. His", "POLIWRATH is scary!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef { x: 7, y: 10, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["I took the ferry", "from Olivine to get", "here!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef { x: 15, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["Welcome to the", "CIANWOOD MART!"],
+            is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
+        },
+    ];
+    MapData { id: MapId::CianwoodCity, name: "CIANWOOD CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], music_id: 3 }
+}
+
+// ─── Cianwood Gym (10x10) ───────────────────────────────
+// Chuck — Fighting type. Storm Badge.
+fn build_cianwood_gym() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    debug_assert_eq!(tiles.len(), w * h);
+    debug_assert_eq!(collision.len(), w * h);
+    let warps = vec![
+        WarpData { x: 5, y: 8, dest_map: MapId::CianwoodCity, dest_x: 2, dest_y: 5 },
+    ];
+    let npcs = vec![
+        NpcDef {
+            x: 5, y: 1, sprite_id: 0, facing: Direction::Down,
+            dialogue: &["Gym Leader CHUCK","wants to battle!","WAHAHAHA! Let me","show you my power!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: PRIMEAPE, level: 27 },
+                TrainerPokemon { species_id: POLIWRATH, level: 30 },
+            ],
+        },
+        NpcDef {
+            x: 2, y: 4, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Blackbelt YOSHI", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: MACHOKE, level: 25 }],
+        },
+        NpcDef {
+            x: 7, y: 5, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["Blackbelt LAO", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: MACHOKE, level: 23 }, TrainerPokemon { species_id: MACHOKE, level: 23 }],
+        },
+    ];
+    MapData { id: MapId::CianwoodGym, name: "CIANWOOD GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 8 }
+}
 
 #[cfg(test)]
 mod tests {
@@ -5245,6 +5476,9 @@ mod tests {
             MapId::OlivineCity,
             MapId::OlivineGym,
             MapId::OlivineLighthouse,
+            MapId::Route40,
+            MapId::CianwoodCity,
+            MapId::CianwoodGym,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -5276,6 +5510,7 @@ mod tests {
             MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
             MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
             MapId::OlivineLighthouse,
+            MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -5518,6 +5753,7 @@ mod tests {
             MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
             MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
             MapId::OlivineLighthouse,
+            MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

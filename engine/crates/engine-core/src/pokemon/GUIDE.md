@@ -557,4 +557,18 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - 5 of 10 story flags now active (Rival Route 29, Rival Victory Road, Sprout Clear, Red Gyarados, Sudowoodo)
 - Phase 5 Priority 2 complete: Haze, Self-Destruct, Confusion, Toxic, Mean Look, Swagger all done
 - 3 new tests. All 1290 pass.
-- **Next (Sprint 71)**: Phase 5 Priority 3 (multi-turn moves) or more story flag wiring
+- **Next (Sprint 71)**: E4/Champion learnset overhaul
+
+### Sprint 71 (E4 Learnset Overhaul)
+- **Critical fix**: 10 E4/Champion species had weak/stub learnsets (e.g., Lance's Dragonites used Dragon Rage for 40 fixed damage)
+- Dragonite: Outrage at 47, Wing Attack at 42 (was 61/55)
+- Xatu/Slowbro: Psychic at 40 (was 65/54)
+- Onix: expanded from 3 moves to 8 (added Earthquake, RockSlide, IronTail)
+- Vileplume: added PetalDance, SludgeBomb (was only 4 level-1 moves)
+- All Hitmon: added proper Fighting STAB (Submission, CrossChop)
+- Ariados/Muk: added SludgeBomb for Poison STAB
+- Umbreon: added FaintAttack, Crunch for Dark STAB
+- Gyarados: added Surf, Crunch, HyperBeam
+- New moves: Petal Dance (Grass/70BP), Sludge Bomb (Poison/90BP, 30% poison)
+- All 1290 tests pass.
+- **Next (Sprint 72)**: QA sprint

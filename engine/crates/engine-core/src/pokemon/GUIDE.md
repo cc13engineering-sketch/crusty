@@ -488,3 +488,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Fixed**: NEW GAME fully resets all game state (party, PC, bag, badges, money, defeated trainers, pokedex)
 - All 1272 tests pass
 - **Next (Sprint 64)**: Phase 0C story flags, Phase 5 Priority 2 status moves (Haze, Toxic, Confuse Ray), or more content
+
+### Sprint 64 (QA — Deep Battle/Save Audit)
+- **Fixed**: Status-inflicting moves (Hypnosis, Thunder Wave, Sleep Powder, Stun Spore, Sing, Poison Powder) now work — were broken because try_inflict_status only ran when damage > 0, but status moves have power 0
+- **Fixed**: Menu SAVE actually persists to localStorage (was showing "Game saved!" but not triggering persist queue)
+- **Fixed**: Switching Pokemon in battle costs a turn — enemy gets a free attack (Gen 2 rule)
+- **Fixed**: Enemy paralysis now halves speed in turn order (was only applied to player)
+- **Fixed**: Frozen Pokemon have 10% thaw chance per turn (were frozen forever)
+- **Added**: Struggle move — forced when all PP = 0 (50 power, never-miss, 1/4 recoil). Prevents soft-lock.
+- 3 new tests (Struggle, freeze thaw, status move infliction). All 1275 tests pass.
+- **Next (Sprint 65)**: Phase 0C story flags (DoD #7), Victory Road rival battle

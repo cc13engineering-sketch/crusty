@@ -320,6 +320,25 @@ pub const QUAGSIRE: SpeciesId = 195;
 pub const MOVE_FIRE_BLAST: MoveId = 126;
 pub const MOVE_EXTREME_SPEED: MoveId = 245;
 pub const MOVE_FLAME_WHEEL: MoveId = 172;
+// ─── Sprint 56: E4 / Victory Road species + moves ──────
+pub const XATU: SpeciesId = 178;
+pub const SLOWBRO: SpeciesId = 80;
+pub const EXEGGUTOR: SpeciesId = 103;
+pub const ARIADOS: SpeciesId = 168;
+pub const FORRETRESS: SpeciesId = 205;
+pub const MUK: SpeciesId = 89;
+pub const VENOMOTH: SpeciesId = 49;
+pub const CROBAT: SpeciesId = 169;
+pub const HITMONTOP: SpeciesId = 237;
+pub const HITMONLEE: SpeciesId = 106;
+pub const HITMONCHAN: SpeciesId = 107;
+pub const VILEPLUME: SpeciesId = 45;
+pub const MURKROW: SpeciesId = 198;
+pub const HOUNDOOM: SpeciesId = 229;
+pub const AERODACTYL: SpeciesId = 142;
+pub const CHARIZARD: SpeciesId = 6;
+pub const MOVE_PSYCHIC: MoveId = 94;
+pub const MOVE_CRUNCH: MoveId = 242;
 
 /// Static species data
 #[derive(Debug)]
@@ -1170,7 +1189,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 65, base_sp_defense: 75, base_speed: 90,
         catch_rate: 90, base_exp_yield: 171, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_LEECH_LIFE), (1, MOVE_SUPERSONIC), (1, MOVE_BITE), (12, MOVE_CONFUSE_RAY), (19, MOVE_WING_ATTACK), (30, MOVE_MEAN_LOOK)],
-        evolution_level: None, evolution_into: None,
+        evolution_level: Some(36), evolution_into: Some(CROBAT),
     },
     SpeciesData {
         id: GYARADOS, name: "Gyarados",
@@ -1400,6 +1419,151 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_TAIL_WHIP), (11, MOVE_SLAM), (23, MOVE_AMNESIA), (35, MOVE_EARTHQUAKE), (47, MOVE_HAZE)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 56: E4 / Victory Road species ────────────────
+    SpeciesData {
+        id: XATU, name: "Xatu",
+        type1: PokemonType::Psychic, type2: Some(PokemonType::Flying),
+        base_hp: 65, base_attack: 75, base_defense: 70,
+        base_sp_attack: 95, base_sp_defense: 70, base_speed: 95,
+        catch_rate: 75, base_exp_yield: 147, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_LEER), (10, MOVE_NIGHT_SHADE), (20, MOVE_TELEPORT), (35, MOVE_CONFUSION), (50, MOVE_CONFUSE_RAY), (65, MOVE_PSYCHIC)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SLOWBRO, name: "Slowbro",
+        type1: PokemonType::Water, type2: Some(PokemonType::Psychic),
+        base_hp: 95, base_attack: 75, base_defense: 110,
+        base_sp_attack: 100, base_sp_defense: 80, base_speed: 30,
+        catch_rate: 75, base_exp_yield: 164, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_WATER_GUN), (20, MOVE_CONFUSION), (29, MOVE_DISABLE), (34, MOVE_HEADBUTT), (46, MOVE_AMNESIA), (54, MOVE_PSYCHIC)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: EXEGGUTOR, name: "Exeggutor",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Psychic),
+        base_hp: 95, base_attack: 95, base_defense: 85,
+        base_sp_attack: 125, base_sp_defense: 65, base_speed: 55,
+        catch_rate: 45, base_exp_yield: 212, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_HYPNOSIS), (1, MOVE_CONFUSION), (19, MOVE_STOMP), (31, MOVE_PSYCHIC)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: ARIADOS, name: "Ariados",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 70, base_attack: 90, base_defense: 70,
+        base_sp_attack: 60, base_sp_defense: 60, base_speed: 40,
+        catch_rate: 90, base_exp_yield: 140, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT), (1, MOVE_SCARY_FACE), (1, MOVE_CONSTRICT), (17, MOVE_NIGHT_SHADE), (25, MOVE_LEECH_LIFE), (34, MOVE_FURY_SWIPES), (53, MOVE_SCREECH), (53, MOVE_AGILITY)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: FORRETRESS, name: "Forretress",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Steel),
+        base_hp: 75, base_attack: 90, base_defense: 140,
+        base_sp_attack: 60, base_sp_defense: 60, base_speed: 40,
+        catch_rate: 75, base_exp_yield: 163, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SELF_DESTRUCT), (22, MOVE_TAKE_DOWN), (36, MOVE_SWIFT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MUK, name: "Muk",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 105, base_attack: 105, base_defense: 75,
+        base_sp_attack: 65, base_sp_defense: 100, base_speed: 50,
+        catch_rate: 75, base_exp_yield: 157, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POUND), (1, MOVE_HARDEN), (23, MOVE_SLUDGE), (31, MOVE_SCREECH), (45, MOVE_ACID)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: VENOMOTH, name: "Venomoth",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 70, base_attack: 65, base_defense: 60,
+        base_sp_attack: 90, base_sp_defense: 75, base_speed: 90,
+        catch_rate: 75, base_exp_yield: 138, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DISABLE), (1, MOVE_FORESIGHT), (1, MOVE_SUPERSONIC), (13, MOVE_CONFUSION), (17, MOVE_POISON_POWDER), (20, MOVE_LEECH_LIFE), (28, MOVE_STUN_SPORE), (38, MOVE_PSYBEAM), (48, MOVE_SLEEP_POWDER), (55, MOVE_PSYCHIC)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: CROBAT, name: "Crobat",
+        type1: PokemonType::Poison, type2: Some(PokemonType::Flying),
+        base_hp: 85, base_attack: 90, base_defense: 80,
+        base_sp_attack: 70, base_sp_defense: 80, base_speed: 130,
+        catch_rate: 90, base_exp_yield: 204, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCREECH), (1, MOVE_LEECH_LIFE), (1, MOVE_SUPERSONIC), (1, MOVE_BITE), (12, MOVE_BITE), (19, MOVE_CONFUSE_RAY), (30, MOVE_WING_ATTACK), (42, MOVE_MEAN_LOOK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HITMONTOP, name: "Hitmontop",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 50, base_attack: 95, base_defense: 95,
+        base_sp_attack: 35, base_sp_defense: 110, base_speed: 70,
+        catch_rate: 45, base_exp_yield: 138, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (7, MOVE_FOCUS_ENERGY), (13, MOVE_PURSUIT), (19, MOVE_QUICK_ATTACK), (25, MOVE_DOUBLE_KICK), (31, MOVE_TAKE_DOWN)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HITMONLEE, name: "Hitmonlee",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 50, base_attack: 120, base_defense: 53,
+        base_sp_attack: 35, base_sp_defense: 110, base_speed: 87,
+        catch_rate: 45, base_exp_yield: 139, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_DOUBLE_KICK), (6, MOVE_MEDITATE), (16, MOVE_LOW_KICK), (21, MOVE_FOCUS_ENERGY), (31, MOVE_FORESIGHT), (41, MOVE_ENDURE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HITMONCHAN, name: "Hitmonchan",
+        type1: PokemonType::Fighting, type2: None,
+        base_hp: 50, base_attack: 105, base_defense: 79,
+        base_sp_attack: 35, base_sp_defense: 110, base_speed: 76,
+        catch_rate: 45, base_exp_yield: 140, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POUND), (7, MOVE_AGILITY), (13, MOVE_PURSUIT), (26, MOVE_FIRE_PUNCH), (26, MOVE_ICE_PUNCH), (38, MOVE_TAKE_DOWN)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: VILEPLUME, name: "Vileplume",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Poison),
+        base_hp: 75, base_attack: 80, base_defense: 85,
+        base_sp_attack: 110, base_sp_defense: 90, base_speed: 50,
+        catch_rate: 45, base_exp_yield: 184, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_ABSORB), (1, MOVE_STUN_SPORE), (1, MOVE_ACID), (1, MOVE_SLEEP_POWDER)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MURKROW, name: "Murkrow",
+        type1: PokemonType::Dark, type2: Some(PokemonType::Flying),
+        base_hp: 60, base_attack: 85, base_defense: 42,
+        base_sp_attack: 85, base_sp_defense: 42, base_speed: 91,
+        catch_rate: 30, base_exp_yield: 107, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_PECK), (11, MOVE_PURSUIT), (16, MOVE_HAZE), (25, MOVE_NIGHT_SHADE), (35, MOVE_FAINT_ATTACK), (45, MOVE_MEAN_LOOK)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: HOUNDOOM, name: "Houndoom",
+        type1: PokemonType::Dark, type2: Some(PokemonType::Fire),
+        base_hp: 75, base_attack: 90, base_defense: 50,
+        base_sp_attack: 110, base_sp_defense: 80, base_speed: 95,
+        catch_rate: 45, base_exp_yield: 204, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_LEER), (1, MOVE_EMBER), (7, MOVE_ROAR), (13, MOVE_SMOG), (19, MOVE_BITE), (26, MOVE_FAINT_ATTACK), (35, MOVE_FLAMETHROWER), (44, MOVE_CRUNCH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: AERODACTYL, name: "Aerodactyl",
+        type1: PokemonType::Rock, type2: Some(PokemonType::Flying),
+        base_hp: 80, base_attack: 105, base_defense: 65,
+        base_sp_attack: 60, base_sp_defense: 75, base_speed: 130,
+        catch_rate: 45, base_exp_yield: 202, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_WING_ATTACK), (8, MOVE_AGILITY), (15, MOVE_BITE), (22, MOVE_SUPERSONIC), (29, MOVE_SCARY_FACE), (36, MOVE_TAKE_DOWN), (43, MOVE_HYPER_BEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: CHARIZARD, name: "Charizard",
+        type1: PokemonType::Fire, type2: Some(PokemonType::Flying),
+        base_hp: 78, base_attack: 84, base_defense: 78,
+        base_sp_attack: 109, base_sp_defense: 85, base_speed: 100,
+        catch_rate: 45, base_exp_yield: 209, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (1, MOVE_EMBER), (1, MOVE_RAGE), (20, MOVE_SCARY_FACE), (27, MOVE_FLAMETHROWER), (34, MOVE_WING_ATTACK), (36, MOVE_SLASH), (44, MOVE_DRAGON_RAGE), (54, MOVE_FIRE_SPIN)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1551,6 +1715,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_FIRE_BLAST, name: "Fire Blast", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 120, accuracy: 85, pp: 5, description: "May burn the foe." },
     MoveData { id: MOVE_EXTREME_SPEED, name: "ExtremeSpeed", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 5, description: "Always strikes first." },
     MoveData { id: MOVE_FLAME_WHEEL, name: "Flame Wheel", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 25, description: "May burn the foe." },
+    // ─── Sprint 56: E4 moves ───────────────────────────────
+    MoveData { id: MOVE_PSYCHIC, name: "Psychic", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 90, accuracy: 100, pp: 10, description: "May lower Sp.Def." },
+    MoveData { id: MOVE_CRUNCH, name: "Crunch", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 80, accuracy: 100, pp: 15, description: "May lower Defense." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

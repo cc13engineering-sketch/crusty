@@ -101,6 +101,25 @@ const SANDSLASH: u16 = 28;
 const DODRIO: u16 = 85;
 const ARCANINE: u16 = 59;
 const QUAGSIRE: u16 = 195;
+const XATU: u16 = 178;
+const SLOWBRO: u16 = 80;
+const EXEGGUTOR: u16 = 103;
+const ARIADOS: u16 = 168;
+const FORRETRESS: u16 = 205;
+const MUK: u16 = 89;
+const VENOMOTH: u16 = 49;
+const CROBAT: u16 = 169;
+const HITMONTOP: u16 = 237;
+const HITMONLEE: u16 = 106;
+const HITMONCHAN: u16 = 107;
+const VILEPLUME: u16 = 45;
+const MURKROW: u16 = 198;
+const HOUNDOOM: u16 = 229;
+const AERODACTYL: u16 = 142;
+const CHARIZARD: u16 = 6;
+const URSARING: u16 = 217;
+const MACHAMP: u16 = 68;
+const UMBREON: u16 = 197;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -193,6 +212,13 @@ pub enum MapId {
     Route46,
     Route27,
     Route26,
+    VictoryRoad,
+    IndigoPlateau,
+    EliteFourWill,
+    EliteFourKoga,
+    EliteFourBruno,
+    EliteFourKaren,
+    ChampionLance,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -335,6 +361,13 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route46 => build_route_46(),
         MapId::Route27 => build_route_27(),
         MapId::Route26 => build_route_26(),
+        MapId::VictoryRoad => build_victory_road(),
+        MapId::IndigoPlateau => build_indigo_plateau(),
+        MapId::EliteFourWill => build_elite_four_will(),
+        MapId::EliteFourKoga => build_elite_four_koga(),
+        MapId::EliteFourBruno => build_elite_four_bruno(),
+        MapId::EliteFourKaren => build_elite_four_karen(),
+        MapId::ChampionLance => build_champion_lance(),
     }
 }
 
@@ -6859,9 +6892,9 @@ fn build_route_26() -> MapData {
     debug_assert_eq!(collision.len(), width * height, "Route26 collision count mismatch");
 
     let warps = vec![
-        // North exit → Victory Road (placeholder self-loop until next sprint)
-        WarpData { x: 5, y: 1, dest_map: MapId::Route26, dest_x: 5, dest_y: 3 },
-        WarpData { x: 6, y: 1, dest_map: MapId::Route26, dest_x: 6, dest_y: 3 },
+        // North exit → Victory Road
+        WarpData { x: 5, y: 1, dest_map: MapId::VictoryRoad, dest_x: 7, dest_y: 11 },
+        WarpData { x: 6, y: 1, dest_map: MapId::VictoryRoad, dest_x: 8, dest_y: 11 },
         // PokemonCenter door
         WarpData { x: 3, y: 3, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
         // South exit → Route 27
@@ -6912,6 +6945,574 @@ fn build_route_26() -> MapData {
     ];
 
     MapData { id: MapId::Route26, name: "ROUTE 26", width, height, tiles, collision, warps, npcs, encounters, music_id: 2 }
+}
+
+// ─── Victory Road (14x14) ──────────────────────────────
+// Cave dungeon connecting Route 26 to Indigo Plateau.
+// Strong trainers and wild encounters (lv30-38).
+
+fn build_victory_road() -> MapData {
+    let width: usize = 14;
+    let height: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: solid walls
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: north exit gap
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,PATH,PATH,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 2: cave interior
+        BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,
+        // Row 3
+        BLACK,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,BLACK,
+        // Row 8
+        BLACK,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,BLACK,
+        // Row 9
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 10
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 11
+        BLACK,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,BLACK,
+        // Row 12: south exit
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,FLOOR,FLOOR,FLOOR,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 13: solid
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north exit warps
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12: south exit warps
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "VictoryRoad tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "VictoryRoad collision count mismatch");
+
+    let warps = vec![
+        // North exit → Indigo Plateau
+        WarpData { x: 6, y: 1, dest_map: MapId::IndigoPlateau, dest_x: 6, dest_y: 7 },
+        WarpData { x: 7, y: 1, dest_map: MapId::IndigoPlateau, dest_x: 7, dest_y: 7 },
+        // South exit → Route 26
+        WarpData { x: 7, y: 12, dest_map: MapId::Route26, dest_x: 5, dest_y: 2 },
+        WarpData { x: 8, y: 12, dest_map: MapId::Route26, dest_x: 6, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Cooltrainer — top left area
+        NpcDef {
+            x: 2, y: 3, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Only the strongest", "trainers make it", "through here!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GRAVELER, level: 34 },
+                TrainerPokemon { species_id: GOLBAT, level: 34 },
+                TrainerPokemon { species_id: URSARING, level: 36 },
+            ],
+        },
+        // Cooltrainer — middle area
+        NpcDef {
+            x: 8, y: 6, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["You'll need all your", "strength to face the", "ELITE FOUR!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ONIX, level: 35 },
+                TrainerPokemon { species_id: STEELIX, level: 37 },
+            ],
+        },
+        // Cooltrainer — bottom area
+        NpcDef {
+            x: 4, y: 10, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["I've trained for years", "to get this far!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GOLBAT, level: 35 },
+                TrainerPokemon { species_id: GRAVELER, level: 35 },
+                TrainerPokemon { species_id: MACHOKE, level: 36 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: GOLBAT, min_level: 32, max_level: 34, weight: 25 },
+        EncounterEntry { species_id: GRAVELER, min_level: 32, max_level: 34, weight: 20 },
+        EncounterEntry { species_id: ONIX, min_level: 32, max_level: 34, weight: 15 },
+        EncounterEntry { species_id: MACHOKE, min_level: 32, max_level: 34, weight: 15 },
+        EncounterEntry { species_id: URSARING, min_level: 34, max_level: 36, weight: 10 },
+        EncounterEntry { species_id: GEODUDE, min_level: 30, max_level: 32, weight: 15 },
+    ];
+
+    MapData { id: MapId::VictoryRoad, name: "VICTORY ROAD", width, height, tiles, collision, warps, npcs, encounters, music_id: 5 }
+}
+
+// ─── Indigo Plateau (14x10) ──────────────────────────────
+// Lobby area with PokemonCenter. Entry to Elite Four.
+
+fn build_indigo_plateau() -> MapData {
+    let width: usize = 14;
+    let height: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: roof
+        BLACK,BLACK,BLACK,BLACK,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: wall + E4 entrance
+        BLACK,BLACK,BLACK,BLACK,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,DOOR,BUILDING_WALL,BUILDING_WALL,BLACK,BLACK,BLACK,BLACK,
+        // Row 2: path leading to building
+        BLACK,BLACK,BLACK,BLACK,GRASS,GRASS,PATH,PATH,PATH,GRASS,BLACK,BLACK,BLACK,BLACK,
+        // Row 3: pokecenter left side
+        POKECENTER_ROOF,POKECENTER_ROOF,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,SIGN,BLACK,
+        // Row 4: pokecenter door
+        POKECENTER_WALL,POKECENTER_DOOR,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,BLACK,
+        // Row 5: open area
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,BLACK,
+        // Row 6: path
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,BLACK,
+        // Row 7: more grass
+        GRASS,GRASS,FLOWER,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,FLOWER,GRASS,BLACK,
+        // Row 8: south exit area
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,BLACK,
+        // Row 9: trees along bottom
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: E4 entrance door
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_SOLID,
+        // Row 4: pokecenter door
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8: south exit warps
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "IndigoPlateau tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "IndigoPlateau collision count mismatch");
+
+    let warps = vec![
+        // E4 entrance → Will's room
+        WarpData { x: 7, y: 1, dest_map: MapId::EliteFourWill, dest_x: 5, dest_y: 7 },
+        // PokemonCenter door
+        WarpData { x: 1, y: 4, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // South exit → Victory Road
+        WarpData { x: 6, y: 8, dest_map: MapId::VictoryRoad, dest_x: 6, dest_y: 2 },
+        WarpData { x: 7, y: 8, dest_map: MapId::VictoryRoad, dest_x: 7, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Guard NPC
+        NpcDef {
+            x: 6, y: 2, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["Welcome to the", "INDIGO PLATEAU!", "The ELITE FOUR awaits."],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    let encounters = vec![];
+
+    MapData { id: MapId::IndigoPlateau, name: "INDIGO PLATEAU", width, height, tiles, collision, warps, npcs, encounters, music_id: 1 }
+}
+
+// ─── Elite Four Will (10x10) ──────────────────────────────
+// Psychic-type specialist. First E4 member.
+
+fn build_elite_four_will() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: door to next room
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,DOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2: Will's position
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 3
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 8: entrance
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: door to Koga's room (only accessible after beating Will)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8: entrance from Indigo Plateau
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EliteFourWill tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EliteFourWill collision count mismatch");
+
+    let warps = vec![
+        // Forward → Koga's room
+        WarpData { x: 5, y: 1, dest_map: MapId::EliteFourKoga, dest_x: 5, dest_y: 7 },
+        // Back → Indigo Plateau
+        WarpData { x: 5, y: 8, dest_map: MapId::IndigoPlateau, dest_x: 7, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Will (E4 member, NPC index 0)
+        NpcDef {
+            x: 5, y: 3, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "ELITE FOUR WILL",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: XATU, level: 40 },
+                TrainerPokemon { species_id: JYNX, level: 41 },
+                TrainerPokemon { species_id: EXEGGUTOR, level: 41 },
+                TrainerPokemon { species_id: SLOWBRO, level: 41 },
+                TrainerPokemon { species_id: XATU, level: 42 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::EliteFourWill, name: "ELITE FOUR WILL", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
+}
+
+// ─── Elite Four Koga (10x10) ──────────────────────────────
+// Poison-type specialist. Second E4 member.
+
+fn build_elite_four_koga() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: door to next room
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,DOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 3: Koga's position
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 8: entrance
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EliteFourKoga tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EliteFourKoga collision count mismatch");
+
+    let warps = vec![
+        // Forward → Bruno's room
+        WarpData { x: 5, y: 1, dest_map: MapId::EliteFourBruno, dest_x: 5, dest_y: 7 },
+        // Back → Will's room
+        WarpData { x: 5, y: 8, dest_map: MapId::EliteFourWill, dest_x: 5, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Koga (E4 member, NPC index 0)
+        NpcDef {
+            x: 5, y: 3, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "ELITE FOUR KOGA",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ARIADOS, level: 40 },
+                TrainerPokemon { species_id: FORRETRESS, level: 43 },
+                TrainerPokemon { species_id: MUK, level: 42 },
+                TrainerPokemon { species_id: VENOMOTH, level: 41 },
+                TrainerPokemon { species_id: CROBAT, level: 44 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::EliteFourKoga, name: "ELITE FOUR KOGA", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
+}
+
+// ─── Elite Four Bruno (10x10) ──────────────────────────────
+// Fighting-type specialist. Third E4 member.
+
+fn build_elite_four_bruno() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,DOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EliteFourBruno tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EliteFourBruno collision count mismatch");
+
+    let warps = vec![
+        // Forward → Karen's room
+        WarpData { x: 5, y: 1, dest_map: MapId::EliteFourKaren, dest_x: 5, dest_y: 7 },
+        // Back → Koga's room
+        WarpData { x: 5, y: 8, dest_map: MapId::EliteFourKoga, dest_x: 5, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Bruno (E4 member, NPC index 0)
+        NpcDef {
+            x: 5, y: 3, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "ELITE FOUR BRUNO",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: HITMONTOP, level: 42 },
+                TrainerPokemon { species_id: HITMONLEE, level: 42 },
+                TrainerPokemon { species_id: HITMONCHAN, level: 42 },
+                TrainerPokemon { species_id: ONIX, level: 43 },
+                TrainerPokemon { species_id: MACHAMP, level: 46 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::EliteFourBruno, name: "ELITE FOUR BRUNO", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
+}
+
+// ─── Elite Four Karen (10x10) ──────────────────────────────
+// Dark-type specialist. Fourth E4 member.
+
+fn build_elite_four_karen() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,DOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "EliteFourKaren tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "EliteFourKaren collision count mismatch");
+
+    let warps = vec![
+        // Forward → Champion Lance's room
+        WarpData { x: 5, y: 1, dest_map: MapId::ChampionLance, dest_x: 5, dest_y: 7 },
+        // Back → Bruno's room
+        WarpData { x: 5, y: 8, dest_map: MapId::EliteFourBruno, dest_x: 5, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Karen (E4 member, NPC index 0)
+        NpcDef {
+            x: 5, y: 3, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "ELITE FOUR KAREN",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: UMBREON, level: 42 },
+                TrainerPokemon { species_id: VILEPLUME, level: 42 },
+                TrainerPokemon { species_id: GENGAR, level: 45 },
+                TrainerPokemon { species_id: MURKROW, level: 44 },
+                TrainerPokemon { species_id: HOUNDOOM, level: 47 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::EliteFourKaren, name: "ELITE FOUR KAREN", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
+}
+
+// ─── Champion Lance (10x10) ──────────────────────────────
+// Dragon-type Champion. Final battle of the Elite Four.
+
+fn build_champion_lance() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    let tiles: Vec<u8> = vec![
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "ChampionLance tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "ChampionLance collision count mismatch");
+
+    let warps = vec![
+        // Exit → back to Indigo Plateau (after winning, player is returned here)
+        WarpData { x: 5, y: 8, dest_map: MapId::IndigoPlateau, dest_x: 7, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // Lance (Champion, NPC index 0)
+        NpcDef {
+            x: 5, y: 2, sprite_id: 0, facing: Direction::Down,
+            dialogue: &[
+                "CHAMPION LANCE",
+                "wants to battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GYARADOS, level: 44 },
+                TrainerPokemon { species_id: DRAGONITE, level: 47 },
+                TrainerPokemon { species_id: DRAGONITE, level: 47 },
+                TrainerPokemon { species_id: AERODACTYL, level: 46 },
+                TrainerPokemon { species_id: CHARIZARD, level: 46 },
+                TrainerPokemon { species_id: DRAGONITE, level: 50 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::ChampionLance, name: "CHAMPION LANCE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
 }
 
 #[cfg(test)]
@@ -7043,6 +7644,13 @@ mod tests {
             MapId::Route46,
             MapId::Route27,
             MapId::Route26,
+            MapId::VictoryRoad,
+            MapId::IndigoPlateau,
+            MapId::EliteFourWill,
+            MapId::EliteFourKoga,
+            MapId::EliteFourBruno,
+            MapId::EliteFourKaren,
+            MapId::ChampionLance,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -7080,6 +7688,10 @@ mod tests {
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
             MapId::Route45, MapId::Route46,
             MapId::Route27, MapId::Route26,
+            MapId::VictoryRoad, MapId::IndigoPlateau,
+            MapId::EliteFourWill, MapId::EliteFourKoga,
+            MapId::EliteFourBruno, MapId::EliteFourKaren,
+            MapId::ChampionLance,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -7328,6 +7940,10 @@ mod tests {
             MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
             MapId::Route45, MapId::Route46,
             MapId::Route27, MapId::Route26,
+            MapId::VictoryRoad, MapId::IndigoPlateau,
+            MapId::EliteFourWill, MapId::EliteFourKoga,
+            MapId::EliteFourBruno, MapId::EliteFourKaren,
+            MapId::ChampionLance,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

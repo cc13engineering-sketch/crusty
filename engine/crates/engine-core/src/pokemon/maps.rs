@@ -3586,7 +3586,7 @@ fn build_goldenrod_city() -> MapData {
         },
         // Bike Shop owner (sign interaction)
         NpcDef {
-            x: 20, y: 15, sprite_id: 3, facing: Direction::Left,
+            x: 21, y: 15, sprite_id: 3, facing: Direction::Left,
             dialogue: &[
                 "I make BICYCLES.",
                 "Want one? Just take it!",
@@ -4955,11 +4955,11 @@ fn build_olivine_city() -> MapData {
             dialogue: &["OLIVINE CITY", "The Port of Crashing", "Waves"],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
-        NpcDef { x: 9, y: 14, sprite_id: 1, facing: Direction::Down,
+        NpcDef { x: 9, y: 13, sprite_id: 1, facing: Direction::Down,
             dialogue: &["The S.S. AQUA docks", "here. It sails to", "VERMILION CITY."],
             is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
         },
-        NpcDef { x: 2, y: 10, sprite_id: 3, facing: Direction::Right,
+        NpcDef { x: 4, y: 10, sprite_id: 3, facing: Direction::Right,
             dialogue: &["JASMINE is the GYM", "LEADER but she's at", "the LIGHTHOUSE now."],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -4967,7 +4967,7 @@ fn build_olivine_city() -> MapData {
             dialogue: &["I love fishing off", "the Olivine coast!"],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
-        NpcDef { x: 15, y: 4, sprite_id: 5, facing: Direction::Down,
+        NpcDef { x: 17, y: 4, sprite_id: 5, facing: Direction::Down,
             dialogue: &["Welcome to the", "OLIVINE MART!"],
             is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
         },
@@ -5326,9 +5326,9 @@ mod tests {
                 let idx = ny * map.width + nx;
                 let coll = map.collision[idx];
                 assert!(
-                    coll == C_WALK || coll == C_COUNTER,
-                    "NPC #{} in {:?} at ({},{}) on collision {} — expected C_WALK(0) or C_COUNTER(6).",
-                    ni, map_id, coll, nx, ny
+                    coll == C_WALK || coll == C_COUNTER || coll == C_TALL,
+                    "NPC #{} in {:?} at ({},{}) on collision {} — expected C_WALK(0), C_TALL(2), or C_COUNTER(6).",
+                    ni, map_id, nx, ny, coll
                 );
             }
         }
@@ -5536,5 +5536,54 @@ mod tests {
     fn test_cherrygrove_has_route30_warp() {
         let map = load_map(MapId::CherrygroveCity);
         assert!(map.warps.iter().any(|w| w.dest_map == MapId::Route30));
+    }
+
+    /// Phase 0B (GUIDE.md): every warp destination must land on C_WALK.
+    /// Destinations on C_WARP cause immediate re-warp loops.
+    /// Destinations on C_SOLID/C_WATER trap the player.
+    #[test]
+    fn test_all_warps_valid() {
+        let all_maps = vec![
+            MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
+            MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
+            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
+            MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
+            MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
+            MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
+            MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
+            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
+            MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
+            MapId::OlivineLighthouse,
+        ];
+        let mut errors = Vec::new();
+        for &src_id in &all_maps {
+            let src = load_map(src_id);
+            for (wi, warp) in src.warps.iter().enumerate() {
+                let dest = load_map(warp.dest_map);
+                let dx = warp.dest_x as usize;
+                let dy = warp.dest_y as usize;
+                if dx >= dest.width || dy >= dest.height {
+                    errors.push(format!(
+                        "{:?} warp #{} → {:?} ({},{}) — OUT OF BOUNDS (map {}x{})",
+                        src_id, wi, warp.dest_map, dx, dy, dest.width, dest.height
+                    ));
+                    continue;
+                }
+                let coll = dest.collision[dy * dest.width + dx];
+                if coll != C_WALK {
+                    let name = match coll {
+                        C_SOLID => "C_SOLID", C_TALL => "C_TALL",
+                        C_WATER => "C_WATER", C_WARP => "C_WARP",
+                        C_LEDGE => "C_LEDGE", C_COUNTER => "C_COUNTER",
+                        C_SIGN => "C_SIGN", _ => "UNKNOWN",
+                    };
+                    errors.push(format!(
+                        "{:?} warp #{} → {:?} ({},{}) — lands on {} (expected C_WALK)",
+                        src_id, wi, warp.dest_map, dx, dy, name
+                    ));
+                }
+            }
+        }
+        assert!(errors.is_empty(), "Warp validation failures:\n{}", errors.join("\n"));
     }
 }

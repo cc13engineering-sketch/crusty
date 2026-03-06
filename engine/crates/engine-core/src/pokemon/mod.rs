@@ -125,6 +125,7 @@ enum GamePhase {
     PCMenu { mode: u8, cursor: u8 }, // mode: 0=select, 1=withdraw, 2=deposit
     Healing { timer: f64 },
     Evolution { timer: f64, new_species: SpeciesId },
+    TrainerApproach { npc_idx: u8, timer: f64 },
 }
 
 // ─── Battle Phase ───────────────────────────────────────
@@ -288,6 +289,11 @@ pub struct PokemonSim {
     last_house_map: MapId, // tracks which city's generic house door to exit to
     rival_starter: SpeciesId, // rival picks type-advantaged starter
     rival_battle_done: bool,
+    // Trainer approach state: trainer walks toward player before battle
+    approach_npc_x: i32,
+    approach_npc_y: i32,
+    approach_walk_offset: f64,
+    approach_exclaim_timer: f64,
 }
 
 impl PokemonSim {
@@ -342,6 +348,10 @@ impl PokemonSim {
             last_house_map: MapId::NewBarkTown,
             rival_starter: 0, // set when player picks starter
             rival_battle_done: false,
+            approach_npc_x: 0,
+            approach_npc_y: 0,
+            approach_walk_offset: 0.0,
+            approach_exclaim_timer: 0.0,
         }
     }
 
@@ -589,17 +599,13 @@ impl PokemonSim {
                             }
                         }
                         if in_sight {
-                            // Trainer spotted player! Start battle.
-                            let team: Vec<(SpeciesId, u8)> = npc.trainer_team
-                                .iter().map(|tp| (tp.species_id, tp.level)).collect();
-                            let lines: Vec<String> = npc.dialogue.iter().map(|s| s.to_string()).collect();
+                            // Trainer spotted player! Start approach sequence.
                             self.trainer_battle_npc = Some(key);
-                            self.dialogue = Some(DialogueState {
-                                lines, current_line: 0, char_index: 0, timer: 0.0,
-                                on_complete: DialogueAction::StartTrainerBattle { team },
-                            });
-                            self.phase = GamePhase::Dialogue;
-                            self.battle = None; // ensure clean state
+                            self.approach_npc_x = npc.x as i32;
+                            self.approach_npc_y = npc.y as i32;
+                            self.approach_walk_offset = 0.0;
+                            self.approach_exclaim_timer = 0.0;
+                            self.phase = GamePhase::TrainerApproach { npc_idx: npc_idx as u8, timer: 0.0 };
                             return;
                         }
                     }
@@ -2161,6 +2167,89 @@ impl PokemonSim {
         draw_text_pkmn(fb, ctx, time_str, 126, 2, Color::from_rgba(200, 200, 220, 150));
     }
 
+    fn render_overworld_with_approach(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, approach_npc_idx: u8) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        let scale = ctx.scale;
+
+        fb.clear(Color::from_rgba(8, 8, 16, 255));
+
+        let cam_x = self.camera_x;
+        let cam_y = self.camera_y;
+
+        let stx = (cam_x / TILE_PX as f64).floor() as i32;
+        let sty = (cam_y / TILE_PX as f64).floor() as i32;
+        let etx = stx + VIEW_TILES_X + 2;
+        let ety = sty + VIEW_TILES_Y + 2;
+
+        // Draw tiles
+        for ty in sty..ety {
+            for tx in stx..etx {
+                if tx < 0 || ty < 0 || tx as usize >= self.current_map.width || ty as usize >= self.current_map.height { continue; }
+                let tile_id = self.current_map.tiles[ty as usize * self.current_map.width + tx as usize];
+                let actual_id = if tile_id == 5 && self.water_frame == 1 { 6 } else { tile_id };
+                let sx = (tx as f64 * TILE_PX as f64 - cam_x) as i32;
+                let sy = (ty as f64 * TILE_PX as f64 - cam_y) as i32;
+                let (fbx, fby) = ctx.to_fb(sx, sy);
+                if let Some(sd) = self.tile_cache.get(actual_id as usize) {
+                    draw_sprite(fb, sd, TILE_W, TILE_H, fbx, fby, scale, tile_palette(tile_id));
+                }
+            }
+        }
+
+        // NPCs — draw approaching NPC at animated position
+        for (idx, npc) in self.current_map.npcs.iter().enumerate() {
+            let (npc_px, npc_py) = if idx == approach_npc_idx as usize {
+                // Use approach position with walk offset
+                let npc_def = &self.current_map.npcs[idx];
+                let (dx, dy) = match npc_def.facing {
+                    Direction::Up => (0.0, -self.approach_walk_offset * TILE_PX as f64),
+                    Direction::Down => (0.0, self.approach_walk_offset * TILE_PX as f64),
+                    Direction::Left => (-self.approach_walk_offset * TILE_PX as f64, 0.0),
+                    Direction::Right => (self.approach_walk_offset * TILE_PX as f64, 0.0),
+                };
+                (self.approach_npc_x as f64 * TILE_PX as f64 + dx,
+                 self.approach_npc_y as f64 * TILE_PX as f64 + dy)
+            } else {
+                (npc.x as f64 * TILE_PX as f64, npc.y as f64 * TILE_PX as f64)
+            };
+            let sx = (npc_px - cam_x) as i32;
+            let sy = (npc_py - cam_y) as i32;
+            let (fx, fy) = ctx.to_fb(sx, sy);
+            if let Some(sd) = self.npc_sprite_cache.get(npc.sprite_id as usize) {
+                draw_sprite(fb, sd, NPC_W, NPC_H, fx, fy, scale, npc_palette(npc.sprite_id));
+            }
+
+            // Draw "!" exclamation above approaching NPC
+            if idx == approach_npc_idx as usize && self.approach_exclaim_timer > 0.0 {
+                let ex = fx + (NPC_W as i32 * scale as i32 / 2) - 2;
+                let ey = fy - 6 * scale as i32;
+                draw_text_pkmn(fb, ctx, "!", (ex / scale as i32) as i32, (ey / scale as i32) as i32, Color::from_rgba(255, 50, 50, 255));
+            }
+        }
+
+        // Player
+        let ppx = self.player.x as f64 * TILE_PX as f64;
+        let ppy = self.player.y as f64 * TILE_PX as f64;
+        let psx = (ppx - cam_x) as i32;
+        let psy = (ppy - cam_y) as i32;
+        let (pfx, pfy) = ctx.to_fb(psx, psy);
+        let dir_off = match self.player.facing {
+            Direction::Down => 0, Direction::Up => 3, Direction::Left => 6, Direction::Right => 9,
+        };
+        let si = dir_off + 1; // Standing frame
+        if let Some(sd) = self.player_sprite_cache.get(si) {
+            draw_sprite(fb, sd, PLAYER_W, PLAYER_H, pfx, pfy, scale, &PAL_PLAYER);
+        }
+
+        // Day/night tint
+        if self.day_night_tint > 0.01 {
+            let a = (self.day_night_tint * 180.0).min(180.0) as u8;
+            fill_virtual_screen(fb, ctx, Color::from_rgba(16, 16, 64, a));
+        }
+
+        draw_text_pkmn(fb, ctx, self.current_map.name, 4, 2, Color::from_rgba(248, 248, 248, 200));
+    }
+
     fn render_battle(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
         let ctx = match &self.ctx { Some(c) => c, None => return };
         let battle = match &self.battle { Some(b) => b, None => return };
@@ -3346,6 +3435,55 @@ impl Simulation for PokemonSim {
                 }
             }
 
+            GamePhase::TrainerApproach { npc_idx, timer } => {
+                let dt = 1.0 / 60.0;
+                let t = timer + dt;
+                // Phase 1: "!" exclamation for 0.5 seconds
+                if t < 0.5 {
+                    self.approach_exclaim_timer = t;
+                    self.phase = GamePhase::TrainerApproach { npc_idx, timer: t };
+                } else {
+                    // Phase 2: walk toward player one tile at a time
+                    self.approach_exclaim_timer = 0.0;
+                    let npc = &self.current_map.npcs[npc_idx as usize];
+                    let tx = self.approach_npc_x;
+                    let ty = self.approach_npc_y;
+                    let px = self.player.x;
+                    let py = self.player.y;
+                    let dist_x = (px - tx).abs();
+                    let dist_y = (py - ty).abs();
+                    let adjacent = (dist_x + dist_y) <= 1;
+                    if adjacent {
+                        // Trainer is next to player — start dialogue + battle
+                        let team: Vec<(SpeciesId, u8)> = npc.trainer_team
+                            .iter().map(|tp| (tp.species_id, tp.level)).collect();
+                        let lines: Vec<String> = npc.dialogue.iter().map(|s| s.to_string()).collect();
+                        self.dialogue = Some(DialogueState {
+                            lines, current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::StartTrainerBattle { team },
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        self.battle = None;
+                    } else {
+                        // Walk one tile closer to the player
+                        self.approach_walk_offset += 1.0 / WALK_SPEED;
+                        if self.approach_walk_offset >= 1.0 {
+                            self.approach_walk_offset = 0.0;
+                            // Move one tile toward the player (along the facing direction)
+                            let (dx, dy) = match npc.facing {
+                                Direction::Up => (0i32, -1i32),
+                                Direction::Down => (0, 1),
+                                Direction::Left => (-1, 0),
+                                Direction::Right => (1, 0),
+                            };
+                            self.approach_npc_x += dx;
+                            self.approach_npc_y += dy;
+                        }
+                        self.phase = GamePhase::TrainerApproach { npc_idx, timer: t };
+                    }
+                }
+            }
+
             GamePhase::Evolution { timer, new_species } => {
                 let dt = 1.0 / 60.0;
                 let t = timer + dt;
@@ -3415,6 +3553,10 @@ impl Simulation for PokemonSim {
             GamePhase::PokemonSummary { index } => self.render_pokemon_summary(fb, *index),
             GamePhase::Pokedex { cursor, scroll } => self.render_pokedex(fb, *cursor, *scroll),
             GamePhase::PCMenu { mode, cursor } => self.render_pc_menu(fb, *mode, *cursor),
+            GamePhase::TrainerApproach { npc_idx, .. } => {
+                // Render overworld, then draw "!" above approaching trainer
+                self.render_overworld_with_approach(fb, *npc_idx);
+            }
         }
 
         // Screen flash overlay (white flash for attacks)

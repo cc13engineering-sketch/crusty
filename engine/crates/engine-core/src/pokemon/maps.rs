@@ -49,6 +49,15 @@ const SUDOWOODO: u16 = 185;
 const RATICATE: u16 = 20;
 const MAGMAR: u16 = 126;
 const KOFFING: u16 = 109;
+const PIDGEOTTO: u16 = 17;
+const TAUROS: u16 = 128;
+const MAGNEMITE: u16 = 81;
+const FARFETCHD: u16 = 83;
+const NOCTOWL: u16 = 164;
+const DODUO: u16 = 84;
+const FLAAFFY: u16 = 180;
+const PSYDUCK: u16 = 54;
+const SKIPLOOM: u16 = 188;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -120,6 +129,10 @@ pub enum MapId {
     EcruteakCity,
     BurnedTower,
     EcruteakGym,
+    Route38,
+    Route39,
+    OlivineCity,
+    OlivineGym,
 }
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -241,6 +254,10 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::EcruteakCity => build_ecruteak_city(),
         MapId::BurnedTower => build_burned_tower(),
         MapId::EcruteakGym => build_ecruteak_gym(),
+        MapId::Route38 => build_route_38(),
+        MapId::Route39 => build_route_39(),
+        MapId::OlivineCity => build_olivine_city(),
+        MapId::OlivineGym => build_olivine_gym(),
     }
 }
 
@@ -4373,11 +4390,11 @@ fn build_ecruteak_city() -> MapData {
         WarpData { x: 0, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
         WarpData { x: 1, y: 8, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
         WarpData { x: 1, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
-        // East exit → placeholder self-loop (Route 38 future)
-        WarpData { x: 18, y: 8, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 8 },
-        WarpData { x: 18, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
-        WarpData { x: 19, y: 8, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 8 },
-        WarpData { x: 19, y: 9, dest_map: MapId::EcruteakCity, dest_x: 17, dest_y: 9 },
+        // East exit → Route 38
+        WarpData { x: 18, y: 8, dest_map: MapId::Route38, dest_x: 1, dest_y: 4 },
+        WarpData { x: 18, y: 9, dest_map: MapId::Route38, dest_x: 1, dest_y: 5 },
+        WarpData { x: 19, y: 8, dest_map: MapId::Route38, dest_x: 1, dest_y: 4 },
+        WarpData { x: 19, y: 9, dest_map: MapId::Route38, dest_x: 1, dest_y: 5 },
         // Burned Tower entrance (4,4) — land one tile above exit warp
         WarpData { x: 4, y: 4, dest_map: MapId::BurnedTower, dest_x: 7, dest_y: 11 },
         // Ecruteak Gym entrance (13,4) — land one tile above exit warp

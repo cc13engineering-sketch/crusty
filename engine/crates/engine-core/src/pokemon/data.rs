@@ -110,6 +110,22 @@ pub const JOLTEON: SpeciesId = 135;
 pub const FLAREON: SpeciesId = 136;
 pub const ESPEON: SpeciesId = 196;
 pub const UMBREON: SpeciesId = 197;
+// ─── Route 38-39 / Olivine species ──────────────────────
+pub const PIDGEOTTO: SpeciesId = 17;
+pub const NOCTOWL: SpeciesId = 164;
+pub const FARFETCHD: SpeciesId = 83;
+pub const TAUROS: SpeciesId = 128;
+pub const MAGNEMITE: SpeciesId = 81;
+pub const DODUO: SpeciesId = 84;
+pub const FLAAFFY: SpeciesId = 180;
+pub const PSYDUCK: SpeciesId = 54;
+pub const MR_MIME: SpeciesId = 122;
+pub const SKIPLOOM: SpeciesId = 188;
+pub const CORSOLA: SpeciesId = 222;
+pub const SLOWPOKE: SpeciesId = 79;
+pub const PIKACHU: SpeciesId = 25;
+pub const POLIWHIRL: SpeciesId = 61;
+pub const KRABBY: SpeciesId = 98;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -193,6 +209,24 @@ pub const MOVE_SELF_DESTRUCT: MoveId = 120;
 pub const MOVE_HAZE: MoveId = 114;
 pub const MOVE_PURSUIT: MoveId = 228;
 pub const MOVE_FIRE_PUNCH: MoveId = 7;
+// ─── Route 38-39 / Olivine moves ────────────────────────
+pub const MOVE_THUNDER_WAVE: MoveId = 86;
+pub const MOVE_BUBBLE: MoveId = 145;
+pub const MOVE_HARDEN: MoveId = 106;
+pub const MOVE_BARRIER: MoveId = 112;
+pub const MOVE_MEDITATE: MoveId = 96;
+pub const MOVE_VICEGRIP: MoveId = 11;
+pub const MOVE_DOUBLE_TEAM: MoveId = 104;
+pub const MOVE_RECOVER: MoveId = 105;
+pub const MOVE_SWORDS_DANCE: MoveId = 14;
+pub const MOVE_WHIRLWIND: MoveId = 18;
+pub const MOVE_WING_ATTACK: MoveId = 17;
+pub const MOVE_TRI_ATTACK: MoveId = 161;
+pub const MOVE_DRILL_PECK: MoveId = 65;
+pub const MOVE_BUBBLEBEAM: MoveId = 61;
+pub const MOVE_THUNDERBOLT: MoveId = 85;
+pub const MOVE_FAINT_ATTACK: MoveId = 185;
+pub const MOVE_PAY_DAY: MoveId = 6;
 
 /// Static species data
 #[derive(Debug)]
@@ -726,6 +760,142 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (8, MOVE_SAND_ATTACK), (16, MOVE_PURSUIT), (23, MOVE_QUICK_ATTACK), (30, MOVE_CONFUSE_RAY)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Route 38-39 / Olivine species ──────────────────────
+    SpeciesData {
+        id: PIDGEOTTO, name: "Pidgeotto",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 63, base_attack: 60, base_defense: 55,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 71,
+        catch_rate: 120, base_exp_yield: 113, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SAND_ATTACK), (1, MOVE_GUST), (5, MOVE_SAND_ATTACK), (9, MOVE_GUST), (15, MOVE_QUICK_ATTACK), (23, MOVE_WHIRLWIND), (33, MOVE_WING_ATTACK)],
+        evolution_level: Some(36), evolution_into: None,
+    },
+    SpeciesData {
+        id: NOCTOWL, name: "Noctowl",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 100, base_attack: 50, base_defense: 50,
+        base_sp_attack: 86, base_sp_defense: 96, base_speed: 70,
+        catch_rate: 90, base_exp_yield: 162, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_FORESIGHT), (1, MOVE_PECK), (6, MOVE_FORESIGHT), (11, MOVE_PECK), (16, MOVE_HYPNOSIS), (25, MOVE_CONFUSION)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: FARFETCHD, name: "Farfetch'd",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 52, base_attack: 65, base_defense: 55,
+        base_sp_attack: 58, base_sp_defense: 62, base_speed: 60,
+        catch_rate: 45, base_exp_yield: 94, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (7, MOVE_SAND_ATTACK), (13, MOVE_LEER), (19, MOVE_FURY_ATTACK), (25, MOVE_SWORDS_DANCE)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: TAUROS, name: "Tauros",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 75, base_attack: 100, base_defense: 95,
+        base_sp_attack: 40, base_sp_defense: 70, base_speed: 110,
+        catch_rate: 45, base_exp_yield: 211, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_TACKLE), (4, MOVE_TAIL_WHIP), (8, MOVE_RAGE), (13, MOVE_HORN_ATTACK), (19, MOVE_SCARY_FACE), (26, MOVE_PURSUIT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: MAGNEMITE, name: "Magnemite",
+        type1: PokemonType::Electric, type2: Some(PokemonType::Steel),
+        base_hp: 25, base_attack: 35, base_defense: 70,
+        base_sp_attack: 95, base_sp_defense: 55, base_speed: 45,
+        catch_rate: 190, base_exp_yield: 89, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (6, MOVE_THUNDER_SHOCK), (11, MOVE_SUPERSONIC), (16, MOVE_SONIC_BOOM), (21, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
+        evolution_level: Some(30), evolution_into: None,
+    },
+    SpeciesData {
+        id: DODUO, name: "Doduo",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 35, base_attack: 85, base_defense: 45,
+        base_sp_attack: 35, base_sp_defense: 35, base_speed: 75,
+        catch_rate: 190, base_exp_yield: 96, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_PECK), (1, MOVE_GROWL), (9, MOVE_PURSUIT), (13, MOVE_FURY_ATTACK), (21, MOVE_TRI_ATTACK), (25, MOVE_RAGE)],
+        evolution_level: Some(31), evolution_into: None,
+    },
+    SpeciesData {
+        id: FLAAFFY, name: "Flaaffy",
+        type1: PokemonType::Electric, type2: None,
+        base_hp: 70, base_attack: 55, base_defense: 55,
+        base_sp_attack: 80, base_sp_defense: 60, base_speed: 45,
+        catch_rate: 120, base_exp_yield: 117, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_THUNDER_SHOCK), (9, MOVE_THUNDER_SHOCK), (18, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
+        evolution_level: Some(30), evolution_into: None,
+    },
+    SpeciesData {
+        id: PSYDUCK, name: "Psyduck",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 50, base_attack: 52, base_defense: 48,
+        base_sp_attack: 65, base_sp_defense: 50, base_speed: 55,
+        catch_rate: 190, base_exp_yield: 80, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (5, MOVE_TAIL_WHIP), (10, MOVE_DISABLE), (16, MOVE_CONFUSION), (23, MOVE_FURY_SWIPES)],
+        evolution_level: Some(33), evolution_into: None,
+    },
+    SpeciesData {
+        id: MR_MIME, name: "Mr. Mime",
+        type1: PokemonType::Psychic, type2: None,
+        base_hp: 40, base_attack: 45, base_defense: 65,
+        base_sp_attack: 100, base_sp_defense: 120, base_speed: 90,
+        catch_rate: 45, base_exp_yield: 136, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BARRIER), (6, MOVE_CONFUSION), (11, MOVE_MEDITATE), (16, MOVE_DOUBLESLAP), (21, MOVE_PSYBEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SKIPLOOM, name: "Skiploom",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Flying),
+        base_hp: 55, base_attack: 45, base_defense: 50,
+        base_sp_attack: 45, base_sp_defense: 65, base_speed: 80,
+        catch_rate: 120, base_exp_yield: 136, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_SPLASH), (1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (10, MOVE_TACKLE), (13, MOVE_POISON_POWDER), (15, MOVE_STUN_SPORE), (17, MOVE_SLEEP_POWDER)],
+        evolution_level: Some(27), evolution_into: None,
+    },
+    SpeciesData {
+        id: CORSOLA, name: "Corsola",
+        type1: PokemonType::Water, type2: Some(PokemonType::Rock),
+        base_hp: 65, base_attack: 55, base_defense: 95,
+        base_sp_attack: 65, base_sp_defense: 95, base_speed: 35,
+        catch_rate: 60, base_exp_yield: 113, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_TACKLE), (7, MOVE_HARDEN), (13, MOVE_BUBBLE), (19, MOVE_RECOVER), (25, MOVE_BUBBLEBEAM)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SLOWPOKE, name: "Slowpoke",
+        type1: PokemonType::Water, type2: Some(PokemonType::Psychic),
+        base_hp: 90, base_attack: 65, base_defense: 65,
+        base_sp_attack: 40, base_sp_defense: 40, base_speed: 15,
+        catch_rate: 190, base_exp_yield: 99, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_CURSE), (1, MOVE_TACKLE), (6, MOVE_GROWL), (15, MOVE_WATER_GUN), (20, MOVE_CONFUSION)],
+        evolution_level: Some(37), evolution_into: None,
+    },
+    SpeciesData {
+        id: PIKACHU, name: "Pikachu",
+        type1: PokemonType::Electric, type2: None,
+        base_hp: 35, base_attack: 55, base_defense: 40,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 90,
+        catch_rate: 190, base_exp_yield: 82, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_THUNDER_SHOCK), (1, MOVE_GROWL), (6, MOVE_TAIL_WHIP), (8, MOVE_THUNDER_WAVE), (11, MOVE_QUICK_ATTACK), (15, MOVE_DOUBLE_TEAM), (20, MOVE_SLAM), (26, MOVE_THUNDERBOLT)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: POLIWHIRL, name: "Poliwhirl",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 65, base_attack: 65, base_defense: 65,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 90,
+        catch_rate: 120, base_exp_yield: 131, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_BUBBLE), (1, MOVE_HYPNOSIS), (1, MOVE_WATER_GUN), (7, MOVE_HYPNOSIS), (13, MOVE_WATER_GUN), (19, MOVE_DOUBLESLAP)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: KRABBY, name: "Krabby",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 30, base_attack: 105, base_defense: 90,
+        base_sp_attack: 25, base_sp_defense: 25, base_speed: 50,
+        catch_rate: 225, base_exp_yield: 115, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BUBBLE), (5, MOVE_LEER), (12, MOVE_VICEGRIP), (16, MOVE_HARDEN), (23, MOVE_STOMP)],
+        evolution_level: Some(28), evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -814,6 +984,24 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_HAZE, name: "Haze", move_type: PokemonType::Ice, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Resets all stat changes." },
     MoveData { id: MOVE_PURSUIT, name: "Pursuit", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 20, description: "Hits hard on switch-out." },
     MoveData { id: MOVE_FIRE_PUNCH, name: "Fire Punch", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 75, accuracy: 100, pp: 15, description: "May burn the foe." },
+    // ─── Route 38-39 / Olivine moves ────────────────────────
+    MoveData { id: MOVE_THUNDER_WAVE, name: "Thunder Wave", move_type: PokemonType::Electric, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "May paralyze the foe." },
+    MoveData { id: MOVE_BUBBLE, name: "Bubble", move_type: PokemonType::Water, category: MoveCategory::Special, power: 20, accuracy: 100, pp: 30, description: "May lower the foe's Speed." },
+    MoveData { id: MOVE_HARDEN, name: "Harden", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Raises the user's Defense." },
+    MoveData { id: MOVE_BARRIER, name: "Barrier", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Sharply raises Defense." },
+    MoveData { id: MOVE_MEDITATE, name: "Meditate", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Raises the user's Attack." },
+    MoveData { id: MOVE_VICEGRIP, name: "ViceGrip", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 55, accuracy: 100, pp: 30, description: "Grips with large pincers." },
+    MoveData { id: MOVE_DOUBLE_TEAM, name: "Double Team", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 15, description: "Raises the user's evasion." },
+    MoveData { id: MOVE_RECOVER, name: "Recover", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Restores half max HP." },
+    MoveData { id: MOVE_SWORDS_DANCE, name: "Swords Dance", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Sharply raises Attack." },
+    MoveData { id: MOVE_WHIRLWIND, name: "Whirlwind", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Blows away the foe in wild." },
+    MoveData { id: MOVE_WING_ATTACK, name: "Wing Attack", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 35, description: "Strikes with spread wings." },
+    MoveData { id: MOVE_TRI_ATTACK, name: "Tri Attack", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 10, description: "May paralyze, burn, or freeze." },
+    MoveData { id: MOVE_DRILL_PECK, name: "Drill Peck", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 80, accuracy: 100, pp: 20, description: "A spiraling, drilling peck." },
+    MoveData { id: MOVE_BUBBLEBEAM, name: "BubbleBeam", move_type: PokemonType::Water, category: MoveCategory::Special, power: 65, accuracy: 100, pp: 20, description: "May lower the foe's Speed." },
+    MoveData { id: MOVE_THUNDERBOLT, name: "Thunderbolt", move_type: PokemonType::Electric, category: MoveCategory::Special, power: 95, accuracy: 100, pp: 15, description: "May paralyze the foe." },
+    MoveData { id: MOVE_FAINT_ATTACK, name: "Faint Attack", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 20, description: "Never misses the foe." },
+    MoveData { id: MOVE_PAY_DAY, name: "Pay Day", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 20, description: "Scatters coins after battle." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

@@ -1246,4 +1246,12 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Gym leader LOS fix**: Gym leaders (NPC 0 in all 8 gym maps) no longer trigger line-of-sight approach. They battle only when talked to, matching original behavior. Regular gym trainers still have 5-tile LOS.
 - Stat change text (#18, #19) verified already implemented: "sharply rose/fell" for +/-2 stages, "won't go higher/lower" at +/-6.
 - All 1305 tests pass.
-- **Next (Sprint 80)**: Evolution sequence (#41-45), badge acquisition screen (#54)
+- **Next (Sprint 80)**: Evolution sequence, badge screen, catch shake
+
+### Sprint 80 (UX Polish — Evolution, Badges, Catch Shakes)
+- **Evolution cancel (#44)**: B button during flash phase cancels evolution with "Huh? X stopped evolving!" text
+- **Evolution completion text (#43)**: "Congratulations! X evolved into Y!" dialogue after evolution completes (was silent)
+- **Badge screen (#54)**: Per-badge effect text (Attack up, Speed up, obey levels). Badge count display. Screen flash celebration.
+- **Catch ball shakes (#47)**: 0-3 shake checks with Gen 2 flavor text ("Almost had it!", "Appeared to be caught!"). "Wobble..." text for tension.
+- All 1305 tests pass.
+- **Next (Sprint 81 QA)**: Full audit

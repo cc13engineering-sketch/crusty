@@ -3186,10 +3186,24 @@ impl PokemonSim {
                         7 => "RISING BADGE",
                         _ => "BADGE",
                     };
+                    let badge_effect = match badge_num {
+                        0 => "Attack power increases!",
+                        1 => "Pokemon up to LV 30 obey!",
+                        2 => "Speed increases!",
+                        3 => "Pokemon up to LV 50 obey!",
+                        4 => "Defense increases!",
+                        5 => "Pokemon up to LV 70 obey!",
+                        6 => "Sp. Atk increases!",
+                        7 => "All Pokemon will obey!",
+                        _ => "",
+                    };
+                    self.screen_flash = 1.0; // celebration flash
+                    let badge_count = self.badges.count_ones();
                     self.dialogue = Some(DialogueState {
                         lines: vec![
                             format!("Received the {}!", badge_name),
-                            "Pokemon up to LV 20 will obey!".to_string(),
+                            badge_effect.to_string(),
+                            format!("Badges: {}/8", badge_count),
                         ],
                         current_line: 0, char_index: 0, timer: 0.0,
                         on_complete: DialogueAction::None,
@@ -4527,8 +4541,24 @@ impl PokemonSim {
         let rate = ((3.0 * max_hp - 2.0 * cur_hp) * catch_rate * ball_mult * status_mult) / (3.0 * max_hp);
         let shake_prob = (rate / 255.0).min(1.0);
 
-        let r = engine.rng.next_f64();
-        let caught = r < shake_prob;
+        // Calculate number of shakes (0-3) before catching or breaking free
+        // Each shake is an independent check against shake_prob
+        let mut shakes = 0u8;
+        for _ in 0..3 {
+            if engine.rng.next_f64() < shake_prob {
+                shakes += 1;
+            } else {
+                break;
+            }
+        }
+        let caught = shakes == 3;
+
+        let shake_text = match shakes {
+            0 => "Oh no! It broke free!",
+            1 => "Aww! It appeared to be caught!",
+            2 => "Aargh! Almost had it!",
+            _ => "", // 3 = caught
+        };
 
         if caught {
             sfx_catch(engine);
@@ -4539,6 +4569,7 @@ impl PokemonSim {
                 self.dialogue = Some(DialogueState {
                     lines: vec![
                         format!("You threw a {}!", ball_name),
+                        "Wobble... Wobble... Wobble...".to_string(),
                         format!("Gotcha! {} was caught!", enemy_name),
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
@@ -4560,10 +4591,20 @@ impl PokemonSim {
             self.battle = None;
             self.phase = GamePhase::Dialogue;
         } else {
-            // Failed catch - enemy gets a turn
+            // Failed catch — show shakes then enemy gets a turn
+            let wobbles = match shakes {
+                1 => "Wobble...".to_string(),
+                2 => "Wobble... Wobble...".to_string(),
+                _ => String::new(),
+            };
             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+            let mut lines = vec![format!("You threw a {}!", ball_name)];
+            if !wobbles.is_empty() { lines.push(wobbles); }
+            lines.push(shake_text.to_string());
+            // Show as sequential text phases
+            let msg = lines.join("\n");
             battle.phase = BattlePhase::Text {
-                message: format!("You threw a {}!\nOh no! It broke free!", ball_name),
+                message: msg,
                 timer: 0.0,
                 next_phase: Box::new(BattlePhase::EnemyAttack {
                     timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
@@ -5406,7 +5447,7 @@ impl Simulation for PokemonSim {
             GamePhase::Evolution { timer, new_species } => {
                 let dt = 1.0 / 60.0;
                 let t = timer + dt;
-                // Flash during evolution
+                // Flash during evolution animation (first 2 seconds)
                 if t < 2.0 {
                     let flash_cycle = (t * 6.0) as u32;
                     self.screen_flash = if flash_cycle % 2 == 0 { 0.8 } else { 0.0 };
@@ -5414,19 +5455,48 @@ impl Simulation for PokemonSim {
                     self.screen_flash = 0.0;
                 }
 
-                if t > 3.0 || (t > 1.5 && is_confirm(engine)) {
-                    // Apply evolution to the Pokemon that triggered it
-                    // Find the party member with the pre-evolution species
+                // Cancel evolution with B button during flash phase
+                if t < 2.0 && is_cancel(engine) {
+                    self.screen_flash = 0.0;
+                    // Find the pokemon that would evolve
+                    let evo_idx = self.party.iter().position(|p| {
+                        get_species(p.species_id).and_then(|s| s.evolution_into).map(|e| e == new_species).unwrap_or(false)
+                    }).unwrap_or(0);
+                    let name = self.party.get(evo_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            format!("Huh? {} stopped", name),
+                            "evolving!".to_string(),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else if t > 3.0 || (t > 2.0 && is_confirm(engine)) {
+                    // Apply evolution
                     let evo_idx = self.party.iter().position(|p| {
                         get_species(p.species_id).and_then(|s| s.evolution_into).map(|e| e == new_species).unwrap_or(false)
                     }).unwrap_or(0);
                     if let Some(p) = self.party.get_mut(evo_idx) {
+                        let old_name = p.name().to_string();
                         p.species_id = new_species;
                         p.recalc_stats();
                         self.register_caught(new_species);
+                        let new_name = get_species(new_species).map(|s| s.name).unwrap_or("???");
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                format!("Congratulations!"),
+                                format!("{} evolved into", old_name),
+                                format!("{}!", new_name),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                    } else {
+                        self.phase = GamePhase::Overworld;
                     }
                     self.screen_flash = 0.0;
-                    self.phase = GamePhase::Overworld;
                 } else {
                     self.phase = GamePhase::Evolution { timer: t, new_species };
                 }

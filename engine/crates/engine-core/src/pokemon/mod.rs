@@ -15,6 +15,8 @@
 // Fishing: face water tile + A → 70% bite (dialogue → StartFishBattle), 30% miss. water_encounters on MapData.
 // NPC wandering: wanders flag + npc_wander_timer, random step every 2s with collision check.
 // is_npc_active(idx): flag-based NPC filtering (collision, interaction, LOS, rendering).
+// Party management: PokemonMenu has action states: 0=browse, 1=sub-menu (SUMMARY/SWAP/CANCEL), 2=swap mode.
+// Swap mode: select source, then target, party.swap(src,dst). Battle player_idx tracked through swaps.
 
 pub mod data;
 pub mod sprites;
@@ -141,7 +143,7 @@ enum GamePhase {
     Battle,
     Dialogue,
     Menu,
-    PokemonMenu { cursor: u8 },
+    PokemonMenu { cursor: u8, action: u8, sub_cursor: u8 },
     BagMenu { cursor: u8 },
     BagUseItem { item_id: u8, target_cursor: u8 },
     PokeMart { cursor: u8 },
@@ -384,6 +386,8 @@ pub struct PokemonSim {
     // Bicycle: obtained from Bike Shop in Goldenrod, doubles movement speed
     has_bicycle: bool,
     on_bicycle: bool,
+    // Party swap: source index for swap mode in PokemonMenu
+    swap_source: u8,
     // Save system
     needs_save: bool,
     last_rng_state: u64,
@@ -473,6 +477,7 @@ impl PokemonSim {
             npc_wander_timer: 0.0,
             has_bicycle: false,
             on_bicycle: false,
+            swap_source: 0,
             needs_save: false,
             last_rng_state: 0,
             has_save: false,
@@ -2032,7 +2037,7 @@ impl PokemonSim {
                         }
                         2 => {
                             self.battle = Some(battle);
-                            self.phase = GamePhase::PokemonMenu { cursor: 0 };
+                            self.phase = GamePhase::PokemonMenu { cursor: 0, action: 0, sub_cursor: 0 };
                             return;
                         }
                         3 => {
@@ -3387,7 +3392,7 @@ impl PokemonSim {
                         battle.free_switch = true;
                         battle.phase = BattlePhase::ActionSelect { cursor: 0 };
                         self.battle = Some(battle);
-                        self.phase = GamePhase::PokemonMenu { cursor: 0 };
+                        self.phase = GamePhase::PokemonMenu { cursor: 0, action: 0, sub_cursor: 0 };
                         return;
                     } else {
                         // NO — proceed to battle
@@ -3976,7 +3981,7 @@ impl PokemonSim {
         if confirm {
             sfx_select(engine);
             match self.menu_cursor {
-                0 => self.phase = GamePhase::PokemonMenu { cursor: 0 },
+                0 => self.phase = GamePhase::PokemonMenu { cursor: 0, action: 0, sub_cursor: 0 },
                 1 => self.phase = GamePhase::BagMenu { cursor: 0 },
                 2 => self.phase = GamePhase::Pokedex { cursor: 0, scroll: 0 },
                 3 => self.phase = GamePhase::TrainerCard,
@@ -3997,97 +4002,186 @@ impl PokemonSim {
     }
 
     fn step_pokemon_menu(&mut self, engine: &mut Engine) {
-        let cursor = if let GamePhase::PokemonMenu { cursor } = &self.phase { *cursor } else { 0 };
+        let (cursor, action, sub_cursor) = if let GamePhase::PokemonMenu { cursor, action, sub_cursor } = &self.phase {
+            (*cursor, *action, *sub_cursor)
+        } else { (0, 0, 0) };
         let party_size = self.party.len() as u8;
         if party_size == 0 { self.phase = GamePhase::Overworld; return; }
 
-        if is_down(engine) {
-            self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size };
-        } else if is_up(engine) {
-            self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 } };
-        }
-
         let confirm = is_confirm(engine);
+        let cancel = is_cancel(engine);
 
-        if is_cancel(engine) {
-            // If backing out during a free switch, return to TrainerSwitchPrompt
-            if let Some(b) = &mut self.battle {
-                if b.free_switch {
-                    b.free_switch = false;
-                    let next_name = b.enemy.name().to_string();
-                    b.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
-                    self.phase = GamePhase::Battle;
+        match action {
+            // ── Action 0: Browsing party list ──
+            0 => {
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 0, sub_cursor: 0 };
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 0, sub_cursor: 0 };
+                }
+
+                if cancel {
+                    // If backing out during a free switch, return to TrainerSwitchPrompt
+                    if let Some(b) = &mut self.battle {
+                        if b.free_switch {
+                            b.free_switch = false;
+                            let next_name = b.enemy.name().to_string();
+                            b.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
+                            self.phase = GamePhase::Battle;
+                            return;
+                        }
+                    }
+                    self.phase = if self.battle.is_some() { GamePhase::Battle } else { GamePhase::Menu };
                     return;
                 }
-            }
-            self.phase = if self.battle.is_some() { GamePhase::Battle } else { GamePhase::Menu };
-            return;
-        }
 
-        if confirm {
-            if self.battle.is_some() {
-                // Switch Pokemon in battle
-                let selected = cursor as usize;
-                if let Some(battle) = &self.battle {
-                    if selected == battle.player_idx {
-                        // Already out
-                        return;
-                    }
-                }
-                if let Some(pkmn) = self.party.get(selected) {
-                    if pkmn.is_fainted() {
-                        return;
-                    }
-                    // Switching costs a turn — enemy gets a free attack (Gen 2 rule)
-                    let mut b = self.battle.take().unwrap();
-                    b.player_idx = selected;
-                    b.player_hp_display = self.party[selected].hp as f64;
-                    b.player_stages = [0; 7]; // Reset player stages on switch
-                    b.player_confused = 0; // Reset confusion on switch
-                    b.player_trapped = false; // Mean Look cleared on switch
-                    b.player_must_recharge = false; // Clear recharge on switch
-                    b.player_rampage = (0, 0); // Clear rampage on switch
-                    b.pending_player_move = None;
-                    // Reset toxic counter on switch-in (Gen 2)
-                    if let StatusCondition::BadPoison { ref mut turn } = self.party[selected].status {
-                        *turn = 1;
-                    }
-                    let pname = self.party[selected].name().to_string();
-                    if b.free_switch {
-                        // Free switch from TrainerSwitchPrompt — no enemy attack
-                        b.free_switch = false;
-                        b.phase = BattlePhase::Text {
-                            message: format!("Go! {}!", pname),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                        };
+                if confirm {
+                    if self.battle.is_some() {
+                        // Battle mode: switch Pokemon directly (existing behavior)
+                        let selected = cursor as usize;
+                        if let Some(battle) = &self.battle {
+                            if selected == battle.player_idx {
+                                // Already out
+                                return;
+                            }
+                        }
+                        if let Some(pkmn) = self.party.get(selected) {
+                            if pkmn.is_fainted() {
+                                return;
+                            }
+                            // Switching costs a turn — enemy gets a free attack (Gen 2 rule)
+                            if let Some(mut b) = self.battle.take() {
+                                b.player_idx = selected;
+                                b.player_hp_display = self.party[selected].hp as f64;
+                                b.player_stages = [0; 7]; // Reset player stages on switch
+                                b.player_confused = 0; // Reset confusion on switch
+                                b.player_trapped = false; // Mean Look cleared on switch
+                                b.player_must_recharge = false; // Clear recharge on switch
+                                b.player_rampage = (0, 0); // Clear rampage on switch
+                                b.pending_player_move = None;
+                                // Reset toxic counter on switch-in (Gen 2)
+                                if let StatusCondition::BadPoison { ref mut turn } = self.party[selected].status {
+                                    *turn = 1;
+                                }
+                                let pname = self.party[selected].name().to_string();
+                                if b.free_switch {
+                                    // Free switch from TrainerSwitchPrompt — no enemy attack
+                                    b.free_switch = false;
+                                    b.phase = BattlePhase::Text {
+                                        message: format!("Go! {}!", pname),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                    };
+                                } else {
+                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                                        engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                                    );
+                                    b.phase = BattlePhase::Text {
+                                        message: format!("Go! {}!", pname),
+                                        timer: 0.0,
+                                        next_phase: Box::new(BattlePhase::EnemyAttack {
+                                            timer: 0.0, move_id: e_move, damage: e_dmg,
+                                            effectiveness: e_eff, is_crit: e_crit,
+                                        }),
+                                    };
+                                }
+                                self.battle = Some(b);
+                                self.phase = GamePhase::Battle;
+                            }
+                        }
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                            engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
-                        );
-                        b.phase = BattlePhase::Text {
-                            message: format!("Go! {}!", pname),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::EnemyAttack {
-                                timer: 0.0, move_id: e_move, damage: e_dmg,
-                                effectiveness: e_eff, is_crit: e_crit,
-                            }),
-                        };
+                        // Overworld: open sub-action menu (SUMMARY / SWAP / CANCEL)
+                        sfx_select(engine);
+                        self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: 0 };
                     }
-                    self.battle = Some(b);
-                    self.phase = GamePhase::Battle;
                 }
-            } else {
-                // Show summary screen
-                self.phase = GamePhase::PokemonSummary { index: cursor };
+            }
+
+            // ── Action 1: Sub-menu open (SUMMARY / SWAP / CANCEL) ──
+            1 => {
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: (sub_cursor + 1) % 3 };
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: if sub_cursor == 0 { 2 } else { sub_cursor - 1 } };
+                }
+
+                if cancel {
+                    // Close sub-menu, back to browsing
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
+                    return;
+                }
+
+                if confirm {
+                    // Re-read sub_cursor in case up/down changed it
+                    let sc = if let GamePhase::PokemonMenu { sub_cursor, .. } = &self.phase { *sub_cursor } else { 0 };
+                    match sc {
+                        0 => {
+                            // SUMMARY
+                            sfx_select(engine);
+                            self.phase = GamePhase::PokemonSummary { index: cursor };
+                        }
+                        1 => {
+                            // SWAP: enter swap mode, remember source
+                            sfx_select(engine);
+                            self.swap_source = cursor;
+                            self.phase = GamePhase::PokemonMenu { cursor, action: 2, sub_cursor: 0 };
+                        }
+                        _ => {
+                            // CANCEL: close sub-menu
+                            self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
+                        }
+                    }
+                }
+            }
+
+            // ── Action 2: Swap mode (selecting second Pokemon) ──
+            2 => {
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 2, sub_cursor: 0 };
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 2, sub_cursor: 0 };
+                }
+
+                if cancel {
+                    // Cancel swap, back to browsing
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
+                    return;
+                }
+
+                if confirm {
+                    let src = self.swap_source as usize;
+                    let dst = cursor as usize;
+                    if src != dst && src < self.party.len() && dst < self.party.len() {
+                        // Perform the swap
+                        self.party.swap(src, dst);
+                        sfx_select(engine);
+                        // If in battle, track the active Pokemon's new position
+                        if let Some(b) = &mut self.battle {
+                            if b.player_idx == src {
+                                b.player_idx = dst;
+                            } else if b.player_idx == dst {
+                                b.player_idx = src;
+                            }
+                        }
+                        crate::log::log("Party swap complete");
+                    }
+                    // Return to browsing mode
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
+                }
+            }
+
+            _ => {
+                // Invalid action, reset to browsing
+                self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
             }
         }
     }
 
     fn step_pokemon_summary(&mut self, engine: &mut Engine) {
+        let index = if let GamePhase::PokemonSummary { index } = &self.phase { *index } else { 0 };
         let cancel = is_cancel(engine) || is_confirm(engine);
         if cancel {
-            self.phase = GamePhase::PokemonMenu { cursor: 0 };
+            self.phase = GamePhase::PokemonMenu { cursor: index, action: 0, sub_cursor: 0 };
         }
     }
 
@@ -4898,7 +4992,7 @@ impl PokemonSim {
         draw_text_pkmn(fb, ctx, &money_str, 8, 124, Color::from_rgba(40, 40, 48, 255));
     }
 
-    fn render_pokemon_menu(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
+    fn render_pokemon_menu(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8, action: u8, sub_cursor: u8) {
         let ctx = match &self.ctx { Some(c) => c, None => return };
         let dark = Color::from_rgba(40, 40, 48, 255);
 
@@ -4908,8 +5002,18 @@ impl PokemonSim {
 
         for (i, pkmn) in self.party.iter().enumerate() {
             let y = 16 + i as i32 * 20;
+            let is_swap_source = action == 2 && i as u8 == self.swap_source;
+            if is_swap_source {
+                // Highlight the swap source with yellow background
+                fill_rect_v(fb, ctx, 2, y - 1, 156, 18, Color::from_rgba(255, 248, 180, 255));
+            }
             if i as u8 == cursor {
-                fill_rect_v(fb, ctx, 2, y - 1, 156, 18, Color::from_rgba(232, 240, 248, 255));
+                if is_swap_source {
+                    // Cursor on swap source: brighter yellow
+                    fill_rect_v(fb, ctx, 2, y - 1, 156, 18, Color::from_rgba(255, 240, 130, 255));
+                } else {
+                    fill_rect_v(fb, ctx, 2, y - 1, 156, 18, Color::from_rgba(232, 240, 248, 255));
+                }
                 draw_cursor(fb, ctx, 4, y + 4, dark);
             }
             let name_color = if pkmn.is_fainted() { Color::from_rgba(160, 80, 80, 255) } else { dark };
@@ -4930,7 +5034,34 @@ impl PokemonSim {
             }
         }
 
-        draw_text_pkmn(fb, ctx, "X/ESC TO CLOSE", 20, 133, Color::from_rgba(120, 120, 140, 255));
+        if action == 1 {
+            // Draw sub-menu box on the right side
+            let box_x = 100;
+            let box_y = 16 + cursor as i32 * 20;
+            let box_w = 56;
+            let box_h = 38;
+            // Background
+            fill_rect_v(fb, ctx, box_x, box_y, box_w, box_h, Color::from_rgba(255, 255, 255, 255));
+            // Border
+            fill_rect_v(fb, ctx, box_x, box_y, box_w, 1, dark);
+            fill_rect_v(fb, ctx, box_x, box_y + box_h - 1, box_w, 1, dark);
+            fill_rect_v(fb, ctx, box_x, box_y, 1, box_h, dark);
+            fill_rect_v(fb, ctx, box_x + box_w - 1, box_y, 1, box_h, dark);
+            // Options
+            let options = ["SUMMARY", "SWAP", "CANCEL"];
+            for (i, opt) in options.iter().enumerate() {
+                let oy = box_y + 3 + i as i32 * 11;
+                if i as u8 == sub_cursor {
+                    draw_cursor(fb, ctx, box_x + 3, oy + 2, dark);
+                }
+                draw_text_pkmn(fb, ctx, opt, box_x + 12, oy, dark);
+            }
+        } else if action == 2 {
+            // Swap mode: show instruction at bottom
+            draw_text_pkmn(fb, ctx, "SWAP TO?", 40, 133, Color::from_rgba(200, 160, 40, 255));
+        } else {
+            draw_text_pkmn(fb, ctx, "X/ESC TO CLOSE", 20, 133, Color::from_rgba(120, 120, 140, 255));
+        }
     }
 
     // ─── Bag Menu Logic ─────────────────────────────────
@@ -6410,7 +6541,7 @@ impl Simulation for PokemonSim {
             GamePhase::Battle => self.render_battle(fb),
             GamePhase::Dialogue => self.render_dialogue(fb),
             GamePhase::Menu => self.render_menu(fb),
-            GamePhase::PokemonMenu { cursor } => self.render_pokemon_menu(fb, *cursor),
+            GamePhase::PokemonMenu { cursor, action, sub_cursor } => self.render_pokemon_menu(fb, *cursor, *action, *sub_cursor),
             GamePhase::BagMenu { cursor } => self.render_bag_menu(fb, *cursor),
             GamePhase::BagUseItem { item_id, target_cursor } => self.render_bag_use_item(fb, *item_id, *target_cursor),
             GamePhase::Healing { .. } => self.render_healing(fb),

@@ -5,7 +5,9 @@
 > documented here. Consult before implementing any feature. Detailed data lives in
 > companion files referenced below.
 >
-> **Sources**: Bulbapedia, Serebii, pret/pokecrystal disassembly
+> **Ultimate source of truth**: `engine/crates/engine-core/src/pokemon/pokecrystal-master/`
+> (full pret/pokecrystal disassembly). Use this for ALL verification.
+> **Secondary sources**: Bulbapedia, Serebii (for quick lookup when disassembly is ambiguous)
 >
 > **Last updated**: Sprint 86
 
@@ -28,15 +30,32 @@
 
 ## 1. Data File Index
 
+**All data files live in `engine/data/`.** The pokecrystal disassembly is the canonical
+source — these files are quick-reference summaries derived from it.
+
 | File | Contents |
 |------|----------|
 | `engine/data/REFERENCE.md` | This file — master index and game design rules |
 | `engine/data/gym_e4_rival_data.txt` | All 8 gym leaders, E4, Champion, Rival (7 encounters) with full movesets |
-| `engine/docs/gen2_battle_mechanics.txt` | Damage formula, crit rates, stat calc, EXP, catch rate, status effects, type chart |
-| `engine/JOHTO_DATA_ROUTES_29_33.txt` | Routes 29-33: wild encounters, trainers, connections |
-| `engine/data/johto_routes_34_46.txt` | Routes 34-46 + dungeon data (when compiled) |
-| `engine/data/gen2_moves_pokemon.txt` | Move data, base stats, learnsets, evolutions (when compiled) |
+| `engine/data/gen2_battle_mechanics.txt` | Damage formula, crit rates, stat calc, EXP, catch rate, status effects, type chart |
+| `engine/data/johto_routes_29_33.txt` | Routes 29-33: wild encounters, trainers, connections |
+| `engine/data/johto_routes_34_46.txt` | Routes 34-46 + 6 dungeons |
+| `engine/data/johto_cities_progression.txt` | City details, map connectivity, progression gates |
+| `engine/data/gen2_moves_pokemon.txt` | Move data, base stats, learnsets, evolutions |
 | `engine/ENGINE_POKEMON.md` | Engine architecture notes from 45+ sprints |
+
+### pokecrystal-master Key Directories
+
+| Path (relative to `pokecrystal-master/`) | Use For |
+|---|---|
+| `data/pokemon/base_stats/` | Species base stats, types, catch rate, growth rate |
+| `data/pokemon/evos_attacks.asm` | Evolution methods + level-up learnsets |
+| `data/moves/moves.asm` | Move stats (type, power, accuracy, PP, effect) |
+| `data/wild/johto_grass.asm` | Wild encounter tables per route/time |
+| `data/trainers/parties.asm` | Trainer teams (gym leaders, E4, rival) |
+| `data/types/type_matchups.asm` | Type effectiveness chart |
+| `engine/battle/core.asm` | Battle engine (damage calc, accuracy, crits) |
+| `maps/` | Map scripts, NPC events, story flags |
 
 ---
 

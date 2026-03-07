@@ -944,4 +944,11 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Trainer defeat text**: "Trainer was defeated!" now shows before money reward. Champion Lance gets "CHAMPION LANCE was defeated!" text.
 - Special transitions (whiteout, escape rope, title screen) still use instant change_map (they have their own UI flow).
 - All 75 tests pass.
-- **Next (Sprint 78)**: QA sprint
+
+### Sprint 78 QA
+- **Evolution skips learn-moves**: Evolution branch went straight to Won, bypassing LevelUp (which drains pending_learn_moves). Fixed: routes through LevelUp first.
+- **Wild encounter fainted lead**: Used hardcoded `player_idx: 0`. Fixed: now finds first non-fainted party member.
+- **Flinch persists across trainer Pokemon**: `enemy_flinched` not reset on send-out. Fixed in all 6 send-out blocks.
+- **Flinch/recharge/rampage persists after player faint**: Auto-switch didn't clear these. Fixed with full state reset.
+- All 75 tests pass.
+- **Next (Sprint 79)**: TBD

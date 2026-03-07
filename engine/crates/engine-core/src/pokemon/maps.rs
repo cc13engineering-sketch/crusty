@@ -5576,6 +5576,11 @@ fn build_cianwood_city() -> MapData {
             dialogue: &["Welcome to the", "CIANWOOD MART!"],
             is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
         },
+        // Pharmacist (NPC index 5) — gives SecretPotion
+        NpcDef { x: 11, y: 6, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["This is the CIANWOOD", "PHARMACY. We have", "rare medicines."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
     MapData { id: MapId::CianwoodCity, name: "CIANWOOD CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 40 },

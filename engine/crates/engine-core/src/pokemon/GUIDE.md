@@ -1683,3 +1683,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Zero bugs found.** All NPC sprite dimensions valid (256 chars), all sprite_id references in-bounds (0-7), Squirtbottle flag logic correct, Sudowoodo dialogue-action pattern working, tile art properly formatted.
 - All tests pass. 0 bugs fixed, 0 remaining.
 - **Next (Sprint 103)**: Content sprint.
+
+### Sprint 103 (Content — SecretPotion / Lighthouse Quest)
+- **Amphy lighthouse quest** — Full quest chain: Cianwood Pharmacist (NPC 5) gives SecretPotion (FLAG_MEDICINE). Deliver to Jasmine (NPC 0) at Olivine Lighthouse (FLAG_DELIVERED_MEDICINE). Jasmine disappears from Lighthouse via `is_npc_active` and returns to gym. Olivine Gym Jasmine blocks battle until medicine delivered.
+- **Cianwood Pharmacist NPC** — Added at (11,6) in Cianwood City. Gives SecretPotion on first interaction; shows default pharmacy dialogue after.
+- **Olivine Gym gate** — Jasmine (NPC 0) shows "GYM LEADER isn't here" dialogue if FLAG_DELIVERED_MEDICINE not set. After delivery, normal trainer battle proceeds.
+- **Flags activated**: FLAG_MEDICINE (bit 7) and FLAG_DELIVERED_MEDICINE (bit 8) removed #[allow(dead_code)].
+- All tests pass.
+- **Next (Sprint 104)**: Content sprint.

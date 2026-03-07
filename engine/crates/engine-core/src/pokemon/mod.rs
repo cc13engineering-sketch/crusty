@@ -125,8 +125,8 @@ const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
 const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
 const FLAG_RED_GYARADOS: u64      = 1 << 5;  // Red Gyarados event
 const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
-#[allow(dead_code)] const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion
-#[allow(dead_code)] const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine
+const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion from Cianwood pharmacy
+const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine to Amphy at Lighthouse
 const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
 const FLAG_SQUIRTBOTTLE: u64    = 1 << 10; // Got Squirtbottle from Flower Shop
 
@@ -396,6 +396,10 @@ impl PokemonSim {
     fn is_npc_active(&self, npc_idx: usize) -> bool {
         // Route 36 NPC index 2 = Sudowoodo blocker, hidden after FLAG_SUDOWOODO
         if self.current_map_id == MapId::Route36 && npc_idx == 2 && self.has_flag(FLAG_SUDOWOODO) {
+            return false;
+        }
+        // Lighthouse Jasmine (NPC 0) disappears after delivering medicine (she returns to gym)
+        if self.current_map_id == MapId::OlivineLighthouse && npc_idx == 0 && self.has_flag(FLAG_DELIVERED_MEDICINE) {
             return false;
         }
         true
@@ -1488,6 +1492,24 @@ impl PokemonSim {
             .map(|(idx, npc)| (idx as u8, npc.clone()));
 
         if let Some((npc_idx, npc)) = npc_info {
+            // Olivine Gym: Jasmine unavailable until medicine delivered
+            if self.current_map_id == MapId::OlivineGym && npc_idx == 0
+                && !self.has_flag(FLAG_DELIVERED_MEDICINE)
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "The GYM LEADER isn't".to_string(),
+                        "here... She's at the".to_string(),
+                        "LIGHTHOUSE tending to".to_string(),
+                        "a sick POKEMON.".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
             // Trainer NPC check
             if npc.is_trainer && self.has_starter {
                 let already_defeated = self.defeated_trainers.contains(&(self.current_map_id, npc_idx));
@@ -1580,6 +1602,55 @@ impl PokemonSim {
                         "Received a BICYCLE!".to_string(),
                         "Press C or SHIFT".to_string(),
                         "to ride it!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Cianwood Pharmacist: give SecretPotion
+            if self.current_map_id == MapId::CianwoodCity && npc_idx == 5
+                && !self.has_flag(FLAG_MEDICINE)
+            {
+                self.set_flag(FLAG_MEDICINE);
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "This is the CIANWOOD".to_string(),
+                        "PHARMACY.".to_string(),
+                        "Oh, a sick POKEMON?".to_string(),
+                        "Here, take this!".to_string(),
+                        "Received SECRETPOTION!".to_string(),
+                        "Take it to the sick".to_string(),
+                        "POKEMON in OLIVINE's".to_string(),
+                        "LIGHTHOUSE.".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Olivine Lighthouse Jasmine: deliver medicine
+            if self.current_map_id == MapId::OlivineLighthouse && npc_idx == 0
+                && self.has_flag(FLAG_MEDICINE)
+                && !self.has_flag(FLAG_DELIVERED_MEDICINE)
+            {
+                self.set_flag(FLAG_DELIVERED_MEDICINE);
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "Oh! Is that the".to_string(),
+                        "SECRETPOTION?!".to_string(),
+                        "Thank you so much!".to_string(),
+                        "AMPHY, drink this...".to_string(),
+                        "...AMPHY is feeling".to_string(),
+                        "much better!".to_string(),
+                        "I can finally go".to_string(),
+                        "back to the GYM.".to_string(),
+                        "Please come challenge".to_string(),
+                        "me!".to_string(),
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::None,

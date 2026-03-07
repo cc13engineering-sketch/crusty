@@ -1179,11 +1179,12 @@ impl PokemonSim {
                         if let Some((species_id, level)) = self.current_map.roll_encounter(r1, r2) {
                             self.register_seen(species_id);
                             let enemy = Pokemon::new(species_id, level);
-                            let player_hp = self.party.first().map(|p| p.hp as f64).unwrap_or(0.0);
+                            let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                            let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                             self.battle = Some(BattleState {
                                 phase: BattlePhase::Intro { timer: 0.0 },
                                 enemy,
-                                player_idx: 0,
+                                player_idx,
                                 is_wild: true,
                                 player_hp_display: player_hp,
                                 enemy_hp_display: 0.0,
@@ -2501,16 +2502,15 @@ impl PokemonSim {
                                         } else { None }
                                     });
                                 if let Some(evo) = evo_species {
-                                    // Set up evolution after level up display
+                                    // Show level-up text, then go to LevelUp (which drains pending_learn_moves)
                                     battle.phase = BattlePhase::Text {
                                         message: format!("{} grew to LV{}!", p.name(), p.level),
                                         timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::Won { timer: 0.0 }),
+                                        next_phase: Box::new(BattlePhase::LevelUp { timer: 0.0 }),
                                     };
                                     self.battle = Some(battle);
-                                    // Schedule evolution after battle
                                     self.phase = GamePhase::Battle;
-                                    // Store pending evolution
+                                    // Store pending evolution — triggers after Won completes
                                     engine.global_state.set_f64("pending_evolution", evo as f64);
                                     return;
                                 }
@@ -2533,6 +2533,7 @@ impl PokemonSim {
                     battle.enemy_hp_display = battle.enemy.hp as f64;
                     battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
                     battle.enemy_confused = 0;
+                    battle.enemy_flinched = false;
                     battle.enemy_must_recharge = false;
                     battle.enemy_rampage = (0, 0);
                     battle.phase = BattlePhase::Text {
@@ -2563,6 +2564,7 @@ impl PokemonSim {
                         battle.enemy_hp_display = battle.enemy.hp as f64;
                         battle.enemy_stages = [0; 7];
                         battle.enemy_confused = 0;
+                        battle.enemy_flinched = false;
                         battle.enemy_must_recharge = false;
                         battle.enemy_rampage = (0, 0);
                         battle.phase = BattlePhase::Text {
@@ -2700,6 +2702,7 @@ impl PokemonSim {
                                 battle.enemy_hp_display = battle.enemy.hp as f64;
                                 battle.enemy_stages = [0; 7];
                                 battle.enemy_confused = 0;
+                                battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
                                 battle.phase = BattlePhase::Text {
@@ -2757,6 +2760,7 @@ impl PokemonSim {
                                 battle.enemy_hp_display = battle.enemy.hp as f64;
                                 battle.enemy_stages = [0; 7];
                                 battle.enemy_confused = 0;
+                                battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
                                 battle.phase = BattlePhase::Text {
@@ -2886,9 +2890,12 @@ impl PokemonSim {
                 sfx_faint(engine);
                 let any_alive = self.party.iter().any(|p| !p.is_fainted());
                 if any_alive {
-                    // Auto-switch to next alive Pokemon — reset player stages and confusion
+                    // Auto-switch to next alive Pokemon — reset player state
                     battle.player_stages = [0; 7];
                     battle.player_confused = 0;
+                    battle.player_flinched = false;
+                    battle.player_must_recharge = false;
+                    battle.player_rampage = (0, 0);
                     for (i, p) in self.party.iter().enumerate() {
                         if !p.is_fainted() {
                             let pname = p.name().to_string();

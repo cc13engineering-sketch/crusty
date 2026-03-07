@@ -300,6 +300,7 @@ enum DialogueAction {
     GiveStarter,
     StartTrainerBattle { team: Vec<(SpeciesId, u8)> },
     StartFishBattle { species_id: SpeciesId, level: u8 },
+    EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
     Credits,
@@ -1713,7 +1714,7 @@ impl PokemonSim {
         let level = if min_level == max_level {
             min_level
         } else {
-            min_level + (engine.rng.next_f64() * (max_level - min_level + 1) as f64) as u8
+            (min_level + (engine.rng.next_f64() * (max_level - min_level + 1) as f64) as u8).min(max_level)
         };
         // Show "Oh! A bite!" text, then start battle on_complete
         self.dialogue = Some(DialogueState {
@@ -3754,6 +3755,13 @@ impl PokemonSim {
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
                 }
+                DialogueAction::EscapeRope => {
+                    self.phase = GamePhase::MapFadeOut {
+                        dest_map: MapId::PokemonCenter,
+                        dest_x: 5, dest_y: 6,
+                        timer: 0.0,
+                    };
+                }
             }
         }
     }
@@ -4817,13 +4825,9 @@ impl PokemonSim {
                             self.dialogue = Some(DialogueState {
                                 lines: vec!["Used an ESCAPE ROPE!".to_string()],
                                 current_line: 0, char_index: 0, timer: 0.0,
-                                on_complete: DialogueAction::None,
+                                on_complete: DialogueAction::EscapeRope,
                             });
-                            self.phase = GamePhase::MapFadeOut {
-                                dest_map: MapId::PokemonCenter,
-                                dest_x: 5, dest_y: 6,
-                                timer: 0.0,
-                            };
+                            self.phase = GamePhase::Dialogue;
                         }
                     } else if item_id == ITEM_ETHER {
                         // Ether: restore 10 PP to the first move with missing PP

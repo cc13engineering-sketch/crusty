@@ -1652,3 +1652,13 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **is_select input helper** — New input function for Select button (KeyC / ShiftLeft).
 - All tests pass.
 - **Next (Sprint 99 — QA)**: Full QA audit of Sprints 97-98.
+
+### Sprint 99 (QA)
+- **Full audit of Sprints 97-98** — Fishing system, bicycle mechanic, Escape Rope fix audited.
+- **CRITICAL FIX: Escape Rope text not displaying** — MapFadeOut was set immediately, skipping the "Used an ESCAPE ROPE!" dialogue. Added `DialogueAction::EscapeRope` so text displays first, then fade triggers on_complete.
+- **MEDIUM FIX: Fishing level range overflow** — `min_level + rng * (range+1)` could exceed max_level when rng ≈ 1.0. Added `.min(max_level)` clamp matching the grass encounter logic in maps.rs.
+- PokemonCenter Escape Rope block confirmed working (line 4808).
+- Bike Shop NPC index verified correct (index 1 = Bike Shop owner in Goldenrod).
+- Old save backward compatibility: `has_bike` field defaults to false (0.0) for missing field, acceptable.
+- All tests pass. 2 bugs fixed, 0 remaining.
+- **Next (Sprint 100)**: Content sprint.

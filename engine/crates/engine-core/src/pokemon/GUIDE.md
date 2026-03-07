@@ -1617,4 +1617,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 ### Sprint 93 (Content — EXP Bar Animation)
 - **B9 FIX: EXP bar fill animation** — `ExpAwarded` phase now has a 1-second timer with smooth bar fill animation. EXP bar interpolates from old EXP to new EXP over the duration. Skippable with confirm button. Render draws animated bar during the phase. All Sprint 85 audit B-category items now resolved (B1-B10 complete).
 - All 1318 tests pass.
-- **Next (Sprint 94)**: Content sprint. New game content, species, moves, or features.
+- **Next (Sprint 94)**: Content sprint. D2 fix, Sudowoodo NPC, missing encounters.
+
+### Sprint 94 (Content — House NPC Variety + Sudowoodo Blocker)
+- **D2 FIX: GenericHouse per-city NPC dialogue** — Every GenericHouse NPC now has city-specific dialogue based on `last_house_map`. All 10 Johto cities have unique lines reflecting local flavor (Sprout Tower in Violet, KURT in Azalea, Dept Store in Goldenrod, legends in Ecruteak, lighthouse in Olivine, pharmacy in Cianwood, "too quiet" in Mahogany, Dragons in Blackthorn). Eliminates the immersion-breaking "I love this town" from every house.
+- **Sudowoodo visual blocker NPC** — Added NPC at (14,6) on Route 36 blocking the east path. Visible until `FLAG_SUDOWOODO` is set. Interacting with it triggers the Sudowoodo battle (requires 3+ badges). Added `is_npc_active()` helper for flag-based NPC filtering across collision, rendering, LOS, and interaction systems.
+- **Missing encounters: Abra + Vulpix** — Abra added to Route 34 encounters (lv10-12, 10% weight) matching Gen 2. Vulpix added to Route 37 encounters (lv14-16, 10% weight) matching Gen 2 Silver/Crystal.
+- All 1318 tests pass.
+- **Next (Sprint 95)**: Content sprint.

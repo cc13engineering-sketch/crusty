@@ -117,6 +117,7 @@ const MURKROW: u16 = 198;
 const HOUNDOOM: u16 = 229;
 const AERODACTYL: u16 = 142;
 const CHARIZARD: u16 = 6;
+const ABRA: u16 = 63;
 const URSARING: u16 = 217;
 const MACHAMP: u16 = 68;
 const UMBREON: u16 = 197;
@@ -3586,11 +3587,11 @@ fn build_route_34() -> MapData {
     ];
 
     let encounters = vec![
-        EncounterEntry { species_id: DROWZEE, min_level: 10, max_level: 12, weight: 40 },
-        EncounterEntry { species_id: RATTATA, min_level: 11, max_level: 13, weight: 30 },
+        EncounterEntry { species_id: DROWZEE, min_level: 10, max_level: 12, weight: 35 },
+        EncounterEntry { species_id: RATTATA, min_level: 11, max_level: 13, weight: 25 },
         EncounterEntry { species_id: PIDGEY, min_level: 12, max_level: 12, weight: 15 },
+        EncounterEntry { species_id: ABRA,   min_level: 10, max_level: 12, weight: 10 },
         EncounterEntry { species_id: DROWZEE, min_level: 10, max_level: 10, weight: 10 },
-        // Abra and Ditto are rare — we use low weight
         EncounterEntry { species_id: DROWZEE, min_level: 12, max_level: 12, weight: 5 },
     ];
 
@@ -4396,6 +4397,17 @@ fn build_route_36() -> MapData {
                 TrainerPokemon { species_id: DROWZEE, level: 15 },
             ],
         },
+        // Sudowoodo blocker — NPC index 2, hidden when FLAG_SUDOWOODO set
+        NpcDef {
+            x: 14, y: 6, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "It's a Pokemon!",
+                "The weird tree",
+                "doesn't like water!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
     ];
 
     let encounters = vec![
@@ -4515,9 +4527,10 @@ fn build_route_37() -> MapData {
     ];
 
     let encounters = vec![
-        EncounterEntry { species_id: PIDGEY,   min_level: 13, max_level: 15, weight: 30 },
-        EncounterEntry { species_id: STANTLER,  min_level: 14, max_level: 16, weight: 25 },
+        EncounterEntry { species_id: PIDGEY,   min_level: 13, max_level: 15, weight: 25 },
+        EncounterEntry { species_id: STANTLER,  min_level: 14, max_level: 16, weight: 20 },
         EncounterEntry { species_id: GROWLITHE, min_level: 14, max_level: 15, weight: 20 },
+        EncounterEntry { species_id: VULPIX,    min_level: 14, max_level: 16, weight: 10 },
         EncounterEntry { species_id: HOPPIP,   min_level: 13, max_level: 15, weight: 15 },
         EncounterEntry { species_id: HOOTHOOT,  min_level: 14, max_level: 15, weight: 10 },
     ];

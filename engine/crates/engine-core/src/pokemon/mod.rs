@@ -375,6 +375,15 @@ impl PokemonSim {
     fn has_flag(&self, flag: u64) -> bool { self.story_flags & flag != 0 }
     fn set_flag(&mut self, flag: u64) { self.story_flags |= flag; }
 
+    /// Returns false for NPCs that should be hidden due to story flags.
+    fn is_npc_active(&self, npc_idx: usize) -> bool {
+        // Route 36 NPC index 2 = Sudowoodo blocker, hidden after FLAG_SUDOWOODO
+        if self.current_map_id == MapId::Route36 && npc_idx == 2 && self.has_flag(FLAG_SUDOWOODO) {
+            return false;
+        }
+        true
+    }
+
     pub fn new() -> Self {
         let start_map = load_map(MapId::NewBarkTown);
         PokemonSim {
@@ -990,61 +999,63 @@ impl PokemonSim {
     }
 
     /// Sudowoodo: blocking tree on Route 36, forced wild encounter
-    fn check_sudowoodo(&mut self, engine: &mut Engine) -> bool {
-        // In the original game, Sudowoodo blocks the east exit of Route 36
-        // and you need the SquirtBottle. We simplify: approaching the blocking
-        // tile triggers a forced wild Sudowoodo battle (one-time).
+    fn check_sudowoodo(&mut self, _engine: &mut Engine) -> bool {
+        // Legacy position-based check — now handled by NPC interaction
+        // Keep as fallback for saves where player is already past x=14 without flag
         if self.current_map_id == MapId::Route36
             && !self.has_flag(FLAG_SUDOWOODO)
-            && self.player.x >= 14 && self.player.y >= 5 && self.player.y <= 7
-            && self.badges.count_ones() >= 3 // Need at least Plain Badge (Whitney)
+            && self.player.x >= 15 && self.player.y >= 5 && self.player.y <= 7
+            && self.badges.count_ones() >= 3
             && !self.party.is_empty()
         {
-            self.set_flag(FLAG_SUDOWOODO);
-            self.dialogue = Some(DialogueState {
-                lines: vec![
-                    "The weird tree moved!".to_string(),
-                    "It's a POKEMON!".to_string(),
-                ],
-                current_line: 0, char_index: 0, timer: 0.0,
-                on_complete: DialogueAction::None,
-            });
-            self.register_seen(SUDOWOODO);
-            let enemy = Pokemon::new(SUDOWOODO, 20);
-            let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
-            let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
-            self.battle = Some(BattleState {
-                phase: BattlePhase::Intro { timer: 0.0 },
-                enemy,
-                player_idx,
-                is_wild: true,
-                player_hp_display: player_hp,
-                enemy_hp_display: 0.0,
-                turn_count: 0,
-                trainer_team: Vec::new(),
-                trainer_team_idx: 0,
-                pending_player_move: None,
-                player_stages: [0; 7],
-                enemy_stages: [0; 7],
-                enemy_flinched: false,
-                player_flinched: false,
-                player_confused: 0,
-                enemy_confused: 0,
-                player_trapped: false,
-                player_must_recharge: false,
-                enemy_must_recharge: false,
-                player_rampage: (0, 0),
-                enemy_rampage: (0, 0),
-                pending_learn_moves: vec![],
-                free_switch: false,
-                confusion_snapout_msg: None,
-            });
-            self.encounter_flash_count = 0;
-            self.phase = GamePhase::EncounterTransition { timer: 0.0 };
-            let _ = engine;
+            self.check_sudowoodo_battle();
             return true;
         }
         false
+    }
+
+    fn check_sudowoodo_battle(&mut self) {
+        self.set_flag(FLAG_SUDOWOODO);
+        self.dialogue = Some(DialogueState {
+            lines: vec![
+                "The weird tree moved!".to_string(),
+                "It's a POKEMON!".to_string(),
+            ],
+            current_line: 0, char_index: 0, timer: 0.0,
+            on_complete: DialogueAction::None,
+        });
+        self.register_seen(SUDOWOODO);
+        let enemy = Pokemon::new(SUDOWOODO, 20);
+        let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+        let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+        self.battle = Some(BattleState {
+            phase: BattlePhase::Intro { timer: 0.0 },
+            enemy,
+            player_idx,
+            is_wild: true,
+            player_hp_display: player_hp,
+            enemy_hp_display: 0.0,
+            turn_count: 0,
+            trainer_team: Vec::new(),
+            trainer_team_idx: 0,
+            pending_player_move: None,
+            player_stages: [0; 7],
+            enemy_stages: [0; 7],
+            enemy_flinched: false,
+            player_flinched: false,
+            player_confused: 0,
+            enemy_confused: 0,
+            player_trapped: false,
+            player_must_recharge: false,
+            enemy_must_recharge: false,
+            player_rampage: (0, 0),
+            enemy_rampage: (0, 0),
+            pending_learn_moves: vec![],
+            free_switch: false,
+            confusion_snapout_msg: None,
+        });
+        self.encounter_flash_count = 0;
+        self.phase = GamePhase::EncounterTransition { timer: 0.0 };
     }
 
     // ─── Overworld Logic ───────────────────────────────
@@ -1323,6 +1334,7 @@ impl PokemonSim {
                     let px = self.player.x;
                     let py = self.player.y;
                     for (npc_idx, npc) in self.current_map.npcs.iter().enumerate() {
+                        if !self.is_npc_active(npc_idx) { continue; }
                         if !npc.is_trainer || npc.trainer_team.is_empty() { continue; }
                         // Skip already defeated trainers
                         let key = (self.current_map_id, npc_idx as u8);
@@ -1404,7 +1416,8 @@ impl PokemonSim {
                     _ => false,
                 };
                 if can_walk {
-                    let npc_blocking = self.current_map.npcs.iter().any(|npc| npc.x as i32 == nx && npc.y as i32 == ny);
+                    let npc_blocking = self.current_map.npcs.iter().enumerate()
+                        .any(|(i, npc)| self.is_npc_active(i) && npc.x as i32 == nx && npc.y as i32 == ny);
                     if !npc_blocking {
                         self.player.is_walking = true;
                         self.player.walk_offset = 0.0;
@@ -1430,7 +1443,7 @@ impl PokemonSim {
 
         // NPC interaction
         let npc_info = self.current_map.npcs.iter().enumerate()
-            .find(|(_, npc)| npc.x as i32 == fx && npc.y as i32 == fy)
+            .find(|(idx, npc)| self.is_npc_active(*idx) && npc.x as i32 == fx && npc.y as i32 == fy)
             .map(|(idx, npc)| (idx as u8, npc.clone()));
 
         if let Some((npc_idx, npc)) = npc_info {
@@ -1461,7 +1474,54 @@ impl PokemonSim {
                 return;
             }
 
-            let lines: Vec<String> = npc.dialogue.iter().map(|s| s.to_string()).collect();
+            // Sudowoodo NPC interaction — triggers battle if player has 3+ badges
+            if self.current_map_id == MapId::Route36 && npc_idx == 2
+                && !self.has_flag(FLAG_SUDOWOODO)
+                && self.badges.count_ones() >= 3
+                && !self.party.is_empty()
+            {
+                self.check_sudowoodo_battle();
+                return;
+            }
+
+            // D2 fix: Per-city dialogue for GenericHouse NPCs
+            let lines: Vec<String> = if self.current_map_id == MapId::GenericHouse && !npc.is_trainer && !npc.is_mart {
+                match self.last_house_map {
+                    MapId::NewBarkTown => vec![
+                        "NEW BARK TOWN is".into(), "small, but we like".into(), "the quiet life.".into(),
+                    ],
+                    MapId::CherrygroveCity => vec![
+                        "CHERRYGROVE CITY".into(), "has the prettiest".into(), "flowers in JOHTO.".into(),
+                    ],
+                    MapId::VioletCity => vec![
+                        "SPROUT TOWER is".into(), "said to sway in".into(), "the wind. Creepy!".into(),
+                    ],
+                    MapId::AzaleaTown => vec![
+                        "KURT makes the".into(), "best POKe BALLS".into(), "from APRICORNS.".into(),
+                    ],
+                    MapId::GoldenrodCity => vec![
+                        "GOLDENROD is so".into(), "big! The DEPT".into(), "STORE has it all.".into(),
+                    ],
+                    MapId::EcruteakCity => vec![
+                        "ECRUTEAK CITY has".into(), "ancient legends of".into(), "legendary POKEMON.".into(),
+                    ],
+                    MapId::OlivineCity => vec![
+                        "OLIVINE's LIGHTHOUSE".into(), "guides ships safely".into(), "into the harbor.".into(),
+                    ],
+                    MapId::CianwoodCity => vec![
+                        "CIANWOOD is remote,".into(), "but the pharmacy".into(), "is world-famous.".into(),
+                    ],
+                    MapId::MahoganyTown => vec![
+                        "MAHOGANY TOWN is".into(), "quiet. Maybe too".into(), "quiet, actually...".into(),
+                    ],
+                    MapId::BlackthornCity => vec![
+                        "BLACKTHORN CITY is".into(), "home to the best".into(), "DRAGON trainers!".into(),
+                    ],
+                    _ => npc.dialogue.iter().map(|s| s.to_string()).collect(),
+                }
+            } else {
+                npc.dialogue.iter().map(|s| s.to_string()).collect()
+            };
             let action = if npc.sprite_id == 0 && !self.has_starter {
                 DialogueAction::GiveStarter
             } else if npc.sprite_id == 4 {
@@ -3961,7 +4021,8 @@ impl PokemonSim {
         }
 
         // NPCs
-        for npc in &self.current_map.npcs {
+        for (idx, npc) in self.current_map.npcs.iter().enumerate() {
+            if !self.is_npc_active(idx) { continue; }
             let sx = (npc.x as f64 * TILE_PX as f64 - cam_x) as i32;
             let sy = (npc.y as f64 * TILE_PX as f64 - cam_y) as i32;
             let (fx, fy) = ctx.to_fb(sx, sy);
@@ -4045,6 +4106,7 @@ impl PokemonSim {
 
         // NPCs — draw approaching NPC at animated position
         for (idx, npc) in self.current_map.npcs.iter().enumerate() {
+            if !self.is_npc_active(idx) { continue; }
             let (npc_px, npc_py) = if idx == approach_npc_idx as usize {
                 // Use approach position with walk offset
                 let npc_def = &self.current_map.npcs[idx];

@@ -3160,3 +3160,47 @@ Fixed three user-reported bugs: party Pokemon swap input race conditions, missin
 
 #### Files Changed
 - `mod.rs` — Party swap input reordering (all 3 action states), MahoganyGym + OlivineGym warp gates, 4 new tests
+
+---
+
+### Sprint 137 — QA Audit: Sprints 135-136 + Core Mechanics Verification
+
+#### Summary
+Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encounter data accuracy for Dark Cave maps.
+
+#### Audit Results
+
+**Sprint 135 Content Audit**
+- All 5 new map warps verified bidirectional (test_all_route_warps_bidirectional passes)
+- Collision maps verified correct
+- VictoryRoadB1F encounters match pokecrystal kanto_grass.asm data
+- **BUG FIXED (P1)**: DarkCaveBlackthorn had Wobbuffet in day encounters — should be night-only per pokecrystal. Added night_encounters table, moved Wobbuffet there, added Teddiursa to day encounters.
+- **BUG FIXED (P1)**: DarkCaveViolet had Teddiursa at all times — should be morning-only. Added night_encounters without Teddiursa, fixed Dunsparce/Teddiursa levels to match pokecrystal.
+- RuinsOfAlphOutside/Inner encounters match pokecrystal (Natu/Smeargle day, Wooper/Quagsire night, 100% Unown inner)
+
+**Sprint 136 Bug Fix Verification**
+- Party swap: input reordering verified, all 3 action states prioritize cancel/confirm over navigation
+- Gym gates: MahoganyGym (FLAG_ROCKET_MAHOGANY) and OlivineGym (FLAG_DELIVERED_MEDICINE) gates verified via tests
+- Daycare: deposit/return/cost calculation verified via test, save/load serialization checked
+
+**Core Mechanics Spot Check**
+- Type effectiveness chart: 10 matchups verified against Gen 2 spec (Normal/Ghost=0, Fire/Water=0.5, Electric/Ground=0, Fighting/Ghost=0, Ghost/Normal=0, Psychic/Dark=0, Dragon/Dragon=2, Ice/Dragon=2, Poison/Steel=0, Ground/Flying=0)
+- EXP formula: exp_for_level verified (MediumSlow Lv15=2035, Lv16=2535)
+- All warp gate progression tests pass (Union Cave→Zephyr, Route34→Hive, Route27→8 badges, VictoryRoad→8 badges, MahoganyGym→Rocket, OlivineGym→Medicine)
+
+**Regression Check**
+- 1369 tests passing, 0 failures
+- 0 compiler warnings
+
+#### Bugs Found
+| ID | Severity | Description | Status |
+|----|----------|-------------|--------|
+| Q1 | P1 | DarkCaveBlackthorn Wobbuffet in day encounters | Fixed |
+| Q2 | P1 | DarkCaveViolet Teddiursa not morning-only | Fixed |
+
+#### Test Results
+- **1369 tests passing** (0 failures)
+- **0 compiler warnings**
+
+#### Files Changed
+- `maps.rs` — Fixed DarkCaveBlackthorn and DarkCaveViolet encounter tables (added night_encounters)

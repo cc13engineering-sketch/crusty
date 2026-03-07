@@ -11538,15 +11538,23 @@ fn build_dark_cave_violet() -> MapData {
         },
     ];
 
-    // Per pokecrystal: Geodude, Zubat, Teddiursa, Dunsparce (rare)
+    // Per pokecrystal morn: Geodude Lv2-4, Zubat Lv2-4, Teddiursa Lv2, Dunsparce Lv4
+    // Day replaces Teddiursa with Zubat; Night same as Day
     let encounters = vec![
         EncounterEntry { species_id: GEODUDE, min_level: 2, max_level: 4, weight: 35 },
         EncounterEntry { species_id: ZUBAT, min_level: 2, max_level: 4, weight: 30 },
-        EncounterEntry { species_id: TEDDIURSA, min_level: 2, max_level: 4, weight: 20 },
-        EncounterEntry { species_id: DUNSPARCE, min_level: 3, max_level: 4, weight: 15 },
+        EncounterEntry { species_id: TEDDIURSA, min_level: 2, max_level: 2, weight: 20 },
+        EncounterEntry { species_id: DUNSPARCE, min_level: 4, max_level: 4, weight: 15 },
     ];
 
-    MapData { id: MapId::DarkCaveViolet, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 6 }
+    // Night: no Teddiursa, more Zubat
+    let night_encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 2, max_level: 4, weight: 35 },
+        EncounterEntry { species_id: ZUBAT, min_level: 2, max_level: 4, weight: 45 },
+        EncounterEntry { species_id: DUNSPARCE, min_level: 4, max_level: 4, weight: 20 },
+    ];
+
+    MapData { id: MapId::DarkCaveViolet, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Dark Cave Blackthorn Entrance (14x26) ─────────────────
@@ -11663,17 +11671,26 @@ fn build_dark_cave_blackthorn() -> MapData {
         },
     ];
 
-    // Per pokecrystal: Geodude, Zubat, Graveler, Ursaring, Wobbuffet, Golbat (high level)
+    // Per pokecrystal: morn/day = Geodude, Zubat, Graveler, Ursaring, Teddiursa, Golbat
     let encounters = vec![
-        EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 25, weight: 25 },
-        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 25, weight: 20 },
-        EncounterEntry { species_id: GRAVELER, min_level: 24, max_level: 26, weight: 15 },
-        EncounterEntry { species_id: URSARING, min_level: 24, max_level: 26, weight: 15 },
-        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 25, weight: 15 },
-        EncounterEntry { species_id: WOBBUFFET, min_level: 20, max_level: 25, weight: 10 },
+        EncounterEntry { species_id: GEODUDE, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: ZUBAT, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: GRAVELER, min_level: 25, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: URSARING, min_level: 25, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: TEDDIURSA, min_level: 20, max_level: 20, weight: 10 },
+        EncounterEntry { species_id: GOLBAT, min_level: 23, max_level: 23, weight: 20 },
     ];
 
-    MapData { id: MapId::DarkCaveBlackthorn, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 6 }
+    // Per pokecrystal: night = Geodude, Zubat, Graveler, Wobbuffet, Golbat
+    let night_encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: ZUBAT, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: GRAVELER, min_level: 25, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: WOBBUFFET, min_level: 20, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 23, max_level: 23, weight: 30 },
+    ];
+
+    MapData { id: MapId::DarkCaveBlackthorn, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Ruins of Alph Outside (14x16) ─────────────────────────

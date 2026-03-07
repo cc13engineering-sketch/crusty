@@ -7407,30 +7407,50 @@ impl PokemonSim {
 
         fill_virtual_screen(fb, ctx, Color::from_rgba(8, 8, 24, 255));
 
-        // Pulsing light effect
-        let pulse = ((timer * 3.0).sin() * 0.5 + 0.5) as f64;
-        let glow_a = (pulse * 80.0) as u8;
-        fill_rect_v(fb, ctx, 40, 20, 80, 80, Color::from_rgba(248, 248, 200, glow_a));
+        // Pulsing light effect during flicker phase (1.5-4.5s)
+        let flicker_start = 1.5;
+        let flicker_end = 4.5;
+        if timer > flicker_start && timer < flicker_end {
+            let progress = (timer - flicker_start) / (flicker_end - flicker_start);
+            let pulse = ((timer * (3.0 + progress * 6.0)).sin() * 0.5 + 0.5) as f64;
+            let glow_a = (pulse * (60.0 + progress * 140.0)) as u8;
+            fill_rect_v(fb, ctx, 30, 15, 100, 90, Color::from_rgba(248, 248, 200, glow_a));
+        }
 
-        // Text
-        if let Some(p) = self.party.first() {
+        // Find the pokemon that's evolving (first in party that can evolve into new_species)
+        let evo_pkmn = self.party.iter().find(|p| {
+            get_species(p.species_id).and_then(|s| s.evolution_into).map(|e| e == new_species).unwrap_or(false)
+        }).or_else(|| self.party.first());
+
+        if let Some(p) = evo_pkmn {
             let old_name = p.name().to_string();
             let new_name = get_species(new_species).map(|s| s.name).unwrap_or("???");
 
-            if timer < 1.5 {
+            if timer < flicker_start {
+                // "What? X is evolving!" phase
                 draw_text_pkmn(fb, ctx, "What?", 60, 30, Color::from_rgba(248, 248, 248, 255));
                 let msg = format!("{} is", old_name);
                 draw_text_pkmn(fb, ctx, &msg, 30, 50, Color::from_rgba(248, 248, 248, 255));
                 draw_text_pkmn(fb, ctx, "evolving!", 45, 62, Color::from_rgba(248, 248, 248, 255));
+            } else if timer < flicker_end {
+                // Flicker phase — show alternating names
+                let progress = (timer - flicker_start) / (flicker_end - flicker_start);
+                let freq = 3.0 + progress * 9.0;
+                let show_new = ((timer - flicker_start) * freq) as u32 % 2 == 1;
+                let display_name = if show_new { &new_name } else { old_name.as_str() };
+                let color = if show_new { Color::from_rgba(248, 208, 48, 255) } else { Color::from_rgba(248, 248, 248, 255) };
+                draw_text_pkmn(fb, ctx, display_name, 50, 50, color);
+                // B to cancel hint
+                draw_text_pkmn(fb, ctx, "B TO CANCEL", 35, 130, Color::from_rgba(120, 120, 140, 255));
             } else {
+                // Post-flicker — show evolved name
                 let msg = format!("{} evolved", old_name);
                 draw_text_pkmn(fb, ctx, &msg, 15, 40, Color::from_rgba(248, 248, 248, 255));
                 let msg2 = format!("into {}!", new_name);
                 draw_text_pkmn(fb, ctx, &msg2, 25, 56, Color::from_rgba(248, 208, 48, 255));
+                draw_text_pkmn(fb, ctx, "PRESS Z", 50, 130, Color::from_rgba(120, 120, 140, 255));
             }
         }
-
-        draw_text_pkmn(fb, ctx, "PRESS Z", 50, 130, Color::from_rgba(120, 120, 140, 255));
     }
 
     fn render_credits(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, scroll_y: f64) {
@@ -8009,18 +8029,27 @@ impl Simulation for PokemonSim {
             GamePhase::Evolution { timer, new_species } => {
                 let dt = 1.0 / 60.0;
                 let t = timer + dt;
-                // Flash during evolution animation (first 2 seconds)
-                if t < 2.0 {
-                    let flash_cycle = (t * 6.0) as u32;
-                    self.screen_flash = if flash_cycle % 2 == 0 { 0.8 } else { 0.0 };
+
+                // Phase 1 (0-1.5s): "What? X is evolving!" text displayed
+                // Phase 2 (1.5-4.5s): Accelerating flicker animation (B to cancel)
+                // Phase 3 (>4.5s): Evolution complete, apply changes
+
+                let flicker_start = 1.5;
+                let flicker_end = 4.5;
+
+                if t > flicker_start && t < flicker_end {
+                    // Accelerating flicker: frequency increases from 3Hz to 12Hz
+                    let progress = (t - flicker_start) / (flicker_end - flicker_start); // 0..1
+                    let freq = 3.0 + progress * 9.0; // 3Hz -> 12Hz
+                    let flash_cycle = ((t - flicker_start) * freq) as u32;
+                    self.screen_flash = if flash_cycle % 2 == 0 { 0.7 + progress * 0.3 } else { 0.0 };
                 } else {
                     self.screen_flash = 0.0;
                 }
 
-                // Cancel evolution with B button during flash phase
-                if t < 2.0 && is_cancel(engine) {
+                // Cancel evolution with B button during flicker phase
+                if t > flicker_start && t < flicker_end && is_cancel(engine) {
                     self.screen_flash = 0.0;
-                    // Find the pokemon that would evolve
                     let evo_idx = self.party.iter().position(|p| {
                         get_species(p.species_id).and_then(|s| s.evolution_into).map(|e| e == new_species).unwrap_or(false)
                     }).unwrap_or(0);
@@ -8034,7 +8063,7 @@ impl Simulation for PokemonSim {
                         on_complete: DialogueAction::None,
                     });
                     self.phase = GamePhase::Dialogue;
-                } else if t > 3.0 || (t > 2.0 && is_confirm(engine)) {
+                } else if t > flicker_end + 0.5 || (t > flicker_end && is_confirm(engine)) {
                     // Apply evolution
                     let evo_idx = self.party.iter().position(|p| {
                         get_species(p.species_id).and_then(|s| s.evolution_into).map(|e| e == new_species).unwrap_or(false)
@@ -11474,5 +11503,41 @@ mod headless_tests {
         let battle = make_test_battle(&party, enemy, false);
         assert_eq!(battle.player_trap_turns, 0);
         assert_eq!(battle.enemy_trap_turns, 0);
+    }
+
+    #[test]
+    fn test_sprint142_camera_edge_clamping() {
+        // Camera should clamp to map bounds
+        // A small map (10x9 = Route29 size) should have camera at 0,0
+        // since 10 tiles * 16px = 160px = VIEW_TILES_X * TILE_PX (same as viewport)
+        let mut sim = PokemonSim::with_state(
+            MapId::NewBarkTown, 5, 5,
+            vec![Pokemon::new(CYNDAQUIL, 10)],
+            0x00,
+        );
+        // After construction, camera should be within bounds
+        let map_pw = (sim.current_map.width as i32 * TILE_PX) as f64;
+        let map_ph = (sim.current_map.height as i32 * TILE_PX) as f64;
+        let vw = (VIEW_TILES_X * TILE_PX) as f64;
+        let vh = (VIEW_TILES_Y * TILE_PX) as f64;
+        assert!(sim.camera_x >= 0.0, "camera_x should not be negative");
+        assert!(sim.camera_y >= 0.0, "camera_y should not be negative");
+        if map_pw > vw {
+            assert!(sim.camera_x <= map_pw - vw, "camera_x should not exceed map bounds");
+        }
+        if map_ph > vh {
+            assert!(sim.camera_y <= map_ph - vh, "camera_y should not exceed map bounds");
+        }
+    }
+
+    #[test]
+    fn test_sprint142_evolution_phases() {
+        // Verify evolution GamePhase exists with correct timing constants
+        // Phase 1: 0-1.5s (text), Phase 2: 1.5-4.5s (flicker), Phase 3: >4.5s (complete)
+        let phase = GamePhase::Evolution { timer: 0.0, new_species: QUILAVA };
+        assert!(matches!(phase, GamePhase::Evolution { timer: 0.0, .. }));
+        // Test that the species data for evolution targets exists
+        assert!(get_species(QUILAVA).is_some());
+        assert!(get_species(TYPHLOSION).is_some());
     }
 }

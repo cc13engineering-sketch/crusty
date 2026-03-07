@@ -3359,3 +3359,36 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - `test_sprint141_multi_hit_and_recoil` — Pin Missile distribution, move data existence, Double-Edge stats
 - `test_sprint141_trapping_fields` — trap turn initialization
 - **1374 tests passing** (up from 1371)
+
+---
+
+### Sprint 142 — Map Transitions + Camera Edge + Evolution Sequence
+
+#### What Changed
+
+**Camera Edge Clamping (already correct)**
+- Camera centers on player via CAMERA_LERP (0.2) with sub-pixel snap
+- Camera clamps to `[0, map_pw - viewport_width]` — player walks off-center near edges
+- Camera snaps instantly (no lerp) on `change_map()` transitions
+- Verified: all map transitions route through MapFadeOut/MapFadeIn
+
+**Map Transitions (verified)**
+- All warp tiles route through `GamePhase::MapFadeOut { timer: 0.25s }` → black → `MapFadeIn { timer: 0.25s }`
+- Rendering: overworld renders underneath with progressive black overlay
+- WhiteoutFade has its own 1.5s white overlay
+- `los_suppress = 3` prevents trainer LOS trigger immediately after map change
+- Game-start transitions (title → ElmLab) skip fade correctly
+
+**Evolution Sequence (improved)**
+- Phase 1 (0-1.5s): "What? X is evolving!" text
+- Phase 2 (1.5-4.5s): Accelerating flicker animation (3Hz → 12Hz), B to cancel
+  - Render alternates between pre-evo and post-evo name with increasing glow intensity
+  - Cancel shows "Huh? X stopped evolving!"
+- Phase 3 (>4.5s): Auto-advance or confirm → apply evolution, "Congratulations!" dialogue
+- Rendering: pulsing light effect during flicker scales with progress (60→200 alpha)
+- "B TO CANCEL" hint shown during flicker phase; "PRESS Z" shown after
+
+#### Tests Added
+- `test_sprint142_camera_edge_clamping` — verifies camera stays within map bounds
+- `test_sprint142_evolution_phases` — verifies Evolution GamePhase construction and species data
+- **1376 tests passing** (up from 1374)

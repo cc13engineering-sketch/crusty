@@ -2178,3 +2178,55 @@ Creates a BattleState with an enemy at 0 HP, enqueues `CheckFaint { is_player: f
 - `mod.rs` -- Migrated RunFailed creation to queue (ActionSelect Run handler), migrated Intro post-animation to queue, migrated all 4 Won { timer: 0.0 } sites to queue, added `#[allow(dead_code)]` on BattlePhase enum, added 2 queue unit tests (test_battle_queue_drains_correctly, test_battle_queue_check_faint_transitions), updated AI-INSTRUCTIONS comment
 
 **Test Results**: All 1329 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation (0 warnings in pokemon/mod.rs).
+
+## Sprint 122: QA Audit of Battle Sequencer (Sprints 120-121)
+
+**Objective:** Thorough QA audit of the queue-based battle sequencer introduced in Sprints 120-121. Find and fix bugs, remove dead code, add comprehensive tests.
+
+### Audit Findings
+
+#### Bug Fix: GoToPhase did not clear remaining queue items
+**Problem:** `BattleStep::GoToPhase` only called `pop_front()` to remove itself, leaving any subsequent steps in the queue. If `ExecuteQueue` was later re-entered (via another queue-building flow), stale steps from a previous sequence could execute unexpectedly.
+**Fix:** Changed GoToPhase handler to call `battle_queue.clear()` instead of `pop_front()`. GoToPhase is a terminal step -- any steps after it in the queue are unreachable and should be discarded.
+
+#### Dead Code Removal: RunFailed variant fully removed
+**Problem:** Sprint 121 migrated RunFailed to the queue system but kept the `BattlePhase::RunFailed { timer }` variant, its step handler (lines 3822-3832), and its render handler as dead code with `#[allow(dead_code)]`.
+**Fix:** Removed the RunFailed variant from the BattlePhase enum, its step handler, and its render handler. The run-failed flow is now exclusively handled via `[Text("Can't escape!"), GoToPhase(EnemyAttack)]` in the queue. No external code transitions to RunFailed.
+
+#### Safety: Empty queue fallback now logs a warning
+**Problem:** When `step_execute_queue` was called with an empty queue, it silently fell back to ActionSelect. This could mask bugs where queue sequences were missing their terminal GoToPhase step.
+**Fix:** Added a `crate::log::warn()` call before the ActionSelect fallback, making the safety net observable in logs.
+
+#### Updated AI-INSTRUCTIONS comment
+Updated the header comment to reflect RunFailed removal and GoToPhase queue-clearing behavior.
+
+### New Tests (14 tests added)
+
+| Test | What it verifies |
+|------|-----------------|
+| `test_goto_phase_clears_remaining_queue` | GoToPhase discards all remaining queue items after transition |
+| `test_empty_queue_fallback_to_action_select` | Empty queue safely falls back to ActionSelect |
+| `test_intro_sequence_via_queue` | Intro flow: "Go! CYNDAQUIL!" text (1.5s) then ActionSelect |
+| `test_won_flow_via_queue` | Won flow: "You won!" text then Won { timer: 2.0 } for instant cleanup |
+| `test_run_success_flow_via_queue` | Run success: "Got away safely!" text then Run phase |
+| `test_run_failed_flow_via_queue` | Run failed: "Can't escape!" text then EnemyAttack phase |
+| `test_drain_hp_animation_completes` | DrainHp animates HP display from current to target over duration |
+| `test_inflict_status_step` | InflictStatus correctly applies Poison to enemy |
+| `test_stat_change_step` | StatChange lowers enemy ATK by 1 stage |
+| `test_stat_change_clamps_at_bounds` | StatChange clamps at -6/+6 boundaries |
+| `test_check_faint_no_faint_continues_queue` | CheckFaint on non-fainted Pokemon continues queue |
+| `test_check_faint_player_transitions_to_player_fainted` | CheckFaint on fainted player transitions to PlayerFainted |
+| `test_apply_damage_to_player` | ApplyDamage correctly subtracts HP from player Pokemon |
+| `test_apply_damage_saturates_at_zero` | ApplyDamage does not underflow past 0 HP |
+| `test_text_step_advances_on_confirm` | Text step advances early when confirm button is pressed |
+| `test_full_attack_queue_sequence` | Complete 6-step attack sequence (Text → Pause → ApplyDamage → DrainHp → CheckFaint → GoToPhase) |
+
+### Test Infrastructure
+Added two shared helpers to reduce boilerplate in queue tests:
+- `make_test_battle(party, enemy, is_wild)` — builds a minimal BattleState in ExecuteQueue phase
+- `step_until_phase_change(battle, party, engine, max_frames)` — steps queue until phase changes from ExecuteQueue
+
+### Files Changed
+- `mod.rs` — Removed RunFailed variant + handler + render handler, fixed GoToPhase to clear queue, added empty-queue warning, added 14 new tests + 2 test helpers, updated AI-INSTRUCTIONS comment
+
+**Test Results**: All 1345 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.

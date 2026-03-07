@@ -28,8 +28,8 @@
 // Battle queue sequencer: BattleStep enum (Text/ApplyDamage/DrainHp/InflictStatus/StatChange/CheckFaint/
 //   Pause/GoToPhase) processed FIFO via BattlePhase::ExecuteQueue. step_execute_queue() drives it.
 //   queue_attack_sequence() helper builds a standard attack flow. Migrated flows: Run success ("Got away
-//   safely!"), RunFailed ("Can't escape!" → EnemyAttack), Intro ("Go! X!" → ActionSelect), Won ("You won!"
-//   → cleanup). RunFailed variant is now dead code (kept for enum exhaustiveness).
+//   safely!" → Run cleanup), Run failed ("Can't escape!" → EnemyAttack via queue), Intro ("Go! X!" →
+//   ActionSelect), Won ("You won!" → Won cleanup). GoToPhase clears remaining queue on transition.
 
 pub mod data;
 pub mod sprites;
@@ -196,7 +196,6 @@ enum BattlePhase {
     TrainerSwitchPrompt { next_name: String, cursor: u8 },
     Won { timer: f64 },
     Run,
-    RunFailed { timer: f64 },
     ExecuteQueue,
 }
 
@@ -3819,18 +3818,6 @@ impl PokemonSim {
                 return;
             }
 
-            BattlePhase::RunFailed { timer } => {
-                let t = timer + dt;
-                if t > 1.0 {
-                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
-                    battle.phase = BattlePhase::EnemyAttack {
-                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                    };
-                } else {
-                    battle.phase = BattlePhase::RunFailed { timer: t };
-                }
-            }
-
             BattlePhase::PlayerFainted => {
                 sfx_faint(engine);
                 let any_alive = self.party.iter().any(|p| !p.is_fainted());
@@ -3882,6 +3869,9 @@ impl PokemonSim {
         let dt = 1.0 / 60.0;
 
         if battle.battle_queue.is_empty() {
+            // Safety fallback: queue should never be empty when ExecuteQueue is active —
+            // every queue sequence should end with GoToPhase. Log a warning for debugging.
+            crate::log::warn("Battle queue empty during ExecuteQueue — falling back to ActionSelect");
             battle.phase = BattlePhase::ActionSelect { cursor: 0 };
             return;
         }
@@ -3980,7 +3970,7 @@ impl PokemonSim {
             }
             BattleStep::GoToPhase(phase) => {
                 battle.phase = *phase;
-                battle.battle_queue.pop_front();
+                battle.battle_queue.clear(); // clear entire queue — GoToPhase is a terminal step
                 battle.queue_timer = 0.0;
             }
         }
@@ -5526,11 +5516,6 @@ impl PokemonSim {
             BattlePhase::Won { .. } => {
                 draw_text_box(fb, ctx, 2, 98, 156, 42);
                 draw_text_pkmn(fb, ctx, "You won!", 10, 106, dark);
-            }
-
-            BattlePhase::RunFailed { .. } => {
-                draw_text_box(fb, ctx, 2, 98, 156, 42);
-                draw_text_pkmn(fb, ctx, "Can't escape!", 10, 106, dark);
             }
 
             BattlePhase::PlayerFainted => {
@@ -9129,5 +9114,490 @@ mod headless_tests {
         assert!(matches!(battle.phase, BattlePhase::EnemyFainted { .. }),
             "CheckFaint on 0-HP enemy should transition to EnemyFainted, got {:?}", battle.phase);
         assert!(battle.battle_queue.is_empty(), "CheckFaint should pop itself from queue");
+    }
+
+    /// Helper: build a minimal BattleState for queue-based tests
+    fn make_test_battle(party: &[Pokemon], enemy: Pokemon, is_wild: bool) -> BattleState {
+        BattleState {
+            phase: BattlePhase::ExecuteQueue,
+            enemy,
+            player_idx: 0,
+            is_wild,
+            player_hp_display: party.first().map(|p| p.hp as f64).unwrap_or(0.0),
+            enemy_hp_display: 0.0,
+            turn_count: 0,
+            trainer_team: Vec::new(),
+            trainer_team_idx: 0,
+            pending_player_move: None,
+            player_stages: [0; 7],
+            enemy_stages: [0; 7],
+            enemy_flinched: false,
+            player_flinched: false,
+            player_confused: 0,
+            enemy_confused: 0,
+            player_trapped: false,
+            player_must_recharge: false,
+            enemy_must_recharge: false,
+            player_rampage: (0, 0),
+            enemy_rampage: (0, 0),
+            pending_learn_moves: vec![],
+            free_switch: false,
+            confusion_snapout_msg: None,
+            battle_queue: VecDeque::new(),
+            queue_timer: 0.0,
+        }
+    }
+
+    /// Step the queue until the phase changes from ExecuteQueue, or max_frames exceeded.
+    /// Returns the number of frames stepped.
+    fn step_until_phase_change(battle: &mut BattleState, party: &mut Vec<Pokemon>, engine: &mut crate::engine::Engine, max_frames: usize) -> usize {
+        for i in 0..max_frames {
+            if !matches!(battle.phase, BattlePhase::ExecuteQueue) {
+                return i;
+            }
+            PokemonSim::step_execute_queue(battle, party, engine);
+        }
+        max_frames
+    }
+
+    #[test]
+    fn test_goto_phase_clears_remaining_queue() {
+        // GoToPhase should clear any remaining steps after it in the queue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Queue: GoToPhase first, then extra steps that should get cleared
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+        battle.battle_queue.push_back(BattleStep::Text("This should be cleared!".into()));
+        battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: false, amount: 99 });
+
+        assert_eq!(battle.battle_queue.len(), 3);
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        // GoToPhase should have cleared the entire queue
+        assert!(battle.battle_queue.is_empty(),
+            "GoToPhase should clear remaining queue items, but {} remain", battle.battle_queue.len());
+        assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
+            "Should have transitioned to ActionSelect");
+    }
+
+    #[test]
+    fn test_empty_queue_fallback_to_action_select() {
+        // Empty queue should safely fall back to ActionSelect
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        // Queue is empty by default
+
+        assert!(battle.battle_queue.is_empty());
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
+            "Empty queue should fall back to ActionSelect, got {:?}", battle.phase);
+    }
+
+    #[test]
+    fn test_intro_sequence_via_queue() {
+        // Simulate the Intro → ExecuteQueue → "Go! CYNDAQUIL!" → ActionSelect flow
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn.clone()];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Simulate what Intro phase does after 1.5s: build the queue
+        let pname = party[0].name().to_string();
+        battle.battle_queue.clear();
+        battle.queue_timer = 0.0;
+        battle.battle_queue.push_back(BattleStep::Text(format!("Go! {}!", pname)));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+        battle.phase = BattlePhase::ExecuteQueue;
+
+        // Verify queue has 2 steps
+        assert_eq!(battle.battle_queue.len(), 2);
+
+        // First step: Text "Go! CYNDAQUIL!" — needs 1.5s (90 frames) to auto-advance
+        let frames = step_until_phase_change(&mut battle, &mut party, &mut engine, 200);
+
+        // Should have consumed the text + GoToPhase and ended at ActionSelect
+        assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
+            "Intro queue should end at ActionSelect, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "Queue should be fully drained");
+        // Text (1.5s = 90 frames) + GoToPhase (1 frame) = ~91 frames
+        assert!(frames > 85 && frames < 100,
+            "Expected ~91 frames for intro sequence, got {}", frames);
+    }
+
+    #[test]
+    fn test_won_flow_via_queue() {
+        // Test the Won queue: "You won!" text → GoToPhase(Won { timer: 2.0 })
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Simulate what the Won flow does
+        battle.battle_queue.clear();
+        battle.queue_timer = 0.0;
+        battle.battle_queue.push_back(BattleStep::Text("You won!".into()));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Won { timer: 2.0 })));
+        battle.phase = BattlePhase::ExecuteQueue;
+
+        // Step through until phase changes
+        let frames = step_until_phase_change(&mut battle, &mut party, &mut engine, 200);
+
+        // Should end at Won with timer: 2.0 (skips the won-phase delay since text was already shown)
+        assert!(matches!(battle.phase, BattlePhase::Won { timer }  if (timer - 2.0).abs() < 0.01),
+            "Won queue should end at Won {{ timer: 2.0 }}, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "Queue should be cleared by GoToPhase");
+        assert!(frames > 85 && frames < 100,
+            "Expected ~91 frames (1.5s text), got {}", frames);
+    }
+
+    #[test]
+    fn test_run_success_flow_via_queue() {
+        // Test run success: "Got away safely!" → GoToPhase(Run)
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Build run-success queue
+        battle.battle_queue.clear();
+        battle.queue_timer = 0.0;
+        battle.battle_queue.push_back(BattleStep::Text("Got away safely!".into()));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Run)));
+        battle.phase = BattlePhase::ExecuteQueue;
+
+        let frames = step_until_phase_change(&mut battle, &mut party, &mut engine, 200);
+
+        assert!(matches!(battle.phase, BattlePhase::Run),
+            "Run success queue should end at Run, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "Queue should be cleared");
+        assert!(frames > 85 && frames < 100,
+            "Expected ~91 frames (1.5s text), got {}", frames);
+    }
+
+    #[test]
+    fn test_run_failed_flow_via_queue() {
+        // Test run failed: "Can't escape!" → GoToPhase(EnemyAttack)
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Build run-failed queue (mirrors the actual code)
+        battle.battle_queue.clear();
+        battle.queue_timer = 0.0;
+        battle.battle_queue.push_back(BattleStep::Text("Can't escape!".into()));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+            timer: 0.0, move_id: MOVE_TACKLE, damage: 5, effectiveness: 1.0, is_crit: false,
+        })));
+        battle.phase = BattlePhase::ExecuteQueue;
+
+        let _frames = step_until_phase_change(&mut battle, &mut party, &mut engine, 200);
+
+        assert!(matches!(battle.phase, BattlePhase::EnemyAttack { .. }),
+            "Run failed queue should end at EnemyAttack, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "Queue should be cleared by GoToPhase");
+    }
+
+    #[test]
+    fn test_drain_hp_animation_completes() {
+        // Test DrainHp step: enemy HP display animates from current to target
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        battle.enemy_hp_display = 30.0; // start displaying at 30 HP
+
+        // DrainHp from 30 to 15, duration 0.5s
+        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: 15, duration: 0.5 });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        // Step through 15 frames (~0.25s) — should be mid-animation
+        for _ in 0..15 {
+            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        }
+        // HP display should have moved toward 15 but not reached it yet
+        assert!(battle.enemy_hp_display < 30.0, "HP display should be decreasing");
+        assert!(battle.enemy_hp_display > 15.0, "HP display should not have reached target yet at 0.25s");
+
+        // Step through remaining frames until done (total ~30 frames for 0.5s)
+        for _ in 0..20 {
+            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        }
+        // After 0.5s, should have completed and moved to next step
+        assert!((battle.enemy_hp_display - 15.0).abs() < 1.0,
+            "HP display should be at or near 15.0, got {}", battle.enemy_hp_display);
+    }
+
+    #[test]
+    fn test_inflict_status_step() {
+        // Test InflictStatus step on enemy
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Queue: inflict Poison on enemy, then go to ActionSelect
+        battle.battle_queue.push_back(BattleStep::InflictStatus {
+            is_player: false,
+            status: StatusCondition::Poison,
+        });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        assert!(matches!(battle.enemy.status, StatusCondition::None),
+            "Enemy should start with no status");
+
+        // InflictStatus is instant (1 frame)
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert!(matches!(battle.enemy.status, StatusCondition::Poison),
+            "Enemy should now be poisoned, got {:?}", battle.enemy.status);
+        assert_eq!(battle.battle_queue.len(), 1, "InflictStatus should consume 1 step");
+    }
+
+    #[test]
+    fn test_stat_change_step() {
+        // Test StatChange step: lower enemy attack by 1 stage
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        assert_eq!(battle.enemy_stages[STAGE_ATK], 0, "Enemy ATK stage should start at 0");
+
+        // Queue: lower enemy ATK by 1 stage
+        battle.battle_queue.push_back(BattleStep::StatChange {
+            is_player: false,
+            stat: STAGE_ATK,
+            stages: -1,
+        });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert_eq!(battle.enemy_stages[STAGE_ATK], -1,
+            "Enemy ATK stage should be -1 after Growl");
+    }
+
+    #[test]
+    fn test_stat_change_clamps_at_bounds() {
+        // Test StatChange clamping at -6 and +6
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        battle.player_stages[STAGE_DEF] = 5; // already at +5
+
+        // Try to raise DEF by 3 — should clamp to +6
+        battle.battle_queue.push_back(BattleStep::StatChange {
+            is_player: true,
+            stat: STAGE_DEF,
+            stages: 3,
+        });
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert_eq!(battle.player_stages[STAGE_DEF], 6,
+            "DEF stage should be clamped at +6, got {}", battle.player_stages[STAGE_DEF]);
+    }
+
+    #[test]
+    fn test_check_faint_no_faint_continues_queue() {
+        // CheckFaint on a non-fainted Pokemon should just pop itself and continue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        // Enemy has full HP — CheckFaint should not trigger faint transition
+        battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        // Should still be in ExecuteQueue (CheckFaint passed, GoToPhase is next)
+        assert!(matches!(battle.phase, BattlePhase::ExecuteQueue),
+            "Non-faint CheckFaint should continue queue, got {:?}", battle.phase);
+        assert_eq!(battle.battle_queue.len(), 1, "CheckFaint should pop itself, leaving GoToPhase");
+    }
+
+    #[test]
+    fn test_check_faint_player_transitions_to_player_fainted() {
+        // CheckFaint on fainted player should transition to PlayerFainted
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let mut player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        player_pkmn.hp = 0; // player already fainted
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: true });
+        battle.battle_queue.push_back(BattleStep::Text("This should not execute".into()));
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert!(matches!(battle.phase, BattlePhase::PlayerFainted),
+            "CheckFaint on fainted player should transition to PlayerFainted, got {:?}", battle.phase);
+    }
+
+    #[test]
+    fn test_apply_damage_to_player() {
+        // Test ApplyDamage step targeting the player's Pokemon
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let initial_hp = player_pkmn.hp;
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: true, amount: 7 });
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert_eq!(party[0].hp, initial_hp - 7,
+            "Player HP should decrease by 7, got {} (expected {})", party[0].hp, initial_hp - 7);
+    }
+
+    #[test]
+    fn test_apply_damage_saturates_at_zero() {
+        // Test that ApplyDamage doesn't underflow
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let mut player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        player_pkmn.hp = 3; // only 3 HP left
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+
+        battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: true, amount: 50 });
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        assert_eq!(party[0].hp, 0, "HP should saturate at 0, not underflow");
+    }
+
+    #[test]
+    fn test_text_step_advances_on_confirm() {
+        // Test that Text step can be advanced early by pressing confirm
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        battle.battle_queue.push_back(BattleStep::Text("Press to advance!".into()));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        // Step a few frames without pressing anything — should still be on Text
+        for _ in 0..5 {
+            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        }
+        assert_eq!(battle.battle_queue.len(), 2, "Text should not advance without confirm or timeout");
+
+        // Now simulate pressing confirm (add KeyZ to pressed keys)
+        engine.input.keys_pressed.insert("KeyZ".to_string());
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        engine.input.keys_pressed.clear();
+
+        assert_eq!(battle.battle_queue.len(), 1, "Text should advance when confirm is pressed");
+    }
+
+    #[test]
+    fn test_full_attack_queue_sequence() {
+        // Test a complete attack sequence: Text → Pause → ApplyDamage → DrainHp → CheckFaint → GoToPhase
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+        let initial_enemy_hp = enemy.hp;
+
+        let mut battle = make_test_battle(&party, enemy, true);
+        battle.enemy_hp_display = initial_enemy_hp as f64;
+
+        let damage: u16 = 8;
+        let target_hp = initial_enemy_hp.saturating_sub(damage);
+
+        // Build a full attack sequence manually (mirrors queue_attack_sequence)
+        battle.battle_queue.push_back(BattleStep::Text("CYNDAQUIL used TACKLE!".into()));
+        battle.battle_queue.push_back(BattleStep::Pause(0.3));
+        battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: false, amount: damage });
+        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: target_hp, duration: 0.5 });
+        battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        assert_eq!(battle.battle_queue.len(), 6);
+
+        // Step through the entire sequence (generous frame budget)
+        let _frames = step_until_phase_change(&mut battle, &mut party, &mut engine, 500);
+
+        // Should end at ActionSelect since enemy did not faint
+        assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
+            "Full attack sequence should end at ActionSelect, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "Queue should be fully drained");
+        assert_eq!(battle.enemy.hp, target_hp,
+            "Enemy HP should be {} after {} damage, got {}", target_hp, damage, battle.enemy.hp);
+        assert!((battle.enemy_hp_display - target_hp as f64).abs() < 1.0,
+            "Enemy HP display should match target HP");
     }
 }

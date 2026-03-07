@@ -377,9 +377,10 @@ fn two_turn_charge_msg(move_id: MoveId, user_name: &str) -> Option<String> {
 }
 
 /// Returns true if this move has a high critical hit rate (1/4 instead of 1/16).
-/// Gen 2: Karate Chop, Razor Leaf, Crabhammer, Slash, Cross Chop
+/// Gen 2: Karate Chop, Razor Leaf, Crabhammer, Slash, Aeroblast, Cross Chop
+/// (Razor Wind and Crabhammer omitted — moves not yet defined in MOVE_DB)
 fn is_high_crit_move(move_id: MoveId) -> bool {
-    matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_LEAF | MOVE_SLASH | MOVE_CROSS_CHOP)
+    matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_LEAF | MOVE_SLASH | MOVE_AEROBLAST | MOVE_CROSS_CHOP)
 }
 
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
@@ -11831,6 +11832,7 @@ mod headless_tests {
         assert!(is_high_crit_move(MOVE_KARATE_CHOP));
         assert!(is_high_crit_move(MOVE_RAZOR_LEAF));
         assert!(is_high_crit_move(MOVE_CROSS_CHOP));
+        assert!(is_high_crit_move(MOVE_AEROBLAST));
         // Normal moves should not be high-crit
         assert!(!is_high_crit_move(MOVE_TACKLE));
         assert!(!is_high_crit_move(MOVE_THUNDERBOLT));
@@ -11842,5 +11844,39 @@ mod headless_tests {
         // Base crit: 1/16, high-crit: 1/4
         assert_eq!(CRIT_CHANCE, 16);
         assert_eq!(CRIT_CHANCE_HIGH, 4);
+    }
+
+    #[test]
+    fn test_sprint149_qa_species_stats() {
+        // Verify Sprint 147 species stats match pokecrystal base_stats/*.asm
+        let pidgeot = get_species(PIDGEOT).unwrap();
+        assert_eq!((pidgeot.base_hp, pidgeot.base_attack, pidgeot.base_defense), (83, 80, 75));
+        assert_eq!((pidgeot.base_speed, pidgeot.base_sp_attack, pidgeot.base_sp_defense), (91, 70, 70));
+        let golduck = get_species(GOLDUCK).unwrap();
+        assert_eq!((golduck.base_hp, golduck.base_attack, golduck.base_defense), (80, 82, 78));
+        assert_eq!((golduck.base_speed, golduck.base_sp_attack, golduck.base_sp_defense), (85, 95, 80));
+        let jumpluff = get_species(JUMPLUFF).unwrap();
+        assert_eq!((jumpluff.base_hp, jumpluff.base_attack, jumpluff.base_defense), (75, 55, 70));
+        assert_eq!((jumpluff.base_speed, jumpluff.base_sp_attack, jumpluff.base_sp_defense), (110, 55, 85));
+        let shellder = get_species(SHELLDER).unwrap();
+        assert_eq!((shellder.base_hp, shellder.base_attack, shellder.base_defense), (30, 65, 100));
+        assert_eq!((shellder.base_speed, shellder.base_sp_attack, shellder.base_sp_defense), (40, 45, 25));
+        let cloyster = get_species(CLOYSTER).unwrap();
+        assert_eq!((cloyster.base_hp, cloyster.base_attack, cloyster.base_defense), (50, 95, 180));
+        assert_eq!((cloyster.base_speed, cloyster.base_sp_attack, cloyster.base_sp_defense), (70, 85, 45));
+    }
+
+    #[test]
+    fn test_sprint149_qa_evolution_levels() {
+        // Verify Sprint 147 evolution levels match pokecrystal evos_attacks.asm
+        let pidgeotto = get_species(PIDGEOTTO).unwrap();
+        assert_eq!(pidgeotto.evolution_level, Some(36));
+        assert_eq!(pidgeotto.evolution_into, Some(PIDGEOT));
+        let psyduck = get_species(PSYDUCK).unwrap();
+        assert_eq!(psyduck.evolution_level, Some(33));
+        assert_eq!(psyduck.evolution_into, Some(GOLDUCK));
+        let skiploom = get_species(SKIPLOOM).unwrap();
+        assert_eq!(skiploom.evolution_level, Some(27));
+        assert_eq!(skiploom.evolution_into, Some(JUMPLUFF));
     }
 }

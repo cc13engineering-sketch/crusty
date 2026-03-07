@@ -3600,3 +3600,27 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - **1387 tests passing** (+2 new, 0 failures, 0 warnings)
 - `test_sprint148_high_crit_moves` — verifies is_high_crit_move for all 4 moves + non-crit moves
 - `test_sprint148_crit_chance_constants` — verifies CRIT_CHANCE=16, CRIT_CHANCE_HIGH=4
+
+---
+
+### Sprint 149 — QA Audit: Sprints 147-148
+
+#### Findings
+
+**P1 Fixed: Missing high-crit move Aeroblast**
+- `is_high_crit_move()` was missing MOVE_AEROBLAST (Lugia's signature move)
+- pokecrystal `data/moves/critical_hit_moves.asm` lists 7 moves: Karate Chop, Razor Wind,
+  Razor Leaf, Crabhammer, Slash, Aeroblast, Cross Chop
+- Added Aeroblast. Razor Wind and Crabhammer not yet in MOVE_DB — tracked as P3
+
+**Verified Correct:**
+- All 5 new species stats (Pidgeot, Golduck, Jumpluff, Shellder, Cloyster) match pokecrystal
+- All 6 evolution levels match pokecrystal evos_attacks.asm exactly
+- Aeroblast move category (Physical) correct for Gen 2 type-based system
+- Enemy AI STAB scoring logic correct
+- No P0 bugs found
+
+#### Test Results
+- **1389 tests passing** (+2 new QA tests, 0 failures)
+- `test_sprint149_qa_species_stats` — all 5 species stats verified against pokecrystal
+- `test_sprint149_qa_evolution_levels` — Pidgeotto→Pidgeot(36), Psyduck→Golduck(33), Skiploom→Jumpluff(27)

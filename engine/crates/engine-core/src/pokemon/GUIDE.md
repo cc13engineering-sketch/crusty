@@ -267,6 +267,132 @@ The headless tools read `global_state` for metrics, but there's no trait method 
 
 **Fix (future, post-Johto)**: Build a `PokemonPolicy` that reads `player_x`/`player_y`/`current_map` from observations and follows a scripted waypoint list. This would enable fully automated regression playthroughs: "start new game, pick Cyndaquil, walk to Violet City, beat Falkner, verify Zephyr Badge." Major project but the ultimate stress test for deterministic replay.
 
+### Test Authoring Infrastructure (Gaps 7-11)
+
+Gaps 1-6 are engine-level changes. Gaps 7-11 are game-level additions that let agents write efficient, expressive headless tests without engine changes.
+
+#### Gap 7: No InputFrame builder API (BLOCKS TEST AUTHORING)
+Writing headless tests currently requires manually constructing `InputFrame` structs with `keys_pressed: vec!["ArrowRight".into()]` for every frame. A test that walks from Elm Lab to Violet City needs hundreds of frames of boilerplate. This makes agents reluctant to write complex integration tests.
+
+**Fix**: Add a `test_helpers` module (or functions at the top of the headless_tests module) with ergonomic builders:
+
+```rust
+fn press(key: &str) -> InputFrame {
+    InputFrame { keys_pressed: vec![key.into()], ..Default::default() }
+}
+fn hold(key: &str, frames: usize) -> Vec<InputFrame> {
+    (0..frames).map(|_| InputFrame { keys_held: vec![key.into()], ..Default::default() }).collect()
+}
+fn wait(frames: usize) -> Vec<InputFrame> {
+    vec![InputFrame::default(); frames]
+}
+fn walk_right(tiles: usize) -> Vec<InputFrame> {
+    // Each tile = press + hold for walk animation frames + release
+    let mut frames = Vec::new();
+    for _ in 0..tiles {
+        frames.push(press("ArrowRight"));
+        frames.extend(hold("ArrowRight", 7)); // 8 frames per tile at walk speed
+    }
+    frames
+}
+fn sequence(steps: &[(&str, usize)]) -> Vec<InputFrame> {
+    steps.iter().flat_map(|(key, count)| {
+        if key.is_empty() { wait(*count) } else { hold(key, *count) }
+    }).collect()
+}
+```
+
+~40 lines. Without this, every test is 50+ lines of InputFrame construction and agents won't write complex scenarios.
+
+#### Gap 8: No mid-run assertions (LIMITS TEST EXPRESSIVENESS)
+`run_sim()` returns `SimResult` with final state only. You can't assert "badges == 0 at frame 50 AND badges == 1 at frame 200." The legacy `run_with_frame_cb` has a per-frame callback, but the `Simulation` trait path (`run_sim`/`run_sim_frames`) does not.
+
+**Fix**: Add `run_sim_with_checkpoints` to `HeadlessRunner`:
+
+```rust
+pub fn run_sim_with_checkpoints<S: Simulation>(
+    &mut self,
+    sim: &mut S,
+    seed: u64,
+    inputs: &[InputFrame],
+    frames: u64,
+    checkpoints: &[(u64, &str, f64, f64)], // (frame, key, expected, tolerance)
+    config: RunConfig,
+) -> (SimResult, Vec<(u64, String, bool, String)>) // (frame, key, passed, detail)
+```
+
+This lets a single test verify a multi-step sequence (walk to gym → fight → verify badge → walk out) without splitting into separate runs that each need fresh setup. Alternatively, accept `Vec<(u64, Box<dyn Fn(&Engine) -> Result<(), String>>)>` for arbitrary predicates.
+
+#### Gap 9: No direct PokemonSim state access from HeadlessRunner tests
+Headless tests using `HeadlessRunner` can only read `global_state` f64 values. The exported keys are limited — no `current_phase` discriminant, no `battle.enemy.species_id`, no `party[1].hp`. The existing `headless_tests` module inside `mod.rs` can access `PokemonSim` fields directly (private access within the same module), but `HeadlessRunner`-based integration tests cannot.
+
+**Fix**: Add `pub fn test_snapshot(&self) -> PokemonTestSnapshot` to `PokemonSim`:
+
+```rust
+#[derive(Debug, Clone)]
+pub struct PokemonTestSnapshot {
+    pub map_id: MapId,
+    pub x: i32, pub y: i32,
+    pub badges: u32, pub money: u32,
+    pub story_flags: u64,
+    pub phase: String, // discriminant name
+    pub party: Vec<(SpeciesId, u8, u16, u16)>, // (species, level, hp, max_hp)
+    pub in_battle: bool,
+    pub enemy_species: Option<SpeciesId>,
+    pub defeated_count: usize,
+}
+```
+
+This gives integration tests rich assertions without bloating `global_state` exports on every frame.
+
+#### Gap 10: No test-mode initial state constructor (BLOCKS EFFICIENT TESTING)
+Every gym test currently needs to replay from the title screen — picking a starter, walking through dialogue, navigating to the gym. What you actually want: construct a `PokemonSim` at a specific game state and run from there.
+
+**Fix**: Add `PokemonSim::with_state()` — a test constructor that skips the title screen:
+
+```rust
+impl PokemonSim {
+    #[cfg(test)]
+    pub fn with_state(
+        map: MapId, x: i32, y: i32,
+        party: Vec<Pokemon>, badges: u32,
+        flags: u64, money: u32,
+    ) -> Self {
+        let mut sim = Self::new();
+        sim.change_map(map, x, y);
+        sim.party = party;
+        sim.badges = badges;
+        sim.story_flags = flags;
+        sim.money = money;
+        sim.has_starter = true;
+        sim.phase = GamePhase::Overworld;
+        sim
+    }
+}
+```
+
+This is the difference between a 30-frame test and a 3000-frame test. A gym badge test becomes: construct sim with 7 badges and a L100 Typhlosion at the gym entrance, run 200 frames of "walk to leader, press Z, spam attack," assert `badges == 8`.
+
+#### Gap 11: No RNG call counting for determinism auditing
+The GUIDE's determinism section requires stable RNG call order and dummy calls in branches, but there's no way to verify compliance. If someone adds a conditional `rng.next_f64()` that only fires during battle, replays silently desync with no test failure.
+
+**Fix**: Add `call_count: u64` to `SeededRng` that increments on every `next_f64()` / `next_u64()` call. Export it to `global_state` as `rng_call_count`. Then determinism tests can assert:
+
+```rust
+// Run same inputs twice with same seed
+let r1 = runner.run_sim(&mut sim1, 42, &inputs, config.clone());
+let r2 = runner.run_sim(&mut sim2, 42, &inputs, config);
+// RNG was called the same number of times
+assert_eq!(
+    r1.get_f64("rng_call_count"),
+    r2.get_f64("rng_call_count"),
+);
+// State hashes match (requires Gap 2 fix)
+assert_eq!(r1.state_hash, r2.state_hash);
+```
+
+If a code change adds a conditional RNG call, the count diverges between runs that take different branches, and the determinism test catches it before it becomes a replay desync bug in production.
+
 ---
 
 ## Technical Notes
@@ -581,4 +707,15 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Warp audit**: NewBarkTown↔Route27 warps verified correct (offsets prevent infinite warp loops)
 - Added tests: test_catch_shake_prob_clamped, test_champion_credits_over_evolution
 - All 1292 tests pass.
-- **Next (Sprint 73)**: Content sprint
+
+### Sprint 73 (Multi-Turn Move Mechanics)
+- **Hyper Beam recharge**: player and enemy must skip next turn after landing Hyper Beam (critical for Lance fight)
+- **Thrash/Outrage rampage**: locked into same move for 2-3 turns, self-confusion when rampage ends
+- **Rest**: full HP heal + forced 2-turn sleep (Gen 2 accurate)
+- Added BattleState fields: `player/enemy_must_recharge`, `player/enemy_rampage`
+- Recharge/rampage cleared on switch-out and trainer send-out
+- Enemy rampage: overrides `calc_enemy_move` selection via `calc_enemy_move_forced`
+- Added `calc_player_damage` helper for rampage damage recalculation
+- Added tests: hyper_beam_data, outrage_data, thrash_data, rest_data
+- All 1296 tests pass.
+- **Next (Sprint 74)**: Content sprint (battle items, Rocket HQ, or medicine quest)

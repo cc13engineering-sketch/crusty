@@ -25,12 +25,16 @@
 // Repel: Repel/Super Repel/Max Repel (100/200/250 steps). Gen 2 rule: only blocks wild < lead level.
 // Overworld items: Potions (20/50/200/full), Full Restore (HP+status), Rare Candy (+1 level+evo check).
 // Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
+// Battle queue sequencer: BattleStep enum (Text/ApplyDamage/DrainHp/InflictStatus/StatChange/CheckFaint/
+//   Pause/GoToPhase) processed FIFO via BattlePhase::ExecuteQueue. step_execute_queue() drives it.
+//   queue_attack_sequence() helper builds a standard attack flow. Run escape uses queue for "Got away safely!".
 
 pub mod data;
 pub mod sprites;
 pub mod maps;
 pub mod render;
 
+use std::collections::VecDeque;
 use crate::engine::Engine;
 use crate::simulation::Simulation;
 use crate::rendering::color::Color;
@@ -190,6 +194,30 @@ enum BattlePhase {
     Won { timer: f64 },
     Run,
     RunFailed { timer: f64 },
+    ExecuteQueue,
+}
+
+/// Steps for the queue-based battle sequencer. Each step is a single unit of work
+/// (display text, apply damage, drain HP bar, etc.) processed in FIFO order.
+#[derive(Clone, Debug)]
+#[allow(dead_code)]
+enum BattleStep {
+    /// Display text message, advance on timer (1.5s) or confirm button press
+    Text(String),
+    /// Apply damage to target, update HP immediately (no animation)
+    ApplyDamage { is_player: bool, amount: u16 },
+    /// Animate HP bar drain (smooth interpolation toward target HP)
+    DrainHp { is_player: bool, to_hp: u16, duration: f64 },
+    /// Inflict status condition on target
+    InflictStatus { is_player: bool, status: StatusCondition },
+    /// Apply stat stage change (+/- stages to a stat)
+    StatChange { is_player: bool, stat: usize, stages: i8 },
+    /// Check if target fainted, transition to faint handling if so
+    CheckFaint { is_player: bool },
+    /// Pause for N seconds (no text displayed)
+    Pause(f64),
+    /// Transition to a specific BattlePhase (escape hatch for complex flows)
+    GoToPhase(Box<BattlePhase>),
 }
 
 /// Sub-states for the move learning sequence
@@ -295,6 +323,9 @@ struct BattleState {
     free_switch: bool,
     // Confusion snap-out message to chain before the attack
     confusion_snapout_msg: Option<String>,
+    // Queue-based sequencer: steps processed in FIFO order during ExecuteQueue phase
+    battle_queue: VecDeque<BattleStep>,
+    queue_timer: f64,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -1528,6 +1559,8 @@ impl PokemonSim {
                                 pending_learn_moves: vec![],
                                 free_switch: false,
                                 confusion_snapout_msg: None,
+                                battle_queue: VecDeque::new(),
+                                queue_timer: 0.0,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -2312,7 +2345,12 @@ impl PokemonSim {
                                 let espeed = battle.enemy.speed;
                                 let chance = (pspeed as f64 * 128.0 / espeed as f64 + 30.0 * battle.turn_count as f64) / 256.0;
                                 if engine.rng.next_f64() < chance || battle.turn_count > 3 {
-                                    battle.phase = BattlePhase::Run;
+                                    // Queue-based run: show "Got away safely!" via ExecuteQueue, then GoToPhase(Run) for cleanup
+                                    battle.battle_queue.clear();
+                                    battle.queue_timer = 0.0;
+                                    battle.battle_queue.push_back(BattleStep::Text("Got away safely!".into()));
+                                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Run)));
+                                    battle.phase = BattlePhase::ExecuteQueue;
                                 } else {
                                     battle.phase = BattlePhase::RunFailed { timer: 0.0 };
                                 }
@@ -3745,14 +3783,9 @@ impl PokemonSim {
             }
 
             BattlePhase::Run => {
-                // "Got away safely!" text shown via Won timer exit
+                // Cleanup: "Got away safely!" text was already shown via ExecuteQueue
                 engine.global_state.set_f64("in_battle", 0.0);
-                self.dialogue = Some(DialogueState {
-                    lines: vec!["Got away safely!".to_string()],
-                    current_line: 0, char_index: 0, timer: 0.0,
-                    on_complete: DialogueAction::None,
-                });
-                self.phase = GamePhase::Dialogue;
+                self.phase = GamePhase::Overworld;
                 self.battle = None;
                 return;
             }
@@ -3804,9 +3837,152 @@ impl PokemonSim {
                     return;
                 }
             }
+
+            BattlePhase::ExecuteQueue => {
+                Self::step_execute_queue(&mut battle, &mut self.party, engine);
+            }
         }
 
         self.battle = Some(battle);
+    }
+
+    /// Process the next step in the battle queue. Called when phase == ExecuteQueue.
+    /// Pops and processes BattleStep items in FIFO order. When the queue is empty,
+    /// transitions back to ActionSelect.
+    fn step_execute_queue(battle: &mut BattleState, party: &mut Vec<Pokemon>, engine: &mut Engine) {
+        let dt = 1.0 / 60.0;
+
+        if battle.battle_queue.is_empty() {
+            battle.phase = BattlePhase::ActionSelect { cursor: 0 };
+            return;
+        }
+
+        // Peek at front step and process it
+        let step = battle.battle_queue[0].clone();
+        match step {
+            BattleStep::Text(ref msg) => {
+                let _ = msg; // text is rendered by render_battle
+                battle.queue_timer += dt;
+                if battle.queue_timer >= 1.5 || is_confirm(engine) {
+                    battle.battle_queue.pop_front();
+                    battle.queue_timer = 0.0;
+                }
+            }
+            BattleStep::ApplyDamage { is_player, amount } => {
+                if is_player {
+                    if let Some(pkmn) = party.get_mut(battle.player_idx) {
+                        pkmn.hp = pkmn.hp.saturating_sub(amount);
+                    }
+                } else {
+                    battle.enemy.hp = battle.enemy.hp.saturating_sub(amount);
+                }
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::DrainHp { is_player, to_hp, duration } => {
+                let to_hp_f = to_hp as f64;
+                battle.queue_timer += dt;
+                if is_player {
+                    let diff = battle.player_hp_display - to_hp_f;
+                    battle.player_hp_display -= diff * (dt / duration).min(1.0);
+                    if (battle.player_hp_display - to_hp_f).abs() < 0.5 {
+                        battle.player_hp_display = to_hp_f;
+                    }
+                } else {
+                    let diff = battle.enemy_hp_display - to_hp_f;
+                    battle.enemy_hp_display -= diff * (dt / duration).min(1.0);
+                    if (battle.enemy_hp_display - to_hp_f).abs() < 0.5 {
+                        battle.enemy_hp_display = to_hp_f;
+                    }
+                }
+                if battle.queue_timer >= duration || is_confirm(engine) {
+                    if is_player { battle.player_hp_display = to_hp_f; }
+                    else { battle.enemy_hp_display = to_hp_f; }
+                    battle.battle_queue.pop_front();
+                    battle.queue_timer = 0.0;
+                }
+            }
+            BattleStep::InflictStatus { is_player, ref status } => {
+                if is_player {
+                    if let Some(pkmn) = party.get_mut(battle.player_idx) {
+                        pkmn.status = status.clone();
+                    }
+                } else {
+                    battle.enemy.status = status.clone();
+                }
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::StatChange { is_player, stat, stages } => {
+                let stat_idx = stat.min(6);
+                if is_player {
+                    battle.player_stages[stat_idx] = (battle.player_stages[stat_idx] + stages).max(-6).min(6);
+                } else {
+                    battle.enemy_stages[stat_idx] = (battle.enemy_stages[stat_idx] + stages).max(-6).min(6);
+                }
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::CheckFaint { is_player } => {
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+                if is_player {
+                    let fainted = party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false);
+                    if fainted {
+                        battle.phase = BattlePhase::PlayerFainted;
+                        return;
+                    }
+                } else if battle.enemy.is_fainted() {
+                    // Calculate EXP for the fainted enemy
+                    let base_exp = get_species(battle.enemy.species_id)
+                        .map(|s| s.base_exp_yield)
+                        .unwrap_or(50) as u32;
+                    let exp = (base_exp * battle.enemy.level as u32) / 7;
+                    battle.phase = BattlePhase::EnemyFainted { exp_gained: exp };
+                    return;
+                }
+            }
+            BattleStep::Pause(secs) => {
+                battle.queue_timer += dt;
+                if battle.queue_timer >= secs {
+                    battle.battle_queue.pop_front();
+                    battle.queue_timer = 0.0;
+                }
+            }
+            BattleStep::GoToPhase(phase) => {
+                battle.phase = *phase;
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+        }
+    }
+
+    /// Build a queue sequence for an attack: "X used Y!", apply damage, drain HP,
+    /// optional crit/effectiveness text, and faint check.
+    #[allow(dead_code)]
+    fn queue_attack_sequence(&mut self, attacker_name: &str, move_name: &str, damage: u16,
+                             is_crit: bool, effectiveness: f64, is_player_target: bool) {
+        if let Some(b) = self.battle.as_mut() {
+            b.battle_queue.push_back(BattleStep::Text(format!("{} used {}!", attacker_name, move_name)));
+            b.battle_queue.push_back(BattleStep::Pause(0.3));
+            b.battle_queue.push_back(BattleStep::ApplyDamage { is_player: is_player_target, amount: damage });
+            // Calculate target HP after damage for drain animation
+            let target_hp = if is_player_target {
+                self.party.get(b.player_idx).map(|p| p.hp.saturating_sub(damage)).unwrap_or(0)
+            } else {
+                b.enemy.hp.saturating_sub(damage)
+            };
+            b.battle_queue.push_back(BattleStep::DrainHp { is_player: is_player_target, to_hp: target_hp, duration: 0.5 });
+            if is_crit {
+                b.battle_queue.push_back(BattleStep::Text("A critical hit!".into()));
+            }
+            if effectiveness > 1.5 {
+                b.battle_queue.push_back(BattleStep::Text("It's super effective!".into()));
+            } else if effectiveness < 0.9 && effectiveness > 0.0 {
+                b.battle_queue.push_back(BattleStep::Text("It's not very effective...".into()));
+            }
+            b.battle_queue.push_back(BattleStep::CheckFaint { is_player: is_player_target });
+        }
     }
 
     fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7]) -> (MoveId, u16, f64, bool) {
@@ -4099,6 +4275,8 @@ impl PokemonSim {
                             pending_learn_moves: vec![],
                             free_switch: false,
                             confusion_snapout_msg: None,
+                            battle_queue: VecDeque::new(),
+                            queue_timer: 0.0,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4137,6 +4315,8 @@ impl PokemonSim {
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
+                        battle_queue: VecDeque::new(),
+                        queue_timer: 0.0,
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4171,6 +4351,8 @@ impl PokemonSim {
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
+                        battle_queue: VecDeque::new(),
+                        queue_timer: 0.0,
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4205,6 +4387,8 @@ impl PokemonSim {
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
+                        battle_queue: VecDeque::new(),
+                        queue_timer: 0.0,
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -5343,6 +5527,23 @@ impl PokemonSim {
                 }
             }
             BattlePhase::Run => {} // handled in step
+
+            BattlePhase::ExecuteQueue => {
+                // Render the current queue step (text box if showing text, otherwise normal battle scene)
+                if let Some(step) = battle.battle_queue.front() {
+                    match step {
+                        BattleStep::Text(msg) => {
+                            draw_text_box(fb, ctx, 2, 98, 156, 42);
+                            for (i, line) in msg.split('\n').enumerate() {
+                                draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                            }
+                        }
+                        _ => {
+                            // No text to show — just render the battle scene (sprites + HP bars already drawn above)
+                        }
+                    }
+                }
+            }
         }
 
     }

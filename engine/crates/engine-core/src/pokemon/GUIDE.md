@@ -2077,4 +2077,63 @@ All 99 Pokemon module tests pass.
 
 **102 tests passing. cargo check clean.**
 
+---
+
+## Sprint 120: Battle Phase Sequencer -- Phase 1 (Infrastructure + Run Migration)
+
+**Objective:** Add queue-based battle step infrastructure alongside the existing phase system, then migrate one flow (Run/escape) to demonstrate the pattern.
+
+### What Was Added
+
+#### 1. BattleStep Enum
+New `BattleStep` enum with 8 step types for queue-based battle sequencing:
+- `Text(String)` -- display text, auto-advance after 1.5s or on confirm press
+- `ApplyDamage { is_player, amount }` -- deduct HP from target Pokemon immediately
+- `DrainHp { is_player, to_hp, duration }` -- smooth HP bar interpolation animation
+- `InflictStatus { is_player, status }` -- set StatusCondition on target
+- `StatChange { is_player, stat, stages }` -- apply stat stage modification (-6 to +6)
+- `CheckFaint { is_player }` -- check if target fainted, transition to faint handling
+- `Pause(f64)` -- wait N seconds with no text
+- `GoToPhase(Box<BattlePhase>)` -- escape hatch to transition to any existing BattlePhase
+
+#### 2. BattleState Queue Fields
+- `battle_queue: VecDeque<BattleStep>` -- FIFO queue of steps to process
+- `queue_timer: f64` -- timer for current queue step (text display, HP drain, pause)
+
+#### 3. BattlePhase::ExecuteQueue
+New phase variant that drives the queue. When active, `step_execute_queue()` pops and processes steps from the front of `battle_queue`. When queue empties, defaults to `ActionSelect`.
+
+#### 4. step_execute_queue() Function
+Static method `Self::step_execute_queue(battle, party, engine)` handles all 8 step types:
+- Text: renders via render_battle, advances on timer or confirm
+- ApplyDamage: immediate HP deduction
+- DrainHp: exponential decay interpolation toward target HP
+- InflictStatus: sets status on target Pokemon
+- StatChange: modifies stat stages with clamping
+- CheckFaint: transitions to PlayerFainted or EnemyFainted (with EXP calc)
+- Pause: simple timer wait
+- GoToPhase: sets battle.phase to the boxed phase
+
+#### 5. queue_attack_sequence() Helper
+Builds a standard attack flow: "X used Y!" text, pause, apply damage, drain HP, optional crit/effectiveness text, faint check. Ready for Sprint 121 migration.
+
+#### 6. Render Support
+`ExecuteQueue` render arm peeks at queue front -- if it's a `Text` step, renders the text box. Otherwise renders the normal battle scene (sprites + HP bars already drawn by shared render code above the match).
+
+### Migration: Run Escape Flow
+**Before:** Run phase immediately exited to `GamePhase::Dialogue` with "Got away safely!" text, then returned to Overworld.
+**After:** Run success enqueues `[Text("Got away safely!"), GoToPhase(Run)]` and enters `ExecuteQueue`. The text displays within the battle scene with the proper 1.5s timer / confirm advancement. Then `GoToPhase(Run)` transitions to the Run handler which does cleanup (clear battle, return to Overworld).
+
+### Design Decisions
+- Queue system is **additive** -- all existing BattlePhase handlers remain untouched (except Run, which was migrated)
+- `step_execute_queue` is a static method taking `&mut BattleState` directly (avoids the take-put-back pattern since it doesn't need `self`)
+- `BattleStep` derives `Clone + Debug` to match component conventions
+- No `unwrap()` anywhere in the new code -- all party access uses `get()`/`get_mut()` with fallbacks
+- All math uses `f64`
+
+### Files Changed
+- `mod.rs` -- Added VecDeque import, BattleStep enum (8 variants), ExecuteQueue phase variant, battle_queue/queue_timer fields on BattleState (all 5 constructor sites), step_execute_queue() function, queue_attack_sequence() helper, ExecuteQueue render arm, migrated Run escape to use queue, updated AI-INSTRUCTIONS comment
+
+**1332 tests passing (1327 unit + 2 fuzz + 3 golden replay). cargo check clean. No warnings.**
+
 **Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

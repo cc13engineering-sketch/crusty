@@ -427,6 +427,202 @@ Non-negotiable. This game will stress-test Crusty's deterministic headless simul
 
 ---
 
+## Missing Transition Screens & UX Sequences
+
+A complete catalogue of screens, animations, and text sequences that the original Pokemon Gold/Silver presents to the player but are currently missing or incomplete in the Crusty recreation. Organized by when they occur during gameplay. Reference: `pret/pokecrystal` engine source, specifically `engine/battle/`, `engine/pokemon/`, `engine/menus/`, and `data/text/`.
+
+### Battle Start Transitions
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 1 | **Wild encounter screen flash** | ✓ Exists (`EncounterTransition`) | Screen flashes black/white 3-4 times, then wipes to battle screen |
+| 2 | **Trainer encounter screen flash** | ✓ Exists (same as wild) | Different flash pattern — diagonal wipe for trainers vs vertical for wild |
+| 3 | **Trainer intro slide-in** | ❌ Missing | "You are challenged by BUGCATCHER WADE!" text, trainer sprite slides in from right |
+| 4 | **Wild Pokemon intro** | Partial | "Wild PIDGEY appeared!" — text exists but no sprite slide-in animation |
+| 5 | **Player Pokemon send-out** | ❌ Missing | "Go! CYNDAQUIL!" with pokeball throw arc animation, Pokemon materializes from ball |
+| 6 | **Enemy trainer send-out** | ❌ Missing | Trainer sprite slides out, Pokemon materializes. "FALKNER sent out PIDGEY!" |
+
+### During Battle — Attack Sequences
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 7 | **Move name announcement** | ✓ Exists | "CYNDAQUIL used EMBER!" text |
+| 8 | **Move animation** | ❌ Missing | Each move has a unique screen animation — Ember shows fire particles, Surf shows a wave, Thunderbolt shows lightning. ~250 unique animations in Gen 2. Minimum viable: screen flash + sprite shake for physical, screen flash for special |
+| 9 | **Damage number/HP bar drain** | Partial | HP bar exists but drains instantly. Original drains smoothly over ~0.5s with a ticking sound |
+| 10 | **Critical hit text** | ✓ Exists | "A critical hit!" |
+| 11 | **Effectiveness text** | ✓ Exists | "It's super effective!" / "It's not very effective..." / "It had no effect!" |
+| 12 | **Multi-hit display** | ❌ Missing | "Hit 2 times!" / "Hit 3 times!" for moves like Fury Swipes, Double Kick |
+| 13 | **Recoil text** | Partial | Struggle recoil exists. Missing: "POKEMON is hit with recoil!" for Take Down, Double-Edge |
+| 14 | **Miss text** | ✓ Exists | "POKEMON's attack missed!" |
+
+### During Battle — Status & Effects
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 15 | **Status infliction text** | ✓ Exists | "PIDGEY was burned!" / "PIDGEY was poisoned!" etc. |
+| 16 | **Status condition activation text** | Partial | Sleep/freeze/para skip text exists. Missing: burn damage text ("PIDGEY is hurt by its burn!"), poison damage text ("PIDGEY is hurt by poison!") per turn |
+| 17 | **Stat change text** | ✓ Exists | "PIDGEY's ATTACK fell!" / "CYNDAQUIL's SPEED rose!" |
+| 18 | **Stat change sharply text** | ❌ Missing | "PIDGEY's DEFENSE sharply fell!" for -2 stages, "PIDGEY's ATTACK rose sharply!" for +2 |
+| 19 | **Stat won't go higher/lower** | ❌ Missing | "PIDGEY's ATTACK won't go any higher!" when at +6, "...won't go any lower!" at -6 |
+| 20 | **Weather text** | ❌ Missing (no weather) | "Rain continues to fall." / "The sandstorm rages." per turn |
+| 21 | **Wrap/Bind/Fire Spin damage** | ❌ Missing | "PIDGEY is hurt by WRAP!" trapping damage text each turn |
+| 22 | **Leech Seed drain** | ❌ Missing (no Leech Seed) | "PIDGEY's health is sapped by LEECH SEED!" |
+| 23 | **Nightmare damage** | ❌ Missing | "PIDGEY is locked in a NIGHTMARE!" |
+| 24 | **Curse damage (Ghost)** | ❌ Missing | "PIDGEY is afflicted by the CURSE!" |
+
+### During Battle — Fainting & Rewards
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 25 | **Faint animation** | Partial | HP reaches 0. Missing: sprite drops off screen with a cry, brief pause |
+| 26 | **Faint text** | ✓ Exists | "Wild PIDGEY fainted!" / "Enemy PIDGEY fainted!" |
+| 27 | **EXP gain text** | ❌ Missing | "CYNDAQUIL gained 120 EXP. Points!" — this is a key feel moment |
+| 28 | **EXP bar fill animation** | ❌ Missing | EXP bar fills smoothly. If it wraps around (level up), it fills to max, resets, fills to new amount |
+| 29 | **Money gain text (trainer)** | ❌ Missing | "Player got $1200 for winning!" after trainer battle |
+
+### Level Up Sequence
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 30 | **Level up fanfare** | Partial | SFX exists. Missing: the full sequence below |
+| 31 | **Level up text** | ✓ Exists | "CYNDAQUIL grew to LV. 14!" |
+| 32 | **Stat change display** | ❌ Missing | Full stat screen showing old → new stats with +N for each stat. This is an entire screen the player sees every level up. Shows HP, Attack, Defense, Sp.Atk, Sp.Def, Speed with the gains highlighted |
+
+### New Move Learning Sequence
+
+This is the biggest missing UX flow. In the original, this is a multi-screen interactive sequence that happens every time a Pokemon reaches a level where it learns a new move.
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 33 | **Wants to learn text** | ❌ Missing | "CYNDAQUIL is trying to learn FLAME WHEEL." |
+| 34 | **But can't learn more text** | ❌ Missing | "But, CYNDAQUIL can't learn more than four moves." |
+| 35 | **Delete a move prompt** | ❌ Missing | "Delete an older move to make room for FLAME WHEEL?" YES/NO |
+| 36 | **Move select screen** | ❌ Missing | If YES: shows all 4 current moves with PP, player picks which to forget. Full move summary screen with type/PP/power |
+| 37 | **Forget confirmation** | ❌ Missing | "1, 2, and... Poof! CYNDAQUIL forgot TACKLE." |
+| 38 | **Move learned text** | ❌ Missing | "And... CYNDAQUIL learned FLAME WHEEL!" |
+| 39 | **Give up learning text** | ❌ Missing | If NO or cancel: "Stop learning FLAME WHEEL?" YES/NO. If YES: "CYNDAQUIL did not learn FLAME WHEEL." |
+| 40 | **Auto-learn (< 4 moves)** | Partial | Currently auto-fills empty slots. Missing: "CYNDAQUIL learned EMBER!" text confirmation |
+
+Currently the game silently fills empty move slots and never prompts the player when all 4 slots are full. This means Pokemon can never replace old moves with new ones — a fundamental gameplay mechanic.
+
+### Evolution Sequence
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 41 | **Evolution trigger text** | ❌ Missing | "What? CYNDAQUIL is evolving!" |
+| 42 | **Evolution animation** | ❌ Missing | Screen goes dark, sprite morphs/flashes between old and new forms for ~5 seconds with a distinctive sound effect |
+| 43 | **Evolution complete text** | ❌ Missing | "Congratulations! Your CYNDAQUIL evolved into QUILAVA!" |
+| 44 | **Evolution cancel** | ❌ Missing | Player can press B during the animation to cancel. "Huh? CYNDAQUIL stopped evolving!" |
+| 45 | **Post-evolution move learn** | ❌ Missing | Some Pokemon learn a move upon evolving (e.g., Butterfree learns Confusion). This triggers the full move learning sequence above |
+
+Currently evolution happens silently — `pending_evolution` is set, species changes, stats recalc. No text, no animation, no player interaction, no cancel option.
+
+### Catching Sequence
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 46 | **Ball throw animation** | ❌ Missing | Pokeball arc from player to enemy Pokemon |
+| 47 | **Ball shake animation** | ❌ Missing | Ball lands, shakes 0-3 times. Each shake has a wobble + pause. Huge tension moment |
+| 48 | **Catch success text** | Partial | "Gotcha! PIDGEY was caught!" — may exist but no shake animation leads into it |
+| 49 | **Nickname prompt** | ❌ Missing | "Give a nickname to the caught PIDGEY?" YES/NO → keyboard if yes |
+| 50 | **Pokedex registration** | ❌ Missing | If new species: "PIDGEY's data was added to the POKEDEX." Brief Pokedex entry screen with species art, type, height, weight, description |
+| 51 | **Party full — PC transfer** | ❌ Missing | "PIDGEY was transferred to BILL's PC." if party has 6 Pokemon |
+
+### Trainer Battle Bookend Sequences
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 52 | **Trainer defeat text** | ❌ Missing | "BUGCATCHER WADE was defeated!" |
+| 53 | **Trainer post-battle dialogue** | ❌ Missing | Each trainer has a defeat quote: "Whoa! You're something else!" |
+| 54 | **Badge acquisition screen** | ❌ Missing | Gym leader: "<PLAYER> received the ZEPHYR BADGE!" + badge icon display + brief explanation of badge effect ("Pokemon up to Lv. 20 will obey you.") |
+| 55 | **TM received text** | ❌ Missing | "FALKNER: Here, take this." "Received TM31 - MUD-SLAP!" |
+| 56 | **Trainer next Pokemon text** | Partial | When trainer sends next: "FALKNER is about to use PIDGEOTTO. Will you change POKEMON?" YES/NO prompt. Currently just sends without asking |
+
+### Overworld Transitions
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 57 | **Map transition fade** | ❌ Missing | Screen fades to black on map change, fades back in on new map. Currently instant cut |
+| 58 | **Building enter/exit** | ❌ Missing | Brief fade to black when entering a door, fade in inside. Same when exiting |
+| 59 | **Cave enter darkness** | ❌ Missing | Entering a cave: brief flash, possibly darker palette |
+| 60 | **Repel wore off** | ❌ Missing (no repel system) | "REPEL's effect wore off!" — text pops up in overworld |
+| 61 | **Poison overworld damage** | ❌ Missing | In Gen 2, poisoned Pokemon take 1 HP damage every 4 steps in the overworld. Screen flashes, "CYNDAQUIL is hurt by poison!" If HP reaches 1, poison is cured |
+| 62 | **Egg hatch sequence** | ❌ Missing (no eggs) | "Huh?" → "..." → "Your EGG is hatching!" → animation → "TOGEPI hatched from the EGG!" |
+
+### Pokemon Center & Healing
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 63 | **Nurse Joy dialogue** | Partial | Dialogue exists. Missing: the full "We'll take your Pokemon for a few seconds." → pokeball placement animation → jingle → "Your Pokemon are fully healed!" |
+| 64 | **Healing jingle** | ❌ Missing | Distinctive 6-note healing melody that plays while balls are on the machine |
+| 65 | **Ball placement animation** | ❌ Missing | Player's pokeballs slide onto the healing machine tray |
+
+### Menu & Item Use
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 66 | **Item use in battle text** | Partial | Potion exists. Missing: "PLAYER used POTION! CYNDAQUIL's HP was restored by 20 points." |
+| 67 | **Item use outside battle** | ❌ Missing | "PLAYER used POTION on CYNDAQUIL. CYNDAQUIL's HP was restored." |
+| 68 | **Antidote/status heal text** | ❌ Missing | "CYNDAQUIL was cured of poisoning!" |
+| 69 | **Revive text** | ❌ Missing | "CYNDAQUIL was revived!" |
+| 70 | **PP restore text** | ❌ Missing | "CYNDAQUIL's EMBER PP was restored." (Ether/Elixir) |
+| 71 | **Rare Candy level up** | ❌ Missing | Uses Rare Candy → triggers full level up sequence (stat screen + possible move learn + possible evolution) |
+| 72 | **TM/HM use sequence** | ❌ Missing | "Booted up a TM!" → "It contained MUDSLAP." → "Teach MUDSLAP to CYNDAQUIL?" → move replace flow if 4 moves |
+| 73 | **Evolution stone use** | ❌ Missing | Same as evolution sequence but triggered by item |
+
+### Whiteout / Game Over
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 74 | **Whiteout text** | Partial | Money loss shown. Missing: "PLAYER is out of usable POKEMON!" → screen fades → "PLAYER whited out!" → fade to PokeCenter |
+| 75 | **Whiteout fade sequence** | ❌ Missing | Distinctive slow fade to white (not black), then wake up in PokeCenter |
+
+### Save & Title Screen
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 76 | **Save confirmation** | Partial | "Game saved!" exists. Missing: "Would you like to save the game?" YES/NO → "Saving... Don't turn off the power." → brief pause → "Player saved the game." |
+| 77 | **Title screen Pokemon cry** | ❌ Missing | Ho-Oh (Gold) or Lugia (Silver) cry plays on title, legendary sprite animates |
+| 78 | **Continue screen stats** | ❌ Missing | CONTINUE option shows: Player name, badges, Pokedex count, time played |
+| 79 | **New Game overwrite warning** | Partial | Warning may exist. Original: "There is already a save file. Is it OK to overwrite?" → "The previously saved file will be lost." confirmation |
+
+### Pokedex Screens
+
+| # | Transition | Current State | What Original Does |
+|---|-----------|---------------|-------------------|
+| 80 | **Pokedex entry seen** | ❌ Missing | When viewing a seen-but-not-caught Pokemon: shows silhouette, type, area |
+| 81 | **Pokedex entry caught** | ❌ Missing | Full entry: sprite, name, type, height, weight, description text that scrolls, area map, cry playback |
+| 82 | **Pokedex completion count** | ❌ Missing | "SEEN: 45 OWN: 12" at top of Pokedex list |
+
+---
+
+### Priority Ranking for Implementation
+
+**Must-have (game feels broken without these):**
+- #33-40: New move learning sequence 
+- #41-45: Evolution sequence (evolution is silent/invisible)
+- #27-28: EXP gain text + bar (player has no feedback on progress)
+- #32: Level up stat display (key RPG feedback loop)
+- #57-58: Map transition fades (jarring instant cuts)
+- #54: Badge acquisition screen (reward moment is invisible)
+
+**Should-have (game feels incomplete without these):**
+- #9: Smooth HP bar drain (most visible animation in battles)
+- #46-48: Catch ball shake sequence (catching has no tension)
+- #29: Money gain text
+- #52-53: Trainer defeat text + post-battle quote
+- #56: Trainer switch prompt ("Will you change POKEMON?")
+- #74-75: Whiteout fade sequence
+- #5-6: Pokemon send-out animation
+
+**Nice-to-have (polish):**
+- #8: Move animations (massive scope — start with screen flash categories)
+- #50: Pokedex registration on catch
+- #63-65: Pokemon Center healing animation
+- #76: Save confirmation dialogue
+- #78: Continue screen stats display
+- #80-82: Full Pokedex entry screens
+
 ## Triage Order (if time runs short)
 
 Deprioritize last-in-first-out. Goal is to reach all of them:
@@ -718,4 +914,13 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Added `calc_player_damage` helper for rampage damage recalculation
 - Added tests: hyper_beam_data, outrage_data, thrash_data, rest_data
 - All 1296 tests pass.
-- **Next (Sprint 74)**: Content sprint (battle items, Rocket HQ, or medicine quest)
+
+### Sprint 74 (Rocket HQ + Battle Items Audit)
+- **Rocket HQ** (12x12): 4 Rocket Grunts (Rattata/Koffing/Zubat/Raticate/Muk/Golbat) + Executive boss (Golbat/Koffing/Muk L28-30)
+- Mahogany Town mart door now warps to RocketHQ entrance
+- Defeating Executive (NPC 4) sets FLAG_ROCKET_MAHOGANY — story progression unblocked
+- **Battle items audit**: Potions, Revives, and status heals already work mid-battle (enemy gets free turn after)
+- Removed dead_code allow on FLAG_ROCKET_MAHOGANY (now used)
+- Added tests: rocket_hq_map_exists, rocket_hq_warp_to_mahogany
+- All 1298 tests pass.
+- **Next (Sprint 75)**: QA sprint

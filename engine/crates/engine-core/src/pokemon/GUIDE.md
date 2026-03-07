@@ -928,4 +928,14 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Rampage re-initialization bug**: Both player and enemy rampage init used `.0 == 0` (counter), which re-triggered rampage after counter hit 0 during active rampage. Fixed to `.1 == 0` (move_id) — only init when no rampage active.
 - QA audit false positives dismissed: RocketHQ exit warp is valid, Self-Destruct+rampage not a real conflict
 - All 73 pokemon tests pass.
-- **Next (Sprint 76)**: TBD
+
+### Sprint 76 (New Move Learning Sequence)
+- **Full move learning UX**: When Pokemon levels up and has 4 moves, interactive sequence: "trying to learn" → "can't learn more" → YES/NO delete prompt → move picker → forget/learn confirmation
+- Added `BattlePhase::LearnMove` with `LearnMoveSub` state machine (8 sub-states: TryingToLearn, CantLearnMore, DeletePrompt, PickMove, ForgotMove, LearnedMove, StopPrompt, DidNotLearn)
+- Added `pending_learn_moves: Vec<MoveId>` to BattleState for queueing multiple moves at same level
+- Auto-fills empty move slots silently; only prompts when all 4 occupied
+- Skips moves already known (duplicate check)
+- Full render: move picker with type colors + PP display, YES/NO prompts with cursor
+- Added tests: learn_move_queued_when_full, learn_move_sub_phases
+- All 75 tests pass.
+- **Next (Sprint 77)**: TBD

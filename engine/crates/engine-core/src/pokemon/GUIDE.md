@@ -1613,3 +1613,8 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **MEDIUM FIX: EcruteakCity west entry re-entry trap** — Removed x=1 warp column (rows 8-9), keeping only x=0 as the true border. Updated Route 37 east exit to land players at x=1 (inside the single warp column). Eliminates re-entry loop.
 - All 1318 tests pass.
 - **Next (Sprint 93)**: Content sprint. B9 (EXP bar animation), new content.
+
+### Sprint 93 (Content — EXP Bar Animation)
+- **B9 FIX: EXP bar fill animation** — `ExpAwarded` phase now has a 1-second timer with smooth bar fill animation. EXP bar interpolates from old EXP to new EXP over the duration. Skippable with confirm button. Render draws animated bar during the phase. All Sprint 85 audit B-category items now resolved (B1-B10 complete).
+- All 1318 tests pass.
+- **Next (Sprint 94)**: Content sprint. New game content, species, moves, or features.

@@ -160,7 +160,7 @@ enum BattlePhase {
     Text { message: String, timer: f64, next_phase: Box<BattlePhase> },
     PlayerFainted,
     EnemyFainted { exp_gained: u32 },
-    ExpAwarded { exp_gained: u32 },
+    ExpAwarded { exp_gained: u32, timer: f64 },
     LevelUp { timer: f64, stat_deltas: [i16; 6] }, // [HP, Atk, Def, SpAtk, SpDef, Spd]
     LearnMove { new_move: MoveId, sub: LearnMoveSub },
     TrainerSwitchPrompt { next_name: String, cursor: u8 },
@@ -2710,12 +2710,19 @@ impl PokemonSim {
                     battle.phase = BattlePhase::Text {
                         message: format!("{} gained {} EXP!", pname, exp),
                         timer: 0.0,
-                        next_phase: Box::new(BattlePhase::ExpAwarded { exp_gained: exp }),
+                        next_phase: Box::new(BattlePhase::ExpAwarded { exp_gained: exp, timer: 0.0 }),
                     };
                 }
             }
 
-            BattlePhase::ExpAwarded { exp_gained: exp } => {
+            BattlePhase::ExpAwarded { exp_gained: exp, timer } => {
+                let t = timer + dt;
+                // Animate for 1 second, then award EXP
+                if t < 1.0 && !is_confirm(engine) {
+                    battle.phase = BattlePhase::ExpAwarded { exp_gained: exp, timer: t };
+                    self.battle = Some(battle);
+                    return;
+                }
                 // Actually award EXP and check level up
                 if let Some(p) = self.party.get_mut(battle.player_idx) {
                     p.exp += exp;
@@ -4377,7 +4384,20 @@ impl PokemonSim {
                 }
             }
 
-            BattlePhase::ExpAwarded { .. } => {} // instant, handled in step
+            BattlePhase::ExpAwarded { exp_gained, timer } => {
+                // Animate EXP bar fill
+                if let Some(pp) = self.party.get(battle.player_idx) {
+                    let species = get_species(pp.species_id);
+                    let level_exp = species.map(|s| exp_for_level(pp.level, s.growth_rate)).unwrap_or(0);
+                    let next_exp = species.map(|s| exp_for_level(pp.level + 1, s.growth_rate)).unwrap_or(1);
+                    let exp_needed = next_exp.saturating_sub(level_exp).max(1);
+                    let old_in_level = pp.exp.saturating_sub(level_exp);
+                    let new_in_level = (pp.exp + exp_gained).min(next_exp).saturating_sub(level_exp);
+                    let progress = (timer / 1.0).min(1.0);
+                    let animated = old_in_level as f64 + (new_in_level as f64 - old_in_level as f64) * progress;
+                    draw_exp_bar(fb, ctx, 102, 88, 48, animated as u32, exp_needed);
+                }
+            }
             BattlePhase::Run => {} // handled in step
         }
 

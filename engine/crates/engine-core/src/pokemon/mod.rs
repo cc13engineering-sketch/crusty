@@ -27,7 +27,9 @@
 // Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
 // Battle queue sequencer: BattleStep enum (Text/ApplyDamage/DrainHp/InflictStatus/StatChange/CheckFaint/
 //   Pause/GoToPhase) processed FIFO via BattlePhase::ExecuteQueue. step_execute_queue() drives it.
-//   queue_attack_sequence() helper builds a standard attack flow. Run escape uses queue for "Got away safely!".
+//   queue_attack_sequence() helper builds a standard attack flow. Migrated flows: Run success ("Got away
+//   safely!"), RunFailed ("Can't escape!" → EnemyAttack), Intro ("Go! X!" → ActionSelect), Won ("You won!"
+//   → cleanup). RunFailed variant is now dead code (kept for enum exhaustiveness).
 
 pub mod data;
 pub mod sprites;
@@ -178,6 +180,7 @@ enum GamePhase {
 // ─── Battle Phase ───────────────────────────────────────
 
 #[derive(Clone, Debug, PartialEq)]
+#[allow(dead_code)]
 enum BattlePhase {
     Intro { timer: f64 },
     ActionSelect { cursor: u8 },
@@ -2178,17 +2181,15 @@ impl PokemonSim {
                 let t = timer + dt;
                 if t > 1.5 {
                     battle.enemy_hp_display = battle.enemy.hp as f64;
-                    // Show "Go! POKEMON!" send-out text
-                    if let Some(p) = self.party.get(battle.player_idx) {
-                        let pname = p.name().to_string();
-                        battle.phase = BattlePhase::Text {
-                            message: format!("Go! {}!", pname),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                        };
-                    } else {
-                        battle.phase = BattlePhase::ActionSelect { cursor: 0 };
+                    // Queue-based intro: "Go! POKEMON!" text, then ActionSelect
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.clear();
+                    battle.queue_timer = 0.0;
+                    if !pname.is_empty() {
+                        battle.battle_queue.push_back(BattleStep::Text(format!("Go! {}!", pname)));
                     }
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+                    battle.phase = BattlePhase::ExecuteQueue;
                 } else {
                     battle.phase = BattlePhase::Intro { timer: t };
                 }
@@ -2352,7 +2353,15 @@ impl PokemonSim {
                                     battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Run)));
                                     battle.phase = BattlePhase::ExecuteQueue;
                                 } else {
-                                    battle.phase = BattlePhase::RunFailed { timer: 0.0 };
+                                    // Queue-based run failed: show "Can't escape!" via ExecuteQueue, then GoToPhase(EnemyAttack)
+                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                    battle.battle_queue.clear();
+                                    battle.queue_timer = 0.0;
+                                    battle.battle_queue.push_back(BattleStep::Text("Can't escape!".into()));
+                                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                    })));
+                                    battle.phase = BattlePhase::ExecuteQueue;
                                 }
                             } else {
                                 battle.phase = BattlePhase::Text {
@@ -3447,7 +3456,12 @@ impl PokemonSim {
                     battle.enemy_rampage = (0, 0);
                     battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                 } else {
-                    battle.phase = BattlePhase::Won { timer: 0.0 };
+                    // Queue-based Won: show "You won!" text, then skip to Won cleanup
+                    battle.battle_queue.clear();
+                    battle.queue_timer = 0.0;
+                    battle.battle_queue.push_back(BattleStep::Text("You won!".into()));
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Won { timer: 2.0 })));
+                    battle.phase = BattlePhase::ExecuteQueue;
                 }
             }
 
@@ -3474,7 +3488,12 @@ impl PokemonSim {
                         battle.enemy_rampage = (0, 0);
                         battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                     } else {
-                        battle.phase = BattlePhase::Won { timer: 0.0 };
+                        // Queue-based Won: show "You won!" text, then skip to Won cleanup
+                        battle.battle_queue.clear();
+                        battle.queue_timer = 0.0;
+                        battle.battle_queue.push_back(BattleStep::Text("You won!".into()));
+                        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Won { timer: 2.0 })));
+                        battle.phase = BattlePhase::ExecuteQueue;
                     }
                 } else {
                     battle.phase = BattlePhase::LevelUp { timer: t, stat_deltas };
@@ -3608,7 +3627,12 @@ impl PokemonSim {
                                 battle.enemy_rampage = (0, 0);
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
-                                battle.phase = BattlePhase::Won { timer: 0.0 };
+                                // Queue-based Won: show "You won!" text, then skip to Won cleanup
+                                battle.battle_queue.clear();
+                                battle.queue_timer = 0.0;
+                                battle.battle_queue.push_back(BattleStep::Text("You won!".into()));
+                                battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Won { timer: 2.0 })));
+                                battle.phase = BattlePhase::ExecuteQueue;
                             }
                         } else {
                             battle.phase = BattlePhase::LearnMove {
@@ -3662,7 +3686,12 @@ impl PokemonSim {
                                 battle.enemy_rampage = (0, 0);
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
-                                battle.phase = BattlePhase::Won { timer: 0.0 };
+                                // Queue-based Won: show "You won!" text, then skip to Won cleanup
+                                battle.battle_queue.clear();
+                                battle.queue_timer = 0.0;
+                                battle.battle_queue.push_back(BattleStep::Text("You won!".into()));
+                                battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::Won { timer: 2.0 })));
+                                battle.phase = BattlePhase::ExecuteQueue;
                             }
                         } else {
                             battle.phase = BattlePhase::LearnMove {
@@ -8973,5 +9002,132 @@ mod headless_tests {
         assert!(fr.heal_amount > 0, "Full Restore must heal HP");
         // Rare Candy flag
         assert!(get_item(ITEM_RARE_CANDY).expect("rc").is_rare_candy);
+    }
+
+    #[test]
+    fn test_battle_queue_drains_correctly() {
+        // Build a BattleState with a pre-populated queue, step through it,
+        // and verify the queue drains in FIFO order.
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut battle = BattleState {
+            phase: BattlePhase::ExecuteQueue,
+            enemy,
+            player_idx: 0,
+            is_wild: true,
+            player_hp_display: party[0].hp as f64,
+            enemy_hp_display: 30.0,
+            turn_count: 0,
+            trainer_team: Vec::new(),
+            trainer_team_idx: 0,
+            pending_player_move: None,
+            player_stages: [0; 7],
+            enemy_stages: [0; 7],
+            enemy_flinched: false,
+            player_flinched: false,
+            player_confused: 0,
+            enemy_confused: 0,
+            player_trapped: false,
+            player_must_recharge: false,
+            enemy_must_recharge: false,
+            player_rampage: (0, 0),
+            enemy_rampage: (0, 0),
+            pending_learn_moves: vec![],
+            free_switch: false,
+            confusion_snapout_msg: None,
+            battle_queue: VecDeque::new(),
+            queue_timer: 0.0,
+        };
+
+        // Pre-populate the queue: Text -> Pause -> ApplyDamage -> GoToPhase(ActionSelect)
+        battle.battle_queue.push_back(BattleStep::Text("Test message!".into()));
+        battle.battle_queue.push_back(BattleStep::Pause(0.1));
+        battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: false, amount: 10 });
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        assert_eq!(battle.battle_queue.len(), 4);
+        assert!(matches!(battle.phase, BattlePhase::ExecuteQueue));
+
+        let initial_enemy_hp = battle.enemy.hp;
+
+        // Step 1: Text step — needs ~90 frames (1.5s at 60fps) to auto-advance
+        for _ in 0..91 {
+            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        }
+        assert_eq!(battle.battle_queue.len(), 3, "Text step should have been consumed");
+
+        // Step 2: Pause(0.1) — needs ~6 frames (0.1s at 60fps)
+        for _ in 0..7 {
+            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        }
+        assert_eq!(battle.battle_queue.len(), 2, "Pause step should have been consumed");
+
+        // Step 3: ApplyDamage — instant (1 frame)
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        assert_eq!(battle.battle_queue.len(), 1, "ApplyDamage should have been consumed");
+        assert_eq!(battle.enemy.hp, initial_enemy_hp.saturating_sub(10),
+            "Enemy HP should have decreased by 10");
+
+        // Step 4: GoToPhase(ActionSelect) — instant
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        assert!(battle.battle_queue.is_empty(), "Queue should be fully drained");
+        assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
+            "Should have transitioned to ActionSelect");
+    }
+
+    #[test]
+    fn test_battle_queue_check_faint_transitions() {
+        // Verify CheckFaint step transitions to EnemyFainted when enemy HP is 0
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(99);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 15);
+        let mut party = vec![player_pkmn];
+        let mut enemy = Pokemon::new(RATTATA, 3);
+        enemy.hp = 0; // Already fainted
+
+        let mut battle = BattleState {
+            phase: BattlePhase::ExecuteQueue,
+            enemy,
+            player_idx: 0,
+            is_wild: true,
+            player_hp_display: party[0].hp as f64,
+            enemy_hp_display: 0.0,
+            turn_count: 0,
+            trainer_team: Vec::new(),
+            trainer_team_idx: 0,
+            pending_player_move: None,
+            player_stages: [0; 7],
+            enemy_stages: [0; 7],
+            enemy_flinched: false,
+            player_flinched: false,
+            player_confused: 0,
+            enemy_confused: 0,
+            player_trapped: false,
+            player_must_recharge: false,
+            enemy_must_recharge: false,
+            player_rampage: (0, 0),
+            enemy_rampage: (0, 0),
+            pending_learn_moves: vec![],
+            free_switch: false,
+            confusion_snapout_msg: None,
+            battle_queue: VecDeque::new(),
+            queue_timer: 0.0,
+        };
+
+        // Queue: CheckFaint for enemy (already at 0 HP)
+        battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
+
+        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+
+        // Should have transitioned to EnemyFainted
+        assert!(matches!(battle.phase, BattlePhase::EnemyFainted { .. }),
+            "CheckFaint on 0-HP enemy should transition to EnemyFainted, got {:?}", battle.phase);
+        assert!(battle.battle_queue.is_empty(), "CheckFaint should pop itself from queue");
     }
 }

@@ -2137,3 +2137,44 @@ Builds a standard attack flow: "X used Y!" text, pause, apply damage, drain HP, 
 **1332 tests passing (1327 unit + 2 fuzz + 3 golden replay). cargo check clean. No warnings.**
 
 **Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+## Sprint 121: Battle Sequencer Migration -- Phase 2 (RunFailed, Intro, Won)
+
+**Objective:** Migrate 3 additional battle flows from direct BattlePhase transitions to the queue-based BattleStep system, plus add unit tests for the queue itself.
+
+### Migrations
+
+#### 1. RunFailed Flow (was: dedicated RunFailed { timer } phase)
+**Before:** Failed escape set `BattlePhase::RunFailed { timer: 0.0 }`. RunFailed handler showed "Can't escape!" for 1.0s, then called `calc_enemy_move()` and transitioned to `EnemyAttack`.
+**After:** Failed escape now calculates the enemy move immediately, then enqueues `[Text("Can't escape!"), GoToPhase(EnemyAttack { ... })]` and enters `ExecuteQueue`. Text displays with the standard 1.5s timer / confirm advancement, then GoToPhase transitions to EnemyAttack with pre-calculated move data. The `RunFailed` enum variant is now dead code (kept for exhaustive matching, suppressed with `#[allow(dead_code)]` on BattlePhase).
+
+#### 2. Intro Flow (was: timer-based Intro -> Text -> ActionSelect chain)
+**Before:** Intro phase ran a 1.5s timer showing "Wild X appeared!" / "Trainer sent out X!" in render code, then created a `BattlePhase::Text` for "Go! POKEMON!" which chained to `ActionSelect`.
+**After:** After the 1.5s intro animation completes, the phase enqueues `[Text("Go! POKEMON!"), GoToPhase(ActionSelect { cursor: 0 })]` and enters `ExecuteQueue`. The intro fade-in animation is unchanged (still uses the Intro { timer } phase for the first 1.5s). Only the "Go! X!" text display and ActionSelect transition use the queue.
+
+#### 3. Won Flow (was: Won { timer: 0.0 } with 1s delay showing "You won!")
+**Before:** Four code paths set `BattlePhase::Won { timer: 0.0 }` (from EXP award, LevelUp, LearnMove::LearnedMove, LearnMove::DidNotLearn). Won handler waited 1.0s showing "You won!", then did complex cleanup (money, badges, evolution, trainer tracking).
+**After:** All 4 code paths now enqueue `[Text("You won!"), GoToPhase(Won { timer: 2.0 })]` and enter `ExecuteQueue`. Text displays with standard queue timing. GoToPhase transitions to Won with timer pre-set to 2.0, which immediately triggers the `t > 1.0` cleanup branch on the next frame. All cleanup logic (money awards, badge grants, evolution checks, champion detection) is unchanged.
+
+### New Tests
+
+#### test_battle_queue_drains_correctly
+Creates a BattleState with a pre-populated queue of `[Text, Pause(0.1), ApplyDamage, GoToPhase(ActionSelect)]`. Steps through the queue by calling `step_execute_queue()` for the correct number of frames:
+- Text: ~91 frames (1.5s at 60fps)
+- Pause(0.1): ~7 frames
+- ApplyDamage: 1 frame (instant)
+- GoToPhase: 1 frame (instant)
+Verifies queue length decreases after each step, enemy HP decreases after ApplyDamage, and final phase is ActionSelect.
+
+#### test_battle_queue_check_faint_transitions
+Creates a BattleState with an enemy at 0 HP, enqueues `CheckFaint { is_player: false }`, and verifies that stepping the queue transitions to `BattlePhase::EnemyFainted`.
+
+### Design Decisions
+- **Enemy move pre-calculation for RunFailed**: The enemy move is calculated at the point of failure (in the ActionSelect Run handler) rather than after the text display. This avoids needing `self` inside the queue processor. Since the RNG state is consumed at the same logical point, this is mechanically identical.
+- **Won timer skip**: GoToPhase(Won { timer: 2.0 }) re-enters the Won handler with timer > 1.0, immediately triggering cleanup. This avoids duplicating the complex cleanup logic or adding a new phase variant.
+- **RunFailed variant kept**: The enum variant is retained (with `#[allow(dead_code)]`) rather than removed, since removing it would require editing match arms in both step and render functions. It can be cleaned up in a future sprint.
+
+### Files Changed
+- `mod.rs` -- Migrated RunFailed creation to queue (ActionSelect Run handler), migrated Intro post-animation to queue, migrated all 4 Won { timer: 0.0 } sites to queue, added `#[allow(dead_code)]` on BattlePhase enum, added 2 queue unit tests (test_battle_queue_drains_correctly, test_battle_queue_check_faint_transitions), updated AI-INSTRUCTIONS comment
+
+**Test Results**: All 1329 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation (0 warnings in pokemon/mod.rs).

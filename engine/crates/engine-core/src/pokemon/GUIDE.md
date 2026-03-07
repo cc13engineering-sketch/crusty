@@ -1275,3 +1275,9 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Send-out text (#5)**: "Go! POKEMON!" text now shows after "Wild X appeared!" / "Trainer sent out X!" at battle start. Uses Text phase → ActionSelect chain.
 - All 1305 tests pass.
 - **Next (Sprint 84 QA)**: Full audit
+
+### Sprint 84 (QA)
+- **Free switch cancel destination**: Cancelling PokemonMenu during free switch went to ActionSelect instead of TrainerSwitchPrompt. Fixed: cancel now returns to TrainerSwitchPrompt with cursor reset.
+- **Catch formula probability**: Used 3 independent rolls (effective rate = shake_prob^3), making catching 3-8x harder than Gen 2. Fixed: single roll for catch/no-catch decision, cosmetic shakes proportional to shake_prob.
+- All 1305 tests pass.
+- **Next (Sprint 85)**: Content sprint

@@ -3314,9 +3314,15 @@ impl PokemonSim {
         let confirm = is_confirm(engine);
 
         if is_cancel(engine) {
-            // Clear free_switch if backing out (TrainerSwitchPrompt sets it before entering PokemonMenu)
+            // If backing out during a free switch, return to TrainerSwitchPrompt
             if let Some(b) = &mut self.battle {
-                b.free_switch = false;
+                if b.free_switch {
+                    b.free_switch = false;
+                    let next_name = b.enemy.name().to_string();
+                    b.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
+                    self.phase = GamePhase::Battle;
+                    return;
+                }
             }
             self.phase = if self.battle.is_some() { GamePhase::Battle } else { GamePhase::Menu };
             return;
@@ -4546,17 +4552,17 @@ impl PokemonSim {
         let rate = ((3.0 * max_hp - 2.0 * cur_hp) * catch_rate * ball_mult * status_mult) / (3.0 * max_hp);
         let shake_prob = (rate / 255.0).min(1.0);
 
-        // Calculate number of shakes (0-3) before catching or breaking free
-        // Each shake is an independent check against shake_prob
-        let mut shakes = 0u8;
-        for _ in 0..3 {
-            if engine.rng.next_f64() < shake_prob {
-                shakes += 1;
-            } else {
-                break;
-            }
-        }
-        let caught = shakes == 3;
+        // Single roll for catch decision (rate/255 chance), then cosmetic shakes
+        let caught = engine.rng.next_f64() < shake_prob;
+        let shakes = if caught {
+            3u8
+        } else {
+            // Cosmetic shakes: higher shake_prob = more shakes before breaking free
+            let roll = engine.rng.next_f64();
+            if roll < shake_prob * 0.33 { 2 }
+            else if roll < shake_prob * 0.66 { 1 }
+            else { 0 }
+        };
 
         let shake_text = match shakes {
             0 => "Oh no! It broke free!",

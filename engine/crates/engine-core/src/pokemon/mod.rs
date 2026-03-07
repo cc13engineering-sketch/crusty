@@ -606,7 +606,7 @@ impl PokemonSim {
             MapId::OlivineCity => (10, 8),
             MapId::CianwoodCity => (6, 6),
             MapId::MahoganyTown => (6, 5),
-            MapId::BlackthornCity => (8, 8),
+            MapId::BlackthornCity => (3, 7),
             _ => (5, 5),
         }
     }
@@ -5753,7 +5753,46 @@ impl PokemonSim {
                         return;
                     }
 
-                    // Status heal: cure status conditions
+                    // Full Restore: heals HP AND cures status (must come before plain status heal)
+                    if item_data.heal_amount > 0 && item_data.is_status_heal {
+                        if pkmn.is_fainted() {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} has fainted!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        if pkmn.hp >= pkmn.max_hp && matches!(pkmn.status, StatusCondition::None) {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} is already healthy!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        let old_hp = pkmn.hp;
+                        pkmn.hp = pkmn.max_hp; // Full Restore always fully heals
+                        pkmn.clear_status();
+                        let healed = pkmn.hp - old_hp;
+                        self.bag.use_item(item_id);
+                        let mut msgs = vec![format!("Used {} on {}!", item_name, name)];
+                        if healed > 0 {
+                            msgs.push(format!("Restored {} HP!", healed));
+                        }
+                        msgs.push(format!("{} is fully healthy!", name));
+                        self.dialogue = Some(DialogueState {
+                            lines: msgs,
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
+
+                    // Status heal: cure status conditions (pure status-only items like Antidote, Awakening)
                     if item_data.is_status_heal {
                         if matches!(pkmn.status, StatusCondition::None) {
                             self.dialogue = Some(DialogueState {
@@ -5870,45 +5909,6 @@ impl PokemonSim {
                             lines: msgs,
                             current_line: 0, char_index: 0, timer: 0.0,
                             on_complete,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-
-                    // Full Restore: heals HP and cures status (handle before HP-only healing)
-                    if item_data.heal_amount > 0 && item_data.is_status_heal {
-                        if pkmn.is_fainted() {
-                            self.dialogue = Some(DialogueState {
-                                lines: vec![format!("{} has fainted!", name)],
-                                current_line: 0, char_index: 0, timer: 0.0,
-                                on_complete: DialogueAction::None,
-                            });
-                            self.phase = GamePhase::Dialogue;
-                            return;
-                        }
-                        if pkmn.hp >= pkmn.max_hp && matches!(pkmn.status, StatusCondition::None) {
-                            self.dialogue = Some(DialogueState {
-                                lines: vec![format!("{} is already healthy!", name)],
-                                current_line: 0, char_index: 0, timer: 0.0,
-                                on_complete: DialogueAction::None,
-                            });
-                            self.phase = GamePhase::Dialogue;
-                            return;
-                        }
-                        let old_hp = pkmn.hp;
-                        pkmn.hp = pkmn.max_hp; // Full Restore always fully heals
-                        pkmn.clear_status();
-                        let healed = pkmn.hp - old_hp;
-                        self.bag.use_item(item_id);
-                        let mut msgs = vec![format!("Used {} on {}!", item_name, name)];
-                        if healed > 0 {
-                            msgs.push(format!("Restored {} HP!", healed));
-                        }
-                        msgs.push(format!("{} is fully healthy!", name));
-                        self.dialogue = Some(DialogueState {
-                            lines: msgs,
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
                         });
                         self.phase = GamePhase::Dialogue;
                         return;
@@ -8692,5 +8692,85 @@ mod headless_tests {
         );
         assert!(sim_vr8.check_warp_gate(MapId::VictoryRoad).is_none(),
             "VictoryRoad should be passable with all 8 badges");
+    }
+
+    // ── Sprint 119 QA: Fly, Repel, Item data tests ─────────────────────
+
+    #[test]
+    fn test_fly_destinations() {
+        // Verify all 10 fly cities have valid spawn points within map bounds
+        let fly_cities = [
+            MapId::NewBarkTown, MapId::CherrygroveCity, MapId::VioletCity,
+            MapId::AzaleaTown, MapId::GoldenrodCity, MapId::EcruteakCity,
+            MapId::OlivineCity, MapId::CianwoodCity, MapId::MahoganyTown,
+            MapId::BlackthornCity,
+        ];
+        for &city in &fly_cities {
+            assert!(PokemonSim::is_fly_city(city),
+                "is_fly_city should return true for {:?}", city);
+            let (sx, sy) = PokemonSim::fly_spawn(city);
+            let map = load_map(city);
+            assert!(
+                (sx as usize) < map.width && (sy as usize) < map.height,
+                "Fly spawn ({}, {}) out of bounds for {:?} ({}x{})",
+                sx, sy, city, map.width, map.height,
+            );
+            // Spawn point should not be a solid/impassable tile (1 = Solid)
+            let col = map.collision[sy as usize * map.width + sx as usize];
+            assert!(col != 1,
+                "Fly spawn for {:?} lands on a solid tile at ({}, {})", city, sx, sy);
+        }
+        // Verify that non-fly maps return false
+        assert!(!PokemonSim::is_fly_city(MapId::Route29));
+        assert!(!PokemonSim::is_fly_city(MapId::PokemonCenter));
+    }
+
+    #[test]
+    fn test_repel_steps() {
+        // Verify repel item data has correct step values per Gen 2
+        let repel = get_item(ITEM_REPEL).expect("Repel should exist in ITEM_DB");
+        assert_eq!(repel.repel_steps, 100, "Repel should last 100 steps");
+
+        let super_repel = get_item(ITEM_SUPER_REPEL).expect("Super Repel should exist");
+        assert_eq!(super_repel.repel_steps, 200, "Super Repel should last 200 steps");
+
+        let max_repel = get_item(ITEM_MAX_REPEL).expect("Max Repel should exist");
+        assert_eq!(max_repel.repel_steps, 250, "Max Repel should last 250 steps");
+
+        // Non-repel items should have 0 steps
+        let potion = get_item(ITEM_POTION).expect("Potion should exist");
+        assert_eq!(potion.repel_steps, 0, "Potion should not be a repel");
+    }
+
+    #[test]
+    fn test_item_data_completeness() {
+        // Verify all 19 item IDs (1-19) have valid ITEM_DB entries
+        let all_items: &[ItemId] = &[
+            ITEM_POTION, ITEM_SUPER_POTION, ITEM_ANTIDOTE, ITEM_POKE_BALL,
+            ITEM_PARALYZE_HEAL, ITEM_REVIVE, ITEM_FULL_HEAL, ITEM_GREAT_BALL,
+            ITEM_ETHER, ITEM_ESCAPE_ROPE, ITEM_REPEL, ITEM_HYPER_POTION,
+            ITEM_MAX_POTION, ITEM_FULL_RESTORE, ITEM_RARE_CANDY, ITEM_AWAKENING,
+            ITEM_ICE_HEAL, ITEM_SUPER_REPEL, ITEM_MAX_REPEL,
+        ];
+        for &item_id in all_items {
+            let data = get_item(item_id);
+            assert!(data.is_some(), "Item ID {} missing from ITEM_DB", item_id);
+            let d = data.expect("already checked");
+            assert!(!d.name.is_empty(), "Item {} has empty name", item_id);
+            assert!(!d.description.is_empty(), "Item {} has empty description", item_id);
+            assert!(d.price > 0, "Item {} has zero price", item_id);
+        }
+        // Verify specific heal amounts
+        assert_eq!(get_item(ITEM_POTION).expect("p").heal_amount, 20);
+        assert_eq!(get_item(ITEM_SUPER_POTION).expect("sp").heal_amount, 50);
+        assert_eq!(get_item(ITEM_HYPER_POTION).expect("hp").heal_amount, 200);
+        assert_eq!(get_item(ITEM_MAX_POTION).expect("mp").heal_amount, 9999);
+        assert_eq!(get_item(ITEM_FULL_RESTORE).expect("fr").heal_amount, 9999);
+        // Full Restore should heal AND cure status
+        let fr = get_item(ITEM_FULL_RESTORE).expect("fr");
+        assert!(fr.is_status_heal, "Full Restore must cure status");
+        assert!(fr.heal_amount > 0, "Full Restore must heal HP");
+        // Rare Candy flag
+        assert!(get_item(ITEM_RARE_CANDY).expect("rc").is_rare_candy);
     }
 }

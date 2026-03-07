@@ -2027,4 +2027,54 @@ All 99 Pokemon module tests pass.
 - `data.rs` - 8 new item constants (IDs 12-19), ItemData struct extended with `is_rare_candy` and `repel_steps` fields, 8 new ITEM_DB entries
 - `mod.rs` - FlyMenu GamePhase, visited_cities field + save/load, fly helper methods, step_fly_menu/render_fly_menu, FLY virtual item in bag, generic repel handling, Rare Candy + Full Restore in BagUseItem, Gen 2 repel encounter suppression, repel wore-off dialogue, CheckEvolution DialogueAction, AI-INSTRUCTIONS updated
 
+---
+
+## Sprint 119 — QA Audit of Sprints 117-118
+
+**Type**: QA audit of Sprint 117 (tile art) and Sprint 118 (fly system, overworld items, repel).
+
+### Audit Results
+
+#### 1. Tile Art (Sprint 117) -- PASS
+- All 38 tile constants in sprites.rs verified at exactly 256 characters via compile-time assertions (lines 1703-1740)
+- Tile IDs 29-37 all have palette mappings in render.rs tile_palette() (lines 331-340)
+- init_sprite_caches includes all 38 tiles including the 9 new ones (lines 559-569)
+- Spot-checked new tiles: all have 4 unique color indices, none are all-zeros or all-same-char
+
+#### 2. Fly System (Sprint 118) -- BUGS FOUND AND FIXED
+- visited_cities populated on city entry via change_map() -- PASS
+- FlyMenu step/render wired into main step()/render() match arms -- PASS
+- Save/load preserves visited_cities (JSON array, round-trip verified) -- PASS
+- Fly clears ice_sliding and bicycle (on_bicycle=false, ice_sliding=None) -- PASS
+- FLY shown in bag when badges > 0 and not in battle -- PASS
+- **BUG FOUND**: BlackthornCity fly spawn at (8, 8) landed on a SOLID tile (house roof). Fixed to (3, 7) -- walkable path below PokemonCenter.
+
+#### 3. Overworld Item Use (Sprint 118) -- BUG FOUND AND FIXED
+- Potion (20 HP), Super Potion (50 HP), Hyper Potion (200 HP) heal correct amounts -- PASS
+- Max Potion heals to max (heal_amount: 9999, capped by min()) -- PASS
+- Rare Candy: levels up, recalcs stats, checks evolution, auto-learns moves -- PASS
+- Status heals (Antidote, Awakening, Ice Heal, Paralyze Heal, Full Heal) work -- PASS
+- Item consumption via bag.use_item() after use -- PASS
+- **BUG FOUND**: Full Restore was unreachable! The status heal check (`is_status_heal`) fired before the Full Restore check (`heal_amount > 0 && is_status_heal`), so Full Restore only cured status without healing HP. Fixed by moving the Full Restore check before the plain status heal check and removing the dead duplicate block.
+
+#### 4. Repel System (Sprint 118) -- PASS
+- Repel/Super Repel/Max Repel step values: 100/200/250 -- correct per Gen 2
+- Step decrement in walk completion handler -- PASS
+- "REPEL's effect wore off!" dialogue triggers when steps hit 0 -- PASS
+- Gen 2 suppression rule: wild encounter blocked only if wild level < lead Pokemon level -- PASS
+
+#### 5. Tests Added
+- `test_fly_destinations` -- verifies all 10 fly cities have valid, in-bounds, non-solid spawn points
+- `test_repel_steps` -- verifies Repel (100), Super Repel (200), Max Repel (250) step values
+- `test_item_data_completeness` -- verifies all 19 item IDs have valid ITEM_DB entries with correct names, prices, and heal amounts
+
+### Bugs Fixed
+1. **BlackthornCity fly spawn on solid tile** -- spawn (8,8) was on a house roof tile. Changed to (3,7), walkable path below PokemonCenter.
+2. **Full Restore unreachable code path** -- The item use ordering in step_bag_use_item checked `is_status_heal` before `heal_amount > 0 && is_status_heal`, causing Full Restore to only cure status without healing HP. Reordered checks so Full Restore is handled first, then plain status heals.
+
+### Files Changed
+- `mod.rs` -- Fixed Full Restore item use ordering (moved combined HP+status check before plain status check, removed dead duplicate block), fixed BlackthornCity fly spawn coordinates (8,8 -> 3,7), added 3 new tests (test_fly_destinations, test_repel_steps, test_item_data_completeness)
+
+**102 tests passing. cargo check clean.**
+
 **Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

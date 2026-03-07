@@ -361,6 +361,8 @@ pub const MURKROW: SpeciesId = 198;
 pub const HOUNDOOM: SpeciesId = 229;
 pub const AERODACTYL: SpeciesId = 142;
 pub const CHARIZARD: SpeciesId = 6;
+pub const TOGEPI: SpeciesId = 175;
+pub const TOGETIC: SpeciesId = 176;
 pub const MOVE_PSYCHIC: MoveId = 94;
 pub const MOVE_CRUNCH: MoveId = 242;
 pub const MOVE_PETAL_DANCE: MoveId = 80;
@@ -1636,6 +1638,26 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 109, base_sp_defense: 85, base_speed: 100,
         catch_rate: 45, base_exp_yield: 209, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (1, MOVE_EMBER), (1, MOVE_RAGE), (20, MOVE_SCARY_FACE), (27, MOVE_FLAMETHROWER), (34, MOVE_WING_ATTACK), (36, MOVE_SLASH), (44, MOVE_DRAGON_RAGE), (54, MOVE_FIRE_SPIN)],
+        evolution_level: None, evolution_into: None,
+    },
+    // Togepi (Normal) — Mystery Egg hatches into this
+    SpeciesData {
+        id: TOGEPI, name: "Togepi",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 35, base_attack: 20, base_defense: 65,
+        base_sp_attack: 40, base_sp_defense: 65, base_speed: 20,
+        catch_rate: 190, base_exp_yield: 74, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_GROWL), (1, MOVE_METRONOME), (11, MOVE_METRONOME), (25, MOVE_ENCORE)],
+        evolution_level: None, evolution_into: Some(TOGETIC),
+    },
+    // Togetic (Normal/Flying) — evolved Togepi
+    SpeciesData {
+        id: TOGETIC, name: "Togetic",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 55, base_attack: 40, base_defense: 85,
+        base_sp_attack: 80, base_sp_defense: 105, base_speed: 40,
+        catch_rate: 75, base_exp_yield: 142, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_GROWL), (1, MOVE_METRONOME), (11, MOVE_METRONOME), (25, MOVE_ENCORE)],
         evolution_level: None, evolution_into: None,
     },
 ];

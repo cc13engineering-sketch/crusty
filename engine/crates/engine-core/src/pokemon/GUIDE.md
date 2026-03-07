@@ -1696,4 +1696,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Red Gyarados NPC** — Added visual NPC (index 3) at Lake of Rage water's edge (4,2). Hidden via `is_npc_active` after FLAG_RED_GYARADOS is set.
 - **Lance post-event dialogue** — After Red Gyarados battle, Lance (NPC 0) mentions Team Rocket's suspicious shop in Mahogany Town, pointing player to Rocket HQ quest.
 - All tests pass (1313).
-- **Next (Sprint 105)**: Content sprint.
+
+### Sprint 105 (Content — Mystery Egg + Rocket HQ Gate)
+- **Mystery Egg quest** — After getting Zephyr Badge, visiting Elm Lab triggers egg event. Elm gives Togepi Lv5 (FLAG_GOT_EGG). Elm has post-egg encouragement dialogue.
+- **Togepi + Togetic species** — Added to SPECIES_DB. Normal type, Metronome/Growl/Encore learnset.
+- **Rocket HQ entrance gate** — Mahogany "mart" door blocked until FLAG_RED_GYARADOS set. Shows "Just a souvenir shop" dialogue before event.
+- **FLAG_GOT_EGG activated** — Removed dead_code annotation, now used in Elm Lab interaction.
+- All tests pass (1313).
+- **Next (Sprint 106)**: QA sprint.

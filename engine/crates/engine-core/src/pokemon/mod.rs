@@ -118,8 +118,8 @@ const CAMERA_LERP: f64 = 0.2;
 // ─── Story Flags (Phase 0C) ─────────────────────────────
 // Bitfield stored in story_flags: u64. Use has_flag/set_flag helpers.
 // Some flags are defined ahead for future story events.
-#[allow(dead_code)] const FLAG_GOT_EGG: u64           = 1 << 0;  // Elm's aide gives Mystery Egg
-#[allow(dead_code)] const FLAG_DELIVERED_EGG: u64     = 1 << 1;  // Returned egg to Elm
+const FLAG_GOT_EGG: u64           = 1 << 0;  // Elm gives Mystery Egg (Togepi)
+#[allow(dead_code)] const FLAG_DELIVERED_EGG: u64     = 1 << 1;  // Returned egg to Elm (future)
 const FLAG_RIVAL_ROUTE29: u64   = 1 << 2;  // Fought rival on Route 29
 const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
 const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
@@ -1206,6 +1206,25 @@ impl PokemonSim {
                         self.phase = GamePhase::Dialogue;
                         return;
                     }
+                    // Block Rocket HQ until Red Gyarados event completed
+                    if warp.dest_map == MapId::RocketHQ && !self.has_flag(FLAG_RED_GYARADOS) {
+                        match self.player.facing {
+                            Direction::Up => self.player.y += 1,
+                            Direction::Down => self.player.y -= 1,
+                            Direction::Left => self.player.x += 1,
+                            Direction::Right => self.player.x -= 1,
+                        }
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                "Just a souvenir shop.".to_string(),
+                                "Nothing to see here!".to_string(),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
                     // Block Ice Path without Rocket HQ cleared
                     if warp.dest_map == MapId::IcePath && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
                         match self.player.facing {
@@ -1476,6 +1495,53 @@ impl PokemonSim {
                         "suspicious shop in".to_string(),
                         "MAHOGANY TOWN.".to_string(),
                         "Let's investigate!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Elm Lab: Mystery Egg quest — give Togepi egg after first badge
+            if self.current_map_id == MapId::ElmLab && npc_idx == 0
+                && !self.has_flag(FLAG_GOT_EGG)
+                && (self.badges & 1) != 0  // Has Zephyr Badge
+                && self.party.len() < 6
+            {
+                self.set_flag(FLAG_GOT_EGG);
+                let togepi = Pokemon::new(TOGEPI, 5);
+                self.register_seen(TOGEPI);
+                self.party.push(togepi);
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "Oh, you got the".to_string(),
+                        "ZEPHYR BADGE!".to_string(),
+                        "I have something".to_string(),
+                        "for you.".to_string(),
+                        "This is a MYSTERY EGG".to_string(),
+                        "I received from".to_string(),
+                        "MR.POKEMON.".to_string(),
+                        "Received TOGEPI!".to_string(),
+                        "It hatched from the".to_string(),
+                        "egg!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Elm Lab: after egg, Elm gives encouragement
+            if self.current_map_id == MapId::ElmLab && npc_idx == 0
+                && self.has_flag(FLAG_GOT_EGG) && self.has_starter
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "You're doing great!".to_string(),
+                        "Keep collecting those".to_string(),
+                        "BADGES!".to_string(),
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::None,

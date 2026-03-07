@@ -1,0 +1,285 @@
+{
+  "generation": 2,
+  "games": ["Gold", "Silver", "Crystal"],
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Experience",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_experience_type",
+    "https://www.smogon.com/forums/threads/base-experience-list.25324/",
+    "https://pokestats.gg/growth-rates"
+  ],
+
+  "exp_gain_formula": {
+    "formula": "floor(a * t * b * e * L / (7 * s))",
+    "variables": {
+      "a": {
+        "name": "Trainer battle bonus",
+        "values": { "wild": 1.0, "trainer": 1.5 }
+      },
+      "t": {
+        "name": "Trade bonus",
+        "values": { "original_trainer": 1.0, "traded": 1.5 },
+        "notes": "Pokemon obtained via trade gain 50% more EXP"
+      },
+      "b": {
+        "name": "Base experience yield",
+        "description": "Species-specific value; see base_experience_yields table"
+      },
+      "e": {
+        "name": "Lucky Egg multiplier",
+        "values": { "without": 1.0, "with_lucky_egg": 1.5 }
+      },
+      "L": {
+        "name": "Level of defeated Pokemon",
+        "description": "The level of the fainted opposing Pokemon"
+      },
+      "s": {
+        "name": "Experience share divisor",
+        "description": "See exp_share_mechanics for details"
+      }
+    }
+  },
+
+  "exp_share_mechanics": {
+    "description": "In Gen II, Exp. Share is a held item. When at least one party member holds Exp. Share, experience is split between battlers and holders.",
+    "divisor_for_battler": "2 * (number of non-fainted Pokemon that participated in battle)",
+    "divisor_for_holder": "2 * (number of Pokemon holding Exp. Share)",
+    "notes": [
+      "50% of total EXP goes to battle participants, divided equally among them",
+      "50% of total EXP goes to Exp. Share holders, divided equally among them",
+      "A Pokemon that both participated AND holds Exp. Share receives both shares",
+      "If no Pokemon holds Exp. Share, the divisor s = number of participants"
+    ]
+  },
+
+  "lucky_egg": {
+    "multiplier": 1.5,
+    "held_by": "The Pokemon receiving experience must hold the Lucky Egg",
+    "source": "Wild Chansey (5% hold rate in Gen II)"
+  },
+
+  "growth_rates": {
+    "description": "Gen II uses 4 experience groups (Erratic and Fluctuating were added in Gen III)",
+    "groups": {
+      "fast": {
+        "formula": "floor(4 * n^3 / 5)",
+        "total_at_100": 800000,
+        "description": "Reaches level 100 fastest among Gen II groups"
+      },
+      "medium_fast": {
+        "formula": "n^3",
+        "total_at_100": 1000000,
+        "description": "Simplest formula — total EXP equals level cubed"
+      },
+      "medium_slow": {
+        "formula": "floor(6/5 * n^3 - 15 * n^2 + 100 * n - 140)",
+        "total_at_100": 1059860,
+        "description": "Produces negative values at level 1 (game handles this as 0)",
+        "known_bugs": [
+          "The formula gives -54 at level 1, which underflows. In Gen I-II the game does not use a lookup table, so this can cause glitches if a Medium Slow Pokemon is obtained at level 1."
+        ]
+      },
+      "slow": {
+        "formula": "floor(5 * n^3 / 4)",
+        "total_at_100": 1250000,
+        "description": "Requires the most total EXP to reach level 100"
+      }
+    }
+  },
+
+  "level_cap": {
+    "max_level": 100,
+    "behavior_at_cap": "Pokemon at level 100 no longer gain experience, but the game erroneously still displays the EXP gained message (fixed in Gen III)"
+  },
+
+  "base_experience_yields": {
+    "description": "Base EXP yield (b) for each species. These values were unchanged from Gen I through Gen IV.",
+    "pokemon": {
+      "1_bulbasaur": 64, "2_ivysaur": 141, "3_venusaur": 208,
+      "4_charmander": 65, "5_charmeleon": 142, "6_charizard": 209,
+      "7_squirtle": 66, "8_wartortle": 143, "9_blastoise": 210,
+      "10_caterpie": 53, "11_metapod": 72, "12_butterfree": 160,
+      "13_weedle": 52, "14_kakuna": 71, "15_beedrill": 159,
+      "16_pidgey": 55, "17_pidgeotto": 113, "18_pidgeot": 172,
+      "19_rattata": 57, "20_raticate": 116,
+      "21_spearow": 58, "22_fearow": 162,
+      "23_ekans": 62, "24_arbok": 147,
+      "25_pikachu": 82, "26_raichu": 122,
+      "27_sandshrew": 93, "28_sandslash": 163,
+      "29_nidoran_f": 59, "30_nidorina": 117, "31_nidoqueen": 194,
+      "32_nidoran_m": 60, "33_nidorino": 118, "34_nidoking": 195,
+      "35_clefairy": 68, "36_clefable": 129,
+      "37_vulpix": 63, "38_ninetales": 178,
+      "39_jigglypuff": 76, "40_wigglytuff": 109,
+      "41_zubat": 54, "42_golbat": 171,
+      "43_oddish": 78, "44_gloom": 132, "45_vileplume": 184,
+      "46_paras": 70, "47_parasect": 128,
+      "48_venonat": 75, "49_venomoth": 138,
+      "50_diglett": 81, "51_dugtrio": 153,
+      "52_meowth": 69, "53_persian": 148,
+      "54_psyduck": 80, "55_golduck": 174,
+      "56_mankey": 74, "57_primeape": 149,
+      "58_growlithe": 91, "59_arcanine": 213,
+      "60_poliwag": 77, "61_poliwhirl": 131, "62_poliwrath": 185,
+      "63_abra": 73, "64_kadabra": 145, "65_alakazam": 186,
+      "66_machop": 88, "67_machoke": 146, "68_machamp": 193,
+      "69_bellsprout": 84, "70_weepinbell": 151, "71_victreebel": 191,
+      "72_tentacool": 105, "73_tentacruel": 205,
+      "74_geodude": 86, "75_graveler": 134, "76_golem": 177,
+      "77_ponyta": 152, "78_rapidash": 192,
+      "79_slowpoke": 99, "80_slowbro": 164,
+      "81_magnemite": 89, "82_magneton": 169,
+      "83_farfetchd": 94,
+      "84_doduo": 96, "85_dodrio": 158,
+      "86_seel": 100, "87_dewgong": 176,
+      "88_grimer": 90, "89_muk": 157,
+      "90_shellder": 97, "91_cloyster": 203,
+      "92_gastly": 95, "93_haunter": 126, "94_gengar": 190,
+      "95_onix": 108,
+      "96_drowzee": 102, "97_hypno": 165,
+      "98_krabby": 115, "99_kingler": 206,
+      "100_voltorb": 103, "101_electrode": 150,
+      "102_exeggcute": 98, "103_exeggutor": 212,
+      "104_cubone": 87, "105_marowak": 124,
+      "106_hitmonlee": 139, "107_hitmonchan": 140,
+      "108_lickitung": 127,
+      "109_koffing": 114, "110_weezing": 173,
+      "111_rhyhorn": 135, "112_rhydon": 204,
+      "113_chansey": 255,
+      "114_tangela": 166,
+      "115_kangaskhan": 175,
+      "116_horsea": 83, "117_seadra": 155,
+      "118_goldeen": 111, "119_seaking": 170,
+      "120_staryu": 106, "121_starmie": 207,
+      "122_mr_mime": 136,
+      "123_scyther": 187,
+      "124_jynx": 137,
+      "125_electabuzz": 156,
+      "126_magmar": 167,
+      "127_pinsir": 200,
+      "128_tauros": 211,
+      "129_magikarp": 20,
+      "130_gyarados": 214,
+      "131_lapras": 219,
+      "132_ditto": 61,
+      "133_eevee": 92,
+      "134_vaporeon": 196, "135_jolteon": 197, "136_flareon": 198,
+      "137_porygon": 130,
+      "138_omanyte": 120, "139_omastar": 199,
+      "140_kabuto": 119, "141_kabutops": 201,
+      "142_aerodactyl": 202,
+      "143_snorlax": 154,
+      "144_articuno": 215, "145_zapdos": 216, "146_moltres": 217,
+      "147_dratini": 67, "148_dragonair": 144, "149_dragonite": 218,
+      "150_mewtwo": 220,
+      "151_mew": 154,
+      "152_chikorita": 64, "153_bayleef": 141, "154_meganium": 208,
+      "155_cyndaquil": 65, "156_quilava": 142, "157_typhlosion": 209,
+      "158_totodile": 66, "159_croconaw": 143, "160_feraligatr": 210,
+      "161_sentret": 57, "162_furret": 116,
+      "163_hoothoot": 58, "164_noctowl": 162,
+      "165_ledyba": 54, "166_ledian": 134,
+      "167_spinarak": 54, "168_ariados": 134,
+      "169_crobat": 204,
+      "170_chinchou": 90, "171_lanturn": 156,
+      "172_pichu": 73,
+      "173_cleffa": 37,
+      "174_igglybuff": 39,
+      "175_togepi": 74, "176_togetic": 114,
+      "177_natu": 73, "178_xatu": 171,
+      "179_mareep": 59, "180_flaaffy": 117, "181_ampharos": 194,
+      "182_bellossom": 184,
+      "183_marill": 58, "184_azumarill": 153,
+      "185_sudowoodo": 135,
+      "186_politoed": 185,
+      "187_hoppip": 74, "188_skiploom": 136, "189_jumpluff": 176,
+      "190_aipom": 94,
+      "191_sunkern": 52, "192_sunflora": 146,
+      "193_yanma": 147,
+      "194_wooper": 52, "195_quagsire": 137,
+      "196_espeon": 197, "197_umbreon": 197,
+      "198_murkrow": 107,
+      "199_slowking": 164,
+      "200_misdreavus": 147,
+      "201_unown": 61,
+      "202_wobbuffet": 177,
+      "203_girafarig": 149,
+      "204_pineco": 60, "205_forretress": 118,
+      "206_dunsparce": 75,
+      "207_gligar": 108,
+      "208_steelix": 196,
+      "209_snubbull": 63, "210_granbull": 178,
+      "211_qwilfish": 100,
+      "212_scizor": 200,
+      "213_shuckle": 80,
+      "214_heracross": 200,
+      "215_sneasel": 132,
+      "216_teddiursa": 124, "217_ursaring": 189,
+      "218_slugma": 78, "219_magcargo": 154,
+      "220_swinub": 78, "221_piloswine": 160,
+      "222_corsola": 113,
+      "223_remoraid": 78, "224_octillery": 164,
+      "225_delibird": 183,
+      "226_mantine": 168,
+      "227_skarmory": 168,
+      "228_houndour": 114, "229_houndoom": 204,
+      "230_kingdra": 207,
+      "231_phanpy": 124, "232_donphan": 189,
+      "233_porygon2": 180,
+      "234_stantler": 165,
+      "235_smeargle": 106,
+      "236_tyrogue": 91,
+      "237_hitmontop": 138,
+      "238_smoochum": 87,
+      "239_elekid": 106, "240_magby": 117,
+      "241_miltank": 200,
+      "242_blissey": 255,
+      "243_raikou": 216, "244_entei": 217, "245_suicune": 215,
+      "246_larvitar": 67, "247_pupitar": 144, "248_tyranitar": 218,
+      "249_lugia": 220, "250_ho_oh": 220,
+      "251_celebi": 154
+    }
+  },
+
+  "experience_groups_by_pokemon": {
+    "description": "Which growth rate group each Pokemon belongs to",
+    "fast": [
+      35, 36, 39, 40, 113, 165, 166, 167, 168, 173, 174, 175, 176,
+      183, 184, 190, 200, 209, 210, 222, 225, 235, 242
+    ],
+    "medium_fast": [
+      10, 11, 12, 13, 14, 15, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+      37, 38, 41, 42, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,
+      77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 95, 96, 97,
+      98, 99, 100, 101, 104, 105, 106, 107, 108, 109, 110, 114, 115,
+      116, 117, 118, 119, 122, 123, 124, 125, 126, 132, 133, 134, 135,
+      136, 137, 138, 139, 140, 141,
+      161, 162, 163, 164, 169, 172, 177, 178, 185, 193, 194, 195, 196,
+      197, 199, 201, 202, 203, 204, 205, 206, 208, 211, 212, 216, 217,
+      218, 219, 223, 224, 230, 231, 232, 233, 236, 237, 238, 239, 240
+    ],
+    "medium_slow": [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 16, 17, 18, 29, 30, 31, 32, 33, 34,
+      43, 44, 45, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
+      74, 75, 76, 92, 93, 94, 151,
+      152, 153, 154, 155, 156, 157, 158, 159, 160, 179, 180, 181, 182,
+      186, 187, 188, 189, 191, 192, 198, 207, 213, 215, 251
+    ],
+    "slow": [
+      58, 59, 72, 73, 90, 91, 102, 103, 111, 112, 120, 121, 127, 128,
+      129, 130, 131, 142, 143, 144, 145, 146, 147, 148, 149, 150,
+      170, 171, 214, 220, 221, 226, 227, 228, 229, 234, 241,
+      243, 244, 245, 246, 247, 248, 249, 250
+    ]
+  },
+
+  "known_bugs_and_quirks": [
+    {
+      "name": "Medium Slow level 1 underflow",
+      "description": "The Medium Slow formula produces -54 at level 1. Since Gen II does not use a lookup table, this can cause glitches if a Medium Slow Pokemon is at level 1. The game does not properly handle negative experience values."
+    },
+    {
+      "name": "Level 100 EXP message",
+      "description": "Pokemon at level 100 can no longer gain experience, but the game erroneously still displays the experience gained message. Fixed in Gen III."
+    }
+  ]
+}

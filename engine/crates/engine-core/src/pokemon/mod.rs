@@ -365,6 +365,8 @@ pub struct PokemonSim {
     story_flags: u64,
     // LOS suppression: skip trainer checks for N frames after map transition
     los_suppress: u8,
+    // NPC wander timer — NPCs with wanders=true move randomly every few seconds
+    npc_wander_timer: f64,
     // Save system
     needs_save: bool,
     last_rng_state: u64,
@@ -443,6 +445,7 @@ impl PokemonSim {
             approach_exclaim_timer: 0.0,
             story_flags: 0,
             los_suppress: 0,
+            npc_wander_timer: 0.0,
             needs_save: false,
             last_rng_state: 0,
             has_save: false,
@@ -1086,6 +1089,43 @@ impl PokemonSim {
         if self.water_timer > 0.5 {
             self.water_timer = 0.0;
             self.water_frame = 1 - self.water_frame;
+        }
+
+        // NPC wandering — every 2-4 seconds, wandering NPCs take a random step
+        self.npc_wander_timer += dt;
+        if self.npc_wander_timer > 2.0 {
+            self.npc_wander_timer = 0.0;
+            let map_w = self.current_map.width;
+            let map_h = self.current_map.height;
+            for i in 0..self.current_map.npcs.len() {
+                if !self.current_map.npcs[i].wanders { continue; }
+                if !self.is_npc_active(i) { continue; }
+                // Pick a random direction (0-3: up/down/left/right)
+                let r = (engine.rng.next_f64() * 4.0) as u8;
+                let (dx, dy): (i32, i32) = match r {
+                    0 => (0, -1), 1 => (0, 1), 2 => (-1, 0), _ => (1, 0),
+                };
+                let nx = self.current_map.npcs[i].x as i32 + dx;
+                let ny = self.current_map.npcs[i].y as i32 + dy;
+                if nx < 0 || ny < 0 || nx >= map_w as i32 || ny >= map_h as i32 { continue; }
+                // Check collision
+                let col = self.current_map.collision_at(nx as usize, ny as usize);
+                let walkable = matches!(col, CollisionType::Walkable | CollisionType::TallGrass);
+                if !walkable { continue; }
+                // Don't step on player
+                if nx == self.player.x && ny == self.player.y { continue; }
+                // Don't step on other NPCs
+                let blocked = self.current_map.npcs.iter().enumerate()
+                    .any(|(j, n)| j != i && self.is_npc_active(j) && n.x as i32 == nx && n.y as i32 == ny);
+                if blocked { continue; }
+                // Move the NPC
+                self.current_map.npcs[i].x = nx as u8;
+                self.current_map.npcs[i].y = ny as u8;
+                self.current_map.npcs[i].facing = match r {
+                    0 => Direction::Up, 1 => Direction::Down,
+                    2 => Direction::Left, _ => Direction::Right,
+                };
+            }
         }
 
         // Menu opens even during walk animation (original game behavior: cancel interrupts)

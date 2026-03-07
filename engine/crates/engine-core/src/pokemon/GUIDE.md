@@ -1624,4 +1624,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Sudowoodo visual blocker NPC** — Added NPC at (14,6) on Route 36 blocking the east path. Visible until `FLAG_SUDOWOODO` is set. Interacting with it triggers the Sudowoodo battle (requires 3+ badges). Added `is_npc_active()` helper for flag-based NPC filtering across collision, rendering, LOS, and interaction systems.
 - **Missing encounters: Abra + Vulpix** — Abra added to Route 34 encounters (lv10-12, 10% weight) matching Gen 2. Vulpix added to Route 37 encounters (lv14-16, 10% weight) matching Gen 2 Silver/Crystal.
 - All 1318 tests pass.
-- **Next (Sprint 95)**: Content sprint.
+- **Next (Sprint 95)**: Content sprint. Tile art + NPC wandering.
+
+### Sprint 95 (Content — Gen 2 Tile Art + NPC Wandering)
+- **Tile art overhaul** — Updated 7 core tile sprites to match Gen 2 GBC aesthetics. Grass uses subtle checkerboard pattern. Tall grass has uniform blade texture. Trees have proper light/dark shading with round canopy and trunk detail. Water has diagonal wave crests instead of diagonal lines. Path has cleaner grain. Flowers have two-flower pattern on grass base. All tiles maintain the indexed-color format (0/1/2/3) with existing palette system.
+- **NPC wander logic** — Implemented random movement for NPCs with `wanders: true`. Every 2 seconds, wandering NPCs take a random step in any direction if the target tile is walkable and unoccupied (no player, no other NPC). NPCs update facing direction on each move. Uses `npc_wander_timer` field. Collision-checked against map bounds, collision types, player position, and other active NPCs.
+- All 1318 tests pass.
+- **Next (Sprint 96 — QA)**: Full QA audit.

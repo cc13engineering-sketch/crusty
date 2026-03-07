@@ -1565,3 +1565,13 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - Serebii.net (encounter tables, trainer data)
 - Pokemon World Online Wiki (base EXP yields)
 - pret/pokecrystal disassembly (canonical source for verification)
+
+### Sprint 87 (Content — Battle Text Overhaul)
+- **B1 FIX: Separate battle messages** — "X used MOVE!", "Critical hit!", "Super effective!" now display as separate sequential text phases instead of jammed into one line. Both player and enemy attacks fixed. Matches original Gen 2 behavior.
+- **B2 FIX: Status damage text** — "X is hurt by its burn!", "X is hurt by poison!" now displays at end-of-turn when status damage is applied. Both player and enemy sides. Both end-of-turn code paths (player-went-second, enemy-went-second).
+- **B3 FIX: Wake-up text** — `tick_status()` now returns bool for wake-up. "X woke up!" text shown when sleep counter hits 0.
+- **B4 FIX: Thaw text** — "X thawed out!" shown when freeze thaw succeeds. Player thaw sends back to MoveSelect. Enemy thaw adds text to follow-up chain.
+- **B5 FIX: Recoil for Take Down** — Take Down now deals 1/4 recoil like Struggle. "X is hit with recoil!" text shown. Both player and enemy sides.
+- **B10/E2 FIX: Run text** — "Got away safely!" dialogue now shows when fleeing wild battles (was instant silent exit).
+- All 1318 tests pass.
+- **Next (Sprint 88)**: More content from Sprint 85 audit: B6 (multi-hit moves), B7 (auto-learn text), B8 (level-up stat display), B9 (EXP bar animation)

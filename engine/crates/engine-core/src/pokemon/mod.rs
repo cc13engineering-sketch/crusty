@@ -1729,9 +1729,20 @@ impl PokemonSim {
                     battle.phase = BattlePhase::ActionSelect { cursor: 0 };
                 } else if is_confirm(engine) {
                     // Freeze thaw: 10% chance per turn (Gen 2)
-                    let _thawed = if let Some(p) = self.party.get_mut(battle.player_idx) {
+                    let player_thawed = if let Some(p) = self.party.get_mut(battle.player_idx) {
                         p.try_thaw(engine.rng.next_f64())
                     } else { false };
+                    // Show thaw text if applicable
+                    if player_thawed {
+                        let pname_thaw = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} thawed out!", pname_thaw),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::MoveSelect { cursor: 0 }),
+                        };
+                        self.battle = Some(battle);
+                        return;
+                    }
                     // Check if player Pokemon can move (sleep/freeze)
                     let can_move = self.party.get(battle.player_idx).map(|p| p.can_move()).unwrap_or(true);
                     // Paralysis: 25% chance to be fully paralyzed
@@ -1991,8 +2002,9 @@ impl PokemonSim {
                 if t > 0.8 {
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
-                    // Struggle recoil: 1/4 of damage dealt to self (Gen 2)
-                    if move_id == MOVE_STRUGGLE && damage > 0 {
+                    // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down
+                    let has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                    if has_recoil {
                         let recoil = (damage / 4).max(1);
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
                             p.hp = p.hp.saturating_sub(recoil);
@@ -2062,16 +2074,19 @@ impl PokemonSim {
                     let is_miss = damage == 0
                         && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
                         && effectiveness > 0.0;
-                    let eff = eff_text(effectiveness);
-                    let crit_str = if is_crit { " Critical hit!" } else { "" };
-                    let miss_str = if is_miss { " Attack missed!" } else { "" };
-                    let msg = if !eff.is_empty() {
-                        format!("{} used {}! {}{}{}", pname, move_name, eff, crit_str, miss_str)
-                    } else if !miss_str.is_empty() {
-                        format!("{} used {}!{}", pname, move_name, miss_str)
+                    let msg = format!("{} used {}!", pname, move_name);
+                    // Build separate follow-up messages (Gen 2 shows these sequentially)
+                    let mut follow_msgs: Vec<String> = Vec::new();
+                    if is_miss {
+                        follow_msgs.push("Attack missed!".to_string());
                     } else {
-                        format!("{} used {}!{}", pname, move_name, crit_str)
-                    };
+                        if is_crit { follow_msgs.push("Critical hit!".to_string()); }
+                        let eff = eff_text(effectiveness);
+                        if !eff.is_empty() { follow_msgs.push(eff.to_string()); }
+                    }
+                    if has_recoil {
+                        follow_msgs.push(format!("{} is hit with recoil!", pname));
+                    }
 
                     // Apply stat stage effects for player's status moves
                     let stage_msg = if !is_miss {
@@ -2136,13 +2151,16 @@ impl PokemonSim {
                         } else { None }
                     } else { None };
 
-                    // Helper: wrap next_phase with stat change text if present
-                    let wrap_stat = |next: BattlePhase, sm: &Option<String>| -> Box<BattlePhase> {
+                    // Helper: wrap next_phase with follow-up messages + stat change text
+                    let wrap_stat = |next: BattlePhase, sm: &Option<String>, extra: &[String]| -> Box<BattlePhase> {
+                        let mut phase = next;
                         if let Some(ref s) = sm {
-                            Box::new(BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(next) })
-                        } else {
-                            Box::new(next)
+                            phase = BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(phase) };
                         }
+                        for m in extra.iter().rev() {
+                            phase = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(phase) };
+                        }
+                        Box::new(phase)
                     };
 
                     if battle.enemy.is_fainted() {
@@ -2151,47 +2169,73 @@ impl PokemonSim {
                             .unwrap_or(10);
                         battle.phase = BattlePhase::Text {
                             message: msg, timer: 0.0,
-                            next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg),
+                            next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg, &follow_msgs),
                         };
                     } else if from_pending {
                         // Player's turn came from pending (enemy already attacked this turn)
                         // End-of-turn: apply status damage, tick status, return to ActionSelect
+                        let mut eot_msgs: Vec<String> = Vec::new();
+                        let pname_eot = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.apply_status_damage();
-                            p.tick_status();
+                            let pdmg = p.apply_status_damage();
+                            if pdmg > 0 {
+                                let status_text = match p.status {
+                                    StatusCondition::Burn => format!("{} is hurt by its burn!", pname_eot),
+                                    StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname_eot),
+                                    _ => format!("{} is hurt by poison!", pname_eot),
+                                };
+                                eot_msgs.push(status_text);
+                            }
+                            let woke = p.tick_status();
+                            if woke { eot_msgs.push(format!("{} woke up!", pname_eot)); }
                         }
-                        battle.enemy.apply_status_damage();
-                        battle.enemy.tick_status();
-                        battle.turn_count += 1;
-                        if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
-                            battle.phase = BattlePhase::Text {
-                                message: msg, timer: 0.0,
-                                next_phase: wrap_stat(BattlePhase::PlayerFainted, &stage_msg),
+                        let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        let ename_eot = battle.enemy.name().to_string();
+                        let edmg = battle.enemy.apply_status_damage();
+                        if edmg > 0 {
+                            let status_text = match battle.enemy.status {
+                                StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix, ename_eot),
+                                StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix, ename_eot),
+                                _ => format!("{}{} is hurt by poison!", eprefix, ename_eot),
                             };
+                            eot_msgs.push(status_text);
+                        }
+                        let _ewoke = battle.enemy.tick_status();
+                        battle.turn_count += 1;
+                        // Chain end-of-turn messages before the terminal phase
+                        let terminal = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
+                            BattlePhase::PlayerFainted
                         } else if battle.enemy.is_fainted() {
                             let exp = get_species(battle.enemy.species_id)
                                 .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
                                 .unwrap_or(10);
-                            battle.phase = BattlePhase::Text {
-                                message: msg, timer: 0.0,
-                                next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg),
-                            };
+                            BattlePhase::EnemyFainted { exp_gained: exp }
                         } else {
-                            battle.phase = BattlePhase::Text {
-                                message: msg, timer: 0.0,
-                                next_phase: wrap_stat(BattlePhase::ActionSelect { cursor: 0 }, &stage_msg),
-                            };
+                            BattlePhase::ActionSelect { cursor: 0 }
+                        };
+                        // Build chain: msg → follow_msgs → stage_msg → eot_msgs → terminal
+                        let mut inner = terminal;
+                        for m in eot_msgs.iter().rev() {
+                            inner = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(inner) };
                         }
+                        battle.phase = BattlePhase::Text {
+                            message: msg, timer: 0.0,
+                            next_phase: wrap_stat(inner, &stage_msg, &follow_msgs),
+                        };
                     } else if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
                         // Player died from Struggle recoil or Self-Destruct (enemy survived)
                         battle.phase = BattlePhase::Text {
                             message: msg, timer: 0.0,
-                            next_phase: wrap_stat(BattlePhase::PlayerFainted, &stage_msg),
+                            next_phase: wrap_stat(BattlePhase::PlayerFainted, &stage_msg, &follow_msgs),
                         };
                     } else {
                         // Player went first — enemy gets to attack now
                         // Freeze thaw: 10% per turn (Gen 2)
-                        battle.enemy.try_thaw(engine.rng.next_f64());
+                        let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
+                        if enemy_thawed {
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            follow_msgs.push(format!("{}{} thawed out!", prefix, battle.enemy.name()));
+                        }
                         let enemy_can_move = battle.enemy.can_move();
                         let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
                         let enemy_flinched = battle.enemy_flinched;
@@ -2212,7 +2256,7 @@ impl PokemonSim {
                                 next_phase: wrap_stat(BattlePhase::Text {
                                     message: reason, timer: 0.0,
                                     next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                                }, &stage_msg),
+                                }, &stage_msg, &follow_msgs),
                             };
                         } else if battle.enemy_confused > 0 {
                             // Enemy confusion check
@@ -2229,7 +2273,7 @@ impl PokemonSim {
                                         next_phase: Box::new(BattlePhase::EnemyAttack {
                                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                                         }),
-                                    }, &stage_msg),
+                                    }, &stage_msg, &follow_msgs),
                                 };
                             } else if engine.rng.next_f64() < 0.5 {
                                 // Self-hit: typeless 40-power
@@ -2256,7 +2300,7 @@ impl PokemonSim {
                                             timer: 0.0,
                                             next_phase: Box::new(next),
                                         }),
-                                    }, &stage_msg),
+                                    }, &stage_msg, &follow_msgs),
                                 };
                             } else {
                                 // Passed confusion — attack normally
@@ -2269,7 +2313,7 @@ impl PokemonSim {
                                         next_phase: Box::new(BattlePhase::EnemyAttack {
                                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                                         }),
-                                    }, &stage_msg),
+                                    }, &stage_msg, &follow_msgs),
                                 };
                             }
                         } else {
@@ -2278,7 +2322,7 @@ impl PokemonSim {
                                 message: msg, timer: 0.0,
                                 next_phase: wrap_stat(BattlePhase::EnemyAttack {
                                     timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                                }, &stage_msg),
+                                }, &stage_msg, &follow_msgs),
                             };
                         }
                     }
@@ -2362,6 +2406,13 @@ impl PokemonSim {
                         }
                     }
 
+                    // Recoil: 1/4 of damage for Struggle, Take Down (enemy side)
+                    let e_has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                    if e_has_recoil {
+                        let recoil = (damage / 4).max(1);
+                        battle.enemy.hp = battle.enemy.hp.saturating_sub(recoil);
+                    }
+
                     // Self-Destruct/Explosion: enemy faints
                     if move_id == MOVE_SELF_DESTRUCT {
                         battle.enemy.hp = 0;
@@ -2390,17 +2441,21 @@ impl PokemonSim {
                     let is_miss = damage == 0
                         && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
                         && effectiveness > 0.0;
-                    let eff = eff_text(effectiveness);
                     let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                    let crit_str = if is_crit { " Critical hit!" } else { "" };
-                    let miss_str = if is_miss { " Attack missed!" } else { "" };
-                    let msg = if !eff.is_empty() {
-                        format!("{}{} used {}! {}{}{}", prefix, ename, move_name, eff, crit_str, miss_str)
-                    } else if !miss_str.is_empty() {
-                        format!("{}{} used {}!{}", prefix, ename, move_name, miss_str)
+                    let msg = format!("{}{} used {}!", prefix, ename, move_name);
+                    // Build separate follow-up messages (Gen 2 shows these sequentially)
+                    let mut e_follow_msgs: Vec<String> = Vec::new();
+                    if is_miss {
+                        e_follow_msgs.push("Attack missed!".to_string());
                     } else {
-                        format!("{}{} used {}!{}", prefix, ename, move_name, crit_str)
-                    };
+                        if is_crit { e_follow_msgs.push("Critical hit!".to_string()); }
+                        let eff = eff_text(effectiveness);
+                        if !eff.is_empty() { e_follow_msgs.push(eff.to_string()); }
+                    }
+                    if e_has_recoil {
+                        let eprefix_rc = if battle.is_wild { "Wild " } else { "Foe " };
+                        e_follow_msgs.push(format!("{}{} is hit with recoil!", eprefix_rc, ename));
+                    }
 
                     // Apply stat stage effects for enemy's status moves
                     let e_stage_msg = if !is_miss {
@@ -2477,12 +2532,15 @@ impl PokemonSim {
                     // If player has a pending move, execute it next (enemy went first)
                     let has_pending = battle.pending_player_move.is_some();
 
-                    let wrap_estat = |next: BattlePhase, sm: &Option<String>| -> Box<BattlePhase> {
+                    let wrap_estat = |next: BattlePhase, sm: &Option<String>, extra: &[String]| -> Box<BattlePhase> {
+                        let mut phase = next;
                         if let Some(ref s) = sm {
-                            Box::new(BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(next) })
-                        } else {
-                            Box::new(next)
+                            phase = BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(phase) };
                         }
+                        for m in extra.iter().rev() {
+                            phase = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(phase) };
+                        }
+                        Box::new(phase)
                     };
 
                     let next = if fainted {
@@ -2514,21 +2572,41 @@ impl PokemonSim {
                         }
                     } else {
                         // End-of-turn: apply status damage and tick status for both sides
+                        let mut eot_msgs2: Vec<String> = Vec::new();
+                        let pname2 = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                         let player_fainted_from_status;
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.apply_status_damage();
-                            p.tick_status();
+                            let pdmg = p.apply_status_damage();
+                            if pdmg > 0 {
+                                let st = match p.status {
+                                    StatusCondition::Burn => format!("{} is hurt by its burn!", pname2),
+                                    StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname2),
+                                    _ => format!("{} is hurt by poison!", pname2),
+                                };
+                                eot_msgs2.push(st);
+                            }
+                            let woke = p.tick_status();
+                            if woke { eot_msgs2.push(format!("{} woke up!", pname2)); }
                             player_fainted_from_status = p.is_fainted() && !fainted;
                         } else {
                             player_fainted_from_status = false;
                         }
-                        let _enemy_status_dmg = battle.enemy.apply_status_damage();
-                        battle.enemy.tick_status();
+                        let eprefix2 = if battle.is_wild { "Wild " } else { "Foe " };
+                        let ename2 = battle.enemy.name().to_string();
+                        let edmg2 = battle.enemy.apply_status_damage();
+                        if edmg2 > 0 {
+                            let st = match battle.enemy.status {
+                                StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix2, ename2),
+                                StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix2, ename2),
+                                _ => format!("{}{} is hurt by poison!", eprefix2, ename2),
+                            };
+                            eot_msgs2.push(st);
+                        }
+                        let _ewoke2 = battle.enemy.tick_status();
 
-                        if player_fainted_from_status {
+                        let terminal2 = if player_fainted_from_status {
                             BattlePhase::PlayerFainted
                         } else if battle.enemy.is_fainted() {
-                            // Enemy died from status or own move (Self-Destruct)
                             let exp = get_species(battle.enemy.species_id)
                                 .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
                                 .unwrap_or(10);
@@ -2542,12 +2620,18 @@ impl PokemonSim {
                                 }
                             }
                             BattlePhase::ActionSelect { cursor: 0 }
+                        };
+                        // Chain end-of-turn status messages before terminal
+                        let mut eot_next = terminal2;
+                        for m in eot_msgs2.iter().rev() {
+                            eot_next = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(eot_next) };
                         }
+                        eot_next
                     };
 
                     if !has_pending { battle.turn_count += 1; }
                     battle.phase = BattlePhase::Text {
-                        message: msg, timer: 0.0, next_phase: wrap_estat(next, &e_stage_msg),
+                        message: msg, timer: 0.0, next_phase: wrap_estat(next, &e_stage_msg, &e_follow_msgs),
                     };
                 } else {
                     battle.phase = BattlePhase::EnemyAttack { timer: t, move_id, damage, effectiveness, is_crit };
@@ -2989,8 +3073,14 @@ impl PokemonSim {
             }
 
             BattlePhase::Run => {
+                // "Got away safely!" text shown via Won timer exit
                 engine.global_state.set_f64("in_battle", 0.0);
-                self.phase = GamePhase::Overworld;
+                self.dialogue = Some(DialogueState {
+                    lines: vec!["Got away safely!".to_string()],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
                 self.battle = None;
                 return;
             }

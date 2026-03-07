@@ -2092,13 +2092,15 @@ impl Pokemon {
     }
 
     /// Tick status at end of turn (decrements sleep counter, etc.)
-    pub fn tick_status(&mut self) {
+    /// Returns true if the Pokemon woke up from sleep this turn.
+    pub fn tick_status(&mut self) -> bool {
         match self.status {
             StatusCondition::Sleep { turns } => {
                 if turns > 0 {
                     let new_turns = turns - 1;
                     if new_turns == 0 {
                         self.status = StatusCondition::None;
+                        return true; // woke up
                     } else {
                         self.status = StatusCondition::Sleep { turns: new_turns };
                     }
@@ -2106,6 +2108,7 @@ impl Pokemon {
             }
             _ => {}
         }
+        false
     }
 }
 

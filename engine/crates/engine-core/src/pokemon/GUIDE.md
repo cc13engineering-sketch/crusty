@@ -623,39 +623,326 @@ Currently evolution happens silently — `pending_evolution` is set, species cha
 - #78: Continue screen stats display
 - #80-82: Full Pokedex entry screens
 
-## Triage Order (if time runs short)
-
-Deprioritize last-in-first-out. Goal is to reach all of them:
-
-- Decorating your room
-- Kurt's Pokeballs
-- Game Corner
-- Phone system / Pokegear radio
-- Kanto post-game
-- Unown puzzles / Ruins of Alph
-- Bug-catching contest
-- Breeding / Daycare
-- Time-based encounter variation
-- Shiny Pokemon (except forced Red Gyarados)
-
----
-
 ## Definition of Done
-
-1. Walk from New Bark Town to Indigo Plateau on the intended route
-2. All 8 Johto gym badges obtainable
-3. Elite Four and Champion Lance beatable
-4. Credits screen after defeating Lance
-5. Wild encounters on all routes with correct species/levels
-6. Compiles to WASM, runs in browser, no panics on critical path
-7. Story gates prevent sequence-breaking
-8. Gym leader teams match canonical GSC rosters
-9. Trainers don't re-battle after defeat
-10. Save/load preserves full state including RNG
 
 Don't cut corners. Don't leave TODOs. Every map gets correct encounter tables. Every gym leader gets their real team. Every move in a trainer's Pokemon's learnset works. The goal is not "good enough" — it's as complete and correct as possible.
 
 ---
+
+## Crucial Abstractions for Pokemon Gold Recreation
+
+Five abstractions that would most increase the odds of completing a faithful Pokemon Gold recreation on Crusty. Ordered by impact — each one eliminates a class of problems that compounds over time and across sprints.
+
+---
+
+### 1. Event Script System (replaces imperative story logic)
+
+**The problem it solves**: Every story event is currently a bespoke function in `mod.rs` — `check_rival_battle()`, `check_victory_road_rival()`, `check_sprout_tower_elder()`, `check_red_gyarados()`, `check_sudowoodo()`. Each one is ~30-50 lines of Rust with hardcoded map IDs, coordinates, dialogue strings, and flag checks. Adding the Jasmine medicine chain requires writing another custom function. Adding Team Rocket Radio Tower requires another. Adding the Dragon's Den sequence requires another. Every function touches `mod.rs`, which is already 5000+ lines. The agents can write these functions, but they can't refactor them, and they accumulate coupling to `PokemonSim` internals that makes future changes fragile.
+
+The original game solved this with a script interpreter. Every map has a script file (`maps/MahoganyTown.asm`) containing event commands — `checkevent`, `setevent`, `writetext`, `startbattle`, `warp`, `disappear`, `appear`, etc. NPCs aren't "trainers" or "healers" by struct field — they're objects with attached scripts that run when interacted with. The script system is the single most important architectural decision in pokecrystal. It's what lets one game have 250+ maps with hundreds of unique story events without the engine code growing proportionally.
+
+**The abstraction**: A data-driven event system. Not a full scripting language — just a `Vec<EventStep>` on each NPC or map trigger.
+
+```rust
+#[derive(Clone, Debug)]
+pub enum EventStep {
+    // Dialogue
+    Text(Vec<String>),
+    YesNo { yes: Vec<EventStep>, no: Vec<EventStep> },
+    
+    // Conditions
+    RequireFlag(u64),         // skip rest if flag not set
+    RequireNoFlag(u64),       // skip rest if flag IS set
+    RequireBadges(u32),       // skip rest if badges < N
+    RequireItem(u8),          // skip rest if item not in bag
+    
+    // Effects
+    SetFlag(u64),
+    GiveBadge(u8),
+    GiveItem(u8),
+    GivePokemon(SpeciesId, u8),    // species, level
+    TakeMoney(u32),
+    GiveMoney(u32),
+    Heal,
+    OpenMart,
+    
+    // Battle
+    StartWildBattle(SpeciesId, u8), // forced encounter
+    StartTrainerBattle,             // uses NPC's trainer_team
+    
+    // Map/NPC manipulation  
+    Warp(MapId, i32, i32),
+    HideNpc(MapId, u8),       // permanently hide NPC by index
+    ShowNpc(MapId, u8),
+    
+    // Transitions
+    FadeOut,
+    FadeIn,
+    PlaySfx(u8),
+    Wait(f64),                // seconds
+}
+```
+
+Then `NpcDef` gets `pub on_interact: &'static [EventStep]` instead of `dialogue` + `is_mart` + `is_trainer` + the `sprite_id == 4` nurse hack. The NPC interaction handler becomes a 50-line `execute_event_steps()` loop that replaces 500+ lines of `match (map_id, npc_idx)` blocks.
+
+**Why this is the highest-impact abstraction**: It's the difference between O(N) code growth (one function per story event) and O(1) code growth (one interpreter, N data entries). The Jasmine medicine chain becomes data, not code:
+
+```rust
+// Lighthouse Ampharos NPC (sick)
+on_interact: &[
+    EventStep::RequireNoFlag(FLAG_DELIVERED_MEDICINE),
+    EventStep::Text(vec!["AMPHY looks very sick...".into(), "It needs medicine from CIANWOOD.".into()]),
+    EventStep::SetFlag(FLAG_MEDICINE),
+],
+
+// Cianwood Pharmacy NPC
+on_interact: &[
+    EventStep::RequireFlag(FLAG_MEDICINE),
+    EventStep::RequireNoFlag(FLAG_GOT_SECRETPOTION),
+    EventStep::Text(vec!["Here's the SECRETPOTION.".into()]),
+    EventStep::GiveItem(ITEM_SECRETPOTION),
+    EventStep::SetFlag(FLAG_GOT_SECRETPOTION),
+],
+
+// Lighthouse Ampharos NPC (with medicine)
+on_interact: &[
+    EventStep::RequireFlag(FLAG_GOT_SECRETPOTION),
+    EventStep::RequireNoFlag(FLAG_DELIVERED_MEDICINE),
+    EventStep::Text(vec!["You used the SECRETPOTION!".into(), "AMPHY is feeling better!".into()]),
+    EventStep::SetFlag(FLAG_DELIVERED_MEDICINE),
+],
+```
+
+No new functions in mod.rs. No new `check_*` methods. The agent just adds data to maps.rs.
+
+**Sprint cost**: ~2 sprints to implement the interpreter and migrate existing events. Saves ~1 sprint per 10 story events after that.
+
+---
+
+### 2. Battle Phase Sequencer (replaces nested Box<BattlePhase> chains)
+
+**The problem it solves**: Every battle action is a manually constructed chain of `BattlePhase::Text { message, timer, next_phase: Box::new(BattlePhase::Text { ... Box::new(BattlePhase::EnemyAttack { ... }) }) }`. The confusion implementation alone has 3 nested phases. Self-Destruct mutual KO required careful phase ordering across 4 different code paths. The Sprint 64 status move fix was a one-line conceptual change (`damage > 0` → `damage > 0 || is_status_move`) but touched 6 different phase chain constructions.
+
+This nesting pattern is the #1 source of battle bugs. The agent builds a chain, gets one link wrong, and the battle state machine goes to the wrong place. You can't unit-test individual links — you can only test the whole chain end-to-end.
+
+**The abstraction**: A battle event queue instead of nested phases.
+
+```rust
+struct BattleSequence {
+    steps: VecDeque<BattleStep>,
+}
+
+enum BattleStep {
+    Text(String),
+    AnimateAttack { attacker: Side, move_id: MoveId },
+    ApplyDamage { target: Side, amount: u16 },
+    DrainHpBar { target: Side, to: u16, duration: f64 },
+    CheckFaint { target: Side },
+    GainExp { amount: u32 },
+    LevelUp,
+    LearnMove { move_id: MoveId },     // triggers move learn flow
+    Evolve { into: SpeciesId },         // triggers evolution flow
+    InflictStatus { target: Side, status: StatusCondition },
+    StatChange { target: Side, stat: usize, stages: i8 },
+    Weather(WeatherType),
+    Pause(f64),
+    FadeOut,
+    FadeIn,
+    SwitchPrompt,
+    ReturnToActionSelect,
+}
+```
+
+Then `execute_attack()` pushes steps onto the queue:
+
+```rust
+fn execute_attack(&self, attacker: Side, move_id: MoveId, ...) -> Vec<BattleStep> {
+    let mut steps = vec![];
+    steps.push(BattleStep::Text(format!("{} used {}!", name, move_name)));
+    if missed {
+        steps.push(BattleStep::Text(format!("{}'s attack missed!", name)));
+        return steps;
+    }
+    steps.push(BattleStep::AnimateAttack { attacker, move_id });
+    steps.push(BattleStep::ApplyDamage { target, amount: damage });
+    steps.push(BattleStep::DrainHpBar { target, to: new_hp, duration: 0.5 });
+    if crit { steps.push(BattleStep::Text("A critical hit!".into())); }
+    if super_effective { steps.push(BattleStep::Text("It's super effective!".into())); }
+    // Secondary effect
+    if rng < burn_chance { 
+        steps.push(BattleStep::InflictStatus { target, status: Burn });
+        steps.push(BattleStep::Text(format!("{} was burned!", target_name)));
+    }
+    steps.push(BattleStep::CheckFaint { target });
+    steps
+}
+```
+
+The sequencer pops one step at a time, renders it, and advances. No nesting. No Box. Each step is independently testable. The missing transitions (#27 EXP text, #32 stat display, #33-40 move learn flow, #41-45 evolution flow) become new `BattleStep` variants — they slot into the queue at the right position without restructuring existing chains.
+
+**Why this is high-impact**: Every item on the Missing Transitions list that involves battle (items #5-56) becomes trivial to add. You just push more steps onto the queue. Currently, adding EXP text + bar animation requires restructuring the `EnemyFainted` phase handler's 80-line block of nested phase construction. With a sequencer, it's `steps.push(BattleStep::Text(format!("Gained {} EXP!", exp))); steps.push(BattleStep::GainExp { amount: exp });`.
+
+**Sprint cost**: ~3 sprints to implement and migrate. This is the most expensive abstraction but has the highest long-term payoff — every future battle feature is 5x easier.
+
+---
+
+### 3. Transition System (replaces instant state changes)
+
+**The problem it solves**: The Missing Transitions document lists 82 items. Most of them are variations of "X happens instantly but should have a text/animation/fade/sound before and after." Map changes are instant cuts. Evolution is silent. Move learning auto-fills slots. Badge rewards are invisible. Every one of these requires the agent to find the exact line where the state change happens and wrap it in dialogue/phase construction. There's no shared infrastructure for "do a thing with a transition."
+
+**The abstraction**: A transition queue that sits between game logic and rendering.
+
+```rust
+enum Transition {
+    Fade { direction: FadeDir, duration: f64 },
+    Flash { color: Color, duration: f64 },
+    Text { lines: Vec<String>, auto_advance: bool },
+    Sound { sfx_id: u8 },
+    Pause(f64),
+    Callback(Box<dyn FnOnce(&mut PokemonSim, &mut Engine)>),
+}
+
+impl PokemonSim {
+    fn queue_transition(&mut self, t: Transition) {
+        self.transition_queue.push_back(t);
+    }
+    
+    fn change_map_with_transition(&mut self, map: MapId, x: i32, y: i32) {
+        self.queue_transition(Transition::Fade { direction: Out, duration: 0.3 });
+        self.queue_transition(Transition::Callback(Box::new(move |sim, _| {
+            sim.change_map(map, x, y);
+        })));
+        self.queue_transition(Transition::Fade { direction: In, duration: 0.3 });
+    }
+    
+    fn evolve_with_transition(&mut self, party_idx: usize, into: SpeciesId) {
+        let old_name = self.party[party_idx].name().to_string();
+        let new_name = get_species(into).map(|s| s.name).unwrap_or("???");
+        self.queue_transition(Transition::Text { 
+            lines: vec![format!("What? {} is evolving!", old_name)], auto_advance: true 
+        });
+        self.queue_transition(Transition::Flash { color: WHITE, duration: 3.0 });
+        self.queue_transition(Transition::Callback(Box::new(move |sim, _| {
+            sim.party[party_idx].evolve(into);
+        })));
+        self.queue_transition(Transition::Sound { sfx_id: SFX_EVOLUTION });
+        self.queue_transition(Transition::Text {
+            lines: vec![format!("{} evolved into {}!", old_name, new_name)], auto_advance: false
+        });
+    }
+}
+```
+
+The transition queue is drained in `step()` — if the queue is non-empty, the current transition plays instead of normal game logic. This is similar to how dialogue already works (`GamePhase::Dialogue` blocks other input), but generalized.
+
+**Why this is high-impact**: It turns Missing Transitions items from "restructure a phase handler" into "add 3-5 queue pushes." Map fades, evolution, badge screens, whiteout — all become composable sequences of the same primitives. And crucially, the agent can add transitions without touching the game logic that triggers them — they just wrap calls.
+
+**Sprint cost**: ~1 sprint. Small implementation, huge leverage.
+
+---
+
+### 4. Move Effect Dispatch Table (replaces scattered match blocks)
+
+**The problem it solves**: Move effects are currently scattered across 4 locations in mod.rs: `try_inflict_status()` (status effects), `damaging_move_stat_effect()` (stat drops), `flinch_chance()` (flinch rates), `status_move_stage_effect()` (stat stage moves), plus inline checks for Haze, Confuse Ray, Swagger, Mean Look, Self-Destruct, Struggle, and Hyper Beam recharge. Adding a new move effect means figuring out which of these 6+ locations to modify, and getting the interaction order right.
+
+The original game has `engine/battle/move_effects/` — one file per effect, dispatched via an effect constant on each move. Pokemon Essentials uses a handler registry. Both separate "what the move does" from "when it happens in the turn."
+
+**The abstraction**: Each move gets an `effect: MoveEffect` field (or derived from an effect ID) that's a small enum:
+
+```rust
+#[derive(Clone, Copy, Debug)]
+pub enum MoveEffect {
+    None,
+    // Status infliction
+    MayBurn(u8),          // chance in percent
+    MayFreeze(u8),
+    MayParalyze(u8),
+    MayPoison(u8),
+    MayConfuse(u8),
+    MayFlinch(u8),
+    Sleep,                // guaranteed (Hypnosis etc)
+    Toxic,                // BadPoison
+    // Stat changes
+    MayLowerStat(u8, usize, i8),   // chance, stat_idx, stages
+    RaiseStat(usize, i8),           // user stat boost
+    LowerStat(usize, i8),          // target stat drop (guaranteed)
+    // Complex
+    Recharge,             // Hyper Beam
+    Rampage,              // Thrash/Outrage
+    Rest,
+    SelfDestruct,
+    Recoil(u8),           // fraction denominator (4 = 1/4)
+    Haze,
+    MeanLook,
+    Swagger,              // +2 Atk + confuse
+    TriAttack,
+    DrainHp(u8),          // fraction (2 = 1/2)
+    MultiHit(u8, u8),     // min, max hits
+}
+```
+
+Then on `MoveData`: `pub effect: MoveEffect`. The five scattered functions collapse into one `apply_move_effect()` that's called at the right point in the turn and dispatches on the enum. Adding a new move effect = adding an enum variant + a match arm. No hunting through mod.rs for the right insertion point.
+
+**Why this is high-impact**: There are ~250 moves in Gen 2. About 80 have unique effects. Currently each one requires the agent to know which of 6 functions to modify and how they interact. With a dispatch table, the agent adds `effect: MoveEffect::MayBurn(10)` to the MoveData literal and it works.
+
+**Sprint cost**: ~1 sprint to implement and migrate. Most move effects already work — this just centralizes them.
+
+---
+
+### 5. Map Data Externalization (replaces hand-coded tile arrays)
+
+**The problem it solves**: `maps.rs` is 8000+ lines and growing. Each map is a hand-coded `Vec<u8>` of tile IDs and collision types — a 20x18 city is 360 entries per array, times 2 (tiles + collision), plus NPCs, warps, and encounters. The agents generate these correctly but slowly, and small errors (wrong tile at position 147) are invisible until someone walks there in the browser.
+
+The original game stores maps as `.blk` files — binary block data loaded at runtime. Pokemon Essentials uses RPG Maker's map editor to generate map files. Both separate map data from code.
+
+**The abstraction**: Store maps as compact binary or text files loaded at runtime instead of compiled Rust arrays.
+
+```
+# maps/NewBarkTown.map
+size: 20 10
+tiles:
+TTTTTTTTTTTTTTTTTTTT
+TGGGPPPPPPPPPPGGGGT
+...
+collision:
+SSSSSSSSSSSSSSSSSSSS
+SWWWWWWWWWWWWWWWWWWS
+...
+warps:
+0,5 -> Route29 19,5
+19,5 -> Route29 0,5
+npcs:
+3,4 elm face=down sprite=0 script=elm_intro
+encounters:
+Pidgey 2-4 30%
+Sentret 2-4 50%
+```
+
+Parse this in `load_map()` instead of calling `build_new_bark_town()`. The `build_*` functions become a migration tool — run once to export existing maps to text format, then delete the functions.
+
+**Why this is high-impact**: It cuts `maps.rs` from 8000 lines to ~500 (types, enums, parser, tests). Map edits become text edits — no recompilation needed for tile changes. And crucially, it makes the PNG-to-map pipeline viable: the `png_to_sprites.py` tool could output map files directly instead of Rust const arrays.
+
+The risk is that Crusty's WASM build may not support file I/O. If maps must be compiled in, an intermediate approach works: a build script (`build.rs`) that reads `.map` files and generates Rust code. The agent edits text files; `cargo build` compiles them.
+
+**Sprint cost**: ~2 sprints. High initial cost, but saves ~5 minutes per map after that (and there are 57+ maps to maintain).
+
+---
+
+### Summary: Impact vs Cost
+
+| Abstraction | Sprint Cost | What it Eliminates | Ongoing Savings |
+|-------------|-------------|-------------------|-----------------|
+| 1. Event Script System | 2 | Story event functions in mod.rs | ~1 sprint per 10 events |
+| 2. Battle Phase Sequencer | 3 | Nested Box<BattlePhase> chains | Every battle feature 5x easier |
+| 3. Transition System | 1 | 50+ Missing Transitions items | Each transition 10 min vs 2 hrs |
+| 4. Move Effect Dispatch | 1 | 6 scattered effect functions | Each new move effect is 1 line |
+| 5. Map Externalization | 2 | 7500 lines of tile arrays | 5 min saved per map edit |
+
+**If you can only do one**: #3 (Transition System). One sprint, immediately unblocks the entire Missing Transitions list, and the agents can implement it without understanding the full battle system.
+
+**If you can do two**: #3 + #4. Two sprints total, covers both the UX gap (transitions) and the mechanical gap (move effects).
+
+**If you can do three**: #3 + #4 + #1. Four sprints total, and the game's story logic becomes data-driven — which is the single biggest architectural win for long-term agent autonomy.
 
 ## Sprint Log
 
@@ -951,4 +1238,12 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Flinch persists across trainer Pokemon**: `enemy_flinched` not reset on send-out. Fixed in all 6 send-out blocks.
 - **Flinch/recharge/rampage persists after player faint**: Auto-switch didn't clear these. Fixed with full state reset.
 - All 75 tests pass.
-- **Next (Sprint 79)**: TBD
+- **Next (Sprint 79)**: Trainer switch prompt, EXP text, gym leader LOS fix
+
+### Sprint 79 (UX Polish — Switch Prompt, EXP Text, LOS Fix)
+- **Trainer switch prompt (#56)**: "Foe will send out X. Will you switch?" YES/NO prompt when trainer sends next Pokemon. YES opens PokemonMenu with free switch (no enemy attack penalty). `free_switch` field on BattleState.
+- **EXP gain text (#27)**: "POKEMON gained X EXP!" text now shows after enemy faints, before EXP is awarded. New `BattlePhase::ExpAwarded` separates text display from EXP logic.
+- **Gym leader LOS fix**: Gym leaders (NPC 0 in all 8 gym maps) no longer trigger line-of-sight approach. They battle only when talked to, matching original behavior. Regular gym trainers still have 5-tile LOS.
+- Stat change text (#18, #19) verified already implemented: "sharply rose/fell" for +/-2 stages, "won't go higher/lower" at +/-6.
+- All 1305 tests pass.
+- **Next (Sprint 80)**: Evolution sequence (#41-45), badge acquisition screen (#54)

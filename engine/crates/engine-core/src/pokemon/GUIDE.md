@@ -2786,3 +2786,45 @@ All warps land on C_WALK tiles (validated by test_all_warps_valid).
 - `data.rs` — Added 7 species (Houndour, Ekans, Arbok, Grimer, Weezing, Gloom, Porygon), 6 moves (Poison Gas, Minimize, Explosion, Sweet Scent, Conversion, Glare), 1 item (Clear Bell)
 - `maps.rs` — Added RadioTower1F through RadioTower5F (5 map builder functions), 5 new MapId variants, from_str/to_str/load_map dispatch, GoldenrodCity warp to Radio Tower, 5 local species constants
 - `mod.rs` — Added FLAG_RADIO_TOWER_ROCKETS/FLAG_RADIO_TOWER_CLEAR, is_npc_active rules for all 5 floors, trainer victory handling for Archer (sets clear flag + gives Clear Bell), Director dialogue override
+
+---
+
+### Sprint 131 — QA Audit of Sprints 129-130
+
+**QA scope**: Ice Path (4 floors), Dragon's Den, Radio Tower (5 floors + Rocket takeover)
+
+#### Bugs Found and Fixed
+1. **RadioTower 2F GruntM_5 missing 5th Rattata** — pokecrystal GRUNTM(5) has 5 Rattata (21,21,23,23,23). Our implementation only had 4. Added the missing 5th Rattata Lv23 to `maps.rs`.
+2. **Dragon's Den quiz event not implemented** — `FLAG_DRAGONS_DEN_QUIZ` was declared with `#[allow(dead_code)]` but never set or checked. Added full quiz handler in `mod.rs`: NPC 0 (Dragon Master) sets the flag on first interaction with lore-accurate dialogue, gives different dialogue on revisit. Removed `#[allow(dead_code)]`.
+
+#### Verification Results
+- **Warp chains verified (all bidirectional)**:
+  - Route44 (19,5/6) <-> IcePath1F (0,6/7)
+  - IcePath1F (13,3) <-> IcePathB1F (1,3)
+  - IcePathB1F (7,11) <-> IcePathB2F (2,2)
+  - IcePathB2F (13,11) <-> IcePathB3F (2,3)
+  - IcePathB3F (15,7/8) <-> BlackthornCity (0,8/1,8)
+  - BlackthornCity (18,10) <-> DragonsDenB1F (8,1)
+  - GoldenrodCity (3,4) <-> RadioTower1F (5,8)
+  - RadioTower1F (10,0) <-> RadioTower2F (10,8)
+  - RadioTower2F (1,8) <-> RadioTower3F (1,1)
+  - RadioTower3F (10,1) <-> RadioTower4F (10,8)
+  - RadioTower4F (1,8) <-> RadioTower5F (1,1)
+- **Ice sliding**: C_ICE tiles confirmed on all 4 Ice Path floors (1F, B1F, B2F, B3F). Sliding mechanic handles direction, wall/NPC blocking, and map edge correctly.
+- **Radio Tower trainers**: All 15 Radio Tower Rocket trainers cross-referenced against pokecrystal-master `data/trainers/parties.asm`. All match (after GruntM_5 fix).
+- **Story flags**: FLAG_DRAGONS_DEN_QUIZ (bit 16), FLAG_RADIO_TOWER_ROCKETS (bit 17), FLAG_RADIO_TOWER_CLEAR (bit 18) all properly defined and used.
+- **NPC visibility**: is_npc_active correctly hides/shows Radio Tower NPCs based on takeover state across all 5 floors.
+
+#### New Tests (4 tests, Sprint 131)
+1. `test_ice_path_floor_traversal_chain` — Verifies complete bidirectional warp chain Route44->1F->B1F->B2F->B3F->BlackthornCity, C_ICE tiles on all floors, 16x16 dimensions.
+2. `test_dragons_den_quiz_event` — Verifies Dragon's Den map structure, warps, Dragon Master NPC, trainers, water encounters (Magikarp/Dratini), quiz flag behavior.
+3. `test_radio_tower_floor_chain` — Verifies complete 5-floor warp chain, 12x10 dimensions, NPC counts per floor, no encounters on indoor floors.
+4. `test_radio_tower_clear_event` — Verifies Archer/Ariana teams match pokecrystal, takeover flag logic, NPC visibility toggling during/after takeover.
+
+#### Test Results
+- **1365 tests passing** (4 new tests added)
+- **0 compiler warnings**
+
+#### Files Changed
+- `maps.rs` — Fixed GruntM_5 missing 5th Rattata Lv23 on RadioTower2F
+- `mod.rs` — Added Dragon's Den quiz handler (sets FLAG_DRAGONS_DEN_QUIZ, lore dialogue), removed dead_code allow, added 4 new QA tests

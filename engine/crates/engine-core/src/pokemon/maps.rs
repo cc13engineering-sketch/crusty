@@ -9950,6 +9950,7 @@ fn build_radio_tower_2f() -> MapData {
                 TrainerPokemon { species_id: RATTATA, level: 21 },
                 TrainerPokemon { species_id: RATTATA, level: 23 },
                 TrainerPokemon { species_id: RATTATA, level: 23 },
+                TrainerPokemon { species_id: RATTATA, level: 23 },
             ],
         },
         // NPC 4: Rocket Grunt M6 (takeover only) — Zubat Lv26, Zubat Lv26

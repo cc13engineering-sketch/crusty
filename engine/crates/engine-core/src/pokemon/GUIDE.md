@@ -3512,3 +3512,35 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - `test_sprint145_two_turn_charge_msg` — all 5 two-turn moves return charge messages
 - `test_sprint145_charging_fields` — BattleState charging fields initialized to None
 - `test_sprint145_trainer_class_names` — sprite-based class lookup + named leader bypass
+
+---
+
+### Sprint 146 — QA Audit: Sprints 144-145
+**Type:** QA sprint
+
+#### Verification Table
+| Feature | pokecrystal Source | Result |
+|---------|-------------------|--------|
+| Falkner: Pidgey L7, Pidgeotto L9 | `data/trainers/parties.asm` | Correct |
+| Fly charge: "flew up high!" | `data/text/common_2.asm:730` | Correct |
+| Dig charge: "dug a hole!" | `data/text/common_2.asm:735` | Correct |
+| SolarBeam charge: "took in sunlight!" | `data/text/common_2.asm:715` | Correct |
+| Skull Bash charge: "lowered its head!" | `data/text/common_2.asm:720` | Correct |
+| Sky Attack charge: "is glowing!" | `data/text/common_2.asm:725` | Correct |
+| Kiyo: Hitmonlee/Hitmonchan L34 | `data/trainers/parties.asm` | Correct |
+| Mt. Mortar encounters | `data/wild/johto_grass.asm` | Close (Machoke vs Raticate) |
+
+#### Bugs Found
+| ID | Severity | Description | Status |
+|----|----------|-------------|--------|
+| Q6 | P3 | Mt. Mortar has Machoke in encounters, pokecrystal has Raticate | Acceptable (simplified) |
+| Q7 | P3 | Enemy AI doesn't use two-turn charging (always instant attack) | Deferred |
+
+#### Regression Check
+- **1383 tests passing** (0 failures)
+- **0 compiler warnings**
+- No regressions in existing features
+
+#### Test Results
+- **1383 tests passing** (0 failures)
+- **0 compiler warnings**

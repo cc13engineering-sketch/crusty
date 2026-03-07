@@ -144,6 +144,7 @@ enum GamePhase {
     TrainerApproach { npc_idx: u8, timer: f64 },
     MapFadeOut { dest_map: MapId, dest_x: u8, dest_y: u8, timer: f64 },
     MapFadeIn { timer: f64 },
+    WhiteoutFade { timer: f64, money_lost: u32 },
     Credits { scroll_y: f64 },
 }
 
@@ -1457,7 +1458,17 @@ impl PokemonSim {
                 let t = timer + dt;
                 if t > 1.5 {
                     battle.enemy_hp_display = battle.enemy.hp as f64;
-                    battle.phase = BattlePhase::ActionSelect { cursor: 0 };
+                    // Show "Go! POKEMON!" send-out text
+                    if let Some(p) = self.party.get(battle.player_idx) {
+                        let pname = p.name().to_string();
+                        battle.phase = BattlePhase::Text {
+                            message: format!("Go! {}!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                        };
+                    } else {
+                        battle.phase = BattlePhase::ActionSelect { cursor: 0 };
+                    }
                 } else {
                     battle.phase = BattlePhase::Intro { timer: t };
                 }
@@ -2935,28 +2946,14 @@ impl PokemonSim {
                         }
                     }
                 } else {
-                    // Whiteout - lose half money, heal, warp to Pokemon Center
+                    // Whiteout — start white fade effect
                     let lost = self.money / 2;
                     self.money -= lost;
                     for p in &mut self.party { p.heal(); }
                     engine.global_state.set_f64("in_battle", 0.0);
                     engine.global_state.set_f64("pending_evolution", 0.0);
                     self.battle = None;
-                    self.dialogue = Some(DialogueState {
-                        lines: vec![
-                            "You are out of usable".to_string(),
-                            "POKEMON!".to_string(),
-                            "You blacked out!".to_string(),
-                            format!("You lost ${}...", lost),
-                        ],
-                        current_line: 0, char_index: 0, timer: 0.0,
-                        on_complete: DialogueAction::None,
-                    });
-                    // Preserve last_pokecenter_map — change_map would overwrite it
-                    let saved_pc = self.last_pokecenter_map;
-                    self.change_map(MapId::PokemonCenter, 5, 6);
-                    self.last_pokecenter_map = saved_pc;
-                    self.phase = GamePhase::Dialogue;
+                    self.phase = GamePhase::WhiteoutFade { timer: 0.0, money_lost: lost };
                     return;
                 }
             }
@@ -5510,6 +5507,30 @@ impl Simulation for PokemonSim {
                 }
             }
 
+            GamePhase::WhiteoutFade { timer, money_lost } => {
+                let dt = 1.0 / 60.0;
+                let t = timer + dt;
+                if t >= 1.5 {
+                    // Fade complete — warp to PokeCenter with dialogue
+                    let saved_pc = self.last_pokecenter_map;
+                    self.change_map(MapId::PokemonCenter, 5, 6);
+                    self.last_pokecenter_map = saved_pc;
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            "You are out of usable".to_string(),
+                            "POKEMON!".to_string(),
+                            "You blacked out!".to_string(),
+                            format!("You lost ${}...", money_lost),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else {
+                    self.phase = GamePhase::WhiteoutFade { timer: t, money_lost };
+                }
+            }
+
             GamePhase::Credits { scroll_y } => {
                 let scroll_speed = if is_confirm(engine) { 1.5 } else { 0.5 };
                 let new_y = scroll_y + scroll_speed;
@@ -5525,7 +5546,7 @@ impl Simulation for PokemonSim {
 
         // Decay screen effects
         let dt = 1.0 / 60.0;
-        let in_transition = matches!(self.phase, GamePhase::EncounterTransition { .. } | GamePhase::Evolution { .. } | GamePhase::MapFadeOut { .. } | GamePhase::MapFadeIn { .. });
+        let in_transition = matches!(self.phase, GamePhase::EncounterTransition { .. } | GamePhase::Evolution { .. } | GamePhase::MapFadeOut { .. } | GamePhase::MapFadeIn { .. } | GamePhase::WhiteoutFade { .. });
         if self.screen_flash > 0.0 && !in_transition {
             self.screen_flash = (self.screen_flash - dt * 4.0).max(0.0);
         }
@@ -5599,6 +5620,14 @@ impl Simulation for PokemonSim {
                 if let Some(ctx) = &self.ctx {
                     let alpha = ((1.0 - *timer / 0.25).max(0.0) * 255.0) as u8;
                     fill_virtual_screen(fb, ctx, Color::from_rgba(0, 0, 0, alpha));
+                }
+            }
+            GamePhase::WhiteoutFade { timer, .. } => {
+                // Fade to white over 1.5 seconds (distinctive from normal black fade)
+                if let Some(ctx) = &self.ctx {
+                    fill_virtual_screen(fb, ctx, Color::from_rgba(0, 0, 0, 255));
+                    let alpha = ((*timer / 1.5).min(1.0) * 255.0) as u8;
+                    fill_virtual_screen(fb, ctx, Color::from_rgba(255, 255, 255, alpha));
                 }
             }
             GamePhase::Credits { scroll_y } => self.render_credits(fb, *scroll_y),

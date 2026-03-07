@@ -1268,4 +1268,10 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Transparent battle sprites**: Switched primary sprite source to PokeAPI (GitHub-hosted, transparent PNGs). Added `removeWhiteBackground()` JS fallback for PokemonDB sprites. Export `enemy_species_id`/`player_species_id` to global_state for PokeAPI ID-based loading.
 - **Smooth HP bar drain (#9)**: Verified already implemented — `player_hp_display`/`enemy_hp_display` lerp at `diff * 0.15` per frame.
 - All 1305 tests pass.
-- **Next (Sprint 83)**: Whiteout fade (#74-75), send-out animation (#5-6)
+- **Next (Sprint 83)**: Whiteout fade, send-out text
+
+### Sprint 83 (Content — Whiteout Fade + Send-Out Text)
+- **Whiteout fade (#74-75)**: New `GamePhase::WhiteoutFade` — screen fades to white over 1.5 seconds (distinctive from normal black fade). Then warps to PokeCenter with "You blacked out!" dialogue. Money loss shown.
+- **Send-out text (#5)**: "Go! POKEMON!" text now shows after "Wild X appeared!" / "Trainer sent out X!" at battle start. Uses Text phase → ActionSelect chain.
+- All 1305 tests pass.
+- **Next (Sprint 84 QA)**: Full audit

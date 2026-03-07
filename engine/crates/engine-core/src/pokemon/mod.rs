@@ -146,6 +146,7 @@ const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion from Cianwood 
 const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine to Amphy at Lighthouse
 const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
 const FLAG_SQUIRTBOTTLE: u64    = 1 << 10; // Got Squirtbottle from Flower Shop
+const FLAG_SPROUT_RIVAL: u64   = 1 << 11; // Rival confrontation at Sprout Tower 3F
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -360,6 +361,7 @@ enum DialogueAction {
     EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
+    GiveFlash,
     Credits,
     DaycareDeposit,
     DaycareReturn,
@@ -1215,9 +1217,9 @@ impl PokemonSim {
         false
     }
 
-    /// Sprout Tower elder: one-time battle at top of tower
+    /// Sprout Tower elder: one-time battle at top of tower (3F)
     fn check_sprout_tower_elder(&mut self) -> bool {
-        if self.current_map_id == MapId::SproutTower
+        if self.current_map_id == MapId::SproutTower3F
             && !self.has_flag(FLAG_SPROUT_CLEAR)
             && self.player.x == 7 && self.player.y <= 3
             && !self.party.is_empty()
@@ -1235,9 +1237,45 @@ impl PokemonSim {
                     team: vec![
                         (BELLSPROUT, 7),
                         (BELLSPROUT, 7),
-                        (BELLSPROUT, 10),
+                        (HOOTHOOT, 10),
                     ],
                 },
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
+    }
+
+    /// Sprout Tower 3F rival confrontation: rival appears, Elder lectures, rival leaves
+    fn check_sprout_tower_rival(&mut self) -> bool {
+        if self.current_map_id == MapId::SproutTower3F
+            && !self.has_flag(FLAG_SPROUT_RIVAL)
+            && self.rival_starter > 0
+            && self.player.y <= 5
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_SPROUT_RIVAL);
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "RIVAL: ...Heh. So you".to_string(),
+                    "made it here too.".to_string(),
+                    "I already beat the".to_string(),
+                    "ELDER. It was easy.".to_string(),
+                    "ELDER LI: You! The way".to_string(),
+                    "you treat your POKEMON".to_string(),
+                    "is terrible!".to_string(),
+                    "POKEMON are not tools".to_string(),
+                    "of war!".to_string(),
+                    "RIVAL: Hmph. Weak".to_string(),
+                    "people say weak things.".to_string(),
+                    "RIVAL used an ESCAPE".to_string(),
+                    "ROPE!".to_string(),
+                    "RIVAL fled from the".to_string(),
+                    "tower.".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
             });
             self.phase = GamePhase::Dialogue;
             return true;
@@ -1354,7 +1392,8 @@ impl PokemonSim {
             let is_indoor = matches!(self.current_map_id,
                 MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
                 MapId::PlayerHouse1F | MapId::PlayerHouse2F |
-                MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
+                MapId::UnionCave | MapId::IlexForest |
                 MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
                 MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                 MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
@@ -1582,6 +1621,7 @@ impl PokemonSim {
                 // Check for story event battles
                 if self.check_rival_battle() { return; }
                 if self.check_victory_road_rival() { return; }
+                if self.check_sprout_tower_rival() { return; }
                 if self.check_sprout_tower_elder() { return; }
                 if self.check_red_gyarados(engine) { return; }
                 if self.check_sudowoodo(engine) { return; }
@@ -2099,7 +2139,9 @@ impl PokemonSim {
                     MapId::Route31 => "ROUTE 31",
                     MapId::VioletCity => "VIOLET CITY\nThe city of nostalgic scents.",
                     MapId::VioletGym => "VIOLET CITY GYM\nLeader: FALKNER",
-                    MapId::SproutTower => "SPROUT TOWER\nA tower of swaying pillars.",
+                    MapId::SproutTower1F => "SPROUT TOWER 1F\nA tower of swaying pillars.",
+                    MapId::SproutTower2F => "SPROUT TOWER 2F\nA tower of swaying pillars.",
+                    MapId::SproutTower3F => "SPROUT TOWER 3F\nThe ELDER awaits at the top.",
                     MapId::Route32 => "ROUTE 32\nConnects Violet to Union Cave.",
                     MapId::UnionCave => "UNION CAVE\nA natural cave formation.",
                     _ => "...",
@@ -3605,7 +3647,7 @@ impl PokemonSim {
                                 engine.global_state.set_f64("pending_evolution", 0.0);
                                 self.phase = GamePhase::Evolution { timer: 0.0, new_species: pending_evo };
                             } else {
-                                // Check if this was a gym leader battle
+                                // Check if this was a gym leader battle or Elder Li
                                 let badge_action = match (map_id, npc_idx) {
                                     (MapId::VioletGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 0 }),
                                     (MapId::AzaleaGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 1 }),
@@ -3615,6 +3657,7 @@ impl PokemonSim {
                                     (MapId::CianwoodGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 5 }),
                                     (MapId::MahoganyGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 6 }),
                                     (MapId::BlackthornGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 7 }),
+                                    (MapId::SproutTower3F, 0) => Some(DialogueAction::GiveFlash),
                                     _ => None,
                                 };
 
@@ -4110,6 +4153,19 @@ impl PokemonSim {
                             format!("Received the {}!", badge_name),
                             badge_effect.to_string(),
                             format!("Badges: {}/8", badge_count),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                }
+                DialogueAction::GiveFlash => {
+                    self.screen_flash = 1.0; // celebration flash
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            "Received HM05 FLASH!".to_string(),
+                            "FLASH lights up dark".to_string(),
+                            "caves.".to_string(),
                         ],
                         current_line: 0, char_index: 0, timer: 0.0,
                         on_complete: DialogueAction::None,
@@ -5584,7 +5640,8 @@ impl PokemonSim {
                 let is_indoor = matches!(self.current_map_id,
                     MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
                     MapId::PlayerHouse1F | MapId::PlayerHouse2F |
-                    MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                    MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
+                    MapId::UnionCave | MapId::IlexForest |
                     MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
@@ -5617,7 +5674,8 @@ impl PokemonSim {
                 let is_indoor = matches!(self.current_map_id,
                     MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
                     MapId::PlayerHouse1F | MapId::PlayerHouse2F |
-                    MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                    MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
+                    MapId::UnionCave | MapId::IlexForest |
                     MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
@@ -8006,7 +8064,7 @@ mod headless_tests {
     fn test_story_flags_sprout_clear() {
         let mut sim = PokemonSim::new();
         sim.party.push(Pokemon::new(CHIKORITA, 10));
-        sim.change_map(MapId::SproutTower, 7, 2);
+        sim.change_map(MapId::SproutTower3F, 7, 2);
 
         // Should trigger elder battle
         assert!(!sim.has_flag(FLAG_SPROUT_CLEAR));
@@ -8291,7 +8349,7 @@ mod headless_tests {
                 // Skip warps to interiors (PokemonCenter, GenericHouse, etc.)
                 if matches!(warp.dest_map, MapId::PokemonCenter | MapId::GenericHouse
                     | MapId::PlayerHouse1F | MapId::PlayerHouse2F | MapId::ElmLab
-                    | MapId::SproutTower | MapId::RocketHQ
+                    | MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F | MapId::RocketHQ
                     | MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym
                     | MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym
                     | MapId::MahoganyGym | MapId::BlackthornGym

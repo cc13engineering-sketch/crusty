@@ -2312,3 +2312,39 @@ Added `test_step_queue(battle, party, engine)` helper that creates a temporary P
 - `mod.rs` — Migrated PlayerAttack/EnemyAttack to instant-resolve queue builders, added 3 new BattleStep variants, changed step_execute_queue to &mut self method, added 6 new tests + test helper, updated AI-INSTRUCTIONS comment
 
 **Test Results**: All 1345 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+### Sprint 124 (Content) - Sprout Tower 3-Floor Overhaul + Rival Event
+
+**Goal**: Replace the single flat SproutTower room with a proper 3-floor dungeon matching pokecrystal-master, with all trainers, rival event, and Elder Li giving HM05 Flash.
+
+#### Changes
+
+**maps.rs** - Replaced `MapId::SproutTower` with `MapId::SproutTower1F`, `MapId::SproutTower2F`, `MapId::SproutTower3F`:
+
+- **SproutTower1F** (14x14): Entry floor with central pillar (table tiles), bookshelves. 5 NPCs: Granny (flavor dialogue), Teacher (explains tower), 2 non-trainer Sages (pillar lore + direction hint), Sage Chow (trainer: 3x Bellsprout Lv3). Warps: entrance from Violet City + stairs up to 2F.
+- **SproutTower2F** (14x14): Middle floor with central pillar. 2 trainer NPCs: Sage Nico (3x Bellsprout Lv3), Sage Edmond (3x Bellsprout Lv3). Warps: stairs down to 1F (left) + stairs up to 3F (right).
+- **SproutTower3F** (14x14): Top floor with central pillar. 4 trainer NPCs: Elder Li (2x Bellsprout Lv7 + Hoothoot Lv10, NPC 0), Sage Jin (Bellsprout Lv6), Sage Troy (Bellsprout Lv7 + Hoothoot Lv7), Sage Neal (Bellsprout Lv6). Warps: stairs down to 2F.
+- All stairs warps validated: destinations land on C_WALK tiles (not on C_WARP to prevent re-warp loops)
+- Violet City warp updated to target SproutTower1F
+- All test lists updated with 3 new map IDs (6 test arrays total)
+- Wild encounters on all floors: Rattata Lv3-5 (60%), Gastly Lv3-5 (40%)
+
+**mod.rs** - Rival event, Elder Li Flash reward, flag updates:
+
+- Added `FLAG_SPROUT_RIVAL` (bit 11) for the 3F rival confrontation scene
+- Added `DialogueAction::GiveFlash` variant to enum
+- Added `check_sprout_tower_rival()` story event: triggered on 3F when player reaches y<=5 with rival_starter set and FLAG_SPROUT_RIVAL not set. Multi-step dialogue: rival boasts about beating Elder, Elder lectures rival about treating Pokemon badly, rival uses Escape Rope and flees.
+- Updated `check_sprout_tower_elder()` to trigger on `MapId::SproutTower3F` (was `MapId::SproutTower`). Elder Li team corrected to 2x Bellsprout Lv7 + Hoothoot Lv10 (was 3x Bellsprout).
+- Added post-battle handler: defeating Elder Li (NPC 0 on SproutTower3F) triggers `DialogueAction::GiveFlash`
+- `GiveFlash` handler: celebration flash + "Received HM05 FLASH!" dialogue
+- Rival event fires BEFORE elder check in step_overworld (so player sees rival scene first, then can fight Elder)
+- Updated 3 indoor-check match patterns to use `SproutTower1F | SproutTower2F | SproutTower3F` (bicycle toggle, fly check, bike bag check)
+- Updated town map descriptions for all 3 floors
+- Updated `test_story_flags_sprout_clear` to use `SproutTower3F`
+- Updated return-warps exclusion pattern in test
+
+#### Files Changed
+- `maps.rs` -- Replaced single SproutTower with 3-floor layout (1F/2F/3F), added 9 trainer/NPC defs, 5 warps, updated 6 test arrays
+- `mod.rs` -- Added FLAG_SPROUT_RIVAL, DialogueAction::GiveFlash, check_sprout_tower_rival(), GiveFlash handler, updated 6 indoor match patterns, updated Elder Li team and map check, updated post-battle reward for Elder Li
+
+**Test Results**: All 1351 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.

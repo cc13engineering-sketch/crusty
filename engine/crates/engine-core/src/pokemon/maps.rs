@@ -5,7 +5,7 @@
 // Tile IDs correspond to sprite indices in sprites.rs. Collision values map to
 // CollisionType variants. Maps: NewBarkTown (20x18), Route29 (30x14),
 // CherrygroveCity (20x18), Route30 (30x18), Route31 (30x14),
-// VioletCity (24x18), VioletGym (10x10), SproutTower (14x14),
+// VioletCity (24x18), VioletGym (10x10), SproutTower1F/2F/3F (14x14 each),
 // PlayerHouse1F (10x8), PlayerHouse2F (10x8), ElmLab (10x10), PokemonCenter (10x8),
 // Route32 (20x30), UnionCave (16x16), GenericHouse (8x6), Route33 (20x12),
 // AzaleaTown (20x18), AzaleaGym (10x10), IlexForest (16x20), Route34 (16x20).
@@ -175,7 +175,9 @@ pub enum MapId {
     Route31,
     VioletCity,
     VioletGym,
-    SproutTower,
+    SproutTower1F,
+    SproutTower2F,
+    SproutTower3F,
     PlayerHouse1F,
     PlayerHouse2F,
     ElmLab,
@@ -238,7 +240,9 @@ impl MapId {
             "Route31" => Some(MapId::Route31),
             "VioletCity" => Some(MapId::VioletCity),
             "VioletGym" => Some(MapId::VioletGym),
-            "SproutTower" => Some(MapId::SproutTower),
+            "SproutTower" | "SproutTower1F" => Some(MapId::SproutTower1F),
+            "SproutTower2F" => Some(MapId::SproutTower2F),
+            "SproutTower3F" => Some(MapId::SproutTower3F),
             "PlayerHouse1F" => Some(MapId::PlayerHouse1F),
             "PlayerHouse2F" => Some(MapId::PlayerHouse2F),
             "ElmLab" => Some(MapId::ElmLab),
@@ -302,7 +306,9 @@ impl MapId {
             MapId::Route31 => "Route31",
             MapId::VioletCity => "VioletCity",
             MapId::VioletGym => "VioletGym",
-            MapId::SproutTower => "SproutTower",
+            MapId::SproutTower1F => "SproutTower1F",
+            MapId::SproutTower2F => "SproutTower2F",
+            MapId::SproutTower3F => "SproutTower3F",
             MapId::PlayerHouse1F => "PlayerHouse1F",
             MapId::PlayerHouse2F => "PlayerHouse2F",
             MapId::ElmLab => "ElmLab",
@@ -458,7 +464,9 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route31 => build_route_31(),
         MapId::VioletCity => build_violet_city(),
         MapId::VioletGym => build_violet_gym(),
-        MapId::SproutTower => build_sprout_tower(),
+        MapId::SproutTower1F => build_sprout_tower_1f(),
+        MapId::SproutTower2F => build_sprout_tower_2f(),
+        MapId::SproutTower3F => build_sprout_tower_3f(),
         MapId::PlayerHouse1F => build_player_house_1f(),
         MapId::PlayerHouse2F => build_player_house_2f(),
         MapId::ElmLab => build_elm_lab(),
@@ -1737,8 +1745,8 @@ fn build_violet_city() -> MapData {
         WarpData { x: 15, y: 11, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Violet Gym door -> VioletGym interior
         WarpData { x: 10, y: 6, dest_map: MapId::VioletGym, dest_x: 5, dest_y: 8 },
-        // Sprout Tower door -> SproutTower interior
-        WarpData { x: 18, y: 4, dest_map: MapId::SproutTower, dest_x: 7, dest_y: 12 },
+        // Sprout Tower door -> SproutTower1F interior
+        WarpData { x: 18, y: 4, dest_map: MapId::SproutTower1F, dest_x: 7, dest_y: 12 },
         // South exit to Route 32 (x=11,12 at bottom edge)
         WarpData { x: 11, y: 17, dest_map: MapId::Route32, dest_x: 9, dest_y: 1 },
         WarpData { x: 12, y: 17, dest_map: MapId::Route32, dest_x: 10, dest_y: 1 },
@@ -1931,40 +1939,339 @@ fn build_violet_gym() -> MapData {
 // ─── Sprout Tower (14x14) ───────────────────────────────
 // Indoor tower with monks/NPCs and wild encounters (Rattata, Gastly).
 
-fn build_sprout_tower() -> MapData {
+// ─── Sprout Tower 1F (14x14) ─────────────────────────────
+// Entry floor: NPCs (Granny, Teacher, 2 non-trainer Sages), Sage Chow (3x Bellsprout Lv3),
+// Parlyz Heal item, stairs up to 2F, entrance from Violet City.
+fn build_sprout_tower_1f() -> MapData {
     let w: usize = 14;
     let h: usize = 14;
 
     #[rustfmt::skip]
     let tiles: Vec<u8> = vec![
-        // Row 0: top wall (black border)
+        // Row 0: top wall
         BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
-        // Row 1: back wall with bookshelves
-        BLACK,FLOOR,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,FLOOR,BLACK,
+        // Row 1: back wall with bookshelves + stairs up (right side)
+        BLACK,FLOOR,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BOOKSHELF,BLACK,
+        // Row 2: floor
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 3: floor with center pillar (table tiles)
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4: floor with center pillar
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5: floor — Granny NPC area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6: floor — Teacher NPC area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7: bookshelves on sides (pillar decorations)
+        BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BLACK,
+        // Row 8: floor — Sage NPCs area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: floor — Sage Chow trainer area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 10: center pillar lower section
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 11: floor — item (Parlyz Heal) area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 12: floor near entrance
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 13: bottom wall with entrance door
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,DOOR,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid wall
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: bookshelves solid, stairs warp at (12,1)
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,
+        // Row 2: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7: bookshelves solid on sides
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11: floor (item location)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13: wall + door warp
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "SproutTower1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "SproutTower1F collision count mismatch");
+
+    let warps = vec![
+        // Door exits to Violet City (in front of Sprout Tower)
+        WarpData { x: 7, y: 13, dest_map: MapId::VioletCity, dest_x: 18, dest_y: 5 },
+        // Stairs up to 2F (top-right corner) — arrives next to stairs-down on 2F
+        WarpData { x: 12, y: 1, dest_map: MapId::SproutTower2F, dest_x: 2, dest_y: 12 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Granny — non-trainer, flavor dialogue
+        NpcDef {
+            x: 3, y: 5, sprite_id: 5, facing: Direction::Right,
+            dialogue: &[
+                "The pillar in the center",
+                "is a 100-foot BELLSPROUT.",
+                "It sways to protect the",
+                "tower from earthquakes.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // NPC 1: Teacher — non-trainer, explains tower purpose
+        NpcDef {
+            x: 10, y: 6, sprite_id: 3, facing: Direction::Left,
+            dialogue: &[
+                "Trainers come here to",
+                "test their skills.",
+                "The SAGES are strict",
+                "but fair!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // NPC 2: Sage (non-trainer) — pillar lore
+        NpcDef {
+            x: 4, y: 8, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "BELLSPROUT is revered in",
+                "this tower.",
+                "We meditate on the",
+                "swaying of the pillar.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // NPC 3: Sage (non-trainer) — direction hint
+        NpcDef {
+            x: 9, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "The ELDER awaits on the",
+                "top floor.",
+                "Prove yourself worthy!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // NPC 4: Sage Chow — trainer (3x Bellsprout Lv3)
+        NpcDef {
+            x: 3, y: 9, sprite_id: 5, facing: Direction::Right,
+            dialogue: &[
+                "SAGE CHOW: I will test",
+                "your resolve!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 3, max_level: 5, weight: 60 },
+        EncounterEntry { species_id: GASTLY, min_level: 3, max_level: 5, weight: 40 },
+    ];
+
+    MapData {
+        id: MapId::SproutTower1F,
+        name: "SPROUT TOWER 1F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters: vec![], water_encounters: vec![],
+        music_id: 9,
+    }
+}
+
+// ─── Sprout Tower 2F (14x14) ─────────────────────────────
+// Middle floor: Sage Nico (3x Bellsprout Lv3), Sage Edmond (3x Bellsprout Lv3),
+// X Accuracy item, stairs down to 1F + stairs up to 3F.
+fn build_sprout_tower_2f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: top wall
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: back wall with stairs up (right side)
+        BLACK,FLOOR,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BOOKSHELF,BLACK,
         // Row 2: floor
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 3: floor with center pillar
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 4: floor with center pillar
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 5: floor
+        // Row 5: floor — Sage Nico area
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 6: floor
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 7: floor with bookshelves on sides
+        // Row 7: bookshelves on sides
         BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BLACK,
-        // Row 8: floor
+        // Row 8: floor — Sage Edmond area + X Accuracy item
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 9: floor
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 10: floor with center pillar
+        // Row 10: center pillar lower
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
         // Row 11: floor
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 12: floor near entrance
+        // Row 12: floor — stairs down (left side)
+        BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 13: bottom wall
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0: solid wall
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: stairs up warp at (12,1)
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,
+        // Row 2: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7: bookshelves solid on sides
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10: center pillar solid
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11: floor
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12: stairs down warp at (1,12)
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13: solid wall
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "SproutTower2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "SproutTower2F collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to 1F (left side)
+        WarpData { x: 1, y: 12, dest_map: MapId::SproutTower1F, dest_x: 12, dest_y: 2 },
+        // Stairs up to 3F (right side) — arrives next to stairs-down on 3F
+        WarpData { x: 12, y: 1, dest_map: MapId::SproutTower3F, dest_x: 2, dest_y: 12 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Sage Nico — trainer (3x Bellsprout Lv3)
+        NpcDef {
+            x: 3, y: 5, sprite_id: 5, facing: Direction::Right,
+            dialogue: &[
+                "SAGE NICO: Do you know",
+                "why BELLSPROUT is",
+                "revered? Let me show you!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+            ],
+        },
+        // NPC 1: Sage Edmond — trainer (3x Bellsprout Lv3)
+        NpcDef {
+            x: 10, y: 8, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "SAGE EDMOND: The way of",
+                "the tower is patience!",
+                "I'll test yours!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+                TrainerPokemon { species_id: BELLSPROUT, level: 3 },
+            ],
+        },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 3, max_level: 5, weight: 60 },
+        EncounterEntry { species_id: GASTLY, min_level: 3, max_level: 5, weight: 40 },
+    ];
+
+    MapData {
+        id: MapId::SproutTower2F,
+        name: "SPROUT TOWER 2F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters: vec![], water_encounters: vec![],
+        music_id: 9,
+    }
+}
+
+// ─── Sprout Tower 3F (14x14) ─────────────────────────────
+// Top floor: Rival event, Sage Jin (Bellsprout Lv6), Sage Troy (Bellsprout Lv7+Hoothoot Lv7),
+// Sage Neal (Bellsprout Lv6), Elder Li (2x Bellsprout Lv7+Hoothoot Lv10).
+// Elder Li gives HM05 Flash on defeat. Items: Potion, Escape Rope.
+fn build_sprout_tower_3f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: top wall
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: back wall — Elder Li area
+        BLACK,FLOOR,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,FLOOR,BLACK,
+        // Row 2: floor — Elder Li stands here
         BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
-        // Row 13: bottom wall with door
-        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,DOOR,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 3: floor with center pillar
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4: floor with center pillar — rival event trigger zone
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 5: floor — Sage Jin area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6: floor — Sage Troy area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7: bookshelves on sides
+        BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BOOKSHELF,BLACK,
+        // Row 8: floor — Sage Neal area
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: floor — items (Potion, Escape Rope)
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 10: center pillar lower
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 11: floor
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 12: floor — stairs down (left side)
+        BLACK,BOOKSHELF,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 13: bottom wall
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
     ];
 
     #[rustfmt::skip]
@@ -1993,48 +2300,74 @@ fn build_sprout_tower() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 11: floor
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 12: floor
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 13: wall + door warp
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12: stairs down warp at (1,12)
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13: solid wall
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
 
-    debug_assert_eq!(tiles.len(), w * h, "SproutTower tiles count mismatch");
-    debug_assert_eq!(collision.len(), w * h, "SproutTower collision count mismatch");
+    debug_assert_eq!(tiles.len(), w * h, "SproutTower3F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "SproutTower3F collision count mismatch");
 
     let warps = vec![
-        // Door exits to Violet City (in front of Sprout Tower)
-        WarpData { x: 7, y: 13, dest_map: MapId::VioletCity, dest_x: 18, dest_y: 5 },
+        // Stairs down to 2F (left side)
+        WarpData { x: 1, y: 12, dest_map: MapId::SproutTower2F, dest_x: 12, dest_y: 2 },
     ];
 
     let npcs = vec![
-        // Monk near the top
+        // NPC 0: Elder Li — top-floor boss trainer
         NpcDef {
-            x: 4, y: 2, sprite_id: 5, facing: Direction::Down,
+            x: 7, y: 2, sprite_id: 5, facing: Direction::Down,
             dialogue: &[
-                "SPROUT TOWER is a place",
-                "of training.",
-                "The shaking pillar is a",
-                "100-foot-tall BELLSPROUT.",
-                "It sways to ward off",
-                "earthquakes.",
-            ],
-            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
-        },
-        // Monk near the middle
-        NpcDef {
-            x: 10, y: 8, sprite_id: 5, facing: Direction::Left,
-            dialogue: &[
-                "BELLSPROUT is revered in",
-                "this tower.",
-                "We train ourselves and",
-                "our POKEMON here daily.",
-                "Show me your strength!",
+                "ELDER LI: So you have",
+                "come this far.",
+                "Let me test your",
+                "bond with POKEMON!",
             ],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
                 TrainerPokemon { species_id: BELLSPROUT, level: 7 },
                 TrainerPokemon { species_id: BELLSPROUT, level: 7 },
+                TrainerPokemon { species_id: HOOTHOOT, level: 10 },
+            ],
+        },
+        // NPC 1: Sage Jin — trainer (Bellsprout Lv6)
+        NpcDef {
+            x: 3, y: 5, sprite_id: 5, facing: Direction::Right,
+            dialogue: &[
+                "SAGE JIN: The swaying",
+                "pillar teaches us",
+                "balance!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 6 },
+            ],
+        },
+        // NPC 2: Sage Troy — trainer (Bellsprout Lv7 + Hoothoot Lv7)
+        NpcDef {
+            x: 10, y: 6, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "SAGE TROY: A true",
+                "trainer respects all",
+                "POKEMON! Prepare!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 7 },
+                TrainerPokemon { species_id: HOOTHOOT, level: 7 },
+            ],
+        },
+        // NPC 3: Sage Neal — trainer (Bellsprout Lv6)
+        NpcDef {
+            x: 3, y: 8, sprite_id: 5, facing: Direction::Right,
+            dialogue: &[
+                "SAGE NEAL: The path to",
+                "the ELDER is not easy!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: BELLSPROUT, level: 6 },
             ],
         },
     ];
@@ -2045,8 +2378,8 @@ fn build_sprout_tower() -> MapData {
     ];
 
     MapData {
-        id: MapId::SproutTower,
-        name: "SPROUT TOWER",
+        id: MapId::SproutTower3F,
+        name: "SPROUT TOWER 3F",
         width: w,
         height: h,
         tiles,
@@ -8087,7 +8420,7 @@ mod tests {
             MapId::Route31,
             MapId::VioletCity,
             MapId::VioletGym,
-            MapId::SproutTower,
+            MapId::SproutTower1F, MapId::SproutTower2F, MapId::SproutTower3F,
             MapId::PlayerHouse1F,
             MapId::PlayerHouse2F,
             MapId::ElmLab,
@@ -8161,7 +8494,7 @@ mod tests {
         let all_maps = [
             MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
             MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
-            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
+            MapId::SproutTower1F, MapId::SproutTower2F, MapId::SproutTower3F, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
             MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
             MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
             MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
@@ -8414,7 +8747,7 @@ mod tests {
         let all_maps = vec![
             MapId::NewBarkTown, MapId::Route29, MapId::CherrygroveCity,
             MapId::Route30, MapId::Route31, MapId::VioletCity, MapId::VioletGym,
-            MapId::SproutTower, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
+            MapId::SproutTower1F, MapId::SproutTower2F, MapId::SproutTower3F, MapId::PlayerHouse1F, MapId::PlayerHouse2F,
             MapId::ElmLab, MapId::PokemonCenter, MapId::Route32, MapId::UnionCave,
             MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
             MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,

@@ -487,6 +487,7 @@ impl PokemonSim {
 
         let npc_strs = [
             NPC_ELM, NPC_MOM, NPC_YOUNGSTER, NPC_LASS, NPC_NURSE, NPC_OLD_MAN,
+            NPC_ROCKET, NPC_FISHER,
         ];
         self.npc_sprite_cache = npc_strs.iter().map(|s| decode_sprite(s)).collect();
     }

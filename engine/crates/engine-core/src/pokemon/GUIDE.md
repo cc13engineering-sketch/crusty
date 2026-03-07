@@ -1662,3 +1662,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - Old save backward compatibility: `has_bike` field defaults to false (0.0) for missing field, acceptable.
 - All tests pass. 2 bugs fixed, 0 remaining.
 - **Next (Sprint 100)**: Content sprint.
+
+### Sprint 100 (Content — NPC Sprites + Tile Art)
+- **New NPC sprites: Rocket Grunt + Fisherman** — Added NPC_ROCKET (sprite_id 6, black uniform with R on chest) and NPC_FISHER (sprite_id 7, hat and overalls with rod). Rocket HQ grunts now use Rocket sprite instead of out-of-bounds index. Lake of Rage fisherman and Route 44 fisher trainer now use Fisher sprite.
+- **Sprite ID corrections** — Pryce (Mahogany Gym leader) changed to sprite_id 5 (OldMan, fits his character). Lance (Lake of Rage) changed to sprite_id 2 (Youngster, generic male). Previously both used sprite_id 7 which was out of bounds.
+- **Tile art improvements** — Building roof redesigned from triangular peak to Gen 2-style layered shingles. Ledge tile improved with visible grassy cliff-top transitioning to shaded drop.
+- NPC sprite cache now holds 8 sprites (indices 0-7).
+- All tests pass.
+- **Next (Sprint 101)**: Content sprint.

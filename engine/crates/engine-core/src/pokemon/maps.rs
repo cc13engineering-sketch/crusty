@@ -5925,7 +5925,7 @@ fn build_mahogany_gym() -> MapData {
     let npcs = vec![
         // Pryce — gym leader (NPC #0)
         NpcDef {
-            x: 5, y: 1, sprite_id: 7, facing: Direction::Down,
+            x: 5, y: 1, sprite_id: 5, facing: Direction::Down,
             dialogue: &["I am PRYCE, the", "master of ICE.", "My Pokemon and I", "have trained for", "decades. Prepare", "for a chilling", "battle!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
@@ -6168,13 +6168,13 @@ fn build_lake_of_rage() -> MapData {
     let npcs = vec![
         // Lance NPC (appears during Red Gyarados event)
         NpcDef {
-            x: 4, y: 8, sprite_id: 7, facing: Direction::Right,
+            x: 4, y: 8, sprite_id: 2, facing: Direction::Right,
             dialogue: &["I'm LANCE of the", "ELITE FOUR.", "I've been investigating", "the lake's disturbance.", "A red GYARADOS was", "spotted here. Be careful!"],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
         // Fisherman
         NpcDef {
-            x: 12, y: 8, sprite_id: 3, facing: Direction::Left,
+            x: 12, y: 8, sprite_id: 7, facing: Direction::Left,
             dialogue: &["I saw a huge red", "GYARADOS! It was", "terrifying!"],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -6271,7 +6271,7 @@ fn build_route_44() -> MapData {
         },
         // Trainer 2: Fisher (near pond)
         NpcDef {
-            x: 15, y: 4, sprite_id: 2, facing: Direction::Down,
+            x: 15, y: 4, sprite_id: 7, facing: Direction::Down,
             dialogue: &["I fish here every", "day, rain or shine!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: POLIWAG, level: 24 }, TrainerPokemon { species_id: POLIWHIRL, level: 26 }],
@@ -7785,7 +7785,7 @@ fn build_rocket_hq() -> MapData {
     let npcs = vec![
         // Rocket Grunt 1
         NpcDef {
-            x: 3, y: 3, sprite_id: 7, facing: Direction::Down,
+            x: 3, y: 3, sprite_id: 6, facing: Direction::Down,
             dialogue: &["ROCKET GRUNT:", "Heh! You won't stop", "us this time!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
@@ -7795,7 +7795,7 @@ fn build_rocket_hq() -> MapData {
         },
         // Rocket Grunt 2
         NpcDef {
-            x: 8, y: 3, sprite_id: 7, facing: Direction::Left,
+            x: 8, y: 3, sprite_id: 6, facing: Direction::Left,
             dialogue: &["ROCKET GRUNT:", "Team Rocket will", "never disband!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
@@ -7806,7 +7806,7 @@ fn build_rocket_hq() -> MapData {
         },
         // Rocket Grunt 3
         NpcDef {
-            x: 3, y: 7, sprite_id: 7, facing: Direction::Right,
+            x: 3, y: 7, sprite_id: 6, facing: Direction::Right,
             dialogue: &["ROCKET GRUNT:", "Our experiments at", "the Lake will succeed!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
@@ -7816,7 +7816,7 @@ fn build_rocket_hq() -> MapData {
         },
         // Rocket Grunt 4
         NpcDef {
-            x: 9, y: 7, sprite_id: 7, facing: Direction::Down,
+            x: 9, y: 7, sprite_id: 6, facing: Direction::Down,
             dialogue: &["ROCKET GRUNT:", "You can't reach the", "boss! Give up!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[

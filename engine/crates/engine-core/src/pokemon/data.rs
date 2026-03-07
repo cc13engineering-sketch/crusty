@@ -187,6 +187,12 @@ pub const SEADRA: SpeciesId = 117;
 pub const METAPOD: SpeciesId = 11;
 pub const KAKUNA: SpeciesId = 14;
 pub const LAPRAS: SpeciesId = 131;
+// ─── Sprint 147: Missing evolution targets ──────────────
+pub const PIDGEOT: SpeciesId = 18;
+pub const GOLDUCK: SpeciesId = 55;
+pub const JUMPLUFF: SpeciesId = 189;
+pub const SHELLDER: SpeciesId = 90;
+pub const CLOYSTER: SpeciesId = 91;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -934,7 +940,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 60, base_sp_defense: 45, base_speed: 35,
         catch_rate: 190, base_exp_yield: 114, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_POISON_STING), (1, MOVE_TACKLE), (9, MOVE_SMOG), (17, MOVE_SLUDGE), (21, MOVE_SMOKESCREEN), (25, MOVE_SELF_DESTRUCT), (33, MOVE_HAZE)],
-        evolution_level: Some(35), evolution_into: None, // Weezing not yet added
+        evolution_level: Some(35), evolution_into: Some(WEEZING),
     },
     SpeciesData {
         id: RATICATE, name: "Raticate",
@@ -1017,7 +1023,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 50, base_sp_defense: 50, base_speed: 71,
         catch_rate: 120, base_exp_yield: 113, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_SAND_ATTACK), (1, MOVE_GUST), (5, MOVE_SAND_ATTACK), (9, MOVE_GUST), (15, MOVE_QUICK_ATTACK), (23, MOVE_WHIRLWIND), (33, MOVE_WING_ATTACK)],
-        evolution_level: Some(36), evolution_into: None,
+        evolution_level: Some(36), evolution_into: Some(PIDGEOT),
     },
     SpeciesData {
         id: NOCTOWL, name: "Noctowl",
@@ -1080,7 +1086,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 80, base_sp_defense: 60, base_speed: 45,
         catch_rate: 120, base_exp_yield: 117, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_GROWL), (1, MOVE_THUNDER_SHOCK), (9, MOVE_THUNDER_SHOCK), (18, MOVE_THUNDER_WAVE), (27, MOVE_THUNDERBOLT)],
-        evolution_level: Some(30), evolution_into: None,
+        evolution_level: Some(30), evolution_into: Some(AMPHAROS),
     },
     SpeciesData {
         id: PSYDUCK, name: "Psyduck",
@@ -1089,7 +1095,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 65, base_sp_defense: 50, base_speed: 55,
         catch_rate: 190, base_exp_yield: 80, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_SCRATCH), (5, MOVE_TAIL_WHIP), (10, MOVE_DISABLE), (16, MOVE_CONFUSION), (23, MOVE_FURY_SWIPES)],
-        evolution_level: Some(33), evolution_into: None,
+        evolution_level: Some(33), evolution_into: Some(GOLDUCK),
     },
     SpeciesData {
         id: MR_MIME, name: "Mr. Mime",
@@ -1107,7 +1113,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 45, base_sp_defense: 65, base_speed: 80,
         catch_rate: 120, base_exp_yield: 136, growth_rate: GrowthRate::MediumSlow,
         learnset: &[(1, MOVE_SPLASH), (1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (10, MOVE_TACKLE), (13, MOVE_POISON_POWDER), (15, MOVE_STUN_SPORE), (17, MOVE_SLEEP_POWDER)],
-        evolution_level: Some(27), evolution_into: None,
+        evolution_level: Some(27), evolution_into: Some(JUMPLUFF),
     },
     SpeciesData {
         id: CORSOLA, name: "Corsola",
@@ -1226,7 +1232,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 35, base_sp_defense: 45, base_speed: 70,
         catch_rate: 190, base_exp_yield: 74, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_SCRATCH), (1, MOVE_LEER), (9, MOVE_LOW_KICK), (15, MOVE_KARATE_CHOP), (21, MOVE_FURY_SWIPES), (27, MOVE_SEISMIC_TOSS)],
-        evolution_level: Some(28), evolution_into: None,
+        evolution_level: Some(28), evolution_into: Some(PRIMEAPE),
     },
     SpeciesData {
         id: PRIMEAPE, name: "Primeape",
@@ -1908,6 +1914,52 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 20, base_sp_defense: 45, base_speed: 75,
         catch_rate: 45, base_exp_yield: 106, growth_rate: GrowthRate::Fast,
         learnset: &[(1, MOVE_SKETCH), (11, MOVE_SKETCH), (21, MOVE_SKETCH), (31, MOVE_SKETCH), (41, MOVE_SKETCH), (51, MOVE_SKETCH)],
+        evolution_level: None, evolution_into: None,
+    },
+    // ─── Sprint 147: Missing evolution targets ──────────────
+    SpeciesData {
+        id: PIDGEOT, name: "Pidgeot",
+        type1: PokemonType::Normal, type2: Some(PokemonType::Flying),
+        base_hp: 83, base_attack: 80, base_defense: 75,
+        base_sp_attack: 70, base_sp_defense: 70, base_speed: 91,
+        catch_rate: 45, base_exp_yield: 172, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SAND_ATTACK), (1, MOVE_GUST), (1, MOVE_QUICK_ATTACK), (5, MOVE_SAND_ATTACK), (9, MOVE_GUST), (15, MOVE_QUICK_ATTACK), (23, MOVE_WHIRLWIND), (33, MOVE_WING_ATTACK), (46, MOVE_AGILITY)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GOLDUCK, name: "Golduck",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 80, base_attack: 82, base_defense: 78,
+        base_sp_attack: 95, base_sp_defense: 80, base_speed: 85,
+        catch_rate: 75, base_exp_yield: 174, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_TAIL_WHIP), (1, MOVE_CONFUSION), (1, MOVE_WATER_GUN), (5, MOVE_TAIL_WHIP), (10, MOVE_SCRATCH), (16, MOVE_CONFUSION), (23, MOVE_SCREECH), (31, MOVE_FURY_SWIPES)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: JUMPLUFF, name: "Jumpluff",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Flying),
+        base_hp: 75, base_attack: 55, base_defense: 70,
+        base_sp_attack: 55, base_sp_defense: 85, base_speed: 110,
+        catch_rate: 45, base_exp_yield: 176, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_TAIL_WHIP), (1, MOVE_ABSORB), (1, MOVE_STUN_SPORE), (5, MOVE_TAIL_WHIP), (10, MOVE_TACKLE), (13, MOVE_POISON_POWDER), (15, MOVE_STUN_SPORE), (17, MOVE_SLEEP_POWDER)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: SHELLDER, name: "Shellder",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 30, base_attack: 65, base_defense: 100,
+        base_sp_attack: 45, base_sp_defense: 25, base_speed: 40,
+        catch_rate: 190, base_exp_yield: 97, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_DEFENSE_CURL), (9, MOVE_SUPERSONIC), (17, MOVE_AURORA_BEAM), (25, MOVE_LEER), (33, MOVE_CLAMP)],
+        evolution_level: None, evolution_into: None, // Water Stone evolution
+    },
+    SpeciesData {
+        id: CLOYSTER, name: "Cloyster",
+        type1: PokemonType::Water, type2: Some(PokemonType::Ice),
+        base_hp: 50, base_attack: 95, base_defense: 180,
+        base_sp_attack: 85, base_sp_defense: 45, base_speed: 70,
+        catch_rate: 60, base_exp_yield: 203, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_DEFENSE_CURL), (1, MOVE_SUPERSONIC), (1, MOVE_AURORA_BEAM), (1, MOVE_LEER)],
         evolution_level: None, evolution_into: None,
     },
 ];

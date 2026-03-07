@@ -11755,4 +11755,58 @@ mod headless_tests {
         assert_eq!(trainer_name_for(MapId::VioletGym, 0), "FALKNER");
         assert_eq!(trainer_name_for(MapId::AzaleaGym, 0), "BUGSY");
     }
+
+    #[test]
+    fn test_sprint147_new_species_data() {
+        // Verify all 5 new species have correct base stats from pokecrystal
+        let pidgeot = get_species(PIDGEOT).expect("Pidgeot should exist");
+        assert_eq!(pidgeot.name, "Pidgeot");
+        assert_eq!(pidgeot.base_hp, 83);
+        assert_eq!(pidgeot.base_speed, 91);
+
+        let golduck = get_species(GOLDUCK).expect("Golduck should exist");
+        assert_eq!(golduck.name, "Golduck");
+        assert_eq!(golduck.base_sp_attack, 95);
+
+        let jumpluff = get_species(JUMPLUFF).expect("Jumpluff should exist");
+        assert_eq!(jumpluff.name, "Jumpluff");
+        assert_eq!(jumpluff.base_speed, 110);
+
+        let shellder = get_species(SHELLDER).expect("Shellder should exist");
+        assert_eq!(shellder.name, "Shellder");
+        assert_eq!(shellder.base_defense, 100);
+
+        let cloyster = get_species(CLOYSTER).expect("Cloyster should exist");
+        assert_eq!(cloyster.name, "Cloyster");
+        assert_eq!(cloyster.base_defense, 180);
+        assert_eq!(cloyster.type2, Some(PokemonType::Ice));
+    }
+
+    #[test]
+    fn test_sprint147_evolution_links() {
+        // Verify evolution chains are properly linked
+        let pidgeotto = get_species(PIDGEOTTO).expect("Pidgeotto");
+        assert_eq!(pidgeotto.evolution_level, Some(36));
+        assert_eq!(pidgeotto.evolution_into, Some(PIDGEOT));
+
+        let koffing = get_species(KOFFING).expect("Koffing");
+        assert_eq!(koffing.evolution_level, Some(35));
+        assert_eq!(koffing.evolution_into, Some(WEEZING));
+
+        let flaaffy = get_species(FLAAFFY).expect("Flaaffy");
+        assert_eq!(flaaffy.evolution_level, Some(30));
+        assert_eq!(flaaffy.evolution_into, Some(AMPHAROS));
+
+        let psyduck = get_species(PSYDUCK).expect("Psyduck");
+        assert_eq!(psyduck.evolution_level, Some(33));
+        assert_eq!(psyduck.evolution_into, Some(GOLDUCK));
+
+        let skiploom = get_species(SKIPLOOM).expect("Skiploom");
+        assert_eq!(skiploom.evolution_level, Some(27));
+        assert_eq!(skiploom.evolution_into, Some(JUMPLUFF));
+
+        let mankey = get_species(MANKEY).expect("Mankey");
+        assert_eq!(mankey.evolution_level, Some(28));
+        assert_eq!(mankey.evolution_into, Some(PRIMEAPE));
+    }
 }

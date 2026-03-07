@@ -3544,3 +3544,34 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 #### Test Results
 - **1383 tests passing** (0 failures)
 - **0 compiler warnings**
+
+---
+
+### Sprint 147 — Missing Species + Evolution Link Fixes
+**Type:** Content sprint
+
+#### Changes Made
+
+1. **5 New Pokemon Species** (`data.rs`)
+   - Pidgeot (Normal/Flying, 83/80/75/70/70/91) — Pidgeotto evolves at L36
+   - Golduck (Water, 80/82/78/95/80/85) — Psyduck evolves at L33
+   - Jumpluff (Grass/Flying, 75/55/70/55/85/110) — Skiploom evolves at L27
+   - Shellder (Water, 30/65/100/45/25/40) — used in encounter tables
+   - Cloyster (Water/Ice, 50/95/180/85/45/70) — Shellder's Water Stone evolution
+
+2. **6 Evolution Chain Fixes** (`data.rs`)
+   - Pidgeotto → Pidgeot (L36)
+   - Koffing → Weezing (L35)
+   - Flaaffy → Ampharos (L30)
+   - Psyduck → Golduck (L33)
+   - Skiploom → Jumpluff (L27)
+   - Mankey → Primeape (L28)
+
+#### pokecrystal References
+- `data/pokemon/base_stats/{pidgeot,golduck,jumpluff,shellder,cloyster}.asm` — base stats
+- `data/pokemon/evos_attacks.asm` — evolution level data
+
+#### Test Results
+- **1385 tests passing** (+2 new, 0 failures, 0 warnings)
+- `test_sprint147_new_species_data` — all 5 species have correct base stats
+- `test_sprint147_evolution_links` — all 6 evolution chains correctly linked

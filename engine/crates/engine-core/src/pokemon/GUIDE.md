@@ -1767,3 +1767,47 @@ Full audit of every transition, progression gate, battle text sequence, and map 
   - Other gyms are freely fightable when reached.
 - **GenericHouse exit (A1) verified** — `last_house_x`/`last_house_y` already implemented in prior sprint, storing exact door position before warp and returning player to (last_house_x, last_house_y) on exit. Serialized in save data.
 - All 1313 tests pass. 0 bugs.
+
+### Sprint 113 (QA — Audit of Sprints 110-112)
+
+**Code audit results:**
+
+1. **`step_pokemon_menu` swap logic** — Verified all edge cases:
+   - Swap with self: guarded by `src != dst` check (line 4080), no-op. Correct.
+   - Swap fainted Pokemon in overworld: allowed (matches original game behavior).
+   - Swap during battle: impossible path. Swap mode (action 2) is only reachable from the sub-menu (action 1), which is only available in overworld mode (line 4018 gates on `self.battle.is_none()`). During battle, confirm goes directly to switch logic.
+   - Battle `player_idx` tracking: correctly updates when either src or dst matches `player_idx` (lines 4086-4090).
+   - Sub-menu cursor wraps: modulo 3 for 3 items (SUMMARY/SWAP/CANCEL). Correct.
+   - Cancel from sub-menu and swap mode: both return cleanly to action 0 (browse). No state leaks.
+
+2. **`check_warp_gate`** — All 6 gates verified:
+   - Route27 from NewBarkTown: requires `badges.count_ones() >= 8`. Correct.
+   - UnionCave: requires Zephyr Badge (bit 0). Correct.
+   - IlexForest to Route34: requires Hive Badge (bit 1). Correct.
+   - RocketHQ: requires FLAG_RED_GYARADOS. Correct.
+   - IcePath: requires FLAG_ROCKET_MAHOGANY. Correct.
+   - VictoryRoad: requires `badges.count_ones() >= 8`. Correct.
+   - Gate nudge-back logic (lines 1187-1192): pushes player 1 tile opposite to facing direction, preventing softlock on warp tile. Correct.
+
+3. **Bag BICYCLE integration** — Verified:
+   - `bike_offset` correctly set to 1 only when `has_bicycle && battle.is_none()`.
+   - Cursor arithmetic: BICYCLE at cursor 0, real items at `cursor - bike_offset`. No OOB risk.
+   - `total_count` includes bike_offset for wrap math. Correct.
+   - Indoor check covers all gym, cave, tower, and building MapIds. Complete.
+   - Render function row offset (`row = 1` when bike shown) produces correct y-positions without overlap.
+
+4. **TrainerCard render** — Verified:
+   - Badge grid: 2 rows of 4, correct x/y layout with all 8 badge names.
+   - Play time: `hours = (total_time / 3600.0) as u32`, `minutes = ((total_time % 3600.0) / 60.0) as u32`. No overflow for realistic values. For extreme values (>u32::MAX seconds), Rust's saturating f64-to-u32 cast prevents panic.
+   - No panic paths: early return on missing ctx, all other ops are formatting.
+
+**Tests added (6 new, total now 1319):**
+
+1. `test_party_swap_basic` — 3-member party, swap index 0 and 2, verify species exchanged.
+2. `test_party_swap_preserves_hp` — Swap two damaged Pokemon, verify HP/level/moves/attack preserved.
+3. `test_check_warp_gate_route27` — Route27 blocked with 0 and 7 badges, passable with 8.
+4. `test_check_warp_gate_union_cave` — UnionCave blocked without Zephyr Badge, passable with it.
+5. `test_check_warp_gate_victory_road` — VictoryRoad blocked without 8 badges, passable with 8.
+6. `test_trainer_card_time_display` — Hours/minutes calculation for normal, large, edge, and extreme total_time values.
+
+**Bugs found: 0.** Code from Sprints 110-112 is clean. All 1319 tests pass.

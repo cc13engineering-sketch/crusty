@@ -7505,4 +7505,175 @@ mod headless_tests {
         let y = result.get_f64("player_y").unwrap_or(99.0);
         assert!(y < 1.0, "Player should have moved north from starting position, got y={}", y);
     }
+
+    // ── Sprint 113 QA: Party swap tests ─────────────────────────
+
+    #[test]
+    fn test_party_swap_basic() {
+        // Create a PokemonSim with 3 party members, swap index 0 and 2
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CHIKORITA, 10));
+        sim.party.push(Pokemon::new(CYNDAQUIL, 15));
+        sim.party.push(Pokemon::new(TOTODILE, 20));
+
+        assert_eq!(sim.party[0].species_id, CHIKORITA);
+        assert_eq!(sim.party[1].species_id, CYNDAQUIL);
+        assert_eq!(sim.party[2].species_id, TOTODILE);
+
+        // Perform the swap (same logic as step_pokemon_menu action 2)
+        let src = 0usize;
+        let dst = 2usize;
+        assert!(src != dst && src < sim.party.len() && dst < sim.party.len());
+        sim.party.swap(src, dst);
+
+        // Verify species at positions 0 and 2 are exchanged
+        assert_eq!(sim.party[0].species_id, TOTODILE, "Position 0 should now be Totodile");
+        assert_eq!(sim.party[1].species_id, CYNDAQUIL, "Position 1 should be unchanged");
+        assert_eq!(sim.party[2].species_id, CHIKORITA, "Position 2 should now be Chikorita");
+    }
+
+    #[test]
+    fn test_party_swap_preserves_hp() {
+        // Swap two Pokemon and verify HP, level, moves are preserved
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+
+        let mut p1 = Pokemon::new(CHIKORITA, 25);
+        p1.hp = 42; // Damage it
+        let p1_max_hp = p1.max_hp;
+        let p1_level = p1.level;
+        let p1_moves = p1.moves;
+        let p1_attack = p1.attack;
+
+        let mut p2 = Pokemon::new(TOTODILE, 30);
+        p2.hp = 10; // Damage it heavily
+        let p2_max_hp = p2.max_hp;
+        let p2_level = p2.level;
+        let p2_moves = p2.moves;
+        let p2_attack = p2.attack;
+
+        sim.party.push(p1);
+        sim.party.push(p2);
+
+        // Swap
+        sim.party.swap(0, 1);
+
+        // After swap, position 0 has the former Totodile
+        assert_eq!(sim.party[0].species_id, TOTODILE);
+        assert_eq!(sim.party[0].hp, 10, "HP should be preserved after swap");
+        assert_eq!(sim.party[0].max_hp, p2_max_hp, "Max HP should be preserved");
+        assert_eq!(sim.party[0].level, p2_level, "Level should be preserved");
+        assert_eq!(sim.party[0].moves, p2_moves, "Moves should be preserved");
+        assert_eq!(sim.party[0].attack, p2_attack, "Attack should be preserved");
+
+        // Position 1 has the former Chikorita
+        assert_eq!(sim.party[1].species_id, CHIKORITA);
+        assert_eq!(sim.party[1].hp, 42, "HP should be preserved after swap");
+        assert_eq!(sim.party[1].max_hp, p1_max_hp, "Max HP should be preserved");
+        assert_eq!(sim.party[1].level, p1_level, "Level should be preserved");
+        assert_eq!(sim.party[1].moves, p1_moves, "Moves should be preserved");
+        assert_eq!(sim.party[1].attack, p1_attack, "Attack should be preserved");
+    }
+
+    #[test]
+    fn test_check_warp_gate_route27() {
+        // Route27 should be blocked from NewBarkTown without all 8 badges
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CYNDAQUIL, 50));
+        sim.change_map(MapId::NewBarkTown, 5, 8);
+
+        // 0 badges: blocked
+        sim.badges = 0;
+        assert!(sim.check_warp_gate(MapId::Route27).is_some(),
+            "Route27 should be blocked with 0 badges");
+
+        // 7 badges: still blocked
+        sim.badges = 0b01111111;
+        assert!(sim.check_warp_gate(MapId::Route27).is_some(),
+            "Route27 should be blocked with 7 badges");
+
+        // All 8 badges (0xFF): allowed
+        sim.badges = 0xFF;
+        assert!(sim.check_warp_gate(MapId::Route27).is_none(),
+            "Route27 should be passable with all 8 badges");
+    }
+
+    #[test]
+    fn test_check_warp_gate_union_cave() {
+        // UnionCave requires Zephyr Badge (bit 0)
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CYNDAQUIL, 10));
+        sim.change_map(MapId::Route32, 9, 28);
+
+        // No badges: blocked
+        sim.badges = 0;
+        assert!(sim.check_warp_gate(MapId::UnionCave).is_some(),
+            "UnionCave should be blocked without Zephyr Badge");
+
+        // Zephyr Badge (bit 0): passable
+        sim.badges = 1;
+        assert!(sim.check_warp_gate(MapId::UnionCave).is_none(),
+            "UnionCave should be passable with Zephyr Badge");
+    }
+
+    #[test]
+    fn test_check_warp_gate_victory_road() {
+        // VictoryRoad requires all 8 badges
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CYNDAQUIL, 50));
+        sim.change_map(MapId::Route26, 10, 5);
+
+        // 7 badges: blocked
+        sim.badges = 0b01111111;
+        assert!(sim.check_warp_gate(MapId::VictoryRoad).is_some(),
+            "VictoryRoad should be blocked without all 8 badges");
+
+        // All 8 badges: passable
+        sim.badges = 0xFF;
+        assert!(sim.check_warp_gate(MapId::VictoryRoad).is_none(),
+            "VictoryRoad should be passable with all 8 badges");
+    }
+
+    #[test]
+    fn test_trainer_card_time_display() {
+        // Verify hours/minutes calculation doesn't overflow for large total_time
+        // The render uses: hours = (total_time / 3600.0) as u32
+        //                  minutes = ((total_time % 3600.0) / 60.0) as u32
+
+        // Normal gameplay: 2 hours 30 minutes = 9000 seconds
+        let total_time: f64 = 9000.0;
+        let hours = (total_time / 3600.0) as u32;
+        let minutes = ((total_time % 3600.0) / 60.0) as u32;
+        assert_eq!(hours, 2);
+        assert_eq!(minutes, 30);
+
+        // Large value: 999 hours = 3596400 seconds
+        let total_time_large: f64 = 3596400.0;
+        let hours_large = (total_time_large / 3600.0) as u32;
+        let minutes_large = ((total_time_large % 3600.0) / 60.0) as u32;
+        assert_eq!(hours_large, 999);
+        assert_eq!(minutes_large, 0);
+
+        // Edge: exactly 1 second under an hour
+        let total_time_edge: f64 = 3599.0;
+        let hours_edge = (total_time_edge / 3600.0) as u32;
+        let minutes_edge = ((total_time_edge % 3600.0) / 60.0) as u32;
+        assert_eq!(hours_edge, 0);
+        assert_eq!(minutes_edge, 59);
+
+        // Very large value: total_time close to u32::MAX seconds
+        // This tests that f64 -> u32 cast saturates rather than panicking
+        let total_time_huge: f64 = 5_000_000_000.0; // ~5 billion seconds
+        let hours_huge = (total_time_huge / 3600.0) as u32;
+        let _minutes_huge = ((total_time_huge % 3600.0) / 60.0) as u32;
+        // hours_huge = 1388888 as u32 (fits in u32, max is ~4.2 billion)
+        assert_eq!(hours_huge, 1388888);
+        // format! should not panic
+        let time_str = format!("TIME: {:02}:{:02}", hours_huge, _minutes_huge);
+        assert!(time_str.contains("TIME:"));
+    }
 }

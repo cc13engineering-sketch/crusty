@@ -1302,7 +1302,8 @@ impl PokemonSim {
                     if roll < ENCOUNTER_RATE {
                         let r1 = engine.rng.next_f64();
                         let r2 = engine.rng.next_f64();
-                        if let Some((species_id, level)) = self.current_map.roll_encounter(r1, r2) {
+                        let is_night = self.time_of_day < 5.0 || self.time_of_day >= 19.0;
+                        if let Some((species_id, level)) = self.current_map.roll_encounter_timed(r1, r2, is_night) {
                             self.register_seen(species_id);
                             let enemy = Pokemon::new(species_id, level);
                             let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);

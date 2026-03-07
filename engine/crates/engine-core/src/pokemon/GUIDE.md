@@ -1722,4 +1722,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
   - **Heal machine**: Counter with ball slots and screen
   - **Flower**: Clear 3-petal scattered flowers
 - All tests pass (1313).
-- **Next (Sprint 107)**: Content sprint.
+
+### Sprint 107 (Content — Day/Night Encounters)
+- **Night encounter system** — Added `night_encounters` field to MapData. New `roll_encounter_timed(roll, level_roll, is_night)` method uses night table when available, falls back to day table.
+- **Night encounter data** — Routes 29, 30, 31, 38, 39 now have unique night encounter tables: Hoothoot/Noctowl replace Pidgey/Sentret, Gastly/Zubat/Spinarak/Meowth appear at night.
+- **Time integration** — Overworld wild encounter check now passes `is_night` (time < 5 or >= 19) to the encounter roller.
+- All tests pass (1313).
+- **Next (Sprint 108)**: QA sprint.

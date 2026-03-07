@@ -435,6 +435,7 @@ pub struct MapData {
     pub warps: Vec<WarpData>,
     pub npcs: Vec<NpcDef>,
     pub encounters: Vec<EncounterEntry>,
+    pub night_encounters: Vec<EncounterEntry>, // night-only encounters (empty = use day table)
     pub water_encounters: Vec<EncounterEntry>, // fishing/surf encounters on water tiles
     pub music_id: u8,
 }
@@ -698,7 +699,7 @@ fn build_new_bark_town() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 1,
     }
 }
@@ -882,6 +883,11 @@ fn build_route_29() -> MapData {
         warps,
         npcs,
         encounters,
+        night_encounters: vec![
+            EncounterEntry { species_id: HOOTHOOT, min_level: 2, max_level: 4, weight: 50 },
+            EncounterEntry { species_id: RATTATA, min_level: 2, max_level: 4, weight: 35 },
+            EncounterEntry { species_id: SPINARAK, min_level: 2, max_level: 3, weight: 15 },
+        ],
         water_encounters: vec![],
         music_id: 2,
     }
@@ -1081,7 +1087,7 @@ fn build_cherrygrove_city() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 3,
     }
 }
@@ -1317,6 +1323,12 @@ fn build_route_30() -> MapData {
         warps,
         npcs,
         encounters,
+        night_encounters: vec![
+            EncounterEntry { species_id: HOOTHOOT, min_level: 3, max_level: 6, weight: 40 },
+            EncounterEntry { species_id: RATTATA, min_level: 3, max_level: 5, weight: 25 },
+            EncounterEntry { species_id: ZUBAT, min_level: 3, max_level: 5, weight: 20 },
+            EncounterEntry { species_id: SPINARAK, min_level: 3, max_level: 5, weight: 15 },
+        ],
         water_encounters: vec![],
         music_id: 2,
     }
@@ -1509,6 +1521,13 @@ fn build_route_31() -> MapData {
         warps,
         npcs,
         encounters,
+        night_encounters: vec![
+            EncounterEntry { species_id: HOOTHOOT, min_level: 5, max_level: 7, weight: 35 },
+            EncounterEntry { species_id: GASTLY, min_level: 5, max_level: 7, weight: 20 },
+            EncounterEntry { species_id: RATTATA, min_level: 4, max_level: 6, weight: 20 },
+            EncounterEntry { species_id: ZUBAT, min_level: 4, max_level: 6, weight: 15 },
+            EncounterEntry { species_id: SPINARAK, min_level: 4, max_level: 5, weight: 10 },
+        ],
         water_encounters: vec![],
         music_id: 2,
     }
@@ -1758,7 +1777,7 @@ fn build_violet_city() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 7,
     }
 }
@@ -1873,7 +1892,7 @@ fn build_violet_gym() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 8,
     }
 }
@@ -2004,7 +2023,7 @@ fn build_sprout_tower() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 9,
     }
 }
@@ -2091,7 +2110,7 @@ fn build_player_house_1f() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 4,
     }
 }
@@ -2156,7 +2175,7 @@ fn build_player_house_2f() -> MapData {
         warps: vec![],
         npcs: vec![],
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 4,
     }
 }
@@ -2254,7 +2273,7 @@ fn build_elm_lab() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 5,
     }
 }
@@ -2341,7 +2360,7 @@ fn build_pokemon_center() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 6,
     }
 }
@@ -2609,6 +2628,7 @@ fn build_route_32() -> MapData {
         warps,
         npcs,
         encounters,
+        night_encounters: vec![],
         water_encounters: vec![
             EncounterEntry { species_id: TENTACOOL, min_level: 15, max_level: 20, weight: 40 },
             EncounterEntry { species_id: QUAGSIRE, min_level: 15, max_level: 20, weight: 15 },
@@ -2751,7 +2771,7 @@ fn build_union_cave() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 9,
     }
 }
@@ -2799,11 +2819,25 @@ impl MapData {
     /// `roll` should be in [0.0, 1.0) for species selection.
     /// `level_roll` should be in [0.0, 1.0) for level within range.
     pub fn roll_encounter(&self, roll: f64, level_roll: f64) -> Option<(u16, u8)> {
-        if self.encounters.is_empty() {
+        Self::roll_from_table(&self.encounters, roll, level_roll)
+    }
+
+    /// Roll encounter with time of day. Uses night_encounters if night and non-empty.
+    pub fn roll_encounter_timed(&self, roll: f64, level_roll: f64, is_night: bool) -> Option<(u16, u8)> {
+        let table = if is_night && !self.night_encounters.is_empty() {
+            &self.night_encounters
+        } else {
+            &self.encounters
+        };
+        Self::roll_from_table(table, roll, level_roll)
+    }
+
+    fn roll_from_table(table: &[EncounterEntry], roll: f64, level_roll: f64) -> Option<(u16, u8)> {
+        if table.is_empty() {
             return None;
         }
 
-        let total_weight: u32 = self.encounters.iter().map(|e| e.weight as u32).sum();
+        let total_weight: u32 = table.iter().map(|e| e.weight as u32).sum();
         if total_weight == 0 {
             return None;
         }
@@ -2811,7 +2845,7 @@ impl MapData {
         let target = (roll * total_weight as f64) as u32;
         let mut cumulative: u32 = 0;
 
-        for entry in &self.encounters {
+        for entry in table {
             cumulative += entry.weight as u32;
             if target < cumulative {
                 let level_range = (entry.max_level - entry.min_level) as f64;
@@ -2821,7 +2855,7 @@ impl MapData {
         }
 
         // Fallback: last encounter
-        if let Some(last) = self.encounters.last() {
+        if let Some(last) = table.last() {
             Some((last.species_id, last.min_level))
         } else {
             None
@@ -2885,7 +2919,7 @@ fn build_generic_house() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 0,
     }
 }
@@ -3016,7 +3050,7 @@ fn build_route_33() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 2,
     }
 }
@@ -3193,7 +3227,7 @@ fn build_azalea_town() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 10,
     }
 }
@@ -3297,7 +3331,7 @@ fn build_azalea_gym() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 8,
     }
 }
@@ -3456,7 +3490,7 @@ fn build_ilex_forest() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 10,
     }
 }
@@ -3630,7 +3664,7 @@ fn build_route_34() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 2,
     }
 }
@@ -3877,7 +3911,7 @@ fn build_goldenrod_city() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 11,
     }
 }
@@ -4011,7 +4045,7 @@ fn build_goldenrod_gym() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 8,
     }
 }
@@ -4174,6 +4208,7 @@ fn build_route_35() -> MapData {
         warps,
         npcs,
         encounters,
+        night_encounters: vec![],
         water_encounters: vec![
             EncounterEntry { species_id: POLIWAG, min_level: 15, max_level: 20, weight: 40 },
             EncounterEntry { species_id: POLIWHIRL, min_level: 18, max_level: 20, weight: 15 },
@@ -4322,7 +4357,7 @@ fn build_national_park() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 5,
     }
 }
@@ -4462,7 +4497,7 @@ fn build_route_36() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 1,
     }
 }
@@ -4580,7 +4615,7 @@ fn build_route_37() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 1,
     }
 }
@@ -4744,7 +4779,7 @@ fn build_ecruteak_city() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 5,
     }
 }
@@ -4877,7 +4912,7 @@ fn build_burned_tower() -> MapData {
         warps,
         npcs,
         encounters,
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 9,
     }
 }
@@ -4997,7 +5032,7 @@ fn build_ecruteak_gym() -> MapData {
         warps,
         npcs,
         encounters: vec![],
-        water_encounters: vec![],
+        night_encounters: vec![], water_encounters: vec![],
         music_id: 8,
     }
 }
@@ -5073,7 +5108,13 @@ fn build_route_38() -> MapData {
         EncounterEntry { species_id: TAUROS, min_level: 13, max_level: 13, weight: 5 },
         EncounterEntry { species_id: FARFETCHD, min_level: 16, max_level: 16, weight: 5 },
     ];
-    MapData { id: MapId::Route38, name: "ROUTE 38", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route38, name: "ROUTE 38", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![
+        EncounterEntry { species_id: NOCTOWL, min_level: 16, max_level: 18, weight: 30 },
+        EncounterEntry { species_id: RATTATA, min_level: 14, max_level: 16, weight: 25 },
+        EncounterEntry { species_id: GASTLY, min_level: 14, max_level: 16, weight: 20 },
+        EncounterEntry { species_id: SPINARAK, min_level: 14, max_level: 16, weight: 15 },
+        EncounterEntry { species_id: MEOWTH, min_level: 15, max_level: 16, weight: 10 },
+    ], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Route 39 (12×18) ──────────────────────────────────
@@ -5166,7 +5207,13 @@ fn build_route_39() -> MapData {
         EncounterEntry { species_id: TAUROS, min_level: 15, max_level: 15, weight: 5 },
         EncounterEntry { species_id: FARFETCHD, min_level: 16, max_level: 16, weight: 5 },
     ];
-    MapData { id: MapId::Route39, name: "ROUTE 39", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route39, name: "ROUTE 39", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![
+        EncounterEntry { species_id: NOCTOWL, min_level: 16, max_level: 18, weight: 30 },
+        EncounterEntry { species_id: RATTATA, min_level: 14, max_level: 16, weight: 25 },
+        EncounterEntry { species_id: GASTLY, min_level: 14, max_level: 16, weight: 20 },
+        EncounterEntry { species_id: MEOWTH, min_level: 15, max_level: 16, weight: 15 },
+        EncounterEntry { species_id: SPINARAK, min_level: 14, max_level: 16, weight: 10 },
+    ], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Olivine City (20×18) ──────────────────────────────
@@ -5258,7 +5305,7 @@ fn build_olivine_city() -> MapData {
             is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
         },
     ];
-    MapData { id: MapId::OlivineCity, name: "OLIVINE CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![
+    MapData { id: MapId::OlivineCity, name: "OLIVINE CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 40 },
         EncounterEntry { species_id: KRABBY, min_level: 20, max_level: 24, weight: 25 },
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 35 },
@@ -5368,7 +5415,7 @@ fn build_olivine_lighthouse() -> MapData {
             ],
         },
     ];
-    MapData { id: MapId::OlivineLighthouse, name: "LIGHTHOUSE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 5 }
+    MapData { id: MapId::OlivineLighthouse, name: "LIGHTHOUSE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 // ─── Olivine Gym (10x10) ───────────────────────────────
 // Jasmine - Steel type. Available immediately (skip Lighthouse quest).
@@ -5418,7 +5465,7 @@ fn build_olivine_gym() -> MapData {
             ],
         },
     ];
-    MapData { id: MapId::OlivineGym, name: "OLIVINE GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 8 }
+    MapData { id: MapId::OlivineGym, name: "OLIVINE GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 8 }
 }
 
 // ─── Route 40 (8×20) ─── Pier walkway over ocean ──────────
@@ -5500,7 +5547,7 @@ fn build_route_40() -> MapData {
         EncounterEntry { species_id: TENTACRUEL, min_level: 24, max_level: 24, weight: 20 },
         EncounterEntry { species_id: KRABBY, min_level: 20, max_level: 22, weight: 20 },
     ];
-    MapData { id: MapId::Route40, name: "ROUTE 40", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![
+    MapData { id: MapId::Route40, name: "ROUTE 40", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 25, weight: 40 },
         EncounterEntry { species_id: TENTACRUEL, min_level: 23, max_level: 25, weight: 15 },
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 30 },
@@ -5582,7 +5629,7 @@ fn build_cianwood_city() -> MapData {
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
-    MapData { id: MapId::CianwoodCity, name: "CIANWOOD CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![
+    MapData { id: MapId::CianwoodCity, name: "CIANWOOD CITY", width, height, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 40 },
         EncounterEntry { species_id: KRABBY, min_level: 20, max_level: 24, weight: 25 },
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 35 },
@@ -5648,7 +5695,7 @@ fn build_cianwood_gym() -> MapData {
             trainer_team: &[TrainerPokemon { species_id: MACHOKE, level: 23 }, TrainerPokemon { species_id: MACHOKE, level: 23 }],
         },
     ];
-    MapData { id: MapId::CianwoodGym, name: "CIANWOOD GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 8 }
+    MapData { id: MapId::CianwoodGym, name: "CIANWOOD GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 8 }
 }
 
 // ─── Route 42 (20×14) ──────────────────────────────────
@@ -5757,7 +5804,7 @@ fn build_route_42() -> MapData {
         EncounterEntry { species_id: ZUBAT, min_level: 13, max_level: 15, weight: 10 },
         EncounterEntry { species_id: MAREEP, min_level: 13, max_level: 15, weight: 10 },
     ];
-    MapData { id: MapId::Route42, name: "ROUTE 42", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route42, name: "ROUTE 42", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Mahogany Town (16×14) ──────────────────────────────
@@ -5869,7 +5916,7 @@ fn build_mahogany_town() -> MapData {
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
-    MapData { id: MapId::MahoganyTown, name: "MAHOGANY TOWN", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 1 }
+    MapData { id: MapId::MahoganyTown, name: "MAHOGANY TOWN", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 1 }
 }
 
 // ─── Mahogany Gym (10×10) ───────────────────────────────
@@ -5960,7 +6007,7 @@ fn build_mahogany_gym() -> MapData {
             ],
         },
     ];
-    MapData { id: MapId::MahoganyGym, name: "MAHOGANY GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 8 }
+    MapData { id: MapId::MahoganyGym, name: "MAHOGANY GYM", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 8 }
 }
 
 // ─── Route 43 (12×20) ──────────────────────────────────
@@ -6095,7 +6142,7 @@ fn build_route_43() -> MapData {
         EncounterEntry { species_id: FLAAFFY, min_level: 15, max_level: 17, weight: 15 },
         EncounterEntry { species_id: RATICATE, min_level: 16, max_level: 17, weight: 10 },
     ];
-    MapData { id: MapId::Route43, name: "ROUTE 43", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route43, name: "ROUTE 43", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Lake of Rage (16×14) ───────────────────────────────
@@ -6201,7 +6248,7 @@ fn build_lake_of_rage() -> MapData {
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 90 },
         EncounterEntry { species_id: GYARADOS, min_level: 15, max_level: 15, weight: 10 },
     ];
-    MapData { id: MapId::LakeOfRage, name: "LAKE OF RAGE", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![
+    MapData { id: MapId::LakeOfRage, name: "LAKE OF RAGE", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: MAGIKARP, min_level: 15, max_level: 25, weight: 70 },
         EncounterEntry { species_id: GYARADOS, min_level: 25, max_level: 30, weight: 30 },
     ], music_id: 4 }
@@ -6303,7 +6350,7 @@ fn build_route_44() -> MapData {
         EncounterEntry { species_id: POLIWAG, min_level: 22, max_level: 24, weight: 10 },
         EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 24, weight: 5 },
     ];
-    MapData { id: MapId::Route44, name: "ROUTE 44", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![
+    MapData { id: MapId::Route44, name: "ROUTE 44", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: POLIWAG, min_level: 20, max_level: 25, weight: 40 },
         EncounterEntry { species_id: POLIWHIRL, min_level: 22, max_level: 25, weight: 20 },
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 40 },
@@ -6404,7 +6451,7 @@ fn build_ice_path() -> MapData {
         EncounterEntry { species_id: JYNX, min_level: 24, max_level: 26, weight: 10 },
         EncounterEntry { species_id: SNEASEL, min_level: 24, max_level: 26, weight: 10 },
     ];
-    MapData { id: MapId::IcePath, name: "ICE PATH", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![
+    MapData { id: MapId::IcePath, name: "ICE PATH", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: MAGIKARP, min_level: 15, max_level: 20, weight: 40 },
         EncounterEntry { species_id: SEEL, min_level: 20, max_level: 25, weight: 30 },
         EncounterEntry { species_id: SHELLDER, min_level: 20, max_level: 25, weight: 30 },
@@ -6516,7 +6563,7 @@ fn build_blackthorn_city() -> MapData {
         },
     ];
     let encounters = vec![];
-    MapData { id: MapId::BlackthornCity, name: "BLACKTHORN CITY", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 1 }
+    MapData { id: MapId::BlackthornCity, name: "BLACKTHORN CITY", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 1 }
 }
 
 fn build_blackthorn_gym() -> MapData {
@@ -6599,7 +6646,7 @@ fn build_blackthorn_gym() -> MapData {
         },
     ];
     let encounters = vec![];
-    MapData { id: MapId::BlackthornGym, name: "BLACKTHORN GYM", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 5 }
+    MapData { id: MapId::BlackthornGym, name: "BLACKTHORN GYM", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
 fn build_route_45() -> MapData {
@@ -6749,7 +6796,7 @@ fn build_route_45() -> MapData {
         EncounterEntry { species_id: RATICATE, min_level: 25, max_level: 27, weight: 10 },
         EncounterEntry { species_id: SPEAROW, min_level: 23, max_level: 25, weight: 10 },
     ];
-    MapData { id: MapId::Route45, name: "ROUTE 45", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route45, name: "ROUTE 45", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
 }
 
 fn build_route_46() -> MapData {
@@ -6858,7 +6905,7 @@ fn build_route_46() -> MapData {
         EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 26, weight: 10 },
         EncounterEntry { species_id: GRAVELER, min_level: 24, max_level: 26, weight: 10 },
     ];
-    MapData { id: MapId::Route46, name: "ROUTE 46", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route46, name: "ROUTE 46", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Route 27 (24x12) ──────────────────────────────────
@@ -7003,7 +7050,7 @@ fn build_route_27() -> MapData {
         EncounterEntry { species_id: QUAGSIRE, min_level: 28, max_level: 30, weight: 10 },
     ];
 
-    MapData { id: MapId::Route27, name: "ROUTE 27", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![
+    MapData { id: MapId::Route27, name: "ROUTE 27", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
         EncounterEntry { species_id: TENTACOOL, min_level: 25, max_level: 30, weight: 35 },
         EncounterEntry { species_id: TENTACRUEL, min_level: 28, max_level: 30, weight: 15 },
         EncounterEntry { species_id: MAGIKARP, min_level: 15, max_level: 25, weight: 30 },
@@ -7163,7 +7210,7 @@ fn build_route_26() -> MapData {
         EncounterEntry { species_id: SANDSHREW, min_level: 26, max_level: 28, weight: 10 },
     ];
 
-    MapData { id: MapId::Route26, name: "ROUTE 26", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 2 }
+    MapData { id: MapId::Route26, name: "ROUTE 26", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
 }
 
 // ─── Victory Road (14x14) ──────────────────────────────
@@ -7294,7 +7341,7 @@ fn build_victory_road() -> MapData {
         EncounterEntry { species_id: GEODUDE, min_level: 30, max_level: 32, weight: 15 },
     ];
 
-    MapData { id: MapId::VictoryRoad, name: "VICTORY ROAD", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 5 }
+    MapData { id: MapId::VictoryRoad, name: "VICTORY ROAD", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
 // ─── Indigo Plateau (14x10) ──────────────────────────────
@@ -7377,7 +7424,7 @@ fn build_indigo_plateau() -> MapData {
 
     let encounters = vec![];
 
-    MapData { id: MapId::IndigoPlateau, name: "INDIGO PLATEAU", width, height, tiles, collision, warps, npcs, encounters, water_encounters: vec![], music_id: 1 }
+    MapData { id: MapId::IndigoPlateau, name: "INDIGO PLATEAU", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 1 }
 }
 
 // ─── Elite Four Will (10x10) ──────────────────────────────
@@ -7462,7 +7509,7 @@ fn build_elite_four_will() -> MapData {
         },
     ];
 
-    MapData { id: MapId::EliteFourWill, name: "ELITE FOUR WILL", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 6 }
+    MapData { id: MapId::EliteFourWill, name: "ELITE FOUR WILL", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Elite Four Koga (10x10) ──────────────────────────────
@@ -7537,7 +7584,7 @@ fn build_elite_four_koga() -> MapData {
         },
     ];
 
-    MapData { id: MapId::EliteFourKoga, name: "ELITE FOUR KOGA", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 6 }
+    MapData { id: MapId::EliteFourKoga, name: "ELITE FOUR KOGA", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Elite Four Bruno (10x10) ──────────────────────────────
@@ -7602,7 +7649,7 @@ fn build_elite_four_bruno() -> MapData {
         },
     ];
 
-    MapData { id: MapId::EliteFourBruno, name: "ELITE FOUR BRUNO", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 6 }
+    MapData { id: MapId::EliteFourBruno, name: "ELITE FOUR BRUNO", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Elite Four Karen (10x10) ──────────────────────────────
@@ -7667,7 +7714,7 @@ fn build_elite_four_karen() -> MapData {
         },
     ];
 
-    MapData { id: MapId::EliteFourKaren, name: "ELITE FOUR KAREN", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 6 }
+    MapData { id: MapId::EliteFourKaren, name: "ELITE FOUR KAREN", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Champion Lance (10x10) ──────────────────────────────
@@ -7731,7 +7778,7 @@ fn build_champion_lance() -> MapData {
         },
     ];
 
-    MapData { id: MapId::ChampionLance, name: "CHAMPION LANCE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 6 }
+    MapData { id: MapId::ChampionLance, name: "CHAMPION LANCE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 6 }
 }
 
 // ─── Rocket HQ (12x12) ──────────────────────────────────
@@ -7848,7 +7895,7 @@ fn build_rocket_hq() -> MapData {
         },
     ];
 
-    MapData { id: MapId::RocketHQ, name: "ROCKET HQ", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], water_encounters: vec![], music_id: 5 }
+    MapData { id: MapId::RocketHQ, name: "ROCKET HQ", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
 #[cfg(test)]

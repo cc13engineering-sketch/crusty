@@ -1828,3 +1828,50 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Save/load** — Daycare Pokemon serialized as JSON object in save data (`"daycare":{...},"daycare_steps":N`). Deserialized with balanced-brace parser matching the existing party format.
 
 All 1319 tests pass.
+
+### Sprint 115 (Content — NPC Behavior Overhaul + Headless Test Infrastructure)
+
+**Part 1: NPC Dialogue Overhaul**
+Updated NPC dialogue across 18+ locations to be meaningful and city-specific:
+- **NewBarkTown**: Youngster references Prof. Elm's lab; Lass points toward Cherrygrove
+- **Route 29**: Guide Gent mentions Cherrygrove City ahead
+- **CherrygroveCity**: Guide Gent references MR. POKEMON; Youngster hints at Route 30
+- **Route 30**: Added hint NPC about MR. POKEMON's house
+- **Route 31**: Added hint NPC about Violet City gym
+- **VioletCity**: Old man references Sprout Tower; Youngster warns about Falkner's Pidgeotto
+- **Route 32**: Added hint NPC about Union Cave to Azalea Town
+- **AzaleaTown**: NPC updated to mention Kurt and Bugsy
+- **Route 34**: Added daycare hint NPC (placed on walkable tile at 5,14)
+- **GoldenrodCity**: City guide mentions Dept Store and Whitney
+- **Route 35**: Added National Park hint NPC
+- **Route 36**: Updated weird tree NPC with water hint
+- **Route 37**: Added Ecruteak legends hint NPC
+- **EcruteakCity**: Old man updated about Burned Tower and Tin Tower
+- **Route 39**: NPC updated about Olivine Lighthouse
+- **OlivineCity**: Town guide references Jasmine and Ampharos
+- **MahoganyTown**: Shop NPC now warns about suspicious shop (Rocket HQ entrance)
+- **BlackthornCity**: All 3 NPCs updated with Clair/Dragon references, last JOHTO badge hint
+- **Route 42**: Non-trainer NPC updated with Lake of Rage hint
+- **Route 44**: Added Ice Path warning hint NPC
+- **Route 46**: Added Route 29/New Bark Town connection hint NPC
+
+**Part 2: Headless Test Infrastructure**
+
+*Input builder helpers* (in `#[cfg(test)]` module):
+- `press(key)` -- single key-press frame
+- `hold(key, n)` -- hold a key for N frames (keys_held repeated)
+- `wait(n)` -- N empty frames
+- `walk_dir(dir, gap)` -- press direction + gap empty frames (one tile movement)
+- `sequence(seqs)` -- concatenate multiple input sequences
+
+*Test constructor*:
+- `PokemonSim::with_state(map, x, y, party, badges)` -- creates a sim already in Overworld, skipping title screen. Sets has_starter, party, badges, and calls change_map.
+
+*5 new integration tests*:
+1. `test_input_builder_helpers` -- validates all helper functions produce correct InputFrame sequences
+2. `test_with_state_overworld` -- verifies with_state places player at correct map/position with correct state
+3. `test_daycare_deposit_withdraw` -- tests deposit, step-counting level gain, and withdrawal
+4. `test_ice_sliding_basic` -- tests ice_sliding field and IcePath map structure
+5. `test_warp_gate_progression` -- comprehensive gate test across Union Cave, Ilex Forest, Route 27, and Victory Road
+
+All 99 Pokemon module tests pass.

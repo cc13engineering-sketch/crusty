@@ -678,9 +678,10 @@ fn build_new_bark_town() -> MapData {
         NpcDef {
             x: 10, y: 6, sprite_id: 2, facing: Direction::Left,
             dialogue: &[
-                "PROF.ELM is always in",
-                "his lab researching.",
-                "He's a Pokemon Professor!",
+                "PROF. ELM's lab is",
+                "right here! He studies",
+                "POKEMON evolution.",
+                "You should visit him!",
             ],
             is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
         },
@@ -688,9 +689,10 @@ fn build_new_bark_town() -> MapData {
         NpcDef {
             x: 3, y: 11, sprite_id: 3, facing: Direction::Right,
             dialogue: &[
-                "Have you been to",
-                "CHERRYGROVE CITY?",
-                "It's just past ROUTE 29.",
+                "CHERRYGROVE CITY is",
+                "just east on ROUTE 29.",
+                "They have a POKEMON",
+                "CENTER there!",
             ],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -854,10 +856,10 @@ fn build_route_29() -> MapData {
         NpcDef {
             x: 5, y: 8, sprite_id: 5, facing: Direction::Up,
             dialogue: &[
-                "If your POKEMON are weak",
-                "and about to faint, you",
-                "should heal them at a",
-                "POKEMON CENTER.",
+                "CHERRYGROVE CITY is",
+                "just ahead! They have",
+                "a POKEMON CENTER where",
+                "you can heal up.",
             ],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -1046,9 +1048,10 @@ fn build_cherrygrove_city() -> MapData {
         NpcDef {
             x: 5, y: 9, sprite_id: 5, facing: Direction::Right,
             dialogue: &[
-                "CHERRYGROVE CITY",
-                "The city of cute, fragrant",
-                "flowers.",
+                "The sea breeze is",
+                "wonderful here!",
+                "MR. POKEMON lives",
+                "north on ROUTE 30.",
             ],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -1067,9 +1070,9 @@ fn build_cherrygrove_city() -> MapData {
         NpcDef {
             x: 12, y: 11, sprite_id: 2, facing: Direction::Up,
             dialogue: &[
-                "Did you just come from",
-                "NEW BARK TOWN?",
-                "That's a long walk!",
+                "ROUTE 30 leads north",
+                "to MR. POKEMON's house.",
+                "He collects rare items!",
             ],
             is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
         },
@@ -1309,6 +1312,16 @@ fn build_route_30() -> MapData {
                 TrainerPokemon { species_id: PIDGEY, level: 4 },
             ],
         },
+        // Hint NPC — old man near MR. POKEMON's area
+        NpcDef {
+            x: 24, y: 4, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "MR. POKEMON lives north",
+                "of here. He's always",
+                "finding rare things!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
 
     let encounters = vec![
@@ -1506,6 +1519,16 @@ fn build_route_31() -> MapData {
             ],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: RATTATA, level: 6 }],
+        },
+        // Hint NPC about Violet City gym
+        NpcDef {
+            x: 15, y: 8, sprite_id: 5, facing: Direction::Up,
+            dialogue: &[
+                "VIOLET CITY has a GYM!",
+                "The leader uses BIRD",
+                "POKEMON. Train up!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
 
@@ -1736,10 +1759,10 @@ fn build_violet_city() -> MapData {
         NpcDef {
             x: 19, y: 8, sprite_id: 5, facing: Direction::Down,
             dialogue: &[
-                "VIOLET CITY is known for",
-                "SPROUT TOWER to the north.",
-                "Many trainers go there",
-                "to train.",
+                "SPROUT TOWER is a",
+                "training ground for",
+                "monks. FALKNER is our",
+                "GYM LEADER.",
             ],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
@@ -1747,9 +1770,10 @@ fn build_violet_city() -> MapData {
         NpcDef {
             x: 7, y: 7, sprite_id: 2, facing: Direction::Right,
             dialogue: &[
-                "The GYM LEADER FALKNER",
-                "uses BIRD POKEMON!",
-                "Make sure you're ready!",
+                "FALKNER's PIDGEOTTO is",
+                "tough! Train at SPROUT",
+                "TOWER first. The monks",
+                "will test your skills!",
             ],
             is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
         },
@@ -2614,6 +2638,17 @@ fn build_route_32() -> MapData {
                 TrainerPokemon { species_id: HOPPIP, level: 6 },
             ],
         },
+        // Hint NPC about Union Cave
+        NpcDef {
+            x: 8, y: 24, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "UNION CAVE connects",
+                "to AZALEA TOWN.",
+                "Watch out for the",
+                "wild POKEMON inside!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
 
     let encounters = vec![
@@ -3208,9 +3243,10 @@ fn build_azalea_town() -> MapData {
         NpcDef {
             x: 5, y: 5, sprite_id: 2, facing: Direction::Down,
             dialogue: &[
-                "AZALEA TOWN is famous",
-                "for SLOWPOKE. They say",
-                "SLOWPOKE bring the rain.",
+                "KURT makes special POKE",
+                "BALLS from APRICORNS.",
+                "BUGSY runs the GYM.",
+                "He's a bug expert!",
             ],
             is_trainer: false, is_mart: false, wanders: true, trainer_team: &[],
         },
@@ -3650,6 +3686,17 @@ fn build_route_34() -> MapData {
                 TrainerPokemon { species_id: HOPPIP, level: 11 },
             ],
         },
+        // Hint NPC about daycare
+        NpcDef {
+            x: 5, y: 14, sprite_id: 5, facing: Direction::Up,
+            dialogue: &[
+                "The DAY-CARE MAN",
+                "raises POKEMON for",
+                "a fee. They gain",
+                "EXP as you walk!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
 
     let encounters = vec![
@@ -3897,8 +3944,10 @@ fn build_goldenrod_city() -> MapData {
         NpcDef {
             x: 8, y: 5, sprite_id: 2, facing: Direction::Right,
             dialogue: &[
-                "GOLDENROD CITY is the",
-                "biggest city in JOHTO!",
+                "The DEPT STORE has",
+                "everything! WHITNEY's",
+                "GYM is famous...",
+                "and frustrating.",
                 "The GYM is south.",
                 "WHITNEY uses NORMAL",
                 "type POKEMON.",
@@ -4195,6 +4244,17 @@ fn build_route_35() -> MapData {
                 TrainerPokemon { species_id: GROWLITHE, level: 14 },
             ],
         },
+        // Hint NPC about National Park
+        NpcDef {
+            x: 3, y: 4, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "NATIONAL PARK is popular",
+                "for the BUG-CATCHING",
+                "CONTEST. It's just",
+                "north of here!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
 
     let encounters = vec![
@@ -4456,9 +4516,11 @@ fn build_route_36() -> MapData {
         NpcDef {
             x: 12, y: 6, sprite_id: 5, facing: Direction::Left,
             dialogue: &[
-                "A weird tree is",
-                "blocking the road",
-                "to ECRUTEAK CITY.",
+                "There's a weird tree",
+                "blocking the path.",
+                "It wiggles when you",
+                "get close... Maybe",
+                "water would help?",
             ],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
@@ -4600,6 +4662,18 @@ fn build_route_37() -> MapData {
             trainer_team: &[
                 TrainerPokemon { species_id: DROWZEE, level: 17 },
             ],
+        },
+        // Hint NPC about Ecruteak
+        NpcDef {
+            x: 12, y: 5, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "ECRUTEAK CITY has",
+                "ancient legends about",
+                "legendary POKEMON.",
+                "The BURNED TOWER and",
+                "TIN TOWER are famous!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
 
@@ -4743,11 +4817,11 @@ fn build_ecruteak_city() -> MapData {
         NpcDef {
             x: 6, y: 3, sprite_id: 5, facing: Direction::Down,
             dialogue: &[
-                "The BURNED TOWER",
-                "was once a glorious",
-                "bell tower...",
-                "It burned 150 years",
-                "ago.",
+                "The BURNED TOWER and",
+                "TIN TOWER hold ancient",
+                "secrets. Legends say",
+                "HO-OH once perched",
+                "atop TIN TOWER!",
             ],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
@@ -5201,7 +5275,7 @@ fn build_route_39() -> MapData {
             trainer_team: &[TrainerPokemon { species_id: POLIWHIRL, level: 17 }, TrainerPokemon { species_id: RATICATE, level: 17 }, TrainerPokemon { species_id: KRABBY, level: 19 }],
         },
         NpcDef { x: 5, y: 5, sprite_id: 5, facing: Direction::Down,
-            dialogue: &["Our MILTANK has been", "feeling poorly...", "She needs berries."],
+            dialogue: &["OLIVINE CITY's", "LIGHTHOUSE guides", "ships safely to port.", "It's just south!"],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
@@ -5292,7 +5366,7 @@ fn build_olivine_city() -> MapData {
     ];
     let npcs = vec![
         NpcDef { x: 8, y: 2, sprite_id: 5, facing: Direction::Down,
-            dialogue: &["OLIVINE CITY", "The Port of Crashing", "Waves"],
+            dialogue: &["OLIVINE CITY", "The Port of Crashing", "Waves. JASMINE tends", "to the sick AMPHAROS", "in the LIGHTHOUSE."],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
         NpcDef { x: 9, y: 13, sprite_id: 1, facing: Direction::Down,
@@ -5785,7 +5859,7 @@ fn build_route_42() -> MapData {
     let npcs = vec![
         NpcDef {
             x: 10, y: 4, sprite_id: 5, facing: Direction::Left,
-            dialogue: &["This mountain path", "leads to MAHOGANY.", "Watch for wild", "Pokemon in the grass!"],
+            dialogue: &["MAHOGANY TOWN is", "east of here. I hear", "strange things are", "happening at the", "LAKE OF RAGE up north."],
             is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
         // Fisher trainer
@@ -5914,7 +5988,7 @@ fn build_mahogany_town() -> MapData {
         },
         NpcDef {
             x: 3, y: 7, sprite_id: 2, facing: Direction::Right,
-            dialogue: &["Welcome to our shop!", "We have great deals!"],
+            dialogue: &["Something suspicious", "about that shop...", "I wouldn't go in", "if I were you."],
             is_trainer: false, is_mart: true, wanders: false, trainer_team: &[],
         },
         NpcDef {
@@ -6348,6 +6422,12 @@ fn build_route_44() -> MapData {
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: PIDGEOTTO, level: 26 }, TrainerPokemon { species_id: FEAROW, level: 26 }],
         },
+        // NPC 4: Hint NPC about Ice Path
+        NpcDef {
+            x: 5, y: 7, sprite_id: 5, facing: Direction::Right,
+            dialogue: &["ICE PATH is to the", "east. Watch your", "step on the ice!", "It's treacherous."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
     let encounters = vec![
         EncounterEntry { species_id: BELLSPROUT, min_level: 22, max_level: 24, weight: 30 },
@@ -6560,21 +6640,21 @@ fn build_blackthorn_city() -> MapData {
         // NPC 0: Old man near gym
         NpcDef {
             x: 7, y: 3, sprite_id: 0, facing: Direction::Down,
-            dialogue: &["CLAIR is tough!", "Dragon-types are", "hard to beat."],
+            dialogue: &["CLAIR is the toughest", "GYM LEADER in JOHTO!", "Her DRAGON types are", "nearly unbeatable."],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
         // NPC 1: Girl near center
         NpcDef {
             x: 6, y: 6, sprite_id: 1, facing: Direction::Down,
-            dialogue: &["BLACKTHORN is high", "up in the mountains."],
+            dialogue: &["BLACKTHORN CITY is", "home to the DRAGON", "masters. Beat CLAIR", "and earn the last", "JOHTO badge!"],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
         // NPC 2: Move Tutor NPC
         NpcDef {
             x: 12, y: 7, sprite_id: 0, facing: Direction::Left,
-            dialogue: &["I know special moves.", "Come back anytime!"],
+            dialogue: &["I can teach your", "POKEMON special moves.", "Come back anytime!"],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
@@ -6913,6 +6993,12 @@ fn build_route_46() -> MapData {
             dialogue: &["This route is a", "great shortcut!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: TEDDIURSA, level: 27 }, TrainerPokemon { species_id: RATICATE, level: 27 }],
+        },
+        // NPC 3: Hint about connecting to Route 29
+        NpcDef {
+            x: 6, y: 8, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["This path connects", "all the way back to", "ROUTE 29 and NEW", "BARK TOWN!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
         },
     ];
     let encounters = vec![

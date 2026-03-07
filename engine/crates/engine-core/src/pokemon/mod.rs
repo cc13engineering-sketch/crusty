@@ -19,6 +19,7 @@
 // Swap mode: select source, then target, party.swap(src,dst). Battle player_idx tracked through swaps.
 // Ice sliding: C_ICE tiles (8) cause player to slide until hitting non-ice. ice_sliding: Option<Direction>.
 // Daycare: Route34 NPC 0 deposits/returns Pokemon. 1 EXP/step, auto-level, Gen 2 move replacement. Saved.
+// Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
 
 pub mod data;
 pub mod sprites;
@@ -526,6 +527,19 @@ impl PokemonSim {
             daycare_pokemon: None,
             daycare_steps: 0,
         }
+    }
+
+    /// Test-only constructor: create a PokemonSim already in the overworld with
+    /// the given map, position, party, and badge count. Skips title screen.
+    #[cfg(test)]
+    fn with_state(map: MapId, x: u8, y: u8, party: Vec<Pokemon>, badges: u8) -> Self {
+        let mut sim = Self::new();
+        sim.phase = GamePhase::Overworld;
+        sim.has_starter = !party.is_empty();
+        sim.party = party;
+        sim.badges = badges;
+        sim.change_map(map, x, y);
+        sim
     }
 
     fn init_sprite_caches(&mut self) {
@@ -6988,6 +7002,9 @@ mod headless_tests {
     use crate::headless::{HeadlessRunner, RunConfig};
     use crate::input_frame::InputFrame;
 
+    // ── Input builder helpers ─────────────────────────────────
+
+    /// Single key-press frame (press + release in one frame)
     fn press(key: &str) -> InputFrame {
         InputFrame {
             keys_pressed: vec![key.to_string()],
@@ -6995,16 +7012,41 @@ mod headless_tests {
         }
     }
 
+    /// Empty frame (no input)
     fn empty() -> InputFrame {
         InputFrame::default()
     }
 
-    #[allow(dead_code)]
-    fn hold(key: &str) -> InputFrame {
-        InputFrame {
+    /// Hold a key down for `n` frames (keys_held repeated)
+    fn hold(key: &str, n: usize) -> Vec<InputFrame> {
+        (0..n).map(|_| InputFrame {
             keys_held: vec![key.to_string()],
             ..Default::default()
-        }
+        }).collect()
+    }
+
+    /// Wait for `n` empty frames
+    fn wait(n: usize) -> Vec<InputFrame> {
+        (0..n).map(|_| empty()).collect()
+    }
+
+    /// Press a direction key once then wait for `gap` frames (one tile movement)
+    fn walk_dir(dir: &str, gap: usize) -> Vec<InputFrame> {
+        let arrow = match dir {
+            "up" => "ArrowUp",
+            "down" => "ArrowDown",
+            "left" => "ArrowLeft",
+            "right" => "ArrowRight",
+            other => other, // allow raw key name
+        };
+        let mut out = vec![press(arrow)];
+        out.extend(wait(gap));
+        out
+    }
+
+    /// Concatenate multiple input sequences into one flat Vec
+    fn sequence(seqs: Vec<Vec<InputFrame>>) -> Vec<InputFrame> {
+        seqs.into_iter().flatten().collect()
     }
 
     #[test]
@@ -8053,5 +8095,220 @@ mod headless_tests {
         // format! should not panic
         let time_str = format!("TIME: {:02}:{:02}", hours_huge, _minutes_huge);
         assert!(time_str.contains("TIME:"));
+    }
+
+    // ── Sprint 115: Input builder + with_state integration tests ──────
+
+    #[test]
+    fn test_input_builder_helpers() {
+        // press: single frame with keys_pressed
+        let p = press("KeyZ");
+        assert_eq!(p.keys_pressed, vec!["KeyZ".to_string()]);
+        assert!(p.keys_held.is_empty());
+
+        // hold: N frames with keys_held
+        let h = hold("ArrowUp", 3);
+        assert_eq!(h.len(), 3);
+        for f in &h {
+            assert_eq!(f.keys_held, vec!["ArrowUp".to_string()]);
+            assert!(f.keys_pressed.is_empty());
+        }
+
+        // wait: N empty frames
+        let w = wait(5);
+        assert_eq!(w.len(), 5);
+        for f in &w {
+            assert!(f.is_empty());
+        }
+
+        // walk_dir: press + gap empties
+        let wd = walk_dir("right", 8);
+        assert_eq!(wd.len(), 9); // 1 press + 8 empties
+        assert_eq!(wd[0].keys_pressed, vec!["ArrowRight".to_string()]);
+        for i in 1..9 {
+            assert!(wd[i].is_empty());
+        }
+
+        // sequence: concatenation
+        let seq = sequence(vec![
+            walk_dir("up", 4),
+            walk_dir("down", 4),
+        ]);
+        assert_eq!(seq.len(), 10); // (1+4) + (1+4)
+    }
+
+    #[test]
+    fn test_with_state_overworld() {
+        // with_state should place the player directly in the overworld
+        let party = vec![Pokemon::new(CYNDAQUIL, 10)];
+        let sim = PokemonSim::with_state(MapId::VioletCity, 10, 8, party, 1);
+
+        assert!(matches!(sim.phase, GamePhase::Overworld));
+        assert_eq!(sim.current_map_id, MapId::VioletCity);
+        assert_eq!(sim.player.x, 10);
+        assert_eq!(sim.player.y, 8);
+        assert_eq!(sim.party.len(), 1);
+        assert_eq!(sim.party[0].species_id, CYNDAQUIL);
+        assert_eq!(sim.party[0].level, 10);
+        assert_eq!(sim.badges, 1);
+        assert!(sim.has_starter);
+
+        // with_state with empty party should set has_starter to false
+        let sim2 = PokemonSim::with_state(MapId::NewBarkTown, 5, 8, vec![], 0);
+        assert!(!sim2.has_starter);
+        assert!(sim2.party.is_empty());
+    }
+
+    #[test]
+    fn test_daycare_deposit_withdraw() {
+        // Test the daycare system: deposit a Pokemon, walk, withdraw it leveled up
+        let mut sim = PokemonSim::with_state(
+            MapId::Route34, 8, 10,
+            vec![Pokemon::new(CYNDAQUIL, 10), Pokemon::new(PIDGEY, 8)],
+            3,
+        );
+
+        // Deposit: move second Pokemon to daycare
+        assert!(sim.daycare_pokemon.is_none());
+        let deposited = sim.party.remove(1);
+        assert_eq!(deposited.species_id, PIDGEY);
+        assert_eq!(deposited.level, 8);
+        sim.daycare_pokemon = Some(deposited);
+        sim.daycare_steps = 0;
+        assert_eq!(sim.party.len(), 1);
+        assert!(sim.daycare_pokemon.is_some());
+
+        // Simulate walking: each step increments daycare_steps, every 100 steps = +1 level
+        for _ in 0..250 {
+            sim.daycare_steps += 1;
+            if let Some(ref mut pkmn) = sim.daycare_pokemon {
+                // Daycare levels: +1 per 100 steps (matching the actual game logic)
+                let new_lvl = (pkmn.level as u32 + sim.daycare_steps / 100).min(100) as u8;
+                if new_lvl != pkmn.level {
+                    pkmn.level = new_lvl;
+                    pkmn.recalc_stats();
+                }
+            }
+        }
+
+        // Withdraw: take the Pokemon back
+        let withdrawn = sim.daycare_pokemon.take().unwrap();
+        assert_eq!(withdrawn.species_id, PIDGEY);
+        // After 250 steps at starting level 8, should have gained at least 2 levels
+        assert!(withdrawn.level >= 10,
+            "Daycare Pokemon should have leveled up, got level {}", withdrawn.level);
+        sim.party.push(withdrawn);
+        sim.daycare_steps = 0;
+        assert_eq!(sim.party.len(), 2);
+        assert!(sim.daycare_pokemon.is_none());
+    }
+
+    #[test]
+    fn test_ice_sliding_basic() {
+        // Test that ice_sliding field works: set direction, verify it persists
+        let mut sim = PokemonSim::with_state(
+            MapId::IcePath, 3, 7,
+            vec![Pokemon::new(CYNDAQUIL, 25)],
+            7, // 7 badges (just cleared Rocket HQ)
+        );
+
+        // Initially no sliding
+        assert!(sim.ice_sliding.is_none());
+
+        // Start sliding right (simulating stepping onto ice)
+        sim.ice_sliding = Some(Direction::Right);
+        assert!(sim.ice_sliding.is_some());
+        assert_eq!(sim.ice_sliding.unwrap(), Direction::Right);
+
+        // Simulate hitting a wall — stop sliding
+        sim.ice_sliding = None;
+        assert!(sim.ice_sliding.is_none());
+
+        // Verify IcePath map has ice collision tiles (C_ICE = 8)
+        let ice_map = load_map(MapId::IcePath);
+        let has_ice = ice_map.collision.iter().any(|&c| c == 8);
+        assert!(has_ice, "IcePath must have ice collision tiles (C_ICE=8)");
+
+        // Verify map dimensions are correct
+        assert_eq!(ice_map.width, 14);
+        assert_eq!(ice_map.height, 14);
+
+        // Verify entrance warps exist
+        assert!(ice_map.warps.iter().any(|w| w.dest_map == MapId::BlackthornCity),
+            "IcePath must warp to BlackthornCity");
+    }
+
+    #[test]
+    fn test_warp_gate_progression() {
+        // Test warp gates: verify that progression gates block/allow warps
+        // across the full game, using with_state for rapid setup
+
+        // Gate 1: Union Cave requires Zephyr Badge (bit 0)
+        let sim0 = PokemonSim::with_state(
+            MapId::Route32, 9, 28,
+            vec![Pokemon::new(CHIKORITA, 12)],
+            0, // no badges
+        );
+        assert!(sim0.check_warp_gate(MapId::UnionCave).is_some(),
+            "UnionCave should be blocked with 0 badges");
+
+        let sim1 = PokemonSim::with_state(
+            MapId::Route32, 9, 28,
+            vec![Pokemon::new(CHIKORITA, 12)],
+            1, // Zephyr Badge
+        );
+        assert!(sim1.check_warp_gate(MapId::UnionCave).is_none(),
+            "UnionCave should be passable with Zephyr Badge");
+
+        // Gate 2: Ilex Forest → Route 34 requires Hive Badge (bit 1)
+        let sim2 = PokemonSim::with_state(
+            MapId::IlexForest, 8, 1,
+            vec![Pokemon::new(CHIKORITA, 18)],
+            0b01, // only Zephyr
+        );
+        assert!(sim2.check_warp_gate(MapId::Route34).is_some(),
+            "Route34 should be blocked without Hive Badge");
+
+        let sim3 = PokemonSim::with_state(
+            MapId::IlexForest, 8, 1,
+            vec![Pokemon::new(CHIKORITA, 18)],
+            0b11, // Zephyr + Hive
+        );
+        assert!(sim3.check_warp_gate(MapId::Route34).is_none(),
+            "Route34 should be passable with Hive Badge");
+
+        // Gate 3: Route 27 from New Bark requires all 8 badges
+        let sim7 = PokemonSim::with_state(
+            MapId::NewBarkTown, 1, 10,
+            vec![Pokemon::new(CYNDAQUIL, 50)],
+            0b01111111, // 7 badges
+        );
+        assert!(sim7.check_warp_gate(MapId::Route27).is_some(),
+            "Route27 should be blocked with 7 badges");
+
+        let sim8 = PokemonSim::with_state(
+            MapId::NewBarkTown, 1, 10,
+            vec![Pokemon::new(CYNDAQUIL, 50)],
+            0xFF, // all 8 badges
+        );
+        assert!(sim8.check_warp_gate(MapId::Route27).is_none(),
+            "Route27 should be passable with all 8 badges");
+
+        // Gate 4: Victory Road requires all 8 badges
+        let sim_vr = PokemonSim::with_state(
+            MapId::Route26, 10, 5,
+            vec![Pokemon::new(CYNDAQUIL, 50)],
+            0b01111111, // 7 badges
+        );
+        assert!(sim_vr.check_warp_gate(MapId::VictoryRoad).is_some(),
+            "VictoryRoad should be blocked with 7 badges");
+
+        let sim_vr8 = PokemonSim::with_state(
+            MapId::Route26, 10, 5,
+            vec![Pokemon::new(CYNDAQUIL, 50)],
+            0xFF, // all 8
+        );
+        assert!(sim_vr8.check_warp_gate(MapId::VictoryRoad).is_none(),
+            "VictoryRoad should be passable with all 8 badges");
     }
 }

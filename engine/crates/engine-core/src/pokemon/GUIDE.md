@@ -3271,3 +3271,54 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 
 #### Files Changed
 - `mod.rs` — trainer_name_for() helper, BattleState.trainer_name field, defeat/switch text updates, test
+
+---
+
+### Sprint 140 — QA Audit: Sprints 138-139 + Full Verification
+
+#### Audit Results
+
+**Sprint 138 Verification**
+- Whitney crying mechanic: FLAG_WHITNEY_CRYING set on defeat, badge gated behind Lass NPC 1
+- Whitney NPC 0 crying dialogue ("WAAAAAH!") verified, on_complete=None (no badge)
+- Lass NPC 1 dialogue chains to DialogueAction::GiveBadge { badge_num: 2 }
+- Whitney crying test passing (test_whitney_crying_mechanic)
+
+**Sprint 139 Verification**
+- trainer_name_for() returns correct names for all 8 gym leaders, 4 E4, Champion, and special trainers
+- Defeat text uses `battle.trainer_name` (format!("{} was defeated!", ...))
+- TrainerSwitchPrompt uses trainer name with fallback to "Foe" for wild
+- All BattleState constructors correctly initialize trainer_name field
+- Champion Lance handler uses same system for consistency
+
+**Map Transition Audit**
+- MapFadeOut/MapFadeIn: verified all warp transitions use 0.25s fade (lines 7878-7900)
+- WhiteoutFade: verified money loss + teleport to PokeCenter (line 7960)
+- EncounterTransition: flash effect before wild/trainer battles (line 8007)
+- GenericHouse exit: stores exact door coordinates, exits 1 tile below entry (lines 795-800)
+
+**Critical Path Connectivity**
+- NewBarkTown → Route29 → CherrygroveCity → Route30 verified (test_warp_connectivity)
+- All interior maps (PlayerHouse, ElmLab, PokemonCenter) exit correctly (test_interior_maps_exit_correctly)
+- All 8 gym maps exist with NPC 0 as trainer with proper team
+- All warp gate progression tests pass (Union Cave→Zephyr, Route34→Hive, MahoganyGym→Rocket, OlivineGym→Medicine, Route27→8 badges, VictoryRoad→8 badges)
+- E4 chain: Will → Koga → Bruno → Karen → Champion Lance all connected
+
+**Known P2 Issues (not blocking)**
+- Falkner uses Pidgey L9 instead of Pidgeotto L9 (species not yet in data.rs)
+- Generic route trainers show "Trainer" instead of class+name (e.g., "BUGCATCHER WADE")
+
+#### Regression Check
+- **1371 tests passing** (up from 1369 at Sprint 137)
+- **0 compiler warnings**
+- No P0 or P1 bugs found
+
+#### Bugs Found
+| ID | Severity | Description | Status |
+|----|----------|-------------|--------|
+| Q3 | P2 | Falkner's Pidgeotto L9 is Pidgey (species missing) | Deferred |
+| Q4 | P2 | Route trainers show generic "Trainer" name | Deferred |
+
+#### Test Results
+- **1371 tests passing** (0 failures)
+- **0 compiler warnings**

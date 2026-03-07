@@ -169,6 +169,7 @@ const MART_INVENTORY: [(u8, u16); 9] = [
 
 // ─── Battle Constants ───────────────────────────────────
 const CRIT_CHANCE: u64 = 16; // 1/16 base crit rate (Gen 2)
+const CRIT_CHANCE_HIGH: u64 = 4; // 1/4 crit rate for high-crit moves (Slash, Crabhammer, etc.)
 const PARALYSIS_SKIP_CHANCE: f64 = 0.25; // 25% chance to be fully paralyzed
 const DAMAGE_ROLL_MIN: f64 = 0.85;
 const DAMAGE_ROLL_RANGE: f64 = 0.15;
@@ -373,6 +374,12 @@ fn two_turn_charge_msg(move_id: MoveId, user_name: &str) -> Option<String> {
         MOVE_SKY_ATTACK => Some(format!("{} is glowing!", user_name)),
         _ => None,
     }
+}
+
+/// Returns true if this move has a high critical hit rate (1/4 instead of 1/16).
+/// Gen 2: Karate Chop, Razor Leaf, Crabhammer, Slash, Cross Chop
+fn is_high_crit_move(move_id: MoveId) -> bool {
+    matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_LEAF | MOVE_SLASH | MOVE_CROSS_CHOP)
 }
 
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
@@ -3135,8 +3142,9 @@ impl PokemonSim {
                         }
                     } else { true };
 
-                    // Calc player damage (1/16 crit chance, Gen 2)
-                    let p_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+                    // Calc player damage (1/16 base crit, 1/4 for high-crit moves)
+                    let crit_denom = if is_high_crit_move(move_id) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+                    let p_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
                     let (p_damage, p_eff) = if !accuracy_ok {
                         (0, 1.0)
                     } else if let Some(move_data) = get_move(move_id) {
@@ -4599,20 +4607,24 @@ impl PokemonSim {
 
         // If forced (rampage), use that move
         let mid = if let Some(fm) = forced_move { fm } else
-        // Smart AI: 50% chance to pick best move by effectiveness, 50% random
+        // Smart AI: 75% chance to pick best move, 25% random
         if let Some(pp) = self.party.get(player_idx) {
             let sp = get_species(pp.species_id);
             let dt1 = sp.map(|s| s.type1).unwrap_or(PokemonType::Normal);
             let dt2 = sp.and_then(|s| s.type2);
-            let use_smart = engine.rng.next_u64() % 2 == 0;
+            let use_smart = engine.rng.next_u64() % 4 != 0; // 75% smart
             if use_smart {
-                // Pick the move with highest effectiveness (ties broken by power)
+                // Pick the move with highest score: effectiveness * power * STAB bonus
+                let enemy_sp = get_species(enemy.species_id);
+                let e_type1 = enemy_sp.map(|s| s.type1).unwrap_or(PokemonType::Normal);
+                let e_type2 = enemy_sp.and_then(|s| s.type2);
                 let mut best = available[0];
                 let mut best_score = 0.0_f64;
                 for &m in &available {
                     if let Some(md) = get_move(m) {
                         let eff = combined_effectiveness(md.move_type, dt1, dt2);
-                        let score = eff * md.power as f64;
+                        let stab = if md.move_type == e_type1 || e_type2 == Some(md.move_type) { 1.5 } else { 1.0 };
+                        let score = eff * md.power as f64 * stab;
                         if score > best_score {
                             best_score = score;
                             best = m;
@@ -4644,7 +4656,8 @@ impl PokemonSim {
             }
         } else { true };
 
-        let is_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+        let crit_d = if is_high_crit_move(mid) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+        let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_d) == 0;
         if !accuracy_ok {
             (mid, 0, 1.0, false) // miss — zero damage
         } else if let (Some(md), Some(pp)) = (get_move(mid), self.party.get(player_idx)) {
@@ -4688,7 +4701,8 @@ impl PokemonSim {
                 if effective_acc >= 100.0 { true } else { (engine.rng.next_u64() % 100) < effective_acc as u64 }
             }
         } else { true };
-        let is_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+        let crit_denom = if is_high_crit_move(move_id) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+        let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
         if !accuracy_ok {
             return (0, 1.0, false);
         }
@@ -11808,5 +11822,25 @@ mod headless_tests {
         let mankey = get_species(MANKEY).expect("Mankey");
         assert_eq!(mankey.evolution_level, Some(28));
         assert_eq!(mankey.evolution_into, Some(PRIMEAPE));
+    }
+
+    #[test]
+    fn test_sprint148_high_crit_moves() {
+        // High-crit moves should be identified
+        assert!(is_high_crit_move(MOVE_SLASH));
+        assert!(is_high_crit_move(MOVE_KARATE_CHOP));
+        assert!(is_high_crit_move(MOVE_RAZOR_LEAF));
+        assert!(is_high_crit_move(MOVE_CROSS_CHOP));
+        // Normal moves should not be high-crit
+        assert!(!is_high_crit_move(MOVE_TACKLE));
+        assert!(!is_high_crit_move(MOVE_THUNDERBOLT));
+        assert!(!is_high_crit_move(MOVE_SURF));
+    }
+
+    #[test]
+    fn test_sprint148_crit_chance_constants() {
+        // Base crit: 1/16, high-crit: 1/4
+        assert_eq!(CRIT_CHANCE, 16);
+        assert_eq!(CRIT_CHANCE_HIGH, 4);
     }
 }

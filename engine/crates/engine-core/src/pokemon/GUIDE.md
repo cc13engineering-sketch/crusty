@@ -3575,3 +3575,28 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - **1385 tests passing** (+2 new, 0 failures, 0 warnings)
 - `test_sprint147_new_species_data` — all 5 species have correct base stats
 - `test_sprint147_evolution_links` — all 6 evolution chains correctly linked
+
+---
+
+### Sprint 148 — Battle AI Improvements + Critical Hit Moves (Content)
+
+#### High-Crit Moves
+- Added `CRIT_CHANCE_HIGH: u64 = 4` constant (1-in-4 vs base 1-in-16)
+- Added `is_high_crit_move()` matching pokecrystal `data/moves/critical_hit_moves.asm`:
+  Karate Chop, Razor Leaf, Slash, Cross Chop
+- Updated all 3 crit-check locations (player damage, enemy damage, charge damage) to use
+  high-crit rate for matching moves
+
+#### Enemy AI Improvement
+- Increased smart move selection from 50% to 75% (3/4 chance)
+- Added STAB bonus to AI scoring: `score = effectiveness * power * stab`
+- AI now considers own types when evaluating move quality
+
+#### pokecrystal References
+- `data/moves/critical_hit_moves.asm` — high-crit move list
+- `engine/battle/core.asm` — crit rate mechanics
+
+#### Test Results
+- **1387 tests passing** (+2 new, 0 failures, 0 warnings)
+- `test_sprint148_high_crit_moves` — verifies is_high_crit_move for all 4 moves + non-crit moves
+- `test_sprint148_crit_chance_constants` — verifies CRIT_CHANCE=16, CRIT_CHANCE_HIGH=4

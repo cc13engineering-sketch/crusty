@@ -147,6 +147,9 @@ const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine to Amphy at 
 const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
 const FLAG_SQUIRTBOTTLE: u64    = 1 << 10; // Got Squirtbottle from Flower Shop
 const FLAG_SPROUT_RIVAL: u64   = 1 << 11; // Rival confrontation at Sprout Tower 3F
+const FLAG_SLOWPOKE_WELL: u64  = 1 << 12; // Cleared Slowpoke Well (defeated all Rockets)
+const FLAG_BURNED_TOWER_RIVAL: u64 = 1 << 13; // Fought rival at Burned Tower 1F
+const FLAG_BEASTS_RELEASED: u64 = 1 << 14; // Released legendary beasts from Burned Tower B1F
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -504,6 +507,14 @@ impl PokemonSim {
         }
         // Lake of Rage Red Gyarados NPC (index 3) hidden after event
         if self.current_map_id == MapId::LakeOfRage && npc_idx == 3 && self.has_flag(FLAG_RED_GYARADOS) {
+            return false;
+        }
+        // Slowpoke Well B1F: hide Rocket Grunts (NPCs 0-3) and Kurt/Slowpokes (4-6) after clearing
+        if self.current_map_id == MapId::SlowpokeWellB1F && npc_idx <= 6 && self.has_flag(FLAG_SLOWPOKE_WELL) {
+            return false;
+        }
+        // Burned Tower B1F: Eusine (NPC 0) only visible after beasts released
+        if self.current_map_id == MapId::BurnedTowerB1F && npc_idx == 0 && !self.has_flag(FLAG_BEASTS_RELEASED) {
             return false;
         }
         true
@@ -1310,6 +1321,87 @@ impl PokemonSim {
         false
     }
 
+    /// Burned Tower 1F: Rival Silver battle trigger.
+    /// Per pokecrystal: Rival has Gastly Lv12, Zubat Lv14, + starter evolution Lv16.
+    /// Triggers when player enters the center area (y <= 7) without FLAG_BURNED_TOWER_RIVAL.
+    fn check_burned_tower_rival(&mut self) -> bool {
+        if self.current_map_id == MapId::BurnedTower
+            && !self.has_flag(FLAG_BURNED_TOWER_RIVAL)
+            && self.rival_starter > 0
+            && self.player.y <= 7
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_BURNED_TOWER_RIVAL);
+            // Per pokecrystal: Rival team depends on player's starter choice
+            // If player chose Totodile -> rival has Chikorita line (Bayleef Lv16)
+            // If player chose Chikorita -> rival has Cyndaquil line (Quilava Lv16)
+            // If player chose Cyndaquil -> rival has Totodile line (Croconaw Lv16)
+            let rival_evo = match self.rival_starter {
+                CHIKORITA => BAYLEEF,
+                CYNDAQUIL => QUILAVA,
+                TOTODILE => CROCONAW,
+                _ => QUILAVA,
+            };
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "RIVAL: ...Oh, it's".to_string(),
+                    "you.".to_string(),
+                    "I came looking for".to_string(),
+                    "some legendary".to_string(),
+                    "POKEMON that they".to_string(),
+                    "say roosts here.".to_string(),
+                    "But there's nothing!".to_string(),
+                    "It's all your fault!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::StartTrainerBattle {
+                    team: vec![
+                        (GASTLY, 12),
+                        (ZUBAT, 14),
+                        (rival_evo, 16),
+                    ],
+                },
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
+    }
+
+    /// Burned Tower B1F: Legendary beast encounter event.
+    /// When player approaches beasts (y <= 5), they flee and become roaming.
+    /// Sets FLAG_BEASTS_RELEASED. One-time event.
+    fn check_beasts_released(&mut self) -> bool {
+        if self.current_map_id == MapId::BurnedTowerB1F
+            && !self.has_flag(FLAG_BEASTS_RELEASED)
+            && self.player.y <= 5
+            && !self.party.is_empty()
+        {
+            self.set_flag(FLAG_BEASTS_RELEASED);
+            self.dialogue = Some(DialogueState {
+                lines: vec![
+                    "The ground shakes!".to_string(),
+                    "Three POKEMON awaken!".to_string(),
+                    "RAIKOU springs up".to_string(),
+                    "and races away!".to_string(),
+                    "ENTEI leaps to its".to_string(),
+                    "feet and dashes off!".to_string(),
+                    "SUICUNE gazes at you".to_string(),
+                    "briefly, then bolts!".to_string(),
+                    "The three legendary".to_string(),
+                    "beasts have been".to_string(),
+                    "released into the".to_string(),
+                    "wild!".to_string(),
+                ],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            self.phase = GamePhase::Dialogue;
+            return true;
+        }
+        false
+    }
+
     // ─── Overworld Logic ───────────────────────────────
 
     fn step_overworld(&mut self, engine: &mut Engine) {
@@ -1625,6 +1717,8 @@ impl PokemonSim {
                 if self.check_sprout_tower_elder() { return; }
                 if self.check_red_gyarados(engine) { return; }
                 if self.check_sudowoodo(engine) { return; }
+                if self.check_burned_tower_rival() { return; }
+                if self.check_beasts_released() { return; }
 
                 // Check trainer line-of-sight (5 tiles in their facing direction)
                 if self.los_suppress > 0 {
@@ -3666,6 +3760,11 @@ impl PokemonSim {
                                     self.set_flag(FLAG_ROCKET_MAHOGANY);
                                 }
 
+                                // Slowpoke Well executive (NPC 3): clearing all rockets
+                                if map_id == MapId::SlowpokeWellB1F && npc_idx == 3 {
+                                    self.set_flag(FLAG_SLOWPOKE_WELL);
+                                }
+
                                 let mut lines = vec![
                                     "Trainer was defeated!".to_string(),
                                     format!("Got ${} for winning!", reward),
@@ -3673,6 +3772,13 @@ impl PokemonSim {
                                 if map_id == MapId::RocketHQ && npc_idx == 4 {
                                     lines.push("The ROCKET HQ has".to_string());
                                     lines.push("been shut down!".to_string());
+                                }
+                                if map_id == MapId::SlowpokeWellB1F && npc_idx == 3 {
+                                    lines.push("KURT: Way to go!".to_string());
+                                    lines.push("TEAM ROCKET has".to_string());
+                                    lines.push("taken off!".to_string());
+                                    lines.push("My back's better too.".to_string());
+                                    lines.push("Let's get out of here!".to_string());
                                 }
                                 self.dialogue = Some(DialogueState {
                                     lines,

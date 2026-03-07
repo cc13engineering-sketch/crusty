@@ -2402,3 +2402,71 @@ Added `test_step_queue(battle, party, engine)` helper that creates a temporary P
 - `mod.rs` -- Added 5 new tests in headless_tests module (Sprint 125 QA Tests section)
 
 **Test Results**: All 1356 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+---
+
+### Sprint 126: Slowpoke Well (2 floors + Rocket event) + Burned Tower B1F (beast encounter)
+
+**Completed**: All items below fully implemented, cargo check clean, all 1361 tests pass.
+
+#### Part 1: Slowpoke Well
+
+**SlowpokeWellB1F (16x16)** -- New cave dungeon under Azalea Town:
+- 4 Team Rocket trainers (all verified against pokecrystal-master/data/trainers/parties.asm):
+  - NPC 0: Rocket Grunt (GRUNTM_29): Rattata Lv9 x2
+  - NPC 1: Rocket Grunt F (GRUNTF_1): Zubat Lv9 + Ekans Lv11
+  - NPC 2: Rocket Grunt (GRUNTM_2): Rattata Lv7 + Zubat Lv9 x2
+  - NPC 3: Rocket Executive (GRUNTM_1): Koffing Lv14 -- defeating him sets FLAG_SLOWPOKE_WELL
+- NPC 4: Kurt (story NPC, dialogue from pokecrystal)
+- NPCs 5-6: Slowpokes with cut tails (flavor text from pokecrystal)
+- FLAG_SLOWPOKE_WELL (bit 12): hides all 7 NPCs (rockets + Kurt + Slowpokes) after clearing
+- Kurt congratulation dialogue plays after defeating executive
+- Wild encounters: Zubat Lv5-8 (50%), Slowpoke Lv6-8 (35%), Zubat Lv7-8 (15%)
+- Water encounters: Slowpoke Lv15-20 (per pokecrystal)
+- Water tiles in center passage (requires Surf for B2F access)
+
+**SlowpokeWellB2F (14x12)** -- Optional lower floor:
+- NPC: Researcher who gives King's Rock (per pokecrystal)
+- Wild encounters: Zubat Lv19-23, Slowpoke Lv21-23, Golbat Lv23 (all per pokecrystal)
+- Water encounters: Slowpoke + Slowbro (per pokecrystal)
+- Ladder warp back to B1F
+
+**Azalea Town changes**:
+- Added Slowpoke Well entrance at (14, 3) with DOOR tile + C_WARP collision
+- Warp to SlowpokeWellB1F (9, 13) -- validated to land on C_WALK
+
+#### Part 2: Burned Tower Completion
+
+**Burned Tower 1F changes**:
+- Removed old NPC 1 (Rival as trainer) -- rival battle now handled by event flag system
+- Added NPC 1: Morty (observing, non-trainer, wanders, dialogue from pokecrystal)
+- Updated NPC 0: Eusine with accurate dialogue from pokecrystal
+- Added warp at (7, 6) to BurnedTowerB1F -- hole/ladder to basement
+- FLAG_BURNED_TOWER_RIVAL (bit 13): triggers at y<=7 when rival_starter>0
+- Rival team per pokecrystal (RIVAL1_3_*): Gastly Lv12, Zubat Lv14, + starter evo Lv16
+  - Player chose Totodile -> rival has Bayleef Lv16
+  - Player chose Chikorita -> rival has Quilava Lv16
+  - Player chose Cyndaquil -> rival has Croconaw Lv16
+
+**BurnedTowerB1F (14x14)** -- New basement floor:
+- FLAG_BEASTS_RELEASED (bit 14): triggers at y<=5, one-time event
+- Beast encounter dialogue: Raikou, Entei, Suicune awaken and flee
+- NPC 0: Eusine (only visible after beasts released, gated by is_npc_active)
+- Eusine dialogue from pokecrystal: excited about seeing Suicune
+- Ladder warp back to 1F at (7, 12)
+- Wild encounters: Koffing Lv12-16, Rattata Lv14, Zubat Lv15, Weezing Lv16, Raticate Lv14-16
+
+#### New Story Flags
+- `FLAG_SLOWPOKE_WELL` (1 << 12) -- Cleared Slowpoke Well
+- `FLAG_BURNED_TOWER_RIVAL` (1 << 13) -- Fought rival at Burned Tower 1F
+- `FLAG_BEASTS_RELEASED` (1 << 14) -- Released legendary beasts
+
+#### New Species Constants (maps.rs)
+- `EKANS: u16 = 23`
+- `WEEZING: u16 = 110`
+
+#### Files Changed
+- `maps.rs` -- 3 new MapId variants, 3 new map builder functions, AzaleaTown warp/tile edits, BurnedTower warp/collision edits, updated warp validation and NPC-on-walkable test lists
+- `mod.rs` -- 3 new flags, 2 new event checks (check_burned_tower_rival, check_beasts_released), NPC gating for Slowpoke Well + Burned Tower B1F, Slowpoke Well clear event on trainer defeat
+
+**Test Results**: All 1361 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.

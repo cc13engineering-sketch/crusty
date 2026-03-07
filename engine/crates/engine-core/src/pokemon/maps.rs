@@ -121,6 +121,8 @@ const URSARING: u16 = 217;
 const MACHAMP: u16 = 68;
 const UMBREON: u16 = 197;
 const SHELLDER: u16 = 90;
+const EKANS: u16 = 23;
+const WEEZING: u16 = 110;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -228,6 +230,9 @@ pub enum MapId {
     EliteFourKaren,
     ChampionLance,
     RocketHQ,
+    SlowpokeWellB1F,
+    SlowpokeWellB2F,
+    BurnedTowerB1F,
 }
 
 impl MapId {
@@ -293,6 +298,9 @@ impl MapId {
             "EliteFourKaren" => Some(MapId::EliteFourKaren),
             "ChampionLance" => Some(MapId::ChampionLance),
             "RocketHQ" => Some(MapId::RocketHQ),
+            "SlowpokeWellB1F" => Some(MapId::SlowpokeWellB1F),
+            "SlowpokeWellB2F" => Some(MapId::SlowpokeWellB2F),
+            "BurnedTowerB1F" => Some(MapId::BurnedTowerB1F),
             _ => None,
         }
     }
@@ -359,6 +367,9 @@ impl MapId {
             MapId::EliteFourKaren => "EliteFourKaren",
             MapId::ChampionLance => "ChampionLance",
             MapId::RocketHQ => "RocketHQ",
+            MapId::SlowpokeWellB1F => "SlowpokeWellB1F",
+            MapId::SlowpokeWellB2F => "SlowpokeWellB2F",
+            MapId::BurnedTowerB1F => "BurnedTowerB1F",
         }
     }
 }
@@ -517,6 +528,9 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::EliteFourKaren => build_elite_four_karen(),
         MapId::ChampionLance => build_champion_lance(),
         MapId::RocketHQ => build_rocket_hq(),
+        MapId::SlowpokeWellB1F => build_slowpoke_well_b1f(),
+        MapId::SlowpokeWellB2F => build_slowpoke_well_b2f(),
+        MapId::BurnedTowerB1F => build_burned_tower_b1f(),
     }
 }
 
@@ -3448,9 +3462,9 @@ fn build_azalea_town() -> MapData {
         // Row 2: grass + building roofs
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        // Row 3: grass + Kurt's house wall
+        // Row 3: grass + Kurt's house wall + Slowpoke Well entrance
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
-        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,DOOR,GRASS,GRASS,GRASS,GRASS,GRASS,
         // Row 4: grass + Kurt's house door
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
@@ -3506,9 +3520,9 @@ fn build_azalea_town() -> MapData {
         // Row 2: building roof solid
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 3: building wall solid
+        // Row 3: building wall solid + Slowpoke Well entrance warp
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 4: Kurt's door
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
@@ -3570,6 +3584,8 @@ fn build_azalea_town() -> MapData {
         // Northeast exit -> Ilex Forest (south)
         WarpData { x: 17, y: 0, dest_map: MapId::IlexForest, dest_x: 3, dest_y: 18 },
         WarpData { x: 18, y: 0, dest_map: MapId::IlexForest, dest_x: 4, dest_y: 18 },
+        // Slowpoke Well entrance (northwest grass area)
+        WarpData { x: 14, y: 3, dest_map: MapId::SlowpokeWellB1F, dest_x: 9, dest_y: 13 },
     ];
 
     let npcs = vec![
@@ -5249,8 +5265,8 @@ fn build_burned_tower() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 5: holes (solid)
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 6
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6: hole to B1F at position 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 7: more holes
         C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 8
@@ -5273,38 +5289,38 @@ fn build_burned_tower() -> MapData {
     let warps = vec![
         // Exit → Ecruteak City
         WarpData { x: 7, y: 12, dest_map: MapId::EcruteakCity, dest_x: 4, dest_y: 5 },
+        // Hole/ladder to B1F (center area — player falls through after rival battle)
+        WarpData { x: 7, y: 6, dest_map: MapId::BurnedTowerB1F, dest_x: 7, dest_y: 8 },
     ];
 
     let npcs = vec![
-        // Eusine
+        // Eusine (NPC 0)
         NpcDef {
             x: 7, y: 4, sprite_id: 3, facing: Direction::Down,
             dialogue: &[
-                "I'm EUSINE.",
-                "I've been chasing",
-                "SUICUNE for ten",
-                "years...",
-                "It's said the three",
-                "legendary beasts",
-                "rest in this tower.",
+                "EUSINE: My name's",
+                "EUSINE.",
+                "I'm on the trail of",
+                "a POKEMON named",
+                "SUICUNE.",
+                "I heard it roosts",
+                "in this BURNED TOWER.",
             ],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
-        // Rival (sprite_id 2 = Youngster placeholder until rival sprite is added)
+        // Morty (NPC 1) — observing, not battling here
         NpcDef {
-            x: 5, y: 6, sprite_id: 2, facing: Direction::Right,
+            x: 10, y: 10, sprite_id: 5, facing: Direction::Left,
             dialogue: &[
-                "...What are YOU",
-                "doing here?",
-                "The legendary POKe-",
-                "MON are mine!",
+                "MORTY: ECRUTEAK's",
+                "GYM LEADER has to",
+                "study the legendary",
+                "POKEMON--SUICUNE,",
+                "ENTEI and RAIKOU.",
             ],
-            is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[
-                TrainerPokemon { species_id: GASTLY, level: 20 },
-                TrainerPokemon { species_id: ZUBAT, level: 20 },
-            ],
+            is_trainer: false, is_mart: false, wanders: true,
+            trainer_team: &[],
         },
     ];
 
@@ -8334,6 +8350,478 @@ fn build_rocket_hq() -> MapData {
     MapData { id: MapId::RocketHQ, name: "ROCKET HQ", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
+// ─── Slowpoke Well B1F (16x16) ────────────────────────────
+// Cave dungeon beneath Azalea Town. Team Rocket grunts cutting Slowpoke tails.
+// Per pokecrystal: 3 male grunts + 1 female grunt, Kurt NPC, 2 Slowpoke NPCs.
+// Encounters: Zubat (Lv5-8), Slowpoke (Lv6-8). Warp to B2F requires Surf.
+fn build_slowpoke_well_b1f() -> MapData {
+    let w: usize = 16;
+    let h: usize = 16;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11: water passage to B2F
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 12
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 14: entrance from Azalea Town
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11: water (needs Surf to cross to B2F)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 14: exit warp back to Azalea Town
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "SlowpokeWellB1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "SlowpokeWellB1F collision count mismatch");
+
+    let warps = vec![
+        // Exit back to Azalea Town
+        WarpData { x: 9, y: 14, dest_map: MapId::AzaleaTown, dest_x: 14, dest_y: 4 },
+    ];
+
+    // Per pokecrystal: GruntM29 (Rattata Lv9 x2), GruntM1 (Koffing Lv14),
+    // GruntM2 (Rattata Lv7, Zubat Lv9, Zubat Lv9), GruntF1 (Zubat Lv9, Ekans Lv11)
+    // GruntM1 is the last grunt — defeating him clears the well.
+    // Kurt and Slowpoke NPCs scattered around.
+    let npcs = vec![
+        // NPC 0: Rocket Grunt M (GruntM29: Rattata Lv9 x2 — per pokecrystal)
+        NpcDef {
+            x: 11, y: 7, sprite_id: 6, facing: Direction::Down,
+            dialogue: &[
+                "ROCKET GRUNT: Some",
+                "old coot yelled at me",
+                "and I fell down here!",
+                "I'll take it out on you!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATTATA, level: 9 },
+                TrainerPokemon { species_id: RATTATA, level: 9 },
+            ],
+        },
+        // NPC 1: Rocket Grunt F (GruntF1: Zubat Lv9, Ekans Lv11 — per pokecrystal)
+        NpcDef {
+            x: 7, y: 4, sprite_id: 6, facing: Direction::Right,
+            dialogue: &[
+                "ROCKET GRUNT: Stop",
+                "taking TAILS? Yeah,",
+                "just try to defeat",
+                "all of us!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ZUBAT, level: 9 },
+                TrainerPokemon { species_id: EKANS, level: 11 },
+            ],
+        },
+        // NPC 2: Rocket Grunt M (GruntM2: Rattata Lv7, Zubat Lv9 x2 — per pokecrystal)
+        NpcDef {
+            x: 4, y: 6, sprite_id: 6, facing: Direction::Right,
+            dialogue: &[
+                "ROCKET GRUNT: Quit",
+                "taking SLOWPOKETAILS?",
+                "If we obeyed you,",
+                "TEAM ROCKET's rep",
+                "would be ruined!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATTATA, level: 7 },
+                TrainerPokemon { species_id: ZUBAT, level: 9 },
+                TrainerPokemon { species_id: ZUBAT, level: 9 },
+            ],
+        },
+        // NPC 3: Rocket Executive (GruntM1: Koffing Lv14 — Proton equivalent, per pokecrystal)
+        // Defeating him clears Slowpoke Well (FLAG_SLOWPOKE_WELL)
+        NpcDef {
+            x: 4, y: 2, sprite_id: 6, facing: Direction::Down,
+            dialogue: &[
+                "ROCKET EXEC: What do",
+                "you want? If you",
+                "interrupt our work,",
+                "don't expect mercy!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: KOFFING, level: 14 },
+            ],
+        },
+        // NPC 4: Kurt (non-trainer, story NPC)
+        NpcDef {
+            x: 12, y: 12, sprite_id: 5, facing: Direction::Up,
+            dialogue: &[
+                "KURT: Hey there!",
+                "The guard up top",
+                "took off when I",
+                "shouted at him.",
+                "But I took a tumble",
+                "down the WELL.",
+                "Please, show those",
+                "ROCKETS how gutsy",
+                "you are!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 5: Slowpoke 1 (tail cut off)
+        NpcDef {
+            x: 6, y: 2, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "A SLOWPOKE with",
+                "its TAIL cut off...",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 6: Slowpoke 2 (tail cut off)
+        NpcDef {
+            x: 10, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "A SLOWPOKE with",
+                "its TAIL cut off...",
+                "It has MAIL.",
+                "Be good and look",
+                "after the house",
+                "with Grandpa.",
+                "Love, Dad",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Zubat Lv5-8, Slowpoke Lv6-8
+    let encounters = vec![
+        EncounterEntry { species_id: ZUBAT, min_level: 5, max_level: 7, weight: 50 },
+        EncounterEntry { species_id: SLOWPOKE, min_level: 6, max_level: 8, weight: 35 },
+        EncounterEntry { species_id: ZUBAT, min_level: 7, max_level: 8, weight: 15 },
+    ];
+
+    MapData {
+        id: MapId::SlowpokeWellB1F,
+        name: "SLOWPOKE WELL B1F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters: vec![],
+        water_encounters: vec![
+            EncounterEntry { species_id: SLOWPOKE, min_level: 15, max_level: 20, weight: 80 },
+            EncounterEntry { species_id: SLOWPOKE, min_level: 10, max_level: 15, weight: 20 },
+        ],
+        music_id: 5, // Team Rocket theme
+    }
+}
+
+// ─── Slowpoke Well B2F (14x12) ────────────────────────────
+// Optional lower floor, accessible only via Surf.
+// Per pokecrystal: Zubat (Lv19-23), Slowpoke (Lv21-23), Golbat (Lv23).
+// Items: Super Potion, TM18 Rain Dance (represented as NPC dialogues).
+// NPC gives King's Rock.
+fn build_slowpoke_well_b2f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 12;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10: exit ladder
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10: exit warp at center
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "SlowpokeWellB2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "SlowpokeWellB2F collision count mismatch");
+
+    let warps = vec![
+        // Ladder back up to B1F
+        WarpData { x: 7, y: 10, dest_map: MapId::SlowpokeWellB1F, dest_x: 7, dest_y: 10 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Researcher (gives King's Rock)
+        NpcDef {
+            x: 5, y: 4, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "I'm waiting to see",
+                "SLOWPOKE's moment",
+                "of evolution.",
+                "A SLOWPOKE with a",
+                "KING'S ROCK often",
+                "gets bitten by a",
+                "SHELLDER.",
+                "Here, take this",
+                "KING'S ROCK!",
+            ],
+            is_trainer: false, is_mart: false, wanders: true,
+            trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Zubat (Lv19-23), Slowpoke (Lv21-23), Golbat (Lv23)
+    let encounters = vec![
+        EncounterEntry { species_id: ZUBAT, min_level: 19, max_level: 23, weight: 40 },
+        EncounterEntry { species_id: SLOWPOKE, min_level: 21, max_level: 23, weight: 35 },
+        EncounterEntry { species_id: GOLBAT, min_level: 23, max_level: 23, weight: 25 },
+    ];
+
+    MapData {
+        id: MapId::SlowpokeWellB2F,
+        name: "SLOWPOKE WELL B2F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters: vec![],
+        water_encounters: vec![
+            EncounterEntry { species_id: SLOWPOKE, min_level: 15, max_level: 20, weight: 70 },
+            EncounterEntry { species_id: SLOWBRO, min_level: 20, max_level: 20, weight: 30 },
+        ],
+        music_id: 5,
+    }
+}
+
+// ─── Burned Tower B1F (14x14) ─────────────────────────────
+// Basement of Burned Tower. Player falls through hole from 1F.
+// Three legendary beasts (Raikou, Entei, Suicune) in a triangle formation.
+// Approaching triggers the beasts to flee (FLAG_BEASTS_RELEASED).
+// Eusine appears after beasts flee.
+fn build_burned_tower_b1f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 2
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 3: beast positions (triangle: Raikou left, Entei right, Suicune center)
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 4: Suicune center spot
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 5
+        BLACK,CAVE_FLOOR,BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,CAVE_FLOOR,BLACK,
+        // Row 6
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 7
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 8: player landing spot from 1F hole
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 9
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 10
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 11
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 12: ladder back up
+        BLACK,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,BLACK,
+        // Row 13
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12: ladder back up to 1F
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "BurnedTowerB1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "BurnedTowerB1F collision count mismatch");
+
+    let warps = vec![
+        // Ladder back up to 1F
+        WarpData { x: 7, y: 12, dest_map: MapId::BurnedTower, dest_x: 7, dest_y: 7 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Eusine (appears after beasts flee)
+        NpcDef {
+            x: 7, y: 10, sprite_id: 3, facing: Direction::Up,
+            dialogue: &[
+                "EUSINE: I was shocked!",
+                "SUICUNE raced by like",
+                "a blur, right in front",
+                "of my eyes!",
+                "For ten years I chased",
+                "SUICUNE, and I finally",
+                "got to see it.",
+                "I'm all choked up!",
+                "I'm going to track",
+                "SUICUNE. Let's meet",
+                "again! Farewell!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Rattata (Lv14), Koffing (Lv14-16), Zubat (Lv15), Weezing (Lv16)
+    let encounters = vec![
+        EncounterEntry { species_id: KOFFING, min_level: 12, max_level: 16, weight: 35 },
+        EncounterEntry { species_id: RATTATA, min_level: 14, max_level: 14, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 15, max_level: 15, weight: 20 },
+        EncounterEntry { species_id: WEEZING, min_level: 16, max_level: 16, weight: 10 },
+        EncounterEntry { species_id: RATICATE, min_level: 14, max_level: 16, weight: 10 },
+    ];
+
+    MapData {
+        id: MapId::BurnedTowerB1F,
+        name: "BURNED TOWER B1F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters: vec![],
+        water_encounters: vec![],
+        music_id: 9,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -8499,7 +8987,7 @@ mod tests {
             MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
             MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
             MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
-            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
+            MapId::EcruteakCity, MapId::BurnedTower, MapId::BurnedTowerB1F, MapId::EcruteakGym,
             MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
             MapId::OlivineLighthouse,
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
@@ -8512,6 +9000,7 @@ mod tests {
             MapId::EliteFourWill, MapId::EliteFourKoga,
             MapId::EliteFourBruno, MapId::EliteFourKaren,
             MapId::ChampionLance,
+            MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -8752,7 +9241,7 @@ mod tests {
             MapId::GenericHouse, MapId::Route33, MapId::AzaleaTown, MapId::AzaleaGym,
             MapId::IlexForest, MapId::Route34, MapId::GoldenrodCity, MapId::GoldenrodGym,
             MapId::Route35, MapId::NationalPark, MapId::Route36, MapId::Route37,
-            MapId::EcruteakCity, MapId::BurnedTower, MapId::EcruteakGym,
+            MapId::EcruteakCity, MapId::BurnedTower, MapId::BurnedTowerB1F, MapId::EcruteakGym,
             MapId::Route38, MapId::Route39, MapId::OlivineCity, MapId::OlivineGym,
             MapId::OlivineLighthouse,
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
@@ -8765,6 +9254,7 @@ mod tests {
             MapId::EliteFourWill, MapId::EliteFourKoga,
             MapId::EliteFourBruno, MapId::EliteFourKaren,
             MapId::ChampionLance,
+            MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

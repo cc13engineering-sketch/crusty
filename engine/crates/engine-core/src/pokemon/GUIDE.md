@@ -1728,4 +1728,9 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Night encounter data** — Routes 29, 30, 31, 38, 39 now have unique night encounter tables: Hoothoot/Noctowl replace Pidgey/Sentret, Gastly/Zubat/Spinarak/Meowth appear at night.
 - **Time integration** — Overworld wild encounter check now passes `is_night` (time < 5 or >= 19) to the encounter roller.
 - All tests pass (1313).
-- **Next (Sprint 108)**: QA sprint.
+
+### Sprint 108 (QA)
+- **Full audit of Sprints 106-107** — Tile art dimensions, night encounter system, species validity, time calculation consistency all verified.
+- **Zero bugs found.** All 19 tile sprites are exactly 256 chars (16x16). Night encounter tables have valid species. `is_night` calculation matches day_night_tint definition. All 59 maps have the night_encounters field.
+- All tests pass. 0 bugs fixed, 0 remaining.
+- **Next (Sprint 109)**: Content sprint.

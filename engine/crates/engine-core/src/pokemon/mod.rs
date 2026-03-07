@@ -270,6 +270,8 @@ struct BattleState {
     pending_learn_moves: Vec<MoveId>,
     // Free switch: next PokemonMenu switch doesn't give enemy a free turn
     free_switch: bool,
+    // Confusion snap-out message to chain before the attack
+    confusion_snapout_msg: Option<String>,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -976,6 +978,7 @@ impl PokemonSim {
                 enemy_rampage: (0, 0),
                 pending_learn_moves: vec![],
                 free_switch: false,
+                confusion_snapout_msg: None,
             });
             self.encounter_flash_count = 0;
             // Skip dialogue — go straight to encounter transition after a brief pause
@@ -1034,6 +1037,7 @@ impl PokemonSim {
                 enemy_rampage: (0, 0),
                 pending_learn_moves: vec![],
                 free_switch: false,
+                confusion_snapout_msg: None,
             });
             self.encounter_flash_count = 0;
             self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -1295,6 +1299,7 @@ impl PokemonSim {
                                 enemy_rampage: (0, 0),
                                 pending_learn_moves: vec![],
                                 free_switch: false,
+                                confusion_snapout_msg: None,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -1614,7 +1619,18 @@ impl PokemonSim {
                         };
                     } else {
                         battle.pending_player_move = Some((rampage_move, p_dmg, p_eff, p_crit));
-                        battle.enemy.try_thaw(engine.rng.next_f64());
+                        let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
+                        if enemy_thawed {
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{}{} thawed out!", prefix, battle.enemy.name()),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                }),
+                            };
+                        } else {
                         let enemy_can_move = battle.enemy.can_move();
                         let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
                         if !enemy_can_move || enemy_paralyzed {
@@ -1638,6 +1654,7 @@ impl PokemonSim {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             };
                         }
+                        } // close enemy_thawed else
                     }
                     self.battle = Some(battle);
                     return;
@@ -1771,17 +1788,14 @@ impl PokemonSim {
                     }
 
                     // Confusion check (Gen 2: 50% self-hit, typeless 40-power Physical attack)
+                    let mut snapout_msg: Option<String> = None;
                     if battle.player_confused > 0 {
                         battle.player_confused -= 1;
                         if battle.player_confused == 0 {
+                            // Snapped out — show text, then continue to attack normally (don't return)
                             let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???").to_string();
-                            battle.phase = BattlePhase::Text {
-                                message: format!("{} snapped out of confusion!", pname),
-                                timer: 0.0,
-                                next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                            };
-                            self.battle = Some(battle);
-                            return;
+                            snapout_msg = Some(format!("{} snapped out of confusion!", pname));
+                            // Fall through to normal attack dispatch
                         }
                         if engine.rng.next_f64() < 0.5 {
                             // Hit self: typeless 40-power physical attack using own stats
@@ -1922,12 +1936,17 @@ impl PokemonSim {
                     if player_speed >= enemy_speed {
                         // Player goes first
                         battle.pending_player_move = None;
-                        battle.phase = BattlePhase::PlayerAttack {
+                        let attack_phase = BattlePhase::PlayerAttack {
                             timer: 0.0, move_id, damage: p_damage, effectiveness: p_eff, is_crit: p_crit, from_pending: false,
                         };
+                        battle.phase = if let Some(sm) = snapout_msg {
+                            BattlePhase::Text { message: sm, timer: 0.0, next_phase: Box::new(attack_phase) }
+                        } else { attack_phase };
                     } else {
                         // Enemy goes first — store player's move for after enemy's turn
                         battle.pending_player_move = Some((move_id, p_damage, p_eff, p_crit));
+                        // Store snapout message to show when pending player move resolves
+                        battle.confusion_snapout_msg = snapout_msg;
                         // Check enemy confusion before their attack
                         if battle.enemy_confused > 0 {
                             battle.enemy_confused -= 1;
@@ -2095,6 +2114,14 @@ impl PokemonSim {
                         follow_msgs.push(format!("Hit {} times!", num_hits));
                     }
 
+                    // Prepend confusion snapout text if player snapped out this turn (from_pending)
+                    let msg = if from_pending {
+                        if let Some(sm) = battle.confusion_snapout_msg.take() {
+                            follow_msgs.insert(0, msg);
+                            sm
+                        } else { msg }
+                    } else { msg };
+
                     // Apply stat stage effects for player's status moves
                     let stage_msg = if !is_miss {
                         if move_id == MOVE_HAZE {
@@ -2207,7 +2234,11 @@ impl PokemonSim {
                             };
                             eot_msgs.push(status_text);
                         }
-                        let _ewoke = battle.enemy.tick_status();
+                        let ewoke = battle.enemy.tick_status();
+                        if ewoke {
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            eot_msgs.push(format!("{}{} woke up!", prefix, battle.enemy.name()));
+                        }
                         battle.turn_count += 1;
                         // Chain end-of-turn messages before the terminal phase
                         let terminal = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
@@ -2616,7 +2647,11 @@ impl PokemonSim {
                             };
                             eot_msgs2.push(st);
                         }
-                        let _ewoke2 = battle.enemy.tick_status();
+                        let ewoke2 = battle.enemy.tick_status();
+                        if ewoke2 {
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            eot_msgs2.push(format!("{}{} woke up!", prefix, battle.enemy.name()));
+                        }
 
                         let terminal2 = if player_fainted_from_status {
                             BattlePhase::PlayerFainted
@@ -3453,6 +3488,7 @@ impl PokemonSim {
                             enemy_rampage: (0, 0),
                             pending_learn_moves: vec![],
                             free_switch: false,
+                            confusion_snapout_msg: None,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };

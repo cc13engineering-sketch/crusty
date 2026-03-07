@@ -1,8 +1,10 @@
 # Pokemon Gold: Johto Completion Guide
 
-This is the living strategy document for the Pokemon Gold/Silver recreation on the Crusty engine. Agents update this file after each sprint. Refer to `ENGINE_POKEMON.md` for engine patterns and QA history.
+This is a **true 1:1 clone** of Pokemon Gold/Silver/Crystal, rebuilt from scratch on the Crusty engine. Every mechanic, formula, data value, and behavior is sourced directly from the `pret/pokecrystal` disassembly — the actual game ROM. This is not an "inspired-by" or a simplified recreation. It is a faithful reproduction of Gen 2 Pokemon down to the damage formula, stat calculation, type chart, experience curves, encounter tables, trainer parties, and battle engine behavior.
 
-**Goal: Complete the Johto region** — all 8 gyms, Elite Four, Champion, and critical path story events — playable from New Bark Town to credits.
+Agents update this file after each sprint. Refer to `ENGINE_POKEMON.md` for engine patterns and QA history.
+
+**Goal: Complete the Johto region** — all 8 gyms, Elite Four, Champion, and critical path story events — playable from New Bark Town to credits. Every mechanic must match the original game.
 
 **Autonomy: 10.** The developer is AFK. Do not ask questions. Do not wait for feedback. Make every decision yourself. If something breaks, fix it and keep moving. Ship it.
 
@@ -1580,3 +1582,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **B6 FIX: Multi-hit moves** — Added `multi_hit_count()` helper. Fury Swipes and Fury Attack use Gen 2 distribution (2=37.5%, 3=37.5%, 4=12.5%, 5=12.5%). Double Kick always hits exactly 2 times. Damage multiplied by hit count. "Hit N times!" text shown after attack. Both player and enemy sides.
 - **B7 FIX: Auto-learn text** — When a Pokemon levels up and auto-learns a move into an empty slot, "X learned MOVE!" text now displays before the LevelUp phase. Uses `auto_learn_msgs` Vec chained before LevelUp.
 - **Next (Sprint 89 — QA)**: Run full QA audit. Remaining B-category items: B8 (level-up stat display), B9 (EXP bar animation).
+
+### Sprint 89 (QA)
+- **CRITICAL FIX: Confusion snap-out lost player's turn** — When player snapped out of confusion in MoveSelect, phase went to ActionSelect (losing selected move). Fixed: snapout message is now chained before the attack dispatch. For enemy-goes-first case, snapout msg is stored in `confusion_snapout_msg` field and inserted when pending move resolves.
+- **MEDIUM FIX: Enemy woke-up text missing** — `tick_status()` return was suppressed with `_ewoke` in both end-of-turn paths. Now checks return and shows "Foe X woke up!" text. Both EOT branches fixed.
+- **MEDIUM FIX: Enemy thaw notification lost during rampage** — `try_thaw()` return was ignored during player rampage turns. Now captured: if enemy thaws, shows "Foe X thawed out!" and proceeds to enemy attack.
+- **LOW FIX: Bug vs Poison type chart** — `(Bug, Poison) => 0.5` was a Gen 1 leftover. Removed entry; now correctly falls through to 1.0 (neutral) per Gen 2.
+- All 1318 tests pass.
+- **Next (Sprint 90)**: Content sprint. B8 (level-up stat display), B9 (EXP bar animation).

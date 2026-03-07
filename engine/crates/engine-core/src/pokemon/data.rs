@@ -1844,7 +1844,7 @@ pub fn type_effectiveness(atk: PokemonType, def: PokemonType) -> f64 {
         (Psychic, Dark) => 0.0, (Psychic, Steel) => 0.5,
         // Bug
         (Bug, Fire) => 0.5, (Bug, Grass) => 2.0, (Bug, Fighting) => 0.5,
-        (Bug, Poison) => 0.5, (Bug, Flying) => 0.5, (Bug, Psychic) => 2.0,
+        (Bug, Flying) => 0.5, (Bug, Psychic) => 2.0,
         (Bug, Ghost) => 0.5, (Bug, Dark) => 2.0, (Bug, Steel) => 0.5,
         // Rock
         (Rock, Fire) => 2.0, (Rock, Ice) => 2.0, (Rock, Fighting) => 0.5,

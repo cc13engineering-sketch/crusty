@@ -161,6 +161,7 @@ enum BattlePhase {
     EnemyFainted { exp_gained: u32 },
     LevelUp { timer: f64 },
     LearnMove { new_move: MoveId, sub: LearnMoveSub },
+    TrainerSwitchPrompt { next_name: String, cursor: u8 },
     Won { timer: f64 },
     Run,
     RunFailed { timer: f64 },
@@ -265,6 +266,8 @@ struct BattleState {
     enemy_rampage: (u8, MoveId),
     // Moves queued for the learn-move prompt (all 4 slots full, player must choose)
     pending_learn_moves: Vec<MoveId>,
+    // Free switch: next PokemonMenu switch doesn't give enemy a free turn
+    free_switch: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -957,6 +960,7 @@ impl PokemonSim {
                 player_rampage: (0, 0),
                 enemy_rampage: (0, 0),
                 pending_learn_moves: vec![],
+                free_switch: false,
             });
             self.encounter_flash_count = 0;
             // Skip dialogue — go straight to encounter transition after a brief pause
@@ -1014,6 +1018,7 @@ impl PokemonSim {
                 player_rampage: (0, 0),
                 enemy_rampage: (0, 0),
                 pending_learn_moves: vec![],
+                free_switch: false,
             });
             self.encounter_flash_count = 0;
             self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -1204,6 +1209,7 @@ impl PokemonSim {
                                 player_rampage: (0, 0),
                                 enemy_rampage: (0, 0),
                                 pending_learn_moves: vec![],
+                                free_switch: false,
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -2525,22 +2531,18 @@ impl PokemonSim {
                 if player_also_fainted {
                     battle.phase = BattlePhase::PlayerFainted;
                 } else if !battle.is_wild && !battle.trainer_team.is_empty() {
-                    // Trainer has more Pokemon
+                    // Trainer has more Pokemon — swap and prompt
                     let next_enemy = battle.trainer_team.remove(0);
                     battle.trainer_team_idx += 1;
                     let next_name = next_enemy.name().to_string();
                     battle.enemy = next_enemy;
                     battle.enemy_hp_display = battle.enemy.hp as f64;
-                    battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
+                    battle.enemy_stages = [0; 7];
                     battle.enemy_confused = 0;
                     battle.enemy_flinched = false;
                     battle.enemy_must_recharge = false;
                     battle.enemy_rampage = (0, 0);
-                    battle.phase = BattlePhase::Text {
-                        message: format!("Trainer sent out {}!", next_name),
-                        timer: 0.0,
-                        next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                    };
+                    battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                 } else {
                     battle.phase = BattlePhase::Won { timer: 0.0 };
                 }
@@ -2567,11 +2569,7 @@ impl PokemonSim {
                         battle.enemy_flinched = false;
                         battle.enemy_must_recharge = false;
                         battle.enemy_rampage = (0, 0);
-                        battle.phase = BattlePhase::Text {
-                            message: format!("Trainer sent out {}!", next_name),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                        };
+                        battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                     } else {
                         battle.phase = BattlePhase::Won { timer: 0.0 };
                     }
@@ -2705,11 +2703,7 @@ impl PokemonSim {
                                 battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
-                                battle.phase = BattlePhase::Text {
-                                    message: format!("Trainer sent out {}!", next_name),
-                                    timer: 0.0,
-                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                                };
+                                battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 battle.phase = BattlePhase::Won { timer: 0.0 };
                             }
@@ -2763,11 +2757,7 @@ impl PokemonSim {
                                 battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
-                                battle.phase = BattlePhase::Text {
-                                    message: format!("Trainer sent out {}!", next_name),
-                                    timer: 0.0,
-                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                                };
+                                battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 battle.phase = BattlePhase::Won { timer: 0.0 };
                             }
@@ -2777,6 +2767,28 @@ impl PokemonSim {
                                 sub: LearnMoveSub::DidNotLearn { timer: t },
                             };
                         }
+                    }
+                }
+            }
+
+            BattlePhase::TrainerSwitchPrompt { next_name, cursor } => {
+                // "TRAINER is about to use <next_name>. Will you change POKEMON?" YES/NO
+                if is_up(engine) || is_down(engine) {
+                    battle.phase = BattlePhase::TrainerSwitchPrompt {
+                        next_name,
+                        cursor: 1 - cursor,
+                    };
+                } else if is_confirm(engine) {
+                    if cursor == 0 {
+                        // YES — free switch (no enemy attack penalty)
+                        battle.free_switch = true;
+                        battle.phase = BattlePhase::ActionSelect { cursor: 0 };
+                        self.battle = Some(battle);
+                        self.phase = GamePhase::PokemonMenu { cursor: 0 };
+                        return;
+                    } else {
+                        // NO — proceed to battle
+                        battle.phase = BattlePhase::ActionSelect { cursor: 0 };
                     }
                 }
             }
@@ -3214,6 +3226,7 @@ impl PokemonSim {
                             player_rampage: (0, 0),
                             enemy_rampage: (0, 0),
                             pending_learn_moves: vec![],
+                            free_switch: false,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -3310,17 +3323,27 @@ impl PokemonSim {
                         *turn = 1;
                     }
                     let pname = self.party[selected].name().to_string();
-                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                        engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
-                    );
-                    b.phase = BattlePhase::Text {
-                        message: format!("Go! {}!", pname),
-                        timer: 0.0,
-                        next_phase: Box::new(BattlePhase::EnemyAttack {
-                            timer: 0.0, move_id: e_move, damage: e_dmg,
-                            effectiveness: e_eff, is_crit: e_crit,
-                        }),
-                    };
+                    if b.free_switch {
+                        // Free switch from TrainerSwitchPrompt — no enemy attack
+                        b.free_switch = false;
+                        b.phase = BattlePhase::Text {
+                            message: format!("Go! {}!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                        };
+                    } else {
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
+                            engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                        );
+                        b.phase = BattlePhase::Text {
+                            message: format!("Go! {}!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg,
+                                effectiveness: e_eff, is_crit: e_crit,
+                            }),
+                        };
+                    }
                     self.battle = Some(b);
                     self.phase = GamePhase::Battle;
                 }
@@ -4032,6 +4055,17 @@ impl PokemonSim {
                         }
                     }
                 }
+            }
+
+            BattlePhase::TrainerSwitchPrompt { ref next_name, cursor } => {
+                draw_text_box(fb, ctx, 2, 88, 156, 52);
+                let line1 = format!("Foe will send out {}.", next_name);
+                draw_text_pkmn(fb, ctx, &line1, 10, 96, dark);
+                draw_text_pkmn(fb, ctx, "Will you switch?", 10, 108, dark);
+                // YES/NO
+                draw_text_pkmn(fb, ctx, "YES", 122, 96, dark);
+                draw_text_pkmn(fb, ctx, "NO", 122, 108, dark);
+                draw_cursor(fb, ctx, 114, 96 + *cursor as i32 * 12, dark);
             }
 
             BattlePhase::Won { .. } => {

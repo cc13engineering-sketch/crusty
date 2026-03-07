@@ -1631,3 +1631,9 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **NPC wander logic** — Implemented random movement for NPCs with `wanders: true`. Every 2 seconds, wandering NPCs take a random step in any direction if the target tile is walkable and unoccupied (no player, no other NPC). NPCs update facing direction on each move. Uses `npc_wander_timer` field. Collision-checked against map bounds, collision types, player position, and other active NPCs.
 - All 1318 tests pass.
 - **Next (Sprint 96 — QA)**: Full QA audit.
+
+### Sprint 96 (QA)
+- **Full audit of Sprints 94-95** — All NPC wandering logic, Sudowoodo blocker, GenericHouse dialogue, tile sprites, and encounter tables audited.
+- **LOW FIX: Dead SUDOWOODO constant** — Removed unused `const SUDOWOODO` from maps.rs (actual species ID imported from data.rs).
+- All 1318 tests pass. Zero functional bugs found.
+- **Next (Sprint 97)**: Content sprint.

@@ -45,7 +45,6 @@ const YANMA: u16 = 193;
 const VENONAT: u16 = 48;
 const HAUNTER: u16 = 93;
 const GENGAR: u16 = 94;
-const SUDOWOODO: u16 = 185;
 const RATICATE: u16 = 20;
 const MAGMAR: u16 = 126;
 const KOFFING: u16 = 109;

@@ -12,6 +12,9 @@
 // Camera: smooth lerp (CAMERA_LERP), snaps on map transition. Ledge tiles: south-only traversal.
 // Story flags: u64 bitfield (has_flag/set_flag) persisted in save. Route gates: Victory Road needs 8 badges.
 // Struggle: forced when all PP=0, 50 power, never-miss, 1/4 recoil. Freeze: 10% thaw per turn.
+// Fishing: face water tile + A → 70% bite (dialogue → StartFishBattle), 30% miss. water_encounters on MapData.
+// NPC wandering: wanders flag + npc_wander_timer, random step every 2s with collision check.
+// is_npc_active(idx): flag-based NPC filtering (collision, interaction, LOS, rendering).
 
 pub mod data;
 pub mod sprites;
@@ -291,6 +294,7 @@ enum DialogueAction {
     Heal,
     GiveStarter,
     StartTrainerBattle { team: Vec<(SpeciesId, u8)> },
+    StartFishBattle { species_id: SpeciesId, level: u8 },
     OpenMart,
     GiveBadge { badge_num: u8 },
     Credits,
@@ -1468,6 +1472,20 @@ impl PokemonSim {
 
         // Interact (A button)
         if is_confirm(engine) {
+            // Fishing: face a water tile to fish
+            let (fx, fy) = match self.player.facing {
+                Direction::Up => (self.player.x, self.player.y - 1),
+                Direction::Down => (self.player.x, self.player.y + 1),
+                Direction::Left => (self.player.x - 1, self.player.y),
+                Direction::Right => (self.player.x + 1, self.player.y),
+            };
+            if fx >= 0 && fy >= 0 && (fx as usize) < self.current_map.width && (fy as usize) < self.current_map.height {
+                let col = self.current_map.collision_at(fx as usize, fy as usize);
+                if col == CollisionType::Water && !self.current_map.water_encounters.is_empty() && !self.party.is_empty() {
+                    self.try_fish(engine);
+                    return;
+                }
+            }
             self.try_interact();
         }
 
@@ -1612,6 +1630,45 @@ impl PokemonSim {
                 self.phase = GamePhase::Dialogue;
             }
         }
+    }
+
+    fn try_fish(&mut self, engine: &mut Engine) {
+        // Roll for catch (70% chance of bite)
+        let bite = engine.rng.next_f64() < 0.7;
+        if !bite {
+            self.dialogue = Some(DialogueState {
+                lines: vec!["Not even a nibble...".to_string()],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            self.phase = GamePhase::Dialogue;
+            return;
+        }
+        // Pick a water encounter
+        let total: u32 = self.current_map.water_encounters.iter().map(|e| e.weight as u32).sum();
+        if total == 0 { return; }
+        let roll = (engine.rng.next_f64() * total as f64) as u32;
+        let mut accum = 0u32;
+        let mut picked = &self.current_map.water_encounters[0];
+        for entry in &self.current_map.water_encounters {
+            accum += entry.weight as u32;
+            if roll < accum { picked = entry; break; }
+        }
+        let species_id = picked.species_id;
+        let min_level = picked.min_level;
+        let max_level = picked.max_level;
+        let level = if min_level == max_level {
+            min_level
+        } else {
+            min_level + (engine.rng.next_f64() * (max_level - min_level + 1) as f64) as u8
+        };
+        // Show "Oh! A bite!" text, then start battle on_complete
+        self.dialogue = Some(DialogueState {
+            lines: vec!["Oh! A bite!".to_string()],
+            current_line: 0, char_index: 0, timer: 0.0,
+            on_complete: DialogueAction::StartFishBattle { species_id, level },
+        });
+        self.phase = GamePhase::Dialogue;
     }
 
     // ─── Battle Logic ──────────────────────────────────
@@ -3609,6 +3666,40 @@ impl PokemonSim {
                         // Safety fallback: empty team, return to overworld
                         self.phase = GamePhase::Overworld;
                     }
+                }
+                DialogueAction::StartFishBattle { species_id, level } => {
+                    self.register_seen(species_id);
+                    let enemy = Pokemon::new(species_id, level);
+                    let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                    let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+                    self.battle = Some(BattleState {
+                        phase: BattlePhase::Intro { timer: 0.0 },
+                        enemy,
+                        player_idx,
+                        is_wild: true,
+                        player_hp_display: player_hp,
+                        enemy_hp_display: 0.0,
+                        turn_count: 0,
+                        trainer_team: Vec::new(),
+                        trainer_team_idx: 0,
+                        pending_player_move: None,
+                        player_stages: [0; 7],
+                        enemy_stages: [0; 7],
+                        enemy_flinched: false,
+                        player_flinched: false,
+                        player_confused: 0,
+                        enemy_confused: 0,
+                        player_trapped: false,
+                        player_must_recharge: false,
+                        enemy_must_recharge: false,
+                        player_rampage: (0, 0),
+                        enemy_rampage: (0, 0),
+                        pending_learn_moves: vec![],
+                        free_switch: false,
+                        confusion_snapout_msg: None,
+                    });
+                    self.encounter_flash_count = 0;
+                    self.phase = GamePhase::EncounterTransition { timer: 0.0 };
                 }
             }
         }

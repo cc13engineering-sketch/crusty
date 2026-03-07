@@ -1637,3 +1637,11 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **LOW FIX: Dead SUDOWOODO constant** — Removed unused `const SUDOWOODO` from maps.rs (actual species ID imported from data.rs).
 - All 1318 tests pass. Zero functional bugs found.
 - **Next (Sprint 97)**: Content sprint.
+
+### Sprint 97 (Content — Fishing System)
+- **Fishing mechanic** — Face a water tile and press A to fish. 70% chance of bite ("Oh! A bite!" dialogue → encounter transition), 30% "Not even a nibble..." dialogue. Uses new `water_encounters` field on MapData for separate fishing encounter tables.
+- **Water encounter data** — Added fishing encounters to 8 maps: Route 32 (Tentacool/Quagsire/Magikarp/Goldeen), Route 35 (Poliwag/Poliwhirl/Magikarp), Route 40 (Tentacool/Tentacruel/Magikarp/Krabby), Olivine City (Tentacool/Krabby/Magikarp), Cianwood City (Tentacool/Krabby/Magikarp), Lake of Rage (Magikarp/Gyarados), Route 44 (Poliwag/Poliwhirl/Magikarp), Ice Path (Magikarp/Seel/Shellder), Route 27 (Tentacool/Tentacruel/Magikarp/Shellder).
+- **New DialogueAction::StartFishBattle** — Dialogue "Oh! A bite!" triggers battle on completion via dedicated dialogue action, ensuring text displays before encounter flash.
+- **New species constants**: SHELLDER (90).
+- All tests pass.
+- **Next (Sprint 98)**: Content sprint.

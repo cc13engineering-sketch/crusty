@@ -627,6 +627,17 @@ Currently evolution happens silently — `pending_evolution` is set, species cha
 
 Don't cut corners. Don't leave TODOs. Every map gets correct encounter tables. Every gym leader gets their real team. Every move in a trainer's Pokemon's learnset works. The goal is not "good enough" — it's as complete and correct as possible.
 
+## Test Reliability Warning
+
+**Headless simulation tests are NOT a source of truth.** They verify structural properties (warp existence, field values, data integrity) but CANNOT fully simulate the real browser environment. Known gaps:
+- Tests don't exercise the JS rendering layer, sprite loading, or localStorage
+- HeadlessRunner skips input timing nuances (frame-perfect presses, held keys vs taps)
+- Save/load tests verify serialization round-trip but not the WASM↔JS persist pipeline
+- Battle flow tests verify phase transitions but may miss render-side bugs
+- Tests can pass with green checkmarks while the real game has obvious broken behavior
+
+**Always verify fixes by playing the actual game in the browser.** Tests catch regressions and structural errors but are no substitute for real QA.
+
 ---
 
 ## Crucial Abstractions for Pokemon Gold Recreation
@@ -1280,4 +1291,161 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Free switch cancel destination**: Cancelling PokemonMenu during free switch went to ActionSelect instead of TrainerSwitchPrompt. Fixed: cancel now returns to TrainerSwitchPrompt with cursor reset.
 - **Catch formula probability**: Used 3 independent rolls (effective rate = shake_prob^3), making catching 3-8x harder than Gen 2. Fixed: single roll for catch/no-catch decision, cosmetic shakes proportional to shake_prob.
 - All 1305 tests pass.
-- **Next (Sprint 85)**: Content sprint
+- **Next (Sprint 85)**: Discovery sprint — full audit of broken transitions and progression
+
+### Sprint 85 (DISCOVERY — Comprehensive Bug Audit)
+
+Full audit of every transition, progression gate, battle text sequence, and map warp. Categorized by severity.
+
+---
+
+#### CATEGORY A: PROGRESSION BLOCKERS (game-breaking)
+
+**A1. GenericHouse exit always goes to wrong door (CONFIRMED)**
+- ALL houses across ALL towns share `MapId::GenericHouse`. Exit uses `last_house_map` to pick a city, but each city only maps to ONE exit coordinate. Cities with multiple houses (CherrygroveCity, AzaleaTown, GoldenrodCity, OlivineCity, EcruteakCity, etc.) will exit the player at the WRONG door.
+- Example: CherrygroveCity has houses at (15,4) and (16,8). Both enter GenericHouse. Exit always goes to (15,5). Entering house at (16,8) and exiting drops you at (15,5) — wrong building.
+- **Fix needed**: Either (a) store `last_house_x, last_house_y` and exit 1 tile below the entry door, or (b) create unique MapId per house, or (c) use a return-warp stack.
+
+**A2. New Bark Town → Route 27 wide open at game start (CONFIRMED)**
+- `maps.rs:653`: WarpData at (0,10) goes to Route27 with NO gate check.
+- In original game, Route 27 requires Waterfall HM (post-E4).
+- Player can walk left from New Bark Town immediately into late-game content.
+- **Fix needed**: Add gate check in warp processing: block Route 27 warp without 8 badges.
+
+**A3. Missing story progression gates**
+- Route 32 south → Union Cave: NO Zephyr Badge check (original requires badge)
+- Ilex Forest north → Route 34: NO Cut HM check (original requires Cut)
+- Route 44 east → Ice Path: NO Rocket HQ flag check (flag is SET at line 2868 but NEVER CHECKED)
+- Route 27 west → Route 26: NO gate (should require Waterfall/post-E4)
+- **Fix needed**: Add warp gate checks for each, similar to Victory Road badge check at line 1119.
+
+**A4. "No way past Route 30" — potential trainer loop**
+- Route 30 has 3 trainers. If defeated_trainers is not persisting correctly across saves, or if the LOS triggers incorrectly, trainers could re-battle endlessly.
+- Route 30 east exit to Route 31 is at (29,2)-(29,3) — far corner of map. Player must navigate from south (14,16) to northeast corner. Path is open but long.
+- Trainer at (8,3) faces Left — checks x=3-7 at y=3. Could block east path at row 2-3 if player walks near.
+- **Investigation needed**: Check if save/load preserves defeated_trainers. Check if trainers re-trigger after save/load.
+
+---
+
+#### CATEGORY B: BATTLE TEXT SEQUENCES (broken feel)
+
+**B1. Critical hit, super effective, miss — all jammed into one line**
+- Lines 1981-1989: `format!("{} used {}! {}{}{}", pname, move_name, eff, crit_str, miss_str)`
+- In original game, these are SEPARATE sequential messages: "X used MOVE!" → "Critical hit!" → "It's super effective!"
+- Current: "CYNDAQUIL used EMBER! Super effective! Critical hit!" — one long messy line.
+- **Fix needed**: Chain through `BattlePhase::Text` for each message.
+
+**B2. Status damage text completely missing**
+- `apply_status_damage()` at lines 2075, 2434-2441 applies damage but shows NO text.
+- Missing: "X is hurt by its burn!", "X is hurt by poison!", "X is hurt by TOXIC!" per turn.
+- Return value is captured as `_enemy_status_dmg` (discarded) or not captured at all.
+- **Fix needed**: Check return value, show damage text if > 0 before advancing to ActionSelect.
+
+**B3. Sleep wake-up silent**
+- `tick_status()` at data.rs:2094-2109 clears sleep when counter hits 0. No message generated.
+- Missing: "X woke up!" — currently player has no feedback that sleep ended.
+- **Fix needed**: Return bool from tick_status indicating wake-up, show text.
+
+**B4. Freeze thaw silent**
+- `try_thaw()` returns true on thaw but return value is discarded (`let _thawed = ...`).
+- Missing: "X thawed out!" message.
+- **Fix needed**: Check return value, show "X thawed out!" text.
+
+**B5. Recoil text missing + incomplete implementation**
+- Only Struggle has recoil (lines 1909-1915). Double-Edge and Take Down should have 1/4 recoil but DON'T.
+- No "X is hit with recoil!" text for any recoil.
+- **Fix needed**: Add recoil to Double-Edge/Take Down, show text.
+
+**B6. Multi-hit moves unimplemented**
+- Fury Swipes, Double Kick exist in data but do single-hit damage only.
+- No "Hit N times!" display.
+- **Fix needed**: Implement multi-hit loop with cumulative damage and hit count display.
+
+**B7. "X learned MOVE!" silent on auto-fill**
+- When a Pokemon levels up with < 4 moves, new moves are silently inserted at lines 2518-2528.
+- No text: "X learned Y!" — player doesn't know a new move was added.
+- **Fix needed**: Show text for each auto-learned move.
+
+**B8. Level-up stat display missing (#32 from priority list)**
+- `BattlePhase::LevelUp` at lines 4003-4008 only shows "X grew to LV Y!" text.
+- Missing: stat comparison screen showing old → new stats with +N for each stat.
+- In original game, this is a full screen players see every level up.
+- **Fix needed**: Capture old stats before recalc_stats, display delta in LevelUp render.
+
+**B9. EXP bar fill animation missing (#28)**
+- EXP is awarded instantly. No visual bar fill.
+- In original game, EXP bar fills smoothly, wraps around on level up.
+- **Fix needed**: Add EXP bar to battle HUD, animate fill in ExpAwarded phase.
+
+**B10. Run away — "Got away safely!" missing**
+- Player can run from wild battles (BattlePhase::Run at line 2906-2911).
+- No "Got away safely!" text — just instantly exits battle.
+- **Fix needed**: Show text before exiting.
+
+---
+
+#### CATEGORY C: TRAINER LOS ISSUES
+
+**C1. LOS fires immediately after map transition (HIGH)**
+- When `MapFadeIn` completes (line 5451), phase becomes Overworld.
+- Next frame, `step_overworld()` runs with LOS check.
+- A trainer near a warp destination can trigger battle before player can react.
+- **Fix needed**: Add `los_suppress_frames: u8` counter, set to 2 after any map transition.
+
+**C2. NPC facing direction is static**
+- NPCs have a fixed `facing: Direction` and never turn to face the player on approach.
+- In original game, trainers turn to face the player when they walk up to talk.
+- This is cosmetic but affects which trainers can "see" the player.
+- **Fix needed**: Low priority — could update facing when talked to.
+
+---
+
+#### CATEGORY D: POKEMONCENTER / HOUSE WARP ISSUES
+
+**D1. PokemonCenter exit also uses single-destination pattern**
+- `last_pokecenter_map` lookup (lines 1140-1152) has only one exit per city.
+- If a city has multiple PokemonCenters (unlikely in Gen 2), same bug as GenericHouse.
+- Currently OK since each city has exactly 1 PokemonCenter.
+
+**D2. GenericHouse has only 1 NPC with same dialogue**
+- Every house in the entire game has the same "I love this town" NPC.
+- Not a bug but very immersion-breaking.
+- **Fix needed**: Low priority — could randomize dialogue or have per-city house variants.
+
+---
+
+#### CATEGORY E: MISSING GAME SYSTEMS
+
+**E1. Wild Pokemon fleeing**
+- No system for wild Pokemon running away.
+- Roaming legendaries (Raikou, Entei, Suicune) don't exist yet.
+- **Fix needed**: Low priority unless implementing roaming legends.
+
+**E2. Player run formula feedback**
+- Run succeeds or fails, but on failure there's `BattlePhase::RunFailed` (line 2913).
+- On success, just exits — no "Got away safely!" text.
+- **Fix needed**: Add text.
+
+---
+
+#### SIMULATION TESTS NEEDED
+
+1. **test_generic_house_exit_returns_to_correct_door** — enter from CherrygroveCity (15,4), exit, verify position is near (15,4) not (16,8)
+2. **test_newbark_route27_blocked_without_badges** — verify Route 27 warp from New Bark blocked at game start
+3. **test_route32_requires_zephyr_badge** — verify Union Cave warp blocked without badge
+4. **test_defeated_trainer_no_retrigger** — defeat trainer, walk through their LOS, no battle
+5. **test_los_suppressed_after_map_transition** — enter map with trainer in LOS, verify no immediate trigger
+6. **test_status_damage_text_shown** — apply burn, advance turn, verify text output
+7. **test_critical_hit_separate_message** — land a crit, verify separate "Critical hit!" text
+8. **test_auto_learn_shows_text** — level up with < 4 moves, verify "learned" text appears
+9. **test_run_shows_text** — run from wild battle, verify "Got away safely!" text
+
+---
+
+**Priority order for fixes:**
+1. A1 (GenericHouse exit) + A2 (Route 27 gate) — game-breaking
+2. A3 (missing gates) — progression-breaking
+3. C1 (LOS after transition) — gameplay feel
+4. B1 (separate battle messages) — battle feel
+5. B2-B4 (status damage/wake/thaw text) — feedback
+6. Everything else

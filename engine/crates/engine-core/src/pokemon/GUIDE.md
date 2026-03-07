@@ -1606,3 +1606,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **B8 FIX: Level-up stat delta display** — Added `stat_deltas: [i16; 6]` field to `BattlePhase::LevelUp`. Old stats captured before `recalc_stats()`, deltas accumulated for multi-level-ups. Render shows all 6 stats (HP, Atk, Def, SAtk, SDef, Spd) with current value and +N delta in a panel above the "grew to LV X!" message. Matches Gen 2's stat increase screen.
 - All 1318 tests pass.
 - **Next (Sprint 92 — QA)**: Full QA audit.
+
+### Sprint 92 (QA)
+- **CRITICAL FIX: BurnedTower rival sprite_id out of bounds** — Rival NPC had `sprite_id: 6` but only 0-5 exist. Changed to 2 (Youngster placeholder) to prevent panic.
+- **MEDIUM FIX: Route 30 south exit asymmetry** — Removed x=13 warp tile, narrowing south exit from 3 to 2 tiles to match Cherrygrove's 2-tile north border. Eliminates spatial inconsistency.
+- **MEDIUM FIX: EcruteakCity west entry re-entry trap** — Removed x=1 warp column (rows 8-9), keeping only x=0 as the true border. Updated Route 37 east exit to land players at x=1 (inside the single warp column). Eliminates re-entry loop.
+- All 1318 tests pass.
+- **Next (Sprint 93)**: Content sprint. B9 (EXP bar animation), new content.

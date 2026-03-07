@@ -1160,8 +1160,9 @@ fn build_route_30() -> MapData {
         GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
         // Row 17: bottom row - trees with south exit gap (connects to CherrygroveCity north)
+        // 2-tile-wide exit at x=14,15 to match Cherrygrove's 2-tile north border
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
     ];
 
@@ -1235,9 +1236,9 @@ fn build_route_30() -> MapData {
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 17: trees with south exit warp to CherrygroveCity
+        // Row 17: trees with south exit warp to CherrygroveCity (2-tile-wide at x=14,15)
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
 
@@ -1245,11 +1246,8 @@ fn build_route_30() -> MapData {
     debug_assert_eq!(collision.len(), w * h, "Route30 collision count mismatch");
 
     let warps = vec![
-        // South exit -> CherrygroveCity north (column 13 -> Cherrygrove col 9)
-        WarpData { x: 13, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 9, dest_y: 1 },
-        // South exit -> CherrygroveCity north (column 14 -> Cherrygrove col 9)
+        // South exit -> CherrygroveCity north (2-tile-wide at x=14,15)
         WarpData { x: 14, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 9, dest_y: 1 },
-        // South exit -> CherrygroveCity north (column 15 -> Cherrygrove col 10)
         WarpData { x: 15, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 10, dest_y: 1 },
         // East exit -> Route 31 (row 10, at midpoint east-west path)
         WarpData { x: 29, y: 10, dest_map: MapId::Route31, dest_x: 1, dest_y: 7 },
@@ -4499,9 +4497,9 @@ fn build_route_37() -> MapData {
         // West exits → Route 36 (land one tile inside)
         WarpData { x: 0, y: 5, dest_map: MapId::Route36, dest_x: 18, dest_y: 6 },
         WarpData { x: 0, y: 6, dest_map: MapId::Route36, dest_x: 18, dest_y: 7 },
-        // East exits → Ecruteak City (land one tile inside, past double warp edge)
-        WarpData { x: 15, y: 5, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 8 },
-        WarpData { x: 15, y: 6, dest_map: MapId::EcruteakCity, dest_x: 2, dest_y: 9 },
+        // East exits → Ecruteak City (land at x=1, one tile inside the single warp column)
+        WarpData { x: 15, y: 5, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 8 },
+        WarpData { x: 15, y: 6, dest_map: MapId::EcruteakCity, dest_x: 1, dest_y: 9 },
     ];
 
     let npcs = vec![
@@ -4602,10 +4600,10 @@ fn build_ecruteak_city() -> MapData {
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 7
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 8: west exit warps, east exit warps
-        C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
+        // Row 8: west exit warp at x=0 only, east exit warps at x=18,19
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
         // Row 9
-        C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
+        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WARP,
         // Row 10
         C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,
         // Row 11
@@ -4628,11 +4626,9 @@ fn build_ecruteak_city() -> MapData {
     debug_assert_eq!(collision.len(), w * h, "EcruteakCity collision count mismatch");
 
     let warps = vec![
-        // West exit → Route 37
+        // West exit → Route 37 (single column of warps at x=0)
         WarpData { x: 0, y: 8, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
         WarpData { x: 0, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
-        WarpData { x: 1, y: 8, dest_map: MapId::Route37, dest_x: 14, dest_y: 5 },
-        WarpData { x: 1, y: 9, dest_map: MapId::Route37, dest_x: 14, dest_y: 6 },
         // East exit → Route 38
         WarpData { x: 18, y: 8, dest_map: MapId::Route38, dest_x: 1, dest_y: 4 },
         WarpData { x: 18, y: 9, dest_map: MapId::Route38, dest_x: 1, dest_y: 5 },
@@ -4796,9 +4792,9 @@ fn build_burned_tower() -> MapData {
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
-        // Rival
+        // Rival (sprite_id 2 = Youngster placeholder until rival sprite is added)
         NpcDef {
-            x: 5, y: 6, sprite_id: 6, facing: Direction::Right,
+            x: 5, y: 6, sprite_id: 2, facing: Direction::Right,
             dialogue: &[
                 "...What are YOU",
                 "doing here?",

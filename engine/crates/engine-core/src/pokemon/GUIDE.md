@@ -1875,3 +1875,47 @@ Updated NPC dialogue across 18+ locations to be meaningful and city-specific:
 5. `test_warp_gate_progression` -- comprehensive gate test across Union Cave, Ilex Forest, Route 27, and Victory Road
 
 All 99 Pokemon module tests pass.
+
+---
+
+### Sprint 116 — QA Audit (Sprints 114-115)
+
+**Scope**: Audit Ice Path sliding, Daycare system, NPC dialogue, and test infrastructure from Sprints 114-115.
+
+**Audit Results**:
+
+1. **Ice Path Sliding (Sprint 114)** -- PASS
+   - Sliding starts correctly when stepping onto C_ICE tiles (line 1481)
+   - Sliding continues through ice and stops on first non-ice tile (Walkable/Solid/edge)
+   - `ice_sliding` cleared on map transitions (MapFadeOut handler, line 6751)
+   - Menu blocked during sliding (line 1205 checks `ice_sliding.is_none()`)
+   - Ice Path collision map has correct C_ICE placement across rows 2-9
+   - Puzzle is solvable: enter at (0,7), walk right to (3,7), slide right to (7,7), step right and slide to exit warp at (13,7)
+   - Trainer approach correctly stops ice sliding (line 1467)
+
+2. **Daycare System (Sprint 114)** -- BUG FIXED
+   - Deposit correctly removes from party (`party.remove(idx)`)
+   - Can't deposit with only 1 Pokemon (checked at `party.len() <= 1`)
+   - Step counting increments `daycare_steps`, adds 1 EXP/step, auto-levels with Gen 2 move replacement
+   - Withdrawal blocked if party full (6 Pokemon) or insufficient money
+   - Save/load correctly serializes daycare_pokemon as JSON object
+   - **BUG FOUND**: Withdrawal cost calculated as `pkmn.level - 1` instead of actual levels gained in daycare. Fixed by adding `daycare_deposit_level` field to track level at deposit time. Cost is now correctly `$100 + $100 * (current_level - deposit_level)`. Field persisted in save/load as `daycare_dlvl`.
+
+3. **NPC Dialogue (Sprint 115)** -- PASS
+   - Spot-checked 5 maps: Route 34 (4 NPCs), Route 44 (4 NPCs), Ice Path (2 NPCs), Blackthorn City (NPCs), and verified:
+     - All NPCs placed on walkable tiles (C_WALK)
+     - No NPC position conflicts with warps or other NPCs
+     - Dialogue text is appropriate and contextual
+
+4. **Test Infrastructure (Sprint 115)** -- PASS
+   - All helper functions present: `press`, `empty`, `hold`, `wait`, `walk_dir`, `sequence`
+   - `PokemonSim::with_state` exists and works correctly
+   - Added `#[allow(dead_code)]` to `hold`, `wait`, `walk_dir`, `sequence`, `with_state` to suppress future warnings
+
+**Changes Made**:
+- Added `daycare_deposit_level: u8` field to PokemonSim (tracks level at deposit time)
+- Fixed daycare withdrawal cost: `$100 + $100 * (current_level - deposit_level)` instead of `$100 + $100 * (current_level - 1)`
+- Updated save format to include `daycare_dlvl` field, load correctly restores it
+- Added `#[allow(dead_code)]` to 5 test helper functions
+
+**Test Results**: All 1329 tests pass (99 Pokemon module tests). Clean compilation.

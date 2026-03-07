@@ -19,6 +19,7 @@
 // Swap mode: select source, then target, party.swap(src,dst). Battle player_idx tracked through swaps.
 // Ice sliding: C_ICE tiles (8) cause player to slide until hitting non-ice. ice_sliding: Option<Direction>.
 // Daycare: Route34 NPC 0 deposits/returns Pokemon. 1 EXP/step, auto-level, Gen 2 move replacement. Saved.
+// Daycare cost: $100 + $100 * levels_gained. daycare_deposit_level tracks level at deposit time.
 // Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
 
 pub mod data;
@@ -404,6 +405,7 @@ pub struct PokemonSim {
     // Daycare system: Pokemon left at Route 34 Day-Care Man
     daycare_pokemon: Option<Pokemon>,
     daycare_steps: u32,
+    daycare_deposit_level: u8, // level at deposit time, for cost calculation
 }
 
 impl PokemonSim {
@@ -526,12 +528,14 @@ impl PokemonSim {
             ice_sliding: None,
             daycare_pokemon: None,
             daycare_steps: 0,
+            daycare_deposit_level: 0,
         }
     }
 
     /// Test-only constructor: create a PokemonSim already in the overworld with
     /// the given map, position, party, and badge count. Skips title screen.
     #[cfg(test)]
+    #[allow(dead_code)]
     fn with_state(map: MapId, x: u8, y: u8, party: Vec<Pokemon>, badges: u8) -> Self {
         let mut sim = Self::new();
         sim.phase = GamePhase::Overworld;
@@ -682,7 +686,7 @@ impl PokemonSim {
         };
 
         format!(
-            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{},\"daycare\":{},\"daycare_steps\":{}}}",
+            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{},\"daycare\":{},\"daycare_steps\":{},\"daycare_dlvl\":{}}}",
             self.current_map_id.to_str(),
             self.player.x, self.player.y, facing,
             self.money, self.badges, self.total_time, self.last_rng_state,
@@ -694,7 +698,7 @@ impl PokemonSim {
             self.has_bicycle,
             party_json, pc_json, defeated_json, bag_json,
             seen_json, caught_json,
-            daycare_json, self.daycare_steps,
+            daycare_json, self.daycare_steps, self.daycare_deposit_level,
         )
     }
 
@@ -946,6 +950,7 @@ impl PokemonSim {
 
         // Parse daycare Pokemon (null or object wrapped in "daycare":{...})
         self.daycare_steps = get_num(json, "daycare_steps") as u32;
+        self.daycare_deposit_level = get_num(json, "daycare_dlvl") as u8;
         self.daycare_pokemon = None;
         // Extract the daycare object: find "daycare":{ and parse the balanced braces
         let daycare_needle = "\"daycare\":{";
@@ -4140,6 +4145,7 @@ impl PokemonSim {
             if idx < self.party.len() && self.party.len() > 1 {
                 let deposited = self.party.remove(idx);
                 let name = get_species(deposited.species_id).map(|s| s.name).unwrap_or("???").to_string();
+                self.daycare_deposit_level = deposited.level;
                 self.daycare_pokemon = Some(deposited);
                 self.daycare_steps = 0;
                 self.dialogue = Some(DialogueState {
@@ -4183,7 +4189,7 @@ impl PokemonSim {
                 }
                 if let Some(pkmn) = self.daycare_pokemon.take() {
                     let name = get_species(pkmn.species_id).map(|s| s.name).unwrap_or("???").to_string();
-                    let levels_gained = pkmn.level.saturating_sub(1) as u32; // approximate
+                    let levels_gained = pkmn.level.saturating_sub(self.daycare_deposit_level) as u32;
                     let cost = 100 + 100 * levels_gained;
                     if self.money >= cost {
                         self.money -= cost;
@@ -7018,6 +7024,7 @@ mod headless_tests {
     }
 
     /// Hold a key down for `n` frames (keys_held repeated)
+    #[allow(dead_code)]
     fn hold(key: &str, n: usize) -> Vec<InputFrame> {
         (0..n).map(|_| InputFrame {
             keys_held: vec![key.to_string()],
@@ -7026,11 +7033,13 @@ mod headless_tests {
     }
 
     /// Wait for `n` empty frames
+    #[allow(dead_code)]
     fn wait(n: usize) -> Vec<InputFrame> {
         (0..n).map(|_| empty()).collect()
     }
 
     /// Press a direction key once then wait for `gap` frames (one tile movement)
+    #[allow(dead_code)]
     fn walk_dir(dir: &str, gap: usize) -> Vec<InputFrame> {
         let arrow = match dir {
             "up" => "ArrowUp",
@@ -7045,6 +7054,7 @@ mod headless_tests {
     }
 
     /// Concatenate multiple input sequences into one flat Vec
+    #[allow(dead_code)]
     fn sequence(seqs: Vec<Vec<InputFrame>>) -> Vec<InputFrame> {
         seqs.into_iter().flatten().collect()
     }

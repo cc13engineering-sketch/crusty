@@ -233,6 +233,12 @@ struct BattleState {
     enemy_confused: u8,
     // Mean Look: prevents fleeing from wild battle
     player_trapped: bool,
+    // Hyper Beam recharge: skip next turn
+    player_must_recharge: bool,
+    enemy_must_recharge: bool,
+    // Thrash/Outrage rampage: turns remaining (0 = not rampaging), move_id, confused after
+    player_rampage: (u8, MoveId),
+    enemy_rampage: (u8, MoveId),
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -920,6 +926,10 @@ impl PokemonSim {
                 player_confused: 0,
                 enemy_confused: 0,
                 player_trapped: false,
+                player_must_recharge: false,
+                enemy_must_recharge: false,
+                player_rampage: (0, 0),
+                enemy_rampage: (0, 0),
             });
             self.encounter_flash_count = 0;
             // Skip dialogue — go straight to encounter transition after a brief pause
@@ -972,6 +982,10 @@ impl PokemonSim {
                 player_confused: 0,
                 enemy_confused: 0,
                 player_trapped: false,
+                player_must_recharge: false,
+                enemy_must_recharge: false,
+                player_rampage: (0, 0),
+                enemy_rampage: (0, 0),
             });
             self.encounter_flash_count = 0;
             self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -1156,6 +1170,10 @@ impl PokemonSim {
                                 player_confused: 0,
                                 enemy_confused: 0,
                                 player_trapped: false,
+                                player_must_recharge: false,
+                                enemy_must_recharge: false,
+                                player_rampage: (0, 0),
+                                enemy_rampage: (0, 0),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -1403,6 +1421,105 @@ impl PokemonSim {
             }
 
             BattlePhase::ActionSelect { cursor } => {
+                // Hyper Beam recharge: player must skip turn
+                if battle.player_must_recharge {
+                    battle.player_must_recharge = false;
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    // Enemy gets a free turn
+                    battle.enemy.try_thaw(engine.rng.next_f64());
+                    let enemy_can_move = battle.enemy.can_move();
+                    let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
+                    if !enemy_can_move || enemy_paralyzed {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        let reason = if enemy_paralyzed {
+                            format!("{}{} is paralyzed!", prefix, battle.enemy.name())
+                        } else if matches!(battle.enemy.status, StatusCondition::Freeze) {
+                            format!("{}{} is frozen solid!", prefix, battle.enemy.name())
+                        } else {
+                            format!("{}{} is fast asleep!", prefix, battle.enemy.name())
+                        };
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} must recharge!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::Text {
+                                message: reason, timer: 0.0,
+                                next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                            }),
+                        };
+                    } else {
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} must recharge!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            }),
+                        };
+                    }
+                    self.battle = Some(battle);
+                    return;
+                }
+
+                // Rampage: player locked into multi-turn attack
+                if battle.player_rampage.0 > 0 {
+                    let rampage_move = battle.player_rampage.1;
+                    battle.player_rampage.0 -= 1;
+                    let (p_dmg, p_eff, p_crit) = self.calc_player_damage(engine, rampage_move, &battle);
+                    // Speed check for turn order
+                    let player_spd = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0) as f64;
+                    let enemy_spd = battle.enemy.speed as f64;
+                    let player_first = player_spd >= enemy_spd;
+                    if player_first {
+                        battle.phase = BattlePhase::PlayerAttack {
+                            timer: 0.0, move_id: rampage_move, damage: p_dmg, effectiveness: p_eff, is_crit: p_crit, from_pending: false,
+                        };
+                    } else {
+                        battle.pending_player_move = Some((rampage_move, p_dmg, p_eff, p_crit));
+                        battle.enemy.try_thaw(engine.rng.next_f64());
+                        let enemy_can_move = battle.enemy.can_move();
+                        let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
+                        if !enemy_can_move || enemy_paralyzed {
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            let reason = if enemy_paralyzed {
+                                format!("{}{} is paralyzed!", prefix, battle.enemy.name())
+                            } else if matches!(battle.enemy.status, StatusCondition::Freeze) {
+                                format!("{}{} is frozen solid!", prefix, battle.enemy.name())
+                            } else {
+                                format!("{}{} is fast asleep!", prefix, battle.enemy.name())
+                            };
+                            battle.phase = BattlePhase::Text {
+                                message: reason, timer: 0.0,
+                                next_phase: Box::new(BattlePhase::PlayerAttack {
+                                    timer: 0.0, move_id: rampage_move, damage: p_dmg, effectiveness: p_eff, is_crit: p_crit, from_pending: true,
+                                }),
+                            };
+                        } else {
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            battle.phase = BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            };
+                        }
+                    }
+                    self.battle = Some(battle);
+                    return;
+                }
+
+                // Rampage just ended: confuse player
+                if battle.player_rampage.1 != 0 && battle.player_rampage.0 == 0 {
+                    battle.player_rampage = (0, 0);
+                    if battle.player_confused == 0 {
+                        battle.player_confused = 2 + (engine.rng.next_u64() % 4) as u8;
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} became confused due to fatigue!", pname),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                        };
+                        self.battle = Some(battle);
+                        return;
+                    }
+                }
+
                 if is_down(engine) {
                     battle.phase = BattlePhase::ActionSelect { cursor: (cursor + 1) % 4 };
                 } else if is_up(engine) {
@@ -1749,6 +1866,26 @@ impl PokemonSim {
                         }
                     }
 
+                    // Hyper Beam: must recharge next turn (only if it hit)
+                    if move_id == MOVE_HYPER_BEAM && damage > 0 {
+                        battle.player_must_recharge = true;
+                    }
+
+                    // Thrash/Outrage: start rampage if not already rampaging
+                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.player_rampage.0 == 0 {
+                        // 2-3 turns total; we just did the first turn, so 1-2 more
+                        let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
+                        battle.player_rampage = (remaining, move_id);
+                    }
+
+                    // Rest: full HP heal, force 2-turn sleep
+                    if move_id == MOVE_REST {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.hp = p.max_hp;
+                            p.status = StatusCondition::Sleep { turns: 2 };
+                        }
+                    }
+
                     // Check for secondary effects from move (damaging moves only trigger on hit)
                     // Status-inflicting moves (power=0, like Hypnosis/Thunder Wave) always call try_inflict_status
                     let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
@@ -2010,6 +2147,41 @@ impl PokemonSim {
             }
 
             BattlePhase::EnemyAttack { timer, move_id, damage, effectiveness, is_crit } => {
+                // Enemy must recharge (Hyper Beam): skip attack entirely
+                if timer < 0.01 && battle.enemy_must_recharge {
+                    battle.enemy_must_recharge = false;
+                    let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                    let ename = battle.enemy.name().to_string();
+                    let next = if battle.pending_player_move.is_some() {
+                        let (pm, pd, pe, pc) = battle.pending_player_move.take().unwrap();
+                        BattlePhase::PlayerAttack { timer: 0.0, move_id: pm, damage: pd, effectiveness: pe, is_crit: pc, from_pending: true }
+                    } else {
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    };
+                    battle.phase = BattlePhase::Text {
+                        message: format!("{}{} must recharge!", prefix, ename),
+                        timer: 0.0,
+                        next_phase: Box::new(next),
+                    };
+                    self.battle = Some(battle);
+                    return;
+                }
+
+                // Enemy rampage: if rampaging, override selected move with rampage move
+                if timer < 0.01 && battle.enemy_rampage.0 > 0 {
+                    battle.enemy_rampage.0 -= 1;
+                    let rampage_move = battle.enemy_rampage.1;
+                    if rampage_move != move_id {
+                        // Re-dispatch with forced rampage move
+                        let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move);
+                        battle.phase = BattlePhase::EnemyAttack {
+                            timer: 0.0, move_id: rampage_move, damage: r_dmg, effectiveness: r_eff, is_crit: r_crit,
+                        };
+                        self.battle = Some(battle);
+                        return;
+                    }
+                }
+
                 let t = timer + dt;
                 // Screen shake on hit at t=0.3
                 if timer < 0.3 && t >= 0.3 && damage > 0 {
@@ -2052,6 +2224,23 @@ impl PokemonSim {
                     // Self-Destruct/Explosion: enemy faints
                     if move_id == MOVE_SELF_DESTRUCT {
                         battle.enemy.hp = 0;
+                    }
+
+                    // Hyper Beam: enemy must recharge next turn
+                    if move_id == MOVE_HYPER_BEAM && damage > 0 {
+                        battle.enemy_must_recharge = true;
+                    }
+
+                    // Thrash/Outrage: start rampage if not already rampaging
+                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.enemy_rampage.0 == 0 {
+                        let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
+                        battle.enemy_rampage = (remaining, move_id);
+                    }
+
+                    // Rest: full HP heal, force 2-turn sleep
+                    if move_id == MOVE_REST {
+                        battle.enemy.hp = battle.enemy.max_hp;
+                        battle.enemy.status = StatusCondition::Sleep { turns: 2 };
                     }
 
                     let move_data_ref = get_move(move_id);
@@ -2204,6 +2393,13 @@ impl PokemonSim {
                                 .unwrap_or(10);
                             BattlePhase::EnemyFainted { exp_gained: exp }
                         } else {
+                            // Enemy rampage ended: confuse
+                            if battle.enemy_rampage.1 != 0 && battle.enemy_rampage.0 == 0 {
+                                battle.enemy_rampage = (0, 0);
+                                if battle.enemy_confused == 0 {
+                                    battle.enemy_confused = 2 + (engine.rng.next_u64() % 4) as u8;
+                                }
+                            }
                             BattlePhase::ActionSelect { cursor: 0 }
                         }
                     };
@@ -2294,6 +2490,9 @@ impl PokemonSim {
                     battle.enemy = next_enemy;
                     battle.enemy_hp_display = battle.enemy.hp as f64;
                     battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
+                    battle.enemy_confused = 0;
+                    battle.enemy_must_recharge = false;
+                    battle.enemy_rampage = (0, 0);
                     battle.phase = BattlePhase::Text {
                         message: format!("Trainer sent out {}!", next_name),
                         timer: 0.0,
@@ -2315,6 +2514,9 @@ impl PokemonSim {
                         battle.enemy = next_enemy;
                         battle.enemy_hp_display = battle.enemy.hp as f64;
                         battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
+                        battle.enemy_confused = 0;
+                        battle.enemy_must_recharge = false;
+                        battle.enemy_rampage = (0, 0);
                         battle.phase = BattlePhase::Text {
                             message: format!("Trainer sent out {}!", next_name),
                             timer: 0.0,
@@ -2472,11 +2674,21 @@ impl PokemonSim {
     }
 
     fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7]) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None)
+    }
+
+    fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced))
+    }
+
+    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>) -> (MoveId, u16, f64, bool) {
         let available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
         if available.is_empty() { return (MOVE_TACKLE, 5, 1.0, false); }
 
+        // If forced (rampage), use that move
+        let mid = if let Some(fm) = forced_move { fm } else
         // Smart AI: 50% chance to pick best move by effectiveness, 50% random
-        let mid = if let Some(pp) = self.party.get(player_idx) {
+        if let Some(pp) = self.party.get(player_idx) {
             let sp = get_species(pp.species_id);
             let dt1 = sp.map(|s| s.type1).unwrap_or(PokemonType::Normal);
             let dt2 = sp.and_then(|s| s.type2);
@@ -2548,6 +2760,53 @@ impl PokemonSim {
             (mid, dmg, eff, is_crit)
         } else {
             (mid, 5, 1.0, false)
+        }
+    }
+
+    /// Calculate player damage for a given move (used by rampage continuation).
+    /// Returns (damage, effectiveness, is_crit).
+    fn calc_player_damage(&self, engine: &mut Engine, move_id: MoveId, battle: &BattleState) -> (u16, f64, bool) {
+        let accuracy_ok = if let Some(md) = get_move(move_id) {
+            if md.accuracy >= 255 {
+                true
+            } else {
+                let acc_mult = accuracy_stage_multiplier(battle.player_stages[STAGE_ACC]);
+                let eva_mult = accuracy_stage_multiplier(battle.enemy_stages[STAGE_EVA]);
+                let effective_acc = (md.accuracy as f64 * acc_mult / eva_mult).min(100.0);
+                if effective_acc >= 100.0 { true } else { (engine.rng.next_u64() % 100) < effective_acc as u64 }
+            }
+        } else { true };
+        let is_crit = accuracy_ok && (engine.rng.next_u64() % CRIT_CHANCE) == 0;
+        if !accuracy_ok {
+            return (0, 1.0, false);
+        }
+        if let Some(move_data) = get_move(move_id) {
+            let species = get_species(battle.enemy.species_id);
+            let dt1 = species.map(|s| s.type1).unwrap_or(PokemonType::Normal);
+            let dt2 = species.and_then(|s| s.type2);
+            let rng = DAMAGE_ROLL_MIN + engine.rng.next_f64() * DAMAGE_ROLL_RANGE;
+            let def_stat = match move_data.category {
+                MoveCategory::Physical => battle.enemy.defense,
+                _ => battle.enemy.sp_defense,
+            };
+            let atk_stage = match move_data.category {
+                MoveCategory::Physical => battle.player_stages[STAGE_ATK],
+                _ => battle.player_stages[STAGE_SPA],
+            };
+            let def_stage = match move_data.category {
+                MoveCategory::Physical => battle.enemy_stages[STAGE_DEF],
+                _ => battle.enemy_stages[STAGE_SPD],
+            };
+            let atk_mult = if is_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
+            let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
+            if let Some(atk) = self.party.get(battle.player_idx) {
+                let (dmg, eff) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, is_crit, atk_mult, def_mult);
+                (dmg, eff, is_crit)
+            } else {
+                (0, 1.0, false)
+            }
+        } else {
+            (0, 1.0, false)
         }
     }
 
@@ -2683,6 +2942,10 @@ impl PokemonSim {
                             player_confused: 0,
                             enemy_confused: 0,
                             player_trapped: false,
+                            player_must_recharge: false,
+                            enemy_must_recharge: false,
+                            player_rampage: (0, 0),
+                            enemy_rampage: (0, 0),
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -2771,6 +3034,8 @@ impl PokemonSim {
                     b.player_stages = [0; 7]; // Reset player stages on switch
                     b.player_confused = 0; // Reset confusion on switch
                     b.player_trapped = false; // Mean Look cleared on switch
+                    b.player_must_recharge = false; // Clear recharge on switch
+                    b.player_rampage = (0, 0); // Clear rampage on switch
                     b.pending_player_move = None;
                     // Reset toxic counter on switch-in (Gen 2)
                     if let StatusCondition::BadPoison { ref mut turn } = self.party[selected].status {
@@ -5440,5 +5705,40 @@ mod headless_tests {
         let _sim = PokemonSim::new();
         // This is a structural test — the fix ensures Champion credits fire even with pending evo
         assert!(load_map(MapId::ChampionLance).npcs.len() > 0, "ChampionLance must have NPCs");
+    }
+
+    #[test]
+    fn test_hyper_beam_data() {
+        let md = get_move(MOVE_HYPER_BEAM).unwrap();
+        assert_eq!(md.power, 150);
+        assert_eq!(md.accuracy, 90);
+        assert_eq!(md.pp, 5);
+        assert_eq!(md.move_type, PokemonType::Normal);
+        assert_eq!(md.category, MoveCategory::Physical);
+    }
+
+    #[test]
+    fn test_outrage_data() {
+        let md = get_move(MOVE_OUTRAGE).unwrap();
+        assert_eq!(md.power, 90);
+        assert_eq!(md.move_type, PokemonType::Dragon);
+        // Dragon is Special in Gen 2
+        assert_eq!(md.category, MoveCategory::Special);
+    }
+
+    #[test]
+    fn test_rest_data() {
+        let md = get_move(MOVE_REST).unwrap();
+        assert_eq!(md.category, MoveCategory::Status);
+        assert_eq!(md.power, 0);
+        assert_eq!(md.move_type, PokemonType::Psychic);
+    }
+
+    #[test]
+    fn test_thrash_data() {
+        let md = get_move(MOVE_THRASH).unwrap();
+        assert_eq!(md.power, 90);
+        assert_eq!(md.move_type, PokemonType::Normal);
+        assert_eq!(md.category, MoveCategory::Physical);
     }
 }

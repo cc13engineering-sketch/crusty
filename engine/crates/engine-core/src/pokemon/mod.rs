@@ -5633,10 +5633,12 @@ impl Simulation for PokemonSim {
 
                 if let Some(sp) = get_species(battle.enemy.species_id) {
                     engine.global_state.set_str("enemy_pokemon", &sp.name.to_lowercase());
+                    engine.global_state.set_f64("enemy_species_id", battle.enemy.species_id as f64);
                 }
                 if let Some(pp) = self.party.get(battle.player_idx) {
                     if let Some(sp) = get_species(pp.species_id) {
                         engine.global_state.set_str("player_pokemon", &sp.name.to_lowercase());
+                        engine.global_state.set_f64("player_species_id", pp.species_id as f64);
                     }
                 }
             }

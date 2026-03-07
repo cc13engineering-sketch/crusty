@@ -1262,4 +1262,10 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Level-up SFX on evolution**: No level-up sound played when evolution was pending. Fixed: moved sfx_level_up before evolution check.
 - **Multi-level-up**: Only one level gained per battle even with enough EXP for multiple. Fixed: while loop processes all level-ups, collecting all new moves.
 - All 1305 tests pass.
-- **Next (Sprint 82)**: TBD
+- **Next (Sprint 82)**: Sprite backgrounds, whiteout sequence
+
+### Sprint 82 (Content — Sprite Fix + Whiteout)
+- **Transparent battle sprites**: Switched primary sprite source to PokeAPI (GitHub-hosted, transparent PNGs). Added `removeWhiteBackground()` JS fallback for PokemonDB sprites. Export `enemy_species_id`/`player_species_id` to global_state for PokeAPI ID-based loading.
+- **Smooth HP bar drain (#9)**: Verified already implemented — `player_hp_display`/`enemy_hp_display` lerp at `diff * 0.15` per frame.
+- All 1305 tests pass.
+- **Next (Sprint 83)**: Whiteout fade (#74-75), send-out animation (#5-6)

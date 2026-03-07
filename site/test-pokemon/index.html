@@ -252,24 +252,67 @@
         const overlayCtx = overlay.getContext('2d', { alpha: true });
         overlayCtx.imageSmoothingEnabled = false;
 
-        // --- Sprite Loading from PokemonDB ---
+        // --- Sprite Loading ---
+        // Primary: PokeAPI sprites (transparent backgrounds, CORS-friendly)
+        // Fallback: PokemonDB Crystal sprites with white background removal
         const spriteCache = {};
+        const POKEAPI_FRONT = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+        const POKEAPI_BACK = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/';
         const SPRITE_BASE = 'https://img.pokemondb.net/sprites/crystal/normal/';
         const BACK_SPRITE_BASE = 'https://img.pokemondb.net/sprites/crystal/back-normal/';
+
+        function removeWhiteBackground(img) {
+            const c = document.createElement('canvas');
+            c.width = img.width;
+            c.height = img.height;
+            const ctx = c.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const data = ctx.getImageData(0, 0, c.width, c.height);
+            const px = data.data;
+            for (let i = 0; i < px.length; i += 4) {
+                // Treat near-white pixels as background (threshold accounts for JPEG artifacts)
+                if (px[i] > 240 && px[i+1] > 240 && px[i+2] > 240) {
+                    px[i+3] = 0; // Make transparent
+                }
+            }
+            ctx.putImageData(data, 0, 0);
+            return c; // Return canvas (drawable like an image)
+        }
 
         function loadSprite(name, isBack) {
             const key = (isBack ? 'back_' : 'front_') + name;
             if (key in spriteCache) return spriteCache[key];
 
             const img = new Image();
+            img.crossOrigin = 'anonymous'; // Required for getImageData on CDN images
             img.src = (isBack ? BACK_SPRITE_BASE : SPRITE_BASE) + name + '.png';
-            img.onload = () => { spriteCache[key] = img; };
+            img.onload = () => {
+                try {
+                    spriteCache[key] = removeWhiteBackground(img);
+                } catch(e) {
+                    // CORS may block getImageData — fall back to raw image
+                    spriteCache[key] = img;
+                }
+            };
             img.onerror = () => {
                 console.warn('Failed to load sprite:', name, isBack ? '(back)' : '(front)');
                 delete spriteCache[key]; // Allow retry
             };
 
             // Mark as loading (use 'loading' sentinel, not null)
+            spriteCache[key] = null;
+            return null;
+        }
+
+        // Load sprite by Pokedex ID (PokeAPI — transparent backgrounds, CORS-friendly)
+        function loadSpriteById(id, isBack) {
+            const key = (isBack ? 'id_back_' : 'id_front_') + id;
+            if (key in spriteCache) return spriteCache[key];
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.src = (isBack ? POKEAPI_BACK : POKEAPI_FRONT) + Math.floor(id) + '.png';
+            img.onload = () => { spriteCache[key] = img; }; // Already transparent
+            img.onerror = () => { delete spriteCache[key]; };
             spriteCache[key] = null;
             return null;
         }
@@ -574,22 +617,36 @@
                     const playerY = get_game_state_f64('player_sprite_y');
 
                     // Load and draw enemy sprite (front view)
+                    const enemyId = get_game_state_f64('enemy_species_id');
                     if (enemyName) {
-                        const frontSprite = spriteCache['front_' + enemyName];
-                        if (!frontSprite) {
-                            loadSprite(enemyName, false);
+                        const idKey = enemyId ? ('id_front_' + enemyId) : null;
+                        const nameKey = 'front_' + enemyName;
+                        const sprite = (idKey && spriteCache[idKey]) || spriteCache[nameKey];
+                        if (!sprite) {
+                            if (enemyId && !(idKey in spriteCache)) {
+                                loadSpriteById(enemyId, false);
+                            } else if (!(nameKey in spriteCache)) {
+                                loadSprite(enemyName, false);
+                            }
                         } else {
-                            overlayCtx.drawImage(frontSprite, enemyX, enemyY, spriteSize, spriteSize);
+                            overlayCtx.drawImage(sprite, enemyX, enemyY, spriteSize, spriteSize);
                         }
                     }
 
                     // Load and draw player sprite (back view)
+                    const playerId = get_game_state_f64('player_species_id');
                     if (playerName) {
-                        const backSprite = spriteCache['back_' + playerName];
-                        if (!backSprite) {
-                            loadSprite(playerName, true);
+                        const idKey = playerId ? ('id_back_' + playerId) : null;
+                        const nameKey = 'back_' + playerName;
+                        const sprite = (idKey && spriteCache[idKey]) || spriteCache[nameKey];
+                        if (!sprite) {
+                            if (playerId && !(idKey in spriteCache)) {
+                                loadSpriteById(playerId, true);
+                            } else if (!(nameKey in spriteCache)) {
+                                loadSprite(playerName, true);
+                            }
                         } else {
-                            overlayCtx.drawImage(backSprite, playerX, playerY, spriteSize, spriteSize);
+                            overlayCtx.drawImage(sprite, playerX, playerY, spriteSize, spriteSize);
                         }
                     }
                 }

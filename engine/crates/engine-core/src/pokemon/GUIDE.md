@@ -923,4 +923,9 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Removed dead_code allow on FLAG_ROCKET_MAHOGANY (now used)
 - Added tests: rocket_hq_map_exists, rocket_hq_warp_to_mahogany
 - All 1298 tests pass.
-- **Next (Sprint 75)**: QA sprint
+
+### Sprint 75 QA
+- **Rampage re-initialization bug**: Both player and enemy rampage init used `.0 == 0` (counter), which re-triggered rampage after counter hit 0 during active rampage. Fixed to `.1 == 0` (move_id) — only init when no rampage active.
+- QA audit false positives dismissed: RocketHQ exit warp is valid, Self-Destruct+rampage not a real conflict
+- All 73 pokemon tests pass.
+- **Next (Sprint 76)**: TBD

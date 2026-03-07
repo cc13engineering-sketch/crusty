@@ -2490,53 +2490,57 @@ impl PokemonSim {
                 // Actually award EXP and check level up
                 if let Some(p) = self.party.get_mut(battle.player_idx) {
                     p.exp += exp;
-                    if let Some(sp) = get_species(p.species_id) {
+                    let mut leveled = false;
+                    let mut pending_learns = Vec::new();
+                    // Loop for multi-level-up (e.g., low-level vs high-level enemy)
+                    while p.level < 100 {
+                        let sp = match get_species(p.species_id) { Some(s) => s, None => break };
                         let next_exp = exp_for_level(p.level + 1, sp.growth_rate);
-                        if p.exp >= next_exp && p.level < 100 {
-                            p.level += 1;
-                            p.recalc_stats();
-                            // Check for new moves at this level
-                            let new_moves = p.check_new_moves();
-                            let mut pending_learns = Vec::new();
-                            for new_move in new_moves {
-                                if p.moves.iter().any(|m| *m == Some(new_move)) { continue; }
-                                let mut filled = false;
-                                for i in 0..4 {
-                                    if p.moves[i].is_none() {
-                                        p.moves[i] = Some(new_move);
-                                        if let Some(md) = get_move(new_move) {
-                                            p.move_pp[i] = md.pp;
-                                            p.move_max_pp[i] = md.pp;
-                                        }
-                                        filled = true;
-                                        break;
+                        if p.exp < next_exp { break; }
+                        p.level += 1;
+                        leveled = true;
+                        p.recalc_stats();
+                        let new_moves = p.check_new_moves();
+                        for new_move in new_moves {
+                            if p.moves.iter().any(|m| *m == Some(new_move)) { continue; }
+                            let mut filled = false;
+                            for i in 0..4 {
+                                if p.moves[i].is_none() {
+                                    p.moves[i] = Some(new_move);
+                                    if let Some(md) = get_move(new_move) {
+                                        p.move_pp[i] = md.pp;
+                                        p.move_max_pp[i] = md.pp;
                                     }
+                                    filled = true;
+                                    break;
                                 }
-                                if !filled { pending_learns.push(new_move); }
                             }
-                            battle.pending_learn_moves = pending_learns;
-                            let evo_species = get_species(p.species_id)
-                                .and_then(|s| {
-                                    if let (Some(evo_lvl), Some(evo_into)) = (s.evolution_level, s.evolution_into) {
-                                        if p.level >= evo_lvl { Some(evo_into) } else { None }
-                                    } else { None }
-                                });
-                            if let Some(evo) = evo_species {
-                                battle.phase = BattlePhase::Text {
-                                    message: format!("{} grew to LV{}!", p.name(), p.level),
-                                    timer: 0.0,
-                                    next_phase: Box::new(BattlePhase::LevelUp { timer: 0.0 }),
-                                };
-                                self.battle = Some(battle);
-                                self.phase = GamePhase::Battle;
-                                engine.global_state.set_f64("pending_evolution", evo as f64);
-                                return;
-                            }
-                            sfx_level_up(engine);
-                            battle.phase = BattlePhase::LevelUp { timer: 0.0 };
+                            if !filled { pending_learns.push(new_move); }
+                        }
+                    }
+                    if leveled {
+                        battle.pending_learn_moves = pending_learns;
+                        let evo_species = get_species(p.species_id)
+                            .and_then(|s| {
+                                if let (Some(evo_lvl), Some(evo_into)) = (s.evolution_level, s.evolution_into) {
+                                    if p.level >= evo_lvl { Some(evo_into) } else { None }
+                                } else { None }
+                            });
+                        sfx_level_up(engine);
+                        if let Some(evo) = evo_species {
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} grew to LV{}!", p.name(), p.level),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::LevelUp { timer: 0.0 }),
+                            };
                             self.battle = Some(battle);
+                            self.phase = GamePhase::Battle;
+                            engine.global_state.set_f64("pending_evolution", evo as f64);
                             return;
                         }
+                        battle.phase = BattlePhase::LevelUp { timer: 0.0 };
+                        self.battle = Some(battle);
+                        return;
                     }
                 }
                 // No level up — check for more trainer Pokemon or Won
@@ -3313,6 +3317,10 @@ impl PokemonSim {
         let confirm = is_confirm(engine);
 
         if is_cancel(engine) {
+            // Clear free_switch if backing out (TrainerSwitchPrompt sets it before entering PokemonMenu)
+            if let Some(b) = &mut self.battle {
+                b.free_switch = false;
+            }
             self.phase = if self.battle.is_some() { GamePhase::Battle } else { GamePhase::Menu };
             return;
         }

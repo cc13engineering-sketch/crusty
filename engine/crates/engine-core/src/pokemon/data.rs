@@ -1914,10 +1914,10 @@ pub fn exp_for_level(level: u8, growth: GrowthRate) -> u32 {
         GrowthRate::Fast => (4 * n * n * n) / 5,
         GrowthRate::MediumFast => n * n * n,
         GrowthRate::MediumSlow => {
-            let n3 = n * n * n;
-            let n2 = n * n;
+            let n = n as i64;
             // 6n^3/5 - 15n^2 + 100n - 140
-            (6 * n3 / 5).saturating_sub(15 * n2) + 100 * n - 140
+            let val = (6 * n * n * n / 5) - (15 * n * n) + (100 * n) - 140;
+            val.max(0) as u32
         }
         GrowthRate::Slow => (5 * n * n * n) / 4,
     }

@@ -1255,3 +1255,11 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - **Catch ball shakes (#47)**: 0-3 shake checks with Gen 2 flavor text ("Almost had it!", "Appeared to be caught!"). "Wobble..." text for tension.
 - All 1305 tests pass.
 - **Next (Sprint 81 QA)**: Full audit
+
+### Sprint 81 (QA)
+- **free_switch cancel bug**: Backing out of PokemonMenu after TrainerSwitchPrompt YES left free_switch=true, giving free switches on any subsequent switch. Fixed: clear free_switch on PokemonMenu cancel.
+- **MediumSlow EXP formula**: Used `saturating_sub` for unsigned math causing inflated EXP at levels 2-12 for ~38 species (starters, many common Pokemon). Fixed: signed arithmetic.
+- **Level-up SFX on evolution**: No level-up sound played when evolution was pending. Fixed: moved sfx_level_up before evolution check.
+- **Multi-level-up**: Only one level gained per battle even with enough EXP for multiple. Fixed: while loop processes all level-ups, collecting all new moves.
+- All 1305 tests pass.
+- **Next (Sprint 82)**: TBD

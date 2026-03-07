@@ -10,6 +10,10 @@ Agents update this file after each sprint. Refer to `ENGINE_POKEMON.md` for engi
 
 ---
 
+## MUST USE SOON
+
+This is our master source for how to do tile art and maps for the game - https://github.com/nikouu/Pokemon-gen-2-style-tilemap
+
 ## Reference Data Sources
 
 Prefer sources higher on the list when data conflicts.
@@ -1590,3 +1594,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **LOW FIX: Bug vs Poison type chart** — `(Bug, Poison) => 0.5` was a Gen 1 leftover. Removed entry; now correctly falls through to 1.0 (neutral) per Gen 2.
 - All 1318 tests pass.
 - **Next (Sprint 90)**: Content sprint. B8 (level-up stat display), B9 (EXP bar animation).
+
+### Sprint 90 (Content — Route 30 Fix + Tilemap Assets)
+- **Route 30 east exit relocated** — Moved Route 31 exit from hidden top-right corner (y=2/3) to natural mid-map east-west path junction (y=10/11). Path now clearly leads east to Route 31 with a wide walkable corridor. Both tile and collision maps updated. Route 31 return warps updated to match new coordinates.
+- **Gen 2 tilemap assets added** — Downloaded MIT-licensed 8x8 GBC-style tileset from `nikouu/Pokemon-gen-2-style-tilemap`. Files in `engine/assets/tilesets/`: `Original.png` (128x80 tilesheet), `Custom.png` (artist variant), `TilemapDetails.json` (149 tile names + positions), `Constructed/` (16x16 composites). Ready for future tile rendering integration.
+- **GUIDE.md updated** — Marked project as "true 1:1 clone" of Pokemon Gold/Silver/Crystal in header.
+- All 1318 tests pass.
+- **Next (Sprint 91)**: Content sprint. Tile rendering integration, B8 (level-up stat display).

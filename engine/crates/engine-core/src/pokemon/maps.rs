@@ -1099,14 +1099,14 @@ fn build_route_30() -> MapData {
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 2: trees | grass | tall grass left patch | path | grass | pond | east exit
+        // Row 2: trees | grass | tall grass left patch | path | grass | pond
         TREE_TOP,TREE_TOP,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
         PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,GRASS,PATH,PATH,
-        // Row 3: trees | grass | tall grass left patch | path | grass | pond | east exit
+        GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,GRASS,TREE_TOP,TREE_TOP,
+        // Row 3: trees | grass | tall grass left patch | path | grass | pond
         TREE_BOTTOM,TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
         PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,GRASS,PATH,PATH,
+        GRASS,GRASS,GRASS,GRASS,GRASS,WATER,WATER,GRASS,TREE_BOTTOM,TREE_BOTTOM,
         // Row 4: trees | grass | path going north-south | grass | pond edge
         TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
@@ -1131,14 +1131,14 @@ fn build_route_30() -> MapData {
         TREE_BOTTOM,TREE_BOTTOM,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 10: trees | tall grass | path east-west stretch | tall grass
+        // Row 10: trees | tall grass | path east-west to east exit → Route 31
         TREE_TOP,TREE_TOP,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,
-        GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
-        // Row 11: trees | grass | path goes south | grass | ledge
+        GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 11: trees | grass | path goes south | east exit continues
         TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,GRASS,LEDGE,LEDGE,LEDGE,TREE_BOTTOM,TREE_BOTTOM,
+        GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,PATH,PATH,
+        PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,
         // Row 12: trees | grass | path | grass | flowers
         TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,
@@ -1175,14 +1175,14 @@ fn build_route_30() -> MapData {
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        // Row 2: trees | grass | tall grass | path | grass | pond | east exit
+        // Row 2: trees | grass | tall grass | path | grass | pond
         C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WARP,
-        // Row 3: trees | grass | tall grass | path | grass | pond | east exit
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,C_SOLID,
+        // Row 3: trees | grass | tall grass | path | grass | pond
         C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WARP,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,C_SOLID,
         // Row 4: trees | grass | path | grass | pond
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
@@ -1207,14 +1207,14 @@ fn build_route_30() -> MapData {
         C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 10: trees | tall grass | path east-west | tall grass
+        // Row 10: trees | tall grass | path east → Route 31 exit
         C_SOLID,C_SOLID,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 11: trees | grass | path | ledge
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 11: trees | grass | path east → Route 31 exit
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_LEDGE,C_LEDGE,C_LEDGE,C_SOLID,C_SOLID,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
         // Row 12: trees | grass | path | flowers
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
@@ -1251,10 +1251,10 @@ fn build_route_30() -> MapData {
         WarpData { x: 14, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 9, dest_y: 1 },
         // South exit -> CherrygroveCity north (column 15 -> Cherrygrove col 10)
         WarpData { x: 15, y: 17, dest_map: MapId::CherrygroveCity, dest_x: 10, dest_y: 1 },
-        // East exit -> Route 31 (row 2)
-        WarpData { x: 29, y: 2, dest_map: MapId::Route31, dest_x: 1, dest_y: 7 },
-        // East exit -> Route 31 (row 3)
-        WarpData { x: 29, y: 3, dest_map: MapId::Route31, dest_x: 1, dest_y: 8 },
+        // East exit -> Route 31 (row 10, at midpoint east-west path)
+        WarpData { x: 29, y: 10, dest_map: MapId::Route31, dest_x: 1, dest_y: 7 },
+        // East exit -> Route 31 (row 11)
+        WarpData { x: 29, y: 11, dest_map: MapId::Route31, dest_x: 1, dest_y: 8 },
     ];
 
     let npcs = vec![
@@ -1451,8 +1451,8 @@ fn build_route_31() -> MapData {
 
     let warps = vec![
         // Left edge -> Route 30 (east exit)
-        WarpData { x: 0, y: 7, dest_map: MapId::Route30, dest_x: 28, dest_y: 2 },
-        WarpData { x: 0, y: 8, dest_map: MapId::Route30, dest_x: 28, dest_y: 3 },
+        WarpData { x: 0, y: 7, dest_map: MapId::Route30, dest_x: 28, dest_y: 10 },
+        WarpData { x: 0, y: 8, dest_map: MapId::Route30, dest_x: 28, dest_y: 11 },
         // Right edge -> Violet City (west entry)
         WarpData { x: 29, y: 7, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 10 },
         WarpData { x: 29, y: 8, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 11 },

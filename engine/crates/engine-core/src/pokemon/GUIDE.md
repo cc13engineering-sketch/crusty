@@ -13,23 +13,106 @@ This is the living strategy document for the Pokemon Gold/Silver recreation on t
 Prefer sources higher on the list when data conflicts.
 
 ### 1. `pret/pokecrystal` Disassembly (PRIMARY SOURCE OF TRUTH)
-**https://github.com/pret/pokecrystal**
 
-The fully disassembled source code of Pokémon Crystal. It IS the game. Key directories:
+**LOCAL COPY: `engine/crates/engine-core/src/pokemon/pokecrystal-master/`**
+Upstream: https://github.com/pret/pokecrystal
 
-- **`data/pokemon/base_stats/`** — Per-species `.asm`: base stats, types, catch rate, exp yield, growth rate
-- **`data/pokemon/evos_attacks.asm`** — Every species' evolution method AND full level-up learnset
-- **`data/moves/moves.asm`** — Every move's type, power, accuracy, PP, effect constant
-- **`data/wild/johto_grass.asm`**, **`data/wild/johto_water.asm`** — Wild encounter tables per route, per time of day
-- **`data/trainers/parties.asm`** — Every trainer's party. Copy gym leader / E4 / Champion / Rival teams exactly.
-- **`data/types/type_matchups.asm`** — Complete type effectiveness chart
-- **`data/maps/map_headers.asm`** — Map dimensions (width/height)
-- **`maps/`** — Map scripts, NPC placement, event triggers, story flag checks
-- **`engine/battle/core.asm`** — Battle engine: turn order, damage calc, accuracy, crits, move dispatch
-- **`engine/battle/move_effects/`** — Individual move effect implementations
-- **`constants/pokemon_constants.asm`** — Canonical species IDs for SpeciesId constants
-- **`constants/move_constants.asm`** — Canonical move IDs for MoveId constants
-- **`docs/bugs_and_glitches.md`** — Known original bugs. Don't reproduce them.
+The fully disassembled source code of Pokémon Crystal. It IS the game. This is our **ultimate source of truth** for all data, mechanics, and design patterns. Everything else is secondary. Always read the corresponding `.asm` file FIRST before implementing any feature.
+
+**IMPORTANT: All paths below are relative to `pokecrystal-master/`.**
+
+#### Data Files — Species, Moves, Types
+
+| File | What it contains | Format |
+|------|-----------------|--------|
+| `data/pokemon/base_stats/*.asm` | Per-species base stats, types, catch rate, exp yield, growth rate, TM/HM learnset, gender ratio, egg groups. 251 files, one per species. | `db HP, ATK, DEF, SPD, SAT, SDF` then metadata fields |
+| `data/pokemon/evos_attacks.asm` | Every species' evolution method(s) AND full level-up learnset (3,357 lines). | `db EVOLVE_LEVEL, level, species` then `db level, move` pairs |
+| `data/pokemon/egg_moves.asm` | Egg moves per species | `db move1, move2, ...` |
+| `data/moves/moves.asm` | All 251 moves: animation, effect, power, type, accuracy, PP, effect chance (268 lines). | `move NAME, EFFECT, power, TYPE, acc, pp, chance` |
+| `data/moves/effects.asm` | Move effect scripts — the step-by-step execution order for each effect type (e.g. NormalHit: checkobedience → usedmovetext → doturn → critical → damagestats → damagecalc → stab → damagevariation → checkhit → moveanim → failuretext → applydamage → criticaltext → supereffectivetext → checkfaint → buildopponentrage → kingsrock → endmove). **Critical for implementing move execution order correctly.** | Macro sequence per effect |
+| `data/moves/critical_hit_moves.asm` | Moves with high crit ratio | List of move constants |
+| `data/types/type_matchups.asm` | Complete type chart: every super-effective, not-very-effective, and immune matchup | `db ATTACKER, DEFENDER, EFFECTIVENESS` |
+| `data/types/type_boost_items.asm` | Which held items boost which types (Charcoal→Fire, etc.) | `db item, type` |
+| `data/types/badge_type_boosts.asm` | Which badge boosts which stat | `db badge, stat` |
+| `data/growth_rates.asm` | EXP curve coefficients for all 6 growth rates | polynomial coefficients |
+| `data/wild/johto_grass.asm` | Wild grass encounters per map, 3 time-of-day slots (morn/day/nite), 7 slots each | `def_grass_wildmons MAP` then `db level, species` × 7 × 3 |
+| `data/wild/johto_water.asm` | Wild surfing encounters per map | Same format as grass |
+| `data/wild/fish.asm` | Fishing encounters per group (Old/Good/Super Rod) | `db encounter_chance, species, level` |
+| `data/items/attributes.asm` | Item effects, prices, pockets, parameters | Per-item attribute block |
+| `data/items/marts.asm` | What each Poké Mart sells | `db item1, item2, ...` per mart |
+
+#### Data Files — Trainers & Maps
+
+| File | What it contains | Format |
+|------|-----------------|--------|
+| `data/trainers/parties.asm` | Every trainer's team (3,497 lines). Gym leaders, E4, Champion, Rival, all route trainers. | `db "NAME@", TYPE` then `db level, species[, item][, 4 moves]` |
+| `data/trainers/attributes.asm` | Trainer AI flags per trainer class | AI layer bitmask |
+| `data/maps/maps.asm` | Map metadata: tileset, environment type, landmark, music, time palette, fishing group | `map NAME, TILESET, ENV, LANDMARK, MUSIC, PHONE, PALETTE, FISHGROUP` |
+| `data/maps/map_data.asm` | Map dimensions (width × height in blocks), tileset, connections | Per-map struct |
+| `data/maps/spawn_points.asm` | Fly/respawn destinations | `spawn_point MAP, x, y` |
+| `data/maps/flypoints.asm` | Fly menu destinations | Ordered list |
+| `maps/*.asm` | Per-map script files: NPCs, events, warps, sign text, story flag checks, scene scripts. **Read these to understand how the original game gates progression.** | ASM script commands |
+| `maps/*.blk` | Map block data (binary tile layout) | Binary |
+
+#### Engine Code — Battle System Design Patterns
+
+| File | What it contains | Lines |
+|------|-----------------|-------|
+| `engine/battle/core.asm` | **The entire battle engine.** Turn order, switching, fainting, EXP award, evolution trigger, wild vs trainer flow, linked battles. Read this to understand the battle state machine. | 9,147 |
+| `engine/battle/effect_commands.asm` | Implementations of every effect macro (checkhit, damagecalc, critical, stab, applydamage, etc.). **The actual damage formula lives here.** | |
+| `engine/battle/move_effects/*.asm` | 58 individual move effect files (curse, baton_pass, encore, attract, etc.). Each handles its unique mechanic. | 58 files |
+| `engine/battle/ai/scoring.asm` | AI move scoring — how trainers pick moves. Layers: Basic (dismiss useless), Setup, Risky, Aggressive, Cautious. | |
+| `engine/battle/ai/move.asm` | AI move selection orchestration | |
+| `engine/battle/ai/items.asm` | AI item usage (gym leaders use potions, etc.) | |
+| `engine/battle/ai/switch.asm` | AI switching logic | |
+| `engine/battle/menu.asm` | Battle menu: Fight/Item/Switch/Run selection | |
+| `engine/battle/start_battle.asm` | Battle initialization, intro animations | |
+
+#### Engine Code — Overworld Design Patterns
+
+| File | What it contains |
+|------|-----------------|
+| `engine/overworld/overworld.asm` | Main overworld loop, step processing |
+| `engine/overworld/player_movement.asm` | Player movement, collision, tile interaction |
+| `engine/overworld/map_objects.asm` | NPC object management, sprite loading |
+| `engine/overworld/npc_movement.asm` | NPC pathfinding, random walk, scripted movement |
+| `engine/overworld/events.asm` | Event processing, script triggers |
+| `engine/overworld/scripting.asm` | Script command interpreter |
+| `engine/overworld/warp_connection.asm` | Map transitions, warp logic, connections |
+| `engine/overworld/wildmons.asm` | Wild encounter trigger logic (step counter, rates) |
+| `engine/overworld/time.asm` | Time-of-day system (morn/day/nite transitions) |
+| `engine/pokemon/evolve.asm` | Evolution execution, animation trigger |
+| `engine/pokemon/move_mon.asm` | Move/delete moves, party management |
+
+#### Constants — IDs & Flags
+
+| File | What it contains |
+|------|-----------------|
+| `constants/pokemon_constants.asm` | Canonical species IDs (BULBASAUR=1 through CELEBI=251) |
+| `constants/move_constants.asm` | Canonical move IDs (POUND=1 through BEAT_UP=251) |
+| `constants/item_constants.asm` | Item IDs |
+| `constants/type_constants.asm` | Type IDs (NORMAL=0, FIRE=1, ... STEEL=8, DARK=17) |
+| `constants/event_flags.asm` | All story/event flags — gym badges, item pickups, story progression gates |
+| `constants/engine_flags.asm` | Engine flags — badges, pokegear, fly points |
+| `constants/battle_constants.asm` | Battle state constants |
+| `constants/map_constants.asm` | Map group/number constants |
+| `constants/trainer_constants.asm` | Trainer class + ID constants |
+
+#### How To Use pokecrystal For Implementation
+
+1. **Adding a new species**: Read `data/pokemon/base_stats/{name}.asm` for stats, `data/pokemon/evos_attacks.asm` for learnset and evolution, check `data/wild/johto_grass.asm` for where it appears.
+
+2. **Adding a new move**: Read `data/moves/moves.asm` for stats, `data/moves/effects.asm` for execution sequence, check `engine/battle/move_effects/{name}.asm` if it has a unique effect.
+
+3. **Implementing a trainer battle**: Read `data/trainers/parties.asm` for the exact team, `data/trainers/attributes.asm` for AI flags, and `maps/{Location}.asm` for the trigger script.
+
+4. **Implementing a map/route**: Read `maps/{MapName}.asm` for events/NPCs/warps, `data/wild/johto_grass.asm` for encounters, `data/maps/map_data.asm` for dimensions and connections.
+
+5. **Verifying battle mechanics**: Read `engine/battle/effect_commands.asm` for the actual damage formula implementation, `engine/battle/core.asm` for turn flow, and `data/moves/effects.asm` for the move execution pipeline.
+
+6. **Understanding story gates**: Read `constants/event_flags.asm` for the flag name, then grep `maps/` for `checkevent EVENT_*` and `setevent EVENT_*` to see where flags are checked and set.
+
+7. **Designing simulation tests**: Use the data files as ground truth. Parse `data/moves/moves.asm` to verify our move stats match. Parse `data/trainers/parties.asm` to verify trainer teams. Parse `data/types/type_matchups.asm` to verify our type chart. Parse `data/pokemon/evos_attacks.asm` to verify learnsets and evolution levels.
 
 Read the corresponding disassembly file FIRST before implementing any feature.
 
@@ -1463,9 +1546,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 | `engine/data/REFERENCE.md` | 578 | Master index: game progression (15 parts), map connectivity graph, 12 progression gates, story flags, city buildings, interior maps, key mechanics rules, physical/special split gotchas, implementation checklist |
 | `engine/data/gym_e4_rival_data.txt` | 415 | All 8 gym leaders with full teams + movesets, Elite Four (Will/Koga/Bruno/Karen), Champion Lance, Rival Silver (7 encounters, 3 starter variants each) |
 | `engine/data/johto_routes_34_46.txt` | 881 | Routes 34-46 with wild encounters (Morning/Day/Night), trainers, items. Plus 6 dungeons: Union Cave, Ilex Forest, Ice Path, Mt. Mortar, Dark Cave, Slowpoke Well |
-| `engine/docs/gen2_battle_mechanics.txt` | 353 | Damage formula (10+ modifiers), critical hit stages, stat calculation (DVs + StatExp), EXP formula (4 growth curves), catch rate formula (with Gen2 bugs), status conditions (6 types), full 17-type effectiveness chart |
+| `engine/data/gen2_battle_mechanics.txt` | 353 | Damage formula (10+ modifiers), critical hit stages, stat calculation (DVs + StatExp), EXP formula (4 growth curves), catch rate formula (with Gen2 bugs), status conditions (6 types), full 17-type effectiveness chart |
 | `engine/data/gen2_moves_pokemon.txt` | 832 | 251 moves with Gen2-specific stats, evolution data (all methods), starter learnsets, ~130 species base stats with catch rates + EXP yields + growth rates |
-| `engine/JOHTO_DATA_ROUTES_29_33.txt` | 239 | Routes 29-33 encounters + trainers (pre-existing) |
+| `engine/data/johto_routes_29_33.txt` | 239 | Routes 29-33 encounters + trainers (pre-existing) |
+| `engine/data/johto_cities_progression.txt` | 926 | Complete map connectivity graph, detailed city/building data |
 
 ### Key Findings During Compilation
 

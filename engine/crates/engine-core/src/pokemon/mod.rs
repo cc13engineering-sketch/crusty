@@ -11510,7 +11510,7 @@ mod headless_tests {
         // Camera should clamp to map bounds
         // A small map (10x9 = Route29 size) should have camera at 0,0
         // since 10 tiles * 16px = 160px = VIEW_TILES_X * TILE_PX (same as viewport)
-        let mut sim = PokemonSim::with_state(
+        let sim = PokemonSim::with_state(
             MapId::NewBarkTown, 5, 5,
             vec![Pokemon::new(CYNDAQUIL, 10)],
             0x00,

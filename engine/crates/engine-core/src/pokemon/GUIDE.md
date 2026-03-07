@@ -3392,3 +3392,55 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - `test_sprint142_camera_edge_clamping` — verifies camera stays within map bounds
 - `test_sprint142_evolution_phases` — verifies Evolution GamePhase construction and species data
 - **1376 tests passing** (up from 1374)
+
+---
+
+### Sprint 143 — QA Audit: Sprints 141-142 + Battle Mechanics Verification
+
+#### Methodology
+- Code review of all Sprint 141-142 changes
+- Cross-reference against `pokecrystal-master/data/moves/moves.asm` for accuracy
+- Full test suite run
+- Verified both PlayerAttack and EnemyAttack paths for each mechanic
+
+#### Verified Against pokecrystal
+
+| Mechanic | pokecrystal Reference | Our Implementation | Status |
+|----------|----------------------|-------------------|--------|
+| Submission recoil | EFFECT_RECOIL_HIT, power 80, acc 80 | damage/4 recoil | Correct |
+| Double-Edge recoil | EFFECT_RECOIL_HIT, power 120, acc 100 | damage/4 recoil | Correct |
+| Pin Missile multi-hit | EFFECT_MULTI_HIT, power 14, acc 85 | 2-5 hits Gen 2 dist | Correct |
+| Wrap trapping | EFFECT_TRAP_TARGET, power 15, acc 85 | 2-5 turns, 1/16 HP/turn | Correct |
+| Bind trapping | EFFECT_TRAP_TARGET, power 15, acc 75 | 2-5 turns, 1/16 HP/turn | Correct |
+| Fire Spin trapping | EFFECT_TRAP_TARGET, power 15, acc 70 | 2-5 turns, 1/16 HP/turn | Correct |
+| Whirlpool trapping | EFFECT_TRAP_TARGET, power 15, acc 70 | 2-5 turns, 1/16 HP/turn | Correct |
+| Clamp trapping | EFFECT_TRAP_TARGET, power 35, acc 75 | 2-5 turns, 1/16 HP/turn | Correct |
+| Swords Dance | EFFECT_ATTACK_UP_2 | +2 ATK stage | Correct |
+| Amnesia | EFFECT_SP_DEF_UP_2 | +2 SPD stage | Correct |
+| Agility | EFFECT_SPEED_UP_2 | +2 SPE stage | Correct |
+
+#### Code Paths Verified
+- Recoil: PlayerAttack (line 3175) + EnemyAttack (line 3542) — both use `matches!()` with same move set
+- Recoil text: "X is hit with recoil!" displayed for both sides
+- Multi-hit text: "Hit N times!" displayed for both sides
+- Trap damage: both end-of-turn paths (from_pending=true and enemy-goes-second) process trapping
+- Trap text: "hurt by the trap!" / "released from the trap!" for both player and enemy
+- Stat stage cap: "Won't go any higher/lower!" messages present
+- Camera clamping: `[0, map_pw - viewport_width]` — correct edge behavior
+- Evolution flicker: accelerating 3Hz→12Hz over 3 seconds, B-cancel during flicker only
+
+#### Regression Check
+- **1376 tests passing** (0 failures)
+- **0 compiler warnings** (fixed stale `mut` in camera test)
+- No regressions in existing features
+
+#### Bugs Found
+| ID | Severity | Description | Status |
+|----|----------|-------------|--------|
+| Q3 | P2 | Falkner's Pidgeotto L9 is Pidgey (species missing) | Deferred |
+| Q4 | P2 | Route trainers show generic "Trainer" name | Deferred |
+| Q5 | P2 | Two-turn moves (Fly/Dig/SolarBeam) have data but no charging mechanic | Deferred |
+
+#### Test Results
+- **1376 tests passing** (0 failures)
+- **0 compiler warnings**

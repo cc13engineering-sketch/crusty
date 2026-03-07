@@ -183,6 +183,10 @@ pub const DRAGONITE: SpeciesId = 149;
 pub const KINGDRA: SpeciesId = 230;
 pub const HORSEA: SpeciesId = 116;
 pub const SEADRA: SpeciesId = 117;
+// ─── Sprint 127: Ilex Forest + Union Cave species ──────
+pub const METAPOD: SpeciesId = 11;
+pub const KAKUNA: SpeciesId = 14;
+pub const LAPRAS: SpeciesId = 131;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -563,6 +567,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 20, base_sp_defense: 20, base_speed: 45,
         catch_rate: 255, base_exp_yield: 53, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_STRING_SHOT)],
+        evolution_level: Some(7), evolution_into: Some(METAPOD),
+    },
+    SpeciesData {
+        id: METAPOD, name: "Metapod",
+        type1: PokemonType::Bug, type2: None,
+        base_hp: 50, base_attack: 20, base_defense: 55,
+        base_sp_attack: 25, base_sp_defense: 25, base_speed: 30,
+        catch_rate: 120, base_exp_yield: 72, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_STRING_SHOT), (7, MOVE_DEFENSE_CURL)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -572,6 +585,15 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 20, base_sp_defense: 20, base_speed: 50,
         catch_rate: 255, base_exp_yield: 52, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT)],
+        evolution_level: Some(7), evolution_into: Some(KAKUNA),
+    },
+    SpeciesData {
+        id: KAKUNA, name: "Kakuna",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Poison),
+        base_hp: 45, base_attack: 25, base_defense: 50,
+        base_sp_attack: 25, base_sp_defense: 25, base_speed: 35,
+        catch_rate: 120, base_exp_yield: 71, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT), (7, MOVE_DEFENSE_CURL)],
         evolution_level: None, evolution_into: None,
     },
     SpeciesData {
@@ -1658,6 +1680,16 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 80, base_sp_defense: 105, base_speed: 40,
         catch_rate: 75, base_exp_yield: 142, growth_rate: GrowthRate::Fast,
         learnset: &[(1, MOVE_GROWL), (1, MOVE_METRONOME), (11, MOVE_METRONOME), (25, MOVE_ENCORE)],
+        evolution_level: None, evolution_into: None,
+    },
+    // Lapras (Water/Ice) — Union Cave B2F Friday encounter
+    SpeciesData {
+        id: LAPRAS, name: "Lapras",
+        type1: PokemonType::Water, type2: Some(PokemonType::Ice),
+        base_hp: 130, base_attack: 85, base_defense: 80,
+        base_sp_attack: 85, base_sp_defense: 95, base_speed: 60,
+        catch_rate: 45, base_exp_yield: 219, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_GROWL), (8, MOVE_SING), (15, MOVE_CONFUSE_RAY), (22, MOVE_BODY_SLAM)],
         evolution_level: None, evolution_into: None,
     },
 ];

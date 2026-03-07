@@ -150,6 +150,7 @@ const FLAG_SPROUT_RIVAL: u64   = 1 << 11; // Rival confrontation at Sprout Tower
 const FLAG_SLOWPOKE_WELL: u64  = 1 << 12; // Cleared Slowpoke Well (defeated all Rockets)
 const FLAG_BURNED_TOWER_RIVAL: u64 = 1 << 13; // Fought rival at Burned Tower 1F
 const FLAG_BEASTS_RELEASED: u64 = 1 << 14; // Released legendary beasts from Burned Tower B1F
+const FLAG_ILEX_FARFETCHD: u64 = 1 << 15; // Herded Farfetch'd back to charcoal maker
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -516,6 +517,17 @@ impl PokemonSim {
         // Burned Tower B1F: Eusine (NPC 0) only visible after beasts released
         if self.current_map_id == MapId::BurnedTowerB1F && npc_idx == 0 && !self.has_flag(FLAG_BEASTS_RELEASED) {
             return false;
+        }
+        // Ilex Forest: Farfetch'd (NPC 0) hidden after quest done; Charcoal Master (NPC 2) appears after quest
+        if self.current_map_id == MapId::IlexForest {
+            // NPC 0 = Farfetch'd — hidden once herded back
+            if npc_idx == 0 && self.has_flag(FLAG_ILEX_FARFETCHD) {
+                return false;
+            }
+            // NPC 1 = Charcoal Apprentice — hidden after quest (he leaves with Farfetch'd)
+            if npc_idx == 1 && self.has_flag(FLAG_ILEX_FARFETCHD) {
+                return false;
+            }
         }
         true
     }
@@ -2001,6 +2013,50 @@ impl PokemonSim {
                         "here... She's at the".to_string(),
                         "LIGHTHOUSE tending to".to_string(),
                         "a sick POKEMON.".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Ilex Forest: Farfetch'd quest — talk to Farfetch'd (NPC 0) to herd it back
+            if self.current_map_id == MapId::IlexForest && npc_idx == 0
+                && !self.has_flag(FLAG_ILEX_FARFETCHD)
+            {
+                self.set_flag(FLAG_ILEX_FARFETCHD);
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "FARFETCH'D: Kwaa!".to_string(),
+                        "The FARFETCH'D ran".to_string(),
+                        "back to its master!".to_string(),
+                        "APPRENTICE: Oh! You".to_string(),
+                        "got it back! Thanks!".to_string(),
+                        "My MASTER will want".to_string(),
+                        "to thank you too!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Ilex Forest: Charcoal Master (NPC 2) gives HM CUT after Farfetch'd quest
+            if self.current_map_id == MapId::IlexForest && npc_idx == 2
+                && self.has_flag(FLAG_ILEX_FARFETCHD)
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "I'm the CHARCOAL".to_string(),
+                        "MAKER. Thanks for".to_string(),
+                        "finding my FARFETCH'D!".to_string(),
+                        "Take this HM as".to_string(),
+                        "thanks!".to_string(),
+                        "Received HM01 - CUT!".to_string(),
+                        "Use CUT to clear".to_string(),
+                        "small trees.".to_string(),
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::None,

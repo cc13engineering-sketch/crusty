@@ -8,7 +8,8 @@
 // VioletCity (24x18), VioletGym (10x10), SproutTower1F/2F/3F (14x14 each),
 // PlayerHouse1F (10x8), PlayerHouse2F (10x8), ElmLab (10x10), PokemonCenter (10x8),
 // Route32 (20x30), UnionCave (16x16), GenericHouse (8x6), Route33 (20x12),
-// AzaleaTown (20x18), AzaleaGym (10x10), IlexForest (16x20), Route34 (16x20).
+// AzaleaTown (20x18), AzaleaGym (10x10), IlexForest (20x24), Route34 (16x20),
+// UnionCaveB1F (18x16), UnionCaveB2F (16x14).
 
 // Species IDs used in encounter tables (matching data.rs constants)
 const CATERPIE: u16 = 10;
@@ -123,6 +124,10 @@ const UMBREON: u16 = 197;
 const SHELLDER: u16 = 90;
 const EKANS: u16 = 23;
 const WEEZING: u16 = 110;
+// Sprint 127: Ilex Forest + Union Cave
+const METAPOD: u16 = 11;
+const KAKUNA: u16 = 14;
+const LAPRAS: u16 = 131;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -233,6 +238,8 @@ pub enum MapId {
     SlowpokeWellB1F,
     SlowpokeWellB2F,
     BurnedTowerB1F,
+    UnionCaveB1F,
+    UnionCaveB2F,
 }
 
 impl MapId {
@@ -301,6 +308,8 @@ impl MapId {
             "SlowpokeWellB1F" => Some(MapId::SlowpokeWellB1F),
             "SlowpokeWellB2F" => Some(MapId::SlowpokeWellB2F),
             "BurnedTowerB1F" => Some(MapId::BurnedTowerB1F),
+            "UnionCaveB1F" => Some(MapId::UnionCaveB1F),
+            "UnionCaveB2F" => Some(MapId::UnionCaveB2F),
             _ => None,
         }
     }
@@ -370,6 +379,8 @@ impl MapId {
             MapId::SlowpokeWellB1F => "SlowpokeWellB1F",
             MapId::SlowpokeWellB2F => "SlowpokeWellB2F",
             MapId::BurnedTowerB1F => "BurnedTowerB1F",
+            MapId::UnionCaveB1F => "UnionCaveB1F",
+            MapId::UnionCaveB2F => "UnionCaveB2F",
         }
     }
 }
@@ -531,6 +542,8 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::SlowpokeWellB1F => build_slowpoke_well_b1f(),
         MapId::SlowpokeWellB2F => build_slowpoke_well_b2f(),
         MapId::BurnedTowerB1F => build_burned_tower_b1f(),
+        MapId::UnionCaveB1F => build_union_cave_b1f(),
+        MapId::UnionCaveB2F => build_union_cave_b2f(),
     }
 }
 
@@ -3093,8 +3106,8 @@ fn build_union_cave() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 8: chamber
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 9: path
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9: path + ladder to B1F at (2,9)
+        C_SOLID,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 10: wide area
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 11: cave
@@ -3119,6 +3132,8 @@ fn build_union_cave() -> MapData {
         // South exit to Route 33
         WarpData { x: 7, y: 15, dest_map: MapId::Route33, dest_x: 1, dest_y: 5 },
         WarpData { x: 8, y: 15, dest_map: MapId::Route33, dest_x: 1, dest_y: 6 },
+        // Ladder to Union Cave B1F (per pokecrystal)
+        WarpData { x: 2, y: 9, dest_map: MapId::UnionCaveB1F, dest_x: 7, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -3161,6 +3176,377 @@ fn build_union_cave() -> MapData {
         npcs,
         encounters,
         night_encounters: vec![], water_encounters: vec![],
+        music_id: 9,
+    }
+}
+
+// ─── Union Cave B1F (18x16) ─────────────────────────────
+// Deeper cave section. Per pokecrystal: Hiker Phillip, Hiker Leonard,
+// Pokemaniac Andrew, Pokemaniac Calvin. Items: TM Swift, X Defend.
+// Connects to 1F (up) and B2F (down, requires Surf later).
+fn build_union_cave_b1f() -> MapData {
+    let w: usize = 18;
+    let h: usize = 16;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1: entrance from 1F at (7,1)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 3: Hiker Phillip area
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 4: wider cavern
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 5: Hiker Leonard area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 6: central passage
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 7: TM Swift item area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9: southern passage
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 10: Pokemaniac Andrew area
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 11: X Defend + Pokemaniac Calvin
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 12: narrowing toward B2F exit
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 13: ladder to B2F area
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 14: B2F ladder at (8,14)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,PATH,PATH,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: entrance warp from 1F at (7,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WARP,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 10
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 14: ladder to B2F at (8,14)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "UnionCaveB1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "UnionCaveB1F collision count mismatch");
+
+    let warps = vec![
+        // Ladder back up to 1F
+        WarpData { x: 7, y: 1, dest_map: MapId::UnionCave, dest_x: 2, dest_y: 8 },
+        // Ladder down to B2F
+        WarpData { x: 8, y: 14, dest_map: MapId::UnionCaveB2F, dest_x: 5, dest_y: 2 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Hiker Phillip (per pokecrystal)
+        NpcDef {
+            x: 9, y: 3, sprite_id: 5, facing: Direction::Left,
+            dialogue: &[
+                "It's been a while",
+                "since I last saw",
+                "another person.",
+                "Don't be shy.",
+                "Let's battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GEODUDE, level: 8 },
+                TrainerPokemon { species_id: GEODUDE, level: 8 },
+                TrainerPokemon { species_id: GRAVELER, level: 10 },
+            ],
+        },
+        // NPC 1: Hiker Leonard (per pokecrystal)
+        NpcDef {
+            x: 13, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "What do you know!",
+                "A visitor!",
+                "I live down here.",
+                "There's plenty of",
+                "room, you see.",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GEODUDE, level: 9 },
+                TrainerPokemon { species_id: GEODUDE, level: 9 },
+                TrainerPokemon { species_id: ONIX, level: 11 },
+            ],
+        },
+        // NPC 2: Pokemaniac Andrew (per pokecrystal)
+        NpcDef {
+            x: 5, y: 10, sprite_id: 2, facing: Direction::Left,
+            dialogue: &[
+                "Who's there?",
+                "Leave me and my",
+                "POKEMON alone!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SLOWPOKE, level: 10 },
+            ],
+        },
+        // NPC 3: Pokemaniac Calvin (per pokecrystal)
+        NpcDef {
+            x: 12, y: 11, sprite_id: 2, facing: Direction::Left,
+            dialogue: &[
+                "I came all the way",
+                "here to conduct my",
+                "POKEMON research.",
+                "Let me demonstrate",
+                "in a real battle!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SLOWPOKE, level: 11 },
+            ],
+        },
+    ];
+
+    // Per pokecrystal: Geodude, Zubat, Onix, Rattata, Wooper (night)
+    let encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 30 },
+        EncounterEntry { species_id: ONIX, min_level: 8, max_level: 8, weight: 10 },
+        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: SANDSHREW, min_level: 6, max_level: 8, weight: 10 },
+    ];
+
+    let night_encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: WOOPER, min_level: 8, max_level: 8, weight: 15 },
+        EncounterEntry { species_id: ONIX, min_level: 8, max_level: 8, weight: 10 },
+        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 25 },
+    ];
+
+    MapData {
+        id: MapId::UnionCaveB1F,
+        name: "UNION CAVE B1F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters,
+        water_encounters: vec![],
+        music_id: 9,
+    }
+}
+
+// ─── Union Cave B2F (16x14) ─────────────────────────────
+// Deepest section, accessible with Surf from B1F.
+// Features the famous Friday Lapras encounter.
+// Per pokecrystal: CooltrainerM Nick, CooltrainerF Gwen, CooltrainerF Emma.
+// Wild: Zubat, Golbat, Geodude, Raticate, Onix (higher levels).
+fn build_union_cave_b2f() -> MapData {
+    let w: usize = 16;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1: entrance from B1F at (5,1)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 3: CooltrainerF Gwen area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 4: wider cavern
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 5: water area with Lapras pool
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6: water continues
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7: CooltrainerM Nick area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8: items area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9: CooltrainerF Emma + Lapras shore
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,PATH,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,PATH,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 12
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: entrance warp at (5,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 5: water tiles
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6: water
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7: water
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 10
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "UnionCaveB2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "UnionCaveB2F collision count mismatch");
+
+    let warps = vec![
+        // Ladder back up to B1F
+        WarpData { x: 5, y: 1, dest_map: MapId::UnionCaveB1F, dest_x: 7, dest_y: 13 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: CooltrainerM Nick (per pokecrystal)
+        NpcDef {
+            x: 11, y: 7, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "There are two kinds",
+                "of people. Those who",
+                "have style, and those",
+                "who don't.",
+                "What kind are you?",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SANDSLASH, level: 21 },
+                TrainerPokemon { species_id: ONIX, level: 23 },
+            ],
+        },
+        // NPC 1: CooltrainerF Gwen (per pokecrystal)
+        NpcDef {
+            x: 5, y: 3, sprite_id: 3, facing: Direction::Right,
+            dialogue: &[
+                "I'm in training.",
+                "Care for a round?",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATICATE, level: 21 },
+                TrainerPokemon { species_id: GOLBAT, level: 22 },
+            ],
+        },
+        // NPC 2: CooltrainerF Emma (per pokecrystal)
+        NpcDef {
+            x: 3, y: 9, sprite_id: 3, facing: Direction::Up,
+            dialogue: &[
+                "If the POKEMON I liked",
+                "were there, I'd go",
+                "anywhere. That's what",
+                "a real trainer does.",
+                "Just once a week, a",
+                "POKEMON comes to the",
+                "water's edge...",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GEODUDE, level: 20 },
+                TrainerPokemon { species_id: GRAVELER, level: 22 },
+            ],
+        },
+        // NPC 3: Lapras (Friday static encounter — always present, acts as special NPC)
+        NpcDef {
+            x: 7, y: 8, sprite_id: 5, facing: Direction::Down,
+            dialogue: &[
+                "A LAPRAS appears at",
+                "the water's edge!",
+                "It seems calm and",
+                "gentle. It looks at",
+                "you curiously.",
+                "(LAPRAS Lv20 — Friday",
+                "special encounter!)",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: higher-level cave encounters
+    let encounters = vec![
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 20 },
+        EncounterEntry { species_id: GEODUDE, min_level: 20, max_level: 20, weight: 15 },
+        EncounterEntry { species_id: RATICATE, min_level: 21, max_level: 21, weight: 15 },
+        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 15 },
+        EncounterEntry { species_id: GRAVELER, min_level: 22, max_level: 22, weight: 10 },
+    ];
+
+    let night_encounters = vec![
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 20 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 20 },
+        EncounterEntry { species_id: QUAGSIRE, min_level: 22, max_level: 22, weight: 15 },
+        EncounterEntry { species_id: RATICATE, min_level: 21, max_level: 21, weight: 15 },
+        EncounterEntry { species_id: GEODUDE, min_level: 20, max_level: 20, weight: 15 },
+        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 15 },
+    ];
+
+    MapData {
+        id: MapId::UnionCaveB2F,
+        name: "UNION CAVE B2F",
+        width: w,
+        height: h,
+        tiles,
+        collision,
+        warps,
+        npcs,
+        encounters,
+        night_encounters,
+        water_encounters: vec![
+            EncounterEntry { species_id: LAPRAS, min_level: 20, max_level: 20, weight: 100 },
+        ],
         music_id: 9,
     }
 }
@@ -3582,8 +3968,8 @@ fn build_azalea_town() -> MapData {
         // Mart door -> GenericHouse (mart interior)
         WarpData { x: 10, y: 13, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
         // Northeast exit -> Ilex Forest (south)
-        WarpData { x: 17, y: 0, dest_map: MapId::IlexForest, dest_x: 3, dest_y: 18 },
-        WarpData { x: 18, y: 0, dest_map: MapId::IlexForest, dest_x: 4, dest_y: 18 },
+        WarpData { x: 17, y: 0, dest_map: MapId::IlexForest, dest_x: 6, dest_y: 22 },
+        WarpData { x: 18, y: 0, dest_map: MapId::IlexForest, dest_x: 7, dest_y: 22 },
         // Slowpoke Well entrance (northwest grass area)
         WarpData { x: 14, y: 3, dest_map: MapId::SlowpokeWellB1F, dest_x: 9, dest_y: 13 },
     ];
@@ -3728,115 +4114,150 @@ fn build_azalea_gym() -> MapData {
     }
 }
 
-// ─── Ilex Forest (16x20) ─────────────────────────────────
+// ─── Ilex Forest (20x24) ─────────────────────────────────
 // Dense forest connecting Azalea Town (south) to Route 34 (north).
-// Contains Farfetch'd chase event, Charcoal Maker, Cut tree, and Headbutt tutor.
+// Contains Farfetch'd chase event, Charcoal Maker (gives HM Cut),
+// Cut tree blocking north exit, Ilex Shrine, Headbutt tutor, Bug Catcher Wayne.
+// Per pokecrystal: day encounters Caterpie, Weedle, Metapod, Kakuna, Pidgey, Paras.
+// Night: Oddish, Venonat, Psyduck, Hoothoot, Paras.
 fn build_ilex_forest() -> MapData {
-    let w: usize = 16;
-    let h: usize = 20;
+    let w: usize = 20;
+    let h: usize = 24;
 
-    // T=TREE_TOP, B=TREE_BOTTOM, G=GRASS, P=PATH, TG=TALL_GRASS, F=FLOWER
     #[rustfmt::skip]
     let tiles: Vec<u8> = vec![
         // Row 0: dense tree canopy top
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        // Row 1: tree bottoms with north exit gap (blocked by Cut tree)
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 2: forest path winds east
-        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,PATH,PATH,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        // Row 3
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 4: headbutt tutor area
-        TREE_TOP,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
-        // Row 5
-        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 6: winding path area
-        TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
-        // Row 7
-        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 8: Farfetch'd area
-        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,
-        // Row 9
-        TREE_BOTTOM,GRASS,GRASS,TREE_TOP,GRASS,PATH,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        // Row 10: mid-forest clearing
-        TREE_TOP,GRASS,GRASS,TREE_BOTTOM,GRASS,PATH,GRASS,TREE_BOTTOM,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_TOP,GRASS,TREE_TOP,
-        // Row 11
-        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,TREE_BOTTOM,
-        // Row 12: second Farfetch'd area
-        TREE_TOP,TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1: tree bottoms with north exit gap (Cut tree blocks until quest done)
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: forest path south from north exit
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 3: Bug Catcher Wayne area + headbutt tutor
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: wider area with headbutt tutor
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 5: tall grass patches
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 6: winding path through dense trees
+        TREE_TOP,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 7: path continues south-west
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 8: Ilex Shrine area (small clearing)
+        TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,SIGN,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 9: shrine monument at (9,8) — signpost. Path continues.
+        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 10: Farfetch'd chase area — winding corridors
+        TREE_TOP,GRASS,TREE_TOP,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 11: more chase corridors
+        TREE_BOTTOM,GRASS,TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 12: wider area — Farfetch'd wanders here
+        TREE_TOP,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
         // Row 13
-        TREE_BOTTOM,GRASS,GRASS,PATH,PATH,GRASS,TREE_TOP,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_BOTTOM,
-        // Row 14: charcoal kiln area
-        TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,
-        // Row 15
-        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        // Row 16
-        TREE_TOP,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
-        // Row 17
-        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
-        // Row 18: approaching south exit
-        TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,
-        // Row 19: south exit (to Azalea Town)
-        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        TREE_BOTTOM,GRASS,GRASS,PATH,PATH,PATH,GRASS,GRASS,TREE_TOP,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,GRASS,GRASS,TREE_BOTTOM,
+        // Row 14: charcoal kiln approach
+        TREE_TOP,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,
+        // Row 15: charcoal maker + apprentice area
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 16: south clearing with tall grass
+        TREE_TOP,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,
+        // Row 17: path curves toward south exit
+        TREE_BOTTOM,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,
+        // Row 18: forest narrows near south
+        TREE_TOP,GRASS,GRASS,PATH,PATH,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,GRASS,GRASS,TREE_TOP,
+        // Row 19: more narrowing
+        TREE_BOTTOM,GRASS,GRASS,GRASS,PATH,PATH,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TREE_TOP,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,TREE_BOTTOM,
+        // Row 20
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
+        // Row 21
+        TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 22: approaching south exit
+        TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 23: south exit to Azalea Town
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,PATH,PATH,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
     ];
 
     #[rustfmt::skip]
     let collision: Vec<u8> = vec![
         // Row 0: solid tree tops
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        // Row 1: tree bottoms with north exit (Cut tree blocks)
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north exit warps (blocked by Cut tree until flag)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 2
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 3
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 4
-        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 5
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 6
-        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 7
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 8
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 8: shrine sign at (9,8)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
         // Row 9
-        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,
         // Row 10
-        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 11
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 12
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 13
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
         // Row 14
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
-        // Row 15
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 15: charcoal maker area
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 16
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 17
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
         // Row 18
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
-        // Row 19: south exit
-        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 19
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 20
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 21
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 22
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 23: south exit
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
+
+    debug_assert_eq!(tiles.len(), w * h, "IlexForest tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "IlexForest collision count mismatch");
 
     let warps = vec![
         // North exit → Route 34 (south end)
-        WarpData { x: 7, y: 1, dest_map: MapId::Route34, dest_x: 7, dest_y: 17 },
-        WarpData { x: 8, y: 1, dest_map: MapId::Route34, dest_x: 8, dest_y: 17 },
+        WarpData { x: 8, y: 1, dest_map: MapId::Route34, dest_x: 7, dest_y: 17 },
+        WarpData { x: 9, y: 1, dest_map: MapId::Route34, dest_x: 8, dest_y: 17 },
         // South exit → Azalea Town (north end)
-        WarpData { x: 3, y: 19, dest_map: MapId::AzaleaTown, dest_x: 17, dest_y: 1 },
-        WarpData { x: 4, y: 19, dest_map: MapId::AzaleaTown, dest_x: 18, dest_y: 1 },
+        WarpData { x: 6, y: 23, dest_map: MapId::AzaleaTown, dest_x: 17, dest_y: 1 },
+        WarpData { x: 7, y: 23, dest_map: MapId::AzaleaTown, dest_x: 18, dest_y: 1 },
     ];
 
     let npcs = vec![
-        // Charcoal Maker's apprentice (near south entrance)
+        // NPC 0: Farfetch'd (wanders in chase area, hidden after quest)
         NpcDef {
-            x: 5, y: 15, sprite_id: 2, facing: Direction::Down,
+            x: 8, y: 12, sprite_id: 2, facing: Direction::Down,
+            dialogue: &[
+                "FARFETCH'D: Kwaa!",
+                "The FARFETCH'D dashes",
+                "away before you can",
+                "get close!",
+                "Try approaching from",
+                "a different direction!",
+            ],
+            is_trainer: false, is_mart: false, wanders: true,
+            trainer_team: &[],
+        },
+        // NPC 1: Charcoal Maker's apprentice (near charcoal kiln area)
+        NpcDef {
+            x: 6, y: 15, sprite_id: 2, facing: Direction::Down,
             dialogue: &[
                 "Oh no! My master's",
                 "FARFETCH'D has run off",
@@ -3844,32 +4265,90 @@ fn build_ilex_forest() -> MapData {
                 "I can't control it",
                 "because I don't have",
                 "any GYM BADGES...",
-                "Could you find it?",
+                "Could you find it",
+                "for me? Please!",
             ],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
-        // Headbutt tutor
+        // NPC 2: Charcoal Master (appears after Farfetch'd quest, gives HM Cut)
         NpcDef {
-            x: 7, y: 4, sprite_id: 3, facing: Direction::Down,
+            x: 4, y: 15, sprite_id: 5, facing: Direction::Right,
             dialogue: &[
-                "Did you know you can",
-                "HEADBUTT trees to find",
-                "hidden POKEMON?",
-                "Here, take this TM.",
+                "Ah! My FARFETCH'D!",
+                "You found it for us!",
+                "Without it, we can't",
+                "CUT trees for charcoal.",
+                "Thanks, kid! Here,",
+                "take this HM. It's CUT.",
+                "Teach it to a POKEMON",
+                "to clear small trees.",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 3: Headbutt tutor (teaches TM02 Headbutt)
+        NpcDef {
+            x: 10, y: 4, sprite_id: 3, facing: Direction::Down,
+            dialogue: &[
+                "What am I doing?",
+                "I'm shaking trees",
+                "using HEADBUTT!",
+                "It's fun. Here,",
+                "you try it too!",
+                "Take this TM!",
+            ],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 4: Bug Catcher Wayne (per pokecrystal)
+        NpcDef {
+            x: 8, y: 3, sprite_id: 2, facing: Direction::Up,
+            dialogue: &[
+                "Don't sneak up on",
+                "me like that!",
+                "You frightened a",
+                "POKEMON away!",
+            ],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: CATERPIE, level: 8 },
+                TrainerPokemon { species_id: WEEDLE, level: 8 },
+            ],
+        },
+        // NPC 5: Lass (optional hint NPC)
+        NpcDef {
+            x: 3, y: 9, sprite_id: 3, facing: Direction::Right,
+            dialogue: &[
+                "Did something happen",
+                "to the forest's",
+                "guardian?",
+                "The shrine deeper",
+                "in the forest honors",
+                "the protector...",
             ],
             is_trainer: false, is_mart: false, wanders: false,
             trainer_team: &[],
         },
     ];
 
+    // Per pokecrystal: day encounters
     let encounters = vec![
-        EncounterEntry { species_id: CATERPIE, min_level: 5, max_level: 6, weight: 30 },
-        EncounterEntry { species_id: WEEDLE, min_level: 5, max_level: 6, weight: 15 },
-        EncounterEntry { species_id: ODDISH, min_level: 5, max_level: 6, weight: 20 },
-        EncounterEntry { species_id: PARAS, min_level: 5, max_level: 6, weight: 15 },
-        EncounterEntry { species_id: ZUBAT, min_level: 5, max_level: 6, weight: 10 },
-        EncounterEntry { species_id: PIDGEY, min_level: 7, max_level: 7, weight: 10 },
+        EncounterEntry { species_id: CATERPIE, min_level: 5, max_level: 5, weight: 20 },
+        EncounterEntry { species_id: WEEDLE, min_level: 5, max_level: 5, weight: 15 },
+        EncounterEntry { species_id: METAPOD, min_level: 7, max_level: 7, weight: 15 },
+        EncounterEntry { species_id: KAKUNA, min_level: 7, max_level: 7, weight: 10 },
+        EncounterEntry { species_id: PIDGEY, min_level: 7, max_level: 7, weight: 15 },
+        EncounterEntry { species_id: PARAS, min_level: 6, max_level: 6, weight: 25 },
+    ];
+
+    // Per pokecrystal: night encounters
+    let night_encounters = vec![
+        EncounterEntry { species_id: ODDISH, min_level: 5, max_level: 7, weight: 30 },
+        EncounterEntry { species_id: VENONAT, min_level: 5, max_level: 5, weight: 15 },
+        EncounterEntry { species_id: PSYDUCK, min_level: 7, max_level: 7, weight: 10 },
+        EncounterEntry { species_id: HOOTHOOT, min_level: 7, max_level: 7, weight: 15 },
+        EncounterEntry { species_id: PARAS, min_level: 6, max_level: 6, weight: 30 },
     ];
 
     MapData {
@@ -3882,7 +4361,8 @@ fn build_ilex_forest() -> MapData {
         warps,
         npcs,
         encounters,
-        night_encounters: vec![], water_encounters: vec![],
+        night_encounters,
+        water_encounters: vec![],
         music_id: 10,
     }
 }
@@ -3989,8 +4469,8 @@ fn build_route_34() -> MapData {
         WarpData { x: 8, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 13, dest_y: 18 },
         WarpData { x: 9, y: 0, dest_map: MapId::GoldenrodCity, dest_x: 14, dest_y: 18 },
         // South exit → Ilex Forest (north exit)
-        WarpData { x: 7, y: 19, dest_map: MapId::IlexForest, dest_x: 7, dest_y: 2 },
-        WarpData { x: 8, y: 19, dest_map: MapId::IlexForest, dest_x: 8, dest_y: 2 },
+        WarpData { x: 7, y: 19, dest_map: MapId::IlexForest, dest_x: 8, dest_y: 2 },
+        WarpData { x: 8, y: 19, dest_map: MapId::IlexForest, dest_x: 9, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -8959,6 +9439,7 @@ mod tests {
             MapId::EliteFourKaren,
             MapId::ChampionLance,
             MapId::RocketHQ,
+            MapId::UnionCaveB1F, MapId::UnionCaveB2F,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -9001,6 +9482,7 @@ mod tests {
             MapId::EliteFourBruno, MapId::EliteFourKaren,
             MapId::ChampionLance,
             MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
+            MapId::UnionCaveB1F, MapId::UnionCaveB2F,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -9255,6 +9737,7 @@ mod tests {
             MapId::EliteFourBruno, MapId::EliteFourKaren,
             MapId::ChampionLance,
             MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
+            MapId::UnionCaveB1F, MapId::UnionCaveB2F,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

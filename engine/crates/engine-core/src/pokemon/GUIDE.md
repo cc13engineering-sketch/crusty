@@ -2470,3 +2470,81 @@ Added `test_step_queue(battle, party, engine)` helper that creates a temporary P
 - `mod.rs` -- 3 new flags, 2 new event checks (check_burned_tower_rival, check_beasts_released), NPC gating for Slowpoke Well + Burned Tower B1F, Slowpoke Well clear event on trainer defeat
 
 **Test Results**: All 1361 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+---
+
+### Sprint 127 -- Ilex Forest (Farfetch'd Quest + Cut) + Union Cave B1F/B2F
+
+#### Part 1: Ilex Forest Completion
+
+**IlexForest (20x24)** -- Expanded from 16x20 to 20x24 with full quest content:
+
+**Farfetch'd Chase Quest**:
+- NPC 0: Farfetch'd (wanders, hidden after FLAG_ILEX_FARFETCHD)
+- NPC 1: Charcoal Apprentice (hidden after quest complete)
+- NPC 2: Charcoal Master (gives HM01 CUT after quest, dialogue from pokecrystal)
+- FLAG_ILEX_FARFETCHD (1 << 15): set on talking to Farfetch'd
+- NPC visibility gated in is_npc_active() -- Farfetch'd and Apprentice hide after quest
+
+**Other NPCs**:
+- NPC 3: Headbutt Tutor (teaches HEADBUTT)
+- NPC 4: Bug Catcher Wayne (trainer: Weedle Lv8, Kakuna Lv10, Beedrill Lv12)
+- NPC 5: Lass hint NPC (dialogue about Farfetch'd)
+
+**Ilex Shrine**: Sign tile at (9,8) -- monument text about forest protector
+
+**Wild Encounters** (from pokecrystal johto_grass.asm):
+- Day: Caterpie Lv5-7, Weedle Lv5-7, Metapod Lv7, Kakuna Lv7, Pidgey Lv5-7, Paras Lv6-7
+- Night: Oddish Lv5-7, Venonat Lv5-7, Psyduck Lv7, Hoothoot Lv6-7, Paras Lv6-7
+
+**Warps**: Connects Azalea Town (south, y=22) <-> Ilex Forest <-> Route 34 (north, y=2)
+- Updated Azalea Town warp dests to (6,22)/(7,22) for new dimensions
+- Updated Route 34 warp dests to (8,2)/(9,2) for new dimensions
+
+**Warp Gate**: North exit to Route 34 blocked without Hive Badge (Bugsy) -- gated by "You need CUT" message
+
+#### Part 2: Union Cave Expansion
+
+**UnionCaveB1F (18x16)** -- New basement level:
+- NPC 0: Hiker Phillip (Geodude Lv8, Geodude Lv8, Geodude Lv8)
+- NPC 1: Hiker Leonard (Machop Lv8, Machop Lv8)
+- NPC 2: Pokemaniac Andrew (Slowpoke Lv10)
+- NPC 3: Pokemaniac Calvin (Slowpoke Lv10)
+- Wild encounters: Geodude Lv6-8, Zubat Lv6-8, Onix Lv6-8, Rattata Lv7-8, Sandshrew Lv6-8
+- Night encounters add Wooper Lv6-8
+- Warps: ladder up to 1F at (7,1), ladder down to B2F at (8,14)
+
+**UnionCaveB2F (16x14)** -- Deepest floor with Friday Lapras:
+- NPC 0: CooltrainerM Nick (Sandslash Lv21, Onix Lv23)
+- NPC 1: CooltrainerF Gwen (Raticate Lv21, Golbat Lv22)
+- NPC 2: CooltrainerF Emma (Geodude Lv20, Graveler Lv22)
+- NPC 3: Lapras (special NPC at water's edge, Friday encounter reference)
+- Water tiles at rows 5-7, cols 8-10 forming Lapras pool
+- Water encounters: Lapras Lv20 (weight 100)
+- Wild encounters: Zubat Lv22, Golbat Lv22, Geodude Lv20, Raticate Lv21, Onix Lv23, Graveler Lv22
+- Night encounters add Quagsire Lv22
+- Warp: ladder up to B1F at (5,1)
+
+**Union Cave 1F Changes**: Added ladder warp at (2,9) connecting down to B1F
+
+#### New Species Added
+- `METAPOD` (11) -- Bug, base HP 50, catch 120, MediumFast
+- `KAKUNA` (14) -- Bug/Poison, base HP 45, catch 120, MediumFast
+- `LAPRAS` (131) -- Water/Ice, base HP 130, catch 45, Slow, learnset: Water Gun/Growl/Sing/Confuse Ray/Body Slam
+- Caterpie now evolves into Metapod at level 7
+- Weedle now evolves into Kakuna at level 7
+
+#### New Story Flags
+- `FLAG_ILEX_FARFETCHD` (1 << 15) -- Herded Farfetch'd back to charcoal maker
+
+#### New Species Constants (maps.rs)
+- `METAPOD: u16 = 11`
+- `KAKUNA: u16 = 14`
+- `LAPRAS: u16 = 131`
+
+#### Files Changed
+- `maps.rs` -- 2 new MapId variants (UnionCaveB1F, UnionCaveB2F), 2 new map builder functions, expanded Ilex Forest from 16x20 to 20x24, Union Cave 1F ladder warp, updated AI-INSTRUCTIONS, updated 3 test arrays
+- `mod.rs` -- FLAG_ILEX_FARFETCHD (bit 15), Farfetch'd quest event logic, Charcoal Master HM CUT dialogue, NPC visibility for Ilex Forest (Farfetch'd + Apprentice hidden after quest)
+- `data.rs` -- Metapod, Kakuna, Lapras species data; Caterpie/Weedle evolution chains
+
+**Test Results**: All 1361 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

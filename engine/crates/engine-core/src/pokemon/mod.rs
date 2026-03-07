@@ -17,6 +17,8 @@
 // is_npc_active(idx): flag-based NPC filtering (collision, interaction, LOS, rendering).
 // Party management: PokemonMenu has action states: 0=browse, 1=sub-menu (SUMMARY/SWAP/CANCEL), 2=swap mode.
 // Swap mode: select source, then target, party.swap(src,dst). Battle player_idx tracked through swaps.
+// Ice sliding: C_ICE tiles (8) cause player to slide until hitting non-ice. ice_sliding: Option<Direction>.
+// Daycare: Route34 NPC 0 deposits/returns Pokemon. 1 EXP/step, auto-level, Gen 2 move replacement. Saved.
 
 pub mod data;
 pub mod sprites;
@@ -158,6 +160,8 @@ enum GamePhase {
     WhiteoutFade { timer: f64, money_lost: u32 },
     Credits { scroll_y: f64 },
     TrainerCard,
+    DaycareDeposit { cursor: u8 },
+    DaycarePrompt { cursor: u8 }, // YES/NO prompt for daycare deposit/return
 }
 
 // ─── Battle Phase ───────────────────────────────────────
@@ -310,6 +314,8 @@ enum DialogueAction {
     OpenMart,
     GiveBadge { badge_num: u8 },
     Credits,
+    DaycareDeposit,
+    DaycareReturn,
 }
 
 // ─── Player State ───────────────────────────────────────
@@ -392,6 +398,11 @@ pub struct PokemonSim {
     needs_save: bool,
     last_rng_state: u64,
     has_save: bool,
+    // Ice sliding: player slides across ice tiles until hitting a non-ice tile
+    ice_sliding: Option<Direction>,
+    // Daycare system: Pokemon left at Route 34 Day-Care Man
+    daycare_pokemon: Option<Pokemon>,
+    daycare_steps: u32,
 }
 
 impl PokemonSim {
@@ -511,6 +522,9 @@ impl PokemonSim {
             needs_save: false,
             last_rng_state: 0,
             has_save: false,
+            ice_sliding: None,
+            daycare_pokemon: None,
+            daycare_steps: 0,
         }
     }
 
@@ -636,12 +650,25 @@ impl PokemonSim {
         let seen_json = format!("{:?}", self.pokedex_seen);
         let caught_json = format!("{:?}", self.pokedex_caught);
 
+        // Build daycare JSON (null or pokemon object)
+        let daycare_json = if let Some(ref p) = self.daycare_pokemon {
+            let moves_json = format!("[{},{},{},{}]",
+                p.moves[0].unwrap_or(0), p.moves[1].unwrap_or(0),
+                p.moves[2].unwrap_or(0), p.moves[3].unwrap_or(0));
+            let pp_json = format!("[{},{},{},{}]", p.move_pp[0], p.move_pp[1], p.move_pp[2], p.move_pp[3]);
+            let max_pp_json = format!("[{},{},{},{}]", p.move_max_pp[0], p.move_max_pp[1], p.move_max_pp[2], p.move_max_pp[3]);
+            format!("{{\"s\":{},\"l\":{},\"hp\":{},\"mhp\":{},\"exp\":{},\"mv\":{},\"pp\":{},\"mpp\":{},\"st\":0}}",
+                p.species_id, p.level, p.hp, p.max_hp, p.exp, moves_json, pp_json, max_pp_json)
+        } else {
+            "null".to_string()
+        };
+
         let facing = match self.player.facing {
             Direction::Up => 0, Direction::Down => 1, Direction::Left => 2, Direction::Right => 3,
         };
 
         format!(
-            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
+            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{},\"daycare\":{},\"daycare_steps\":{}}}",
             self.current_map_id.to_str(),
             self.player.x, self.player.y, facing,
             self.money, self.badges, self.total_time, self.last_rng_state,
@@ -653,6 +680,7 @@ impl PokemonSim {
             self.has_bicycle,
             party_json, pc_json, defeated_json, bag_json,
             seen_json, caught_json,
+            daycare_json, self.daycare_steps,
         )
     }
 
@@ -902,6 +930,57 @@ impl PokemonSim {
             }
         }
 
+        // Parse daycare Pokemon (null or object wrapped in "daycare":{...})
+        self.daycare_steps = get_num(json, "daycare_steps") as u32;
+        self.daycare_pokemon = None;
+        // Extract the daycare object: find "daycare":{ and parse the balanced braces
+        let daycare_needle = "\"daycare\":{";
+        if let Some(start) = json.find(daycare_needle) {
+            let obj_start = start + daycare_needle.len() - 1; // include the {
+            let bytes = json.as_bytes();
+            let mut depth = 0;
+            let mut obj_end = obj_start;
+            for i in obj_start..bytes.len() {
+                match bytes[i] {
+                    b'{' => depth += 1,
+                    b'}' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            obj_end = i;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if obj_end > obj_start {
+                let obj = &json[obj_start..=obj_end];
+                let species = get_num(obj, "s") as u16;
+                if species > 0 {
+                    let level = get_num(obj, "l") as u8;
+                    let mut pkmn = Pokemon::new(species, level);
+                    pkmn.hp = get_num(obj, "hp") as u16;
+                    pkmn.max_hp = get_num(obj, "mhp") as u16;
+                    pkmn.exp = get_num(obj, "exp") as u32;
+                    let mv_arr = get_array(obj, "mv");
+                    let mv_inner = &mv_arr[1..mv_arr.len()-1];
+                    let mvs: Vec<u16> = mv_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                    for i in 0..4 {
+                        pkmn.moves[i] = mvs.get(i).copied().filter(|&m| m > 0).map(|m| m as MoveId);
+                    }
+                    let pp_arr = get_array(obj, "pp");
+                    let pp_inner = &pp_arr[1..pp_arr.len()-1];
+                    let pps: Vec<u8> = pp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                    for i in 0..4 { pkmn.move_pp[i] = pps.get(i).copied().unwrap_or(0); }
+                    let mpp_arr = get_array(obj, "mpp");
+                    let mpp_inner = &mpp_arr[1..mpp_arr.len()-1];
+                    let mpps: Vec<u8> = mpp_inner.split(',').filter_map(|s| s.trim().parse().ok()).collect();
+                    for i in 0..4 { pkmn.move_max_pp[i] = mpps.get(i).copied().unwrap_or(0); }
+                    self.daycare_pokemon = Some(pkmn);
+                }
+            }
+        }
+
         // Snap camera
         let target_x = self.player.x as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_X * TILE_PX / 2) as f64;
         let target_y = self.player.y as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_Y * TILE_PX / 2) as f64;
@@ -1108,7 +1187,8 @@ impl PokemonSim {
         }
 
         // Menu opens even during walk animation (original game behavior: cancel interrupts)
-        if is_cancel(engine) && self.has_starter {
+        // But NOT while ice sliding — can't open menu mid-slide
+        if is_cancel(engine) && self.has_starter && self.ice_sliding.is_none() {
             self.phase = GamePhase::Menu;
             self.menu_cursor = 0;
             self.player.is_walking = false;
@@ -1136,7 +1216,13 @@ impl PokemonSim {
         }
 
         if self.player.is_walking {
-            let speed = if self.on_bicycle { WALK_SPEED / 2.0 } else { WALK_SPEED };
+            let speed = if self.ice_sliding.is_some() {
+                WALK_SPEED / 2.0 // double speed on ice (faster slide)
+            } else if self.on_bicycle {
+                WALK_SPEED / 2.0
+            } else {
+                WALK_SPEED
+            };
             self.player.walk_offset += 1.0 / speed;
             self.player.frame_timer += dt;
             if self.player.frame_timer > 0.12 {
@@ -1153,6 +1239,45 @@ impl PokemonSim {
                 // Decrement repel
                 if self.repel_steps > 0 {
                     self.repel_steps -= 1;
+                }
+
+                // Daycare step counting: 1 EXP per step
+                if self.daycare_pokemon.is_some() {
+                    self.daycare_steps += 1;
+                    if let Some(ref mut pkmn) = self.daycare_pokemon {
+                        pkmn.exp += 1;
+                        if let Some(species) = get_species(pkmn.species_id) {
+                            while pkmn.level < 100 {
+                                let next_exp = exp_for_level(pkmn.level + 1, species.growth_rate);
+                                if pkmn.exp >= next_exp {
+                                    pkmn.level += 1;
+                                    pkmn.recalc_stats();
+                                    // Gen 2 daycare: learn moves by replacing first slot
+                                    for &(lvl, move_id) in species.learnset.iter() {
+                                        if lvl == pkmn.level {
+                                            // Shift moves up, put new move in last slot (Gen 2 behavior)
+                                            pkmn.moves[0] = pkmn.moves[1];
+                                            pkmn.move_pp[0] = pkmn.move_pp[1];
+                                            pkmn.move_max_pp[0] = pkmn.move_max_pp[1];
+                                            pkmn.moves[1] = pkmn.moves[2];
+                                            pkmn.move_pp[1] = pkmn.move_pp[2];
+                                            pkmn.move_max_pp[1] = pkmn.move_max_pp[2];
+                                            pkmn.moves[2] = pkmn.moves[3];
+                                            pkmn.move_pp[2] = pkmn.move_pp[3];
+                                            pkmn.move_max_pp[2] = pkmn.move_max_pp[3];
+                                            pkmn.moves[3] = Some(move_id);
+                                            if let Some(md) = get_move(move_id) {
+                                                pkmn.move_pp[3] = md.pp;
+                                                pkmn.move_max_pp[3] = md.pp;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 match self.player.facing {
@@ -1325,6 +1450,7 @@ impl PokemonSim {
                         }
                         if in_sight {
                             // Trainer spotted player! Start approach sequence.
+                            self.ice_sliding = None; // stop sliding if trainer spotted
                             self.trainer_battle_npc = Some(key);
                             self.approach_npc_x = npc.x as i32;
                             self.approach_npc_y = npc.y as i32;
@@ -1334,6 +1460,45 @@ impl PokemonSim {
                             return;
                         }
                     }
+                }
+
+                // Ice sliding: check if current tile is ice
+                let cur_col = self.current_map.collision_at(self.player.x as usize, self.player.y as usize);
+                if cur_col == CollisionType::Ice {
+                    // On ice: start or continue sliding in the current facing direction
+                    let slide_dir = self.ice_sliding.unwrap_or(self.player.facing);
+                    self.ice_sliding = Some(slide_dir);
+                    // Check if we can continue sliding (next tile in slide direction)
+                    let (nx, ny) = match slide_dir {
+                        Direction::Up => (self.player.x, self.player.y - 1),
+                        Direction::Down => (self.player.x, self.player.y + 1),
+                        Direction::Left => (self.player.x - 1, self.player.y),
+                        Direction::Right => (self.player.x + 1, self.player.y),
+                    };
+                    if nx >= 0 && ny >= 0
+                        && (nx as usize) < self.current_map.width
+                        && (ny as usize) < self.current_map.height
+                    {
+                        let next_col = self.current_map.collision_at(nx as usize, ny as usize);
+                        let can_slide = matches!(next_col, CollisionType::Ice | CollisionType::Walkable | CollisionType::Warp);
+                        // Also check for NPC blocking
+                        let npc_blocking = self.current_map.npcs.iter().enumerate()
+                            .any(|(i, npc)| self.is_npc_active(i) && npc.x as i32 == nx && npc.y as i32 == ny);
+                        if can_slide && !npc_blocking {
+                            self.player.facing = slide_dir;
+                            self.player.is_walking = true;
+                            self.player.walk_offset = 0.0;
+                        } else {
+                            // Hit a wall/solid/NPC: stop sliding
+                            self.ice_sliding = None;
+                        }
+                    } else {
+                        // Hit map edge: stop sliding
+                        self.ice_sliding = None;
+                    }
+                } else {
+                    // Not on ice: stop sliding
+                    self.ice_sliding = None;
                 }
             }
             return;
@@ -1366,7 +1531,7 @@ impl PokemonSim {
             {
                 let col = self.current_map.collision_at(nx as usize, ny as usize);
                 let can_walk = match col {
-                    CollisionType::Walkable | CollisionType::TallGrass | CollisionType::Warp => true,
+                    CollisionType::Walkable | CollisionType::TallGrass | CollisionType::Warp | CollisionType::Ice => true,
                     CollisionType::Ledge => dir == Direction::Down, // ledges: south only
                     _ => false,
                 };
@@ -1416,6 +1581,35 @@ impl PokemonSim {
             .map(|(idx, npc)| (idx as u8, npc.clone()));
 
         if let Some((npc_idx, npc)) = npc_info {
+            // Route 34 Day-Care Man (NPC 0): daycare deposit/return system
+            if self.current_map_id == MapId::Route34 && npc_idx == 0 {
+                if let Some(ref dc_pkmn) = self.daycare_pokemon {
+                    let pkmn_name = get_species(dc_pkmn.species_id).map(|s| s.name).unwrap_or("???");
+                    let level = dc_pkmn.level;
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            format!("Your {} has grown", pkmn_name),
+                            format!("to level {}.", level),
+                            "Want it back?".to_string(),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::DaycareReturn,
+                    });
+                } else {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            "I'm the DAY-CARE MAN.".to_string(),
+                            "Want me to raise a".to_string(),
+                            "POKEMON for you?".to_string(),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::DaycareDeposit,
+                    });
+                }
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
             // Lake of Rage: Lance's dialogue changes after Red Gyarados event
             if self.current_map_id == MapId::LakeOfRage && npc_idx == 0
                 && self.has_flag(FLAG_RED_GYARADOS)
@@ -3885,6 +4079,136 @@ impl PokemonSim {
                         timer: 0.0,
                     };
                 }
+                DialogueAction::DaycareDeposit => {
+                    // Open daycare deposit selection screen
+                    if self.party.len() <= 1 {
+                        // Can't deposit if only 1 Pokemon
+                        self.dialogue = Some(DialogueState {
+                            lines: vec!["You can't leave your".to_string(), "last POKEMON!".to_string()],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                    } else {
+                        self.phase = GamePhase::DaycareDeposit { cursor: 0 };
+                    }
+                }
+                DialogueAction::DaycareReturn => {
+                    // Show YES/NO prompt
+                    self.phase = GamePhase::DaycarePrompt { cursor: 0 };
+                }
+            }
+        }
+    }
+
+    // ─── Daycare Logic ─────────────────────────────────
+
+    fn step_daycare_deposit(&mut self, engine: &mut Engine) {
+        let cursor = if let GamePhase::DaycareDeposit { cursor } = self.phase { cursor } else { return; };
+        let party_len = self.party.len() as u8;
+        if party_len == 0 { self.phase = GamePhase::Overworld; return; }
+
+        if is_up(engine) {
+            let new_cursor = if cursor == 0 { party_len - 1 } else { cursor - 1 };
+            self.phase = GamePhase::DaycareDeposit { cursor: new_cursor };
+        } else if is_down(engine) {
+            let new_cursor = (cursor + 1) % party_len;
+            self.phase = GamePhase::DaycareDeposit { cursor: new_cursor };
+        } else if is_cancel(engine) {
+            self.dialogue = Some(DialogueState {
+                lines: vec!["Come back anytime.".to_string()],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            self.phase = GamePhase::Dialogue;
+        } else if is_confirm(engine) {
+            let idx = cursor as usize;
+            if idx < self.party.len() && self.party.len() > 1 {
+                let deposited = self.party.remove(idx);
+                let name = get_species(deposited.species_id).map(|s| s.name).unwrap_or("???").to_string();
+                self.daycare_pokemon = Some(deposited);
+                self.daycare_steps = 0;
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        format!("I'll raise your {}", name),
+                        "for a while.".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+            }
+        }
+    }
+
+    fn step_daycare_prompt(&mut self, engine: &mut Engine) {
+        let cursor = if let GamePhase::DaycarePrompt { cursor } = self.phase { cursor } else { return; };
+
+        if is_up(engine) || is_down(engine) {
+            let new_cursor = 1 - cursor;
+            self.phase = GamePhase::DaycarePrompt { cursor: new_cursor };
+        } else if is_cancel(engine) {
+            // Cancel = NO
+            self.dialogue = Some(DialogueState {
+                lines: vec!["I'll keep raising it.".to_string()],
+                current_line: 0, char_index: 0, timer: 0.0,
+                on_complete: DialogueAction::None,
+            });
+            self.phase = GamePhase::Dialogue;
+        } else if is_confirm(engine) {
+            if cursor == 0 {
+                // YES — return Pokemon
+                if self.party.len() >= 6 {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec!["Your party is full!".to_string()],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                    return;
+                }
+                if let Some(pkmn) = self.daycare_pokemon.take() {
+                    let name = get_species(pkmn.species_id).map(|s| s.name).unwrap_or("???").to_string();
+                    let levels_gained = pkmn.level.saturating_sub(1) as u32; // approximate
+                    let cost = 100 + 100 * levels_gained;
+                    if self.money >= cost {
+                        self.money -= cost;
+                        self.party.push(pkmn);
+                        self.daycare_steps = 0;
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                format!("{} came back!", name),
+                                format!("That'll be ${}.", cost),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                    } else {
+                        // Not enough money — put it back
+                        self.daycare_pokemon = Some(pkmn);
+                        self.dialogue = Some(DialogueState {
+                            lines: vec![
+                                format!("That'll be ${}.", cost),
+                                "You don't have enough".to_string(),
+                                "money...".to_string(),
+                            ],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                    }
+                } else {
+                    self.phase = GamePhase::Overworld;
+                    return;
+                }
+                self.phase = GamePhase::Dialogue;
+            } else {
+                // NO — keep raising
+                self.dialogue = Some(DialogueState {
+                    lines: vec!["I'll keep raising it.".to_string()],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
             }
         }
     }
@@ -5914,6 +6238,55 @@ impl PokemonSim {
             }
         }
     }
+
+    fn render_daycare_deposit(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        fill_virtual_screen(fb, ctx, Color::from_rgba(32, 32, 64, 255));
+        let white = Color::from_rgba(248, 248, 248, 255);
+        let yellow = Color::from_rgba(248, 208, 48, 255);
+        let gray = Color::from_rgba(160, 160, 160, 255);
+
+        draw_text_pkmn(fb, ctx, "Choose a POKEMON", 20, 8, yellow);
+        draw_text_pkmn(fb, ctx, "to leave:", 20, 20, yellow);
+
+        for (i, pkmn) in self.party.iter().enumerate() {
+            let y = 38 + i as i32 * 16;
+            let name = pkmn.name();
+            let text = format!("Lv{:>2} {:10} HP{:>3}/{:>3}", pkmn.level, name, pkmn.hp, pkmn.max_hp);
+            let color = if i as u8 == cursor { white } else { gray };
+            let marker = if i as u8 == cursor { ">" } else { " " };
+            draw_text_pkmn(fb, ctx, marker, 4, y, white);
+            draw_text_pkmn(fb, ctx, &text, 14, y, color);
+        }
+
+        draw_text_pkmn(fb, ctx, "B: Cancel", 20, 136, gray);
+    }
+
+    fn render_daycare_prompt(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        // Render overworld behind the prompt box
+        self.render_overworld(fb);
+
+        // Draw YES/NO prompt box
+        let box_x = 100;
+        let box_y = 60;
+        let box_w = 52;
+        let box_h = 36;
+        fill_rect_v(fb, ctx, box_x, box_y, box_w, box_h, Color::from_rgba(248, 248, 248, 255));
+        fill_rect_v(fb, ctx, box_x + 2, box_y + 2, box_w - 4, box_h - 4, Color::from_rgba(32, 32, 64, 255));
+
+        let white = Color::from_rgba(248, 248, 248, 255);
+        let gray = Color::from_rgba(160, 160, 160, 255);
+
+        let yes_col = if cursor == 0 { white } else { gray };
+        let no_col = if cursor == 1 { white } else { gray };
+        let yes_mark = if cursor == 0 { ">" } else { " " };
+        let no_mark = if cursor == 1 { ">" } else { " " };
+        draw_text_pkmn(fb, ctx, yes_mark, box_x + 6, box_y + 8, white);
+        draw_text_pkmn(fb, ctx, "YES", box_x + 16, box_y + 8, yes_col);
+        draw_text_pkmn(fb, ctx, no_mark, box_x + 6, box_y + 22, white);
+        draw_text_pkmn(fb, ctx, "NO", box_x + 16, box_y + 22, no_col);
+    }
 }
 
 fn status_text(s: &StatusCondition) -> &'static str {
@@ -6274,6 +6647,8 @@ impl Simulation for PokemonSim {
             GamePhase::Pokedex { .. } => self.step_pokedex(engine),
             GamePhase::TrainerCard => self.step_trainer_card(engine),
             GamePhase::PCMenu { .. } => self.step_pc_menu(engine),
+            GamePhase::DaycareDeposit { .. } => self.step_daycare_deposit(engine),
+            GamePhase::DaycarePrompt { .. } => self.step_daycare_prompt(engine),
 
             GamePhase::Healing { timer } => {
                 let t = timer + 1.0 / 60.0;
@@ -6359,6 +6734,7 @@ impl Simulation for PokemonSim {
                 let t = timer + dt;
                 if t >= 0.25 {
                     // Fade complete — perform the map change
+                    self.ice_sliding = None; // stop ice sliding on map transition
                     self.change_map(dest_map, dest_x, dest_y);
                     self.phase = GamePhase::MapFadeIn { timer: 0.0 };
                 } else {
@@ -6531,6 +6907,8 @@ impl Simulation for PokemonSim {
             GamePhase::Pokedex { cursor, scroll } => self.render_pokedex(fb, *cursor, *scroll),
             GamePhase::TrainerCard => self.render_trainer_card(fb),
             GamePhase::PCMenu { mode, cursor } => self.render_pc_menu(fb, *mode, *cursor),
+            GamePhase::DaycareDeposit { cursor } => self.render_daycare_deposit(fb, *cursor),
+            GamePhase::DaycarePrompt { cursor } => self.render_daycare_prompt(fb, *cursor),
             GamePhase::TrainerApproach { npc_idx, .. } => {
                 // Render overworld, then draw "!" above approaching trainer
                 self.render_overworld_with_approach(fb, *npc_idx);

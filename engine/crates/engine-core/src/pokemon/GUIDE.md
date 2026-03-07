@@ -1811,3 +1811,20 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 6. `test_trainer_card_time_display` — Hours/minutes calculation for normal, large, edge, and extreme total_time values.
 
 **Bugs found: 0.** Code from Sprints 110-112 is clean. All 1319 tests pass.
+
+### Sprint 114 (Content — Daycare System + Ice Path Sliding Puzzle)
+
+**Ice Path Sliding Puzzle:**
+- **New collision type `C_ICE` (8)** — Added `CollisionType::Ice` to maps.rs. Ice tiles are walkable but trigger sliding: player automatically continues moving in their current direction until hitting a non-ice tile (wall, rock, regular floor) or map edge. Walk speed doubled on ice for a faster slide feel.
+- **`ice_sliding: Option<Direction>`** — New field on `PokemonSim`. When `Some(dir)`, the player is mid-slide; input is ignored, menu blocked. Cleared on map transition, trainer approach, or landing on non-ice.
+- **Ice Path map redesign** — Replaced placeholder `C_WATER` ice tiles with proper `C_ICE` collision. Added strategic rock walls (`C_SOLID` at (7,3), (7,4), (7,6), (6,9)) to create a solvable sliding puzzle requiring 3+ direction changes. Player enters west, slides through ice patches, and must navigate rocks to reach east exit. Trainers repositioned to walkable floor tiles.
+
+**Daycare System:**
+- **`daycare_pokemon: Option<Pokemon>` + `daycare_steps: u32`** — New fields on `PokemonSim`, initialized to `None`/0.
+- **Route 34 Day-Care Man (NPC 0)** — Special interaction: if no Pokemon in daycare, offers deposit with `DaycareDeposit` dialogue action. If Pokemon present, shows level and offers return with `DaycareReturn` action + YES/NO prompt.
+- **Daycare deposit screen (`GamePhase::DaycareDeposit`)** — Shows party list with cursor, confirms deposit. Blocks deposit if party has only 1 Pokemon. Removes from party, stores in `daycare_pokemon`, resets `daycare_steps`.
+- **Daycare return prompt (`GamePhase::DaycarePrompt`)** — YES/NO over overworld. YES: calculates cost ($100 + $100 * levels_gained), checks money, returns Pokemon to party. Blocks if party full. NO: "I'll keep raising it."
+- **Step counting** — Every overworld step adds 1 EXP to daycare Pokemon. Auto-levels when EXP threshold reached (using `exp_for_level` with species growth rate). Gen 2 move replacement: new moves shift into last slot, oldest move drops out.
+- **Save/load** — Daycare Pokemon serialized as JSON object in save data (`"daycare":{...},"daycare_steps":N`). Deserialized with balanced-brace parser matching the existing party format.
+
+All 1319 tests pass.

@@ -162,6 +162,7 @@ const C_WARP: u8 = 4;  // Warp
 const C_LEDGE: u8 = 5; // Ledge
 const C_COUNTER: u8 = 6; // Counter
 const C_SIGN: u8 = 7;  // Sign
+const C_ICE: u8 = 8;   // Ice (sliding puzzle)
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -366,6 +367,7 @@ pub enum CollisionType {
     Ledge,         // 5 - can jump down south only
     Counter,       // 6 - can interact across (Pokemon Center counter)
     Sign,          // 7 - can interact with (face it and press A)
+    Ice,           // 8 - walkable, triggers sliding (player slides until hitting non-ice)
 }
 
 impl CollisionType {
@@ -379,6 +381,7 @@ impl CollisionType {
             5 => CollisionType::Ledge,
             6 => CollisionType::Counter,
             7 => CollisionType::Sign,
+            8 => CollisionType::Ice,
             _ => CollisionType::Solid,
         }
     }
@@ -2805,7 +2808,7 @@ impl MapData {
     pub fn is_walkable(&self, x: usize, y: usize) -> bool {
         matches!(
             self.collision_at(x, y),
-            CollisionType::Walkable | CollisionType::TallGrass | CollisionType::Warp | CollisionType::Ledge
+            CollisionType::Walkable | CollisionType::TallGrass | CollisionType::Warp | CollisionType::Ledge | CollisionType::Ice
         )
     }
 
@@ -6364,27 +6367,37 @@ fn build_route_44() -> MapData {
 fn build_ice_path() -> MapData {
     let width = 14;
     let height = 14;
+    // Ice Path sliding puzzle layout:
+    // Player enters from west (0,6)/(0,7), needs to reach east exit (13,7).
+    // Ice patches (ICE_FLOOR) cause sliding — player slides until hitting a rock (CAVE_WALL) or
+    // normal floor (CAVE_FLOOR). Strategic rocks placed to create a solvable puzzle requiring
+    // 3+ direction changes.
+    //
+    // Solution path: Enter at (1,7) → walk right to (3,7) → step right onto ice at (4,7) →
+    // slide right, hit rock at (7,6)/(7,7) stop at (6,7) → step down to (6,8) →
+    // step right onto ice at (7,8) → slide right, hit wall stop at (11,8) → step up to (11,7) →
+    // step right onto ice at (12,7) → slide right to exit warp at (13,7).
     let tiles = vec![
         // Row 0: cave walls
         CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 1: cave walls with some floor
+        // Row 1: cave walls with upper alcove
         CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 2: opening up
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 3: wider cave
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 4: ice patches
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 5: main passage
-        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 6: west entrance
-        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 7: east exit
-        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,
-        // Row 8: lower passage
-        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 9: ice patches
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 2: opening up — ice starts
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 3: wider cave with ice
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 4: ice puzzle area — rock at (7,4) forces direction change
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 5: main passage with ice
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6: west entrance — rock at (7,6) blocks straight slide
+        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7: east exit at (13,7) — walk floor then ice
+        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,
+        // Row 8: lower passage with ice
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9: ice patches — rock at (12,9) stops sliding
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
         // Row 10: narrowing
         CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
         // Row 11: narrow
@@ -6399,22 +6412,22 @@ fn build_ice_path() -> MapData {
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 1
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        // Row 2
-        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
-        // Row 3
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 4: ice patches are water (impassable — sliding puzzle substitute)
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 2: ice starts
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3: rock at (7,3)
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 4: rock at (7,4)
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,
         // Row 5
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 6: west entrance at (0,6)
-        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,
+        // Row 6: west entrance at (0,6), rock at (7,6)
+        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
         // Row 7: east exit at (13,7)
-        C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
-        // Row 8
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 9
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WARP,
+        // Row 8: ice puzzle lower area
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
+        // Row 9: rock at (6,9)
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 10
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 11
@@ -6432,14 +6445,14 @@ fn build_ice_path() -> MapData {
         WarpData { x: 13, y: 7, dest_map: MapId::BlackthornCity, dest_x: 2, dest_y: 8 },
     ];
     let npcs = vec![
-        // Trainer 1: Boarder (upper area)
+        // Trainer 1: Boarder (upper area, standing on walkable floor near ice)
         NpcDef {
-            x: 6, y: 3, sprite_id: 2, facing: Direction::Down,
+            x: 3, y: 3, sprite_id: 2, facing: Direction::Down,
             dialogue: &["The ice makes it", "hard to battle!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: SWINUB, level: 28 }, TrainerPokemon { species_id: SNEASEL, level: 28 }],
         },
-        // Trainer 2: Skier (lower area)
+        // Trainer 2: Skier (lower area, standing on walkable floor)
         NpcDef {
             x: 7, y: 10, sprite_id: 2, facing: Direction::Up,
             dialogue: &["I trained on", "mountains for this!"],
@@ -8223,6 +8236,7 @@ mod tests {
         assert_eq!(CollisionType::from_u8(5), CollisionType::Ledge);
         assert_eq!(CollisionType::from_u8(6), CollisionType::Counter);
         assert_eq!(CollisionType::from_u8(7), CollisionType::Sign);
+        assert_eq!(CollisionType::from_u8(8), CollisionType::Ice);
         assert_eq!(CollisionType::from_u8(255), CollisionType::Solid); // unknown -> Solid
     }
 
@@ -8348,12 +8362,12 @@ mod tests {
                     continue;
                 }
                 let coll = dest.collision[dy * dest.width + dx];
-                if coll != C_WALK && coll != C_TALL {
+                if coll != C_WALK && coll != C_TALL && coll != C_ICE {
                     let name = match coll {
                         C_SOLID => "C_SOLID", C_TALL => "C_TALL",
                         C_WATER => "C_WATER", C_WARP => "C_WARP",
                         C_LEDGE => "C_LEDGE", C_COUNTER => "C_COUNTER",
-                        C_SIGN => "C_SIGN", _ => "UNKNOWN",
+                        C_SIGN => "C_SIGN", C_ICE => "C_ICE", _ => "UNKNOWN",
                     };
                     errors.push(format!(
                         "{:?} warp #{} → {:?} ({},{}) — lands on {} (expected C_WALK)",

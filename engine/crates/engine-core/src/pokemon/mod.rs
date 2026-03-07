@@ -105,6 +105,37 @@ fn is_select(engine: &Engine) -> bool {
         || engine.input.keys_pressed.contains("ShiftLeft")
 }
 
+// ─── Text Wrapping ──────────────────────────────────────
+// The standard battle/dialogue text box is 156px wide, text starts at x=10 with 6px per char.
+// Usable width: ~146px / 6px = 24 chars per line. The box can display 2-3 lines.
+const TEXT_MAX_CHARS: usize = 24;
+
+/// Wrap a string to fit within TEXT_MAX_CHARS per line, breaking at word boundaries.
+/// Returns lines joined by '\n' for use with the split('\n') rendering pattern.
+fn wrap_text(text: &str, max_chars: usize) -> String {
+    let mut result = String::new();
+    for segment in text.split('\n') {
+        if !result.is_empty() { result.push('\n'); }
+        let mut line = String::new();
+        for word in segment.split(' ') {
+            if line.is_empty() {
+                line = word.to_string();
+            } else if line.len() + 1 + word.len() <= max_chars {
+                line.push(' ');
+                line.push_str(word);
+            } else {
+                result.push_str(&line);
+                result.push('\n');
+                line = word.to_string();
+            }
+        }
+        if !line.is_empty() {
+            result.push_str(&line);
+        }
+    }
+    result
+}
+
 // ─── Constants ──────────────────────────────────────────
 
 const TILE_PX: i32 = 16;
@@ -444,6 +475,10 @@ pub struct PokemonSim {
     approach_npc_y: i32,
     approach_walk_offset: f64,
     approach_exclaim_timer: f64,
+    // NPC position override: when a trainer has walked to the player, keep them at the
+    // approached position during dialogue and battle instead of snapping back to their
+    // static map position. Cleared when returning to Overworld after battle.
+    approach_npc_idx: Option<u8>,
     // Story flags (Phase 0C): bitfield for progression gates
     story_flags: u64,
     // LOS suppression: skip trainer checks for N frames after map transition
@@ -624,7 +659,7 @@ impl PokemonSim {
             pokedex_caught: Vec::new(),
             pc_boxes: Vec::new(),
             repel_steps: 0,
-            last_pokecenter_map: MapId::CherrygroveCity,
+            last_pokecenter_map: MapId::NewBarkTown,
             last_house_map: MapId::NewBarkTown,
             last_house_x: 12,
             last_house_y: 5,
@@ -634,6 +669,7 @@ impl PokemonSim {
             approach_npc_y: 0,
             approach_walk_offset: 0.0,
             approach_exclaim_timer: 0.0,
+            approach_npc_idx: None,
             story_flags: 0,
             los_suppress: 0,
             npc_wander_timer: 0.0,
@@ -757,6 +793,8 @@ impl PokemonSim {
         self.current_map = load_map(map_id);
         self.player.x = dest_x as i32;
         self.player.y = dest_y as i32;
+        // Clear NPC approach override on map change (NPC indices are map-specific)
+        self.approach_npc_idx = None;
         self.player.is_walking = false;
         self.player.walk_offset = 0.0;
         // Auto-dismount bicycle when entering indoor maps
@@ -959,7 +997,7 @@ impl PokemonSim {
         self.rival_starter = get_num(json, "rival_starter") as u16;
         self.rival_battle_done = get_bool(json, "rival_done");
         self.has_starter = get_bool(json, "has_starter");
-        self.last_pokecenter_map = MapId::from_str(get_str(json, "last_pc")).unwrap_or(MapId::CherrygroveCity);
+        self.last_pokecenter_map = MapId::from_str(get_str(json, "last_pc")).unwrap_or(MapId::NewBarkTown);
         self.last_house_map = MapId::from_str(get_str(json, "last_house")).unwrap_or(MapId::NewBarkTown);
         self.last_house_x = get_num(json, "last_house_x") as i32;
         self.last_house_y = get_num(json, "last_house_y") as i32;
@@ -1219,6 +1257,8 @@ impl PokemonSim {
     }
 
     /// Trigger rival battle event (called from step_overworld)
+    /// In the original game, the rival walks on screen before speaking.
+    /// We simulate this with introductory lines and a brief exclamation cue.
     fn check_rival_battle(&mut self) -> bool {
         if self.has_starter && !self.rival_battle_done
             && self.current_map_id == MapId::Route29
@@ -1226,8 +1266,13 @@ impl PokemonSim {
         {
             self.rival_battle_done = true;
             self.set_flag(FLAG_RIVAL_ROUTE29);
+            // Set approach position near the player (rival walks up from behind)
+            self.approach_npc_x = self.player.x;
+            self.approach_npc_y = self.player.y + 1;
+            self.approach_exclaim_timer = 0.5; // brief "!" visual cue
             self.dialogue = Some(DialogueState {
                 lines: vec![
+                    "...".to_string(),
                     "???: Hey, wait!".to_string(),
                     "I just got a POKEMON".to_string(),
                     "from the LAB too!".to_string(),
@@ -1260,9 +1305,14 @@ impl PokemonSim {
                 TOTODILE => FERALIGATR,
                 _ => TYPHLOSION,
             };
+            // Rival walks up from ahead
+            self.approach_npc_x = self.player.x;
+            self.approach_npc_y = self.player.y - 1;
+            self.approach_exclaim_timer = 0.5;
             self.dialogue = Some(DialogueState {
                 lines: vec![
-                    "RIVAL: …So you".to_string(),
+                    "...".to_string(),
+                    "RIVAL: ...So you".to_string(),
                     "made it here too.".to_string(),
                     "Good. I wanted to".to_string(),
                     "test my team before".to_string(),
@@ -1399,8 +1449,13 @@ impl PokemonSim {
                 TOTODILE => CROCONAW,
                 _ => QUILAVA,
             };
+            // Rival approaches from the side
+            self.approach_npc_x = self.player.x + 1;
+            self.approach_npc_y = self.player.y;
+            self.approach_exclaim_timer = 0.5;
             self.dialogue = Some(DialogueState {
                 lines: vec![
+                    "...".to_string(),
                     "RIVAL: ...Oh, it's".to_string(),
                     "you.".to_string(),
                     "I came looking for".to_string(),
@@ -1826,6 +1881,7 @@ impl PokemonSim {
                             self.approach_npc_y = npc.y as i32;
                             self.approach_walk_offset = 0.0;
                             self.approach_exclaim_timer = 0.0;
+                            self.approach_npc_idx = Some(npc_idx as u8);
                             self.phase = GamePhase::TrainerApproach { npc_idx: npc_idx as u8, timer: 0.0 };
                             return;
                         }
@@ -3931,6 +3987,7 @@ impl PokemonSim {
 
                             engine.global_state.set_f64("in_battle", 0.0);
                             self.battle = None;
+                            self.approach_npc_idx = None;
 
                             // Champion check first — credits must not be preempted by evolution
                             let pending_evo = engine.global_state.get_f64("pending_evolution").unwrap_or(0.0) as u16;
@@ -4024,6 +4081,7 @@ impl PokemonSim {
 
                     engine.global_state.set_f64("in_battle", 0.0);
                     self.battle = None;
+                    self.approach_npc_idx = None;
 
                     // Check for pending evolution
                     let pending_evo = engine.global_state.get_f64("pending_evolution").unwrap_or(0.0) as u16;
@@ -4043,6 +4101,7 @@ impl PokemonSim {
                 engine.global_state.set_f64("in_battle", 0.0);
                 self.phase = GamePhase::Overworld;
                 self.battle = None;
+                self.approach_npc_idx = None;
                 return;
             }
 
@@ -4077,6 +4136,7 @@ impl PokemonSim {
                     engine.global_state.set_f64("in_battle", 0.0);
                     engine.global_state.set_f64("pending_evolution", 0.0);
                     self.battle = None;
+                    self.approach_npc_idx = None;
                     self.phase = GamePhase::WhiteoutFade { timer: 0.0, money_lost: lost };
                     return;
                 }
@@ -5435,11 +5495,19 @@ impl PokemonSim {
             }
         }
 
-        // NPCs
+        // NPCs — if an NPC has walked toward the player (trainer approach), render them
+        // at their approached position instead of their static map position so they don't
+        // snap back during dialogue or battle.
         for (idx, npc) in self.current_map.npcs.iter().enumerate() {
             if !self.is_npc_active(idx) { continue; }
-            let sx = (npc.x as f64 * TILE_PX as f64 - cam_x) as i32;
-            let sy = (npc.y as f64 * TILE_PX as f64 - cam_y) as i32;
+            let (npx, npy) = if self.approach_npc_idx == Some(idx as u8) {
+                (self.approach_npc_x as f64 * TILE_PX as f64,
+                 self.approach_npc_y as f64 * TILE_PX as f64)
+            } else {
+                (npc.x as f64 * TILE_PX as f64, npc.y as f64 * TILE_PX as f64)
+            };
+            let sx = (npx - cam_x) as i32;
+            let sy = (npy - cam_y) as i32;
             let (fx, fy) = ctx.to_fb(sx, sy);
             if let Some(sd) = self.npc_sprite_cache.get(npc.sprite_id as usize) {
                 draw_sprite(fb, sd, NPC_W, NPC_H, fx, fy, scale, npc_palette(npc.sprite_id));
@@ -5633,7 +5701,10 @@ impl PokemonSim {
                 } else {
                     format!("Trainer sent out {}!", battle.enemy.name())
                 };
-                draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                let wrapped = wrap_text(&msg, TEXT_MAX_CHARS);
+                for (i, line) in wrapped.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                }
             }
 
             BattlePhase::ActionSelect { cursor } => {
@@ -5699,7 +5770,8 @@ impl PokemonSim {
 
             BattlePhase::Text { message, .. } => {
                 draw_text_box(fb, ctx, 2, 98, 156, 42);
-                for (i, line) in message.split('\n').enumerate() {
+                let wrapped = wrap_text(message, TEXT_MAX_CHARS);
+                for (i, line) in wrapped.split('\n').enumerate() {
                     draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
                 }
             }
@@ -5709,7 +5781,10 @@ impl PokemonSim {
                 let name = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                 let mn = get_move(*move_id).map(|m| m.name).unwrap_or("???");
                 let msg = format!("{} used {}!", name, mn);
-                draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                let wrapped = wrap_text(&msg, TEXT_MAX_CHARS);
+                for (i, line) in wrapped.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                }
             }
 
             BattlePhase::EnemyAttack { move_id, .. } => {
@@ -5717,15 +5792,22 @@ impl PokemonSim {
                 let mn = get_move(*move_id).map(|m| m.name).unwrap_or("???");
                 let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                 let msg = format!("{}{} used {}!", prefix, battle.enemy.name(), mn);
-                draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                let wrapped = wrap_text(&msg, TEXT_MAX_CHARS);
+                for (i, line) in wrapped.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                }
             }
 
             BattlePhase::EnemyFainted { exp_gained: exp } => {
                 draw_text_box(fb, ctx, 2, 98, 156, 42);
                 let msg = format!("{} fainted!", battle.enemy.name());
-                draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                let wrapped = wrap_text(&msg, TEXT_MAX_CHARS);
+                for (i, line) in wrapped.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                }
                 let exp_msg = format!("Gained {} EXP!", exp);
-                draw_text_pkmn(fb, ctx, &exp_msg, 10, 118, dark);
+                let exp_y = 106 + wrapped.split('\n').count() as i32 * 12;
+                draw_text_pkmn(fb, ctx, &exp_msg, 10, exp_y, dark);
             }
 
             BattlePhase::LevelUp { stat_deltas, .. } => {
@@ -5834,13 +5916,17 @@ impl PokemonSim {
 
             BattlePhase::TrainerSwitchPrompt { ref next_name, cursor } => {
                 draw_text_box(fb, ctx, 2, 88, 156, 52);
-                let line1 = format!("Foe will send out {}.", next_name);
-                draw_text_pkmn(fb, ctx, &line1, 10, 96, dark);
-                draw_text_pkmn(fb, ctx, "Will you switch?", 10, 108, dark);
-                // YES/NO
-                draw_text_pkmn(fb, ctx, "YES", 122, 96, dark);
-                draw_text_pkmn(fb, ctx, "NO", 122, 108, dark);
-                draw_cursor(fb, ctx, 114, 96 + *cursor as i32 * 12, dark);
+                let line1 = format!("Foe sends out {}.", next_name);
+                let wrapped = wrap_text(&line1, 18); // shorter max for left column
+                for (i, line) in wrapped.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, line, 10, 96 + i as i32 * 12, dark);
+                }
+                draw_text_pkmn(fb, ctx, "Switch?", 10, 120, dark);
+                // YES/NO box on the right
+                draw_text_box(fb, ctx, 116, 92, 40, 32);
+                draw_text_pkmn(fb, ctx, "YES", 126, 98, dark);
+                draw_text_pkmn(fb, ctx, "NO", 126, 112, dark);
+                draw_cursor(fb, ctx, 118, 98 + *cursor as i32 * 14, dark);
             }
 
             BattlePhase::Won { .. } => {
@@ -5852,7 +5938,10 @@ impl PokemonSim {
                 draw_text_box(fb, ctx, 2, 98, 156, 42);
                 if let Some(p) = self.party.get(battle.player_idx) {
                     let msg = format!("{} fainted!", p.name());
-                    draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                    let wrapped = wrap_text(&msg, TEXT_MAX_CHARS);
+                    for (i, line) in wrapped.split('\n').enumerate() {
+                        draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                    }
                 }
             }
 
@@ -5878,7 +5967,8 @@ impl PokemonSim {
                     match step {
                         BattleStep::Text(msg) => {
                             draw_text_box(fb, ctx, 2, 98, 156, 42);
-                            for (i, line) in msg.split('\n').enumerate() {
+                            let wrapped = wrap_text(msg, TEXT_MAX_CHARS);
+                            for (i, line) in wrapped.split('\n').enumerate() {
                                 draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
                             }
                         }
@@ -5900,13 +5990,30 @@ impl PokemonSim {
 
         if let Some(dialogue) = &self.dialogue {
             draw_text_box(fb, ctx, 2, 98, 156, 42);
+            let dark = Color::from_rgba(40, 40, 48, 255);
             if let Some(line) = dialogue.lines.get(dialogue.current_line) {
-                let visible: String = line.chars().take(dialogue.char_index).collect();
-                draw_text_pkmn(fb, ctx, &visible, 10, 106, Color::from_rgba(40, 40, 48, 255));
-            }
-            if let Some(line) = dialogue.lines.get(dialogue.current_line) {
+                // Wrap the current line to fit the text box, then apply typewriter effect.
+                // char_index counts through the original (unwrapped) line, so we map it
+                // to the wrapped version by counting non-newline characters.
+                let wrapped = wrap_text(line, TEXT_MAX_CHARS);
+                let mut visible_chars = 0;
+                let mut visible_end = 0;
+                for (i, ch) in wrapped.chars().enumerate() {
+                    if ch != '\n' {
+                        visible_chars += 1;
+                    }
+                    if visible_chars > dialogue.char_index {
+                        break;
+                    }
+                    visible_end = i + 1;
+                }
+                let visible: String = wrapped.chars().take(visible_end).collect();
+                for (i, vis_line) in visible.split('\n').enumerate() {
+                    draw_text_pkmn(fb, ctx, vis_line, 10, 106 + i as i32 * 12, dark);
+                }
+                // Show advance arrow when full line is revealed
                 if dialogue.char_index >= line.len() && (self.frame_count / 20) % 2 == 0 {
-                    draw_text_pkmn(fb, ctx, "V", 146, 132, Color::from_rgba(40, 40, 48, 255));
+                    draw_text_pkmn(fb, ctx, "V", 146, 132, dark);
                 }
             }
         }
@@ -7753,10 +7860,18 @@ impl Simulation for PokemonSim {
                 let dt = 1.0 / 60.0;
                 let t = timer + dt;
                 if t >= 1.5 {
-                    // Fade complete — warp to PokeCenter with dialogue
+                    // Fade complete — warp to last visited PokeCenter (or home if none visited)
+                    // In real Pokemon Gold, if you haven't visited a Pokecenter, you return to
+                    // New Bark Town (your home) — not a Pokecenter in a city you haven't reached.
                     let saved_pc = self.last_pokecenter_map;
-                    self.change_map(MapId::PokemonCenter, 5, 6);
-                    self.last_pokecenter_map = saved_pc;
+                    if saved_pc == MapId::NewBarkTown {
+                        // No Pokecenter visited yet — warp to New Bark Town (near player's house)
+                        self.change_map(MapId::NewBarkTown, 5, 8);
+                    } else {
+                        // Warp to the PokemonCenter interior
+                        self.change_map(MapId::PokemonCenter, 5, 6);
+                        self.last_pokecenter_map = saved_pc;
+                    }
                     self.dialogue = Some(DialogueState {
                         lines: vec![
                             "You are out of usable".to_string(),
@@ -7802,6 +7917,22 @@ impl Simulation for PokemonSim {
             self.screen_shake_x = 0.0;
             self.screen_shake_y = 0.0;
         }
+
+        // Export current phase so JS layer knows when to show/hide battle sprites
+        let phase_str = match &self.phase {
+            GamePhase::Battle => "battle",
+            GamePhase::PokemonMenu { .. } | GamePhase::BagMenu { .. } | GamePhase::BagUseItem { .. } => {
+                if self.battle.is_some() { "battle_menu" } else { "menu" }
+            }
+            GamePhase::Dialogue => {
+                if self.battle.is_some() { "battle" } else { "overworld" }
+            }
+            GamePhase::Overworld | GamePhase::TrainerApproach { .. } | GamePhase::MapFadeOut { .. }
+                | GamePhase::MapFadeIn { .. } => "overworld",
+            GamePhase::TitleScreen | GamePhase::StarterSelect { .. } => "title",
+            _ => "overworld",
+        };
+        engine.global_state.set_str("game_phase", phase_str);
 
         // ─── Debug State Export (Phase 0E) ─────────────────────
         // Export key game state to global_state every frame for headless testing

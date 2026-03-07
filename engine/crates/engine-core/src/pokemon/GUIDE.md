@@ -2928,3 +2928,58 @@ All warps land on C_WALK tiles (validated by test_all_warps_valid).
 - `data.rs` — Added Lugia species (id 249), Aeroblast move (id 177)
 - `maps.rs` — Added 4 Whirl Islands maps, modified Route 40 (cave entrance + warp), added CORSOLA constant, updated test map lists
 - `mod.rs` — Added FLAG_LUGIA_ENCOUNTERED (bit 20), DialogueAction::StartLugiaBattle, Lugia NPC interaction handler, Lugia battle handler, is_npc_active rule for WhirlIslandsLugiaChamber
+
+---
+
+### Sprint 134: Early Game Polish + UI Audit + Critical Bug Fixes
+
+**Focus:** Fix five user-reported bugs affecting the early game experience: whiteout routing, NPC trainer position snapping, rival walk-up animation, UI text overflow, and encounter table accuracy.
+
+#### Bug 1: Whiteout Routing (CRITICAL FIX)
+**Problem:** When the player lost a battle before visiting any Pokecenter (e.g., first rival fight), they were warped to a Pokecenter in CherrygroveCity, causing them to skip Route 29 entirely. This happened because `last_pokecenter_map` defaulted to CherrygroveCity.
+
+**Fix:** Changed default `last_pokecenter_map` from CherrygroveCity to NewBarkTown. Updated the WhiteoutFade handler to detect when no Pokecenter has been visited (last_pokecenter_map == NewBarkTown) and warp the player to New Bark Town (5,8) directly instead of the PokemonCenter interior. This matches real Pokemon Gold behavior where early-game whiteout returns the player home. Updated save/load defaults to match.
+
+#### Bug 2: NPC Trainer Position Reset (IMPORTANT FIX)
+**Problem:** When an NPC trainer spotted the player and walked up (TrainerApproach), the NPC would snap back to their original map position during the dialogue and battle phases, then the battle would start. This was because `render_overworld` always rendered NPCs at their static map positions.
+
+**Fix:** Added `approach_npc_idx: Option<u8>` field to PokemonSim to track which NPC has walked to an approached position. Modified `render_overworld` to check this field and render the NPC at `approach_npc_x/approach_npc_y` instead of the static position. The override is cleared when: changing maps, battle ends (Won/Run/Whiteout), or trainer battle NPC is taken. NPCs now stay at their walked-to position throughout dialogue and battle.
+
+#### Bug 3: Rival Walk-Up Animation
+**Problem:** Rival encounters (Route 29, Victory Road, Burned Tower) immediately showed dialogue without any visual indication of the rival approaching. In the real game, the rival walks on screen before speaking.
+
+**Fix:** Added introductory "..." dialogue lines to rival encounters to create a brief pause simulating the walk-up. Set `approach_npc_x/y` and `approach_exclaim_timer` to position the rival near the player with a "!" exclamation cue before dialogue begins. Applied to check_rival_battle (Route 29), check_victory_road_rival, and check_burned_tower_rival.
+
+#### Bug 4: UI Text Wrapping and Battle Overlay Issues (IMPORTANT FIX)
+**Problem:** Long text messages overflowed the dialogue/battle text box (156px wide, ~24 chars). Pokemon selection menu during battle showed battle sprites through it. TrainerSwitchPrompt text overlapped UI elements.
+
+**Fixes:**
+1. Added `wrap_text()` helper that word-wraps text at word boundaries to fit within TEXT_MAX_CHARS (24) per line.
+2. Applied wrapping to all battle text rendering: Intro, Text, PlayerAttack, EnemyAttack, EnemyFainted, PlayerFainted, ExecuteQueue, and dialogue rendering.
+3. Updated dialogue renderer to properly map typewriter `char_index` (counting original characters) to wrapped text positions (skipping inserted newlines).
+4. Redesigned TrainerSwitchPrompt layout: text on left, YES/NO box on right with proper borders.
+5. Added per-frame `game_phase` export so JS layer can properly hide battle sprites during PokemonMenu/BagMenu overlays (exports "battle_menu" phase).
+
+#### Bug 5: Early Game Route Encounter Corrections
+**Problem:** Route 29, 30, and 31 encounter tables had day/night Pokemon swapped or missing species compared to pokecrystal source data.
+
+**Fixes per pokecrystal:**
+- **Route 29 Day:** Changed from Pidgey/Rattata/Sentret/Hoothoot to Pidgey/Sentret/Hoppip/Rattata (Hoothoot moved to night-only)
+- **Route 29 Night:** Updated to Hoothoot/Rattata/Hoothoot (per pokecrystal)
+- **Route 30 Day:** Replaced Rattata/Bellsprout/Spinarak with Hoppip/Ledyba/Weedle (Spinarak is night-only)
+- **Route 30 Night:** Added Poliwag, corrected Spinarak weight
+- **Route 31 Day:** Replaced Spinarak with Hoppip (Spinarak is night-only), added Ledyba
+- **Route 31 Night:** Added Poliwag, corrected species distribution
+- Updated test_route_30_has_encounters to verify Hoppip/Ledyba instead of Rattata/Bellsprout
+
+#### Data Sources
+- `pokecrystal-master/data/wild/johto_grass.asm` — ROUTE_29, ROUTE_30, ROUTE_31 encounter tables
+- `pokecrystal-master/data/maps/spawn_points.asm` — New Bark Town spawn point
+
+#### Test Results
+- **1365 tests passing** (0 failures, 0 new tests added)
+- **0 compiler warnings**
+
+#### Files Changed
+- `mod.rs` — Whiteout routing fix (NewBarkTown default), NPC approach position tracking (approach_npc_idx), rival walk-up animations, wrap_text helper + text wrapping in all battle/dialogue rendering, per-frame game_phase export, TrainerSwitchPrompt layout redesign
+- `maps.rs` — Route 29/30/31 encounter table corrections per pokecrystal, updated Route 30 encounter test

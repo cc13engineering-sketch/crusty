@@ -1011,11 +1011,12 @@ fn build_route_29() -> MapData {
         },
     ];
 
+    // Per pokecrystal: day = Pidgey, Sentret, Rattata, Hoppip; night = Hoothoot, Rattata
     let encounters = vec![
-        EncounterEntry { species_id: PIDGEY, min_level: 2, max_level: 4, weight: 30 },
-        EncounterEntry { species_id: RATTATA, min_level: 2, max_level: 4, weight: 30 },
-        EncounterEntry { species_id: SENTRET, min_level: 2, max_level: 4, weight: 25 },
-        EncounterEntry { species_id: HOOTHOOT, min_level: 2, max_level: 3, weight: 15 },
+        EncounterEntry { species_id: PIDGEY, min_level: 2, max_level: 3, weight: 35 },
+        EncounterEntry { species_id: SENTRET, min_level: 2, max_level: 3, weight: 30 },
+        EncounterEntry { species_id: HOPPIP, min_level: 3, max_level: 3, weight: 25 },
+        EncounterEntry { species_id: RATTATA, min_level: 2, max_level: 2, weight: 10 },
     ];
 
     MapData {
@@ -1029,9 +1030,9 @@ fn build_route_29() -> MapData {
         npcs,
         encounters,
         night_encounters: vec![
-            EncounterEntry { species_id: HOOTHOOT, min_level: 2, max_level: 4, weight: 50 },
-            EncounterEntry { species_id: RATTATA, min_level: 2, max_level: 4, weight: 35 },
-            EncounterEntry { species_id: SPINARAK, min_level: 2, max_level: 3, weight: 15 },
+            EncounterEntry { species_id: HOOTHOOT, min_level: 2, max_level: 3, weight: 50 },
+            EncounterEntry { species_id: RATTATA, min_level: 2, max_level: 3, weight: 40 },
+            EncounterEntry { species_id: HOOTHOOT, min_level: 3, max_level: 3, weight: 10 },
         ],
         water_encounters: vec![],
         music_id: 2,
@@ -1460,13 +1461,13 @@ fn build_route_30() -> MapData {
         },
     ];
 
+    // Per pokecrystal: day = Pidgey, Caterpie, Weedle, Hoppip, Ledyba
     let encounters = vec![
-        EncounterEntry { species_id: CATERPIE, min_level: 3, max_level: 5, weight: 15 },
-        EncounterEntry { species_id: WEEDLE, min_level: 3, max_level: 5, weight: 15 },
-        EncounterEntry { species_id: PIDGEY, min_level: 3, max_level: 6, weight: 25 },
-        EncounterEntry { species_id: RATTATA, min_level: 3, max_level: 5, weight: 15 },
-        EncounterEntry { species_id: BELLSPROUT, min_level: 4, max_level: 6, weight: 15 },
-        EncounterEntry { species_id: SPINARAK, min_level: 3, max_level: 5, weight: 15 },
+        EncounterEntry { species_id: PIDGEY, min_level: 3, max_level: 4, weight: 30 },
+        EncounterEntry { species_id: CATERPIE, min_level: 3, max_level: 4, weight: 25 },
+        EncounterEntry { species_id: HOPPIP, min_level: 4, max_level: 4, weight: 20 },
+        EncounterEntry { species_id: LEDYBA, min_level: 3, max_level: 3, weight: 15 },
+        EncounterEntry { species_id: WEEDLE, min_level: 3, max_level: 3, weight: 10 },
     ];
 
     MapData {
@@ -1479,11 +1480,12 @@ fn build_route_30() -> MapData {
         warps,
         npcs,
         encounters,
+        // Per pokecrystal: night = Spinarak, Hoothoot, Poliwag, Zubat
         night_encounters: vec![
-            EncounterEntry { species_id: HOOTHOOT, min_level: 3, max_level: 6, weight: 40 },
-            EncounterEntry { species_id: RATTATA, min_level: 3, max_level: 5, weight: 25 },
-            EncounterEntry { species_id: ZUBAT, min_level: 3, max_level: 5, weight: 20 },
-            EncounterEntry { species_id: SPINARAK, min_level: 3, max_level: 5, weight: 15 },
+            EncounterEntry { species_id: HOOTHOOT, min_level: 3, max_level: 4, weight: 40 },
+            EncounterEntry { species_id: SPINARAK, min_level: 3, max_level: 3, weight: 25 },
+            EncounterEntry { species_id: POLIWAG, min_level: 4, max_level: 4, weight: 20 },
+            EncounterEntry { species_id: ZUBAT, min_level: 3, max_level: 3, weight: 15 },
         ],
         water_encounters: vec![],
         music_id: 2,
@@ -1668,13 +1670,14 @@ fn build_route_31() -> MapData {
         },
     ];
 
+    // Per pokecrystal: day = Pidgey, Bellsprout, Caterpie, Hoppip, Weedle, Ledyba
     let encounters = vec![
-        EncounterEntry { species_id: BELLSPROUT, min_level: 3, max_level: 5, weight: 25 },
-        EncounterEntry { species_id: CATERPIE, min_level: 3, max_level: 5, weight: 15 },
-        EncounterEntry { species_id: WEEDLE, min_level: 3, max_level: 4, weight: 15 },
-        EncounterEntry { species_id: PIDGEY, min_level: 5, max_level: 7, weight: 20 },
-        EncounterEntry { species_id: LEDYBA, min_level: 4, max_level: 5, weight: 10 },
-        EncounterEntry { species_id: SPINARAK, min_level: 4, max_level: 5, weight: 15 },
+        EncounterEntry { species_id: PIDGEY, min_level: 4, max_level: 5, weight: 30 },
+        EncounterEntry { species_id: BELLSPROUT, min_level: 5, max_level: 5, weight: 20 },
+        EncounterEntry { species_id: CATERPIE, min_level: 4, max_level: 4, weight: 15 },
+        EncounterEntry { species_id: HOPPIP, min_level: 5, max_level: 5, weight: 15 },
+        EncounterEntry { species_id: WEEDLE, min_level: 4, max_level: 4, weight: 10 },
+        EncounterEntry { species_id: LEDYBA, min_level: 4, max_level: 4, weight: 10 },
     ];
 
     MapData {
@@ -1687,12 +1690,14 @@ fn build_route_31() -> MapData {
         warps,
         npcs,
         encounters,
+        // Per pokecrystal: night = Spinarak, Poliwag, Bellsprout, Hoothoot, Zubat, Gastly
         night_encounters: vec![
-            EncounterEntry { species_id: HOOTHOOT, min_level: 5, max_level: 7, weight: 35 },
-            EncounterEntry { species_id: GASTLY, min_level: 5, max_level: 7, weight: 20 },
-            EncounterEntry { species_id: RATTATA, min_level: 4, max_level: 6, weight: 20 },
-            EncounterEntry { species_id: ZUBAT, min_level: 4, max_level: 6, weight: 15 },
-            EncounterEntry { species_id: SPINARAK, min_level: 4, max_level: 5, weight: 10 },
+            EncounterEntry { species_id: HOOTHOOT, min_level: 5, max_level: 5, weight: 30 },
+            EncounterEntry { species_id: SPINARAK, min_level: 4, max_level: 4, weight: 20 },
+            EncounterEntry { species_id: BELLSPROUT, min_level: 5, max_level: 5, weight: 15 },
+            EncounterEntry { species_id: POLIWAG, min_level: 4, max_level: 4, weight: 15 },
+            EncounterEntry { species_id: ZUBAT, min_level: 4, max_level: 4, weight: 10 },
+            EncounterEntry { species_id: GASTLY, min_level: 5, max_level: 5, weight: 10 },
         ],
         water_encounters: vec![],
         music_id: 2,
@@ -11604,12 +11609,12 @@ mod tests {
     fn test_route_30_has_encounters() {
         let map = load_map(MapId::Route30);
         assert!(!map.encounters.is_empty());
-        // Should have Caterpie, Weedle, Pidgey, Rattata, Bellsprout
+        // Per pokecrystal: day = Pidgey, Caterpie, Hoppip, Ledyba, Weedle
         assert!(map.encounters.iter().any(|e| e.species_id == CATERPIE));
         assert!(map.encounters.iter().any(|e| e.species_id == WEEDLE));
         assert!(map.encounters.iter().any(|e| e.species_id == PIDGEY));
-        assert!(map.encounters.iter().any(|e| e.species_id == RATTATA));
-        assert!(map.encounters.iter().any(|e| e.species_id == BELLSPROUT));
+        assert!(map.encounters.iter().any(|e| e.species_id == HOPPIP));
+        assert!(map.encounters.iter().any(|e| e.species_id == LEDYBA));
     }
 
     #[test]

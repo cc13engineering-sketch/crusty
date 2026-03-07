@@ -219,6 +219,7 @@ pub enum MapId {
     EliteFourBruno,
     EliteFourKaren,
     ChampionLance,
+    RocketHQ,
 }
 
 impl MapId {
@@ -281,6 +282,7 @@ impl MapId {
             "EliteFourBruno" => Some(MapId::EliteFourBruno),
             "EliteFourKaren" => Some(MapId::EliteFourKaren),
             "ChampionLance" => Some(MapId::ChampionLance),
+            "RocketHQ" => Some(MapId::RocketHQ),
             _ => None,
         }
     }
@@ -344,6 +346,7 @@ impl MapId {
             MapId::EliteFourBruno => "EliteFourBruno",
             MapId::EliteFourKaren => "EliteFourKaren",
             MapId::ChampionLance => "ChampionLance",
+            MapId::RocketHQ => "RocketHQ",
         }
     }
 }
@@ -495,6 +498,7 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::EliteFourBruno => build_elite_four_bruno(),
         MapId::EliteFourKaren => build_elite_four_karen(),
         MapId::ChampionLance => build_champion_lance(),
+        MapId::RocketHQ => build_rocket_hq(),
     }
 }
 
@@ -5775,8 +5779,8 @@ fn build_mahogany_town() -> MapData {
         WarpData { x: 15, y: 9, dest_map: MapId::Route44, dest_x: 2, dest_y: 6 },
         // Gym door (5,3)
         WarpData { x: 5, y: 3, dest_map: MapId::MahoganyGym, dest_x: 5, dest_y: 7 },
-        // Mart (3,6) → GenericHouse
-        WarpData { x: 3, y: 6, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
+        // "Mart" (3,6) → Rocket HQ (souvenir shop is the front for Team Rocket)
+        WarpData { x: 3, y: 6, dest_map: MapId::RocketHQ, dest_x: 5, dest_y: 9 },
         // House (12,6) → GenericHouse
         WarpData { x: 12, y: 6, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
         // PokemonCenter (5,11)
@@ -7642,6 +7646,123 @@ fn build_champion_lance() -> MapData {
     MapData { id: MapId::ChampionLance, name: "CHAMPION LANCE", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 6 }
 }
 
+// ─── Rocket HQ (12x12) ──────────────────────────────────
+// Hidden beneath Mahogany Town. 4 Rocket Grunts + Executive boss.
+// Clearing sets FLAG_ROCKET_MAHOGANY.
+fn build_rocket_hq() -> MapData {
+    let w: usize = 12;
+    let h: usize = 12;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: walls
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+        // Row 1: corridor
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 2: corridor with tables
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,BLACK,
+        // Row 3: corridor
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 4: cross corridor
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,BLACK,
+        // Row 5: main hall
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 6: main hall
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 7: corridor
+        BLACK,FLOOR,BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,FLOOR,FLOOR,BLACK,
+        // Row 8: corridor
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 9: boss room
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 10: exit
+        BLACK,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BLACK,
+        // Row 11: walls
+        BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RocketHQ tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RocketHQ collision count mismatch");
+
+    let warps = vec![
+        // Exit → back to Mahogany Town (mart door position)
+        WarpData { x: 5, y: 10, dest_map: MapId::MahoganyTown, dest_x: 3, dest_y: 7 },
+    ];
+
+    let npcs = vec![
+        // Rocket Grunt 1
+        NpcDef {
+            x: 3, y: 3, sprite_id: 7, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "Heh! You won't stop", "us this time!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATTATA, level: 24 },
+                TrainerPokemon { species_id: KOFFING, level: 24 },
+            ],
+        },
+        // Rocket Grunt 2
+        NpcDef {
+            x: 8, y: 3, sprite_id: 7, facing: Direction::Left,
+            dialogue: &["ROCKET GRUNT:", "Team Rocket will", "never disband!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ZUBAT, level: 22 },
+                TrainerPokemon { species_id: RATICATE, level: 24 },
+                TrainerPokemon { species_id: ZUBAT, level: 22 },
+            ],
+        },
+        // Rocket Grunt 3
+        NpcDef {
+            x: 3, y: 7, sprite_id: 7, facing: Direction::Right,
+            dialogue: &["ROCKET GRUNT:", "Our experiments at", "the Lake will succeed!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: KOFFING, level: 25 },
+                TrainerPokemon { species_id: MUK, level: 25 },
+            ],
+        },
+        // Rocket Grunt 4
+        NpcDef {
+            x: 9, y: 7, sprite_id: 7, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "You can't reach the", "boss! Give up!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GOLBAT, level: 26 },
+                TrainerPokemon { species_id: RATICATE, level: 24 },
+            ],
+        },
+        // Executive (Boss, NPC index 4)
+        NpcDef {
+            x: 6, y: 1, sprite_id: 0, facing: Direction::Down,
+            dialogue: &["EXECUTIVE:", "So you defeated all", "our grunts...", "No matter! I'll crush", "you myself!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GOLBAT, level: 28 },
+                TrainerPokemon { species_id: KOFFING, level: 28 },
+                TrainerPokemon { species_id: MUK, level: 30 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RocketHQ, name: "ROCKET HQ", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], music_id: 5 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -7778,6 +7899,7 @@ mod tests {
             MapId::EliteFourBruno,
             MapId::EliteFourKaren,
             MapId::ChampionLance,
+            MapId::RocketHQ,
         ];
         for id in &maps {
             let map = load_map(*id);

@@ -116,7 +116,7 @@ const FLAG_RIVAL_ROUTE29: u64   = 1 << 2;  // Fought rival on Route 29
 const FLAG_SPROUT_CLEAR: u64      = 1 << 3;  // Cleared Sprout Tower
 const FLAG_SUDOWOODO: u64         = 1 << 4;  // Cleared Sudowoodo
 const FLAG_RED_GYARADOS: u64      = 1 << 5;  // Red Gyarados event
-#[allow(dead_code)] const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
+const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
 #[allow(dead_code)] const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion
 #[allow(dead_code)] const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine
 const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
@@ -2575,9 +2575,18 @@ impl PokemonSim {
                                     _ => None,
                                 };
 
-                                let reward_text = format!("Got ${} for winning!", reward);
+                                // Rocket HQ boss: set story flag
+                                if map_id == MapId::RocketHQ && npc_idx == 4 {
+                                    self.set_flag(FLAG_ROCKET_MAHOGANY);
+                                }
+
+                                let mut lines = vec![format!("Got ${} for winning!", reward)];
+                                if map_id == MapId::RocketHQ && npc_idx == 4 {
+                                    lines.push("The ROCKET HQ has".to_string());
+                                    lines.push("been shut down!".to_string());
+                                }
                                 self.dialogue = Some(DialogueState {
-                                    lines: vec![reward_text],
+                                    lines,
                                     current_line: 0, char_index: 0, timer: 0.0,
                                     on_complete: badge_action.unwrap_or(DialogueAction::None),
                                 });
@@ -5740,5 +5749,22 @@ mod headless_tests {
         assert_eq!(md.power, 90);
         assert_eq!(md.move_type, PokemonType::Normal);
         assert_eq!(md.category, MoveCategory::Physical);
+    }
+
+    #[test]
+    fn test_rocket_hq_map_exists() {
+        let map = load_map(MapId::RocketHQ);
+        assert_eq!(map.width, 12);
+        assert_eq!(map.height, 12);
+        assert_eq!(map.npcs.len(), 5, "RocketHQ needs 4 grunts + 1 executive");
+        assert!(map.npcs[4].is_trainer, "Executive (npc 4) must be a trainer");
+    }
+
+    #[test]
+    fn test_rocket_hq_warp_to_mahogany() {
+        let map = load_map(MapId::RocketHQ);
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::MahoganyTown));
+        let mt = load_map(MapId::MahoganyTown);
+        assert!(mt.warps.iter().any(|w| w.dest_map == MapId::RocketHQ));
     }
 }

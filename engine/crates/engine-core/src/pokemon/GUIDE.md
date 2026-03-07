@@ -1746,3 +1746,16 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - Sprite cache expanded to include all 29 tile types (IDs 0-28).
 - All 1313 tests pass. 0 bugs.
 - **Next (Sprint 110)**: Content sprint.
+
+### Sprint 112 — Progression gates refactor + mobile bike + gym audit
+
+- **`check_warp_gate` helper** — Extracted all 6 inline warp gate checks (Route27, UnionCave, IlexForest->Route34, RocketHQ, IcePath, VictoryRoad) into a single `fn check_warp_gate(&self, dest: MapId) -> Option<&'static [&'static str]>` method. Returns gate dialogue lines if blocked, None if passable. Reduces the warp processing code from ~90 lines of repetitive if-blocks to a single 10-line call site. All gate logic is now centralized and easy to audit/extend.
+- **Mobile bike access via BAG** — When `has_bicycle` is true and not in battle, BICYCLE appears as the first item in the Bag menu. Selecting it toggles `on_bicycle` with feedback dialogue ("Got on the BICYCLE!" / "Got off the BICYCLE."). Indoor maps show "Can't use that here!" message. The bicycle shows "ON" status when riding, "x1" otherwise. Mobile/touch players who cannot press C/Shift can now access the bicycle. Keyboard shortcut still works too.
+- **Bike Shop dialogue updated** — Now says "Use it from your BAG or press C/SHIFT!" instead of just "Press C or SHIFT to ride it!" to inform all players.
+- **Gym availability audit verified**:
+  - All 8 gym leaders (NPC 0 in each gym) battle on talk, not line-of-sight (line 1372).
+  - `defeated_trainers` check prevents re-triggering defeated gym leaders (line 1581).
+  - Jasmine (OlivineGym) correctly requires FLAG_DELIVERED_MEDICINE (line 1562).
+  - Other gyms are freely fightable when reached.
+- **GenericHouse exit (A1) verified** — `last_house_x`/`last_house_y` already implemented in prior sprint, storing exact door position before warp and returning player to (last_house_x, last_house_y) on exit. Serialized in save data.
+- All 1313 tests pass. 0 bugs.

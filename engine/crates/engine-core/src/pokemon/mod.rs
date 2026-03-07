@@ -398,6 +398,36 @@ impl PokemonSim {
     fn has_flag(&self, flag: u64) -> bool { self.story_flags & flag != 0 }
     fn set_flag(&mut self, flag: u64) { self.story_flags |= flag; }
 
+    /// Check if a warp destination is blocked by a progression gate.
+    /// Returns a gate message if blocked, or None if the warp is allowed.
+    fn check_warp_gate(&self, dest: MapId) -> Option<&'static [&'static str]> {
+        // Route 27 from New Bark Town: need all 8 badges (post-E4 area)
+        if dest == MapId::Route27 && self.current_map_id == MapId::NewBarkTown && self.badges.count_ones() < 8 {
+            return Some(&["The path ahead is", "too dangerous!", "Come back when", "you're stronger."]);
+        }
+        // Union Cave: need Zephyr Badge (Falkner)
+        if dest == MapId::UnionCave && self.badges & 1 == 0 {
+            return Some(&["A trainer ahead", "blocks the way.", "You need the", "ZEPHYR BADGE."]);
+        }
+        // Ilex Forest north exit to Route 34: need Hive Badge (Bugsy)
+        if dest == MapId::Route34 && self.current_map_id == MapId::IlexForest && self.badges & 2 == 0 {
+            return Some(&["A tree blocks the", "path. You need CUT."]);
+        }
+        // Rocket HQ: need Red Gyarados event completed
+        if dest == MapId::RocketHQ && !self.has_flag(FLAG_RED_GYARADOS) {
+            return Some(&["Just a souvenir shop.", "Nothing to see here!"]);
+        }
+        // Ice Path: need Rocket HQ cleared
+        if dest == MapId::IcePath && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
+            return Some(&["TEAM ROCKET is", "causing trouble", "in MAHOGANY TOWN!"]);
+        }
+        // Victory Road: need all 8 badges
+        if dest == MapId::VictoryRoad && self.badges.count_ones() < 8 {
+            return Some(&["You need all 8", "BADGES to enter", "VICTORY ROAD!"]);
+        }
+        None
+    }
+
     /// Returns false for NPCs that should be hidden due to story flags.
     fn is_npc_active(&self, npc_idx: usize) -> bool {
         // Route 36 NPC index 2 = Sudowoodo blocker, hidden after FLAG_SUDOWOODO
@@ -1152,8 +1182,8 @@ impl PokemonSim {
                         self.phase = GamePhase::Dialogue;
                         return;
                     }
-                    // Block Route 27 from New Bark Town without 16 badges (post-E4 area)
-                    if warp.dest_map == MapId::Route27 && self.current_map_id == MapId::NewBarkTown && self.badges.count_ones() < 8 {
+                    // Progression gate check (Route27, UnionCave, IlexForest, RocketHQ, IcePath, VictoryRoad)
+                    if let Some(gate_lines) = self.check_warp_gate(warp.dest_map) {
                         match self.player.facing {
                             Direction::Up => self.player.y += 1,
                             Direction::Down => self.player.y -= 1,
@@ -1161,111 +1191,7 @@ impl PokemonSim {
                             Direction::Right => self.player.x -= 1,
                         }
                         self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "The path ahead is".to_string(),
-                                "too dangerous!".to_string(),
-                                "Come back when".to_string(),
-                                "you're stronger.".to_string(),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-                    // Block Union Cave without Zephyr Badge (Falkner)
-                    if warp.dest_map == MapId::UnionCave && self.badges & 1 == 0 {
-                        match self.player.facing {
-                            Direction::Up => self.player.y += 1,
-                            Direction::Down => self.player.y -= 1,
-                            Direction::Left => self.player.x += 1,
-                            Direction::Right => self.player.x -= 1,
-                        }
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "A trainer ahead".to_string(),
-                                "blocks the way.".to_string(),
-                                "You need the".to_string(),
-                                "ZEPHYR BADGE.".to_string(),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-                    // Block Ilex Forest north exit without Hive Badge (Bugsy)
-                    if warp.dest_map == MapId::Route34 && self.current_map_id == MapId::IlexForest && self.badges & 2 == 0 {
-                        match self.player.facing {
-                            Direction::Up => self.player.y += 1,
-                            Direction::Down => self.player.y -= 1,
-                            Direction::Left => self.player.x += 1,
-                            Direction::Right => self.player.x -= 1,
-                        }
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "A tree blocks the".to_string(),
-                                "path. You need CUT.".to_string(),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-                    // Block Rocket HQ until Red Gyarados event completed
-                    if warp.dest_map == MapId::RocketHQ && !self.has_flag(FLAG_RED_GYARADOS) {
-                        match self.player.facing {
-                            Direction::Up => self.player.y += 1,
-                            Direction::Down => self.player.y -= 1,
-                            Direction::Left => self.player.x += 1,
-                            Direction::Right => self.player.x -= 1,
-                        }
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "Just a souvenir shop.".to_string(),
-                                "Nothing to see here!".to_string(),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-                    // Block Ice Path without Rocket HQ cleared
-                    if warp.dest_map == MapId::IcePath && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
-                        match self.player.facing {
-                            Direction::Up => self.player.y += 1,
-                            Direction::Down => self.player.y -= 1,
-                            Direction::Left => self.player.x += 1,
-                            Direction::Right => self.player.x -= 1,
-                        }
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "TEAM ROCKET is".to_string(),
-                                "causing trouble".to_string(),
-                                "in MAHOGANY TOWN!".to_string(),
-                            ],
-                            current_line: 0, char_index: 0, timer: 0.0,
-                            on_complete: DialogueAction::None,
-                        });
-                        self.phase = GamePhase::Dialogue;
-                        return;
-                    }
-                    // Block Victory Road without 8 badges (Route 26 entrance)
-                    if warp.dest_map == MapId::VictoryRoad && self.badges.count_ones() < 8 {
-                        match self.player.facing {
-                            Direction::Up => self.player.y += 1,
-                            Direction::Down => self.player.y -= 1,
-                            Direction::Left => self.player.x += 1,
-                            Direction::Right => self.player.x -= 1,
-                        }
-                        self.dialogue = Some(DialogueState {
-                            lines: vec![
-                                "You need all 8".to_string(),
-                                "BADGES to enter".to_string(),
-                                "VICTORY ROAD!".to_string(),
-                            ],
+                            lines: gate_lines.iter().map(|s| s.to_string()).collect(),
                             current_line: 0, char_index: 0, timer: 0.0,
                             on_complete: DialogueAction::None,
                         });
@@ -1666,8 +1592,8 @@ impl PokemonSim {
                         "Want one? Sure thing!".to_string(),
                         "Here, take this one!".to_string(),
                         "Received a BICYCLE!".to_string(),
-                        "Press C or SHIFT".to_string(),
-                        "to ride it!".to_string(),
+                        "Use it from your BAG".to_string(),
+                        "or press C/SHIFT!".to_string(),
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::None,
@@ -5068,8 +4994,10 @@ impl PokemonSim {
 
     fn step_bag_menu(&mut self, engine: &mut Engine) {
         let cursor = if let GamePhase::BagMenu { cursor } = &self.phase { *cursor } else { 0 };
-        let item_count = self.bag.items.len() as u8;
-        if item_count == 0 {
+        // Virtual BICYCLE item shown at the top when has_bicycle and not in battle
+        let bike_offset: u8 = if self.has_bicycle && self.battle.is_none() { 1 } else { 0 };
+        let total_count = self.bag.items.len() as u8 + bike_offset;
+        if total_count == 0 {
             self.dialogue = Some(DialogueState {
                 lines: vec!["Bag is empty!".to_string()],
                 current_line: 0, char_index: 0, timer: 0.0,
@@ -5080,9 +5008,9 @@ impl PokemonSim {
         }
 
         if is_down(engine) {
-            self.phase = GamePhase::BagMenu { cursor: (cursor + 1) % item_count };
+            self.phase = GamePhase::BagMenu { cursor: (cursor + 1) % total_count };
         } else if is_up(engine) {
-            self.phase = GamePhase::BagMenu { cursor: if cursor == 0 { item_count - 1 } else { cursor - 1 } };
+            self.phase = GamePhase::BagMenu { cursor: if cursor == 0 { total_count - 1 } else { cursor - 1 } };
         }
 
         let confirm = is_confirm(engine);
@@ -5098,7 +5026,41 @@ impl PokemonSim {
         }
 
         if confirm {
-            if let Some(&(item_id, _qty)) = self.bag.items.get(cursor as usize) {
+            // Bicycle: virtual item at cursor 0 when bike_offset > 0
+            if bike_offset > 0 && cursor == 0 {
+                let is_indoor = matches!(self.current_map_id,
+                    MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
+                    MapId::PlayerHouse1F | MapId::PlayerHouse2F |
+                    MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                    MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
+                    MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
+                    MapId::MahoganyGym | MapId::BlackthornGym |
+                    MapId::VictoryRoad | MapId::RocketHQ |
+                    MapId::EliteFourWill | MapId::EliteFourKoga |
+                    MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
+                );
+                if is_indoor {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec!["Can't use that here!".to_string()],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else {
+                    self.on_bicycle = !self.on_bicycle;
+                    let msg = if self.on_bicycle { "Got on the BICYCLE!" } else { "Got off the BICYCLE." };
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![msg.to_string()],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                }
+                return;
+            }
+            let bag_cursor = (cursor - bike_offset) as usize;
+            if let Some(&(item_id, _qty)) = self.bag.items.get(bag_cursor) {
                 if let Some(item_data) = get_item(item_id) {
                     if item_data.is_ball {
                         // Poke Ball: use in battle
@@ -5503,13 +5465,31 @@ impl PokemonSim {
         draw_text_pkmn(fb, ctx, "BAG", 65, 3, dark);
         fill_rect_v(fb, ctx, 4, 12, 152, 1, Color::from_rgba(168, 168, 176, 255));
 
-        if self.bag.is_empty() {
+        // Virtual BICYCLE item at top when has_bicycle and not in battle
+        let bike_offset: u8 = if self.has_bicycle && self.battle.is_none() { 1 } else { 0 };
+        let total_count = self.bag.items.len() as u8 + bike_offset;
+
+        if total_count == 0 {
             draw_text_pkmn(fb, ctx, "Empty!", 55, 60, Color::from_rgba(120, 120, 140, 255));
         } else {
+            let mut row: u8 = 0;
+            // Draw bicycle item first if applicable
+            if bike_offset > 0 {
+                let y = 16;
+                if cursor == 0 {
+                    fill_rect_v(fb, ctx, 2, y - 1, 156, 16, Color::from_rgba(232, 240, 248, 255));
+                    draw_cursor(fb, ctx, 4, y + 2, dark);
+                }
+                draw_text_pkmn(fb, ctx, "BICYCLE", 14, y + 2, dark);
+                let status = if self.on_bicycle { "ON" } else { "x1" };
+                draw_text_pkmn(fb, ctx, status, 120, y + 2, Color::from_rgba(80, 80, 96, 255));
+                row = 1;
+            }
             for (i, &(item_id, qty)) in self.bag.items.iter().enumerate() {
-                let y = 16 + i as i32 * 18;
+                let y = 16 + (row as i32 + i as i32) * 18;
                 if y > 128 { break; }
-                if i as u8 == cursor {
+                let display_cursor = i as u8 + bike_offset;
+                if display_cursor == cursor {
                     fill_rect_v(fb, ctx, 2, y - 1, 156, 16, Color::from_rgba(232, 240, 248, 255));
                     draw_cursor(fb, ctx, 4, y + 2, dark);
                 }

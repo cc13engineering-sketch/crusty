@@ -142,6 +142,8 @@ enum GamePhase {
     Healing { timer: f64 },
     Evolution { timer: f64, new_species: SpeciesId },
     TrainerApproach { npc_idx: u8, timer: f64 },
+    MapFadeOut { dest_map: MapId, dest_x: u8, dest_y: u8, timer: f64 },
+    MapFadeIn { timer: f64 },
     Credits { scroll_y: f64 },
 }
 
@@ -1141,7 +1143,7 @@ impl PokemonSim {
                             MapId::IndigoPlateau => (MapId::IndigoPlateau, 1, 5),
                             _ => (MapId::CherrygroveCity, 7, 5),
                         };
-                        self.change_map(dest_map, dx, dy);
+                        self.phase = GamePhase::MapFadeOut { dest_map, dest_x: dx, dest_y: dy, timer: 0.0 };
                     } else if self.current_map_id == MapId::GenericHouse {
                         // GenericHouse: dynamic exit based on which city we entered from
                         let (dest_map, dx, dy) = match self.last_house_map {
@@ -1158,9 +1160,9 @@ impl PokemonSim {
                             MapId::BlackthornCity => (MapId::BlackthornCity, 10, 10),
                             _ => (MapId::NewBarkTown, 12, 5),
                         };
-                        self.change_map(dest_map, dx, dy);
+                        self.phase = GamePhase::MapFadeOut { dest_map, dest_x: dx, dest_y: dy, timer: 0.0 };
                     } else {
-                        self.change_map(warp.dest_map, warp.dest_x, warp.dest_y);
+                        self.phase = GamePhase::MapFadeOut { dest_map: warp.dest_map, dest_x: warp.dest_x, dest_y: warp.dest_y, timer: 0.0 };
                     }
                     return;
                 }
@@ -2795,6 +2797,7 @@ impl PokemonSim {
                                 // Beat the Champion → credits!
                                 self.dialogue = Some(DialogueState {
                                     lines: vec![
+                                        "CHAMPION LANCE was defeated!".to_string(),
                                         format!("Got ${} for winning!", reward),
                                         "Congratulations!".to_string(),
                                         "You are the new POKEMON CHAMPION!".to_string(),
@@ -2825,7 +2828,10 @@ impl PokemonSim {
                                     self.set_flag(FLAG_ROCKET_MAHOGANY);
                                 }
 
-                                let mut lines = vec![format!("Got ${} for winning!", reward)];
+                                let mut lines = vec![
+                                    "Trainer was defeated!".to_string(),
+                                    format!("Got ${} for winning!", reward),
+                                ];
                                 if map_id == MapId::RocketHQ && npc_idx == 4 {
                                     lines.push("The ROCKET HQ has".to_string());
                                     lines.push("been shut down!".to_string());
@@ -5324,6 +5330,28 @@ impl Simulation for PokemonSim {
                 }
             }
 
+            GamePhase::MapFadeOut { dest_map, dest_x, dest_y, timer } => {
+                let dt = 1.0 / 60.0;
+                let t = timer + dt;
+                if t >= 0.25 {
+                    // Fade complete — perform the map change
+                    self.change_map(dest_map, dest_x, dest_y);
+                    self.phase = GamePhase::MapFadeIn { timer: 0.0 };
+                } else {
+                    self.phase = GamePhase::MapFadeOut { dest_map, dest_x, dest_y, timer: t };
+                }
+            }
+
+            GamePhase::MapFadeIn { timer } => {
+                let dt = 1.0 / 60.0;
+                let t = timer + dt;
+                if t >= 0.25 {
+                    self.phase = GamePhase::Overworld;
+                } else {
+                    self.phase = GamePhase::MapFadeIn { timer: t };
+                }
+            }
+
             GamePhase::Evolution { timer, new_species } => {
                 let dt = 1.0 / 60.0;
                 let t = timer + dt;
@@ -5368,7 +5396,7 @@ impl Simulation for PokemonSim {
 
         // Decay screen effects
         let dt = 1.0 / 60.0;
-        let in_transition = matches!(self.phase, GamePhase::EncounterTransition { .. } | GamePhase::Evolution { .. });
+        let in_transition = matches!(self.phase, GamePhase::EncounterTransition { .. } | GamePhase::Evolution { .. } | GamePhase::MapFadeOut { .. } | GamePhase::MapFadeIn { .. });
         if self.screen_flash > 0.0 && !in_transition {
             self.screen_flash = (self.screen_flash - dt * 4.0).max(0.0);
         }
@@ -5427,6 +5455,22 @@ impl Simulation for PokemonSim {
             GamePhase::TrainerApproach { npc_idx, .. } => {
                 // Render overworld, then draw "!" above approaching trainer
                 self.render_overworld_with_approach(fb, *npc_idx);
+            }
+            GamePhase::MapFadeOut { timer, .. } => {
+                // Render overworld underneath, then darken
+                self.render_overworld(fb);
+                if let Some(ctx) = &self.ctx {
+                    let alpha = ((*timer / 0.25).min(1.0) * 255.0) as u8;
+                    fill_virtual_screen(fb, ctx, Color::from_rgba(0, 0, 0, alpha));
+                }
+            }
+            GamePhase::MapFadeIn { timer } => {
+                // Render new overworld, fading in from black
+                self.render_overworld(fb);
+                if let Some(ctx) = &self.ctx {
+                    let alpha = ((1.0 - *timer / 0.25).max(0.0) * 255.0) as u8;
+                    fill_virtual_screen(fb, ctx, Color::from_rgba(0, 0, 0, alpha));
+                }
             }
             GamePhase::Credits { scroll_y } => self.render_credits(fb, *scroll_y),
         }

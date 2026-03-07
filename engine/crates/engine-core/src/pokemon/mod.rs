@@ -151,6 +151,7 @@ const FLAG_SLOWPOKE_WELL: u64  = 1 << 12; // Cleared Slowpoke Well (defeated all
 const FLAG_BURNED_TOWER_RIVAL: u64 = 1 << 13; // Fought rival at Burned Tower 1F
 const FLAG_BEASTS_RELEASED: u64 = 1 << 14; // Released legendary beasts from Burned Tower B1F
 const FLAG_ILEX_FARFETCHD: u64 = 1 << 15; // Herded Farfetch'd back to charcoal maker
+#[allow(dead_code)] const FLAG_DRAGONS_DEN_QUIZ: u64 = 1 << 16; // Answered Dragon Master's quiz
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -486,7 +487,7 @@ impl PokemonSim {
             return Some(&["Just a souvenir shop.", "Nothing to see here!"]);
         }
         // Ice Path: need Rocket HQ cleared
-        if dest == MapId::IcePath && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
+        if dest == MapId::IcePath1F && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
             return Some(&["TEAM ROCKET is", "causing trouble", "in MAHOGANY TOWN!"]);
         }
         // Victory Road: need all 8 badges
@@ -1498,7 +1499,7 @@ impl PokemonSim {
                 MapId::PlayerHouse1F | MapId::PlayerHouse2F |
                 MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
                 MapId::UnionCave | MapId::IlexForest |
-                MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath1F | MapId::IcePathB1F | MapId::IcePathB2F | MapId::IcePathB3F | MapId::DragonsDenB1F |
                 MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                 MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                 MapId::MahoganyGym | MapId::BlackthornGym |
@@ -5804,7 +5805,7 @@ impl PokemonSim {
                     MapId::PlayerHouse1F | MapId::PlayerHouse2F |
                     MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
                     MapId::UnionCave | MapId::IlexForest |
-                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath1F | MapId::IcePathB1F | MapId::IcePathB2F | MapId::IcePathB3F | MapId::DragonsDenB1F |
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                     MapId::MahoganyGym | MapId::BlackthornGym |
@@ -5838,7 +5839,7 @@ impl PokemonSim {
                     MapId::PlayerHouse1F | MapId::PlayerHouse2F |
                     MapId::SproutTower1F | MapId::SproutTower2F | MapId::SproutTower3F |
                     MapId::UnionCave | MapId::IlexForest |
-                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath1F | MapId::IcePathB1F | MapId::IcePathB2F | MapId::IcePathB3F | MapId::DragonsDenB1F |
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                     MapId::MahoganyGym | MapId::BlackthornGym |
@@ -8410,8 +8411,8 @@ mod headless_tests {
     fn test_ice_path_requires_rocket_flag() {
         // Route 44 east to Ice Path — should require Rocket HQ cleared
         let map = load_map(MapId::Route44);
-        let has_ice_warp = map.warps.iter().any(|w| w.dest_map == MapId::IcePath);
-        assert!(has_ice_warp, "Route44 must have IcePath warp");
+        let has_ice_warp = map.warps.iter().any(|w| w.dest_map == MapId::IcePath1F);
+        assert!(has_ice_warp, "Route44 must have IcePath1F warp");
     }
 
     #[test]
@@ -8516,7 +8517,7 @@ mod headless_tests {
                     | MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym
                     | MapId::MahoganyGym | MapId::BlackthornGym
                     | MapId::OlivineLighthouse | MapId::BurnedTower
-                    | MapId::UnionCave | MapId::IlexForest | MapId::IcePath
+                    | MapId::UnionCave | MapId::IlexForest | MapId::IcePath1F | MapId::IcePathB1F | MapId::IcePathB2F | MapId::IcePathB3F | MapId::DragonsDenB1F
                     | MapId::VictoryRoad | MapId::IndigoPlateau
                     | MapId::EliteFourWill | MapId::EliteFourKoga
                     | MapId::EliteFourBruno | MapId::EliteFourKaren
@@ -8574,8 +8575,8 @@ mod headless_tests {
             "IlexForest must have Route34 warp (which is now gated)");
 
         let r44 = load_map(MapId::Route44);
-        assert!(r44.warps.iter().any(|w| w.dest_map == MapId::IcePath),
-            "Route44 must have IcePath warp (which is now gated)");
+        assert!(r44.warps.iter().any(|w| w.dest_map == MapId::IcePath1F),
+            "Route44 must have IcePath1F warp (which is now gated)");
     }
 
     #[test]
@@ -8887,7 +8888,7 @@ mod headless_tests {
     fn test_ice_sliding_basic() {
         // Test that ice_sliding field works: set direction, verify it persists
         let mut sim = PokemonSim::with_state(
-            MapId::IcePath, 3, 7,
+            MapId::IcePath1F, 3, 7,
             vec![Pokemon::new(CYNDAQUIL, 25)],
             7, // 7 badges (just cleared Rocket HQ)
         );
@@ -8898,24 +8899,31 @@ mod headless_tests {
         // Start sliding right (simulating stepping onto ice)
         sim.ice_sliding = Some(Direction::Right);
         assert!(sim.ice_sliding.is_some());
-        assert_eq!(sim.ice_sliding.unwrap(), Direction::Right);
+        if let Some(dir) = sim.ice_sliding {
+            assert_eq!(dir, Direction::Right);
+        }
 
         // Simulate hitting a wall — stop sliding
         sim.ice_sliding = None;
         assert!(sim.ice_sliding.is_none());
 
-        // Verify IcePath map has ice collision tiles (C_ICE = 8)
-        let ice_map = load_map(MapId::IcePath);
+        // Verify IcePath1F map has ice collision tiles (C_ICE = 8)
+        let ice_map = load_map(MapId::IcePath1F);
         let has_ice = ice_map.collision.iter().any(|&c| c == 8);
-        assert!(has_ice, "IcePath must have ice collision tiles (C_ICE=8)");
+        assert!(has_ice, "IcePath1F must have ice collision tiles (C_ICE=8)");
 
         // Verify map dimensions are correct
-        assert_eq!(ice_map.width, 14);
-        assert_eq!(ice_map.height, 14);
+        assert_eq!(ice_map.width, 16);
+        assert_eq!(ice_map.height, 16);
 
-        // Verify entrance warps exist
-        assert!(ice_map.warps.iter().any(|w| w.dest_map == MapId::BlackthornCity),
-            "IcePath must warp to BlackthornCity");
+        // Verify ladder warp to B1F exists
+        assert!(ice_map.warps.iter().any(|w| w.dest_map == MapId::IcePathB1F),
+            "IcePath1F must warp to IcePathB1F");
+
+        // Verify B3F has exit to BlackthornCity
+        let b3f = load_map(MapId::IcePathB3F);
+        assert!(b3f.warps.iter().any(|w| w.dest_map == MapId::BlackthornCity),
+            "IcePathB3F must warp to BlackthornCity");
     }
 
     #[test]

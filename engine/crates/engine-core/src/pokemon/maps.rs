@@ -220,8 +220,12 @@ pub enum MapId {
     Route43,
     LakeOfRage,
     Route44,
-    IcePath,
+    IcePath1F,
+    IcePathB1F,
+    IcePathB2F,
+    IcePathB3F,
     BlackthornCity,
+    DragonsDenB1F,
     BlackthornGym,
     Route45,
     Route46,
@@ -290,8 +294,12 @@ impl MapId {
             "Route43" => Some(MapId::Route43),
             "LakeOfRage" => Some(MapId::LakeOfRage),
             "Route44" => Some(MapId::Route44),
-            "IcePath" => Some(MapId::IcePath),
+            "IcePath" | "IcePath1F" => Some(MapId::IcePath1F),
+            "IcePathB1F" => Some(MapId::IcePathB1F),
+            "IcePathB2F" => Some(MapId::IcePathB2F),
+            "IcePathB3F" => Some(MapId::IcePathB3F),
             "BlackthornCity" => Some(MapId::BlackthornCity),
+            "DragonsDenB1F" | "DragonsDen" => Some(MapId::DragonsDenB1F),
             "BlackthornGym" => Some(MapId::BlackthornGym),
             "Route45" => Some(MapId::Route45),
             "Route46" => Some(MapId::Route46),
@@ -361,8 +369,12 @@ impl MapId {
             MapId::Route43 => "Route43",
             MapId::LakeOfRage => "LakeOfRage",
             MapId::Route44 => "Route44",
-            MapId::IcePath => "IcePath",
+            MapId::IcePath1F => "IcePath1F",
+            MapId::IcePathB1F => "IcePathB1F",
+            MapId::IcePathB2F => "IcePathB2F",
+            MapId::IcePathB3F => "IcePathB3F",
             MapId::BlackthornCity => "BlackthornCity",
+            MapId::DragonsDenB1F => "DragonsDenB1F",
             MapId::BlackthornGym => "BlackthornGym",
             MapId::Route45 => "Route45",
             MapId::Route46 => "Route46",
@@ -524,8 +536,12 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route43 => build_route_43(),
         MapId::LakeOfRage => build_lake_of_rage(),
         MapId::Route44 => build_route_44(),
-        MapId::IcePath => build_ice_path(),
+        MapId::IcePath1F => build_ice_path_1f(),
+        MapId::IcePathB1F => build_ice_path_b1f(),
+        MapId::IcePathB2F => build_ice_path_b2f(),
+        MapId::IcePathB3F => build_ice_path_b3f(),
         MapId::BlackthornCity => build_blackthorn_city(),
+        MapId::DragonsDenB1F => build_dragons_den_b1f(),
         MapId::BlackthornGym => build_blackthorn_gym(),
         MapId::Route45 => build_route_45(),
         MapId::Route46 => build_route_46(),
@@ -7226,8 +7242,8 @@ fn build_route_44() -> MapData {
         WarpData { x: 0, y: 6, dest_map: MapId::MahoganyTown, dest_x: 13, dest_y: 9 },
         WarpData { x: 1, y: 6, dest_map: MapId::MahoganyTown, dest_x: 13, dest_y: 9 },
         // East exit → Ice Path
-        WarpData { x: 19, y: 5, dest_map: MapId::IcePath, dest_x: 1, dest_y: 6 },
-        WarpData { x: 19, y: 6, dest_map: MapId::IcePath, dest_x: 1, dest_y: 7 },
+        WarpData { x: 19, y: 5, dest_map: MapId::IcePath1F, dest_x: 1, dest_y: 6 },
+        WarpData { x: 19, y: 6, dest_map: MapId::IcePath1F, dest_x: 1, dest_y: 7 },
     ];
     let npcs = vec![
         // Trainer 1: Psychic (middle of route)
@@ -7273,115 +7289,410 @@ fn build_route_44() -> MapData {
     ], music_id: 2 }
 }
 
-fn build_ice_path() -> MapData {
-    let width = 14;
-    let height = 14;
-    // Ice Path sliding puzzle layout:
-    // Player enters from west (0,6)/(0,7), needs to reach east exit (13,7).
-    // Ice patches (ICE_FLOOR) cause sliding — player slides until hitting a rock (CAVE_WALL) or
-    // normal floor (CAVE_FLOOR). Strategic rocks placed to create a solvable puzzle requiring
-    // 3+ direction changes.
-    //
-    // Solution path: Enter at (1,7) → walk right to (3,7) → step right onto ice at (4,7) →
-    // slide right, hit rock at (7,6)/(7,7) stop at (6,7) → step down to (6,8) →
-    // step right onto ice at (7,8) → slide right, hit wall stop at (11,8) → step up to (11,7) →
-    // step right onto ice at (12,7) → slide right to exit warp at (13,7).
-    let tiles = vec![
-        // Row 0: cave walls
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 1: cave walls with upper alcove
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 2: opening up — ice starts
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 3: wider cave with ice
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 4: ice puzzle area — rock at (7,4) forces direction change
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 5: main passage with ice
-        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 6: west entrance — rock at (7,6) blocks straight slide
-        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 7: east exit at (13,7) — walk floor then ice
-        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,
-        // Row 8: lower passage with ice
-        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
-        // Row 9: ice patches — rock at (12,9) stops sliding
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 10: narrowing
-        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
-        // Row 11: narrow
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 12: cave walls
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-        // Row 13: cave walls
-        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
-    ];
-    let collision = vec![
+// ─── Ice Path 1F (16x16) ──────────────────────────────────
+// Entry from Route 44 (west). Contains ice floor, HM07 Waterfall item NPC.
+// Ladder at (13,3) descends to B1F. Per pokecrystal: Swinub, Zubat, Golbat (day);
+// Delibird replaces Swinub at night.
+fn build_ice_path_1f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
         // Row 0
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
         // Row 1
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        // Row 2: ice starts
-        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
-        // Row 3: rock at (7,3)
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 4: rock at (7,4)
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 3: ladder to B1F at (13,3)
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 4: ice puzzle
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
         // Row 5
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,
-        // Row 6: west entrance at (0,6), rock at (7,6)
-        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
-        // Row 7: east exit at (13,7)
-        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WARP,
-        // Row 8: ice puzzle lower area
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
-        // Row 9: rock at (6,9)
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 10
-        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 6: west entrance at (0,6)/(0,7)
+        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 7
+        CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 10: item NPC (HM07 Waterfall) at (5,10)
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
         // Row 11
-        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
         // Row 12
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
-        // Row 13
-        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 13-15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3: ladder warp at (13,3)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_WARP,C_SOLID,C_SOLID,
+        // Row 4: rock at (7,4)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 6: west entrance at (0,6)
+        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 7: west entrance at (0,7)
+        C_WARP,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 9: rock at (6,9)
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 10
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Rows 13-15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
     let warps = vec![
-        // West entrance → Route 44 east
+        // West entrance from Route 44
         WarpData { x: 0, y: 6, dest_map: MapId::Route44, dest_x: 18, dest_y: 5 },
         WarpData { x: 0, y: 7, dest_map: MapId::Route44, dest_x: 18, dest_y: 6 },
-        // East exit → Blackthorn City west
-        WarpData { x: 13, y: 7, dest_map: MapId::BlackthornCity, dest_x: 2, dest_y: 8 },
+        // Ladder to B1F at (13,3) — arrive at (2,3) in B1F (next to ladder)
+        WarpData { x: 13, y: 3, dest_map: MapId::IcePathB1F, dest_x: 2, dest_y: 3 },
     ];
     let npcs = vec![
-        // Trainer 1: Boarder (upper area, standing on walkable floor near ice)
+        // NPC 0: Hiker near entrance
         NpcDef {
-            x: 3, y: 3, sprite_id: 2, facing: Direction::Down,
-            dialogue: &["The ice makes it", "hard to battle!"],
+            x: 3, y: 5, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["The ice makes it", "hard to keep your", "footing in here!"],
             is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[TrainerPokemon { species_id: SWINUB, level: 28 }, TrainerPokemon { species_id: SNEASEL, level: 28 }],
+            trainer_team: &[TrainerPokemon { species_id: SWINUB, level: 28 }, TrainerPokemon { species_id: SWINUB, level: 30 }],
         },
-        // Trainer 2: Skier (lower area, standing on walkable floor)
+        // NPC 1: Item ball — HM07 Waterfall
         NpcDef {
-            x: 7, y: 10, sprite_id: 2, facing: Direction::Up,
+            x: 5, y: 10, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["You found HM07", "WATERFALL!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+    // pokecrystal: Swinub, Zubat, Golbat (day); Delibird at night
+    let encounters = vec![
+        EncounterEntry { species_id: SWINUB, min_level: 21, max_level: 23, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: DELIBIRD, min_level: 22, max_level: 22, weight: 15 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: DELIBIRD, min_level: 21, max_level: 23, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 24, weight: 45 },
+    ];
+    MapData { id: MapId::IcePath1F, name: "ICE PATH 1F", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 3 }
+}
+
+// ─── Ice Path B1F (16x16) ──────────────────────────────────
+// Ice sliding puzzle. Ladder from 1F, ladder down to B2F.
+// Per pokecrystal: Swinub, Zubat, Golbat, Jynx (day); Delibird, Sneasel at night.
+fn build_ice_path_b1f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 3: ladder from 1F at (1,3), puzzle area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 11: ladder to B2F at (7,11)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 12-15: walls
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3: ladder from 1F at (1,3)
+        C_SOLID,C_WARP,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 11: ladder to B2F at (7,11)
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // Ladder up to 1F
+        WarpData { x: 1, y: 3, dest_map: MapId::IcePath1F, dest_x: 12, dest_y: 3 },
+        // Ladder down to B2F — arrive at (3,2) in B2F (next to ladder)
+        WarpData { x: 7, y: 11, dest_map: MapId::IcePathB2F, dest_x: 3, dest_y: 2 },
+    ];
+    let npcs = vec![
+        // Trainer: Boarder
+        NpcDef {
+            x: 7, y: 7, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["The ice slides are", "really tricky here!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: SWINUB, level: 29 }, TrainerPokemon { species_id: SNEASEL, level: 29 }],
+        },
+    ];
+    // pokecrystal B1F: Swinub 22-24, Zubat 23, Golbat 23-25, Jynx 22 (day); Delibird/Sneasel night
+    let encounters = vec![
+        EncounterEntry { species_id: SWINUB, min_level: 22, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: GOLBAT, min_level: 23, max_level: 25, weight: 30 },
+        EncounterEntry { species_id: JYNX, min_level: 22, max_level: 22, weight: 20 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: DELIBIRD, min_level: 22, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 23, max_level: 23, weight: 20 },
+        EncounterEntry { species_id: GOLBAT, min_level: 23, max_level: 25, weight: 30 },
+        EncounterEntry { species_id: SNEASEL, min_level: 22, max_level: 22, weight: 20 },
+    ];
+    MapData { id: MapId::IcePathB1F, name: "ICE PATH B1F", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 3 }
+}
+
+// ─── Ice Path B2F (16x16) ──────────────────────────────────
+// Another ice sliding section. Per pokecrystal: Swinub, Zubat, Golbat, Jynx (day);
+// Delibird, Sneasel at night. Ladder from B1F, ladder down to B3F.
+fn build_ice_path_b2f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2: ladder from B1F at (2,2)
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 11: ladder to B3F at (13,11)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Rows 12-15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: ladder at (2,2)
+        C_SOLID,C_SOLID,C_WARP,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_SOLID,C_WALK,C_ICE,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 11: ladder at (13,11)
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WARP,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // Ladder up to B1F
+        WarpData { x: 2, y: 2, dest_map: MapId::IcePathB1F, dest_x: 7, dest_y: 10 },
+        // Ladder down to B3F — arrive at (3,3) in B3F (next to ladder)
+        WarpData { x: 13, y: 11, dest_map: MapId::IcePathB3F, dest_x: 3, dest_y: 3 },
+    ];
+    let npcs = vec![
+        // Trainer: Skier
+        NpcDef {
+            x: 5, y: 5, sprite_id: 3, facing: Direction::Right,
             dialogue: &["I trained on", "mountains for this!"],
             is_trainer: true, is_mart: false, wanders: false,
-            trainer_team: &[TrainerPokemon { species_id: JYNX, level: 28 }, TrainerPokemon { species_id: DELIBIRD, level: 30 }],
+            trainer_team: &[TrainerPokemon { species_id: JYNX, level: 29 }, TrainerPokemon { species_id: DELIBIRD, level: 31 }],
         },
     ];
+    // pokecrystal B2F: Swinub 23-25, Zubat 24, Golbat 24-26, Jynx 22-24 (day); Delibird, Sneasel night
     let encounters = vec![
-        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 24, weight: 20 },
-        EncounterEntry { species_id: GOLBAT, min_level: 24, max_level: 26, weight: 15 },
-        EncounterEntry { species_id: SWINUB, min_level: 22, max_level: 24, weight: 30 },
-        EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 24, weight: 15 },
-        EncounterEntry { species_id: JYNX, min_level: 24, max_level: 26, weight: 10 },
-        EncounterEntry { species_id: SNEASEL, min_level: 24, max_level: 26, weight: 10 },
+        EncounterEntry { species_id: SWINUB, min_level: 23, max_level: 25, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 24, max_level: 24, weight: 20 },
+        EncounterEntry { species_id: GOLBAT, min_level: 24, max_level: 26, weight: 25 },
+        EncounterEntry { species_id: JYNX, min_level: 22, max_level: 24, weight: 30 },
     ];
-    MapData { id: MapId::IcePath, name: "ICE PATH", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
-        EncounterEntry { species_id: MAGIKARP, min_level: 15, max_level: 20, weight: 40 },
-        EncounterEntry { species_id: SEEL, min_level: 20, max_level: 25, weight: 30 },
-        EncounterEntry { species_id: SHELLDER, min_level: 20, max_level: 25, weight: 30 },
-    ], music_id: 3 }
+    let night_encounters = vec![
+        EncounterEntry { species_id: DELIBIRD, min_level: 23, max_level: 25, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 24, max_level: 24, weight: 20 },
+        EncounterEntry { species_id: GOLBAT, min_level: 24, max_level: 26, weight: 25 },
+        EncounterEntry { species_id: SNEASEL, min_level: 22, max_level: 24, weight: 30 },
+    ];
+    MapData { id: MapId::IcePathB2F, name: "ICE PATH B2F", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 3 }
+}
+
+// ─── Ice Path B3F (16x16) ──────────────────────────────────
+// Final section, exit to Blackthorn City side.
+// Items: Max Potion, Full Heal, PP Up, NeverMeltIce (item NPCs).
+// Per pokecrystal B3F: Swinub 24-26, Zubat 25, Golbat 25, Jynx 22-26 (day);
+// Delibird, Sneasel at night.
+fn build_ice_path_b3f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 3: ladder from B2F at (2,3)
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 5: items area — Max Potion at (11,5)
+        CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 7: exit passage east — Blackthorn exit at (15,7)/(15,8)
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,ICE_FLOOR,ICE_FLOOR,ICE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,
+        // Row 9: Full Heal at (1,9)
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 10: PP Up at (3,10)
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Rows 12-15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 3: ladder at (2,3)
+        C_SOLID,C_WALK,C_WARP,C_WALK,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_SOLID,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 7: exit at (15,7)
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_WALK,C_WALK,C_ICE,C_ICE,C_ICE,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        // Row 8: exit at (15,8)
+        C_SOLID,C_WALK,C_WALK,C_ICE,C_ICE,C_SOLID,C_ICE,C_ICE,C_ICE,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // Ladder up to B2F
+        WarpData { x: 2, y: 3, dest_map: MapId::IcePathB2F, dest_x: 13, dest_y: 10 },
+        // East exit to Blackthorn City
+        WarpData { x: 15, y: 7, dest_map: MapId::BlackthornCity, dest_x: 2, dest_y: 8 },
+        WarpData { x: 15, y: 8, dest_map: MapId::BlackthornCity, dest_x: 2, dest_y: 8 },
+    ];
+    let npcs = vec![
+        // NPC 0: Max Potion item ball
+        NpcDef {
+            x: 11, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["You found a", "MAX POTION!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Full Heal item ball
+        NpcDef {
+            x: 1, y: 9, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["You found a", "FULL HEAL!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 2: PP Up item ball
+        NpcDef {
+            x: 3, y: 10, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["You found a PP UP!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 3: Trainer — Boarder
+        NpcDef {
+            x: 7, y: 9, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["You made it all the", "way down here? Not", "bad at all!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: SWINUB, level: 30 }, TrainerPokemon { species_id: PILOSWINE, level: 32 }],
+        },
+    ];
+    // pokecrystal B3F: Swinub 24-26, Zubat 25, Golbat 25, Jynx 22-26 (day); Delibird, Sneasel night
+    let encounters = vec![
+        EncounterEntry { species_id: SWINUB, min_level: 24, max_level: 26, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 25, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 25, max_level: 25, weight: 20 },
+        EncounterEntry { species_id: JYNX, min_level: 22, max_level: 26, weight: 40 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: DELIBIRD, min_level: 24, max_level: 26, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 25, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 25, max_level: 25, weight: 20 },
+        EncounterEntry { species_id: SNEASEL, min_level: 22, max_level: 26, weight: 40 },
+    ];
+    MapData { id: MapId::IcePathB3F, name: "ICE PATH B3F", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 3 }
 }
 
 fn build_blackthorn_city() -> MapData {
@@ -7408,8 +7719,8 @@ fn build_blackthorn_city() -> MapData {
         PATH,PATH,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
         // Row 9: house wall
         GRASS,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,DOOR,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
-        // Row 10: path south
-        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 10: path south + Dragon's Den cave entrance at (18,10)
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,DOOR,GRASS,
         // Row 11: flowers and path to south exit
         GRASS,GRASS,FLOWER,FLOWER,GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,FLOWER,FLOWER,GRASS,GRASS,
         // Row 12: trees
@@ -7438,8 +7749,8 @@ fn build_blackthorn_city() -> MapData {
         C_WARP,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 9: house wall/door
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 10
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: Dragon's Den entrance at (18,10)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,
         // Row 11
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 12: south exit at (8,12)(9,12)(10,12)(11,12)
@@ -7449,8 +7760,8 @@ fn build_blackthorn_city() -> MapData {
     ];
     let warps = vec![
         // West entrance → Ice Path east exit
-        WarpData { x: 0, y: 8, dest_map: MapId::IcePath, dest_x: 12, dest_y: 7 },
-        WarpData { x: 1, y: 8, dest_map: MapId::IcePath, dest_x: 12, dest_y: 7 },
+        WarpData { x: 0, y: 8, dest_map: MapId::IcePathB3F, dest_x: 12, dest_y: 7 },
+        WarpData { x: 1, y: 8, dest_map: MapId::IcePathB3F, dest_x: 12, dest_y: 7 },
         // Gym door (5,3)
         WarpData { x: 5, y: 3, dest_map: MapId::BlackthornGym, dest_x: 5, dest_y: 7 },
         // PokemonCenter door (3,6)
@@ -7464,6 +7775,8 @@ fn build_blackthorn_city() -> MapData {
         WarpData { x: 9, y: 12, dest_map: MapId::Route45, dest_x: 5, dest_y: 2 },
         WarpData { x: 10, y: 12, dest_map: MapId::Route45, dest_x: 6, dest_y: 2 },
         WarpData { x: 11, y: 12, dest_map: MapId::Route45, dest_x: 7, dest_y: 2 },
+        // Dragon's Den entrance at (18,10) — arrive at (8,2) in den (below warp)
+        WarpData { x: 18, y: 10, dest_map: MapId::DragonsDenB1F, dest_x: 8, dest_y: 2 },
     ];
     let npcs = vec![
         // NPC 0: Old man near gym
@@ -7573,6 +7886,126 @@ fn build_blackthorn_gym() -> MapData {
     ];
     let encounters = vec![];
     MapData { id: MapId::BlackthornGym, name: "BLACKTHORN GYM", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
+}
+
+// ─── Dragon's Den B1F (16x16) ──────────────────────────────
+// Accessed from Blackthorn City. Dragon shrine with the Dragon Master
+// (Clair's grandfather). Trainers with Dratini/Dragonair teams.
+// Per pokecrystal water encounters: Magikarp 10-15, Dratini 10.
+// Item: Dragon Fang. Quiz event with FLAG_DRAGONS_DEN_QUIZ.
+fn build_dragons_den_b1f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: cave walls
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1: entrance from Blackthorn at (8,1)
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2: water area
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,WATER,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4: walkway through water
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_WALL,
+        // Row 7: central shrine area
+        CAVE_WALL,CAVE_FLOOR,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,CAVE_WALL,
+        // Row 8: shrine platform
+        CAVE_WALL,CAVE_FLOOR,WATER,CAVE_FLOOR,CAVE_FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,CAVE_WALL,
+        // Row 9: Dragon Master at (8,9)
+        CAVE_WALL,CAVE_FLOOR,WATER,CAVE_FLOOR,CAVE_FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_FLOOR,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_WALL,
+        // Row 12: item Dragon Fang at (4,12)
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 14
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: entrance warp at (8,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,
+        // Row 4: walkway
+        C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_SOLID,
+        // Row 8: shrine platform
+        C_SOLID,C_WALK,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_SOLID,
+        // Row 11
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_SOLID,
+        // Row 12
+        C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,
+        // Row 14
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    let warps = vec![
+        // Exit to Blackthorn City
+        WarpData { x: 8, y: 1, dest_map: MapId::BlackthornCity, dest_x: 18, dest_y: 11 },
+    ];
+    let npcs = vec![
+        // NPC 0: Dragon Master (Clair's grandfather) at shrine
+        NpcDef {
+            x: 8, y: 9, sprite_id: 0, facing: Direction::Down,
+            dialogue: &["I am the DRAGON", "MASTER. I have a", "question for you.", "What is most", "important in raising", "POKEMON? ...Love!", "You understand well.", "Take this as proof."],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Cooltrainer M — dragon trainer (left side)
+        NpcDef {
+            x: 5, y: 6, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Only those with true", "skill may approach", "the DRAGON SHRINE!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: DRATINI, level: 34 }, TrainerPokemon { species_id: DRATINI, level: 34 }, TrainerPokemon { species_id: DRAGONAIR, level: 36 }],
+        },
+        // NPC 2: Cooltrainer F — dragon trainer (right side)
+        NpcDef {
+            x: 11, y: 6, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["Our dragons will", "test your resolve!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: DRATINI, level: 35 }, TrainerPokemon { species_id: DRAGONAIR, level: 37 }],
+        },
+        // NPC 3: Dragon Fang item ball
+        NpcDef {
+            x: 4, y: 10, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["You found a", "DRAGON FANG!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+    ];
+    let encounters = vec![]; // No grass encounters — cave with water
+    // pokecrystal: Magikarp 10-15, Dratini 10 (water)
+    let water_encounters = vec![
+        EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 15, weight: 60 },
+        EncounterEntry { species_id: DRATINI, min_level: 10, max_level: 10, weight: 40 },
+    ];
+    MapData { id: MapId::DragonsDenB1F, name: "DRAGON'S DEN", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters, music_id: 3 }
 }
 
 fn build_route_45() -> MapData {
@@ -9425,8 +9858,12 @@ mod tests {
             MapId::Route43,
             MapId::LakeOfRage,
             MapId::Route44,
-            MapId::IcePath,
+            MapId::IcePath1F,
+            MapId::IcePathB1F,
+            MapId::IcePathB2F,
+            MapId::IcePathB3F,
             MapId::BlackthornCity,
+            MapId::DragonsDenB1F,
             MapId::BlackthornGym,
             MapId::Route45,
             MapId::Route46,
@@ -9475,7 +9912,7 @@ mod tests {
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
             MapId::Route43, MapId::LakeOfRage,
-            MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
+            MapId::Route44, MapId::IcePath1F, MapId::IcePathB1F, MapId::IcePathB2F, MapId::IcePathB3F, MapId::BlackthornCity, MapId::BlackthornGym, MapId::DragonsDenB1F,
             MapId::Route45, MapId::Route46,
             MapId::Route27, MapId::Route26,
             MapId::VictoryRoad, MapId::IndigoPlateau,
@@ -9730,7 +10167,7 @@ mod tests {
             MapId::Route40, MapId::CianwoodCity, MapId::CianwoodGym,
             MapId::Route42, MapId::MahoganyTown, MapId::MahoganyGym,
             MapId::Route43, MapId::LakeOfRage,
-            MapId::Route44, MapId::IcePath, MapId::BlackthornCity, MapId::BlackthornGym,
+            MapId::Route44, MapId::IcePath1F, MapId::IcePathB1F, MapId::IcePathB2F, MapId::IcePathB3F, MapId::BlackthornCity, MapId::BlackthornGym, MapId::DragonsDenB1F,
             MapId::Route45, MapId::Route46,
             MapId::Route27, MapId::Route26,
             MapId::VictoryRoad, MapId::IndigoPlateau,

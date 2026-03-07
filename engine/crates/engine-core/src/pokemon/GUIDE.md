@@ -2632,4 +2632,72 @@ All 4 flags verified:
 - `collider.rs` -- Fixed unused assignment warning
 - `variant_rewind.rs` -- Fixed unused variable warning
 
+---
+
+### Sprint 129: Ice Path 4-Floor Build + Dragon's Den
+
+**Completed:** 2026-03-07
+
+#### Summary
+
+Expanded Ice Path from a single-map placeholder into a full 4-floor dungeon matching pokecrystal, and added Dragon's Den behind Blackthorn City.
+
+#### Ice Path (4 Floors)
+
+Replaced single `MapId::IcePath` with 4 floor-specific MapIds:
+
+- **IcePath1F** (16x16): Entry from Route 44. Ice sliding puzzle with C_ICE tiles. Hiker trainer (Swinub x2). HM07 Waterfall item NPC. Ladder to B1F at (13,3).
+  - Day: Swinub 21-23, Zubat 22, Golbat 22-24, Delibird 22 (per pokecrystal)
+  - Night: Delibird 21-23, Zubat 22, Golbat 22-24
+
+- **IcePathB1F** (16x16): Larger ice puzzle with rocks blocking straight paths. Boarder trainer (Swinub/Sneasel). Ladder from 1F, ladder down to B2F.
+  - Day: Swinub 22-24, Zubat 23, Golbat 23-25, Jynx 22 (per pokecrystal)
+  - Night: Delibird 22-24, Zubat 23, Golbat 23-25, Sneasel 22
+
+- **IcePathB2F** (16x16): Another ice section with strategic rocks. Skier trainer (Jynx/Delibird). Ladder from B1F, ladder to B3F.
+  - Day: Swinub 23-25, Zubat 24, Golbat 24-26, Jynx 22-24 (per pokecrystal)
+  - Night: Delibird 23-25, Zubat 24, Golbat 24-26, Sneasel 22-24
+
+- **IcePathB3F** (16x16): Final floor. Exits east to Blackthorn City. Items: Max Potion, Full Heal, PP Up (item NPCs). Boarder trainer (Swinub/Piloswine).
+  - Day: Swinub 24-26, Zubat 25, Golbat 25, Jynx 22-26 (per pokecrystal)
+  - Night: Delibird 24-26, Zubat 25, Golbat 25, Sneasel 22-26
+
+All encounter data sourced from `pokecrystal-master/data/wild/johto_grass.asm` lines 705-843.
+
+#### Dragon's Den B1F
+
+- **DragonsDenB1F** (16x16): Cave with central water lake and dragon shrine platform.
+  - Entrance from Blackthorn City at (18,10) via cave door tile.
+  - Dragon Master (Clair's grandfather) at shrine (8,9) with quiz dialogue.
+  - Two Cooltrainer dragon trainers: Dratini/Dragonair teams (Lv34-37).
+  - Dragon Fang item ball at (4,10).
+  - Water encounters per pokecrystal: Magikarp 10-15 (60%), Dratini 10 (40%).
+  - `FLAG_DRAGONS_DEN_QUIZ` flag added (bit 16) for future quiz event gating.
+
+#### Warp Connectivity
+
+Full inter-floor warp chain verified:
+- Route 44 (19,5-6) -> IcePath1F (1,6-7)
+- IcePath1F (13,3) -> IcePathB1F (2,3)
+- IcePathB1F (7,11) -> IcePathB2F (3,2)
+- IcePathB2F (13,11) -> IcePathB3F (3,3)
+- IcePathB3F (15,7-8) -> BlackthornCity (2,8)
+- BlackthornCity (0-1,8) -> IcePathB3F (12,7)
+- BlackthornCity (18,10) -> DragonsDenB1F (8,2)
+- DragonsDenB1F (8,1) -> BlackthornCity (18,11)
+
+All return warps land on C_WALK tiles (no re-warp loops).
+
+#### Indoor Map Updates
+
+All 5 new maps added to the `is_indoor` check (3 locations in mod.rs) preventing bicycle/fly usage inside Ice Path and Dragon's Den.
+
+#### Test Results
+- **1361 tests passing** (all existing tests updated for new MapId names)
+- **0 compiler warnings**
+
+#### Files Changed
+- `maps.rs` -- Replaced IcePath with IcePath1F/B1F/B2F/B3F, added DragonsDenB1F; updated Route44/BlackthornCity warps; updated all test map lists
+- `mod.rs` -- Updated check_warp_gate, is_indoor matches, all IcePath test references; added FLAG_DRAGONS_DEN_QUIZ; fixed ice_sliding test to avoid unwrap()
+
 **Test Results**: All 1361 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

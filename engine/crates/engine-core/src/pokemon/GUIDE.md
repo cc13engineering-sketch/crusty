@@ -938,4 +938,10 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Full render: move picker with type colors + PP display, YES/NO prompts with cursor
 - Added tests: learn_move_queued_when_full, learn_move_sub_phases
 - All 75 tests pass.
-- **Next (Sprint 77)**: TBD
+
+### Sprint 77 (Map Fades + Trainer Defeat Text)
+- **Map transition fades**: All overworld warp transitions now fade to black (0.25s) → change_map → fade in (0.25s). Added `GamePhase::MapFadeOut` and `MapFadeIn` with alpha overlay rendering. No longer jarring instant cuts.
+- **Trainer defeat text**: "Trainer was defeated!" now shows before money reward. Champion Lance gets "CHAMPION LANCE was defeated!" text.
+- Special transitions (whiteout, escape rope, title screen) still use instant change_map (they have their own UI flow).
+- All 75 tests pass.
+- **Next (Sprint 78)**: QA sprint

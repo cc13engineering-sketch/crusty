@@ -1734,3 +1734,15 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Zero bugs found.** All 19 tile sprites are exactly 256 chars (16x16). Night encounter tables have valid species. `is_night` calculation matches day_night_tint definition. All 59 maps have the night_encounters field.
 - All tests pass. 0 bugs fixed, 0 remaining.
 - **Next (Sprint 109)**: Content sprint.
+
+### Sprint 109 (Content — Cave/Ice/Gym Tiles)
+- **4 new tile sprites** added to sprites.rs: TILE_CAVE_WALL (dark rocky surface), TILE_CAVE_FLOOR (stone with cracks), TILE_ICE_FLOOR (icy surface with highlights), TILE_GYM_FLOOR (patterned arena floor).
+- **4 new tile IDs** in maps.rs: CAVE_WALL=25, CAVE_FLOOR=26, ICE_FLOOR=27, GYM_FLOOR=28.
+- **3 new palettes** in render.rs: PAL_CAVE (brown-gray stone), PAL_ICE (cool blue-white), PAL_GYM (warm arena tones). Wired into tile_palette().
+- **Cave maps overhauled**: Union Cave, Ice Path, Victory Road, Rocket HQ — all now use CAVE_WALL/CAVE_FLOOR instead of BLACK/FLOOR for visually distinct cave environments.
+- **Ice Path** uses ICE_FLOOR for ice patches instead of WATER, giving proper icy appearance.
+- **Pryce's Mahogany Gym** uses ICE_FLOOR — fitting for the ice-type gym leader.
+- **All 8 gym maps** updated to use GYM_FLOOR: Violet, Azalea, Goldenrod, Ecruteak, Olivine, Cianwood, Mahogany (ICE_FLOOR), Blackthorn.
+- Sprite cache expanded to include all 29 tile types (IDs 0-28).
+- All 1313 tests pass. 0 bugs.
+- **Next (Sprint 110)**: Content sprint.

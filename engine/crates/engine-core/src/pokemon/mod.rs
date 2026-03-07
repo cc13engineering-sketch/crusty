@@ -485,6 +485,7 @@ impl PokemonSim {
             TILE_FENCE_H, TILE_FLOWER, TILE_POKECENTER_ROOF, TILE_POKECENTER_WALL,
             TILE_POKECENTER_DOOR, TILE_LAB_WALL, TILE_LAB_ROOF, TILE_SIGN, TILE_LEDGE,
             TILE_FLOOR, TILE_TABLE, TILE_BOOKSHELF, TILE_PC, TILE_HEAL_MACHINE, TILE_BLACK,
+            TILE_CAVE_WALL, TILE_CAVE_FLOOR, TILE_ICE_FLOOR, TILE_GYM_FLOOR,
         ];
         self.tile_cache = tile_strs.iter().map(|s| decode_sprite(s)).collect();
 

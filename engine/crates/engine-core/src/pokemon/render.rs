@@ -164,6 +164,30 @@ pub const PAL_BLACK: Palette = [
     Color { r: 8, g: 8, b: 16, a: 255 },
 ];
 
+/// Cave palette (brown-gray rocky tones)
+pub const PAL_CAVE: Palette = [
+    Color { r: 0, g: 0, b: 0, a: 0 },
+    Color { r: 168, g: 152, b: 128, a: 255 },  // light stone
+    Color { r: 112, g: 96, b: 80, a: 255 },    // medium stone
+    Color { r: 48, g: 40, b: 32, a: 255 },     // dark stone
+];
+
+/// Ice palette (cool blue-white tones)
+pub const PAL_ICE: Palette = [
+    Color { r: 0, g: 0, b: 0, a: 0 },
+    Color { r: 224, g: 240, b: 248, a: 255 },  // ice white
+    Color { r: 168, g: 208, b: 232, a: 255 },  // ice blue
+    Color { r: 96, g: 144, b: 184, a: 255 },   // deep ice
+];
+
+/// Gym floor palette (warm arena tones)
+pub const PAL_GYM: Palette = [
+    Color { r: 0, g: 0, b: 0, a: 0 },
+    Color { r: 232, g: 216, b: 184, a: 255 },  // light floor
+    Color { r: 184, g: 152, b: 104, a: 255 },  // medium floor
+    Color { r: 104, g: 80, b: 48, a: 255 },    // dark trim
+];
+
 // ─── Rendering State ────────────────────────────────────
 
 /// Holds the computed scale and offset for rendering
@@ -300,6 +324,10 @@ pub fn tile_palette(tile_id: u8) -> &'static Palette {
         22 => &PAL_FURNITURE,     // PC
         23 => &PAL_POKECENTER,    // heal machine
         24 => &PAL_BLACK,         // black
+        25 => &PAL_CAVE,          // cave wall
+        26 => &PAL_CAVE,          // cave floor
+        27 => &PAL_ICE,           // ice floor
+        28 => &PAL_GYM,           // gym floor
         _ => &PAL_OVERWORLD,
     }
 }

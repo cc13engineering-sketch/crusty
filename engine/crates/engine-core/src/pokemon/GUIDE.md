@@ -571,4 +571,14 @@ _Agents: append new sprint entries here after each sprint. Include what was buil
 - Gyarados: added Surf, Crunch, HyperBeam
 - New moves: Petal Dance (Grass/70BP), Sludge Bomb (Poison/90BP, 30% poison)
 - All 1290 tests pass.
-- **Next (Sprint 72)**: QA sprint
+
+### Sprint 72 (QA)
+- **Confusion snap-out**: returned to MoveSelect instead of ActionSelect — fixed
+- **Struggle recoil death**: player dying from recoil skipped straight to enemy attack — added faint check before enemy turn
+- **Ether unusable**: fell to "Can't use that now!" — added Ether handler restoring 10 PP to first depleted move
+- **Catch formula**: shake_prob could exceed 1.0 for easy catches — clamped with `.min(1.0)`
+- **Champion credits preempted**: pending evolution could redirect away from credits after beating Lance — Champion check now runs before evolution check
+- **Warp audit**: NewBarkTown↔Route27 warps verified correct (offsets prevent infinite warp loops)
+- Added tests: test_catch_shake_prob_clamped, test_champion_credits_over_evolution
+- All 1292 tests pass.
+- **Next (Sprint 73)**: Content sprint

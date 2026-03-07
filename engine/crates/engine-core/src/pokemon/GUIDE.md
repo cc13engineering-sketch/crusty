@@ -3475,3 +3475,40 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - `test_sprint144_mt_mortar_map` — map dimensions, warps, Kiyo NPC, encounters
 - `test_sprint144_route42_mt_mortar_warp` — Route 42 warp at (9,5) to Mt. Mortar
 - `test_sprint144_held_key_helpers` — held key detection functions
+
+---
+
+### Sprint 145 — Two-Turn Moves + Trainer Classes + Bug Fixes
+**Type:** Content sprint
+
+#### Changes Made
+
+1. **Fix Falkner's Pidgeotto** (`maps.rs`)
+   - Changed Falkner's second Pokemon from PIDGEY L9 to PIDGEOTTO L9 (canonical from pokecrystal)
+   - Resolves deferred bug Q3
+
+2. **Two-Turn Move Charging Mechanic** (`mod.rs`)
+   - Added `player_charging` and `enemy_charging` fields to BattleState
+   - Added `two_turn_charge_msg()` helper for Fly/Dig/SolarBeam/Skull Bash/Sky Attack
+   - Turn 1: shows "{name} used {move}!" then charge message, enemy still attacks
+   - Turn 2: auto-executes the charged move (similar to rampage), with speed check
+   - Charging clears on Pokemon switch
+   - Resolves deferred bug Q5
+
+3. **Trainer Class Names** (`mod.rs`)
+   - Updated `trainer_name_for()` to derive class names from sprite_id for generic trainers
+   - Added `trainer_class_from_sprite()`: sprite 2=YOUNGSTER, 3=LASS, 4=HIKER, 5=FISHER, 6=TEAM ROCKET, 7=SAGE
+   - Gym leaders/E4/Champion still use named lookup (not sprite fallback)
+   - Resolves deferred bug Q4
+
+#### pokecrystal References
+- `data/trainers/party_pointers.asm` — Falkner: Pidgey L7, Pidgeotto L9
+- `engine/pokemon/move_effects/two_turn_attack.asm` — charging turn mechanics
+- `data/trainers/class_names.asm` — trainer class naming conventions
+
+#### Test Results
+- **1383 tests passing** (+4 new, 0 failures, 0 warnings)
+- `test_sprint145_falkner_pidgeotto` — Falkner team: Pidgey L7, Pidgeotto L9
+- `test_sprint145_two_turn_charge_msg` — all 5 two-turn moves return charge messages
+- `test_sprint145_charging_fields` — BattleState charging fields initialized to None
+- `test_sprint145_trainer_class_names` — sprite-based class lookup + named leader bypass

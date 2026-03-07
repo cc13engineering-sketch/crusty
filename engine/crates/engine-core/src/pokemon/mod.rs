@@ -362,9 +362,22 @@ fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
     }
 }
 
+/// Returns the charge-turn message for a two-turn move, or None if it's not a two-turn move.
+/// Gen 2 two-turn moves: Fly, Dig, SolarBeam, Skull Bash, Sky Attack.
+fn two_turn_charge_msg(move_id: MoveId, user_name: &str) -> Option<String> {
+    match move_id {
+        MOVE_FLY => Some(format!("{} flew up high!", user_name)),
+        MOVE_DIG => Some(format!("{} dug a hole!", user_name)),
+        MOVE_SOLAR_BEAM => Some(format!("{} took in sunlight!", user_name)),
+        MOVE_SKULL_BASH => Some(format!("{} lowered its head!", user_name)),
+        MOVE_SKY_ATTACK => Some(format!("{} is glowing!", user_name)),
+        _ => None,
+    }
+}
+
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
 /// Returns a recognizable name for gym leaders, rivals, and important trainers;
-/// falls back to "Trainer" for generic route trainers.
+/// uses sprite_id to derive a class name for generic route trainers.
 fn trainer_name_for(map_id: MapId, npc_idx: u8) -> &'static str {
     match (map_id, npc_idx) {
         // Gym leaders
@@ -386,6 +399,30 @@ fn trainer_name_for(map_id: MapId, npc_idx: u8) -> &'static str {
         (MapId::SproutTower3F, 0) => "ELDER LI",
         (MapId::RocketHQ, 4) => "EXECUTIVE",
         (MapId::RadioTower5F, 1) => "EXECUTIVE ARCHER",
+        _ => {
+            // Derive class name from sprite_id by looking up the NPC in map data
+            let map = load_map(map_id);
+            if let Some(npc) = map.npcs.get(npc_idx as usize) {
+                trainer_class_from_sprite(npc.sprite_id)
+            } else {
+                "Trainer"
+            }
+        }
+    }
+}
+
+/// Derive a trainer class name from sprite_id.
+/// Sprite IDs: 0=Prof, 1=Ace, 2=Youngster/BugCatcher, 3=Lass, 4=Hiker, 5=Fisher, 6=Rocket, 7=Sage
+fn trainer_class_from_sprite(sprite_id: u8) -> &'static str {
+    match sprite_id {
+        0 => "POKEMON PROF.",
+        1 => "ACE TRAINER",
+        2 => "YOUNGSTER",
+        3 => "LASS",
+        4 => "HIKER",
+        5 => "FISHER",
+        6 => "TEAM ROCKET",
+        7 => "SAGE",
         _ => "Trainer",
     }
 }
@@ -423,6 +460,10 @@ struct BattleState {
     // Thrash/Outrage rampage: turns remaining (0 = not rampaging), move_id, confused after
     player_rampage: (u8, MoveId),
     enemy_rampage: (u8, MoveId),
+    // Two-turn moves (Fly, Dig, SolarBeam, etc.): charging turn stores the move; next turn executes
+    player_charging: Option<MoveId>,
+    #[allow(dead_code)]
+    enemy_charging: Option<MoveId>,
     // Moves queued for the learn-move prompt (all 4 slots full, player must choose)
     pending_learn_moves: Vec<MoveId>,
     // Free switch: next PokemonMenu switch doesn't give enemy a free turn
@@ -1875,6 +1916,8 @@ impl PokemonSim {
                                 enemy_must_recharge: false,
                                 player_rampage: (0, 0),
                                 enemy_rampage: (0, 0),
+                                player_charging: None,
+                                enemy_charging: None,
                                 pending_learn_moves: vec![],
                                 free_switch: false,
                                 confusion_snapout_msg: None,
@@ -2827,6 +2870,27 @@ impl PokemonSim {
                     // Already confused — rampage ended silently, continue to ActionSelect
                 }
 
+                // Two-turn move: second turn — auto-execute the charged move
+                if let Some(charge_move) = battle.player_charging.take() {
+                    let (p_dmg, p_eff, p_crit) = self.calc_player_damage(engine, charge_move, &battle);
+                    let player_spd = self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0) as f64;
+                    let enemy_spd = battle.enemy.speed as f64;
+                    let player_first = player_spd >= enemy_spd;
+                    if player_first {
+                        battle.phase = BattlePhase::PlayerAttack {
+                            timer: 0.0, move_id: charge_move, damage: p_dmg, effectiveness: p_eff, is_crit: p_crit, from_pending: false,
+                        };
+                    } else {
+                        battle.pending_player_move = Some((charge_move, p_dmg, p_eff, p_crit));
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        battle.phase = BattlePhase::EnemyAttack {
+                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                        };
+                    }
+                    self.battle = Some(battle);
+                    return;
+                }
+
                 if is_down(engine) {
                     battle.phase = BattlePhase::ActionSelect { cursor: (cursor + 1) % 4 };
                 } else if is_up(engine) {
@@ -3029,6 +3093,29 @@ impl PokemonSim {
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
                             p.move_pp[cursor as usize] -= 1;
                         }
+                    }
+
+                    // Two-turn move charge check: first turn shows charge message, second turn attacks
+                    let pname_charge = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    if let Some(charge_msg) = two_turn_charge_msg(move_id, &pname_charge) {
+                        battle.player_charging = Some(move_id);
+                        // Enemy still gets to attack this turn
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let pname_used = pname_charge.clone();
+                        let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} used {}!", pname_used, move_name),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::Text {
+                                message: charge_msg,
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                }),
+                            }),
+                        };
+                        self.battle = Some(battle);
+                        return;
                     }
 
                     // Accuracy check (apply accuracy/evasion stages)
@@ -4807,6 +4894,8 @@ impl PokemonSim {
                             enemy_must_recharge: false,
                             player_rampage: (0, 0),
                             enemy_rampage: (0, 0),
+                            player_charging: None,
+                            enemy_charging: None,
                             pending_learn_moves: vec![],
                             free_switch: false,
                             confusion_snapout_msg: None,
@@ -4850,6 +4939,8 @@ impl PokemonSim {
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
                         enemy_rampage: (0, 0),
+                        player_charging: None,
+                        enemy_charging: None,
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
@@ -4889,6 +4980,8 @@ impl PokemonSim {
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
                         enemy_rampage: (0, 0),
+                        player_charging: None,
+                        enemy_charging: None,
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
@@ -4928,6 +5021,8 @@ impl PokemonSim {
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
                         enemy_rampage: (0, 0),
+                        player_charging: None,
+                        enemy_charging: None,
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
@@ -4968,6 +5063,8 @@ impl PokemonSim {
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
                         enemy_rampage: (0, 0),
+                        player_charging: None,
+                        enemy_charging: None,
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
@@ -5008,6 +5105,8 @@ impl PokemonSim {
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
                         enemy_rampage: (0, 0),
+                        player_charging: None,
+                        enemy_charging: None,
                         pending_learn_moves: vec![],
                         free_switch: false,
                         confusion_snapout_msg: None,
@@ -5267,6 +5366,7 @@ impl PokemonSim {
                                 b.player_trap_turns = 0; // Trapping cleared on switch
                                 b.player_must_recharge = false; // Clear recharge on switch
                                 b.player_rampage = (0, 0); // Clear rampage on switch
+                                b.player_charging = None; // Clear two-turn charging on switch
                                 b.pending_player_move = None;
                                 // Reset toxic counter on switch-in (Gen 2)
                                 if let StatusCondition::BadPoison { ref mut turn } = self.party[selected].status {
@@ -9751,6 +9851,8 @@ mod headless_tests {
             enemy_must_recharge: false,
             player_rampage: (0, 0),
             enemy_rampage: (0, 0),
+            player_charging: None,
+            enemy_charging: None,
             pending_learn_moves: vec![],
             free_switch: false,
             confusion_snapout_msg: None,
@@ -9830,6 +9932,8 @@ mod headless_tests {
             enemy_must_recharge: false,
             player_rampage: (0, 0),
             enemy_rampage: (0, 0),
+            player_charging: None,
+            enemy_charging: None,
             pending_learn_moves: vec![],
             free_switch: false,
             confusion_snapout_msg: None,
@@ -9875,6 +9979,8 @@ mod headless_tests {
             enemy_must_recharge: false,
             player_rampage: (0, 0),
             enemy_rampage: (0, 0),
+            player_charging: None,
+            enemy_charging: None,
             pending_learn_moves: vec![],
             free_switch: false,
             confusion_snapout_msg: None,
@@ -11463,9 +11569,9 @@ mod headless_tests {
         assert_eq!(trainer_name_for(MapId::EliteFourWill, 0), "WILL");
         assert_eq!(trainer_name_for(MapId::EliteFourKaren, 0), "KAREN");
         assert_eq!(trainer_name_for(MapId::ChampionLance, 0), "CHAMPION LANCE");
-        // Fallback for generic trainers
-        assert_eq!(trainer_name_for(MapId::Route29, 0), "Trainer");
-        assert_eq!(trainer_name_for(MapId::VioletGym, 1), "Trainer"); // gym trainee, not leader
+        // Fallback derives class from sprite_id
+        assert_eq!(trainer_name_for(MapId::Route29, 0), "FISHER"); // sprite_id=5
+        assert_eq!(trainer_name_for(MapId::VioletGym, 1), "YOUNGSTER"); // gym trainee, sprite_id=2
     }
 
     #[test]
@@ -11598,5 +11704,55 @@ mod headless_tests {
         // With no keys held, both should return false
         assert!(!is_held_confirm(&engine));
         assert!(!is_held_cancel(&engine));
+    }
+
+    #[test]
+    fn test_sprint145_falkner_pidgeotto() {
+        use crate::pokemon::maps::*;
+        let map = load_map(MapId::VioletGym);
+        // Falkner is NPC 0, second Pokemon should be Pidgeotto L9
+        let falkner = &map.npcs[0];
+        assert!(falkner.is_trainer);
+        assert_eq!(falkner.trainer_team.len(), 2);
+        assert_eq!(falkner.trainer_team[0].species_id, PIDGEY);
+        assert_eq!(falkner.trainer_team[0].level, 7);
+        assert_eq!(falkner.trainer_team[1].species_id, PIDGEOTTO);
+        assert_eq!(falkner.trainer_team[1].level, 9);
+    }
+
+    #[test]
+    fn test_sprint145_two_turn_charge_msg() {
+        // Verify all two-turn moves return charge messages
+        assert!(two_turn_charge_msg(MOVE_FLY, "TEST").is_some());
+        assert!(two_turn_charge_msg(MOVE_DIG, "TEST").is_some());
+        assert!(two_turn_charge_msg(MOVE_SOLAR_BEAM, "TEST").is_some());
+        assert!(two_turn_charge_msg(MOVE_SKULL_BASH, "TEST").is_some());
+        assert!(two_turn_charge_msg(MOVE_SKY_ATTACK, "TEST").is_some());
+        // Non-two-turn moves return None
+        assert!(two_turn_charge_msg(MOVE_TACKLE, "TEST").is_none());
+        assert!(two_turn_charge_msg(MOVE_THUNDERBOLT, "TEST").is_none());
+    }
+
+    #[test]
+    fn test_sprint145_charging_fields() {
+        let party = vec![Pokemon::new(CYNDAQUIL, 20)];
+        let enemy = Pokemon::new(ONIX, 15);
+        let battle = make_test_battle(&party, enemy, false);
+        assert!(battle.player_charging.is_none());
+        assert!(battle.enemy_charging.is_none());
+    }
+
+    #[test]
+    fn test_sprint145_trainer_class_names() {
+        // Sprite-based class name lookup
+        assert_eq!(trainer_class_from_sprite(2), "YOUNGSTER");
+        assert_eq!(trainer_class_from_sprite(3), "LASS");
+        assert_eq!(trainer_class_from_sprite(4), "HIKER");
+        assert_eq!(trainer_class_from_sprite(5), "FISHER");
+        assert_eq!(trainer_class_from_sprite(6), "TEAM ROCKET");
+        assert_eq!(trainer_class_from_sprite(7), "SAGE");
+        // Gym leaders still use named lookup, not sprite fallback
+        assert_eq!(trainer_name_for(MapId::VioletGym, 0), "FALKNER");
+        assert_eq!(trainer_name_for(MapId::AzaleaGym, 0), "BUGSY");
     }
 }

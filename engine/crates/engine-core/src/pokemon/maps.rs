@@ -2073,7 +2073,7 @@ fn build_violet_gym() -> MapData {
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
                 TrainerPokemon { species_id: PIDGEY, level: 7 },
-                TrainerPokemon { species_id: PIDGEY, level: 9 }, // Pidgeotto L9 in real game, but we use Pidgey
+                TrainerPokemon { species_id: PIDGEOTTO, level: 9 },
             ],
         },
         // Trainee

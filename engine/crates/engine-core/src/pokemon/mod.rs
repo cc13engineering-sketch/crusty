@@ -327,6 +327,7 @@ fn accuracy_stage_multiplier(stage: i8) -> f64 {
 /// Returns (target_is_enemy, stat_index, delta). None if not a stat move.
 fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
     match move_id {
+        // Stat drops on opponent (target_enemy=true)
         MOVE_GROWL => Some((true, STAGE_ATK, -1)),
         MOVE_LEER => Some((true, STAGE_DEF, -1)),
         MOVE_TAIL_WHIP => Some((true, STAGE_DEF, -1)),
@@ -334,7 +335,18 @@ fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
         MOVE_SMOKESCREEN => Some((true, STAGE_ACC, -1)),
         MOVE_STRING_SHOT => Some((true, STAGE_SPE, -1)),
         MOVE_SCARY_FACE => Some((true, STAGE_SPE, -2)),
+        MOVE_SCREECH => Some((true, STAGE_DEF, -2)),
+        MOVE_KINESIS => Some((true, STAGE_ACC, -1)),
+        // Stat raises on self (target_enemy=false)
         MOVE_DEFENSE_CURL => Some((false, STAGE_DEF, 1)),
+        MOVE_HARDEN => Some((false, STAGE_DEF, 1)),
+        MOVE_BARRIER => Some((false, STAGE_DEF, 2)),
+        MOVE_SWORDS_DANCE => Some((false, STAGE_ATK, 2)),
+        MOVE_AMNESIA => Some((false, STAGE_SPD, 2)),
+        MOVE_AGILITY => Some((false, STAGE_SPE, 2)),
+        MOVE_MEDITATE => Some((false, STAGE_ATK, 1)),
+        MOVE_DOUBLE_TEAM => Some((false, STAGE_EVA, 1)),
+        MOVE_MINIMIZE => Some((false, STAGE_EVA, 1)),
         _ => None,
     }
 }
@@ -391,6 +403,9 @@ struct BattleState {
     enemy_confused: u8,
     // Mean Look: prevents fleeing from wild battle
     player_trapped: bool,
+    // Trapping moves (Wrap, Bind, Fire Spin, Whirlpool, Clamp): turns remaining + 1/16 max HP per turn
+    player_trap_turns: u8,  // turns left the player is trapped (takes damage each turn)
+    enemy_trap_turns: u8,   // turns left the enemy is trapped (takes damage each turn)
     // Hyper Beam recharge: skip next turn
     player_must_recharge: bool,
     enemy_must_recharge: bool,
@@ -1843,6 +1858,8 @@ impl PokemonSim {
                                 player_confused: 0,
                                 enemy_confused: 0,
                                 player_trapped: false,
+                                player_trap_turns: 0,
+                                enemy_trap_turns: 0,
                                 player_must_recharge: false,
                                 enemy_must_recharge: false,
                                 player_rampage: (0, 0),
@@ -3154,8 +3171,8 @@ impl PokemonSim {
                 // Apply damage to enemy
                 battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
-                // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down
-                let has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down, Submission, Double-Edge
+                let has_recoil = matches!(move_id, MOVE_STRUGGLE | MOVE_TAKE_DOWN | MOVE_SUBMISSION | MOVE_DOUBLE_EDGE) && damage > 0;
                 if has_recoil {
                     let recoil = (damage / 4).max(1);
                     if let Some(p) = self.party.get_mut(battle.player_idx) {
@@ -3187,6 +3204,13 @@ impl PokemonSim {
                         p.hp = p.max_hp;
                         p.status = StatusCondition::Sleep { turns: 2 };
                     }
+                }
+
+                // Trapping moves: Wrap, Bind, Fire Spin, Whirlpool, Clamp — trap enemy for 2-5 turns
+                if matches!(move_id, MOVE_WRAP | MOVE_BIND | MOVE_FIRE_SPIN | MOVE_WHIRLPOOL | MOVE_CLAMP) && damage > 0 && battle.enemy_trap_turns == 0 {
+                    // Gen 2: 2-5 turns (same distribution as multi-hit)
+                    let trap_turns = if engine.rng.next_f64() < 0.375 { 2 } else if engine.rng.next_f64() < 0.5 { 3 } else if engine.rng.next_f64() < 0.5 { 4 } else { 5 };
+                    battle.enemy_trap_turns = trap_turns;
                 }
 
                 // Secondary status effects
@@ -3344,9 +3368,36 @@ impl PokemonSim {
                     }
                     let ewoke = battle.enemy.tick_status();
                     if ewoke { eot_msgs.push(format!("{}{} woke up!", eprefix, battle.enemy.name())); }
+
+                    // Trapping damage: 1/16 max HP per turn (Gen 2)
+                    if battle.player_trap_turns > 0 {
+                        battle.player_trap_turns -= 1;
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            let trap_dmg = (p.max_hp / 16).max(1);
+                            p.hp = p.hp.saturating_sub(trap_dmg);
+                            let pname_trap = p.name().to_string();
+                            if battle.player_trap_turns > 0 {
+                                eot_msgs.push(format!("{} is hurt by the trap!", pname_trap));
+                            } else {
+                                eot_msgs.push(format!("{} was released from the trap!", pname_trap));
+                            }
+                        }
+                    }
+                    if battle.enemy_trap_turns > 0 {
+                        battle.enemy_trap_turns -= 1;
+                        let trap_dmg = (battle.enemy.max_hp / 16).max(1);
+                        battle.enemy.hp = battle.enemy.hp.saturating_sub(trap_dmg);
+                        let ename_trap = battle.enemy.name().to_string();
+                        if battle.enemy_trap_turns > 0 {
+                            eot_msgs.push(format!("{}{} is hurt by the trap!", eprefix, ename_trap));
+                        } else {
+                            eot_msgs.push(format!("{}{} was released from the trap!", eprefix, ename_trap));
+                        }
+                    }
+
                     battle.turn_count += 1;
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status damage
+                    // Update HP displays for status damage and trap damage
                     let player_hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                     let enemy_hp_now = battle.enemy.hp;
                     if !eot_msgs.is_empty() {
@@ -3487,8 +3538,8 @@ impl PokemonSim {
                     }
                 }
 
-                // Recoil
-                let e_has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                // Recoil: Struggle, Take Down, Submission, Double-Edge
+                let e_has_recoil = matches!(move_id, MOVE_STRUGGLE | MOVE_TAKE_DOWN | MOVE_SUBMISSION | MOVE_DOUBLE_EDGE) && damage > 0;
                 if e_has_recoil {
                     let recoil = (damage / 4).max(1);
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(recoil);
@@ -3502,6 +3553,12 @@ impl PokemonSim {
                 if move_id == MOVE_REST {
                     battle.enemy.hp = battle.enemy.max_hp;
                     battle.enemy.status = StatusCondition::Sleep { turns: 2 };
+                }
+
+                // Trapping moves: enemy traps the player for 2-5 turns
+                if matches!(move_id, MOVE_WRAP | MOVE_BIND | MOVE_FIRE_SPIN | MOVE_WHIRLPOOL | MOVE_CLAMP) && damage > 0 && battle.player_trap_turns == 0 {
+                    let trap_turns = if engine.rng.next_f64() < 0.375 { 2 } else if engine.rng.next_f64() < 0.5 { 3 } else if engine.rng.next_f64() < 0.5 { 4 } else { 5 };
+                    battle.player_trap_turns = trap_turns;
                 }
 
                 let move_data_ref = get_move(move_id);
@@ -3633,8 +3690,35 @@ impl PokemonSim {
                     }
                     let ewoke2 = battle.enemy.tick_status();
                     if ewoke2 { eot_msgs.push(format!("{}{} woke up!", eprefix2, battle.enemy.name())); }
+
+                    // Trapping damage: 1/16 max HP per turn (Gen 2)
+                    if battle.player_trap_turns > 0 {
+                        battle.player_trap_turns -= 1;
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            let trap_dmg = (p.max_hp / 16).max(1);
+                            p.hp = p.hp.saturating_sub(trap_dmg);
+                            let pname_trap = p.name().to_string();
+                            if battle.player_trap_turns > 0 {
+                                eot_msgs.push(format!("{} is hurt by the trap!", pname_trap));
+                            } else {
+                                eot_msgs.push(format!("{} was released from the trap!", pname_trap));
+                            }
+                        }
+                    }
+                    if battle.enemy_trap_turns > 0 {
+                        battle.enemy_trap_turns -= 1;
+                        let trap_dmg = (battle.enemy.max_hp / 16).max(1);
+                        battle.enemy.hp = battle.enemy.hp.saturating_sub(trap_dmg);
+                        let ename_trap = battle.enemy.name().to_string();
+                        if battle.enemy_trap_turns > 0 {
+                            eot_msgs.push(format!("{}{} is hurt by the trap!", eprefix2, ename_trap));
+                        } else {
+                            eot_msgs.push(format!("{}{} was released from the trap!", eprefix2, ename_trap));
+                        }
+                    }
+
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status damage
+                    // Update HP displays for status/trap damage
                     if !eot_msgs.is_empty() {
                         let php = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                         let ehp = battle.enemy.hp;
@@ -4702,6 +4786,8 @@ impl PokemonSim {
                             player_confused: 0,
                             enemy_confused: 0,
                             player_trapped: false,
+                            player_trap_turns: 0,
+                            enemy_trap_turns: 0,
                             player_must_recharge: false,
                             enemy_must_recharge: false,
                             player_rampage: (0, 0),
@@ -4743,6 +4829,8 @@ impl PokemonSim {
                         player_confused: 0,
                         enemy_confused: 0,
                         player_trapped: false,
+                        player_trap_turns: 0,
+                        enemy_trap_turns: 0,
                         player_must_recharge: false,
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
@@ -4780,6 +4868,8 @@ impl PokemonSim {
                         player_confused: 0,
                         enemy_confused: 0,
                         player_trapped: false,
+                        player_trap_turns: 0,
+                        enemy_trap_turns: 0,
                         player_must_recharge: false,
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
@@ -4817,6 +4907,8 @@ impl PokemonSim {
                         player_confused: 0,
                         enemy_confused: 0,
                         player_trapped: false,
+                        player_trap_turns: 0,
+                        enemy_trap_turns: 0,
                         player_must_recharge: false,
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
@@ -4855,6 +4947,8 @@ impl PokemonSim {
                         player_confused: 0,
                         enemy_confused: 0,
                         player_trapped: false,
+                        player_trap_turns: 0,
+                        enemy_trap_turns: 0,
                         player_must_recharge: false,
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
@@ -4893,6 +4987,8 @@ impl PokemonSim {
                         player_confused: 0,
                         enemy_confused: 0,
                         player_trapped: false,
+                        player_trap_turns: 0,
+                        enemy_trap_turns: 0,
                         player_must_recharge: false,
                         enemy_must_recharge: false,
                         player_rampage: (0, 0),
@@ -5153,6 +5249,7 @@ impl PokemonSim {
                                 b.player_stages = [0; 7]; // Reset player stages on switch
                                 b.player_confused = 0; // Reset confusion on switch
                                 b.player_trapped = false; // Mean Look cleared on switch
+                                b.player_trap_turns = 0; // Trapping cleared on switch
                                 b.player_must_recharge = false; // Clear recharge on switch
                                 b.player_rampage = (0, 0); // Clear rampage on switch
                                 b.pending_player_move = None;
@@ -7628,7 +7725,8 @@ fn flinch_chance(move_id: MoveId) -> f64 {
 fn multi_hit_count(move_id: MoveId, rng_val: f64) -> u8 {
     match move_id {
         MOVE_DOUBLE_KICK => 2, // always exactly 2
-        MOVE_FURY_SWIPES | MOVE_FURY_ATTACK => {
+        MOVE_FURY_SWIPES | MOVE_FURY_ATTACK | MOVE_PIN_MISSILE => {
+            // Gen 2 distribution: 2=37.5%, 3=37.5%, 4=12.5%, 5=12.5%
             if rng_val < 0.375 { 2 }
             else if rng_val < 0.75 { 3 }
             else if rng_val < 0.875 { 4 }
@@ -9600,6 +9698,8 @@ mod headless_tests {
             player_confused: 0,
             enemy_confused: 0,
             player_trapped: false,
+            player_trap_turns: 0,
+            enemy_trap_turns: 0,
             player_must_recharge: false,
             enemy_must_recharge: false,
             player_rampage: (0, 0),
@@ -9677,6 +9777,8 @@ mod headless_tests {
             player_confused: 0,
             enemy_confused: 0,
             player_trapped: false,
+            player_trap_turns: 0,
+            enemy_trap_turns: 0,
             player_must_recharge: false,
             enemy_must_recharge: false,
             player_rampage: (0, 0),
@@ -9720,6 +9822,8 @@ mod headless_tests {
             player_confused: 0,
             enemy_confused: 0,
             player_trapped: false,
+            player_trap_turns: 0,
+            enemy_trap_turns: 0,
             player_must_recharge: false,
             enemy_must_recharge: false,
             player_rampage: (0, 0),
@@ -11315,5 +11419,60 @@ mod headless_tests {
         // Fallback for generic trainers
         assert_eq!(trainer_name_for(MapId::Route29, 0), "Trainer");
         assert_eq!(trainer_name_for(MapId::VioletGym, 1), "Trainer"); // gym trainee, not leader
+    }
+
+    #[test]
+    fn test_sprint141_stat_stage_moves() {
+        // Verify Swords Dance, Amnesia, Agility in status_move_stage_effect
+        assert_eq!(status_move_stage_effect(MOVE_SWORDS_DANCE), Some((false, STAGE_ATK, 2)));
+        assert_eq!(status_move_stage_effect(MOVE_AMNESIA), Some((false, STAGE_SPD, 2)));
+        assert_eq!(status_move_stage_effect(MOVE_AGILITY), Some((false, STAGE_SPE, 2)));
+        assert_eq!(status_move_stage_effect(MOVE_MEDITATE), Some((false, STAGE_ATK, 1)));
+        assert_eq!(status_move_stage_effect(MOVE_BARRIER), Some((false, STAGE_DEF, 2)));
+        assert_eq!(status_move_stage_effect(MOVE_HARDEN), Some((false, STAGE_DEF, 1)));
+        assert_eq!(status_move_stage_effect(MOVE_DOUBLE_TEAM), Some((false, STAGE_EVA, 1)));
+        assert_eq!(status_move_stage_effect(MOVE_MINIMIZE), Some((false, STAGE_EVA, 1)));
+        assert_eq!(status_move_stage_effect(MOVE_SCREECH), Some((true, STAGE_DEF, -2)));
+        assert_eq!(status_move_stage_effect(MOVE_KINESIS), Some((true, STAGE_ACC, -1)));
+    }
+
+    #[test]
+    fn test_sprint141_multi_hit_and_recoil() {
+        // Pin Missile is multi-hit (2-5)
+        assert_eq!(multi_hit_count(MOVE_PIN_MISSILE, 0.0), 2);   // <0.375 => 2
+        assert_eq!(multi_hit_count(MOVE_PIN_MISSILE, 0.5), 3);   // <0.75 => 3
+        assert_eq!(multi_hit_count(MOVE_PIN_MISSILE, 0.9), 5);   // >=0.875 => 5
+        // Double Kick always 2
+        assert_eq!(multi_hit_count(MOVE_DOUBLE_KICK, 0.99), 2);
+        // Normal move always 1
+        assert_eq!(multi_hit_count(MOVE_TACKLE, 0.5), 1);
+
+        // New move data exists
+        assert!(get_move(MOVE_PIN_MISSILE).is_some());
+        assert!(get_move(MOVE_DOUBLE_EDGE).is_some());
+        assert!(get_move(MOVE_FLY).is_some());
+        assert!(get_move(MOVE_DIG).is_some());
+        assert!(get_move(MOVE_SOLAR_BEAM).is_some());
+        assert!(get_move(MOVE_WHIRLPOOL).is_some());
+        assert!(get_move(MOVE_CLAMP).is_some());
+
+        // Verify Double-Edge has high power and is Normal type
+        let de = get_move(MOVE_DOUBLE_EDGE).unwrap();
+        assert_eq!(de.power, 120);
+        assert_eq!(de.move_type, PokemonType::Normal);
+
+        // Verify Submission has recoil description
+        let sub = get_move(MOVE_SUBMISSION).unwrap();
+        assert_eq!(sub.power, 80);
+    }
+
+    #[test]
+    fn test_sprint141_trapping_fields() {
+        // Verify trap fields are initialized to 0 in make_test_battle
+        let party = vec![Pokemon::new(CYNDAQUIL, 20)];
+        let enemy = Pokemon::new(ONIX, 15);
+        let battle = make_test_battle(&party, enemy, false);
+        assert_eq!(battle.player_trap_turns, 0);
+        assert_eq!(battle.enemy_trap_turns, 0);
     }
 }

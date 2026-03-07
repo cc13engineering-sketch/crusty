@@ -409,6 +409,16 @@ pub const MOVE_HIDDEN_POWER: MoveId = 237;
 pub const MOVE_SKETCH: MoveId = 166;
 pub const MOVE_HORN_DRILL: MoveId = 32;
 pub const MOVE_KINESIS: MoveId = 134;
+// ─── Sprint 141: Battle mechanics moves ─────────────────
+pub const MOVE_FLY: MoveId = 19;
+pub const MOVE_DIG: MoveId = 91;
+pub const MOVE_SOLAR_BEAM: MoveId = 76;
+pub const MOVE_DOUBLE_EDGE: MoveId = 38;
+pub const MOVE_PIN_MISSILE: MoveId = 42;
+pub const MOVE_WHIRLPOOL: MoveId = 250;
+pub const MOVE_SKULL_BASH: MoveId = 130;
+pub const MOVE_SKY_ATTACK: MoveId = 143;
+pub const MOVE_CLAMP: MoveId = 128;
 
 /// Static species data
 #[derive(Debug)]
@@ -2082,6 +2092,16 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_HORN_DRILL, name: "Horn Drill", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 30, pp: 5, description: "A one-hit KO attack that uses a horn." },
     MoveData { id: MOVE_KINESIS, name: "Kinesis", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 80, pp: 15, description: "Lowers the foe's accuracy." },
     MoveData { id: MOVE_SPITE, name: "Spite", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Cuts the PP of the foe's last move." },
+    // Sprint 141: Battle mechanics moves
+    MoveData { id: MOVE_FLY, name: "Fly", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 70, accuracy: 95, pp: 15, description: "Flies up on the first turn, then strikes next turn." },
+    MoveData { id: MOVE_DIG, name: "Dig", move_type: PokemonType::Ground, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 10, description: "Digs underground, then attacks next turn." },
+    MoveData { id: MOVE_SOLAR_BEAM, name: "SolarBeam", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 120, accuracy: 100, pp: 10, description: "Charges first turn, attacks next turn." },
+    MoveData { id: MOVE_DOUBLE_EDGE, name: "Double-Edge", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 120, accuracy: 100, pp: 15, description: "A life-risking tackle that also hurts the user." },
+    MoveData { id: MOVE_PIN_MISSILE, name: "Pin Missile", move_type: PokemonType::Bug, category: MoveCategory::Physical, power: 14, accuracy: 85, pp: 20, description: "Sharp pins are shot to strike 2-5 times." },
+    MoveData { id: MOVE_WHIRLPOOL, name: "Whirlpool", move_type: PokemonType::Water, category: MoveCategory::Special, power: 15, accuracy: 70, pp: 15, description: "Traps the foe in a whirlpool for 2-5 turns." },
+    MoveData { id: MOVE_SKULL_BASH, name: "Skull Bash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 100, accuracy: 100, pp: 15, description: "Raises Defense, then attacks on the next turn." },
+    MoveData { id: MOVE_SKY_ATTACK, name: "Sky Attack", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 140, accuracy: 90, pp: 5, description: "Charges first turn, attacks with high critical ratio next turn." },
+    MoveData { id: MOVE_CLAMP, name: "Clamp", move_type: PokemonType::Water, category: MoveCategory::Special, power: 35, accuracy: 75, pp: 10, description: "Traps the foe for 2-5 turns." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -2128,7 +2148,7 @@ pub fn type_effectiveness(atk: PokemonType, def: PokemonType) -> f64 {
         (Psychic, Dark) => 0.0, (Psychic, Steel) => 0.5,
         // Bug
         (Bug, Fire) => 0.5, (Bug, Grass) => 2.0, (Bug, Fighting) => 0.5,
-        (Bug, Flying) => 0.5, (Bug, Psychic) => 2.0,
+        (Bug, Poison) => 0.5, (Bug, Flying) => 0.5, (Bug, Psychic) => 2.0,
         (Bug, Ghost) => 0.5, (Bug, Dark) => 2.0, (Bug, Steel) => 0.5,
         // Rock
         (Rock, Fire) => 2.0, (Rock, Ice) => 2.0, (Rock, Fighting) => 0.5,

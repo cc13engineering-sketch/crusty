@@ -3322,3 +3322,40 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 #### Test Results
 - **1371 tests passing** (0 failures)
 - **0 compiler warnings**
+
+---
+
+### Sprint 141 — Battle Mechanics: Recoil, Trapping, Multi-hit, Stat Stages
+
+#### What Changed
+
+**New Move Constants (data.rs)**
+- `MOVE_FLY` (19), `MOVE_DIG` (91), `MOVE_SOLAR_BEAM` (76), `MOVE_DOUBLE_EDGE` (38)
+- `MOVE_PIN_MISSILE` (42), `MOVE_WHIRLPOOL` (250), `MOVE_SKULL_BASH` (130)
+- `MOVE_SKY_ATTACK` (143), `MOVE_CLAMP` (128)
+- All with correct Gen 2 power/accuracy/type/category
+
+**Recoil Expanded**
+- Submission (80 power, 1/4 recoil) and Double-Edge (120 power, 1/4 recoil) added to both PlayerAttack and EnemyAttack recoil checks
+- Previously only Struggle and Take Down had recoil
+
+**Multi-hit Expanded**
+- Pin Missile added to `multi_hit_count()` with Gen 2 2-5 hit distribution (37.5/37.5/12.5/12.5)
+
+**Stat Stage Moves (status_move_stage_effect)**
+- Added: Swords Dance (+2 Atk), Amnesia (+2 SpDef), Agility (+2 Spd), Barrier (+2 Def), Meditate (+1 Atk), Harden (+1 Def), Double Team (+1 Eva), Minimize (+1 Eva), Screech (-2 Def), Kinesis (-1 Acc)
+- These work for both player and enemy via the existing stage dispatch system
+
+**Trapping Moves (Wrap, Bind, Fire Spin, Whirlpool, Clamp)**
+- New fields: `player_trap_turns`, `enemy_trap_turns` on BattleState
+- When a trapping move hits, sets 2-5 turns of trap on target
+- End-of-turn: deals 1/16 max HP damage per turn, shows "hurt by trap!" text
+- Released after turns expire with "released from the trap!" text
+- HP drain bars animate for trap damage
+- Trap clears on Pokemon switch (same as Mean Look/confusion)
+
+#### Tests Added
+- `test_sprint141_stat_stage_moves` — verifies all 10 new stat stage entries
+- `test_sprint141_multi_hit_and_recoil` — Pin Missile distribution, move data existence, Double-Edge stats
+- `test_sprint141_trapping_fields` — trap turn initialization
+- **1374 tests passing** (up from 1371)

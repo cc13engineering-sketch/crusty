@@ -46,16 +46,24 @@
     "notes": [
       "50% of total EXP goes to battle participants, divided equally among them",
       "50% of total EXP goes to Exp. Share holders, divided equally among them",
-      "A Pokemon that both participated AND holds Exp. Share receives both shares",
+      "A Pokemon that both participated AND holds Exp. Share receives both shares, but due to halving and rounding gets slightly LESS than without Exp. Share",
       "If no Pokemon holds Exp. Share, the divisor s = number of participants"
-    ]
+    ],
+    "how_to_obtain": "Trade the Red Scale (from Red Gyarados at Lake of Rage) to Mr. Pokemon",
+    "stat_exp_bug": "When Exp. Share is active, enemy base stats are halved via bit shift before Stat Experience distribution. This affects even battle participants, not just Exp. Share holders."
   },
 
   "lucky_egg": {
     "multiplier": 1.5,
     "held_by": "The Pokemon receiving experience must hold the Lucky Egg",
-    "source": "Wild Chansey (5% hold rate in Gen II)"
+    "source": "Wild Chansey (2% hold rate in Gen II)",
+    "stacking": "Multiplicative with trade bonus: own+egg=1.5x, traded+no_egg=1.5x, traded+egg=2.25x",
+    "exp_share_interaction": "Only applies to the holder; does NOT pass through to Exp Share recipients"
   },
+
+  "participation_rule": "A Pokemon counts as a participant if it was sent into battle against the defeated Pokemon at any point. It need not have attacked — merely appearing on the field counts.",
+
+  "integer_truncation": "All multipliers are applied with integer truncation (floor) at each step.",
 
   "growth_rates": {
     "description": "Gen II uses 4 experience groups (Erratic and Fluctuating were added in Gen III)",
@@ -74,8 +82,9 @@
         "formula": "floor(6/5 * n^3 - 15 * n^2 + 100 * n - 140)",
         "total_at_100": 1059860,
         "description": "Produces negative values at level 1 (game handles this as 0)",
+        "quirk": "Paradoxically slower than Medium Fast until approximately level 67, then becomes slightly faster. The polynomial has an inflection point between levels 4-5.",
         "known_bugs": [
-          "The formula gives -54 at level 1, which underflows. In Gen I-II the game does not use a lookup table, so this can cause glitches if a Medium Slow Pokemon is obtained at level 1."
+          "The formula gives -54 at level 1. Since Gen II uses unsigned 24-bit integers, -54 wraps to 16,777,162 (0xFFFFCA). If a level 1 Medium Slow Pokemon gains fewer than 54 EXP, the total wraps past 0xFFFFFF and the game thinks it is level 100. This is why Eggs hatch at level 5 (not 1) and no wild Pokemon appear below level 2."
         ]
       },
       "slow": {
@@ -92,7 +101,7 @@
   },
 
   "base_experience_yields": {
-    "description": "Base EXP yield (b) for each species. These values were unchanged from Gen I through Gen IV.",
+    "description": "Base EXP yield (b) for each species. Cross-referenced against pokecrystal disassembly. Range: Magikarp (20) to Chansey/Blissey (255).",
     "pokemon": {
       "1_bulbasaur": 64, "2_ivysaur": 141, "3_venusaur": 208,
       "4_charmander": 65, "5_charmeleon": 142, "6_charizard": 209,
@@ -121,13 +130,13 @@
       "58_growlithe": 91, "59_arcanine": 213,
       "60_poliwag": 77, "61_poliwhirl": 131, "62_poliwrath": 185,
       "63_abra": 73, "64_kadabra": 145, "65_alakazam": 186,
-      "66_machop": 88, "67_machoke": 146, "68_machamp": 193,
+      "66_machop": 75, "67_machoke": 146, "68_machamp": 193,
       "69_bellsprout": 84, "70_weepinbell": 151, "71_victreebel": 191,
       "72_tentacool": 105, "73_tentacruel": 205,
-      "74_geodude": 86, "75_graveler": 134, "76_golem": 177,
+      "74_geodude": 73, "75_graveler": 134, "76_golem": 177,
       "77_ponyta": 152, "78_rapidash": 192,
       "79_slowpoke": 99, "80_slowbro": 164,
-      "81_magnemite": 89, "82_magneton": 169,
+      "81_magnemite": 89, "82_magneton": 161,
       "83_farfetchd": 94,
       "84_doduo": 96, "85_dodrio": 158,
       "86_seel": 100, "87_dewgong": 176,
@@ -135,7 +144,7 @@
       "90_shellder": 97, "91_cloyster": 203,
       "92_gastly": 95, "93_haunter": 126, "94_gengar": 190,
       "95_onix": 108,
-      "96_drowzee": 102, "97_hypno": 165,
+      "96_drowzee": 102, "97_hypno": 169,
       "98_krabby": 115, "99_kingler": 206,
       "100_voltorb": 103, "101_electrode": 150,
       "102_exeggcute": 98, "103_exeggutor": 212,
@@ -192,7 +201,7 @@
       "185_sudowoodo": 135,
       "186_politoed": 185,
       "187_hoppip": 74, "188_skiploom": 136, "189_jumpluff": 176,
-      "190_aipom": 94,
+      "190_aipom": 72,
       "191_sunkern": 52, "192_sunflora": 146,
       "193_yanma": 147,
       "194_wooper": 52, "195_quagsire": 137,
@@ -202,7 +211,7 @@
       "200_misdreavus": 147,
       "201_unown": 61,
       "202_wobbuffet": 177,
-      "203_girafarig": 149,
+      "203_girafarig": 152,
       "204_pineco": 60, "205_forretress": 118,
       "206_dunsparce": 75,
       "207_gligar": 108,
@@ -217,7 +226,7 @@
       "218_slugma": 78, "219_magcargo": 154,
       "220_swinub": 78, "221_piloswine": 160,
       "222_corsola": 113,
-      "223_remoraid": 78, "224_octillery": 164,
+      "223_remoraid": 78, "224_octillery": 168,
       "225_delibird": 183,
       "226_mantine": 168,
       "227_skarmory": 168,
@@ -227,7 +236,7 @@
       "233_porygon2": 180,
       "234_stantler": 165,
       "235_smeargle": 106,
-      "236_tyrogue": 91,
+      "236_tyrogue": 42,
       "237_hitmontop": 138,
       "238_smoochum": 87,
       "239_elekid": 106, "240_magby": 117,
@@ -236,7 +245,7 @@
       "243_raikou": 216, "244_entei": 217, "245_suicune": 215,
       "246_larvitar": 67, "247_pupitar": 144, "248_tyranitar": 218,
       "249_lugia": 220, "250_ho_oh": 220,
-      "251_celebi": 154
+      "251_celebi": 198
     }
   },
 
@@ -272,14 +281,44 @@
     ]
   },
 
+  "day_care": {
+    "exp_rate": "1 EXP per step walked",
+    "evolution": "Pokemon will NOT evolve in the Day-Care",
+    "moves": "Level-up moves are learned automatically; oldest move (slot 1) is deleted first. HM moves CAN be forgotten this way in Gen II (unlike Gen I).",
+    "exp_loss_bug": "When withdrawing, the game recalculates EXP to the minimum for the current level, discarding surplus. If no levels were gained, the Pokemon can actually lose EXP compared to deposit."
+  },
+
+  "level_up_mechanics": {
+    "multi_level": "A Pokemon can gain multiple levels from a single battle if enough EXP is earned",
+    "move_learning": "Level-up moves are checked at each level gained. If 4 moves known, player chooses which to replace or skip.",
+    "evolution": "Evolution is checked after leveling from battle EXP or Rare Candy. Day-Care leveling does NOT trigger evolution.",
+    "stat_recalc": "Stats are recalculated at each level-up using Gen II formula with base stats, DVs (IVs), and Stat Experience (EVs)"
+  },
+
   "known_bugs_and_quirks": [
     {
       "name": "Medium Slow level 1 underflow",
-      "description": "The Medium Slow formula produces -54 at level 1. Since Gen II does not use a lookup table, this can cause glitches if a Medium Slow Pokemon is at level 1. The game does not properly handle negative experience values."
+      "description": "The Medium Slow formula produces -54 at level 1. Since Gen II uses unsigned 24-bit integers, -54 wraps to 16,777,162 (0xFFFFCA). A level 1 Medium Slow Pokemon deposited in the PC will freeze the game when withdrawn. This is why Eggs hatch at level 5."
     },
     {
       "name": "Level 100 EXP message",
       "description": "Pokemon at level 100 can no longer gain experience, but the game erroneously still displays the experience gained message. Fixed in Gen III."
+    },
+    {
+      "name": "Day-Care experience loss",
+      "description": "Withdrawing from Day-Care recalculates EXP to minimum for current level via CalcExpAtLevel, discarding any surplus above the level threshold."
+    },
+    {
+      "name": "Five-digit EXP display error",
+      "description": "Experience gains of 10,000 or more display incorrectly because the text formatter only allocates 4 digits of display space."
+    },
+    {
+      "name": "Exp Share Stat Experience halving",
+      "description": "When any party member holds Exp. Share, enemy base stats are right-shifted by 1 bit before Stat Experience distribution, halving Stat EXP for ALL recipients including battle participants."
+    },
+    {
+      "name": "Levels above 100",
+      "description": "Pokemon obtained above level 100 via glitches can be leveled to 255 with Rare Candies. Using a Rare Candy at level 255 wraps to level 0 (byte overflow). Natural level-up drops back to 100."
     }
   ]
 }

@@ -1703,4 +1703,23 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Rocket HQ entrance gate** — Mahogany "mart" door blocked until FLAG_RED_GYARADOS set. Shows "Just a souvenir shop" dialogue before event.
 - **FLAG_GOT_EGG activated** — Removed dead_code annotation, now used in Elm Lab interaction.
 - All tests pass (1313).
-- **Next (Sprint 106)**: QA sprint.
+### Sprint 106 (QA + Tile Art Overhaul)
+- **QA audit (Sprints 104-105)**: Zero bugs found. All dialogue-action patterns verified, NPC indices correct, flag sequencing valid, warp gates working.
+- **Major tile art overhaul** — Rewrote 15 tile sprites for authentic Gen 2 GBC feel:
+  - **Grass**: Sparse organic field (was busy checkerboard)
+  - **Tall grass**: Distinct upward blade tufts (was uniform repeating pattern)
+  - **Path**: Packed earth with scattered pebble grain
+  - **Trees**: Fuller canopy with light dapple, trunk with bark detail and root flare
+  - **Water**: Rolling waves with foam crests at peaks
+  - **Building**: Brick texture with window and mortar lines
+  - **Roof**: Overlapping offset shingle rows
+  - **Door**: Recessed entry with handle detail
+  - **PokemonCenter**: Tiled roof ridges, P logo on wall, cross emblem on entrance
+  - **Sign**: Clear post with text lines on board
+  - **Ledge**: Grass top with layered gradient cliff face
+  - **Fence**: Wooden slat fence with spacer detail
+  - **Floor**: Wood plank pattern with grain lines
+  - **Heal machine**: Counter with ball slots and screen
+  - **Flower**: Clear 3-petal scattered flowers
+- All tests pass (1313).
+- **Next (Sprint 107)**: Content sprint.

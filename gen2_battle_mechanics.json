@@ -1,0 +1,187 @@
+{
+  "generation": 2,
+  "games": ["Gold", "Silver", "Crystal"],
+  "source": "https://www.dragonflycave.com/mechanics/battle/",
+
+  "turn_order": {
+    "description": "Switching occurs before moves. Move priority determines sequence. Speed determines order among same-priority moves.",
+    "switching": "Occurs before other actions, unless Pursuit is used on the switching Pokemon",
+    "speed_calculation": {
+      "paralysis_divisor": 4,
+      "badge_bonus_multiplier": 1.125,
+      "notes": "Paralysis divides speed by 4 (changed to 2 in later gens)"
+    }
+  },
+
+  "accuracy": {
+    "max_value": 255,
+    "auto_hit_threshold": 255,
+    "hit_condition": "Random integer 0-255 generated; move hits if random < calculated_accuracy",
+    "formula_steps": [
+      "Start with move base accuracy (out of 255)",
+      "Multiply by user accuracy stage multiplier",
+      "Multiply by target evasion stage multiplier",
+      "Apply item modifiers"
+    ],
+    "item_modifiers": {
+      "brightpowder": {
+        "effect": "Subtract 20 from calculated accuracy",
+        "notes": "Later gens changed this to a multiplier (x0.9 or x0.95)"
+      }
+    },
+    "notes": "100% accurate moves have base accuracy 255, but due to the < comparison (not <=), a random value of 255 causes a miss — giving a 1/256 miss chance on otherwise perfect-accuracy moves (same bug as Gen I)"
+  },
+
+  "critical_hits": {
+    "system": "Critical hit stage (C) variable, replacing Gen I speed-based system",
+    "stage_modifiers": [
+      { "condition": "Base (no modifiers)", "c_value": 0 },
+      { "condition": "Farfetch'd holding Stick (Leek)", "c_value": 2, "notes": "Skips remaining steps" },
+      { "condition": "Chansey holding Lucky Punch", "c_value": 2, "notes": "Skips remaining steps" },
+      { "condition": "High critical-hit ratio move (e.g. Slash, Karate Chop)", "c_modifier": "+1" },
+      { "condition": "Focus Energy or Dire Hit used", "c_modifier": "+1" },
+      { "condition": "Scope Lens held", "c_modifier": "+1" }
+    ],
+    "rates_by_stage": {
+      "0": { "fraction": "17/256", "decimal": 0.066 },
+      "1": { "fraction": "1/8", "decimal": 0.125 },
+      "2": { "fraction": "1/4", "decimal": 0.25 },
+      "3": { "fraction": "85/256", "decimal": 0.332 },
+      "4_or_higher": { "fraction": "1/2", "decimal": 0.5 }
+    },
+    "damage_multiplier": 2.0,
+    "stat_stage_behavior": "Critical hits ignore all stat modifiers (including badge bonuses) only if the attacker's offensive stat stage is lower than the target's defensive stat stage"
+  },
+
+  "damage_formula": {
+    "formula": "floor(floor(floor(2 * L / 5 + 2) * A * P / D) / 50) + 2",
+    "variables": {
+      "L": "Attacker's level",
+      "A": "Attacker's effective Attack (physical) or Special Attack (special)",
+      "P": "Move's base power",
+      "D": "Target's effective Defense (physical) or Special Defense (special)"
+    },
+    "stat_caps": {
+      "max_stat_value": 999,
+      "overflow_handling": "If either offensive or defensive stat exceeds 255, both are divided by 4 (to fit 8-bit register)"
+    },
+    "randomization": {
+      "range": [217, 255],
+      "divisor": 255,
+      "description": "Final damage multiplied by random integer from 217 to 255, then divided by 255"
+    }
+  },
+
+  "damage_modifiers": {
+    "stab": {
+      "multiplier": 1.5,
+      "description": "Same-Type Attack Bonus: if move type matches one of the attacker's types"
+    },
+    "type_effectiveness": {
+      "super_effective": 2.0,
+      "not_very_effective": 0.5,
+      "immune": 0.0,
+      "stacking": "Multiplicative (e.g. double super effective = 4x)"
+    },
+    "burn": {
+      "effect": "Attack stat halved before damage calculation",
+      "notes": "Applied directly to Attack stat, not as a separate damage modifier like in later gens"
+    },
+    "reflect": {
+      "effect": "Physical damage halved",
+      "critical_hit_interaction": "Ignored on critical hits"
+    },
+    "light_screen": {
+      "effect": "Special damage halved",
+      "critical_hit_interaction": "Ignored on critical hits"
+    },
+    "selfdestruct_explosion": {
+      "effect": "Target's Defense halved during calculation",
+      "notes": "Later gens changed this to doubling base power instead"
+    },
+    "weather": {
+      "sun_fire": { "multiplier": 1.5 },
+      "rain_water": { "multiplier": 1.5 },
+      "sun_water": { "multiplier": 0.5 },
+      "rain_fire": { "multiplier": 0.5 }
+    }
+  },
+
+  "badge_bonuses": {
+    "description": "In non-link battles, badge stat bonuses multiply the relevant stat by 1.125",
+    "type_boost": {
+      "description": "If the attacker's trainer has the badge from the Gym featuring the move's type, move power is multiplied by 1.125",
+      "multiplier": 1.125
+    },
+    "stat_boosts": [
+      { "badge": "Zephyr Badge", "leader": "Falkner", "stat": "Attack", "multiplier": 1.125 },
+      { "badge": "Mineral Badge", "leader": "Jasmine", "stat": "Defense", "multiplier": 1.125 },
+      { "badge": "Glacier Badge", "leader": "Pryce", "stat": "Special Attack and Special Defense", "multiplier": 1.125, "notes": "Implementation is buggy" }
+    ]
+  },
+
+  "held_item_effects": {
+    "stat_modifiers": {
+      "light_ball": {
+        "pokemon": "Pikachu",
+        "effect": "Special Attack x2",
+        "notes": "Only boosts Special Attack in Gen II (later gens also boost Attack)"
+      },
+      "thick_club": {
+        "pokemon": ["Cubone", "Marowak"],
+        "effect": "Attack x2",
+        "bug": "Offensive stat is capped before item modifier is applied. If Marowak's Attack reaches 512+ before Thick Club, doubling causes overflow past 8-bit register, producing incorrect values"
+      },
+      "metal_powder": {
+        "pokemon": "Ditto",
+        "effect_untransformed": "Defense x2",
+        "effect_transformed": "Defense and Special Defense x1.5",
+        "notes": "Transformed behavior is Gen II specific"
+      }
+    },
+    "type_boosting_items": {
+      "multiplier": 1.1,
+      "notes": "Type-boosting held items (e.g. Mystic Water, Charcoal) give x1.1 in Gen II (increased to x1.2 in Gen IV+)"
+    }
+  },
+
+  "set_damage_moves": {
+    "seismic_toss": { "damage": "Equal to attacker's level" },
+    "night_shade": { "damage": "Equal to attacker's level" },
+    "dragon_rage": { "damage": 40 }
+  },
+
+  "stat_stages": {
+    "range": [-6, 6],
+    "multipliers": {
+      "-6": "2/8",
+      "-5": "2/7",
+      "-4": "2/6",
+      "-3": "2/5",
+      "-2": "2/4",
+      "-1": "2/3",
+      "0": "2/2",
+      "1": "3/2",
+      "2": "4/2",
+      "3": "5/2",
+      "4": "6/2",
+      "5": "7/2",
+      "6": "8/2"
+    }
+  },
+
+  "known_bugs": [
+    {
+      "name": "Thick Club / Light Ball overflow",
+      "description": "The offensive stat is capped before the item modifier is applied. If a Marowak's Attack reaches 512+ before Thick Club doubling, the result can overflow the 8-bit register, producing incorrect damage values."
+    },
+    {
+      "name": "Glacier Badge bug",
+      "description": "Pryce's Glacier Badge Special stat boost has a buggy implementation."
+    },
+    {
+      "name": "1/256 miss chance",
+      "description": "Moves with 100% accuracy (255/255) can still miss because the hit check uses strict less-than comparison. A random value of exactly 255 causes the move to miss."
+    }
+  ]
+}

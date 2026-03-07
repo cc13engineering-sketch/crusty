@@ -6190,6 +6190,12 @@ fn build_lake_of_rage() -> MapData {
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: GYARADOS, level: 27 }, TrainerPokemon { species_id: GOLBAT, level: 27 }],
         },
+        // Red Gyarados (NPC 3) — visible at water's edge, hidden after event
+        NpcDef {
+            x: 4, y: 2, sprite_id: 3, facing: Direction::Down,
+            dialogue: &["A huge red GYARADOS", "is thrashing in the", "lake!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
     ];
     let encounters = vec![
         EncounterEntry { species_id: MAGIKARP, min_level: 10, max_level: 20, weight: 90 },

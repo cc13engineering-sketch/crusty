@@ -302,6 +302,7 @@ enum DialogueAction {
     StartTrainerBattle { team: Vec<(SpeciesId, u8)> },
     StartFishBattle { species_id: SpeciesId, level: u8 },
     StartSudowoodoBattle,
+    StartRedGyaradosBattle,
     EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
@@ -400,6 +401,10 @@ impl PokemonSim {
         }
         // Lighthouse Jasmine (NPC 0) disappears after delivering medicine (she returns to gym)
         if self.current_map_id == MapId::OlivineLighthouse && npc_idx == 0 && self.has_flag(FLAG_DELIVERED_MEDICINE) {
+            return false;
+        }
+        // Lake of Rage Red Gyarados NPC (index 3) hidden after event
+        if self.current_map_id == MapId::LakeOfRage && npc_idx == 3 && self.has_flag(FLAG_RED_GYARADOS) {
             return false;
         }
         true
@@ -972,7 +977,7 @@ impl PokemonSim {
     }
 
     /// Red Gyarados: forced wild encounter at Lake of Rage
-    fn check_red_gyarados(&mut self, engine: &mut Engine) -> bool {
+    fn check_red_gyarados(&mut self, _engine: &mut Engine) -> bool {
         if self.current_map_id == MapId::LakeOfRage
             && !self.has_flag(FLAG_RED_GYARADOS)
             && !self.party.is_empty()
@@ -985,43 +990,9 @@ impl PokemonSim {
                     "burst from the water!".to_string(),
                 ],
                 current_line: 0, char_index: 0, timer: 0.0,
-                on_complete: DialogueAction::None,
+                on_complete: DialogueAction::StartRedGyaradosBattle,
             });
-            // After dialogue, start forced wild battle with Red Gyarados L30
-            self.register_seen(GYARADOS);
-            let enemy = Pokemon::new(GYARADOS, 30);
-            let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
-            let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
-            self.battle = Some(BattleState {
-                phase: BattlePhase::Intro { timer: 0.0 },
-                enemy,
-                player_idx,
-                is_wild: true,
-                player_hp_display: player_hp,
-                enemy_hp_display: 0.0,
-                turn_count: 0,
-                trainer_team: Vec::new(),
-                trainer_team_idx: 0,
-                pending_player_move: None,
-                player_stages: [0; 7],
-                enemy_stages: [0; 7],
-                enemy_flinched: false,
-                player_flinched: false,
-                player_confused: 0,
-                enemy_confused: 0,
-                player_trapped: false,
-                player_must_recharge: false,
-                enemy_must_recharge: false,
-                player_rampage: (0, 0),
-                enemy_rampage: (0, 0),
-                pending_learn_moves: vec![],
-                free_switch: false,
-                confusion_snapout_msg: None,
-            });
-            self.encounter_flash_count = 0;
-            // Skip dialogue — go straight to encounter transition after a brief pause
-            self.phase = GamePhase::EncounterTransition { timer: 0.0 };
-            let _ = engine; // used for future SFX
+            self.phase = GamePhase::Dialogue;
             return true;
         }
         false
@@ -1492,6 +1463,27 @@ impl PokemonSim {
             .map(|(idx, npc)| (idx as u8, npc.clone()));
 
         if let Some((npc_idx, npc)) = npc_info {
+            // Lake of Rage: Lance's dialogue changes after Red Gyarados event
+            if self.current_map_id == MapId::LakeOfRage && npc_idx == 0
+                && self.has_flag(FLAG_RED_GYARADOS)
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "That red GYARADOS...".to_string(),
+                        "TEAM ROCKET must be".to_string(),
+                        "behind this!".to_string(),
+                        "I heard there's a".to_string(),
+                        "suspicious shop in".to_string(),
+                        "MAHOGANY TOWN.".to_string(),
+                        "Let's investigate!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
             // Olivine Gym: Jasmine unavailable until medicine delivered
             if self.current_map_id == MapId::OlivineGym && npc_idx == 0
                 && !self.has_flag(FLAG_DELIVERED_MEDICINE)
@@ -3821,6 +3813,40 @@ impl PokemonSim {
                 DialogueAction::StartSudowoodoBattle => {
                     self.register_seen(SUDOWOODO);
                     let enemy = Pokemon::new(SUDOWOODO, 20);
+                    let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                    let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+                    self.battle = Some(BattleState {
+                        phase: BattlePhase::Intro { timer: 0.0 },
+                        enemy,
+                        player_idx,
+                        is_wild: true,
+                        player_hp_display: player_hp,
+                        enemy_hp_display: 0.0,
+                        turn_count: 0,
+                        trainer_team: Vec::new(),
+                        trainer_team_idx: 0,
+                        pending_player_move: None,
+                        player_stages: [0; 7],
+                        enemy_stages: [0; 7],
+                        enemy_flinched: false,
+                        player_flinched: false,
+                        player_confused: 0,
+                        enemy_confused: 0,
+                        player_trapped: false,
+                        player_must_recharge: false,
+                        enemy_must_recharge: false,
+                        player_rampage: (0, 0),
+                        enemy_rampage: (0, 0),
+                        pending_learn_moves: vec![],
+                        free_switch: false,
+                        confusion_snapout_msg: None,
+                    });
+                    self.encounter_flash_count = 0;
+                    self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                }
+                DialogueAction::StartRedGyaradosBattle => {
+                    self.register_seen(GYARADOS);
+                    let enemy = Pokemon::new(GYARADOS, 30);
                     let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
                     let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                     self.battle = Some(BattleState {

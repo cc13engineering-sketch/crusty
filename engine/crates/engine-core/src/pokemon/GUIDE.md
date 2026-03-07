@@ -1690,4 +1690,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **Olivine Gym gate** — Jasmine (NPC 0) shows "GYM LEADER isn't here" dialogue if FLAG_DELIVERED_MEDICINE not set. After delivery, normal trainer battle proceeds.
 - **Flags activated**: FLAG_MEDICINE (bit 7) and FLAG_DELIVERED_MEDICINE (bit 8) removed #[allow(dead_code)].
 - All tests pass.
-- **Next (Sprint 104)**: Content sprint.
+
+### Sprint 104 (Content — Red Gyarados Event)
+- **Red Gyarados dialogue fix** — Old implementation set dialogue + battle simultaneously, skipping text. Now uses `DialogueAction::StartRedGyaradosBattle` so "The lake is churning!" text displays before Lv30 Gyarados battle begins.
+- **Red Gyarados NPC** — Added visual NPC (index 3) at Lake of Rage water's edge (4,2). Hidden via `is_npc_active` after FLAG_RED_GYARADOS is set.
+- **Lance post-event dialogue** — After Red Gyarados battle, Lance (NPC 0) mentions Team Rocket's suspicious shop in Mahogany Town, pointing player to Rocket HQ quest.
+- All tests pass (1313).
+- **Next (Sprint 105)**: Content sprint.

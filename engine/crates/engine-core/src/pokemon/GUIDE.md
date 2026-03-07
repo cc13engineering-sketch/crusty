@@ -1645,3 +1645,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **New species constants**: SHELLDER (90).
 - All tests pass.
 - **Next (Sprint 98)**: Content sprint.
+
+### Sprint 98 (Content — Bicycle + Escape Rope Fix)
+- **Bicycle mechanic** — Obtained from Bike Shop owner NPC in Goldenrod City (NPC index 1). Press C or Shift to toggle in overworld. Doubles movement speed (WALK_SPEED / 2). Auto-dismounts on map transition. Indoor maps block mounting. `has_bicycle` and `on_bicycle` state persisted in save data.
+- **Escape Rope fix** — Previously warped to hardcoded PokemonCenter coordinates. Now uses MapFadeOut transition to PokemonCenter map, leveraging existing `last_pokecenter_map` for correct city-based exit. Also blocks use when already in PokemonCenter.
+- **is_select input helper** — New input function for Select button (KeyC / ShiftLeft).
+- All tests pass.
+- **Next (Sprint 99 — QA)**: Full QA audit of Sprints 97-98.

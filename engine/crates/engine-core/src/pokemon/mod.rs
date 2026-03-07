@@ -83,6 +83,11 @@ fn held_right(engine: &Engine) -> bool {
         || engine.input.keys_held.contains("KeyD")
 }
 
+fn is_select(engine: &Engine) -> bool {
+    engine.input.keys_pressed.contains("KeyC")
+        || engine.input.keys_pressed.contains("ShiftLeft")
+}
+
 // ─── Constants ──────────────────────────────────────────
 
 const TILE_PX: i32 = 16;
@@ -371,6 +376,9 @@ pub struct PokemonSim {
     los_suppress: u8,
     // NPC wander timer — NPCs with wanders=true move randomly every few seconds
     npc_wander_timer: f64,
+    // Bicycle: obtained from Bike Shop in Goldenrod, doubles movement speed
+    has_bicycle: bool,
+    on_bicycle: bool,
     // Save system
     needs_save: bool,
     last_rng_state: u64,
@@ -450,6 +458,8 @@ impl PokemonSim {
             story_flags: 0,
             los_suppress: 0,
             npc_wander_timer: 0.0,
+            has_bicycle: false,
+            on_bicycle: false,
             needs_save: false,
             last_rng_state: 0,
             has_save: false,
@@ -497,6 +507,8 @@ impl PokemonSim {
         self.player.y = dest_y as i32;
         self.player.is_walking = false;
         self.player.walk_offset = 0.0;
+        // Auto-dismount bicycle when entering indoor maps
+        self.on_bicycle = false;
         // Snap camera to new position (no lerp on map transitions)
         let target_x = dest_x as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_X * TILE_PX / 2) as f64;
         let target_y = dest_y as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_Y * TILE_PX / 2) as f64;
@@ -579,7 +591,7 @@ impl PokemonSim {
         };
 
         format!(
-            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
+            "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{}}}",
             self.current_map_id.to_str(),
             self.player.x, self.player.y, facing,
             self.money, self.badges, self.total_time, self.last_rng_state,
@@ -588,6 +600,7 @@ impl PokemonSim {
             self.last_pokecenter_map.to_str(), self.last_house_map.to_str(),
             self.last_house_x, self.last_house_y,
             self.repel_steps, self.story_flags,
+            self.has_bicycle,
             party_json, pc_json, defeated_json, bag_json,
             seen_json, caught_json,
         )
@@ -671,6 +684,7 @@ impl PokemonSim {
         self.last_house_y = get_num(json, "last_house_y") as i32;
         self.repel_steps = get_num(json, "repel") as u32;
         self.story_flags = get_num(json, "flags") as u64;
+        self.has_bicycle = get_num(json, "has_bike") != 0.0;
 
         // Parse party: array of pokemon objects
         let party_arr = get_array(json, "party");
@@ -1141,8 +1155,28 @@ impl PokemonSim {
             return;
         }
 
+        // Bicycle toggle (Select key) — only outdoors
+        if is_select(engine) && self.has_bicycle && !self.player.is_walking {
+            let is_indoor = matches!(self.current_map_id,
+                MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
+                MapId::PlayerHouse1F | MapId::PlayerHouse2F |
+                MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
+                MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
+                MapId::MahoganyGym | MapId::BlackthornGym |
+                MapId::VictoryRoad | MapId::RocketHQ |
+                MapId::EliteFourWill | MapId::EliteFourKoga |
+                MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
+            );
+            if !is_indoor {
+                self.on_bicycle = !self.on_bicycle;
+            }
+        }
+
         if self.player.is_walking {
-            self.player.walk_offset += 1.0 / WALK_SPEED;
+            let speed = if self.on_bicycle { WALK_SPEED / 2.0 } else { WALK_SPEED };
+            self.player.walk_offset += 1.0 / speed;
             self.player.frame_timer += dt;
             if self.player.frame_timer > 0.12 {
                 self.player.frame_timer = 0.0;
@@ -1539,6 +1573,25 @@ impl PokemonSim {
                 && !self.party.is_empty()
             {
                 self.check_sudowoodo_battle();
+                return;
+            }
+
+            // Goldenrod Bike Shop owner: give bicycle on interaction
+            if self.current_map_id == MapId::GoldenrodCity && npc_idx == 1 && !self.has_bicycle {
+                self.has_bicycle = true;
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "I make BICYCLES.".to_string(),
+                        "Want one? Sure thing!".to_string(),
+                        "Here, take this one!".to_string(),
+                        "Received a BICYCLE!".to_string(),
+                        "Press C or SHIFT".to_string(),
+                        "to ride it!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
                 return;
             }
 
@@ -4752,15 +4805,25 @@ impl PokemonSim {
                                 on_complete: DialogueAction::None,
                             });
                             self.phase = GamePhase::Dialogue;
+                        } else if self.current_map_id == MapId::PokemonCenter {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec!["Can't use that here!".to_string()],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
                         } else {
                             self.bag.use_item(item_id);
-                            self.change_map(MapId::PokemonCenter, 5, 6);
                             self.dialogue = Some(DialogueState {
                                 lines: vec!["Used an ESCAPE ROPE!".to_string()],
                                 current_line: 0, char_index: 0, timer: 0.0,
                                 on_complete: DialogueAction::None,
                             });
-                            self.phase = GamePhase::Dialogue;
+                            self.phase = GamePhase::MapFadeOut {
+                                dest_map: MapId::PokemonCenter,
+                                dest_x: 5, dest_y: 6,
+                                timer: 0.0,
+                            };
                         }
                     } else if item_id == ITEM_ETHER {
                         // Ether: restore 10 PP to the first move with missing PP

@@ -554,6 +554,9 @@ impl PokemonSim {
             TILE_POKECENTER_DOOR, TILE_LAB_WALL, TILE_LAB_ROOF, TILE_SIGN, TILE_LEDGE,
             TILE_FLOOR, TILE_TABLE, TILE_BOOKSHELF, TILE_PC, TILE_HEAL_MACHINE, TILE_BLACK,
             TILE_CAVE_WALL, TILE_CAVE_FLOOR, TILE_ICE_FLOOR, TILE_GYM_FLOOR,
+            // Sprint 117: new tiles from open-source Gen 2 tileset
+            TILE_STOVE, TILE_WALL_ART, TILE_STOOL, TILE_BED_TOP, TILE_BED_BTM,
+            TILE_FRIDGE, TILE_EXIT_MAT, TILE_OUTDOOR_MAT, TILE_TREE_TALL_TOP,
         ];
         self.tile_cache = tile_strs.iter().map(|s| decode_sprite(s)).collect();
 

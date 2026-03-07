@@ -328,6 +328,16 @@ pub fn tile_palette(tile_id: u8) -> &'static Palette {
         26 => &PAL_CAVE,          // cave floor
         27 => &PAL_ICE,           // ice floor
         28 => &PAL_GYM,           // gym floor
+        // Sprint 117: new tiles from open-source Gen 2 tileset
+        29 => &PAL_FURNITURE,     // stove
+        30 => &PAL_LAB,           // wall art
+        31 => &PAL_POKECENTER,    // stool (red/pink)
+        32 => &PAL_FURNITURE,     // bed top
+        33 => &PAL_FURNITURE,     // bed bottom
+        34 => &PAL_FURNITURE,     // fridge
+        35 => &PAL_POKECENTER,    // indoor exit mat (red)
+        36 => &PAL_POKECENTER,    // outdoor exit mat (red)
+        37 => &PAL_OVERWORLD,     // tree tall top
         _ => &PAL_OVERWORLD,
     }
 }

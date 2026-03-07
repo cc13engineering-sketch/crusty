@@ -1919,3 +1919,48 @@ All 99 Pokemon module tests pass.
 - Added `#[allow(dead_code)]` to 5 test helper functions
 
 **Test Results**: All 1329 tests pass (99 Pokemon module tests). Clean compilation.
+
+### Sprint 117: Gen 2 Tilemap Art Integration (2026-03-07)
+
+**Goal**: Convert open-source MIT-licensed Gen 2 tilemap art to engine format and replace hand-coded tile sprites.
+
+**Assets Source**: [Pokemon Gen 2 Style Tilemap](https://github.com/nikouu/Pokemon-gen-2-style-tilemap) - MIT licensed. Local copy at `engine/assets/tilesets/`.
+
+**What was done**:
+
+1. **Analyzed all Constructed/ PNGs** - inspected pixel dimensions, color counts, and visual content of 20+ pre-composed 16x16 tiles and multi-tile composites.
+
+2. **Tested png_to_sprites.py converter** - verified the PNG-to-sprite converter works correctly on 4-color indexed PNGs. The Constructed/ folder PNGs (16x16, exactly 4 colors) convert cleanly.
+
+3. **Replaced 5 existing tile sprites** with converted versions from Constructed/ PNGs:
+   - `TILE_TREE_TOP` - from Tree-short.png (richer round canopy with leaf detail)
+   - `TILE_TREE_BOTTOM` - from Tree-tall.png bottom half (better trunk with bark texture)
+   - `TILE_SIGN` - from Sign.png (detailed signpost with frame and text area)
+   - `TILE_BOOKSHELF` - from Bookshelf-type-01.png top half (book rows with shelf detail)
+   - `TILE_PC` - from Tv-type-01.png (screen with frame, replaces simple PC)
+   - `TILE_LAB_WALL` - from Back-wall-window.png (interior wall with window panes)
+
+4. **Added 9 new tile types** (tile IDs 29-37) from Constructed/ PNGs:
+   - `TILE_STOVE` (29) - kitchen stove with burners and oven door
+   - `TILE_WALL_ART` (30) - wall painting/picture frame
+   - `TILE_STOOL` (31) - pink stool/chair
+   - `TILE_BED_TOP` (32) - bed upper half with pillow
+   - `TILE_BED_BTM` (33) - bed lower half with blanket
+   - `TILE_FRIDGE` (34) - refrigerator with shelves
+   - `TILE_EXIT_MAT` (35) - indoor exit mat (red)
+   - `TILE_OUTDOOR_MAT` (36) - outdoor door mat (red checkerboard)
+   - `TILE_TREE_TALL_TOP` (37) - tall tree upper canopy section
+
+5. **Also tried full 8x8 tilesheet** (Original.png) - extracted 160 tiles but most were too blocky when upscaled 2x. The Constructed/ 16x16 PNGs are superior quality.
+
+6. **Kept existing sprites** where hand-coded versions were already good or 8x8 source was too limited:
+   - TILE_GRASS, TILE_TALL_GRASS, TILE_PATH (subtle detail lost at 8x8)
+   - TILE_WATER, TILE_WATER2 (hand-coded wave animation looks good)
+   - TILE_FLOOR, TILE_DOOR, TILE_BUILDING_WALL, TILE_BUILDING_ROOF (existing quality adequate)
+
+**Files changed**:
+- `sprites.rs` - replaced 6 tile constants, added 9 new tile constants + compile-time assertions
+- `mod.rs` - added new tiles to `init_sprite_caches()` tile_strs array
+- `render.rs` - added palette mappings for tile IDs 29-37
+
+**Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

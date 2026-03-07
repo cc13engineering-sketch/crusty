@@ -1,0 +1,832 @@
+================================================================================
+POKEMON GOLD/SILVER (GENERATION II) REFERENCE DATA
+================================================================================
+Sources: Bulbapedia (bulbapedia.bulbagarden.net)
+Note: All data reflects Generation II (Gold/Silver/Crystal) values.
+In Gen 2, move category is determined by TYPE:
+  Physical types: Normal, Fighting, Poison, Ground, Flying, Bug, Rock, Ghost, Steel
+  Special types:  Fire, Water, Grass, Electric, Ice, Psychic, Dragon, Dark
+
+================================================================================
+PART 1: MOVE DATA
+================================================================================
+
+Format: # | Name | Type | Category | Power | Accuracy | PP | Priority | Effect
+  - Power: 0 = status move, -- = variable
+  - Accuracy: -- = never-miss
+  - Priority: 0 unless noted
+
+--- GEN 1 MOVES (1-165) ---
+
+001 | Pound          | Normal   | Physical |  40 | 100% | 35 |  0 | No additional effect.
+002 | Karate Chop    | Fighting | Physical |  50 | 100% | 25 |  0 | High critical-hit ratio.
+003 | Double Slap    | Normal   | Physical |  15 |  85% | 10 |  0 | Hits 2-5 times.
+004 | Comet Punch    | Normal   | Physical |  18 |  85% | 15 |  0 | Hits 2-5 times.
+005 | Mega Punch     | Normal   | Physical |  80 |  85% | 20 |  0 | No additional effect.
+006 | Pay Day        | Normal   | Physical |  40 | 100% | 20 |  0 | Scatters coins equal to 2x user's level.
+007 | Fire Punch     | Fire     | Special  |  75 | 100% | 15 |  0 | 10% chance to burn.
+008 | Ice Punch      | Ice      | Special  |  75 | 100% | 15 |  0 | 10% chance to freeze.
+009 | Thunder Punch  | Electric | Special  |  75 | 100% | 15 |  0 | 10% chance to paralyze.
+010 | Scratch        | Normal   | Physical |  40 | 100% | 35 |  0 | No additional effect.
+011 | Vise Grip      | Normal   | Physical |  55 | 100% | 30 |  0 | No additional effect.
+012 | Guillotine     | Normal   | Physical |  -- |  30% |  5 |  0 | OHKO move. Fails if user is slower.
+013 | Razor Wind     | Normal   | Physical |  80 |  75% | 10 |  0 | Charges turn 1, attacks turn 2. High crit ratio.
+014 | Swords Dance   | Normal   | Status   |   0 |  --  | 30 |  0 | Raises user's Attack by 2 stages.
+015 | Cut            | Normal   | Physical |  50 |  95% | 30 |  0 | No additional effect. HM01.
+016 | Gust           | Flying   | Physical |  40 | 100% | 35 |  0 | No additional effect.
+017 | Wing Attack    | Flying   | Physical |  60 | 100% | 35 |  0 | No additional effect.
+018 | Whirlwind      | Normal   | Status   |   0 | 100% | 20 | -6 | Forces wild Pokemon to flee; switches trainer Pokemon.
+019 | Fly            | Flying   | Physical |  70 |  95% | 15 |  0 | Flies up turn 1, attacks turn 2. HM02.
+020 | Bind           | Normal   | Physical |  15 |  75% | 20 |  0 | Traps target for 2-5 turns.
+021 | Slam           | Normal   | Physical |  80 |  75% | 20 |  0 | No additional effect.
+022 | Vine Whip      | Grass    | Special  |  35 | 100% | 10 |  0 | No additional effect.
+023 | Stomp          | Normal   | Physical |  65 | 100% | 20 |  0 | 30% chance to flinch.
+024 | Double Kick    | Fighting | Physical |  30 | 100% | 30 |  0 | Hits exactly 2 times.
+025 | Mega Kick      | Normal   | Physical | 120 |  75% |  5 |  0 | No additional effect.
+026 | Jump Kick      | Fighting | Physical |  70 |  95% | 25 |  0 | User takes 1/8 max HP crash damage on miss.
+027 | Rolling Kick   | Fighting | Physical |  60 |  85% | 15 |  0 | 30% chance to flinch.
+028 | Sand Attack    | Ground   | Status   |   0 | 100% | 15 |  0 | Lowers target's accuracy by 1 stage.
+029 | Headbutt       | Normal   | Physical |  70 | 100% | 15 |  0 | 30% chance to flinch.
+030 | Horn Attack    | Normal   | Physical |  65 | 100% | 25 |  0 | No additional effect.
+031 | Fury Attack    | Normal   | Physical |  15 |  85% | 20 |  0 | Hits 2-5 times.
+032 | Horn Drill     | Normal   | Physical |  -- |  30% |  5 |  0 | OHKO move. Fails if user is slower.
+033 | Tackle         | Normal   | Physical |  35 |  95% | 35 |  0 | No additional effect.
+034 | Body Slam      | Normal   | Physical |  85 | 100% | 15 |  0 | 30% chance to paralyze.
+035 | Wrap           | Normal   | Physical |  15 |  85% | 20 |  0 | Traps target for 2-5 turns.
+036 | Take Down      | Normal   | Physical |  90 |  85% | 20 |  0 | User takes 1/4 recoil damage.
+037 | Thrash         | Normal   | Physical |  90 | 100% | 20 |  0 | Attacks for 2-3 turns, then user is confused.
+038 | Double-Edge    | Normal   | Physical | 120 | 100% | 15 |  0 | User takes 1/4 recoil damage.
+039 | Tail Whip      | Normal   | Status   |   0 | 100% | 30 |  0 | Lowers target's Defense by 1 stage.
+040 | Poison Sting   | Poison   | Physical |  15 | 100% | 35 |  0 | 30% chance to poison.
+041 | Twineedle      | Bug      | Physical |  25 | 100% | 20 |  0 | Hits 2 times. 20% chance to poison per hit.
+042 | Pin Missile    | Bug      | Physical |  14 |  85% | 20 |  0 | Hits 2-5 times.
+043 | Leer           | Normal   | Status   |   0 | 100% | 30 |  0 | Lowers target's Defense by 1 stage.
+044 | Bite           | Dark     | Physical |  60 | 100% | 25 |  0 | 30% chance to flinch.
+045 | Growl          | Normal   | Status   |   0 | 100% | 40 |  0 | Lowers target's Attack by 1 stage.
+046 | Roar           | Normal   | Status   |   0 | 100% | 20 | -6 | Forces wild Pokemon to flee; switches trainer Pokemon.
+047 | Sing           | Normal   | Status   |   0 |  55% | 15 |  0 | Puts target to sleep.
+048 | Supersonic     | Normal   | Status   |   0 |  55% | 20 |  0 | Confuses target.
+049 | Sonic Boom     | Normal   | Physical |  -- |  90% | 20 |  0 | Always deals exactly 20 HP damage.
+050 | Disable        | Normal   | Status   |   0 |  55% | 20 |  0 | Disables target's last used move for 1-8 turns.
+051 | Acid           | Poison   | Physical |  40 | 100% | 30 |  0 | 10% chance to lower target's Defense by 1.
+052 | Ember          | Fire     | Special  |  40 | 100% | 25 |  0 | 10% chance to burn.
+053 | Flamethrower   | Fire     | Special  |  95 | 100% | 15 |  0 | 10% chance to burn.
+054 | Mist           | Ice      | Status   |   0 |  --  | 30 |  0 | Prevents stat reduction for 5 turns.
+055 | Water Gun      | Water    | Special  |  40 | 100% | 25 |  0 | No additional effect.
+056 | Hydro Pump     | Water    | Special  | 120 |  80% |  5 |  0 | No additional effect.
+057 | Surf           | Water    | Special  |  95 | 100% | 15 |  0 | No additional effect. HM03.
+058 | Ice Beam       | Ice      | Special  |  95 | 100% | 10 |  0 | 10% chance to freeze.
+059 | Blizzard       | Ice      | Special  | 120 |  70% |  5 |  0 | 10% chance to freeze.
+060 | Psybeam        | Psychic  | Special  |  65 | 100% | 20 |  0 | 10% chance to confuse.
+061 | Bubble Beam    | Water    | Special  |  65 | 100% | 20 |  0 | 10% chance to lower target's Speed by 1.
+062 | Aurora Beam    | Ice      | Special  |  65 | 100% | 20 |  0 | 10% chance to lower target's Attack by 1.
+063 | Hyper Beam     | Normal   | Physical | 150 |  90% |  5 |  0 | Must recharge next turn.
+064 | Peck           | Flying   | Physical |  35 | 100% | 35 |  0 | No additional effect.
+065 | Drill Peck     | Flying   | Physical |  80 | 100% | 20 |  0 | No additional effect.
+066 | Submission     | Fighting | Physical |  80 |  80% | 25 |  0 | User takes 1/4 recoil damage.
+067 | Low Kick       | Fighting | Physical |  50 |  90% | 20 |  0 | 30% chance to flinch.
+068 | Counter        | Fighting | Physical |  -- | 100% | 20 | -1 | Returns 2x physical damage taken this turn.
+069 | Seismic Toss   | Fighting | Physical |  -- | 100% | 20 |  0 | Deals damage equal to user's level.
+070 | Strength       | Normal   | Physical |  80 | 100% | 15 |  0 | No additional effect. HM04.
+071 | Absorb         | Grass    | Special  |  20 | 100% | 20 |  0 | Heals user for 1/2 damage dealt.
+072 | Mega Drain     | Grass    | Special  |  40 | 100% | 10 |  0 | Heals user for 1/2 damage dealt.
+073 | Leech Seed     | Grass    | Status   |   0 |  90% | 10 |  0 | Drains 1/8 target's max HP each turn.
+074 | Growth         | Normal   | Status   |   0 |  --  | 40 |  0 | Raises user's Sp.Atk by 1 stage.
+075 | Razor Leaf     | Grass    | Special  |  55 |  95% | 25 |  0 | High critical-hit ratio.
+076 | Solar Beam     | Grass    | Special  | 120 | 100% | 10 |  0 | Charges turn 1, fires turn 2.
+077 | Poison Powder  | Poison   | Status   |   0 |  75% | 35 |  0 | Poisons target.
+078 | Stun Spore     | Grass    | Status   |   0 |  75% | 30 |  0 | Paralyzes target.
+079 | Sleep Powder   | Grass    | Status   |   0 |  75% | 15 |  0 | Puts target to sleep.
+080 | Petal Dance    | Grass    | Special  |  70 | 100% | 20 |  0 | Attacks 2-3 turns, then user is confused.
+081 | String Shot    | Bug      | Status   |   0 |  95% | 40 |  0 | Lowers target's Speed by 1 stage.
+082 | Dragon Rage    | Dragon   | Special  |  -- | 100% | 10 |  0 | Always deals exactly 40 HP damage.
+083 | Fire Spin      | Fire     | Special  |  15 |  70% | 15 |  0 | Traps target for 2-5 turns.
+084 | Thunder Shock  | Electric | Special  |  40 | 100% | 30 |  0 | 10% chance to paralyze.
+085 | Thunderbolt    | Electric | Special  |  95 | 100% | 15 |  0 | 10% chance to paralyze.
+086 | Thunder Wave   | Electric | Status   |   0 | 100% | 20 |  0 | Paralyzes target.
+087 | Thunder        | Electric | Special  | 120 |  70% | 10 |  0 | 30% chance to paralyze. Never misses in rain.
+088 | Rock Throw     | Rock     | Physical |  50 |  90% | 15 |  0 | No additional effect.
+089 | Earthquake     | Ground   | Physical | 100 | 100% | 10 |  0 | No additional effect.
+090 | Fissure        | Ground   | Physical |  -- |  30% |  5 |  0 | OHKO move. Fails if user is slower.
+091 | Dig            | Ground   | Physical |  60 | 100% | 10 |  0 | Digs underground turn 1, attacks turn 2.
+092 | Toxic          | Poison   | Status   |   0 |  85% | 10 |  0 | Badly poisons target (damage increases each turn).
+093 | Confusion      | Psychic  | Special  |  50 | 100% | 25 |  0 | 10% chance to confuse.
+094 | Psychic        | Psychic  | Special  |  90 | 100% | 10 |  0 | 10% chance to lower target's Sp.Def by 1.
+095 | Hypnosis       | Psychic  | Status   |   0 |  60% | 20 |  0 | Puts target to sleep.
+096 | Meditate       | Psychic  | Status   |   0 |  --  | 40 |  0 | Raises user's Attack by 1 stage.
+097 | Agility        | Psychic  | Status   |   0 |  --  | 30 |  0 | Raises user's Speed by 2 stages.
+098 | Quick Attack   | Normal   | Physical |  40 | 100% | 30 | +1 | Priority move. Always goes first.
+099 | Rage           | Normal   | Physical |  20 | 100% | 20 |  0 | Attack rises by 1 when hit while using Rage.
+100 | Teleport       | Psychic  | Status   |   0 |  --  | 20 | -6 | Flees from wild battles.
+101 | Night Shade    | Ghost    | Physical |  -- | 100% | 15 |  0 | Deals damage equal to user's level.
+102 | Mimic          | Normal   | Status   |   0 | 100% | 10 |  0 | Copies one of target's moves.
+103 | Screech        | Normal   | Status   |   0 |  85% | 40 |  0 | Lowers target's Defense by 2 stages.
+104 | Double Team    | Normal   | Status   |   0 |  --  | 15 |  0 | Raises user's evasion by 1 stage.
+105 | Recover        | Normal   | Status   |   0 |  --  | 20 |  0 | Heals user by 1/2 max HP.
+106 | Harden         | Normal   | Status   |   0 |  --  | 30 |  0 | Raises user's Defense by 1 stage.
+107 | Minimize       | Normal   | Status   |   0 |  --  | 20 |  0 | Raises user's evasion by 1 stage.
+108 | Smokescreen    | Normal   | Status   |   0 | 100% | 20 |  0 | Lowers target's accuracy by 1 stage.
+109 | Confuse Ray    | Ghost    | Status   |   0 | 100% | 10 |  0 | Confuses target.
+110 | Withdraw       | Water    | Status   |   0 |  --  | 40 |  0 | Raises user's Defense by 1 stage.
+111 | Defense Curl   | Normal   | Status   |   0 |  --  | 40 |  0 | Raises user's Defense by 1 stage.
+112 | Barrier        | Psychic  | Status   |   0 |  --  | 30 |  0 | Raises user's Defense by 2 stages.
+113 | Light Screen   | Psychic  | Status   |   0 |  --  | 30 |  0 | Halves special damage for 5 turns.
+114 | Haze           | Ice      | Status   |   0 |  --  | 30 |  0 | Resets all stat changes for all Pokemon.
+115 | Reflect        | Psychic  | Status   |   0 |  --  | 20 |  0 | Halves physical damage for 5 turns.
+116 | Focus Energy   | Normal   | Status   |   0 |  --  | 30 |  0 | Increases critical-hit ratio.
+117 | Bide           | Normal   | Physical |  -- | 100% | 10 | +1 | Endures 2 turns, then returns 2x damage taken.
+118 | Metronome      | Normal   | Status   |   0 |  --  | 10 |  0 | Uses a random move.
+119 | Mirror Move    | Flying   | Status   |   0 |  --  | 20 |  0 | Uses target's last move.
+120 | Self-Destruct  | Normal   | Physical | 200 | 100% |  5 |  0 | User faints. Target's Def halved for calc.
+121 | Egg Bomb       | Normal   | Physical | 100 |  75% | 10 |  0 | No additional effect.
+122 | Lick           | Ghost    | Physical |  20 | 100% | 30 |  0 | 30% chance to paralyze.
+123 | Smog           | Poison   | Physical |  20 |  70% | 20 |  0 | 40% chance to poison.
+124 | Sludge         | Poison   | Physical |  65 | 100% | 20 |  0 | 30% chance to poison.
+125 | Bone Club      | Ground   | Physical |  65 |  85% | 20 |  0 | 10% chance to flinch.
+126 | Fire Blast     | Fire     | Special  | 120 |  85% |  5 |  0 | 10% chance to burn.
+127 | Waterfall      | Water    | Special  |  80 | 100% | 15 |  0 | No additional effect. HM07.
+128 | Clamp          | Water    | Special  |  35 |  75% | 10 |  0 | Traps target for 2-5 turns.
+129 | Swift          | Normal   | Physical |  60 |  --  | 20 |  0 | Never misses.
+130 | Skull Bash     | Normal   | Physical | 100 | 100% | 15 |  0 | Charges turn 1 (raises Def), attacks turn 2.
+131 | Spike Cannon   | Normal   | Physical |  20 | 100% | 15 |  0 | Hits 2-5 times.
+132 | Constrict      | Normal   | Physical |  10 | 100% | 35 |  0 | 10% chance to lower target's Speed by 1.
+133 | Amnesia        | Psychic  | Status   |   0 |  --  | 20 |  0 | Raises user's Sp.Def by 2 stages.
+134 | Kinesis        | Psychic  | Status   |   0 |  80% | 15 |  0 | Lowers target's accuracy by 1 stage.
+135 | Soft-Boiled    | Normal   | Status   |   0 |  --  | 10 |  0 | Heals user by 1/2 max HP.
+136 | High Jump Kick | Fighting | Physical |  85 |  90% | 20 |  0 | User takes 1/8 max HP crash damage on miss.
+137 | Glare          | Normal   | Status   |   0 |  75% | 30 |  0 | Paralyzes target.
+138 | Dream Eater    | Psychic  | Special  | 100 | 100% | 15 |  0 | Only works on sleeping target. Heals 1/2 damage dealt.
+139 | Poison Gas     | Poison   | Status   |   0 |  55% | 40 |  0 | Poisons target.
+140 | Barrage        | Normal   | Physical |  15 |  85% | 20 |  0 | Hits 2-5 times.
+141 | Leech Life     | Bug      | Physical |  20 | 100% | 15 |  0 | Heals user for 1/2 damage dealt.
+142 | Lovely Kiss    | Normal   | Status   |   0 |  75% | 10 |  0 | Puts target to sleep.
+143 | Sky Attack     | Flying   | Physical | 140 |  90% |  5 |  0 | Charges turn 1, attacks turn 2. High crit ratio.
+144 | Transform      | Normal   | Status   |   0 |  --  | 10 |  0 | User transforms into target.
+145 | Bubble         | Water    | Special  |  20 | 100% | 30 |  0 | 10% chance to lower target's Speed by 1.
+146 | Dizzy Punch    | Normal   | Physical |  70 | 100% | 10 |  0 | 20% chance to confuse.
+147 | Spore          | Grass    | Status   |   0 | 100% | 15 |  0 | Puts target to sleep.
+148 | Flash          | Normal   | Status   |   0 |  70% | 20 |  0 | Lowers target's accuracy by 1 stage. HM05.
+149 | Psywave        | Psychic  | Special  |  -- |  80% | 15 |  0 | Deals random damage: 0.5x to 1.5x user's level.
+150 | Splash         | Normal   | Status   |   0 |  --  | 40 |  0 | No effect.
+151 | Acid Armor     | Poison   | Status   |   0 |  --  | 40 |  0 | Raises user's Defense by 2 stages.
+152 | Crabhammer     | Water    | Special  |  90 |  85% | 10 |  0 | High critical-hit ratio.
+153 | Explosion      | Normal   | Physical | 250 | 100% |  5 |  0 | User faints. Target's Def halved for calc.
+154 | Fury Swipes    | Normal   | Physical |  18 |  80% | 15 |  0 | Hits 2-5 times.
+155 | Bonemerang     | Ground   | Physical |  50 |  90% | 10 |  0 | Hits 2 times.
+156 | Rest           | Psychic  | Status   |   0 |  --  | 10 |  0 | Heals fully, user sleeps for 2 turns.
+157 | Rock Slide     | Rock     | Physical |  75 |  90% | 10 |  0 | 30% chance to flinch.
+158 | Hyper Fang     | Normal   | Physical |  80 |  90% | 15 |  0 | 10% chance to flinch.
+159 | Sharpen        | Normal   | Status   |   0 |  --  | 30 |  0 | Raises user's Attack by 1 stage.
+160 | Conversion     | Normal   | Status   |   0 |  --  | 30 |  0 | Changes user's type to match first move.
+161 | Tri Attack     | Normal   | Physical |  80 | 100% | 10 |  0 | 20% total: burn, freeze, or paralyze (6.67% each).
+162 | Super Fang     | Normal   | Physical |  -- |  90% | 10 |  0 | Deals damage equal to 1/2 target's current HP.
+163 | Slash          | Normal   | Physical |  70 | 100% | 20 |  0 | High critical-hit ratio.
+164 | Substitute     | Normal   | Status   |   0 |  --  | 10 |  0 | Creates a decoy using 1/4 max HP.
+165 | Struggle       | Normal   | Physical |  50 |  --  | -- |  0 | Used when all PP is depleted. User takes 1/4 recoil.
+
+--- GEN 2 MOVES (166-251) ---
+
+166 | Sketch         | Normal   | Status   |   0 |  --  |  1 |  0 | Permanently copies target's last move. Smeargle only.
+167 | Triple Kick    | Fighting | Physical |  10 |  90% | 10 |  0 | Hits 3 times, power increases each hit (10/20/30).
+168 | Thief          | Dark     | Physical |  40 | 100% | 10 |  0 | Steals target's held item.
+169 | Spider Web     | Bug      | Status   |   0 |  --  | 10 |  0 | Prevents target from fleeing/switching.
+170 | Mind Reader    | Normal   | Status   |   0 | 100% |  5 |  0 | Next move will not miss.
+171 | Nightmare      | Ghost    | Status   |   0 | 100% | 15 |  0 | Sleeping target loses 1/4 max HP per turn.
+172 | Flame Wheel    | Fire     | Special  |  60 | 100% | 25 |  0 | 10% chance to burn. Thaws user if frozen.
+173 | Snore          | Normal   | Physical |  40 | 100% | 15 |  0 | Only works while asleep. 30% chance to flinch.
+174 | Curse          | ???      | Status   |   0 |  --  | 10 |  0 | Ghost: lose 1/2 HP, target loses 1/4/turn. Other: +Atk, +Def, -Speed.
+175 | Flail          | Normal   | Physical |  -- | 100% | 15 |  0 | Power increases as user's HP decreases (20-200).
+176 | Conversion 2   | Normal   | Status   |   0 |  --  | 30 |  0 | Changes user's type to resist last move used on it.
+177 | Aeroblast      | Flying   | Physical | 100 |  95% |  5 |  0 | High critical-hit ratio. Lugia signature.
+178 | Cotton Spore   | Grass    | Status   |   0 |  85% | 40 |  0 | Lowers target's Speed by 2 stages.
+179 | Reversal       | Fighting | Physical |  -- | 100% | 15 |  0 | Power increases as user's HP decreases (20-200).
+180 | Spite          | Ghost    | Status   |   0 | 100% | 10 |  0 | Reduces PP of target's last move by 2-5.
+181 | Powder Snow    | Ice      | Special  |  40 | 100% | 25 |  0 | 10% chance to freeze.
+182 | Protect        | Normal   | Status   |   0 |  --  | 10 | +3 | Blocks all moves this turn. Fails if used consecutively.
+183 | Mach Punch     | Fighting | Physical |  40 | 100% | 30 | +1 | Priority move. Always goes first.
+184 | Scary Face     | Normal   | Status   |   0 |  90% | 10 |  0 | Lowers target's Speed by 2 stages.
+185 | Feint Attack   | Dark     | Physical |  60 |  --  | 20 |  0 | Never misses.
+186 | Sweet Kiss     | Normal   | Status   |   0 |  75% | 10 |  0 | Confuses target.
+187 | Belly Drum     | Normal   | Status   |   0 |  --  | 10 |  0 | Loses 1/2 max HP, maximizes Attack (+6 stages).
+188 | Sludge Bomb    | Poison   | Physical |  90 | 100% | 10 |  0 | 30% chance to poison.
+189 | Mud-Slap       | Ground   | Physical |  20 | 100% | 10 |  0 | Lowers target's accuracy by 1 stage.
+190 | Octazooka      | Water    | Special  |  65 |  85% | 10 |  0 | 50% chance to lower target's accuracy by 1.
+191 | Spikes         | Ground   | Status   |   0 |  --  | 20 |  0 | Lays spikes that damage switching-in Pokemon.
+192 | Zap Cannon     | Electric | Special  | 100 |  50% |  5 |  0 | Always paralyzes if it hits.
+193 | Foresight      | Normal   | Status   |   0 | 100% | 40 |  0 | Allows Normal/Fighting to hit Ghost. Ignores evasion.
+194 | Destiny Bond   | Ghost    | Status   |   0 |  --  |  5 |  0 | If user faints next turn, attacker faints too.
+195 | Perish Song    | Normal   | Status   |   0 |  --  |  5 |  0 | All Pokemon in battle faint in 3 turns unless switched.
+196 | Icy Wind       | Ice      | Special  |  55 |  95% | 15 |  0 | Lowers target's Speed by 1 stage.
+197 | Detect         | Fighting | Status   |   0 |  --  |  5 | +3 | Like Protect. Blocks all moves this turn.
+198 | Bone Rush      | Ground   | Physical |  25 |  80% | 10 |  0 | Hits 2-5 times.
+199 | Lock-On        | Normal   | Status   |   0 | 100% |  5 |  0 | Next move will not miss.
+200 | Outrage        | Dragon   | Special  |  90 | 100% | 15 |  0 | Attacks 2-3 turns, then user is confused.
+201 | Sandstorm      | Rock     | Status   |   0 |  --  | 10 |  0 | Causes sandstorm for 5 turns. Damages non-Rock/Ground/Steel.
+202 | Giga Drain     | Grass    | Special  |  60 | 100% |  5 |  0 | Heals user for 1/2 damage dealt.
+203 | Endure         | Normal   | Status   |   0 |  --  | 10 | +3 | Survives with 1 HP this turn. Fails if used consecutively.
+204 | Charm          | Normal   | Status   |   0 | 100% | 20 |  0 | Lowers target's Attack by 2 stages.
+205 | Rollout        | Rock     | Physical |  30 |  90% | 20 |  0 | Hits 5 turns, power doubles each turn (30/60/120/240/480).
+206 | False Swipe    | Normal   | Physical |  40 | 100% | 40 |  0 | Always leaves target with at least 1 HP.
+207 | Swagger        | Normal   | Status   |   0 |  90% | 15 |  0 | Raises target's Attack by 2, confuses target.
+208 | Milk Drink     | Normal   | Status   |   0 |  --  | 10 |  0 | Heals user by 1/2 max HP.
+209 | Spark          | Electric | Special  |  65 | 100% | 20 |  0 | 30% chance to paralyze.
+210 | Fury Cutter    | Bug      | Physical |  10 |  95% | 20 |  0 | Power doubles each consecutive hit (10/20/40/80/160).
+211 | Steel Wing     | Steel    | Physical |  70 |  90% | 25 |  0 | 10% chance to raise user's Defense by 1.
+212 | Mean Look      | Normal   | Status   |   0 |  --  |  5 |  0 | Prevents target from fleeing/switching.
+213 | Attract        | Normal   | Status   |   0 | 100% | 15 |  0 | Infatuates opposite-gender target (50% chance to not attack).
+214 | Sleep Talk     | Normal   | Status   |   0 |  --  | 10 |  0 | Uses a random known move while asleep.
+215 | Heal Bell      | Normal   | Status   |   0 |  --  |  5 |  0 | Cures all party Pokemon of status conditions.
+216 | Return         | Normal   | Physical |  -- | 100% | 20 |  0 | Power = (friendship / 2.5). Max 102 at 255 friendship.
+217 | Present        | Normal   | Physical |  -- |  90% | 15 |  0 | Random: 40 (40%), 80 (30%), 120 (10%), heal 1/4 HP (20%).
+218 | Frustration    | Normal   | Physical |  -- | 100% | 20 |  0 | Power = ((255 - friendship) / 2.5). Max 102 at 0 friendship.
+219 | Safeguard      | Normal   | Status   |   0 |  --  | 25 |  0 | Prevents status conditions for 5 turns.
+220 | Pain Split     | Normal   | Status   |   0 | 100% | 20 |  0 | Averages user and target's current HP.
+221 | Sacred Fire    | Fire     | Special  | 100 |  95% |  5 |  0 | 50% chance to burn. Thaws user. Ho-Oh signature.
+222 | Magnitude      | Ground   | Physical |  -- | 100% | 30 |  0 | Random power: 10/30/50/70/90/110/150 (weighted).
+223 | Dynamic Punch  | Fighting | Physical | 100 |  50% |  5 |  0 | Always confuses if it hits.
+224 | Megahorn       | Bug      | Physical | 120 |  85% | 10 |  0 | No additional effect.
+225 | Dragon Breath  | Dragon   | Special  |  60 | 100% | 20 |  0 | 30% chance to paralyze.
+226 | Baton Pass     | Normal   | Status   |   0 |  --  | 40 |  0 | Switches out, passing stat changes to replacement.
+227 | Encore         | Normal   | Status   |   0 | 100% |  5 |  0 | Forces target to repeat last move for 2-6 turns.
+228 | Pursuit        | Dark     | Physical |  40 | 100% | 20 |  0 | Power doubles (80) if target is switching out.
+229 | Rapid Spin     | Normal   | Physical |  20 | 100% | 40 |  0 | Removes Spikes, Leech Seed, Bind, etc.
+230 | Sweet Scent    | Normal   | Status   |   0 | 100% | 20 |  0 | Lowers target's evasion by 1 stage.
+231 | Iron Tail      | Steel    | Physical | 100 |  75% | 15 |  0 | 30% chance to lower target's Defense by 1.
+232 | Metal Claw     | Steel    | Physical |  50 |  95% | 35 |  0 | 10% chance to raise user's Attack by 1.
+233 | Vital Throw    | Fighting | Physical |  70 |  --  | 10 | -1 | Always goes last, but never misses.
+234 | Morning Sun    | Normal   | Status   |   0 |  --  |  5 |  0 | Heals HP. Amount varies with weather.
+235 | Synthesis      | Grass    | Status   |   0 |  --  |  5 |  0 | Heals HP. Amount varies with weather.
+236 | Moonlight      | Normal   | Status   |   0 |  --  |  5 |  0 | Heals HP. Amount varies with weather.
+237 | Hidden Power   | Normal   | Physical |  -- | 100% | 15 |  0 | Type and power (31-70) determined by DVs/IVs.
+238 | Cross Chop     | Fighting | Physical | 100 |  80% |  5 |  0 | High critical-hit ratio.
+239 | Twister        | Dragon   | Special  |  40 | 100% | 20 |  0 | 20% chance to flinch.
+240 | Rain Dance     | Water    | Status   |   0 |  --  |  5 |  0 | Summons rain for 5 turns.
+241 | Sunny Day      | Fire     | Status   |   0 |  --  |  5 |  0 | Summons harsh sunlight for 5 turns.
+242 | Crunch         | Dark     | Physical |  80 | 100% | 15 |  0 | 20% chance to lower target's Sp.Def by 1. (Gen 2)
+243 | Mirror Coat    | Psychic  | Special  |  -- | 100% | 20 | -5 | Returns 2x special damage taken this turn.
+244 | Psych Up       | Normal   | Status   |   0 |  --  | 10 |  0 | Copies target's stat changes.
+245 | Extreme Speed  | Normal   | Physical |  80 | 100% |  5 | +1 | Priority move. Always goes first.
+246 | Ancient Power  | Rock     | Physical |  60 | 100% |  5 |  0 | 10% chance to raise all stats by 1.
+247 | Shadow Ball    | Ghost    | Physical |  80 | 100% | 15 |  0 | 20% chance to lower target's Sp.Def by 1.
+248 | Future Sight   | Psychic  | Special  |  80 |  90% | 15 |  0 | Attacks 2 turns later. Ignores type immunity in Gen 2.
+249 | Rock Smash     | Fighting | Physical |  20 | 100% | 15 |  0 | 50% chance to lower target's Defense by 1. HM06.
+250 | Whirlpool      | Water    | Special  |  15 |  70% | 15 |  0 | Traps target for 2-5 turns. HM06 (Crystal).
+251 | Beat Up        | Dark     | Physical |  -- | 100% | 10 |  0 | Each conscious party member attacks.
+
+--- ADDITIONAL NOTES ON GEN 2 MOVE VALUES ---
+These moves had DIFFERENT stats in Gen 2 compared to later games:
+- Tackle: 35 power, 95% acc in Gen 2 (later: 40/100%, then 50/100%)
+- Dig: 60 power in Gen 2 (was 100 in Gen 1, later changed back to 80)
+- Gust: 40 power (unchanged through Gen 2)
+- Wing Attack: 60 power (was 35 in Gen 1)
+- Outrage: 90 power in Gen 2 (later: 120)
+- Giga Drain: 60 power, 5 PP in Gen 2 (later: 75 power, 10 PP)
+- Flamethrower/Thunderbolt/Ice Beam/Surf: 95 power in Gen 2 (later: 90)
+- Hydro Pump/Blizzard/Thunder/Fire Blast: 120 power in Gen 2 (later: 110)
+- Crabhammer: 90 power in Gen 2 (later: 100)
+- Future Sight: 80 power, 90% acc in Gen 2 (later: 120/100%)
+- Petal Dance: 70 power in Gen 2 (later: 120)
+- Thrash: 90 power in Gen 2 (later: 120)
+- Zap Cannon: 100 power in Gen 2 (later: 120)
+- Rock Smash: 20 power in Gen 2 (later: 40)
+- Fly: 70 power in Gen 2 (later: 90)
+- Vine Whip: 35 power, 10 PP in Gen 2 (later: 45/25)
+
+--- PRIORITY SUMMARY ---
++3: Protect, Detect, Endure
++1: Quick Attack, Mach Punch, Extreme Speed, Bide
+ 0: Most moves
+-1: Vital Throw, Counter
+-5: Mirror Coat
+-6: Whirlwind, Roar, Teleport
+
+
+================================================================================
+PART 2: EVOLUTION DATA
+================================================================================
+
+Format: Base -> Evolution (Method)
+
+--- JOHTO STARTERS ---
+Chikorita -> Bayleef (Level 16) -> Meganium (Level 32)
+Cyndaquil -> Quilava (Level 14) -> Typhlosion (Level 36)
+Totodile -> Croconaw (Level 18) -> Feraligatr (Level 30)
+
+--- KANTO STARTERS ---
+Bulbasaur -> Ivysaur (Level 16) -> Venusaur (Level 32)
+Charmander -> Charmeleon (Level 16) -> Charizard (Level 36)
+Squirtle -> Wartortle (Level 16) -> Blastoise (Level 36)
+
+--- LEVEL-UP EVOLUTIONS ---
+Caterpie -> Metapod (Level 7) -> Butterfree (Level 10)
+Weedle -> Kakuna (Level 7) -> Beedrill (Level 10)
+Pidgey -> Pidgeotto (Level 18) -> Pidgeot (Level 36)
+Rattata -> Raticate (Level 20)
+Spearow -> Fearow (Level 20)
+Ekans -> Arbok (Level 22)
+Sandshrew -> Sandslash (Level 22)
+Nidoran-F -> Nidorina (Level 16) -> Nidoqueen (Moon Stone)
+Nidoran-M -> Nidorino (Level 16) -> Nidoking (Moon Stone)
+Zubat -> Golbat (Level 22) -> Crobat (Happiness)
+Oddish -> Gloom (Level 21) -> Vileplume (Leaf Stone) OR Bellossom (Sun Stone)
+Paras -> Parasect (Level 24)
+Venonat -> Venomoth (Level 31)
+Diglett -> Dugtrio (Level 26)
+Meowth -> Persian (Level 28)
+Psyduck -> Golduck (Level 33)
+Mankey -> Primeape (Level 28)
+Poliwag -> Poliwhirl (Level 25) -> Poliwrath (Water Stone) OR Politoed (Trade w/ King's Rock)
+Abra -> Kadabra (Level 16) -> Alakazam (Trade)
+Machop -> Machoke (Level 28) -> Machamp (Trade)
+Bellsprout -> Weepinbell (Level 21) -> Victreebel (Leaf Stone)
+Tentacool -> Tentacruel (Level 30)
+Geodude -> Graveler (Level 25) -> Golem (Trade)
+Ponyta -> Rapidash (Level 40)
+Slowpoke -> Slowbro (Level 37) OR Slowking (Trade w/ King's Rock)
+Magnemite -> Magneton (Level 30)
+Doduo -> Dodrio (Level 31)
+Seel -> Dewgong (Level 34)
+Grimer -> Muk (Level 38)
+Gastly -> Haunter (Level 25) -> Gengar (Trade)
+Drowzee -> Hypno (Level 26)
+Krabby -> Kingler (Level 28)
+Voltorb -> Electrode (Level 30)
+Cubone -> Marowak (Level 28)
+Koffing -> Weezing (Level 35)
+Rhyhorn -> Rhydon (Level 42)
+Horsea -> Seadra (Level 32) -> Kingdra (Trade w/ Dragon Scale)
+Goldeen -> Seaking (Level 33)
+Magikarp -> Gyarados (Level 20)
+Dratini -> Dragonair (Level 30) -> Dragonite (Level 55)
+Sentret -> Furret (Level 15)
+Hoothoot -> Noctowl (Level 20)
+Ledyba -> Ledian (Level 18)
+Spinarak -> Ariados (Level 22)
+Chinchou -> Lanturn (Level 27)
+Natu -> Xatu (Level 25)
+Mareep -> Flaaffy (Level 15) -> Ampharos (Level 30)
+Marill -> Azumarill (Level 18)
+Hoppip -> Skiploom (Level 18) -> Jumpluff (Level 27)
+Wooper -> Quagsire (Level 20)
+Pineco -> Forretress (Level 31)
+Snubbull -> Granbull (Level 23)
+Teddiursa -> Ursaring (Level 30)
+Slugma -> Magcargo (Level 38)
+Swinub -> Piloswine (Level 33)
+Remoraid -> Octillery (Level 25)
+Houndour -> Houndoom (Level 24)
+Phanpy -> Donphan (Level 25)
+Larvitar -> Pupitar (Level 30) -> Tyranitar (Level 55)
+Omanyte -> Omastar (Level 40)
+Kabuto -> Kabutops (Level 40)
+
+--- STONE EVOLUTIONS ---
+Pikachu -> Raichu (Thunder Stone)
+Nidorina -> Nidoqueen (Moon Stone)
+Nidorino -> Nidoking (Moon Stone)
+Clefairy -> Clefable (Moon Stone)
+Vulpix -> Ninetales (Fire Stone)
+Jigglypuff -> Wigglytuff (Moon Stone)
+Gloom -> Vileplume (Leaf Stone)
+Gloom -> Bellossom (Sun Stone)
+Growlithe -> Arcanine (Fire Stone)
+Poliwhirl -> Poliwrath (Water Stone)
+Weepinbell -> Victreebel (Leaf Stone)
+Shellder -> Cloyster (Water Stone)
+Exeggcute -> Exeggutor (Leaf Stone)
+Staryu -> Starmie (Water Stone)
+Eevee -> Vaporeon (Water Stone)
+Eevee -> Jolteon (Thunder Stone)
+Eevee -> Flareon (Fire Stone)
+Sunkern -> Sunflora (Sun Stone)
+
+--- TRADE EVOLUTIONS ---
+Kadabra -> Alakazam (Trade)
+Machoke -> Machamp (Trade)
+Graveler -> Golem (Trade)
+Haunter -> Gengar (Trade)
+Onix -> Steelix (Trade w/ Metal Coat)
+Scyther -> Scizor (Trade w/ Metal Coat)
+Poliwhirl -> Politoed (Trade w/ King's Rock)
+Slowpoke -> Slowking (Trade w/ King's Rock)
+Seadra -> Kingdra (Trade w/ Dragon Scale)
+Porygon -> Porygon2 (Trade w/ Up-Grade)
+
+--- HAPPINESS EVOLUTIONS ---
+Pichu -> Pikachu (Happiness)
+Cleffa -> Clefairy (Happiness)
+Igglybuff -> Jigglypuff (Happiness)
+Togepi -> Togetic (Happiness)
+Golbat -> Crobat (Happiness)
+Eevee -> Espeon (Happiness, Daytime)
+Eevee -> Umbreon (Happiness, Nighttime)
+Chansey -> Blissey (Happiness)
+
+--- SPECIAL EVOLUTIONS ---
+Tyrogue -> Hitmonlee (Level 20, when Attack > Defense)
+Tyrogue -> Hitmonchan (Level 20, when Attack < Defense)
+Tyrogue -> Hitmontop (Level 20, when Attack = Defense)
+
+--- NO EVOLUTION (STANDALONE POKEMON) ---
+Farfetch'd, Kangaskhan, Mr. Mime, Pinsir, Tauros, Ditto, Aerodactyl,
+Lapras, Snorlax, Articuno, Zapdos, Moltres, Mewtwo, Mew,
+Unown, Wobbuffet, Dunsparce, Girafarig, Qwilfish, Shuckle,
+Heracross, Corsola, Delibird, Mantine, Skarmory, Stantler,
+Smeargle, Miltank, Raikou, Entei, Suicune, Lugia, Ho-Oh, Celebi,
+Sudowoodo, Yanma, Aipom, Murkrow, Misdreavus, Gligar, Sneasel,
+Lickitung, Tangela, Magby (baby), Smoochum (baby), Elekid (baby)
+
+Note: Magby->Magmar (Level 30), Smoochum->Jynx (Level 30), Elekid->Electabuzz (Level 30)
+These are baby Pokemon with level-up evolutions.
+
+
+================================================================================
+PART 3: STARTER LEARNSETS (Level-Up, Generation II)
+================================================================================
+
+--- CHIKORITA (Grass) ---
+Lv  1 | Tackle
+Lv  1 | Growl
+Lv  8 | Razor Leaf
+Lv 12 | Reflect
+Lv 15 | PoisonPowder
+Lv 22 | Synthesis
+Lv 29 | Body Slam
+Lv 36 | Light Screen
+Lv 43 | Safeguard
+Lv 50 | Solar Beam
+
+--- BAYLEEF (Grass) ---
+Lv  1 | Tackle
+Lv  1 | Growl
+Lv  1 | Razor Leaf
+Lv  1 | Reflect
+Lv  8 | Razor Leaf
+Lv 12 | Reflect
+Lv 15 | PoisonPowder
+Lv 23 | Synthesis
+Lv 31 | Body Slam
+Lv 39 | Light Screen
+Lv 47 | Safeguard
+Lv 55 | Solar Beam
+
+--- MEGANIUM (Grass) ---
+Lv  1 | Tackle
+Lv  1 | Growl
+Lv  1 | Razor Leaf
+Lv  1 | Reflect
+Lv  8 | Razor Leaf
+Lv 12 | Reflect
+Lv 15 | PoisonPowder
+Lv 23 | Synthesis
+Lv 31 | Body Slam
+Lv 41 | Light Screen
+Lv 51 | Safeguard
+Lv 61 | Solar Beam
+
+--- CYNDAQUIL (Fire) ---
+Lv  1 | Tackle
+Lv  1 | Leer
+Lv  6 | SmokeScreen
+Lv 12 | Ember
+Lv 19 | Quick Attack
+Lv 27 | Flame Wheel
+Lv 36 | Swift
+Lv 46 | Flamethrower
+
+--- QUILAVA (Fire) ---
+Lv  1 | Tackle
+Lv  1 | Leer
+Lv  1 | SmokeScreen
+Lv  6 | SmokeScreen
+Lv 12 | Ember
+Lv 21 | Quick Attack
+Lv 31 | Flame Wheel
+Lv 42 | Swift
+Lv 54 | Flamethrower
+
+--- TYPHLOSION (Fire) ---
+Lv  1 | Tackle
+Lv  1 | Leer
+Lv  1 | SmokeScreen
+Lv  1 | Ember
+Lv  6 | SmokeScreen
+Lv 12 | Ember
+Lv 21 | Quick Attack
+Lv 31 | Flame Wheel
+Lv 45 | Swift
+Lv 60 | Flamethrower
+
+--- TOTODILE (Water) ---
+Lv  1 | Scratch
+Lv  1 | Leer
+Lv  7 | Rage
+Lv 13 | Water Gun
+Lv 20 | Bite
+Lv 27 | Scary Face
+Lv 35 | Slash
+Lv 43 | Screech
+Lv 52 | Hydro Pump
+
+--- CROCONAW (Water) ---
+Lv  1 | Scratch
+Lv  1 | Leer
+Lv  1 | Rage
+Lv  7 | Rage
+Lv 13 | Water Gun
+Lv 21 | Bite
+Lv 28 | Scary Face
+Lv 37 | Slash
+Lv 45 | Screech
+Lv 55 | Hydro Pump
+
+--- FERALIGATR (Water) ---
+Lv  1 | Scratch
+Lv  1 | Leer
+Lv  1 | Rage
+Lv  1 | Water Gun
+Lv  7 | Rage
+Lv 13 | Water Gun
+Lv 21 | Bite
+Lv 28 | Scary Face
+Lv 38 | Slash
+Lv 47 | Screech
+Lv 58 | Hydro Pump
+
+
+================================================================================
+PART 4: BASE STATS & POKEMON DATA
+================================================================================
+
+Format: #NNN | Name | Type1/Type2 | HP/Atk/Def/SpA/SpD/Spe | BST | CatchRate | BaseEXP | Growth
+
+Note: Stats reflect Gen II values (Sp.Atk/Sp.Def split from Gen 1 Special stat).
+BST = Base Stat Total. Growth = growth rate group.
+
+--- JOHTO STARTERS ---
+#152 | Chikorita   | Grass       |  45/ 49/ 65/ 49/ 65/ 45 | 318 |  45 |  64 | Medium Slow
+#153 | Bayleef     | Grass       |  60/ 62/ 80/ 63/ 80/ 60 | 405 |  45 | 141 | Medium Slow
+#154 | Meganium    | Grass       |  80/ 82/100/ 83/100/ 80 | 525 |  45 | 208 | Medium Slow
+#155 | Cyndaquil   | Fire        |  39/ 52/ 43/ 60/ 50/ 65 | 309 |  45 |  65 | Medium Slow
+#156 | Quilava     | Fire        |  58/ 64/ 58/ 80/ 65/ 80 | 405 |  45 | 142 | Medium Slow
+#157 | Typhlosion  | Fire        |  78/ 84/ 78/109/ 85/100 | 534 |  45 | 209 | Medium Slow
+#158 | Totodile    | Water       |  50/ 65/ 64/ 44/ 48/ 43 | 314 |  45 |  66 | Medium Slow
+#159 | Croconaw    | Water       |  65/ 80/ 80/ 59/ 63/ 58 | 405 |  45 | 143 | Medium Slow
+#160 | Feraligatr  | Water       |  85/105/100/ 79/ 83/ 78 | 530 |  45 | 210 | Medium Slow
+
+--- EARLY ROUTE POKEMON ---
+#016 | Pidgey      | Normal/Flying  |  40/ 45/ 40/ 35/ 35/ 56 | 251 | 255 |  55 | Medium Slow
+#017 | Pidgeotto   | Normal/Flying  |  63/ 60/ 55/ 50/ 50/ 71 | 349 | 120 | 113 | Medium Slow
+#018 | Pidgeot     | Normal/Flying  |  83/ 80/ 75/ 70/ 70/ 91 | 469 |  45 | 172 | Medium Slow
+#019 | Rattata     | Normal         |  30/ 56/ 35/ 25/ 35/ 72 | 253 | 255 |  57 | Medium Fast
+#020 | Raticate    | Normal         |  55/ 81/ 60/ 50/ 70/ 97 | 413 | 127 | 116 | Medium Fast
+#021 | Spearow     | Normal/Flying  |  40/ 60/ 30/ 31/ 31/ 70 | 262 | 255 |  58 | Medium Fast
+#022 | Fearow      | Normal/Flying  |  65/ 90/ 65/ 61/ 61/100 | 442 |  90 | 162 | Medium Fast
+#161 | Sentret     | Normal         |  35/ 46/ 34/ 35/ 45/ 20 | 215 | 255 |  57 | Medium Fast
+#162 | Furret      | Normal         |  85/ 76/ 64/ 45/ 55/ 90 | 415 |  90 | 116 | Medium Fast
+#163 | Hoothoot    | Normal/Flying  |  60/ 30/ 30/ 36/ 56/ 50 | 262 | 255 |  58 | Medium Fast
+#164 | Noctowl     | Normal/Flying  | 100/ 50/ 50/ 76/ 96/ 70 | 442 |  90 | 162 | Medium Fast
+#165 | Ledyba      | Bug/Flying     |  40/ 20/ 30/ 40/ 80/ 55 | 265 | 255 |  54 | Fast
+#166 | Ledian      | Bug/Flying     |  55/ 35/ 50/ 55/110/ 85 | 390 |  90 | 134 | Fast
+#167 | Spinarak    | Bug/Poison     |  40/ 60/ 40/ 40/ 40/ 30 | 250 | 255 |  54 | Fast
+#168 | Ariados     | Bug/Poison     |  70/ 90/ 70/ 60/ 60/ 40 | 390 |  90 | 134 | Fast
+
+--- COMMON JOHTO POKEMON ---
+#010 | Caterpie    | Bug            |  45/ 30/ 35/ 20/ 20/ 45 | 195 | 255 |  53 | Medium Fast
+#011 | Metapod     | Bug            |  50/ 20/ 55/ 25/ 25/ 30 | 205 | 120 |  72 | Medium Fast
+#012 | Butterfree  | Bug/Flying     |  60/ 45/ 50/ 80/ 80/ 70 | 385 |  45 | 160 | Medium Fast
+#013 | Weedle      | Bug/Poison     |  40/ 35/ 30/ 20/ 20/ 50 | 195 | 255 |  52 | Medium Fast
+#014 | Kakuna      | Bug/Poison     |  45/ 25/ 50/ 25/ 25/ 35 | 205 | 120 |  71 | Medium Fast
+#015 | Beedrill    | Bug/Poison     |  65/ 80/ 40/ 45/ 80/ 75 | 385 |  45 | 159 | Medium Fast
+#023 | Ekans       | Poison         |  35/ 60/ 44/ 40/ 54/ 55 | 288 | 255 |  62 | Medium Fast
+#024 | Arbok       | Poison         |  60/ 85/ 69/ 65/ 79/ 80 | 438 |  90 | 147 | Medium Fast
+#025 | Pikachu     | Electric       |  35/ 55/ 30/ 50/ 40/ 90 | 300 | 190 |  82 | Medium Fast
+#026 | Raichu      | Electric       |  60/ 90/ 55/ 90/ 80/100 | 475 |  75 | 122 | Medium Fast
+#027 | Sandshrew   | Ground         |  50/ 75/ 85/ 20/ 30/ 40 | 300 | 255 |  93 | Medium Fast
+#028 | Sandslash   | Ground         |  75/100/110/ 45/ 55/ 65 | 450 |  90 | 163 | Medium Fast
+#029 | Nidoran-F   | Poison         |  55/ 47/ 52/ 40/ 40/ 41 | 275 | 235 |  59 | Medium Slow
+#030 | Nidorina    | Poison         |  70/ 62/ 67/ 55/ 55/ 56 | 365 | 120 | 117 | Medium Slow
+#031 | Nidoqueen   | Poison/Ground  |  90/ 82/ 87/ 75/ 85/ 76 | 495 |  45 | 194 | Medium Slow
+#032 | Nidoran-M   | Poison         |  46/ 57/ 40/ 40/ 40/ 50 | 273 | 235 |  60 | Medium Slow
+#033 | Nidorino    | Poison         |  61/ 72/ 57/ 55/ 55/ 65 | 365 | 120 | 118 | Medium Slow
+#034 | Nidoking    | Poison/Ground  |  81/ 92/ 77/ 85/ 75/ 85 | 495 |  45 | 195 | Medium Slow
+#035 | Clefairy    | Normal         |  70/ 45/ 48/ 60/ 65/ 35 | 323 | 150 |  68 | Fast
+#036 | Clefable    | Normal         |  95/ 70/ 73/ 85/ 90/ 60 | 473 |  25 | 129 | Fast
+#037 | Vulpix      | Fire           |  38/ 41/ 40/ 50/ 65/ 65 | 299 | 190 |  63 | Medium Fast
+#038 | Ninetales   | Fire           |  73/ 76/ 75/ 81/100/100 | 505 |  75 | 178 | Medium Fast
+#039 | Jigglypuff  | Normal         | 115/ 45/ 20/ 45/ 25/ 20 | 270 | 170 |  76 | Fast
+#040 | Wigglytuff  | Normal         | 140/ 70/ 45/ 75/ 50/ 45 | 425 |  50 | 109 | Fast
+#041 | Zubat       | Poison/Flying  |  40/ 45/ 35/ 30/ 40/ 55 | 245 | 255 |  54 | Medium Fast
+#042 | Golbat      | Poison/Flying  |  75/ 80/ 70/ 65/ 75/ 90 | 455 |  90 | 171 | Medium Fast
+#169 | Crobat      | Poison/Flying  |  85/ 90/ 80/ 70/ 80/130 | 535 |  90 | 204 | Medium Fast
+#043 | Oddish      | Grass/Poison   |  45/ 50/ 55/ 75/ 65/ 30 | 320 | 255 |  78 | Medium Slow
+#044 | Gloom       | Grass/Poison   |  60/ 65/ 70/ 85/ 75/ 40 | 395 | 120 | 132 | Medium Slow
+#045 | Vileplume   | Grass/Poison   |  75/ 80/ 85/100/ 90/ 50 | 480 |  45 | 184 | Medium Slow
+#182 | Bellossom   | Grass          |  75/ 80/ 85/ 90/100/ 50 | 480 |  45 | 184 | Medium Slow
+#046 | Paras       | Bug/Grass      |  35/ 70/ 55/ 45/ 55/ 25 | 285 | 190 |  70 | Medium Fast
+#047 | Parasect    | Bug/Grass      |  60/ 95/ 80/ 60/ 80/ 30 | 405 |  75 | 128 | Medium Fast
+#048 | Venonat     | Bug/Poison     |  60/ 55/ 50/ 40/ 55/ 45 | 305 | 190 |  75 | Medium Fast
+#049 | Venomoth    | Bug/Poison     |  70/ 65/ 60/ 90/ 75/ 90 | 450 |  75 | 138 | Medium Fast
+#050 | Diglett     | Ground         |  10/ 55/ 25/ 35/ 45/ 95 | 265 | 255 |  81 | Medium Fast
+#051 | Dugtrio     | Ground         |  35/ 80/ 50/ 50/ 70/120 | 405 |  50 | 153 | Medium Fast
+#052 | Meowth      | Normal         |  40/ 45/ 35/ 40/ 40/ 90 | 290 | 255 |  69 | Medium Fast
+#053 | Persian     | Normal         |  65/ 70/ 60/ 65/ 65/115 | 440 |  90 | 148 | Medium Fast
+#054 | Psyduck     | Water          |  50/ 52/ 48/ 65/ 50/ 55 | 320 | 190 |  80 | Medium Fast
+#055 | Golduck     | Water          |  80/ 82/ 78/ 95/ 80/ 85 | 500 |  75 | 174 | Medium Fast
+#056 | Mankey      | Fighting       |  40/ 80/ 35/ 35/ 45/ 70 | 305 | 190 |  74 | Medium Fast
+#057 | Primeape    | Fighting       |  65/105/ 60/ 60/ 70/ 95 | 455 |  75 | 149 | Medium Fast
+#058 | Growlithe   | Fire           |  55/ 70/ 45/ 70/ 50/ 60 | 350 | 190 |  91 | Slow
+#059 | Arcanine    | Fire           |  90/110/ 80/100/ 80/ 95 | 555 |  75 | 213 | Slow
+#060 | Poliwag     | Water          |  40/ 50/ 40/ 40/ 40/ 90 | 300 | 255 |  77 | Medium Slow
+#061 | Poliwhirl   | Water          |  65/ 65/ 65/ 50/ 50/ 90 | 385 | 120 | 131 | Medium Slow
+#062 | Poliwrath   | Water/Fighting |  90/ 85/ 95/ 70/ 90/ 70 | 500 |  45 | 185 | Medium Slow
+#186 | Politoed    | Water          |  90/ 75/ 75/ 90/100/ 70 | 500 |  45 | 185 | Medium Slow
+#063 | Abra        | Psychic        |  25/ 20/ 15/105/ 55/ 90 | 310 | 200 |  75 | Medium Slow
+#064 | Kadabra     | Psychic        |  40/ 35/ 30/120/ 70/105 | 400 | 100 | 145 | Medium Slow
+#065 | Alakazam    | Psychic        |  55/ 50/ 45/135/ 85/120 | 490 |  50 | 186 | Medium Slow
+#066 | Machop      | Fighting       |  70/ 80/ 50/ 35/ 35/ 35 | 305 | 180 |  75 | Medium Slow
+#067 | Machoke     | Fighting       |  80/100/ 70/ 50/ 60/ 45 | 405 |  90 | 146 | Medium Slow
+#068 | Machamp     | Fighting       |  90/130/ 80/ 65/ 85/ 55 | 505 |  45 | 193 | Medium Slow
+#069 | Bellsprout  | Grass/Poison   |  50/ 75/ 35/ 70/ 30/ 40 | 300 | 255 |  84 | Medium Slow
+#070 | Weepinbell  | Grass/Poison   |  65/ 90/ 50/ 85/ 45/ 55 | 390 | 120 | 151 | Medium Slow
+#071 | Victreebel  | Grass/Poison   |  80/105/ 65/100/ 60/ 70 | 480 |  45 | 191 | Medium Slow
+#072 | Tentacool   | Water/Poison   |  40/ 40/ 35/ 50/100/ 70 | 335 | 190 | 105 | Slow
+#073 | Tentacruel  | Water/Poison   |  80/ 70/ 65/ 80/120/100 | 515 |  60 | 205 | Slow
+#074 | Geodude     | Rock/Ground    |  40/ 80/100/ 30/ 30/ 20 | 300 | 255 |  73 | Medium Slow
+#075 | Graveler    | Rock/Ground    |  55/ 95/115/ 45/ 45/ 35 | 390 | 120 | 134 | Medium Slow
+#076 | Golem       | Rock/Ground    |  80/110/130/ 55/ 65/ 45 | 485 |  45 | 177 | Medium Slow
+#077 | Ponyta      | Fire           |  50/ 85/ 55/ 65/ 65/ 90 | 410 | 190 | 152 | Medium Fast
+#078 | Rapidash    | Fire           |  65/100/ 70/ 80/ 80/105 | 500 |  60 | 192 | Medium Fast
+#079 | Slowpoke    | Water/Psychic  |  90/ 65/ 65/ 40/ 40/ 15 | 315 | 190 |  99 | Medium Fast
+#080 | Slowbro     | Water/Psychic  |  95/ 75/110/100/ 80/ 30 | 490 |  75 | 164 | Medium Fast
+#199 | Slowking    | Water/Psychic  |  95/ 75/ 80/100/110/ 30 | 490 |  70 | 164 | Medium Fast
+#081 | Magnemite   | Electric/Steel |  25/ 35/ 70/ 95/ 55/ 45 | 325 | 190 |  89 | Medium Fast
+#082 | Magneton    | Electric/Steel |  50/ 60/ 95/120/ 70/ 70 | 465 |  60 | 161 | Medium Fast
+#083 | Farfetch'd  | Normal/Flying  |  52/ 65/ 55/ 58/ 62/ 60 | 352 |  45 |  94 | Medium Fast
+#084 | Doduo       | Normal/Flying  |  35/ 85/ 45/ 35/ 35/ 75 | 310 | 190 |  96 | Medium Fast
+#085 | Dodrio      | Normal/Flying  |  60/110/ 70/ 60/ 60/100 | 460 |  45 | 158 | Medium Fast
+#086 | Seel        | Water          |  65/ 45/ 55/ 45/ 70/ 45 | 325 | 190 | 100 | Medium Fast
+#087 | Dewgong     | Water/Ice      |  90/ 70/ 80/ 70/ 95/ 70 | 475 |  75 | 176 | Medium Fast
+#088 | Grimer      | Poison         |  80/ 80/ 50/ 40/ 50/ 25 | 325 | 190 |  90 | Medium Fast
+#089 | Muk         | Poison         | 105/105/ 75/ 65/100/ 50 | 500 |  75 | 157 | Medium Fast
+#090 | Shellder    | Water          |  30/ 65/100/ 45/ 25/ 40 | 305 | 190 |  97 | Slow
+#091 | Cloyster    | Water/Ice      |  50/ 95/180/ 85/ 45/ 70 | 525 |  60 | 203 | Slow
+#092 | Gastly      | Ghost/Poison   |  30/ 35/ 30/100/ 35/ 80 | 310 | 190 |  95 | Medium Slow
+#093 | Haunter     | Ghost/Poison   |  45/ 50/ 45/115/ 55/ 95 | 405 |  90 | 126 | Medium Slow
+#094 | Gengar      | Ghost/Poison   |  60/ 65/ 60/130/ 75/110 | 500 |  45 | 190 | Medium Slow
+#095 | Onix        | Rock/Ground    |  35/ 45/160/ 30/ 45/ 70 | 385 |  45 | 108 | Medium Fast
+#208 | Steelix     | Steel/Ground   |  75/ 85/200/ 55/ 65/ 30 | 510 |  25 | 196 | Medium Fast
+#096 | Drowzee     | Psychic        |  60/ 48/ 45/ 43/ 90/ 42 | 328 | 190 | 102 | Medium Fast
+#097 | Hypno       | Psychic        |  85/ 73/ 70/ 73/115/ 67 | 483 |  75 | 165 | Medium Fast
+#098 | Krabby      | Water          |  30/105/ 90/ 25/ 25/ 50 | 325 | 225 | 115 | Medium Fast
+#099 | Kingler     | Water          |  55/130/115/ 50/ 50/ 75 | 475 |  60 | 206 | Medium Fast
+#100 | Voltorb     | Electric       |  40/ 30/ 50/ 55/ 55/100 | 330 | 190 | 103 | Medium Fast
+#101 | Electrode   | Electric       |  60/ 50/ 70/ 80/ 80/140 | 480 |  60 | 150 | Medium Fast
+#102 | Exeggcute   | Grass/Psychic  |  60/ 40/ 80/ 60/ 45/ 40 | 325 |  90 |  98 | Slow
+#103 | Exeggutor   | Grass/Psychic  |  95/ 95/ 85/125/ 65/ 55 | 520 |  45 | 212 | Slow
+#104 | Cubone      | Ground         |  50/ 50/ 95/ 40/ 50/ 35 | 320 | 190 |  87 | Medium Fast
+#105 | Marowak     | Ground         |  60/ 80/110/ 50/ 80/ 45 | 425 |  75 | 124 | Medium Fast
+#106 | Hitmonlee   | Fighting       |  50/120/ 53/ 35/110/ 87 | 455 |  45 | 139 | Medium Fast
+#107 | Hitmonchan  | Fighting       |  50/105/ 79/ 35/110/ 76 | 455 |  45 | 140 | Medium Fast
+#237 | Hitmontop   | Fighting       |  50/ 95/ 95/ 35/110/ 70 | 455 |  45 | 138 | Medium Fast
+#236 | Tyrogue     | Fighting       |  35/ 35/ 35/ 35/ 35/ 35 | 210 |  75 |  91 | Medium Fast
+#108 | Lickitung   | Normal         |  90/ 55/ 75/ 60/ 75/ 30 | 385 |  45 | 127 | Medium Fast
+#109 | Koffing     | Poison         |  40/ 65/ 95/ 60/ 45/ 35 | 340 | 190 | 114 | Medium Fast
+#110 | Weezing     | Poison         |  65/ 90/120/ 85/ 70/ 60 | 490 |  60 | 173 | Medium Fast
+#111 | Rhyhorn     | Ground/Rock    |  80/ 85/ 95/ 30/ 30/ 25 | 345 | 120 | 135 | Slow
+#112 | Rhydon      | Ground/Rock    | 105/130/120/ 45/ 45/ 40 | 485 |  60 | 204 | Slow
+#113 | Chansey     | Normal         | 250/  5/  5/ 35/105/ 50 | 450 |  30 | 255 | Fast
+#242 | Blissey     | Normal         | 255/ 10/ 10/ 75/135/ 55 | 540 |  30 | 255 | Fast
+#114 | Tangela     | Grass          |  65/ 55/115/100/ 40/ 60 | 435 |  45 | 166 | Medium Fast
+#115 | Kangaskhan  | Normal         | 105/ 95/ 80/ 40/ 80/ 90 | 490 |  45 | 175 | Medium Fast
+#116 | Horsea      | Water          |  30/ 40/ 70/ 70/ 25/ 60 | 295 | 225 |  83 | Medium Fast
+#117 | Seadra      | Water          |  55/ 65/ 95/ 95/ 45/ 85 | 440 |  75 | 155 | Medium Fast
+#230 | Kingdra     | Water/Dragon   |  75/ 95/ 95/ 95/ 95/ 85 | 540 |  45 | 207 | Medium Fast
+#118 | Goldeen     | Water          |  45/ 67/ 60/ 35/ 50/ 63 | 320 | 225 | 111 | Medium Fast
+#119 | Seaking     | Water          |  80/ 92/ 65/ 65/ 80/ 68 | 450 |  60 | 170 | Medium Fast
+#120 | Staryu      | Water          |  30/ 45/ 55/ 70/ 55/ 85 | 340 | 225 | 106 | Slow
+#121 | Starmie     | Water/Psychic  |  60/ 75/ 85/100/ 85/115 | 520 |  60 | 207 | Slow
+#122 | Mr. Mime    | Psychic        |  40/ 45/ 65/100/120/ 90 | 460 |  45 | 136 | Medium Fast
+#123 | Scyther     | Bug/Flying     |  70/110/ 80/ 55/ 80/105 | 500 |  45 | 187 | Medium Fast
+#212 | Scizor      | Bug/Steel      |  70/130/100/ 55/ 80/ 65 | 500 |  25 | 200 | Medium Fast
+#124 | Jynx        | Ice/Psychic    |  65/ 50/ 35/115/ 95/ 95 | 455 |  45 | 137 | Medium Fast
+#125 | Electabuzz  | Electric       |  65/ 83/ 57/ 95/ 85/105 | 490 |  45 | 156 | Medium Fast
+#126 | Magmar      | Fire           |  65/ 95/ 57/100/ 85/ 93 | 495 |  45 | 167 | Medium Fast
+#127 | Pinsir      | Bug            |  65/125/100/ 55/ 70/ 85 | 500 |  45 | 200 | Slow
+#128 | Tauros      | Normal         |  75/100/ 95/ 40/ 70/110 | 490 |  45 | 211 | Slow
+#129 | Magikarp    | Water          |  20/ 10/ 55/ 15/ 20/ 80 | 200 | 255 |  20 | Slow
+#130 | Gyarados    | Water/Flying   |  95/125/ 79/ 60/100/ 81 | 540 |  45 | 214 | Slow
+#131 | Lapras      | Water/Ice      | 130/ 85/ 80/ 85/ 95/ 60 | 535 |  45 | 219 | Slow
+#132 | Ditto       | Normal         |  48/ 48/ 48/ 48/ 48/ 48 | 288 |  35 |  61 | Medium Fast
+#133 | Eevee       | Normal         |  55/ 55/ 50/ 45/ 65/ 55 | 325 |  45 |  92 | Medium Fast
+#134 | Vaporeon    | Water          | 130/ 65/ 60/110/ 95/ 65 | 525 |  45 | 196 | Medium Fast
+#135 | Jolteon     | Electric       |  65/ 65/ 60/110/ 95/130 | 525 |  45 | 197 | Medium Fast
+#136 | Flareon     | Fire           |  65/130/ 60/ 95/110/ 65 | 525 |  45 | 198 | Medium Fast
+#196 | Espeon      | Psychic        |  65/ 65/ 60/130/ 95/110 | 525 |  45 | 197 | Medium Fast
+#197 | Umbreon     | Dark           |  95/ 65/110/ 60/130/ 65 | 525 |  45 | 197 | Medium Fast
+#137 | Porygon     | Normal         |  65/ 60/ 70/ 85/ 75/ 40 | 395 |  45 | 130 | Medium Fast
+#233 | Porygon2    | Normal         |  85/ 80/ 90/105/ 95/ 60 | 515 |  45 | 180 | Medium Fast
+#138 | Omanyte     | Rock/Water     |  35/ 40/100/ 90/ 55/ 35 | 355 |  45 |  99 | Medium Fast
+#139 | Omastar     | Rock/Water     |  70/ 60/125/115/ 70/ 55 | 495 |  45 | 199 | Medium Fast
+#140 | Kabuto      | Rock/Water     |  30/ 80/ 90/ 55/ 45/ 55 | 355 |  45 |  99 | Medium Fast
+#141 | Kabutops    | Rock/Water     |  60/115/105/ 65/ 70/ 80 | 495 |  45 | 199 | Medium Fast
+#142 | Aerodactyl  | Rock/Flying    |  80/105/ 65/ 60/ 75/130 | 515 |  45 | 202 | Slow
+#143 | Snorlax     | Normal         | 160/110/ 65/ 65/110/ 30 | 540 |  25 | 154 | Slow
+
+--- NEW JOHTO POKEMON ---
+#170 | Chinchou    | Water/Electric |  75/ 38/ 38/ 56/ 56/ 67 | 330 | 190 |  90 | Slow
+#171 | Lanturn     | Water/Electric | 125/ 58/ 58/ 76/ 76/ 67 | 460 |  75 | 156 | Slow
+#172 | Pichu       | Electric       |  20/ 40/ 15/ 35/ 35/ 60 | 205 | 190 |  42 | Medium Fast
+#173 | Cleffa      | Normal         |  50/ 25/ 28/ 45/ 55/ 15 | 218 | 150 |  37 | Fast
+#174 | Igglybuff   | Normal         |  90/ 30/ 15/ 40/ 20/ 15 | 210 | 170 |  39 | Fast
+#175 | Togepi      | Normal         |  35/ 20/ 65/ 40/ 65/ 20 | 245 | 190 |  74 | Fast
+#176 | Togetic     | Normal/Flying  |  55/ 40/ 85/ 80/105/ 40 | 405 |  75 | 114 | Fast
+#177 | Natu        | Psychic/Flying |  40/ 50/ 45/ 70/ 45/ 70 | 320 | 190 |  73 | Medium Fast
+#178 | Xatu        | Psychic/Flying |  65/ 75/ 70/ 95/ 70/ 95 | 470 |  75 | 171 | Medium Fast
+#179 | Mareep      | Electric       |  55/ 40/ 40/ 65/ 45/ 35 | 280 | 235 |  59 | Medium Slow
+#180 | Flaaffy     | Electric       |  70/ 55/ 55/ 80/ 60/ 45 | 365 | 120 | 117 | Medium Slow
+#181 | Ampharos    | Electric       |  90/ 75/ 75/115/ 90/ 55 | 500 |  45 | 194 | Medium Slow
+#183 | Marill      | Water          |  70/ 20/ 50/ 20/ 50/ 40 | 250 | 190 |  58 | Fast
+#184 | Azumarill   | Water          | 100/ 50/ 80/ 50/ 80/ 50 | 410 |  75 | 153 | Fast
+#185 | Sudowoodo   | Rock           |  70/100/115/ 30/ 65/ 30 | 410 |  65 | 135 | Medium Fast
+#187 | Hoppip      | Grass/Flying   |  35/ 35/ 40/ 35/ 55/ 50 | 250 | 255 |  74 | Medium Slow
+#188 | Skiploom    | Grass/Flying   |  55/ 45/ 50/ 45/ 65/ 80 | 340 | 120 | 136 | Medium Slow
+#189 | Jumpluff    | Grass/Flying   |  75/ 55/ 70/ 55/ 85/110 | 450 |  45 | 176 | Medium Slow
+#190 | Aipom       | Normal         |  55/ 70/ 55/ 40/ 55/ 85 | 360 |  45 |  94 | Fast
+#191 | Sunkern     | Grass          |  30/ 30/ 30/ 30/ 30/ 30 | 180 | 235 |  52 | Medium Slow
+#192 | Sunflora    | Grass          |  75/ 75/ 55/105/ 85/ 30 | 425 | 120 | 146 | Medium Slow
+#193 | Yanma       | Bug/Flying     |  65/ 65/ 45/ 75/ 45/ 95 | 390 |  75 | 147 | Medium Fast
+#194 | Wooper      | Water/Ground   |  55/ 45/ 45/ 25/ 25/ 15 | 210 | 255 |  52 | Medium Fast
+#195 | Quagsire    | Water/Ground   |  95/ 85/ 85/ 65/ 65/ 35 | 430 |  90 | 137 | Medium Fast
+#198 | Murkrow     | Dark/Flying    |  60/ 85/ 42/ 85/ 42/ 91 | 405 |  30 | 107 | Medium Slow
+#200 | Misdreavus  | Ghost          |  60/ 60/ 60/ 85/ 85/ 85 | 435 |  45 | 147 | Fast
+#201 | Unown       | Psychic        |  48/ 72/ 48/ 72/ 48/ 48 | 336 | 225 |  61 | Medium Fast
+#202 | Wobbuffet   | Psychic        | 190/ 33/ 58/ 33/ 58/ 33 | 405 |  45 | 177 | Medium Fast
+#203 | Girafarig   | Normal/Psychic |  70/ 80/ 65/ 90/ 65/ 85 | 455 |  60 | 149 | Medium Fast
+#204 | Pineco      | Bug            |  50/ 65/ 90/ 35/ 35/ 15 | 290 | 190 |  60 | Medium Fast
+#205 | Forretress  | Bug/Steel      |  75/ 90/140/ 60/ 60/ 40 | 465 |  75 | 118 | Medium Fast
+#206 | Dunsparce   | Normal         | 100/ 70/ 70/ 65/ 65/ 45 | 415 | 190 | 125 | Medium Fast
+#207 | Gligar      | Ground/Flying  |  65/ 75/105/ 35/ 65/ 85 | 430 |  60 | 108 | Medium Slow
+#209 | Snubbull    | Normal         |  60/ 80/ 50/ 40/ 40/ 30 | 300 | 190 |  63 | Fast
+#210 | Granbull    | Normal         |  90/120/ 75/ 60/ 60/ 45 | 450 |  75 | 178 | Fast
+#211 | Qwilfish    | Water/Poison   |  65/ 95/ 75/ 55/ 55/ 85 | 430 |  45 | 100 | Medium Fast
+#213 | Shuckle     | Bug/Rock       |  20/ 10/230/ 10/230/  5 | 505 | 190 |  80 | Medium Slow
+#214 | Heracross   | Bug/Fighting   |  80/125/ 75/ 40/ 95/ 85 | 500 |  45 | 200 | Slow
+#215 | Sneasel     | Dark/Ice       |  55/ 95/ 55/ 35/ 75/115 | 430 |  60 | 132 | Medium Slow
+#216 | Teddiursa   | Normal         |  60/ 80/ 50/ 50/ 50/ 40 | 330 | 120 | 124 | Medium Fast
+#217 | Ursaring    | Normal         |  90/130/ 75/ 75/ 75/ 55 | 500 |  60 | 189 | Medium Fast
+#218 | Slugma      | Fire           |  40/ 40/ 40/ 70/ 40/ 20 | 250 | 190 |  78 | Medium Fast
+#219 | Magcargo    | Fire/Rock      |  50/ 50/120/ 80/ 80/ 30 | 410 |  75 | 154 | Medium Fast
+#220 | Swinub      | Ice/Ground     |  50/ 50/ 40/ 30/ 30/ 50 | 250 | 225 |  78 | Slow
+#221 | Piloswine   | Ice/Ground     | 100/100/ 80/ 60/ 60/ 50 | 450 |  75 | 160 | Slow
+#222 | Corsola     | Water/Rock     |  55/ 55/ 85/ 65/ 85/ 35 | 380 |  60 | 113 | Fast
+#223 | Remoraid    | Water          |  35/ 65/ 35/ 65/ 35/ 65 | 300 | 190 |  78 | Medium Fast
+#224 | Octillery   | Water          |  75/105/ 75/105/ 75/ 45 | 480 |  75 | 164 | Medium Fast
+#225 | Delibird    | Ice/Flying     |  45/ 55/ 45/ 65/ 45/ 75 | 330 |  45 | 183 | Fast
+#226 | Mantine     | Water/Flying   |  65/ 40/ 70/ 80/140/ 70 | 465 |  25 | 168 | Slow
+#227 | Skarmory    | Steel/Flying   |  65/ 80/140/ 40/ 70/ 70 | 465 |  25 | 168 | Slow
+#228 | Houndour    | Dark/Fire      |  45/ 60/ 30/ 80/ 50/ 65 | 330 | 120 | 114 | Slow
+#229 | Houndoom    | Dark/Fire      |  75/ 90/ 50/110/ 80/ 95 | 500 |  45 | 204 | Slow
+#231 | Phanpy      | Ground         |  90/ 60/ 60/ 40/ 40/ 40 | 330 | 120 | 124 | Medium Fast
+#232 | Donphan     | Ground         |  90/120/120/ 60/ 60/ 50 | 500 |  60 | 189 | Medium Fast
+#234 | Stantler    | Normal         |  73/ 95/ 62/ 85/ 65/ 85 | 465 |  45 | 165 | Slow
+#235 | Smeargle    | Normal         |  55/ 20/ 35/ 20/ 45/ 75 | 250 |  45 | 106 | Fast
+#238 | Smoochum    | Ice/Psychic    |  45/ 30/ 15/ 85/ 65/ 65 | 305 |  45 |  87 | Medium Fast
+#239 | Elekid      | Electric       |  45/ 63/ 37/ 65/ 55/ 95 | 360 |  45 | 106 | Medium Fast
+#240 | Magby       | Fire           |  45/ 75/ 37/ 70/ 55/ 83 | 365 |  45 | 117 | Medium Fast
+#241 | Miltank     | Normal         |  95/ 80/105/ 40/ 70/100 | 490 |  45 | 200 | Slow
+
+--- LEGENDARIES & PSEUDO-LEGENDARIES ---
+#144 | Articuno    | Ice/Flying     |  90/ 85/100/ 95/125/ 85 | 580 |   3 | 215 | Slow
+#145 | Zapdos      | Electric/Flying|  90/ 90/ 85/125/ 90/100 | 580 |   3 | 216 | Slow
+#146 | Moltres     | Fire/Flying    |  90/100/ 90/125/ 85/ 90 | 580 |   3 | 217 | Slow
+#147 | Dratini     | Dragon         |  41/ 64/ 45/ 50/ 50/ 50 | 300 |  45 |  67 | Slow
+#148 | Dragonair   | Dragon         |  61/ 84/ 65/ 70/ 70/ 70 | 420 |  45 | 144 | Slow
+#149 | Dragonite   | Dragon/Flying  |  91/134/ 95/100/100/ 80 | 600 |  45 | 218 | Slow
+#243 | Raikou      | Electric       |  90/ 85/ 75/115/100/115 | 580 |   3 | 216 | Slow
+#244 | Entei       | Fire           | 115/115/ 85/ 90/ 75/100 | 580 |   3 | 217 | Slow
+#245 | Suicune     | Water          | 100/ 75/115/ 90/115/ 85 | 580 |   3 | 215 | Slow
+#246 | Larvitar    | Rock/Ground    |  50/ 64/ 50/ 45/ 50/ 41 | 300 |  45 |  67 | Slow
+#247 | Pupitar     | Rock/Ground    |  70/ 84/ 70/ 65/ 70/ 51 | 410 |  45 | 144 | Slow
+#248 | Tyranitar   | Rock/Dark      | 100/134/110/ 95/100/ 61 | 600 |  45 | 218 | Slow
+#249 | Lugia       | Psychic/Flying | 106/ 90/130/ 90/154/110 | 680 |   3 | 220 | Slow
+#250 | Ho-Oh       | Fire/Flying    | 106/130/ 90/110/154/ 90 | 680 |   3 | 220 | Slow
+#150 | Mewtwo      | Psychic        | 106/110/ 90/154/ 90/130 | 680 |   3 | 220 | Slow
+#151 | Mew         | Psychic        | 100/100/100/100/100/100 | 600 |  45 |  64 | Medium Slow
+#251 | Celebi      | Psychic/Grass  | 100/100/100/100/100/100 | 600 |  45 |  64 | Medium Slow
+
+--- KANTO STARTERS ---
+#001 | Bulbasaur   | Grass/Poison   |  45/ 49/ 49/ 65/ 65/ 45 | 318 |  45 |  64 | Medium Slow
+#002 | Ivysaur     | Grass/Poison   |  60/ 62/ 63/ 80/ 80/ 60 | 405 |  45 | 141 | Medium Slow
+#003 | Venusaur    | Grass/Poison   |  80/ 82/ 83/100/100/ 80 | 525 |  45 | 208 | Medium Slow
+#004 | Charmander  | Fire           |  39/ 52/ 43/ 60/ 50/ 65 | 309 |  45 |  65 | Medium Slow
+#005 | Charmeleon  | Fire           |  58/ 64/ 58/ 80/ 65/ 80 | 405 |  45 | 142 | Medium Slow
+#006 | Charizard   | Fire/Flying    |  78/ 84/ 78/109/ 85/100 | 534 |  45 | 209 | Medium Slow
+#007 | Squirtle    | Water          |  44/ 48/ 65/ 50/ 64/ 43 | 314 |  45 |  66 | Medium Slow
+#008 | Wartortle   | Water          |  59/ 63/ 80/ 65/ 80/ 58 | 405 |  45 | 143 | Medium Slow
+#009 | Blastoise   | Water          |  79/ 83/100/ 85/105/ 78 | 530 |  45 | 210 | Medium Slow
+
+
+================================================================================
+END OF REFERENCE DATA
+================================================================================

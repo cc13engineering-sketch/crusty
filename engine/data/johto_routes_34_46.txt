@@ -1,0 +1,881 @@
+================================================================================
+JOHTO REGION — GAME DATA REFERENCE (Pokemon Gold/Silver)
+Source: Bulbapedia + Serebii (fetched 2026-03-07)
+Scope: Routes 34-46, Dungeons (Union Cave, Ilex Forest, Ice Path, Mt. Mortar,
+       Dark Cave, Slowpoke Well)
+================================================================================
+
+Note: Unless otherwise marked, all data is for Gold/Silver (Gen II).
+Crystal-only differences are noted where relevant.
+Gold/Silver do NOT always have time-of-day encounter variation on every route.
+
+################################################################################
+SECTION 1: ROUTE 34
+################################################################################
+
+Connections:
+  North — Goldenrod City
+  South — Ilex Forest
+  Note: Day Care Center is located on this route
+
+Wild Pokemon (Grass, Lv 10-13):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Drowzee    | 10-12  |  50%    | 50%  | 50%
+  Rattata    | 11-13  |  35%    | 35%  | 35%
+  Abra       | 10     |  10%    | 10%  | 10%
+  Ditto      | 10     |   5%    |  5%  |  5%
+
+  [Crystal adds: Snubbull 30%, Pidgey 20%, Jigglypuff 5% — replaces Drowzee
+   during morning/day; Hoothoot 20% at night]
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Tentacool  — 90%
+  Tentacruel — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Krabby (15%)  — Lv 10
+  Good Rod:  Krabby (55%), Magikarp (35%), Corsola/Staryu (10%)  — Lv 20
+  Super Rod: Krabby (60%), Corsola/Staryu (30%), Kingler (10%)  — Lv 40
+
+Trainers:
+  Youngster Samuel     | Rattata Lv.7, Sandshrew Lv.10, Spearow Lv.8 x2    | ~$160
+  Pokefan Brandon      | Snubbull Lv.13                                      | ~$1040
+  Youngster Ian        | Mankey Lv.10, Diglett Lv.12                          | ~$192
+  Picnicker Gina       | Hoppip Lv.9 x2, Bulbasaur Lv.12                    | ~$240
+                       | (Pokegear rematch available)
+  Officer Keith        | Growlithe Lv.17                                      | ~$680
+                       | (Night only)
+  Camper Todd          | Psyduck Lv.14                                        | ~$280
+                       | (Pokegear rematch available)
+  Cooltrainer Irene    | Goldeen Lv.22, Seaking Lv.24                         | ~$1152
+                       | (requires Surf)
+  Cooltrainer Jenn     | Staryu Lv.24, Starmie Lv.26                          | ~$1248
+                       | (requires Surf)
+  Cooltrainer Kate     | Shellder Lv.26, Cloyster Lv.28                       | ~$1344
+                       | (requires Surf)
+
+Items:
+  TM12 (Sweet Scent) — from gate NPC
+  Nugget — fenced area west (requires Surf)
+  Rare Candy (hidden) — fenced area west (requires Surf)
+
+################################################################################
+SECTION 2: ROUTE 35
+################################################################################
+
+Connections:
+  South — Goldenrod City
+  North — National Park / Route 36
+
+Wild Pokemon (Grass, Lv 10-14):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Nidoran(F) | 12     |  30%    | 30%  | 30%
+  Nidoran(M) | 12     |  30%    | 30%  | 30%
+  Drowzee    | 14     |  20%    | 20%  | 20%
+  Abra       | 10     |  10%    | 10%  | 10%
+  Pidgey     | 14     |   5%    |  5%  |  —
+  Hoothoot   | 14     |   —     |  —   |  5%
+  Ditto      | 10     |   4%    |  4%  |  4%
+  Yanma      | 12     |   1%    |  1%  |  1%
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Psyduck    — 90%
+  Golduck    — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Poliwag (15%)  — Lv 10
+  Good Rod:  Poliwag (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Poliwag (80%), Magikarp (20%)  — Lv 40
+
+Trainers:
+  Picnicker Kim        | Vulpix Lv.15                                         | ~$300
+  Camper Elliot        | Sandshrew Lv.13, Marill Lv.15                        | ~$300
+  Picnicker Brooke     | Pikachu Lv.16                                        | ~$320
+  Camper Ivan          | Diglett Lv.10, Zubat Lv.10, Diglett Lv.14            | ~$280
+  Juggler Irwin        | Voltorb Lv.2, Voltorb Lv.6, Voltorb Lv.10,          | ~$560
+                       |   Voltorb Lv.14
+                       | (Pokegear rematch available)
+  Firebreather Walt    | Magmar Lv.11, Magmar Lv.13                           | ~$624
+  Bug Catcher Arnie    | Venonat Lv.15                                        | ~$240
+                       | (Pokegear rematch available)
+  Bird Keeper Bryan    | Pidgey Lv.12, Pidgeotto Lv.14                        | ~$336
+  Officer Dirk         | Growlithe Lv.14 x2                                   | ~$560
+                       | (Night only)
+
+Items:
+  TM04 (Rollout) — southern grass patch
+
+################################################################################
+SECTION 3: ROUTE 36
+################################################################################
+
+Connections:
+  South — Violet City
+  West  — National Park
+  North — Route 37
+  East  — Ruins of Alph (connector path)
+
+Wild Pokemon (Grass, Lv 12-15):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Nidoran(F) | 12     |  30%    | 30%  | 30%
+  Nidoran(M) | 12     |  30%    | 30%  | 30%
+  Pidgey     | 13-15  |  25%    | 20%  |  —
+  Hoothoot   | 13-15  |   —     |  —   | 25%
+  Growlithe  | 13     |  10%    | 15%  | 10%
+  Stantler   | 13     |   5%    |  5%  |  5%
+
+  Note: Sudowoodo blocks this route until watered with SquirtBottle.
+
+Trainers:
+  Psychic Mark         | Abra Lv.13 x2, Kadabra Lv.15                         | $544
+  Schoolboy Alan       | Tangela Lv.16                                         | ~$512
+                       | (Pokegear rematch available)
+
+Items:
+  TM08 (Rock Smash) — from NPC after clearing Sudowoodo
+  Hard Stone — from Arthur (Thursday sibling)
+
+################################################################################
+SECTION 4: ROUTE 37
+################################################################################
+
+Connections:
+  South — Route 36
+  North — Ecruteak City
+
+Wild Pokemon (Grass, Lv 13-16):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Pidgey     | 13-15  |  60%    | 50%  |  —
+  Pidgeotto  | 15     |   —     |  5%  |  —
+  Stantler   | 15     |  30%    | 30%  | 30%
+  Growlithe  | 14-16  |  10%    | 15%  | 10%
+  Hoothoot   | 15     |   —     |  —   | 20%
+  Spinarak   | 13-15  |   —     |  —   | 40%
+
+Trainers:
+  Twins Ann & Anne     | Clefairy Lv.16, Jigglypuff Lv.16                    | $320
+  Psychic Greg         | Drowzee Lv.17                                        | $544
+
+Items:
+  Red Apricorn — daily (northwest tree)
+  Blue Apricorn — daily (northeast tree)
+  Black Apricorn — daily (south tree)
+  Ether (hidden) — northwest of route sign
+
+################################################################################
+SECTION 5: ROUTE 38
+################################################################################
+
+Connections:
+  East  — Ecruteak City
+  West  — Route 39
+
+Wild Pokemon (Grass, Lv 13-16):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Rattata    | 16     |  30%    | 30%  | 40%
+  Raticate   | 16     |  30%    | 30%  | 30%
+  Magnemite  | 16     |  20%    | 20%  | 20%
+  Farfetch'd | 16     |  10%    | 10%  |  —
+  Miltank    | 13     |   5%    |  5%  |  5%
+  Tauros     | 13     |   4%    |  4%  |  4%
+  Snubbull   | 13     |   1%    |  1%  |  1%
+
+Trainers:
+  Sailor Harry         | Wooper Lv.19                                         | ~$760
+  Lass Dana            | Flaaffy Lv.18, Psyduck Lv.18                         | ~$432
+                       | (Pokegear rematch available)
+  Beauty Valerie       | Hoppip Lv.17, Skiploom Lv.17                         | ~$1496
+  Bird Keeper Toby     | Doduo Lv.15, Doduo Lv.16, Doduo Lv.17               | ~$408
+  Schoolboy Chad       | Mr. Mime Lv.19                                       | ~$608
+                       | (Pokegear rematch available)
+
+Items:
+  Berry — daily (west of fenced section)
+
+################################################################################
+SECTION 6: ROUTE 39
+################################################################################
+
+Connections:
+  North — Route 38
+  South — Olivine City
+  Note: Moomoo Farm is located on this route
+
+Wild Pokemon (Grass, Lv 15-17):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Rattata    | 16     |  30%    | 30%  | 40%
+  Raticate   | 17     |  30%    | 30%  | 30%
+  Magnemite  | 16     |  20%    | 20%  | 20%
+  Farfetch'd | 16     |  10%    | 10%  |  —
+  Miltank    | 15     |   5%    |  5%  |  5%
+  Tauros     | 15     |   5%    |  5%  |  5%
+
+Trainers:
+  Psychic Norman       | Slowpoke Lv.17, Slowpoke Lv.20                       | ~$640
+  Pokefan Derek        | Pikachu Lv.17                                        | ~$1360
+                       | (Pokegear rematch available)
+  Pokefan Ruth         | Pikachu Lv.17                                        | ~$1360
+  Sailor Eugene        | Poliwhirl Lv.17, Raticate Lv.17, Krabby Lv.19       | ~$760
+
+Items:
+  TM13 (Snore) — from farmer after healing Miltank
+  Moomoo Milk — purchasable $500 after healing Miltank
+  Nugget (hidden) — between Miltank in barn
+
+################################################################################
+SECTION 7: ROUTE 40
+################################################################################
+
+Connections:
+  North — Olivine City
+  South — Route 41
+  Note: Water route (requires Surf)
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Tentacool  — 90%
+  Tentacruel — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Krabby (15%)  — Lv 10
+  Good Rod:  Krabby (55%), Magikarp (35%), Corsola/Staryu (10%)  — Lv 20
+  Super Rod: Krabby (60%), Corsola/Staryu (30%), Kingler (10%)  — Lv 40
+
+Trainers:
+  Swimmer Simon        | Tentacool Lv.20 x2                                   | ~$160
+  Swimmer Elaine       | Staryu Lv.21                                         | ~$420
+  Swimmer Paula        | Staryu Lv.19, Shellder Lv.19                         | ~$380
+  Swimmer Randall      | Shellder Lv.18 x2, Wartortle Lv.20                   | ~$144
+
+Items:
+  Sharp Beak — from Monica (Monday sibling)
+
+################################################################################
+SECTION 8: ROUTE 41
+################################################################################
+
+Connections:
+  North — Route 40
+  West  — Cianwood City
+  Center — Whirl Islands (4 entrances)
+  Note: Water route (requires Surf)
+
+Wild Pokemon (Water — Surf, Lv 20-24):
+  Tentacool  — 60%
+  Tentacruel — 30%
+  Mantine    — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Tentacool (15%)  — Lv 10
+  Good Rod:  Tentacool (35%), Magikarp (35%), Chinchou (20%), Shellder (10%) — Lv 20
+  Super Rod: Chinchou (40%), Shellder (30%), Tentacruel (20%), Lanturn (10%) — Lv 40
+
+Trainers:
+  Swimmer Simon        | Tentacool Lv.16 x4, Remoraid Lv.19, Staryu Lv.19   | ~$152
+  Swimmer Kara         | Staryu Lv.20, Starmie Lv.20                          | ~$400
+  Swimmer Mathew       | Krabby Lv.23                                         | ~$184
+  Swimmer Denise       | Seel Lv.22                                            | ~$440
+  Swimmer Kirk         | Gyarados Lv.20 x2                                    | ~$180
+  Swimmer Berke        | Qwilfish Lv.23                                       | ~$184
+  Swimmer Charlie      | Shellder Lv.21, Tentacool Lv.19, Tentacruel Lv.19   | ~$152
+  Swimmer Susie        | Psyduck Lv.20, Goldeen Lv.22                         | ~$440
+  Swimmer Kaylee       | Goldeen Lv.18, Goldeen Lv.20, Seaking Lv.20         | ~$400
+  Swimmer Wendy        | Horsea Lv.21 x2                                      | ~$420
+
+Items:
+  Max Ether (hidden) — southwest island (requires Whirlpool)
+
+################################################################################
+SECTION 9: ROUTE 42
+################################################################################
+
+Connections:
+  West  — Ecruteak City
+  East  — Mahogany Town
+  North — Mt. Mortar (3 entrances)
+
+Wild Pokemon (Grass, Lv 13-17):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Mankey     | 15     |  30%    | 30%  | 30%
+  Mareep     | 13     |  30%    | 30%  | 30%
+  Spearow    | 14-16  |  30%    | 30%  |  —
+  Zubat      | 14-16  |   —     |  —   | 30%
+  Flaaffy    | 15-17  |  10%    | 10%  | 10%
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Goldeen — 90%
+  Seaking — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Goldeen (15%)  — Lv 10
+  Good Rod:  Goldeen (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Goldeen (70%), Magikarp (20%), Seaking (10%)  — Lv 40
+
+Trainers:
+  Fisher Chris         | Qwilfish Lv.18                                       | ~$720
+                       | (Pokegear rematch available)
+  Pokemaniac Shane     | Nidorina Lv.16, Nidorino Lv.16                       | ~$960
+  Hiker Benjamin       | Diglett Lv.14, Geodude Lv.14, Dugtrio Lv.16          | ~$512
+
+Items:
+  Ultra Ball — near western Mt. Mortar entrance
+  Max Potion (hidden) — western pond
+  Super Potion — northeast (requires Surf)
+  Pink Apricorn — daily (left tree)
+  Green Apricorn — daily (middle tree)
+  Yellow Apricorn — daily (right tree)
+
+################################################################################
+SECTION 10: ROUTE 43
+################################################################################
+
+Connections:
+  South — Mahogany Town
+  North — Lake of Rage
+  Note: Team Rocket toll gate on main path
+
+Wild Pokemon (Grass, Lv 15-17):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Flaaffy    | 15     |  30%    | 40%  | 30%
+  Girafarig  | 15     |  30%    | 30%  | 30%
+  Pidgeotto  | 17     |  25%    | 20%  |  —
+  Noctowl    | 17     |   —     |  —   | 20%
+  Mareep     | 15     |  10%    | 10%  |  5%
+  Venonat    | 16     |   5%    |  —   | 15%
+
+Wild Pokemon (Water — Surf, Lv 10-24):
+  Magikarp — 100%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Poliwag (15%)  — Lv 10
+  Good Rod:  Poliwag (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Poliwag (80%), Magikarp (20%)  — Lv 40
+
+Trainers:
+  Camper Spencer       | Sandshrew Lv.17, Sandslash Lv.17, Zubat Lv.19       | ~$380
+  Picnicker Tiffany    | Clefairy Lv.20                                       | ~$400
+                       | (Pokegear rematch available)
+  Fisher Marvin        | Magikarp Lv.10, Gyarados Lv.10,                      | ~$600
+                       |   Magikarp Lv.15, Gyarados Lv.15
+  Pokemaniac Ron       | Nidoking Lv.19                                       | ~$1140
+  Pokemaniac Brent     | Lickitung Lv.19                                      | ~$1140
+                       | (Pokegear rematch available)
+  Pokemaniac Ben       | Slowbro Lv.19                                        | ~$1140
+
+Items:
+  TM36 (Sludge Bomb) — from toll gate guard (post-Rocket)
+  Max Ether — west of toll gate
+
+################################################################################
+SECTION 11: ROUTE 44
+################################################################################
+
+Connections:
+  West — Mahogany Town
+  East — Ice Path
+
+Wild Pokemon (Grass, Lv 22-26):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Weepinbell | 22-24  |  35%    | 35%  | 35%
+  Tangela    | 23     |  30%    | 30%  | 30%
+  Bellsprout | 22     |  20%    | 20%  | 20%
+  Lickitung  | 24-26  |  15%    | 15%  | 15%
+
+  Note: No time-of-day variation in Gold/Silver for this route.
+
+Wild Pokemon (Water — Surf, Lv 20-29):
+  Poliwag    — 90%
+  Poliwhirl  — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Poliwag (15%)  — Lv 10
+  Good Rod:  Poliwag (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Poliwag (80%), Magikarp (20%)  — Lv 40
+
+Trainers:
+  Psychic Phil         | Natu Lv.24, Kadabra Lv.26                            | ~$972
+  Fisher Edgar         | Remoraid Lv.25 x2                                    | ~$1000
+  Cooltrainer Cybil    | Butterfree Lv.25, Bellossom Lv.25                    | ~$1200
+  Cooltrainer Allen    | Charmeleon Lv.27                                     | ~$1296
+  Pokemaniac Zach      | Rhyhorn Lv.27                                        | ~$1620
+  Fisher Wilton        | Goldeen Lv.23 x2, Seaking Lv.25                      | ~$1000
+                       | (Pokegear rematch available)
+  Bird Keeper Vance    | Pidgeotto Lv.25 x2                                   | ~$600
+                       | (Pokegear rematch available)
+
+Items:
+  Burnt Berry — daily (northeast of entrance)
+  Ultra Ball — northeast of ponds
+  Max Revive — grass patch on lake island (requires Surf)
+  Elixir (hidden) — east dead-end path
+
+################################################################################
+SECTION 12: ROUTE 45
+################################################################################
+
+Connections:
+  North — Blackthorn City
+  South — Route 46 / Dark Cave (Route 45 entrance)
+  Note: One-way route (ledges going south, can only enter from Blackthorn)
+
+Wild Pokemon (Grass, Lv 20-27):
+
+  Pokemon Gold:
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Graveler   | 23-27  | 40%
+  Geodude    | 23     | 30%
+  Gligar     | 24     | 20%
+  Teddiursa  | 20     | 10%
+
+  Pokemon Silver:
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Graveler   | 23-25  | 55%
+  Geodude    | 23     | 30%
+  Phanpy     | 20     | 10%
+  Skarmory   | 27     |  5%
+
+  Note: No time-of-day variation in Gold/Silver for this route.
+
+Wild Pokemon (Water — Surf):
+  Magikarp — 100%  (Lv 5-24)
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (100%)  — Lv 10
+  Good Rod:  Magikarp (90%), Dratini (10%)  — Lv 20
+  Super Rod: Magikarp (60%), Dratini (30%), Dragonair (10%)  — Lv 40
+
+Trainers:
+  Hiker Erik           | Machop Lv.24, Geodude Lv.27, Machop Lv.27           | ~$864
+  Cooltrainer Ryan     | Pidgeot Lv.25, Electabuzz Lv.27                      | ~$1296
+  Cooltrainer Kelly    | Marill Lv.27, Wartortle Lv.24 x2                     | ~$1152
+  Hiker Parry          | Onix Lv.29                                           | ~$928
+                       | (Pokegear rematch available)
+  Blackbelt Kenji      | Machoke Lv.28                                        | ~$672
+                       | (Pokegear rematch available)
+  Hiker Timothy        | Diglett Lv.27, Dugtrio Lv.27                         | ~$864
+  Hiker Michael        | Geodude Lv.25, Graveler Lv.25, Golem Lv.25          | ~$800
+
+Items:
+  Elixir — left path
+  Max Potion — center path
+  X Special — left path
+  Revive — left path
+  PP Up (hidden) — pond area
+  Nugget (hidden) — bottom of route
+
+################################################################################
+SECTION 13: ROUTE 46
+################################################################################
+
+Connections:
+  North — Dark Cave (Route 31 side entrance)
+  South — Route 45
+  East  — Route 29
+
+Wild Pokemon (Grass, Lv 2-5):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Geodude    | 2-3    |  40%    | 40%  | 45%
+  Spearow    | 2-3    |  35%    | 35%  |  —
+  Rattata    | 2      |  20%    | 20%  | 50%
+  Jigglypuff | 3-5    |   5%    |  5%  |  5%
+
+Trainers:
+  Camper Ted           | Mankey Lv.17                                          | ~$340
+  Picnicker Erin       | Ponyta Lv.16 x2                                      | ~$320
+                       | (Pokegear rematch available)
+  Hiker Bailey         | Geodude Lv.13 x5                                     | ~$416
+
+Items:
+  PRZCureBerry — daily (west of Dark Cave entrance)
+  Berry — daily (west of Dark Cave entrance)
+  Dire Hit — west of Camper Ted
+
+################################################################################
+SECTION 14: UNION CAVE
+################################################################################
+
+Connections:
+  North entrance (1F) — Route 32
+  South entrance (1F) — Route 33
+  B1F side passage   — Ruins of Alph
+
+Wild Pokemon (1F — Cave, Lv 4-7):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Geodude    | 6      | 30%
+  Sandshrew  | 6      | 30%
+  Zubat      | 5-7    | 25%
+  Rattata    | 4-6    | 10%
+  Onix       | 6      |  5%
+
+Wild Pokemon (B1F — Cave, Lv 6-9):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Zubat      | 6-9    | 30%
+  Geodude    | 8      | 30%
+  Sandshrew  | 8      | 30%
+  Onix       | 8      | 10%
+
+Wild Pokemon (B2F — Cave, Lv 20-23):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Raticate   | 21-22  | 30%
+  Zubat      | 22     | 30%
+  Golbat     | 22     | 20%
+  Geodude    | 20-21  | 10%
+  Rattata    | 20     |  5%
+  Onix       | 23     |  5%
+
+  Note: Quagsire appears at night on B2F (~20%)
+
+Wild Pokemon (Water — Surf, all floors):
+  Wooper    — 60%  (Lv 15-19)
+  Quagsire  — 40%  (Lv 15-24)
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Goldeen (15%)  — Lv 10
+  Good Rod:  Goldeen (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Krabby (60%), Corsola (30%), Kingler (10%)  — Lv 40
+
+Trainers (1F):
+  Hiker Daniel         | Onix Lv.11                                           | ~$352
+  Hiker Russell        | Geodude Lv.4, Geodude Lv.6, Geodude Lv.8            | ~$256
+  Firebreather Bill    | Koffing Lv.6 x2                                      | ~$288
+  Firebreather Ray     | Vulpix Lv.9                                          | ~$246
+  Pokemaniac Larry     | Slowpoke Lv.10                                       | ~$600
+
+Trainers (B1F — requires Surf):
+  Hiker Leonard        | Geodude Lv.23, Machop Lv.25                          | ~$800
+  Hiker Phillip        | Geodude Lv.23 x2, Graveler Lv.23                     | ~$736
+  Pokemaniac Andrew    | Marowak Lv.24 x2                                     | ~$1440
+  Pokemaniac Calvin    | Kangaskhan Lv.26                                     | ~$1560
+
+Trainers (B2F — requires Surf, appears Fridays):
+  Cooltrainer Nick     | Charmander Lv.26, Bulbasaur Lv.26, Squirtle Lv.26   | ~$1248
+  Cooltrainer Gwen     | Eevee Lv.26, Vaporeon Lv.22, Jolteon Lv.22,          | ~$1248
+                       |   Flareon Lv.22
+  Cooltrainer Emma     | Poliwhirl Lv.28                                      | ~$1344
+
+Items:
+  Potion — 1F northwest
+  Great Ball — 1F southeast
+  Awakening — 1F west
+  X Attack — 1F west
+  TM39 (Swift) — B1F
+  X Defend — B1F
+  Hyper Potion — B2F northwest
+  Elixir — B2F northeast
+
+################################################################################
+SECTION 15: ILEX FOREST
+################################################################################
+
+Connections:
+  South — Azalea Town
+  North — Route 34
+
+Wild Pokemon (Grass, Lv 5-7):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Caterpie   | 5-7    |  50%    | 60%  |  —       [Gold version]
+  Weedle     | 5-7    |  50%    | 60%  |  —       [Silver version]
+  Metapod    | 7      |  30%    | 30%  |  —       [Gold version]
+  Kakuna     | 7      |  30%    | 30%  |  —       [Silver version]
+  Oddish     | 6-7    |   —     |  —   | 55%
+  Venonat    | 7      |   —     |  —   | 30%
+  Paras      | 5-7    |  15%    |  5%  | 15%
+  Pidgey     | 6      |   5%    |  5%  |  —
+  Zubat      | 5-7    |   —     |  —   | 10%
+
+  Note: No grass encounters until after Farfetch'd quest
+
+Wild Pokemon (Water — Surf, Lv 10-19):
+  Psyduck  — 90%
+  Golduck  — 10%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Poliwag (15%)  — Lv 10
+  Good Rod:  Poliwag (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Poliwag (80%), Magikarp (20%)  — Lv 40
+
+Trainers: NONE in Gold/Silver (Bug Catcher Wayne is Crystal only)
+
+Items:
+  HM01 (Cut) — from charcoal maker after Farfetch'd quest
+  TM02 (Headbutt) — from NPC on ledge southeast of pond
+  Revive — southeast corner
+  Full Heal (hidden) — near pond
+  Super Potion (hidden) — north area
+  Ether (hidden) — northeast area
+
+################################################################################
+SECTION 16: ICE PATH
+################################################################################
+
+Connections:
+  West entrance (1F)  — Route 44
+  East entrance (B3F) — Blackthorn City
+
+Wild Pokemon (1F — Cave, Lv 20-23):
+
+  Pokemon Gold:
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Swinub     | 21-23  |  40%    | 40%  | 40%
+  Golbat     | 22     |  30%    | 30%  | 30%
+  Zubat      | 22     |  25%    | 20%  | 25%
+  Jynx       | 20-22  |   5%    | 10%  |  5%
+
+  Pokemon Silver:
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Swinub     | 21-23  |  40%    | 40%  | 40%
+  Golbat     | 22     |  30%    | 30%  | 30%
+  Delibird   | 22     |  20%    | 20%  | 20%
+  Zubat      | 22     |   5%    |  —   |  5%
+  Jynx       | 20-22  |   5%    | 10%  |  5%
+
+Wild Pokemon (B1F-B3F — similar with rising levels):
+  Same species as 1F, levels increase to 23-26 on B3F
+  Sneasel appears on B1F+ at night only (1-10% depending on floor)
+
+Items:
+  HM07 (Waterfall) — 1F past ice puzzle
+  PP Up — 1F
+  Max Potion — 1F, B1F, B2F (multiple)
+  Iron — B1F
+  Full Heal — B2F
+  Carbos — B2F
+  TM44 (Rest) — B2F
+  NeverMeltIce — B3F (requires Rock Smash)
+
+################################################################################
+SECTION 17: MT. MORTAR
+################################################################################
+
+Connections:
+  South (3 entrances) — Route 42
+  Note: Large optional dungeon, multiple floors (1F entrance, 1F back, B1F, 2F)
+
+Wild Pokemon (1F Entrance — Cave, Lv 13-16):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Zubat      | 13-15  | 60%
+  Machop     | 14     | 20%
+  Rattata    | 14-16  | 14%
+  Geodude    | 14     |  5%
+  Marill     | 15     |  1%
+
+Wild Pokemon (1F Back — Cave, Lv 13-15):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Geodude    | 13-15  | 50%
+  Machop     | 13-15  | 35%
+  Raticate   | 14     | 10%
+  Rattata    | 14     | 10%
+  Zubat      | 14     |  5%
+
+Wild Pokemon (B1F — Cave, Lv 15-18):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Zubat      | 15-17  | 60%
+  Rattata    | 16     | 20%
+  Golbat     | 17     | 20%
+  Machop     | 16     | 10%
+  Marill     | 16     | 10%
+  Raticate   | 16-18  |  5%
+  Geodude    | 16     |  5%
+
+Wild Pokemon (2F — Cave, Lv 28-32):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Machoke    | 32     | 30%
+  Graveler   | 31     | 30%
+  Geodude    | 31     | 20%
+  Raticate   | 30     | 10%
+  Golbat     | 30     |  5%
+  Machop     | 28     |  5%
+
+Wild Pokemon (Water — Surf, all floors):
+  Goldeen — 90%  (Lv 15-24)
+  Seaking — 10%  (Lv 20-24)
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Goldeen (15%)  — Lv 10
+  Good Rod:  Goldeen (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Goldeen (70%), Seaking (10%), Magikarp (20%)  — Lv 40
+
+Notable: Karate King Kiyo on B1F — defeat him to receive Tyrogue Lv.10
+
+Items:
+  Ether — 1F entrance
+  Guard Spec. — 1F entrance
+  Hyper Potion — 1F entrance (hidden), 1F back
+  Escape Rope — 1F back (x2), 2F
+  Nugget — 1F back (requires Strength)
+  Max Repel (hidden) — 1F back
+  Max Revive — 1F back (water area)
+  TM40 (Defense Curl) — 2F
+  Full Restore — 2F (hidden), B1F
+  Dragon Scale — 2F
+  Rare Candy — 2F
+  Elixir — 2F
+  Max Potion — 2F
+  Full Heal — B1F (requires Surf)
+
+################################################################################
+SECTION 18: DARK CAVE
+################################################################################
+
+Connections:
+  East entrance  — Route 31 (near Violet City)
+  West entrance  — Route 45 (near Blackthorn City)
+  South entrance — Route 46
+  Note: Requires Flash to navigate; two separate sections
+
+Wild Pokemon (Route 31 side — Cave, Lv 2-4):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Geodude    | 2-4    | 60%
+  Zubat      | 2-4    | 39%
+  Dunsparce  | 4      |  1%
+
+  [Gold: Teddiursa 5% at Lv 2]
+
+Wild Pokemon (Route 45 side — Cave, Lv 20-30):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Geodude    | 23     | 30%
+  Zubat      | 23     | 30%
+  Graveler   | 25     | 20%
+  Wobbuffet  | 20-25  | 15%
+  Ursaring   | 25-30  | 10%  [Gold]
+  Teddiursa  | 20     |  5%  [Gold]
+  Golbat     | 23     |  5%
+
+Wild Pokemon (Water — Surf):
+  Magikarp — 100%  (Lv 5-19)
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Goldeen (15%)  — Lv 10
+  Good Rod:  Goldeen (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Goldeen (70%), Magikarp (20%), Seaking (10%)  — Lv 40
+
+Trainers: NONE
+
+Items (Route 31 side):
+  Potion — near entrance
+  Elixir (hidden) — requires Rock Smash
+  Hyper Potion — requires Rock Smash
+  Full Heal — north of Route 46 exit
+
+Items (Route 45 side):
+  TM13 (Snore) — main area
+  Revive — southeast (requires Surf)
+  BlackGlasses — from NPC (requires Surf)
+
+################################################################################
+SECTION 19: SLOWPOKE WELL
+################################################################################
+
+Connections:
+  Entrance — Azalea Town (northwest)
+  Floors: B1F (main), B2F (requires Surf + Strength)
+
+Wild Pokemon (B1F — Cave, Lv 5-8):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Zubat      | 5-8    | 85%
+  Slowpoke   | 6-8    | 15%
+
+Wild Pokemon (B1F — Surf):
+  Slowpoke — 100%  (Lv 10-24)
+
+Wild Pokemon (B2F — Cave, Lv 19-23):
+  Pokemon    | Levels | Rate
+  -----------+--------+------
+  Zubat      | 19-23  | 80%
+  Golbat     | 23     |  5%
+  Slowpoke   | 21-23  | 15%
+
+Wild Pokemon (B2F — Surf):
+  Slowpoke — 90%  (Lv 15-24)
+  Slowbro  — 10%  (Lv 20-24)
+
+Wild Pokemon (Fishing, all floors):
+  Old Rod:   Magikarp (85%), Goldeen (15%)  — Lv 10
+  Good Rod:  Goldeen (65%), Magikarp (35%)  — Lv 20
+  Super Rod: Goldeen (70%), Seaking (10%), Magikarp (20%)  — Lv 40
+
+Trainers (B1F — Team Rocket, first visit):
+  Rocket Grunt         | Rattata Lv.9 x2                                      | $360
+  Rocket Grunt         | Zubat Lv.9, Ekans Lv.11                              | $440
+  Rocket Grunt         | Rattata Lv.7, Zubat Lv.9 x2                          | $360
+
+  Note: Proton (Rocket Executive) is the boss here but only named in HGSS.
+  In Gen II he is just another Grunt.
+
+Items:
+  Super Potion — B1F northeast platform
+  King's Rock — B2F (from NPC, requires Surf + Strength)
+  TM18 (Rain Dance) — B2F (requires Surf + Strength)
+
+################################################################################
+SECTION 20: SPECIES SUMMARY (Routes 34-46 + Dungeons)
+################################################################################
+
+Grass/Cave encounters across Routes 34-46 and dungeons:
+  Normal:    Rattata, Raticate, Sentret, Furret, Jigglypuff, Ditto,
+             Lickitung, Tauros, Miltank, Girafarig, Stantler, Teddiursa,
+             Ursaring
+  Flying:    Pidgey, Pidgeotto, Spearow, Fearow, Farfetch'd, Hoothoot,
+             Noctowl, Doduo
+  Bug:       Caterpie, Metapod, Weedle, Kakuna, Paras, Venonat, Venomoth,
+             Spinarak
+  Poison:    Zubat, Golbat, Ekans, Arbok, Koffing
+  Grass:     Oddish, Bellsprout, Weepinbell, Tangela
+  Electric:  Magnemite, Mareep, Flaaffy
+  Fire:      Vulpix, Growlithe, Magmar
+  Water:     Psyduck, Poliwag, Poliwhirl, Wooper, Quagsire, Marill, Slowpoke
+  Psychic:   Abra, Drowzee
+  Fighting:  Mankey, Machop, Machoke
+  Rock:      Geodude, Graveler, Onix
+  Ground:    Sandshrew, Diglett, Dugtrio, Gligar, Phanpy, Donphan, Swinub
+  Steel:     Skarmory
+  Ice:       Jynx, Swinub, Delibird, Sneasel
+  Dark:      Snubbull, Sneasel
+  Fairy(N/A):Snubbull, Jigglypuff (retroactive in later gens)
+
+Water/Fishing encounters:
+  Magikarp, Goldeen, Seaking, Poliwag, Poliwhirl, Tentacool, Tentacruel,
+  Krabby, Kingler, Shellder, Staryu, Corsola, Chinchou, Lanturn,
+  Remoraid, Mantine, Psyduck, Golduck, Slowpoke, Slowbro, Wooper, Quagsire,
+  Dratini, Dragonair
+
+Total unique species (grass/cave): ~60+
+Total unique species (including water/fishing): ~80+
+
+################################################################################
+SECTION 21: TRAINER CLASS SUMMARY
+################################################################################
+
+Trainer classes encountered across Routes 34-46 and dungeons:
+  Youngster, Picnicker, Camper, Pokefan, Officer, Cooltrainer,
+  Lass, Beauty, Sailor, Schoolboy, Bird Keeper, Psychic,
+  Swimmer (M/F), Hiker, Blackbelt, Pokemaniac, Fisher/Fisherman,
+  Firebreather, Juggler, Bug Catcher, Twins, Rocket Grunt
+
+================================================================================
+END OF DATA FILE
+================================================================================

@@ -1,0 +1,239 @@
+================================================================================
+JOHTO REGION — GAME DATA REFERENCE (Pokemon Gold/Silver)
+Source: Bulbapedia (fetched 2026-03-07)
+Scope: Routes 29-33 (early game)
+================================================================================
+
+################################################################################
+SECTION 1: JOHTO CITIES & TOWNS (in map order)
+################################################################################
+
+ 1. New Bark Town         (pop 11)   — Starting location
+ 2. Cherrygrove City      (pop 22)
+ 3. Violet City           (pop 52)   — Gym 1 (Falkner, Flying)
+ 4. Azalea Town           (pop 31)   — Gym 2 (Bugsy, Bug)
+ 5. Goldenrod City        (pop 126)  — Gym 3 (Whitney, Normal)
+ 6. Ecruteak City         (pop 46)   — Gym 4 (Morty, Ghost)
+ 7. Olivine City          (pop 47)   — Gym 6 (Jasmine, Steel)
+ 8. Cianwood City         (pop 27)   — Gym 5 (Chuck, Fighting)
+ 9. Mahogany Town         (pop 26)   — Gym 7 (Pryce, Ice)
+10. Blackthorn City       (pop 40)   — Gym 8 (Clair, Dragon)
+
+################################################################################
+SECTION 2: JOHTO ROUTES
+################################################################################
+
+Route 29 through Route 46 (18 routes in Gold/Silver)
+Routes 47-48 are Gen IV only (HGSS)
+Routes 26-28 are technically Kanto but border Johto
+
+################################################################################
+SECTION 3: WALKTHROUGH PROGRESSION ORDER
+################################################################################
+
+Part  1: New Bark Town -> Route 29 -> Route 46 (glimpse)
+Part  2: Cherrygrove City -> Route 30 -> Mr. Pokemon's House -> back to Elm's Lab
+Part  3: Route 31 -> Violet City -> Sprout Tower -> Violet Gym
+Part  4: Route 32 -> Ruins of Alph -> Union Cave -> Route 33
+Part  5: Azalea Town -> Slowpoke Well -> Azalea Gym -> Ilex Forest -> Route 34
+Part  6: Goldenrod City -> Goldenrod Gym
+Part  7: Route 35 -> National Park -> Route 36 -> Route 37
+Part  8: Ecruteak City -> Burned Tower -> Ecruteak Gym -> Route 38 -> Route 39
+Part  9: Olivine City -> Route 40 -> Route 41
+Part 10: Cianwood City -> Cianwood Gym -> Olivine Gym -> Route 42 -> Mt. Mortar
+Part 11: Mahogany Town -> Route 43 -> Lake of Rage -> Rocket Hideout -> Mahogany Gym
+Part 12: Goldenrod Radio Tower -> Goldenrod Underground -> Route 44 -> Ice Path
+Part 13: Blackthorn City -> Blackthorn Gym -> Dragon's Den -> Route 45 -> Dark Cave -> Route 46
+Part 14: Route 27 -> Route 26 -> Victory Road
+Part 15: Indigo Plateau (Elite Four + Champion)
+Parts 16-29: Kanto post-game + Mt. Silver
+
+################################################################################
+SECTION 4: ROUTE 29
+################################################################################
+
+Connections:
+  East  — New Bark Town
+  West  — Cherrygrove City
+  North — Route 46
+
+Wild Pokemon (Grass):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Pidgey     | 2-4    |  55%    | 55%  |  —
+  Sentret    | 2-3    |  40%    | 40%  |  —
+  Rattata    | 2-4    |   5%    |  5%  | 15%
+  Hoppip     | 3      |   5%    |  5%  |  —
+  Hoothoot   | 2-4    |   —     |  —   | 85%
+
+Wild Pokemon (Headbutt Trees, Lv 10):
+  Spearow    — 80% (day)
+  Exeggcute  — 20% (day)
+  Hoothoot   — 50% (night)
+  Ledyba     — 15%
+  Spinarak   — 15%
+  Aipom      — 20%
+
+Trainers: NONE (first route, no battles available)
+
+################################################################################
+SECTION 5: ROUTE 30
+################################################################################
+
+Connections:
+  South     — Cherrygrove City
+  North     — Route 31
+  Northeast — Mr. Pokemon's House
+
+Wild Pokemon (Grass):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Pidgey     | 2-4    |  40%    | 50%  |  —
+  Caterpie   | 3-4    |  50%    | 35%  |  —
+  Metapod    | 4-5    |  10%    | 15%  |  —
+  Weedle     | 3-4    |  50%    | 35%  |  —       [Note: Gold has Caterpie, Silver has Weedle]
+  Ledyba     | 3      |  30%    |  —   |  —
+  Hoppip     | 4      |   5%    |  5%  |  —
+  Rattata    | 3-4    |   —     |  —   | 40%
+  Hoothoot   | 3-4    |   —     |  —   | 45%
+  Spinarak   | 3      |   —     |  —   | 30%
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Poliwag, Poliwhirl
+
+Wild Pokemon (Fishing):
+  Old Rod:  Magikarp (85%), Goldeen (15%)
+  Good Rod: Goldeen, Poliwag
+  Super Rod: Poliwag, Poliwhirl
+
+Trainers:
+  Youngster Joey      | Rattata Lv.4                        | $64
+  Youngster Mikey     | Pidgey Lv.2, Rattata Lv.4           | $64
+  Bug Catcher Don     | Caterpie Lv.3, Caterpie Lv.3        | $48
+
+################################################################################
+SECTION 6: ROUTE 31
+################################################################################
+
+Connections:
+  West — Route 30
+  East — Violet City
+  East — Dark Cave (western entrance)
+
+Wild Pokemon (Grass):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Pidgey     | 4-6    |  30%    | 30%  |  —
+  Caterpie   | 4-5    |  35%    | 35%  |  —
+  Metapod    | 5      |   —     | 15%  |  —
+  Weedle     | 4-5    |  30%    | 35%  |   5%    [Note: Gold has Caterpie, Silver has Weedle]
+  Kakuna     | 5      |  10%    | 15%  |  —
+  Bellsprout | 5-6    |  20%    | 20%  |  —
+  Ledyba     | 5      |  30%    |  —   |  —
+  Hoppip     | 5-6    |   5%    |  5%  |  —
+  Rattata    | 5-6    |   —     |  —   | 40%
+  Hoothoot   | 5-6    |   —     |  —   | 40%
+  Gastly     | 6      |   —     |  —   |  5%
+  Zubat      | 5      |   —     |  —   |  5%
+  Poliwag    | 5      |   —     |  —   | 30%
+  Spinarak   | 5      |   —     |  —   | 30%
+
+Trainers:
+  Bug Catcher Wade    | Caterpie Lv.2 x2, Weedle Lv.3, Caterpie Lv.2 | ~$32
+                      | (Pokegear rematch available)
+
+################################################################################
+SECTION 7: ROUTE 32
+################################################################################
+
+Connections:
+  North — Violet City
+  West  — Ruins of Alph
+  South — Union Cave
+
+Wild Pokemon (Grass):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Rattata    | 4-8    |  35%    | 40%  | 30%
+  Ekans      | 4      |  30%    | 30%  |  —
+  Bellsprout | 6-7    |  30%    | 30%  | 20%
+  Mareep     | 6      |  20%    | 20%  | 10%
+  Hoppip     | 6-7    |  10%    | 10%  |  —
+  Pidgey     | 7      |   5%    |  5%  |  —
+  Wooper     | 4-8    |   4%    |  —   | 30%
+  Zubat      | 4-8    |   1%    |  —   | 10%
+  Gastly     | 7      |   —     |  —   |  5%
+  Hoothoot   | 7      |   —     |  —   |  5%
+
+Wild Pokemon (Water — Surf, Lv 15-24):
+  Tentacool  — 60%
+  Tentacruel — 10%
+  Quagsire   — 30%
+
+Wild Pokemon (Fishing):
+  Old Rod:   Magikarp (85%), Tentacool (15%)  — Lv 10
+  Good Rod:  Tentacool, Magikarp, Shellder/Corsola
+  Super Rod: Tentacool, Tentacruel, Shellder/Corsola, Staryu
+
+Trainers:
+  Youngster Albert    | Rattata Lv.6, Zubat Lv.8                              | ~$128
+  Picnicker Liz       | Nidoran(F) Lv.9                                        | ~$180
+  Camper Roland       | Nidoran(M) Lv.9                                        | ~$180
+  Fisherman Henry     | Poliwag Lv.8, Poliwag Lv.8                             | ~$256
+  Fisherman Justin    | Magikarp Lv.5 x3, Magikarp Lv.15                       | ~$480
+  Fisherman Ralph     | Goldeen Lv.10                                          | ~$320
+  Youngster Gordon    | Wooper Lv.10                                           | ~$160
+  Bird Keeper Peter   | Pidgey Lv.6, Pidgey Lv.6, Spearow Lv.8               | ~$192
+
+################################################################################
+SECTION 8: ROUTE 33
+################################################################################
+
+Connections:
+  North — Union Cave
+  West  — Azalea Town
+
+Wild Pokemon (Grass):
+  Pokemon    | Levels | Morning | Day  | Night
+  -----------+--------+---------+------+------
+  Rattata    | 6-7    |  40%    |  —   | 60%
+  Rattata    | 6-8    |   —     | 45%  |  —
+  Hoppip     | 6-8    |  35%    | 35%  |  —
+  Ekans      | 7      |  30%    |  —   |  —
+  Spearow    | 6      |  20%    | 20%  |  —
+  Geodude    | 6      |  20%    |  —   |  —
+  Zubat      | 4      |   5%    |  —   |  —
+  Zubat      | 6-8    |   —     |  —   | 40%
+
+Wild Pokemon (Headbutt Trees, Lv 10):
+  Spearow, Ekans, Aipom, Heracross
+
+Trainers:
+  Hiker Anthony       | Geodude Lv.11, Machop Lv.11                           | $352
+                      | (Pokegear rematch available)
+
+################################################################################
+SECTION 9: SPECIES SUMMARY (all species encountered Routes 29-33)
+################################################################################
+
+Grass encounters across Routes 29-33:
+  Normal:   Rattata, Sentret
+  Flying:   Pidgey, Spearow, Hoothoot
+  Bug:      Caterpie, Metapod, Weedle, Kakuna, Ledyba, Spinarak
+  Poison:   Ekans, Zubat, Gastly
+  Grass:    Bellsprout, Hoppip
+  Electric: Mareep
+  Water:    Poliwag, Wooper
+  Rock:     Geodude
+
+Water/Fishing encounters:
+  Poliwag, Poliwhirl, Tentacool, Tentacruel, Quagsire, Magikarp, Goldeen
+
+Headbutt encounters:
+  Spearow, Exeggcute, Hoothoot, Ledyba, Spinarak, Aipom, Ekans, Heracross
+
+Total unique species: ~25
+
+================================================================================
+END OF DATA FILE
+================================================================================

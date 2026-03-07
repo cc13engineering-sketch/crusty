@@ -1449,3 +1449,35 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 4. B1 (separate battle messages) — battle feel
 5. B2-B4 (status damage/wake/thaw text) — feedback
 6. Everything else
+
+---
+
+## Sprint 86 — Data Compilation Sprint
+
+**Goal**: Build a comprehensive reference data library to prevent recurring bugs caused by missing or incomplete game knowledge.
+
+### Data Files Created (3,298 total lines)
+
+| File | Lines | Contents |
+|------|-------|----------|
+| `engine/data/REFERENCE.md` | 578 | Master index: game progression (15 parts), map connectivity graph, 12 progression gates, story flags, city buildings, interior maps, key mechanics rules, physical/special split gotchas, implementation checklist |
+| `engine/data/gym_e4_rival_data.txt` | 415 | All 8 gym leaders with full teams + movesets, Elite Four (Will/Koga/Bruno/Karen), Champion Lance, Rival Silver (7 encounters, 3 starter variants each) |
+| `engine/data/johto_routes_34_46.txt` | 881 | Routes 34-46 with wild encounters (Morning/Day/Night), trainers, items. Plus 6 dungeons: Union Cave, Ilex Forest, Ice Path, Mt. Mortar, Dark Cave, Slowpoke Well |
+| `engine/docs/gen2_battle_mechanics.txt` | 353 | Damage formula (10+ modifiers), critical hit stages, stat calculation (DVs + StatExp), EXP formula (4 growth curves), catch rate formula (with Gen2 bugs), status conditions (6 types), full 17-type effectiveness chart |
+| `engine/data/gen2_moves_pokemon.txt` | 832 | 251 moves with Gen2-specific stats, evolution data (all methods), starter learnsets, ~130 species base stats with catch rates + EXP yields + growth rates |
+| `engine/JOHTO_DATA_ROUTES_29_33.txt` | 239 | Routes 29-33 encounters + trainers (pre-existing) |
+
+### Key Findings During Compilation
+
+1. **Gen 2 Physical/Special split gotchas documented** — Pursuit is Special (Dark type), Shadow Ball is Physical (Ghost type), Fire/Ice/ThunderPunch are Special. These have caused bugs before.
+2. **12 progression gates identified** — Only 4 currently implemented (G1-G3, G11). 8 more needed.
+3. **Badge stat boosts** — Zephyr→Attack, Plain→Speed, Mineral→Defense, Glacier→SpAtk+SpDef. Each is ×1.125. Not yet implemented in battle.
+4. **Gen 2-specific move power differences** — Dig=60 (not 100), Wing Attack=35 (not 60), Low Kick=50 (fixed power, not weight-based). Need to audit our move data.
+5. **Catch formula Gen 2 bug** — Paralysis/Burn/Poison status bonus is completely skipped due to code bug. Our implementation should match this bug for accuracy.
+6. **Version exclusives on routes** — Route 45: Gold has Gligar+Teddiursa, Silver has Phanpy+Skarmory. Ice Path: Gold has Jynx, Silver has Delibird.
+
+### Sources Used
+- Bulbapedia (primary for structured data)
+- Serebii.net (encounter tables, trainer data)
+- Pokemon World Online Wiki (base EXP yields)
+- pret/pokecrystal disassembly (canonical source for verification)

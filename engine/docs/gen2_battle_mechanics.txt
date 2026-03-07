@@ -1,0 +1,353 @@
+================================================================================
+POKEMON GOLD/SILVER/CRYSTAL (GENERATION II) — BATTLE MECHANICS REFERENCE
+================================================================================
+Sources: Bulbapedia (bulbapedia.bulbagarden.net)
+Compiled for Crusty recreation project
+
+
+================================================================================
+1. DAMAGE FORMULA
+================================================================================
+
+  Damage = (((2 * Level / 5 + 2) * Power * A / D / 50) * Item * Critical + 2)
+           * TK * Weather * Badge * STAB * Type * MoveMod * Random * DoubleDmg
+
+Variables:
+  Level     = Attacking Pokemon's level
+  Power     = Move's base power
+  A         = Attacker's effective Attack (physical) or Special Attack (special)
+  D         = Target's effective Defense (physical) or Special Defense (special)
+
+Modifiers:
+  Item      = 1.1 if holding a type-enhancing item (e.g. Charcoal, Mystic Water)
+              1.0 otherwise
+
+  Critical  = 2 if critical hit
+              1 otherwise
+
+  TK        = 1, 2, or 3 for successive hits of Triple Kick
+              1 otherwise
+
+  Weather   = 1.5 if Water move in Rain, or Fire move in Sun
+              0.5 if Water move in Sun, or Fire move in Rain
+              1.0 otherwise
+
+  Badge     = 1.125 if player-owned Pokemon and player has the relevant badge
+              1.0 otherwise
+              (Zephyr Badge boosts attack types, etc.)
+
+  STAB      = 1.5 if move type matches one of the user's types
+              1.0 otherwise
+
+  Type      = Product of type effectiveness multipliers (see type chart)
+              Possible values: 0, 0.25, 0.5, 1, 2, 4
+
+  MoveMod   = Move-specific modifiers (e.g. Rollout escalation)
+              1.0 for most moves
+
+  Random    = Random integer from 217 to 255, divided by 255
+              (i.e., damage varies from ~85% to 100%)
+
+  DoubleDmg = 2 if Pursuit hits a switching Pokemon
+              1 otherwise
+
+Critical Hit and Stat Stages:
+  When a critical hit lands, if the target's Defense/SpDef stat stage is
+  greater than or equal to the attacker's Attack/SpAtk stat stage, then
+  ALL stat stage modifiers are ignored, burn's attack halving is ignored,
+  and screen (Reflect/Light Screen) defensive boosts are ignored.
+  Otherwise, the stat stages are applied normally.
+
+
+================================================================================
+2. CRITICAL HIT RATES
+================================================================================
+
+Critical hit stage is determined by base (0) plus modifiers:
+
+  +1  Focus Energy or Dire Hit
+  +1  Scope Lens held item
+  +2  High critical-hit ratio move (Slash, Karate Chop, Crabhammer, etc.)
+
+  Special: Farfetch'd holding Stick or Chansey holding Lucky Punch
+           ignores all other stage modifiers (effectively very high rate)
+
+Stage -> Probability:
+  +0    17/256   (~6.64%)
+  +1     1/8     (12.5%)
+  +2     1/4     (25.0%)
+  +3    85/256   (~33.2%)
+  +4+    1/2     (50.0%)
+
+Damage Multiplier: 2x normal damage
+
+
+================================================================================
+3. STAT CALCULATION
+================================================================================
+
+Gen 2 uses DVs (0-15 range) and Stat Experience (0-65535 range).
+There are NO Natures in Gen 2.
+
+HP Formula:
+  HP = floor(((Base + DV) * 2 + floor(ceil(sqrt(StatExp)) / 4)) * Level / 100)
+       + Level + 10
+
+Other Stats (Atk, Def, SpAtk, SpDef, Speed):
+  Stat = floor(((Base + DV) * 2 + floor(ceil(sqrt(StatExp)) / 4)) * Level / 100)
+         + 5
+
+Where:
+  Base    = Species base stat value
+  DV      = Determinant Value (0-15), Gen 2's equivalent of IVs
+  StatExp = Stat Experience (0-65535), Gen 2's equivalent of EVs
+            Accumulated by defeating Pokemon (gain = defeated species' base stat)
+  Level   = Pokemon's current level
+
+DV Details:
+  - Attack DV:  0-15
+  - Defense DV: 0-15
+  - Speed DV:   0-15
+  - Special DV: 0-15 (shared between Special Attack AND Special Defense)
+  - HP DV: derived from the other 4 DVs (bit 0 of each, combined)
+    HP_DV = 8*(Atk_DV % 2) + 4*(Def_DV % 2) + 2*(Spd_DV % 2) + (Spc_DV % 2)
+
+Stat Stage Multipliers (for in-battle stages -6 to +6):
+  Stage  Multiplier
+  -6     2/8  = 0.25
+  -5     2/7  = 0.286
+  -4     2/6  = 0.333
+  -3     2/5  = 0.4
+  -2     2/4  = 0.5
+  -1     2/3  = 0.667
+   0     2/2  = 1.0
+  +1     3/2  = 1.5
+  +2     4/2  = 2.0
+  +3     5/2  = 2.5
+  +4     6/2  = 3.0
+  +5     7/2  = 3.5
+  +6     8/2  = 4.0
+
+Accuracy/Evasion stages use different multipliers:
+  Stage  Multiplier
+  -6     3/9  = 0.333
+  -5     3/8  = 0.375
+  -4     3/7  = 0.429
+  -3     3/6  = 0.5
+  -2     3/5  = 0.6
+  -1     3/4  = 0.75
+   0     3/3  = 1.0
+  +1     4/3  = 1.333
+  +2     5/3  = 1.667
+  +3     6/3  = 2.0
+  +4     7/3  = 2.333
+  +5     8/3  = 2.667
+  +6     9/3  = 3.0
+
+
+================================================================================
+4. EXPERIENCE
+================================================================================
+
+EXP Gain Formula (defeating a Pokemon):
+  EXP = b * L / 7 * (1/s) * e * a * t
+
+Where:
+  b = Base experience yield of the defeated Pokemon's species
+  L = Level of the defeated Pokemon
+  s = Participation/Exp Share divisor:
+      - If no Exp. Share in party: s = number of Pokemon that participated
+      - If Exp. Share in party: participating Pokemon get half EXP
+        (s = 2 * number of participants), holders of Exp. Share split other half
+  e = 1.5 if holding Lucky Egg, 1.0 otherwise
+  a = 1.5 if defeated Pokemon is trainer-owned, 1.0 if wild
+  t = 1.5 if Pokemon is traded (different OT), 1.0 if original trainer
+
+Experience Growth Rate Groups:
+(n = level, EXP = total experience needed to reach level n)
+
+  FAST:
+    EXP(n) = 4 * n^3 / 5
+
+  MEDIUM FAST:
+    EXP(n) = n^3
+
+  MEDIUM SLOW:
+    EXP(n) = (6 * n^3 / 5) - (15 * n^2) + (100 * n) - 140
+
+  SLOW:
+    EXP(n) = 5 * n^3 / 4
+
+  NOTE: Only these 4 groups exist in Gen 2.
+        Erratic and Fluctuating were added in Gen 3.
+
+  KNOWN BUG: Medium Slow at level 1 calculates to -54 EXP.
+  Due to unsigned integers, this wraps to 16,777,162.
+  This is why eggs hatch at level 5 (not level 1).
+
+
+================================================================================
+5. CATCH RATE FORMULA
+================================================================================
+
+Modified catch rate:
+  a = max(floor((3 * HPmax - 2 * HPcurrent) * rate_modified / (3 * HPmax)), 1)
+      + status_bonus
+
+Where:
+  HPmax         = Target Pokemon's maximum HP
+  HPcurrent     = Target Pokemon's current HP
+  rate_modified = Species base catch rate * ball modifier (min 1, max 255)
+  status_bonus  = +10 for Sleep or Freeze
+                   +0 for Paralysis, Burn, Poison (BUGGED — intended to be +5
+                       but a glitch skips this check entirely)
+                   +0 for no status condition
+
+If a >= 255, the Pokemon is caught without shake checks.
+
+Ball Multipliers (for rate_modified calculation):
+  Poke Ball    1.0x
+  Great Ball   1.5x
+  Ultra Ball   2.0x
+  Master Ball  Guaranteed catch (bypasses formula)
+  Safari Ball  1.5x
+  Sport Ball   1.5x
+
+  Apricorn Balls (intended behavior — MANY ARE BUGGED in Gen 2):
+    Level Ball   If player's level > wild's: varies (1x if <=, up to 8x)
+    Lure Ball    3x if fishing encounter (BUGGED: checks wrong value)
+    Moon Ball    4x if target evolves with Moon Stone (BUGGED: checks wrong ID)
+    Friend Ball  1x catch rate, but caught Pokemon starts with 200 friendship
+    Love Ball    8x if same species, opposite gender (BUGGED: checks same gender)
+    Heavy Ball   +/- to catch rate based on weight (not a multiplier)
+    Fast Ball    4x if species can flee (BUGGED: only works on Magnemite/Grimer/Tangela)
+
+Shake Check:
+  After calculating a, a shake probability b is looked up from a table.
+  Three shake checks are performed. Each generates a random number 0-255
+  and compares it to b. Pokemon is caught if all three checks pass.
+  If a >= 255, catch is guaranteed (no shakes needed).
+
+
+================================================================================
+6. STATUS CONDITIONS
+================================================================================
+
+--- SLEEP ---
+  Duration:   2-7 turns (randomly determined when inflicted)
+  Effect:     Pokemon cannot move. Sleep counter decrements each turn.
+              Pokemon wakes on the turn the counter reaches 0 and CAN act.
+  Moves:      Rest sets sleep to exactly 2 turns.
+              Sleep Talk / Snore can be used while asleep.
+
+--- FREEZE ---
+  Duration:   Indefinite (no automatic thaw timer)
+  Thaw Rate:  20% chance to thaw at the start of each turn
+  Thaw Moves: Fire-type moves used BY the frozen Pokemon thaw it.
+              Being hit by a Fire-type move thaws.
+              Moves: Flame Wheel (user thaws self before attacking)
+  Effect:     Pokemon cannot move while frozen.
+
+--- PARALYSIS ---
+  Speed:      Reduces Speed stat to 25% of normal (multiplied by 0.25)
+  Skip:       25% chance each turn of being "fully paralyzed" (cannot move)
+  Notes:      Does not wear off naturally. Must be healed.
+
+--- BURN ---
+  Damage:     1/8 of max HP lost at the end of each turn (rounded down)
+  Atk Reduce: Attack stat is halved (0.5x) while burned
+  Notes:      Fire-type Pokemon cannot be burned.
+              Only caused by Fire-type moves and Will-O-Wisp (not in Gen 2).
+              Burn damage is applied at end of turn.
+
+--- POISON ---
+  Damage:     1/8 of max HP lost at the end of each turn (rounded down)
+  Notes:      Poison-type and Steel-type Pokemon cannot be poisoned.
+              Poison damage also applies in the overworld (1 damage per 4 steps).
+
+--- BADLY POISONED (Toxic) ---
+  Damage:     Escalates each turn: N/16 of max HP, where N starts at 1
+              and increments by 1 each turn.
+              Turn 1: 1/16, Turn 2: 2/16, Turn 3: 3/16, ... etc.
+  Switch:     In Gen 2, switching out RESETS badly poisoned to regular poison.
+              The toxic counter is lost on switch.
+  Notes:      Caused by Toxic move.
+
+--- CONFUSION ---
+  Duration:   2-5 turns (randomly determined when inflicted)
+  Self-Hit:   50% chance each turn of hitting self instead of using selected move
+  Damage:     Calculated as a typeless physical move with 40 base power.
+              Uses the confused Pokemon's own Attack and Defense stats.
+              Burn halves the self-hit damage (since it's physical).
+              No STAB, no type effectiveness (typeless).
+  Notes:      Confusion is a volatile status (removed on switching out).
+              Focus Band cannot prevent KO from confusion self-hit in Gen 2.
+
+
+================================================================================
+7. TYPE EFFECTIVENESS CHART (Generation II — 17 Types)
+================================================================================
+
+Types: Normal, Fire, Water, Electric, Grass, Ice, Fighting, Poison,
+       Ground, Flying, Psychic, Bug, Rock, Ghost, Dragon, Dark, Steel
+
+--- SUPER EFFECTIVE (2x) ---
+
+  Normal    -> (nothing)
+  Fire      -> Grass, Ice, Bug, Steel
+  Water     -> Fire, Ground, Rock
+  Electric  -> Water, Flying
+  Grass     -> Water, Ground, Rock
+  Ice       -> Grass, Ground, Flying, Dragon
+  Fighting  -> Normal, Ice, Rock, Dark, Steel
+  Poison    -> Grass
+  Ground    -> Fire, Electric, Poison, Rock, Steel
+  Flying    -> Grass, Fighting, Bug
+  Psychic   -> Fighting, Poison
+  Bug       -> Grass, Psychic, Dark
+  Rock      -> Fire, Ice, Flying, Bug
+  Ghost     -> Ghost, Psychic
+  Dragon    -> Dragon
+  Dark      -> Ghost, Psychic
+  Steel     -> Ice, Rock
+
+--- NOT VERY EFFECTIVE (0.5x) ---
+
+  Normal    -> Rock, Steel
+  Fire      -> Fire, Water, Rock, Dragon
+  Water     -> Water, Grass, Dragon
+  Electric  -> Electric, Grass, Dragon
+  Grass     -> Fire, Grass, Poison, Flying, Bug, Dragon, Steel
+  Ice       -> Fire, Water, Ice, Steel
+  Fighting  -> Poison, Flying, Psychic, Bug, Ghost
+  Poison    -> Poison, Ground, Rock, Ghost
+  Ground    -> Grass, Bug
+  Flying    -> Electric, Rock, Steel
+  Psychic   -> Psychic, Steel
+  Bug       -> Fire, Fighting, Poison, Flying, Ghost, Steel
+  Rock      -> Fighting, Ground, Steel
+  Ghost     -> Dark, Steel
+  Dragon    -> Steel
+  Dark      -> Fighting, Dark, Steel
+  Steel     -> Fire, Water, Electric, Steel
+
+--- NO EFFECT (0x / Immune) ---
+
+  Normal    -> Ghost
+  Electric  -> Ground
+  Fighting  -> Ghost
+  Poison    -> Steel
+  Ground    -> Flying
+  Psychic   -> Dark
+  Ghost     -> Normal
+
+--- NOTES ---
+  Gen 2 added Dark and Steel types.
+  Poison was NOT super effective against Bug in Gen 2 (changed from Gen 1).
+  Bug was NOT super effective against Poison in Gen 2 (changed from Gen 1).
+  Ghost -> Psychic is super effective (fixing Gen 1 bug where it did 0x).
+
+
+================================================================================
+END OF REFERENCE
+================================================================================

@@ -1,0 +1,415 @@
+================================================================================
+POKEMON GOLD/SILVER - GYM LEADERS, ELITE FOUR, CHAMPION & RIVAL DATA
+================================================================================
+Sources: Bulbapedia (bulbapedia.bulbagarden.net), Serebii (serebii.net/gs/)
+================================================================================
+
+
+================================================================================
+PART 1: JOHTO GYM LEADERS
+================================================================================
+
+--------------------------------------------------------------------------------
+GYM 1: FALKNER - Violet City (Flying-type)
+--------------------------------------------------------------------------------
+Badge:  Zephyr Badge
+Effect: Boosts Attack; allows use of Flash (HM05) outside battle
+TM:     TM31 Mud-Slap
+Prize:  $900
+
+Team:
+  1. Pidgey    Lv.7  | Tackle, Mud-Slap
+  2. Pidgeotto Lv.9  | Tackle, Gust, Mud-Slap
+
+Note: Pidgeotto is underleveled (normally evolves at Lv.18).
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+GYM 2: BUGSY - Azalea Town (Bug-type)
+--------------------------------------------------------------------------------
+Badge:  Hive Badge
+Effect: Allows use of Cut (HM01) outside battle
+TM:     TM49 Fury Cutter
+Prize:  $1600
+
+Team:
+  1. Metapod Lv.14 | Tackle, String Shot, Harden
+  2. Kakuna  Lv.14 | Poison Sting, String Shot, Harden
+  3. Scyther Lv.16 | Fury Cutter, Quick Attack, Leer
+
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+GYM 3: WHITNEY - Goldenrod City (Normal-type)
+--------------------------------------------------------------------------------
+Badge:  Plain Badge
+Effect: Boosts Speed; allows use of Strength (HM04) outside battle
+TM:     TM45 Attract
+Prize:  $2000
+
+Team:
+  1. Clefairy Lv.18 | Encore, Mimic, DoubleSlap, Metronome
+  2. Miltank  Lv.20 | Stomp, Attract, Milk Drink, Rollout
+
+All Pokemon are female.
+
+--------------------------------------------------------------------------------
+GYM 4: MORTY - Ecruteak City (Ghost-type)
+--------------------------------------------------------------------------------
+Badge:  Fog Badge
+Effect: Allows use of Surf (HM03) outside battle
+TM:     TM30 Shadow Ball
+Prize:  $2500
+
+Team:
+  1. Gastly   Lv.21 | Lick, Spite, Mean Look, Curse
+  2. Haunter  Lv.21 | Hypnosis, Curse, Mimic, Night Shade
+  3. Haunter  Lv.23 | Spite, Mean Look, Mimic, Night Shade
+  4. Gengar   Lv.25 | Shadow Ball, Mean Look, Hypnosis, Dream Eater
+
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+GYM 5: CHUCK - Cianwood City (Fighting-type)
+--------------------------------------------------------------------------------
+Badge:  Storm Badge
+Effect: Allows use of Fly (HM02) outside battle
+TM:     TM01 DynamicPunch
+Prize:  $3000
+
+Team:
+  1. Primeape  Lv.27 | Leer, Rage, Karate Chop, Fury Swipes
+  2. Poliwrath Lv.30 | Hypnosis, Mind Reader, Surf, DynamicPunch
+
+Items: Full Heal
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+GYM 6: JASMINE - Olivine City (Steel-type)
+--------------------------------------------------------------------------------
+Badge:  Mineral Badge
+Effect: Boosts Defense
+TM:     TM23 Iron Tail
+Prize:  $3500
+
+Team:
+  1. Magnemite Lv.30 | Thunderbolt, Supersonic, SonicBoom, Thunder Wave
+  2. Magnemite Lv.30 | Thunderbolt, Supersonic, SonicBoom, Thunder Wave
+  3. Steelix   Lv.35 | Iron Tail, Rock Throw, Sunny Day, Screech
+
+Items: Hyper Potion
+Magnemite are genderless. Steelix is female.
+
+--------------------------------------------------------------------------------
+GYM 7: PRYCE - Mahogany Town (Ice-type)
+--------------------------------------------------------------------------------
+Badge:  Glacier Badge
+Effect: Boosts Special Attack & Special Defense; allows use of Whirlpool
+        (HM06) outside battle
+TM:     TM16 Icy Wind
+Prize:  $3100
+
+Team:
+  1. Seel      Lv.27 | Headbutt, Icy Wind, Aurora Beam, Rest
+  2. Dewgong   Lv.29 | Headbutt, Icy Wind, Aurora Beam, Rest
+  3. Piloswine Lv.31 | Icy Wind, Fury Attack, Mist, Blizzard
+
+Items: Hyper Potion
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+GYM 8: CLAIR - Blackthorn City (Dragon-type)
+--------------------------------------------------------------------------------
+Badge:  Rising Badge
+Effect: Allows use of Waterfall (HM07) outside battle
+TM:     TM24 DragonBreath
+Prize:  $4000
+
+Team:
+  1. Dragonair Lv.37 | Surf, Slam, Thunder Wave, DragonBreath
+  2. Dragonair Lv.37 | Thunderbolt, Slam, Thunder Wave, DragonBreath
+  3. Dragonair Lv.37 | Ice Beam, Slam, Thunder Wave, DragonBreath
+  4. Kingdra   Lv.40 | Surf, DragonBreath, SmokeScreen, Hyper Beam
+
+Items: Full Heal, Full Restore
+All Pokemon are female.
+
+
+================================================================================
+PART 2: ELITE FOUR & CHAMPION
+================================================================================
+
+--------------------------------------------------------------------------------
+ELITE FOUR #1: WILL (Psychic-type)
+--------------------------------------------------------------------------------
+Prize: $4200
+
+Team:
+  1. Xatu      Lv.40 | Quick Attack, Future Sight, Psychic, Confuse Ray
+  2. Exeggutor Lv.41 | Reflect, Egg Bomb, Psychic, Leech Seed
+  3. Slowbro   Lv.41 | Curse, Amnesia, Body Slam, Psychic
+  4. Jynx      Lv.41 | Ice Punch, DoubleSlap, Psychic, Lovely Kiss
+  5. Xatu      Lv.42 | Quick Attack, Future Sight, Psychic, Confuse Ray
+
+Items: Max Potion
+Jynx is female. All others are male.
+
+--------------------------------------------------------------------------------
+ELITE FOUR #2: KOGA (Poison-type)
+--------------------------------------------------------------------------------
+Prize: $4400
+
+Team:
+  1. Ariados   Lv.40 | Spider Web, Double Team, Baton Pass, Giga Drain
+  2. Venomoth  Lv.41 | Psychic, Gust, Supersonic, Toxic
+  3. Muk       Lv.42 | Sludge Bomb, Acid Armor, Minimize, Toxic
+  4. Forretress Lv.43 | Protect, Spikes, Swift, Explosion
+  5. Crobat    Lv.44 | Double Team, Wing Attack, Quick Attack, Toxic
+
+Items: Full Heal
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+ELITE FOUR #3: BRUNO (Fighting-type)
+--------------------------------------------------------------------------------
+Prize: $4600
+
+Team:
+  1. Hitmontop Lv.42 | Quick Attack, Dig, Detect, Pursuit
+  2. Hitmonlee Lv.42 | Double Kick, Foresight, Hi Jump Kick, Swagger
+  3. Hitmonchan Lv.42 | Ice Punch, Fire Punch, ThunderPunch, Mach Punch
+  4. Onix      Lv.43 | Rock Slide, Sandstorm, Earthquake, Bind
+  5. Machamp   Lv.46 | Rock Slide, Foresight, Cross Chop, Vital Throw
+
+Items: Max Potion
+All Pokemon are male.
+
+--------------------------------------------------------------------------------
+ELITE FOUR #4: KAREN (Dark-type)
+--------------------------------------------------------------------------------
+Prize: $4700
+
+Team:
+  1. Umbreon   Lv.42 | Faint Attack, Confuse Ray, Mean Look, Sand-Attack
+  2. Vileplume Lv.42 | Stun Spore, Acid, Petal Dance, Moonlight
+  3. Murkrow   Lv.44 | Faint Attack, Whirlwind, Pursuit, Quick Attack
+  4. Gengar    Lv.45 | Lick, Spite, Curse, Destiny Bond
+  5. Houndoom  Lv.47 | Crunch, Flamethrower, Roar, Pursuit
+
+Items: Full Heal, Max Potion
+Umbreon is male. Vileplume, Murkrow, Gengar, Houndoom are female.
+
+--------------------------------------------------------------------------------
+CHAMPION: LANCE (Dragon-type specialist)
+--------------------------------------------------------------------------------
+Prize: $5000
+
+Team:
+  1. Gyarados   Lv.44 | Rain Dance, Surf, Flail, Hyper Beam
+  2. Dragonite  Lv.47 | Twister, Thunder Wave, Blizzard, Hyper Beam
+  3. Charizard  Lv.46 | Flamethrower, Wing Attack, Slash, Hyper Beam
+  4. Aerodactyl Lv.46 | Rock Slide, AncientPower, Wing Attack, Hyper Beam
+  5. Dragonite  Lv.47 | Twister, Thunder Wave, Thunder, Hyper Beam
+  6. Dragonite  Lv.50 | Safeguard, Outrage, Fire Blast, Hyper Beam
+
+Items: Full Heal, Full Restore
+All Pokemon are male.
+Note: Lance's three Dragonite are all underleveled (Dragonite evolves at Lv.55).
+
+
+================================================================================
+PART 3: RIVAL (SILVER) ENCOUNTERS
+================================================================================
+Silver always takes the starter that is strong against the player's choice:
+  Player chose Chikorita  -> Silver has Cyndaquil line  (Fire)
+  Player chose Cyndaquil  -> Silver has Totodile line   (Water)
+  Player chose Totodile   -> Silver has Chikorita line  (Grass)
+
+--------------------------------------------------------------------------------
+BATTLE 1: Cherrygrove City
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Cyndaquil Lv.5 | Tackle, Leer
+
+If player chose Cyndaquil:
+  1. Totodile Lv.5 | Scratch, Leer
+
+If player chose Totodile:
+  1. Chikorita Lv.5 | Tackle, Growl
+
+--------------------------------------------------------------------------------
+BATTLE 2: Azalea Town
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Gastly  Lv.12 | Hypnosis, Lick, Spite
+  2. Zubat   Lv.14 | Leech Life, Supersonic, Bite
+  3. Quilava Lv.16 | Tackle, Leer, SmokeScreen, Ember
+
+If player chose Cyndaquil:
+  1. Gastly    Lv.12 | Hypnosis, Lick, Spite
+  2. Zubat     Lv.14 | Leech Life, Supersonic, Bite
+  3. Croconaw  Lv.16 | Scratch, Leer, Rage, Water Gun
+
+If player chose Totodile:
+  1. Gastly  Lv.12 | Hypnosis, Lick, Spite
+  2. Zubat   Lv.14 | Leech Life, Supersonic, Bite
+  3. Bayleef Lv.16 | Growl, Razor Leaf, Reflect, PoisonPowder
+
+--------------------------------------------------------------------------------
+BATTLE 3: Burned Tower (Ecruteak City)
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Haunter   Lv.20 | Lick, Spite, Mean Look, Curse
+  2. Magnemite Lv.18 | Tackle, ThunderShock, Supersonic, SonicBoom
+  3. Zubat     Lv.20 | Leech Life, Supersonic, Bite, Confuse Ray
+  4. Quilava   Lv.22 | Ember, Leer, Quick Attack, SmokeScreen
+
+If player chose Cyndaquil:
+  1. Haunter   Lv.20 | Lick, Spite, Mean Look, Curse
+  2. Magnemite Lv.18 | Tackle, ThunderShock, Supersonic, SonicBoom
+  3. Zubat     Lv.20 | Leech Life, Supersonic, Bite, Confuse Ray
+  4. Croconaw  Lv.22 | Water Gun, Leer, Bite, Rage
+
+If player chose Totodile:
+  1. Haunter   Lv.20 | Lick, Spite, Mean Look, Curse
+  2. Magnemite Lv.18 | Tackle, ThunderShock, Supersonic, SonicBoom
+  3. Zubat     Lv.20 | Leech Life, Supersonic, Bite, Confuse Ray
+  4. Bayleef   Lv.22 | Razor Leaf, Growl, PoisonPowder, Reflect
+
+--------------------------------------------------------------------------------
+BATTLE 4: Goldenrod Underground
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Golbat    Lv.30 | Wing Attack, Confuse Ray, Bite, Leech Life
+  2. Magnemite Lv.28 | SonicBoom, Thunder Wave, Tackle, ThunderShock
+  3. Haunter   Lv.30 | Shadow Ball, Lick, Curse, Mean Look
+  4. Sneasel   Lv.32 | Faint Attack, Leer, Quick Attack, Screech
+  5. Quilava   Lv.32 | Ember, SmokeScreen, Quick Attack, Flame Wheel
+
+If player chose Cyndaquil:
+  1. Golbat    Lv.30 | Wing Attack, Confuse Ray, Bite, Leech Life
+  2. Magnemite Lv.28 | SonicBoom, Thunder Wave, Tackle, ThunderShock
+  3. Haunter   Lv.30 | Shadow Ball, Lick, Curse, Mean Look
+  4. Sneasel   Lv.32 | Faint Attack, Leer, Quick Attack, Screech
+  5. Feraligatr Lv.32 | Rage, Water Gun, Bite, Scary Face
+
+If player chose Totodile:
+  1. Golbat    Lv.30 | Wing Attack, Confuse Ray, Bite, Leech Life
+  2. Magnemite Lv.28 | SonicBoom, Thunder Wave, Tackle, ThunderShock
+  3. Haunter   Lv.30 | Shadow Ball, Lick, Curse, Mean Look
+  4. Sneasel   Lv.32 | Faint Attack, Leer, Quick Attack, Screech
+  5. Meganium  Lv.32 | PoisonPowder, Razor Leaf, Body Slam, Reflect
+
+--------------------------------------------------------------------------------
+BATTLE 5: Victory Road
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Sneasel    Lv.34 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.36 | Wing Attack, Confuse Ray, Bite, Leech Life
+  3. Magneton   Lv.35 | SonicBoom, Thunder Wave, Swift, ThunderShock
+  4. Haunter    Lv.35 | Shadow Ball, Curse, Mean Look, Confuse Ray
+  5. Kadabra    Lv.35 | Recover, Future Sight, Disable, Psybeam
+  6. Typhlosion Lv.38 | Ember, SmokeScreen, Quick Attack, Flame Wheel
+
+If player chose Cyndaquil:
+  1. Sneasel    Lv.34 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.36 | Wing Attack, Confuse Ray, Bite, Leech Life
+  3. Magneton   Lv.35 | SonicBoom, Thunder Wave, Swift, ThunderShock
+  4. Haunter    Lv.35 | Shadow Ball, Curse, Mean Look, Confuse Ray
+  5. Kadabra    Lv.35 | Recover, Future Sight, Disable, Psybeam
+  6. Feraligatr Lv.38 | Water Gun, Bite, Scary Face, Slash
+
+If player chose Totodile:
+  1. Sneasel    Lv.34 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.36 | Wing Attack, Confuse Ray, Bite, Leech Life
+  3. Magneton   Lv.35 | SonicBoom, Thunder Wave, Swift, ThunderShock
+  4. Haunter    Lv.35 | Shadow Ball, Curse, Mean Look, Confuse Ray
+  5. Kadabra    Lv.35 | Recover, Future Sight, Disable, Psybeam
+  6. Meganium   Lv.38 | PoisonPowder, Razor Leaf, Body Slam, Reflect
+
+--------------------------------------------------------------------------------
+BATTLE 6: Mt. Moon (Post-League, Monday nights)
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Sneasel    Lv.41 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.42 | Leech Life, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.41 | ThunderShock, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.43 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.43 | Disable, Psybeam, Recover, Future Sight
+  6. Typhlosion Lv.45 | SmokeScreen, Quick Attack, Flame Wheel, Swift
+
+If player chose Cyndaquil:
+  1. Sneasel    Lv.41 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.42 | Leech Life, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.41 | ThunderShock, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.43 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.43 | Disable, Psybeam, Recover, Future Sight
+  6. Feraligatr Lv.45 | Rage, Water Gun, Scary Face, Slash
+
+If player chose Totodile:
+  1. Sneasel    Lv.41 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Golbat     Lv.42 | Leech Life, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.41 | ThunderShock, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.43 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.43 | Disable, Psybeam, Recover, Future Sight
+  6. Meganium   Lv.45 | Razor Leaf, PoisonPowder, Body Slam, Light Screen
+
+--------------------------------------------------------------------------------
+BATTLE 7: Indigo Plateau Rematch (Monday & Wednesday)
+--------------------------------------------------------------------------------
+
+If player chose Chikorita:
+  1. Sneasel    Lv.48 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Crobat     Lv.45 | Toxic, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.48 | Thunder, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.46 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.46 | Recover, Future Sight, Psychic, Reflect
+  6. Typhlosion Lv.50 | SmokeScreen, Quick Attack, Flame Wheel, Swift
+
+If player chose Cyndaquil:
+  1. Sneasel    Lv.48 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Crobat     Lv.45 | Toxic, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.48 | Thunder, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.46 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.46 | Recover, Future Sight, Psychic, Reflect
+  6. Feraligatr Lv.50 | Surf, Rain Dance, Slash, Screech
+
+If player chose Totodile:
+  1. Sneasel    Lv.48 | Quick Attack, Screech, Faint Attack, Fury Cutter
+  2. Crobat     Lv.45 | Toxic, Bite, Confuse Ray, Wing Attack
+  3. Magneton   Lv.48 | Thunder, SonicBoom, Thunder Wave, Swift
+  4. Gengar     Lv.46 | Mean Look, Curse, Shadow Ball, Confuse Ray
+  5. Alakazam   Lv.46 | Recover, Future Sight, Psychic, Reflect
+  6. Meganium   Lv.50 | Giga Drain, Body Slam, Light Screen, Safeguard
+
+Note: Golbat evolves to Crobat between Battle 6 and Battle 7,
+      reflecting Silver's character development as a trainer.
+
+
+================================================================================
+QUICK REFERENCE: ALL UNIQUE POKEMON SPECIES USED
+================================================================================
+
+Gym Leaders:  Pidgey, Pidgeotto, Metapod, Kakuna, Scyther, Clefairy, Miltank,
+              Gastly, Haunter, Gengar, Primeape, Poliwrath, Magnemite, Steelix,
+              Seel, Dewgong, Piloswine, Dragonair, Kingdra
+
+Elite Four:   Xatu, Exeggutor, Slowbro, Jynx, Ariados, Venomoth, Muk,
+              Forretress, Crobat, Hitmontop, Hitmonlee, Hitmonchan, Onix,
+              Machamp, Umbreon, Vileplume, Murkrow, Gengar, Houndoom
+
+Champion:     Gyarados, Dragonite, Charizard, Aerodactyl
+
+Rival:        Cyndaquil, Quilava, Typhlosion, Totodile, Croconaw, Feraligatr,
+              Chikorita, Bayleef, Meganium, Gastly, Haunter, Gengar, Zubat,
+              Golbat, Crobat, Magnemite, Magneton, Sneasel, Kadabra, Alakazam
+
+================================================================================
+END OF DATA
+================================================================================

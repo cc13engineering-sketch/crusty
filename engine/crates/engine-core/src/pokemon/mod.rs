@@ -2000,6 +2000,10 @@ impl PokemonSim {
                     sfx_hit(engine, effectiveness > 1.5);
                 }
                 if t > 0.8 {
+                    // Multi-hit moves: multiply damage by number of hits
+                    let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
+                    let damage = damage * num_hits as u16;
+
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
                     // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down
@@ -2086,6 +2090,9 @@ impl PokemonSim {
                     }
                     if has_recoil {
                         follow_msgs.push(format!("{} is hit with recoil!", pname));
+                    }
+                    if num_hits > 1 && !is_miss {
+                        follow_msgs.push(format!("Hit {} times!", num_hits));
                     }
 
                     // Apply stat stage effects for player's status moves
@@ -2374,6 +2381,10 @@ impl PokemonSim {
                     sfx_hit(engine, effectiveness > 1.5);
                 }
                 if t > 0.8 {
+                    // Multi-hit moves: multiply damage by number of hits
+                    let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
+                    let damage = damage * num_hits as u16;
+
                     if let Some(p) = self.party.get_mut(battle.player_idx) {
                         p.hp = p.hp.saturating_sub(damage);
                         // Status-inflicting moves (power=0) always trigger, damaging moves only on hit
@@ -2455,6 +2466,9 @@ impl PokemonSim {
                     if e_has_recoil {
                         let eprefix_rc = if battle.is_wild { "Wild " } else { "Foe " };
                         e_follow_msgs.push(format!("{}{} is hit with recoil!", eprefix_rc, ename));
+                    }
+                    if num_hits > 1 && !is_miss {
+                        e_follow_msgs.push(format!("Hit {} times!", num_hits));
                     }
 
                     // Apply stat stage effects for enemy's status moves
@@ -2672,6 +2686,7 @@ impl PokemonSim {
                     p.exp += exp;
                     let mut leveled = false;
                     let mut pending_learns = Vec::new();
+                    let mut auto_learn_msgs: Vec<String> = Vec::new();
                     // Loop for multi-level-up (e.g., low-level vs high-level enemy)
                     while p.level < 100 {
                         let sp = match get_species(p.species_id) { Some(s) => s, None => break };
@@ -2691,6 +2706,9 @@ impl PokemonSim {
                                         p.move_pp[i] = md.pp;
                                         p.move_max_pp[i] = md.pp;
                                     }
+                                    // Track auto-learned moves for text display
+                                    let mname = get_move(new_move).map(|m| m.name).unwrap_or("???");
+                                    auto_learn_msgs.push(format!("{} learned {}!", p.name(), mname));
                                     filled = true;
                                     break;
                                 }
@@ -2707,18 +2725,27 @@ impl PokemonSim {
                                 } else { None }
                             });
                         sfx_level_up(engine);
+                        // Chain auto-learned move messages before LevelUp
+                        let mut lvlup_inner = BattlePhase::LevelUp { timer: 0.0 };
+                        for m in auto_learn_msgs.iter().rev() {
+                            lvlup_inner = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(lvlup_inner) };
+                        }
                         if let Some(evo) = evo_species {
                             battle.phase = BattlePhase::Text {
                                 message: format!("{} grew to LV{}!", p.name(), p.level),
                                 timer: 0.0,
-                                next_phase: Box::new(BattlePhase::LevelUp { timer: 0.0 }),
+                                next_phase: Box::new(lvlup_inner),
                             };
                             self.battle = Some(battle);
                             self.phase = GamePhase::Battle;
                             engine.global_state.set_f64("pending_evolution", evo as f64);
                             return;
                         }
-                        battle.phase = BattlePhase::LevelUp { timer: 0.0 };
+                        battle.phase = BattlePhase::Text {
+                            message: format!("{} grew to LV{}!", p.name(), p.level),
+                            timer: 0.0,
+                            next_phase: Box::new(lvlup_inner),
+                        };
                         self.battle = Some(battle);
                         return;
                     }
@@ -5366,6 +5393,21 @@ fn flinch_chance(move_id: MoveId) -> f64 {
         MOVE_TWISTER => 0.2,
         MOVE_HYPER_FANG => 0.1,
         _ => 0.0,
+    }
+}
+
+/// Returns the number of hits for multi-hit moves. 1 for normal moves.
+/// Gen 2 distribution for 2-5 hit moves: 2=37.5%, 3=37.5%, 4=12.5%, 5=12.5%
+fn multi_hit_count(move_id: MoveId, rng_val: f64) -> u8 {
+    match move_id {
+        MOVE_DOUBLE_KICK => 2, // always exactly 2
+        MOVE_FURY_SWIPES | MOVE_FURY_ATTACK => {
+            if rng_val < 0.375 { 2 }
+            else if rng_val < 0.75 { 3 }
+            else if rng_val < 0.875 { 4 }
+            else { 5 }
+        }
+        _ => 1,
     }
 }
 

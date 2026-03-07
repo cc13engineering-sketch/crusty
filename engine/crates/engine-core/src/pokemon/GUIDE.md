@@ -1575,3 +1575,8 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **B10/E2 FIX: Run text** — "Got away safely!" dialogue now shows when fleeing wild battles (was instant silent exit).
 - All 1318 tests pass.
 - **Next (Sprint 88)**: More content from Sprint 85 audit: B6 (multi-hit moves), B7 (auto-learn text), B8 (level-up stat display), B9 (EXP bar animation)
+
+### Sprint 88 (Content — Multi-Hit Moves + Auto-Learn Text)
+- **B6 FIX: Multi-hit moves** — Added `multi_hit_count()` helper. Fury Swipes and Fury Attack use Gen 2 distribution (2=37.5%, 3=37.5%, 4=12.5%, 5=12.5%). Double Kick always hits exactly 2 times. Damage multiplied by hit count. "Hit N times!" text shown after attack. Both player and enemy sides.
+- **B7 FIX: Auto-learn text** — When a Pokemon levels up and auto-learns a move into an empty slot, "X learned MOVE!" text now displays before the LevelUp phase. Uses `auto_learn_msgs` Vec chained before LevelUp.
+- **Next (Sprint 89 — QA)**: Run full QA audit. Remaining B-category items: B8 (level-up stat display), B9 (EXP bar animation).

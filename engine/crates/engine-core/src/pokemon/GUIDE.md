@@ -2229,4 +2229,86 @@ Added two shared helpers to reduce boilerplate in queue tests:
 ### Files Changed
 - `mod.rs` — Removed RunFailed variant + handler + render handler, fixed GoToPhase to clear queue, added empty-queue warning, added 14 new tests + 2 test helpers, updated AI-INSTRUCTIONS comment
 
+## Sprint 123: Migrate PlayerAttack/EnemyAttack to Battle Queue System
+
+**Objective:** Migrate the two main battle attack flows (PlayerAttack and EnemyAttack) from the old timer-based Box chain approach to the queue-based BattleStep system introduced in Sprints 120-122.
+
+### Architecture Change
+
+**Before (timer-based):** PlayerAttack and EnemyAttack were timer-based phases that:
+1. Waited 0.3s for a screen flash/shake effect
+2. Waited 0.8s total, then applied all effects (damage, status, recoil, etc.)
+3. Built a deeply nested `BattlePhase::Text { next_phase: Box<Text { next_phase: Box<...> }> }` chain for all follow-up messages
+4. Transitioned through that chain one text box at a time
+
+**After (queue-based):** PlayerAttack and EnemyAttack are now **instant-resolve phases** that:
+1. Immediately compute ALL effects (damage, multi-hit, recoil, status, flinch, stat changes, rampage, Hyper Beam, Rest, etc.)
+2. Push queue steps in FIFO order: Text announcement, ScreenFlash/ScreenShake + PlayHitSfx, Pause, DrainHp animation, follow-up texts (crit/effectiveness/recoil/multi-hit), stat change texts, then a terminal GoToPhase
+3. Transition to `BattlePhase::ExecuteQueue` which processes steps one at a time with proper timing
+
+### New BattleStep Variants
+| Variant | Purpose |
+|---------|---------|
+| `ScreenFlash(f64)` | Sets `screen_flash` value for hit visual effect on player attacks |
+| `ScreenShake(f64)` | Sets `screen_shake` value for hit visual effect on enemy attacks |
+| `PlayHitSfx(bool)` | Plays hit sound effect (bool = super_effective flag) |
+
+### Method Signature Change
+`step_execute_queue` changed from a static method `fn step_execute_queue(battle, party, engine)` to an instance method `fn step_execute_queue(&mut self, battle, engine)`. This was necessary because the new ScreenFlash/ScreenShake steps need to set fields on PokemonSim. Tests use a `test_step_queue` wrapper that creates a temporary PokemonSim.
+
+### Flow Diagrams
+
+**Player goes first:**
+```
+MoveSelect → PlayerAttack (instant resolve, builds queue) → ExecuteQueue
+  Queue: [Text("X used Y!"), ScreenFlash, PlayHitSfx, Pause, DrainHp, ...texts..., GoToPhase(EnemyAttack)]
+  → EnemyAttack (instant resolve, builds queue) → ExecuteQueue
+  Queue: [Text("Foe Y used Z!"), ScreenShake, PlayHitSfx, Pause, DrainHp, ...texts..., GoToPhase(ActionSelect)]
+```
+
+**Enemy goes first (pending_player_move set):**
+```
+MoveSelect → EnemyAttack (instant resolve) → ExecuteQueue
+  Queue: [..., GoToPhase(PlayerAttack { from_pending: true })]
+  → PlayerAttack (instant resolve, includes end-of-turn status) → ExecuteQueue
+  Queue: [..., GoToPhase(ActionSelect)]
+```
+
+### All Effects Preserved
+Every effect from the old timer-based handlers is preserved in the queue-based version:
+- Multi-hit moves (Double Kick, Fury Swipes, etc.)
+- Recoil (Struggle, Take Down)
+- Self-Destruct/Explosion (user faints)
+- Hyper Beam recharge flag
+- Thrash/Outrage rampage tracking
+- Rest (full heal + sleep)
+- Secondary status effects (try_inflict_status)
+- Flinch (only from first attacker)
+- Damaging move stat effects (e.g. Psychic lowering Sp.Def)
+- Status move stage effects (Growl, Tail Whip, Swords Dance, Haze, Confuse Ray, Swagger, Mean Look, etc.)
+- End-of-turn status damage (poison, burn, bad poison)
+- Confusion self-hit (both player and enemy)
+- Enemy rampage end confusion
+- Turn count tracking
+- Accuracy/evasion checks
+
+### External Callers Preserved
+All external code that transitions to EnemyAttack (bag item use, Pokemon switch, run failed, ball throw) continues to work unchanged since PlayerAttack and EnemyAttack still exist as BattlePhase variants -- they just resolve instantly now instead of animating over 0.8s.
+
+### New Tests
+| Test | What It Verifies |
+|------|------------------|
+| `test_player_attack_queue_builds_correctly` | PlayerAttack phase builds queue and transitions to ExecuteQueue |
+| `test_enemy_attack_queue_builds_correctly` | EnemyAttack phase builds queue and transitions to ExecuteQueue |
+| `test_player_attack_queue_applies_damage` | Full integration: PlayerAttack resolves, queue processes, enemy HP decreases |
+| `test_screen_flash_step` | ScreenFlash step sets screen_flash on PokemonSim |
+| `test_screen_shake_step` | ScreenShake step sets screen_shake on PokemonSim |
+| `test_enemy_attack_recharge_skips_via_queue` | EnemyAttack with must_recharge builds recharge text via queue |
+
+### Test Infrastructure Update
+Added `test_step_queue(battle, party, engine)` helper that creates a temporary PokemonSim to call the now-instance-method `step_execute_queue`. All existing queue tests updated to use this helper.
+
+### Files Changed
+- `mod.rs` — Migrated PlayerAttack/EnemyAttack to instant-resolve queue builders, added 3 new BattleStep variants, changed step_execute_queue to &mut self method, added 6 new tests + test helper, updated AI-INSTRUCTIONS comment
+
 **Test Results**: All 1345 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.

@@ -26,10 +26,11 @@
 // Overworld items: Potions (20/50/200/full), Full Restore (HP+status), Rare Candy (+1 level+evo check).
 // Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
 // Battle queue sequencer: BattleStep enum (Text/ApplyDamage/DrainHp/InflictStatus/StatChange/CheckFaint/
-//   Pause/GoToPhase) processed FIFO via BattlePhase::ExecuteQueue. step_execute_queue() drives it.
-//   queue_attack_sequence() helper builds a standard attack flow. Migrated flows: Run success ("Got away
-//   safely!" → Run cleanup), Run failed ("Can't escape!" → EnemyAttack via queue), Intro ("Go! X!" →
-//   ActionSelect), Won ("You won!" → Won cleanup). GoToPhase clears remaining queue on transition.
+//   Pause/GoToPhase/ScreenFlash/ScreenShake/PlayHitSfx) processed FIFO via BattlePhase::ExecuteQueue.
+//   step_execute_queue(&mut self) drives it. PlayerAttack and EnemyAttack are now instant-resolve phases:
+//   they compute all effects immediately, push queue steps (text, flash/shake, pause, drain, faint check),
+//   then transition to ExecuteQueue. Migrated flows: Run success/failed, Intro, Won, PlayerAttack, EnemyAttack.
+//   GoToPhase clears remaining queue on transition.
 
 pub mod data;
 pub mod sprites;
@@ -220,6 +221,12 @@ enum BattleStep {
     Pause(f64),
     /// Transition to a specific BattlePhase (escape hatch for complex flows)
     GoToPhase(Box<BattlePhase>),
+    /// Set screen_flash value (for hit visual effects)
+    ScreenFlash(f64),
+    /// Set screen_shake value (for enemy hit visual effects)
+    ScreenShake(f64),
+    /// Play hit sound effect (super_effective flag)
+    PlayHitSfx(bool),
 }
 
 /// Sub-states for the move learning sequence
@@ -2653,681 +2660,522 @@ impl PokemonSim {
                 }
             }
 
-            BattlePhase::PlayerAttack { timer, move_id, damage, effectiveness, is_crit, from_pending } => {
-                let t = timer + dt;
-                // Flash effect on hit at t=0.3
-                if timer < 0.3 && t >= 0.3 && damage > 0 {
-                    self.screen_flash = 0.6;
-                    if effectiveness > 1.5 { self.screen_flash = 0.9; }
-                    sfx_hit(engine, effectiveness > 1.5);
+            BattlePhase::PlayerAttack { timer: _, move_id, damage, effectiveness, is_crit, from_pending } => {
+                // Queue-based PlayerAttack: compute all effects immediately, push queue steps,
+                // then transition to ExecuteQueue. No timer — all visual pacing is in the queue.
+                let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
+                let damage = damage * num_hits as u16;
+
+                // Apply damage to enemy
+                battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
+
+                // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down
+                let has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                if has_recoil {
+                    let recoil = (damage / 4).max(1);
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.hp = p.hp.saturating_sub(recoil);
+                    }
                 }
-                if t > 0.8 {
-                    // Multi-hit moves: multiply damage by number of hits
-                    let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
-                    let damage = damage * num_hits as u16;
 
-                    battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
+                // Self-Destruct/Explosion: user faints
+                if move_id == MOVE_SELF_DESTRUCT {
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.hp = 0;
+                    }
+                }
 
-                    // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down
-                    let has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
-                    if has_recoil {
-                        let recoil = (damage / 4).max(1);
-                        if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.hp = p.hp.saturating_sub(recoil);
-                        }
-                    }
+                // Hyper Beam: must recharge next turn (only if it hit)
+                if move_id == MOVE_HYPER_BEAM && damage > 0 {
+                    battle.player_must_recharge = true;
+                }
 
-                    // Self-Destruct/Explosion: user faints
-                    if move_id == MOVE_SELF_DESTRUCT {
-                        if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.hp = 0;
-                        }
-                    }
+                // Thrash/Outrage: start rampage if not already rampaging
+                if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.player_rampage.1 == 0 {
+                    let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
+                    battle.player_rampage = (remaining, move_id);
+                }
 
-                    // Hyper Beam: must recharge next turn (only if it hit)
-                    if move_id == MOVE_HYPER_BEAM && damage > 0 {
-                        battle.player_must_recharge = true;
+                // Rest: full HP heal, force 2-turn sleep
+                if move_id == MOVE_REST {
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.hp = p.max_hp;
+                        p.status = StatusCondition::Sleep { turns: 2 };
                     }
+                }
 
-                    // Thrash/Outrage: start rampage if not already rampaging
-                    // player_rampage.1 == 0 means no active rampage (not just counter=0)
-                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.player_rampage.1 == 0 {
-                        // 2-3 turns total; we just did the first turn, so 1-2 more
-                        let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
-                        battle.player_rampage = (remaining, move_id);
+                // Secondary status effects
+                let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
+                if damage > 0 || is_status_move {
+                    let roll = engine.rng.next_f64();
+                    try_inflict_status(&mut battle.enemy, move_id, roll);
+                }
+                if damage > 0 {
+                    let fc = flinch_chance(move_id);
+                    if fc > 0.0 && !from_pending {
+                        if engine.rng.next_f64() < fc { battle.enemy_flinched = true; }
                     }
-
-                    // Rest: full HP heal, force 2-turn sleep
-                    if move_id == MOVE_REST {
-                        if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.hp = p.max_hp;
-                            p.status = StatusCondition::Sleep { turns: 2 };
-                        }
-                    }
-
-                    // Check for secondary effects from move (damaging moves only trigger on hit)
-                    // Status-inflicting moves (power=0, like Hypnosis/Thunder Wave) always call try_inflict_status
-                    let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
-                    if damage > 0 || is_status_move {
-                        let roll = engine.rng.next_f64();
-                        try_inflict_status(&mut battle.enemy, move_id, roll);
-                    }
-                    if damage > 0 {
-                        // Check flinch (only matters if player goes first)
-                        let fc = flinch_chance(move_id);
-                        if fc > 0.0 && !from_pending {
-                            let flinch_roll = engine.rng.next_f64();
-                            if flinch_roll < fc {
-                                battle.enemy_flinched = true;
-                            }
-                        }
-                    }
-                    // Check damaging move stat effects (separate roll from status)
-                    if damage > 0 {
-                        if let Some((target_enemy, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
-                            let stat_roll = engine.rng.next_f64();
-                            if stat_roll < chance {
-                                let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
-                                stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
-                            }
-                        }
-                    }
-
-                    let move_data_ref = get_move(move_id);
-                    let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
-                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                    // Detect miss: damage=0 on a move with power, non-zero effectiveness
-                    let is_miss = damage == 0
-                        && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
-                        && effectiveness > 0.0;
-                    let msg = format!("{} used {}!", pname, move_name);
-                    // Build separate follow-up messages (Gen 2 shows these sequentially)
-                    let mut follow_msgs: Vec<String> = Vec::new();
-                    if is_miss {
-                        follow_msgs.push("Attack missed!".to_string());
-                    } else {
-                        if is_crit { follow_msgs.push("Critical hit!".to_string()); }
-                        let eff = eff_text(effectiveness);
-                        if !eff.is_empty() { follow_msgs.push(eff.to_string()); }
-                    }
-                    if has_recoil {
-                        follow_msgs.push(format!("{} is hit with recoil!", pname));
-                    }
-                    if num_hits > 1 && !is_miss {
-                        follow_msgs.push(format!("Hit {} times!", num_hits));
-                    }
-
-                    // Prepend confusion snapout text if player snapped out this turn (from_pending)
-                    let msg = if from_pending {
-                        if let Some(sm) = battle.confusion_snapout_msg.take() {
-                            follow_msgs.insert(0, msg);
-                            sm
-                        } else { msg }
-                    } else { msg };
-
-                    // Apply stat stage effects for player's status moves
-                    let stage_msg = if !is_miss {
-                        if move_id == MOVE_HAZE {
-                            battle.player_stages = [0; 7];
-                            battle.enemy_stages = [0; 7];
-                            Some("All stat changes were reset!".to_string())
-                        } else if move_id == MOVE_CONFUSE_RAY {
-                            if battle.enemy_confused == 0 {
-                                battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; // 2-5 turns
-                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                                Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
-                            } else {
-                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                                Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
-                            }
-                        } else if move_id == MOVE_SWAGGER {
-                            // Swagger: raise target's Attack +2 AND confuse
-                            let old = battle.enemy_stages[STAGE_ATK];
-                            battle.enemy_stages[STAGE_ATK] = (old + 2).min(6);
-                            if battle.enemy_confused == 0 {
-                                battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
-                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                                Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
-                            } else {
-                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                                Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
-                            }
-                        } else if move_id == MOVE_MEAN_LOOK {
-                            // Mean Look is only meaningful in wild battles
-                            // Player uses Mean Look on wild — prevent it from fleeing (no effect in trainer battles)
-                            None // Visual-only for now; wild Pokemon don't try to flee in our implementation
-                        } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                }
+                if damage > 0 {
+                    if let Some((target_enemy, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
+                        if engine.rng.next_f64() < chance {
                             let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
-                            let old = stages[stat_idx];
-                            stages[stat_idx] = (old + delta).max(-6).min(6);
-                            if stages[stat_idx] != old {
-                                let stat_name = match stat_idx {
-                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
-                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
-                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
-                                    _ => "evasion",
-                                };
-                                let target_name = if target_enemy {
-                                    let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                                    format!("{}{}", prefix, battle.enemy.name())
-                                } else {
-                                    pname.clone()
-                                };
-                                let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" }
-                                    else if delta < -1 { "sharply fell!" } else { "fell!" };
-                                Some(format!("{}'s {} {}", target_name, stat_name, change))
-                            } else {
-                                let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
-                                Some(format!("{} won't {}", match stat_idx {
-                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
-                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
-                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
-                                    _ => "evasion",
-                                }, dir))
-                            }
-                        } else { None }
-                    } else { None };
+                            stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
+                        }
+                    }
+                }
 
-                    // Helper: wrap next_phase with follow-up messages + stat change text
-                    let wrap_stat = |next: BattlePhase, sm: &Option<String>, extra: &[String]| -> Box<BattlePhase> {
-                        let mut phase = next;
-                        if let Some(ref s) = sm {
-                            phase = BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(phase) };
-                        }
-                        for m in extra.iter().rev() {
-                            phase = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(phase) };
-                        }
-                        Box::new(phase)
-                    };
+                // Stat stage effects for status moves
+                let move_data_ref = get_move(move_id);
+                let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
+                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                let is_miss = damage == 0
+                    && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
+                    && effectiveness > 0.0;
 
-                    if battle.enemy.is_fainted() {
-                        let exp = get_species(battle.enemy.species_id)
-                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                            .unwrap_or(10);
-                        battle.phase = BattlePhase::Text {
-                            message: msg, timer: 0.0,
-                            next_phase: wrap_stat(BattlePhase::EnemyFainted { exp_gained: exp }, &stage_msg, &follow_msgs),
-                        };
-                    } else if from_pending {
-                        // Player's turn came from pending (enemy already attacked this turn)
-                        // End-of-turn: apply status damage, tick status, return to ActionSelect
-                        let mut eot_msgs: Vec<String> = Vec::new();
-                        let pname_eot = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            let pdmg = p.apply_status_damage();
-                            if pdmg > 0 {
-                                let status_text = match p.status {
-                                    StatusCondition::Burn => format!("{} is hurt by its burn!", pname_eot),
-                                    StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname_eot),
-                                    _ => format!("{} is hurt by poison!", pname_eot),
-                                };
-                                eot_msgs.push(status_text);
-                            }
-                            let woke = p.tick_status();
-                            if woke { eot_msgs.push(format!("{} woke up!", pname_eot)); }
-                        }
-                        let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
-                        let ename_eot = battle.enemy.name().to_string();
-                        let edmg = battle.enemy.apply_status_damage();
-                        if edmg > 0 {
-                            let status_text = match battle.enemy.status {
-                                StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix, ename_eot),
-                                StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix, ename_eot),
-                                _ => format!("{}{} is hurt by poison!", eprefix, ename_eot),
-                            };
-                            eot_msgs.push(status_text);
-                        }
-                        let ewoke = battle.enemy.tick_status();
-                        if ewoke {
-                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            eot_msgs.push(format!("{}{} woke up!", prefix, battle.enemy.name()));
-                        }
-                        battle.turn_count += 1;
-                        // Chain end-of-turn messages before the terminal phase
-                        let terminal = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
-                            BattlePhase::PlayerFainted
-                        } else if battle.enemy.is_fainted() {
-                            let exp = get_species(battle.enemy.species_id)
-                                .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                                .unwrap_or(10);
-                            BattlePhase::EnemyFainted { exp_gained: exp }
+                let stage_msg = if !is_miss {
+                    if move_id == MOVE_HAZE {
+                        battle.player_stages = [0; 7];
+                        battle.enemy_stages = [0; 7];
+                        Some("All stat changes were reset!".to_string())
+                    } else if move_id == MOVE_CONFUSE_RAY {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_confused == 0 {
+                            battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
+                            Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
                         } else {
-                            BattlePhase::ActionSelect { cursor: 0 }
-                        };
-                        // Build chain: msg → follow_msgs → stage_msg → eot_msgs → terminal
-                        let mut inner = terminal;
-                        for m in eot_msgs.iter().rev() {
-                            inner = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(inner) };
+                            Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
                         }
-                        battle.phase = BattlePhase::Text {
-                            message: msg, timer: 0.0,
-                            next_phase: wrap_stat(inner, &stage_msg, &follow_msgs),
+                    } else if move_id == MOVE_SWAGGER {
+                        let old = battle.enemy_stages[STAGE_ATK];
+                        battle.enemy_stages[STAGE_ATK] = (old + 2).min(6);
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_confused == 0 {
+                            battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
+                            Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
+                        } else {
+                            Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_MEAN_LOOK {
+                        None
+                    } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                        let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
+                        let old = stages[stat_idx];
+                        stages[stat_idx] = (old + delta).max(-6).min(6);
+                        if stages[stat_idx] != old {
+                            let stat_name = match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" };
+                            let target_name = if target_enemy { let pfx = if battle.is_wild { "Wild " } else { "Foe " }; format!("{}{}", pfx, battle.enemy.name()) } else { pname.clone() };
+                            let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" } else if delta < -1 { "sharply fell!" } else { "fell!" };
+                            Some(format!("{}'s {} {}", target_name, stat_name, change))
+                        } else {
+                            let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
+                            Some(format!("{} won't {}", match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" }, dir))
+                        }
+                    } else { None }
+                } else { None };
+
+                // --- Build queue ---
+                battle.battle_queue.clear();
+                battle.queue_timer = 0.0;
+
+                // Confusion snapout text (from_pending)
+                if from_pending {
+                    if let Some(sm) = battle.confusion_snapout_msg.take() {
+                        battle.battle_queue.push_back(BattleStep::Text(sm));
+                    }
+                }
+
+                // "X used Y!"
+                battle.battle_queue.push_back(BattleStep::Text(format!("{} used {}!", pname, move_name)));
+
+                // Flash effect + SFX (only if damage > 0)
+                if damage > 0 {
+                    let flash_val = if effectiveness > 1.5 { 0.9 } else { 0.6 };
+                    battle.battle_queue.push_back(BattleStep::ScreenFlash(flash_val));
+                    battle.battle_queue.push_back(BattleStep::PlayHitSfx(effectiveness > 1.5));
+                }
+
+                // Pause for hit timing
+                battle.battle_queue.push_back(BattleStep::Pause(0.3));
+
+                // Apply damage + HP drain animation
+                let enemy_target_hp = battle.enemy.hp; // already applied above
+                battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: false, amount: 0 }); // HP already applied; sync display
+                battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: enemy_target_hp, duration: 0.5 });
+
+                // Recoil drain for player
+                if has_recoil {
+                    let player_hp = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: player_hp, duration: 0.3 });
+                }
+                // Self-Destruct player drain
+                if move_id == MOVE_SELF_DESTRUCT {
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: 0, duration: 0.3 });
+                }
+
+                // Follow-up text messages
+                if is_miss {
+                    battle.battle_queue.push_back(BattleStep::Text("Attack missed!".into()));
+                } else {
+                    if is_crit { battle.battle_queue.push_back(BattleStep::Text("Critical hit!".into())); }
+                    let eff = eff_text(effectiveness);
+                    if !eff.is_empty() { battle.battle_queue.push_back(BattleStep::Text(eff.to_string())); }
+                }
+                if has_recoil { battle.battle_queue.push_back(BattleStep::Text(format!("{} is hit with recoil!", pname))); }
+                if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
+                if let Some(ref sm) = stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+
+                // Determine terminal phase
+                if battle.enemy.is_fainted() {
+                    battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
+                    // CheckFaint will transition to EnemyFainted
+                } else if from_pending {
+                    // End-of-turn status damage
+                    let mut eot_msgs: Vec<String> = Vec::new();
+                    let pname_eot = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        let pdmg = p.apply_status_damage();
+                        if pdmg > 0 {
+                            let st = match p.status {
+                                StatusCondition::Burn => format!("{} is hurt by its burn!", pname_eot),
+                                StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname_eot),
+                                _ => format!("{} is hurt by poison!", pname_eot),
+                            };
+                            eot_msgs.push(st);
+                        }
+                        let woke = p.tick_status();
+                        if woke { eot_msgs.push(format!("{} woke up!", pname_eot)); }
+                    }
+                    let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
+                    let ename_eot = battle.enemy.name().to_string();
+                    let edmg = battle.enemy.apply_status_damage();
+                    if edmg > 0 {
+                        let st = match battle.enemy.status {
+                            StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix, ename_eot),
+                            StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix, ename_eot),
+                            _ => format!("{}{} is hurt by poison!", eprefix, ename_eot),
                         };
-                    } else if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
-                        // Player died from Struggle recoil or Self-Destruct (enemy survived)
-                        battle.phase = BattlePhase::Text {
-                            message: msg, timer: 0.0,
-                            next_phase: wrap_stat(BattlePhase::PlayerFainted, &stage_msg, &follow_msgs),
-                        };
+                        eot_msgs.push(st);
+                    }
+                    let ewoke = battle.enemy.tick_status();
+                    if ewoke { eot_msgs.push(format!("{}{} woke up!", eprefix, battle.enemy.name())); }
+                    battle.turn_count += 1;
+                    for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
+                    // Update HP displays for status damage
+                    let player_hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                    let enemy_hp_now = battle.enemy.hp;
+                    if !eot_msgs.is_empty() {
+                        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: player_hp_now, duration: 0.3 });
+                        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: enemy_hp_now, duration: 0.3 });
+                    }
+                    let terminal = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
+                        BattlePhase::PlayerFainted
+                    } else if battle.enemy.is_fainted() {
+                        let exp = get_species(battle.enemy.species_id)
+                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild)).unwrap_or(10);
+                        BattlePhase::EnemyFainted { exp_gained: exp }
                     } else {
-                        // Player went first — enemy gets to attack now
-                        // Freeze thaw: 10% per turn (Gen 2)
-                        let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
-                        if enemy_thawed {
-                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            follow_msgs.push(format!("{}{} thawed out!", prefix, battle.enemy.name()));
-                        }
-                        let enemy_can_move = battle.enemy.can_move();
-                        let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
-                        let enemy_flinched = battle.enemy_flinched;
-                        battle.enemy_flinched = false; // Reset for next turn
-                        if !enemy_can_move || enemy_paralyzed || enemy_flinched {
-                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            let reason = if enemy_flinched {
-                                format!("{}{} flinched!", prefix, battle.enemy.name())
-                            } else if enemy_paralyzed {
-                                format!("{}{} is paralyzed!", prefix, battle.enemy.name())
-                            } else if matches!(battle.enemy.status, StatusCondition::Freeze) {
-                                format!("{}{} is frozen solid!", prefix, battle.enemy.name())
-                            } else {
-                                format!("{}{} is fast asleep!", prefix, battle.enemy.name())
-                            };
-                            battle.phase = BattlePhase::Text {
-                                message: msg, timer: 0.0,
-                                next_phase: wrap_stat(BattlePhase::Text {
-                                    message: reason, timer: 0.0,
-                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
-                                }, &stage_msg, &follow_msgs),
-                            };
-                        } else if battle.enemy_confused > 0 {
-                            // Enemy confusion check
-                            battle.enemy_confused -= 1;
-                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            if battle.enemy_confused == 0 {
-                                // Snapped out — proceed to normal attack
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
-                                battle.phase = BattlePhase::Text {
-                                    message: msg, timer: 0.0,
-                                    next_phase: wrap_stat(BattlePhase::Text {
-                                        message: format!("{}{} snapped out of confusion!", prefix, battle.enemy.name()),
-                                        timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::EnemyAttack {
-                                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                                        }),
-                                    }, &stage_msg, &follow_msgs),
-                                };
-                            } else if engine.rng.next_f64() < 0.5 {
-                                // Self-hit: typeless 40-power
-                                let atk = battle.enemy.attack as f64;
-                                let def = battle.enemy.defense as f64;
-                                let lvl = battle.enemy.level as f64;
-                                let self_dmg = ((2.0 * lvl / 5.0 + 2.0) * 40.0 * atk / def) / 50.0 + 2.0;
-                                battle.enemy.hp = battle.enemy.hp.saturating_sub(self_dmg as u16);
-                                let next = if battle.enemy.is_fainted() {
-                                    let exp = get_species(battle.enemy.species_id)
-                                        .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                                        .unwrap_or(10);
-                                    BattlePhase::EnemyFainted { exp_gained: exp }
-                                } else {
-                                    BattlePhase::ActionSelect { cursor: 0 }
-                                };
-                                battle.phase = BattlePhase::Text {
-                                    message: msg, timer: 0.0,
-                                    next_phase: wrap_stat(BattlePhase::Text {
-                                        message: format!("{}{} is confused!", prefix, battle.enemy.name()),
-                                        timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::Text {
-                                            message: "It hurt itself in its confusion!".to_string(),
-                                            timer: 0.0,
-                                            next_phase: Box::new(next),
-                                        }),
-                                    }, &stage_msg, &follow_msgs),
-                                };
-                            } else {
-                                // Passed confusion — attack normally
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
-                                battle.phase = BattlePhase::Text {
-                                    message: msg, timer: 0.0,
-                                    next_phase: wrap_stat(BattlePhase::Text {
-                                        message: format!("{}{} is confused!", prefix, battle.enemy.name()),
-                                        timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::EnemyAttack {
-                                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                                        }),
-                                    }, &stage_msg, &follow_msgs),
-                                };
-                            }
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    };
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(terminal)));
+                } else if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) {
+                    // Player died from recoil or Self-Destruct
+                    battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: true });
+                } else {
+                    // Player went first — enemy attacks next
+                    // Freeze thaw
+                    let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
+                    if enemy_thawed {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        battle.battle_queue.push_back(BattleStep::Text(format!("{}{} thawed out!", prefix, battle.enemy.name())));
+                    }
+                    let enemy_can_move = battle.enemy.can_move();
+                    let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
+                    let enemy_flinched = battle.enemy_flinched;
+                    battle.enemy_flinched = false;
+                    if !enemy_can_move || enemy_paralyzed || enemy_flinched {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        let reason = if enemy_flinched { format!("{}{} flinched!", prefix, battle.enemy.name()) }
+                            else if enemy_paralyzed { format!("{}{} is paralyzed!", prefix, battle.enemy.name()) }
+                            else if matches!(battle.enemy.status, StatusCondition::Freeze) { format!("{}{} is frozen solid!", prefix, battle.enemy.name()) }
+                            else { format!("{}{} is fast asleep!", prefix, battle.enemy.name()) };
+                        battle.battle_queue.push_back(BattleStep::Text(reason));
+                        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+                    } else if battle.enemy_confused > 0 {
+                        battle.enemy_confused -= 1;
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_confused == 0 {
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            battle.battle_queue.push_back(BattleStep::Text(format!("{}{} snapped out of confusion!", prefix, battle.enemy.name())));
+                            battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            })));
+                        } else if engine.rng.next_f64() < 0.5 {
+                            let atk = battle.enemy.attack as f64;
+                            let def = battle.enemy.defense as f64;
+                            let lvl = battle.enemy.level as f64;
+                            let self_dmg = ((2.0 * lvl / 5.0 + 2.0) * 40.0 * atk / def) / 50.0 + 2.0;
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(self_dmg as u16);
+                            battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is confused!", prefix, battle.enemy.name())));
+                            battle.battle_queue.push_back(BattleStep::Text("It hurt itself in its confusion!".into()));
+                            let next = if battle.enemy.is_fainted() {
+                                let exp = get_species(battle.enemy.species_id)
+                                    .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild)).unwrap_or(10);
+                                BattlePhase::EnemyFainted { exp_gained: exp }
+                            } else { BattlePhase::ActionSelect { cursor: 0 } };
+                            battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
                         } else {
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
-                            battle.phase = BattlePhase::Text {
-                                message: msg, timer: 0.0,
-                                next_phase: wrap_stat(BattlePhase::EnemyAttack {
-                                    timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
-                                }, &stage_msg, &follow_msgs),
-                            };
+                            battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is confused!", prefix, battle.enemy.name())));
+                            battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            })));
                         }
+                    } else {
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+                            timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                        })));
                     }
-                } else {
-                    battle.phase = BattlePhase::PlayerAttack { timer: t, move_id, damage, effectiveness, is_crit, from_pending };
                 }
+
+                battle.phase = BattlePhase::ExecuteQueue;
             }
 
-            BattlePhase::EnemyAttack { timer, move_id, damage, effectiveness, is_crit } => {
+            BattlePhase::EnemyAttack { timer: _, move_id, damage, effectiveness, is_crit } => {
+                // Queue-based EnemyAttack: compute all effects immediately, push queue steps,
+                // then transition to ExecuteQueue. No timer — all visual pacing is in the queue.
+
                 // Enemy must recharge (Hyper Beam): skip attack entirely
-                if timer < 0.01 && battle.enemy_must_recharge {
+                if battle.enemy_must_recharge {
                     battle.enemy_must_recharge = false;
                     let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                     let ename = battle.enemy.name().to_string();
-                    let next = if battle.pending_player_move.is_some() {
-                        let (pm, pd, pe, pc) = battle.pending_player_move.take().unwrap();
+                    battle.battle_queue.clear();
+                    battle.queue_timer = 0.0;
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{}{} must recharge!", prefix, ename)));
+                    let next = if let Some((pm, pd, pe, pc)) = battle.pending_player_move.take() {
                         BattlePhase::PlayerAttack { timer: 0.0, move_id: pm, damage: pd, effectiveness: pe, is_crit: pc, from_pending: true }
                     } else {
                         BattlePhase::ActionSelect { cursor: 0 }
                     };
-                    battle.phase = BattlePhase::Text {
-                        message: format!("{}{} must recharge!", prefix, ename),
-                        timer: 0.0,
-                        next_phase: Box::new(next),
-                    };
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
+                    battle.phase = BattlePhase::ExecuteQueue;
                     self.battle = Some(battle);
                     return;
                 }
 
-                // Enemy rampage: if rampaging, override selected move with rampage move
-                if timer < 0.01 && battle.enemy_rampage.0 > 0 {
+                // Enemy rampage: override selected move with rampage move
+                let (move_id, damage, effectiveness, is_crit) = if battle.enemy_rampage.0 > 0 {
                     battle.enemy_rampage.0 -= 1;
                     let rampage_move = battle.enemy_rampage.1;
                     if rampage_move != move_id {
-                        // Re-dispatch with forced rampage move
                         let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move);
-                        battle.phase = BattlePhase::EnemyAttack {
-                            timer: 0.0, move_id: rampage_move, damage: r_dmg, effectiveness: r_eff, is_crit: r_crit,
-                        };
-                        self.battle = Some(battle);
-                        return;
+                        (rampage_move, r_dmg, r_eff, r_crit)
+                    } else { (move_id, damage, effectiveness, is_crit) }
+                } else { (move_id, damage, effectiveness, is_crit) };
+
+                let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
+                let damage = damage * num_hits as u16;
+
+                // Apply damage + effects to player
+                if let Some(p) = self.party.get_mut(battle.player_idx) {
+                    p.hp = p.hp.saturating_sub(damage);
+                    let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
+                    if damage > 0 || is_status_move {
+                        let roll = engine.rng.next_f64();
+                        try_inflict_status(p, move_id, roll);
+                    }
+                    if damage > 0 {
+                        let fc = flinch_chance(move_id);
+                        if fc > 0.0 && battle.pending_player_move.is_some() {
+                            if engine.rng.next_f64() < fc { battle.player_flinched = true; }
+                        }
+                    }
+                    if damage > 0 {
+                        if let Some((target_player, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
+                            if engine.rng.next_f64() < chance {
+                                let stages = if target_player { &mut battle.player_stages } else { &mut battle.enemy_stages };
+                                stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
+                            }
+                        }
                     }
                 }
 
-                let t = timer + dt;
-                // Screen shake on hit at t=0.3
-                if timer < 0.3 && t >= 0.3 && damage > 0 {
-                    self.screen_shake = if effectiveness > 1.5 { 6.0 } else { 3.0 };
-                    sfx_hit(engine, effectiveness > 1.5);
+                // Recoil
+                let e_has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
+                if e_has_recoil {
+                    let recoil = (damage / 4).max(1);
+                    battle.enemy.hp = battle.enemy.hp.saturating_sub(recoil);
                 }
-                if t > 0.8 {
-                    // Multi-hit moves: multiply damage by number of hits
-                    let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
-                    let damage = damage * num_hits as u16;
+                if move_id == MOVE_SELF_DESTRUCT { battle.enemy.hp = 0; }
+                if move_id == MOVE_HYPER_BEAM && damage > 0 { battle.enemy_must_recharge = true; }
+                if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.enemy_rampage.1 == 0 {
+                    let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
+                    battle.enemy_rampage = (remaining, move_id);
+                }
+                if move_id == MOVE_REST {
+                    battle.enemy.hp = battle.enemy.max_hp;
+                    battle.enemy.status = StatusCondition::Sleep { turns: 2 };
+                }
 
-                    if let Some(p) = self.party.get_mut(battle.player_idx) {
-                        p.hp = p.hp.saturating_sub(damage);
-                        // Status-inflicting moves (power=0) always trigger, damaging moves only on hit
-                        let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
-                        if damage > 0 || is_status_move {
-                            let roll = engine.rng.next_f64();
-                            try_inflict_status(p, move_id, roll);
-                        }
-                        if damage > 0 {
-                            // Check flinch (only if enemy went first, i.e. pending_player_move means player hasn't moved yet)
-                            let fc = flinch_chance(move_id);
-                            if fc > 0.0 && battle.pending_player_move.is_some() {
-                                let flinch_roll = engine.rng.next_f64();
-                                if flinch_roll < fc {
-                                    battle.player_flinched = true;
-                                }
-                            }
-                        }
-                        // Check damaging move stat effects
-                        if damage > 0 {
-                            if let Some((target_player, stat_idx, delta, chance)) = damaging_move_stat_effect(move_id) {
-                                let stat_roll = engine.rng.next_f64();
-                                if stat_roll < chance {
-                                    // For enemy's move: target_enemy from the fn means "the defender"
-                                    // which from enemy's perspective is the player
-                                    let stages = if target_player { &mut battle.player_stages } else { &mut battle.enemy_stages };
-                                    stages[stat_idx] = (stages[stat_idx] + delta).max(-6).min(6);
-                                }
-                            }
-                        }
-                    }
+                let move_data_ref = get_move(move_id);
+                let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
+                let ename = battle.enemy.name().to_string();
+                let is_miss = damage == 0
+                    && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
+                    && effectiveness > 0.0;
+                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
 
-                    // Recoil: 1/4 of damage for Struggle, Take Down (enemy side)
-                    let e_has_recoil = (move_id == MOVE_STRUGGLE || move_id == MOVE_TAKE_DOWN) && damage > 0;
-                    if e_has_recoil {
-                        let recoil = (damage / 4).max(1);
-                        battle.enemy.hp = battle.enemy.hp.saturating_sub(recoil);
-                    }
-
-                    // Self-Destruct/Explosion: enemy faints
-                    if move_id == MOVE_SELF_DESTRUCT {
-                        battle.enemy.hp = 0;
-                    }
-
-                    // Hyper Beam: enemy must recharge next turn
-                    if move_id == MOVE_HYPER_BEAM && damage > 0 {
-                        battle.enemy_must_recharge = true;
-                    }
-
-                    // Thrash/Outrage: start rampage if not already rampaging
-                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.enemy_rampage.1 == 0 {
-                        let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
-                        battle.enemy_rampage = (remaining, move_id);
-                    }
-
-                    // Rest: full HP heal, force 2-turn sleep
-                    if move_id == MOVE_REST {
-                        battle.enemy.hp = battle.enemy.max_hp;
-                        battle.enemy.status = StatusCondition::Sleep { turns: 2 };
-                    }
-
-                    let move_data_ref = get_move(move_id);
-                    let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
-                    let ename = battle.enemy.name().to_string();
-                    let is_miss = damage == 0
-                        && move_data_ref.map(|m| m.power > 0 && m.category != MoveCategory::Status).unwrap_or(false)
-                        && effectiveness > 0.0;
-                    let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                    let msg = format!("{}{} used {}!", prefix, ename, move_name);
-                    // Build separate follow-up messages (Gen 2 shows these sequentially)
-                    let mut e_follow_msgs: Vec<String> = Vec::new();
-                    if is_miss {
-                        e_follow_msgs.push("Attack missed!".to_string());
-                    } else {
-                        if is_crit { e_follow_msgs.push("Critical hit!".to_string()); }
-                        let eff = eff_text(effectiveness);
-                        if !eff.is_empty() { e_follow_msgs.push(eff.to_string()); }
-                    }
-                    if e_has_recoil {
-                        let eprefix_rc = if battle.is_wild { "Wild " } else { "Foe " };
-                        e_follow_msgs.push(format!("{}{} is hit with recoil!", eprefix_rc, ename));
-                    }
-                    if num_hits > 1 && !is_miss {
-                        e_follow_msgs.push(format!("Hit {} times!", num_hits));
-                    }
-
-                    // Apply stat stage effects for enemy's status moves
-                    let e_stage_msg = if !is_miss {
-                        if move_id == MOVE_HAZE {
-                            battle.player_stages = [0; 7];
-                            battle.enemy_stages = [0; 7];
-                            Some("All stat changes were reset!".to_string())
-                        } else if move_id == MOVE_CONFUSE_RAY {
-                            if battle.player_confused == 0 {
-                                battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; // 2-5 turns
-                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                                Some(format!("{} became confused!", pname))
-                            } else {
-                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                                Some(format!("{} is already confused!", pname))
-                            }
-                        } else if move_id == MOVE_SWAGGER {
-                            // Swagger: raise target's Attack +2 AND confuse (enemy uses on player)
-                            let old = battle.player_stages[STAGE_ATK];
-                            battle.player_stages[STAGE_ATK] = (old + 2).min(6);
-                            if battle.player_confused == 0 {
-                                battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
-                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                                Some(format!("{} became confused!", pname))
-                            } else {
-                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                                Some(format!("{} is already confused!", pname))
-                            }
-                        } else if move_id == MOVE_MEAN_LOOK {
-                            if battle.is_wild {
-                                battle.player_trapped = true;
-                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                                Some(format!("{} can't escape now!", pname))
-                            } else {
-                                None // No effect in trainer battles
-                            }
-                        } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
-                            // For enemy's move: target_enemy means target the "enemy" from the move's perspective,
-                            // but the enemy's enemy is the player
-                            let stages = if target_enemy { &mut battle.player_stages } else { &mut battle.enemy_stages };
-                            let old = stages[stat_idx];
-                            stages[stat_idx] = (old + delta).max(-6).min(6);
-                            if stages[stat_idx] != old {
-                                let stat_name = match stat_idx {
-                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
-                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
-                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
-                                    _ => "evasion",
-                                };
-                                let target_name = if target_enemy {
-                                    // Enemy targets player
-                                    self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default()
-                                } else {
-                                    let pfx = if battle.is_wild { "Wild " } else { "Foe " };
-                                    format!("{}{}", pfx, battle.enemy.name())
-                                };
-                                let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" }
-                                    else if delta < -1 { "sharply fell!" } else { "fell!" };
-                                Some(format!("{}'s {} {}", target_name, stat_name, change))
-                            } else {
-                                let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
-                                Some(format!("{} won't {}", match stat_idx {
-                                    STAGE_ATK => "Attack", STAGE_DEF => "Defense",
-                                    STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def",
-                                    STAGE_SPE => "Speed", STAGE_ACC => "accuracy",
-                                    _ => "evasion",
-                                }, dir))
-                            }
-                        } else { None }
-                    } else { None };
-
-                    let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
-
-                    // If player has a pending move, execute it next (enemy went first)
-                    let has_pending = battle.pending_player_move.is_some();
-
-                    let wrap_estat = |next: BattlePhase, sm: &Option<String>, extra: &[String]| -> Box<BattlePhase> {
-                        let mut phase = next;
-                        if let Some(ref s) = sm {
-                            phase = BattlePhase::Text { message: s.clone(), timer: 0.0, next_phase: Box::new(phase) };
-                        }
-                        for m in extra.iter().rev() {
-                            phase = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(phase) };
-                        }
-                        Box::new(phase)
-                    };
-
-                    let next = if fainted {
-                        BattlePhase::PlayerFainted
-                    } else if battle.enemy.is_fainted() {
-                        // Enemy self-destructed but player survived — skip pending move
-                        battle.pending_player_move = None;
-                        let exp = get_species(battle.enemy.species_id)
-                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                            .unwrap_or(10);
-                        BattlePhase::EnemyFainted { exp_gained: exp }
-                    } else if has_pending && battle.player_flinched {
-                        // Player flinched — skip their pending move
-                        battle.pending_player_move = None;
-                        battle.player_flinched = false;
+                // Stat stage effects for enemy's status moves
+                let e_stage_msg = if !is_miss {
+                    if move_id == MOVE_HAZE {
+                        battle.player_stages = [0; 7]; battle.enemy_stages = [0; 7];
+                        Some("All stat changes were reset!".to_string())
+                    } else if move_id == MOVE_CONFUSE_RAY {
                         let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        BattlePhase::Text {
-                            message: format!("{} flinched!", pname),
-                            timer: 0.0,
-                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                        if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
+                        else { Some(format!("{} is already confused!", pname)) }
+                    } else if move_id == MOVE_SWAGGER {
+                        let old = battle.player_stages[STAGE_ATK]; battle.player_stages[STAGE_ATK] = (old + 2).min(6);
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
+                        else { Some(format!("{} is already confused!", pname)) }
+                    } else if move_id == MOVE_MEAN_LOOK {
+                        if battle.is_wild { battle.player_trapped = true; let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default(); Some(format!("{} can't escape now!", pname)) }
+                        else { None }
+                    } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
+                        let stages = if target_enemy { &mut battle.player_stages } else { &mut battle.enemy_stages };
+                        let old = stages[stat_idx]; stages[stat_idx] = (old + delta).max(-6).min(6);
+                        if stages[stat_idx] != old {
+                            let stat_name = match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" };
+                            let target_name = if target_enemy { self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default() } else { format!("{}{}", prefix, battle.enemy.name()) };
+                            let change = if delta > 1 { "sharply rose!" } else if delta > 0 { "rose!" } else if delta < -1 { "sharply fell!" } else { "fell!" };
+                            Some(format!("{}'s {} {}", target_name, stat_name, change))
+                        } else {
+                            let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
+                            Some(format!("{} won't {}", match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" }, dir))
                         }
-                    } else if has_pending {
-                        // Player's turn now — extract pending move
-                        battle.player_flinched = false;
-                        let (pm_id, pm_dmg, pm_eff, pm_crit) = battle.pending_player_move.take().unwrap();
+                    } else { None }
+                } else { None };
+
+                let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
+                let has_pending = battle.pending_player_move.is_some();
+
+                // --- Build queue ---
+                battle.battle_queue.clear();
+                battle.queue_timer = 0.0;
+
+                // "Foe X used Y!"
+                battle.battle_queue.push_back(BattleStep::Text(format!("{}{} used {}!", prefix, ename, move_name)));
+
+                // Screen shake + SFX
+                if damage > 0 {
+                    let shake_val = if effectiveness > 1.5 { 6.0 } else { 3.0 };
+                    battle.battle_queue.push_back(BattleStep::ScreenShake(shake_val));
+                    battle.battle_queue.push_back(BattleStep::PlayHitSfx(effectiveness > 1.5));
+                }
+
+                battle.battle_queue.push_back(BattleStep::Pause(0.3));
+
+                // HP drain animation (HP already applied)
+                let player_target_hp = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: player_target_hp, duration: 0.5 });
+
+                // Recoil drain for enemy
+                if e_has_recoil || move_id == MOVE_SELF_DESTRUCT {
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
+                }
+
+                // Follow-up messages
+                if is_miss {
+                    battle.battle_queue.push_back(BattleStep::Text("Attack missed!".into()));
+                } else {
+                    if is_crit { battle.battle_queue.push_back(BattleStep::Text("Critical hit!".into())); }
+                    let eff = eff_text(effectiveness);
+                    if !eff.is_empty() { battle.battle_queue.push_back(BattleStep::Text(eff.to_string())); }
+                }
+                if e_has_recoil {
+                    let eprefix_rc = if battle.is_wild { "Wild " } else { "Foe " };
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is hit with recoil!", eprefix_rc, ename)));
+                }
+                if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
+                if let Some(ref sm) = e_stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+
+                // Determine terminal phase
+                let next = if fainted {
+                    BattlePhase::PlayerFainted
+                } else if battle.enemy.is_fainted() {
+                    battle.pending_player_move = None;
+                    let exp = get_species(battle.enemy.species_id)
+                        .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild)).unwrap_or(10);
+                    BattlePhase::EnemyFainted { exp_gained: exp }
+                } else if has_pending && battle.player_flinched {
+                    battle.pending_player_move = None;
+                    battle.player_flinched = false;
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{} flinched!", pname)));
+                    BattlePhase::ActionSelect { cursor: 0 }
+                } else if has_pending {
+                    battle.player_flinched = false;
+                    if let Some((pm_id, pm_dmg, pm_eff, pm_crit)) = battle.pending_player_move.take() {
                         BattlePhase::PlayerAttack {
                             timer: 0.0, move_id: pm_id, damage: pm_dmg,
                             effectiveness: pm_eff, is_crit: pm_crit, from_pending: true,
                         }
-                    } else {
-                        // End-of-turn: apply status damage and tick status for both sides
-                        let mut eot_msgs2: Vec<String> = Vec::new();
-                        let pname2 = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        let player_fainted_from_status;
-                        if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            let pdmg = p.apply_status_damage();
-                            if pdmg > 0 {
-                                let st = match p.status {
-                                    StatusCondition::Burn => format!("{} is hurt by its burn!", pname2),
-                                    StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname2),
-                                    _ => format!("{} is hurt by poison!", pname2),
-                                };
-                                eot_msgs2.push(st);
-                            }
-                            let woke = p.tick_status();
-                            if woke { eot_msgs2.push(format!("{} woke up!", pname2)); }
-                            player_fainted_from_status = p.is_fainted() && !fainted;
-                        } else {
-                            player_fainted_from_status = false;
-                        }
-                        let eprefix2 = if battle.is_wild { "Wild " } else { "Foe " };
-                        let ename2 = battle.enemy.name().to_string();
-                        let edmg2 = battle.enemy.apply_status_damage();
-                        if edmg2 > 0 {
-                            let st = match battle.enemy.status {
-                                StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix2, ename2),
-                                StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix2, ename2),
-                                _ => format!("{}{} is hurt by poison!", eprefix2, ename2),
-                            };
-                            eot_msgs2.push(st);
-                        }
-                        let ewoke2 = battle.enemy.tick_status();
-                        if ewoke2 {
-                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            eot_msgs2.push(format!("{}{} woke up!", prefix, battle.enemy.name()));
-                        }
-
-                        let terminal2 = if player_fainted_from_status {
-                            BattlePhase::PlayerFainted
-                        } else if battle.enemy.is_fainted() {
-                            let exp = get_species(battle.enemy.species_id)
-                                .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild))
-                                .unwrap_or(10);
-                            BattlePhase::EnemyFainted { exp_gained: exp }
-                        } else {
-                            // Enemy rampage ended: confuse
-                            if battle.enemy_rampage.1 != 0 && battle.enemy_rampage.0 == 0 {
-                                battle.enemy_rampage = (0, 0);
-                                if battle.enemy_confused == 0 {
-                                    battle.enemy_confused = 2 + (engine.rng.next_u64() % 4) as u8;
-                                }
-                            }
-                            BattlePhase::ActionSelect { cursor: 0 }
-                        };
-                        // Chain end-of-turn status messages before terminal
-                        let mut eot_next = terminal2;
-                        for m in eot_msgs2.iter().rev() {
-                            eot_next = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(eot_next) };
-                        }
-                        eot_next
-                    };
-
-                    if !has_pending { battle.turn_count += 1; }
-                    battle.phase = BattlePhase::Text {
-                        message: msg, timer: 0.0, next_phase: wrap_estat(next, &e_stage_msg, &e_follow_msgs),
-                    };
+                    } else { BattlePhase::ActionSelect { cursor: 0 } }
                 } else {
-                    battle.phase = BattlePhase::EnemyAttack { timer: t, move_id, damage, effectiveness, is_crit };
-                }
+                    // End-of-turn status damage
+                    let mut eot_msgs: Vec<String> = Vec::new();
+                    let pname2 = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    let player_fainted_from_status;
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        let pdmg = p.apply_status_damage();
+                        if pdmg > 0 {
+                            let st = match p.status { StatusCondition::Burn => format!("{} is hurt by its burn!", pname2), StatusCondition::BadPoison { .. } => format!("{} is hurt by poison!", pname2), _ => format!("{} is hurt by poison!", pname2) };
+                            eot_msgs.push(st);
+                        }
+                        let woke = p.tick_status();
+                        if woke { eot_msgs.push(format!("{} woke up!", pname2)); }
+                        player_fainted_from_status = p.is_fainted() && !fainted;
+                    } else { player_fainted_from_status = false; }
+                    let eprefix2 = if battle.is_wild { "Wild " } else { "Foe " };
+                    let ename2 = battle.enemy.name().to_string();
+                    let edmg2 = battle.enemy.apply_status_damage();
+                    if edmg2 > 0 {
+                        let st = match battle.enemy.status { StatusCondition::Burn => format!("{}{} is hurt by its burn!", eprefix2, ename2), StatusCondition::BadPoison { .. } => format!("{}{} is hurt by poison!", eprefix2, ename2), _ => format!("{}{} is hurt by poison!", eprefix2, ename2) };
+                        eot_msgs.push(st);
+                    }
+                    let ewoke2 = battle.enemy.tick_status();
+                    if ewoke2 { eot_msgs.push(format!("{}{} woke up!", eprefix2, battle.enemy.name())); }
+                    for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
+                    // Update HP displays for status damage
+                    if !eot_msgs.is_empty() {
+                        let php = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                        let ehp = battle.enemy.hp;
+                        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: php, duration: 0.3 });
+                        battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: ehp, duration: 0.3 });
+                    }
+
+                    if player_fainted_from_status { BattlePhase::PlayerFainted }
+                    else if battle.enemy.is_fainted() {
+                        let exp = get_species(battle.enemy.species_id)
+                            .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild)).unwrap_or(10);
+                        BattlePhase::EnemyFainted { exp_gained: exp }
+                    } else {
+                        if battle.enemy_rampage.1 != 0 && battle.enemy_rampage.0 == 0 {
+                            battle.enemy_rampage = (0, 0);
+                            if battle.enemy_confused == 0 {
+                                battle.enemy_confused = 2 + (engine.rng.next_u64() % 4) as u8;
+                            }
+                        }
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    }
+                };
+
+                if !has_pending { battle.turn_count += 1; }
+                battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
+                battle.phase = BattlePhase::ExecuteQueue;
             }
 
             BattlePhase::Text { ref message, timer, ref next_phase } => {
@@ -3855,7 +3703,7 @@ impl PokemonSim {
             }
 
             BattlePhase::ExecuteQueue => {
-                Self::step_execute_queue(&mut battle, &mut self.party, engine);
+                self.step_execute_queue(&mut battle, engine);
             }
         }
 
@@ -3865,7 +3713,7 @@ impl PokemonSim {
     /// Process the next step in the battle queue. Called when phase == ExecuteQueue.
     /// Pops and processes BattleStep items in FIFO order. When the queue is empty,
     /// transitions back to ActionSelect.
-    fn step_execute_queue(battle: &mut BattleState, party: &mut Vec<Pokemon>, engine: &mut Engine) {
+    fn step_execute_queue(&mut self, battle: &mut BattleState, engine: &mut Engine) {
         let dt = 1.0 / 60.0;
 
         if battle.battle_queue.is_empty() {
@@ -3889,7 +3737,7 @@ impl PokemonSim {
             }
             BattleStep::ApplyDamage { is_player, amount } => {
                 if is_player {
-                    if let Some(pkmn) = party.get_mut(battle.player_idx) {
+                    if let Some(pkmn) = self.party.get_mut(battle.player_idx) {
                         pkmn.hp = pkmn.hp.saturating_sub(amount);
                     }
                 } else {
@@ -3923,7 +3771,7 @@ impl PokemonSim {
             }
             BattleStep::InflictStatus { is_player, ref status } => {
                 if is_player {
-                    if let Some(pkmn) = party.get_mut(battle.player_idx) {
+                    if let Some(pkmn) = self.party.get_mut(battle.player_idx) {
                         pkmn.status = status.clone();
                     }
                 } else {
@@ -3946,7 +3794,7 @@ impl PokemonSim {
                 battle.battle_queue.pop_front();
                 battle.queue_timer = 0.0;
                 if is_player {
-                    let fainted = party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false);
+                    let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false);
                     if fainted {
                         battle.phase = BattlePhase::PlayerFainted;
                         return;
@@ -3971,6 +3819,21 @@ impl PokemonSim {
             BattleStep::GoToPhase(phase) => {
                 battle.phase = *phase;
                 battle.battle_queue.clear(); // clear entire queue — GoToPhase is a terminal step
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::ScreenFlash(val) => {
+                self.screen_flash = val;
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::ScreenShake(val) => {
+                self.screen_shake = val;
+                battle.battle_queue.pop_front();
+                battle.queue_timer = 0.0;
+            }
+            BattleStep::PlayHitSfx(super_effective) => {
+                sfx_hit(engine, super_effective);
+                battle.battle_queue.pop_front();
                 battle.queue_timer = 0.0;
             }
         }
@@ -9042,24 +8905,24 @@ mod headless_tests {
 
         // Step 1: Text step — needs ~90 frames (1.5s at 60fps) to auto-advance
         for _ in 0..91 {
-            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+            test_step_queue(&mut battle, &mut party, &mut engine);
         }
         assert_eq!(battle.battle_queue.len(), 3, "Text step should have been consumed");
 
         // Step 2: Pause(0.1) — needs ~6 frames (0.1s at 60fps)
         for _ in 0..7 {
-            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+            test_step_queue(&mut battle, &mut party, &mut engine);
         }
         assert_eq!(battle.battle_queue.len(), 2, "Pause step should have been consumed");
 
         // Step 3: ApplyDamage — instant (1 frame)
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
         assert_eq!(battle.battle_queue.len(), 1, "ApplyDamage should have been consumed");
         assert_eq!(battle.enemy.hp, initial_enemy_hp.saturating_sub(10),
             "Enemy HP should have decreased by 10");
 
         // Step 4: GoToPhase(ActionSelect) — instant
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
         assert!(battle.battle_queue.is_empty(), "Queue should be fully drained");
         assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
             "Should have transitioned to ActionSelect");
@@ -9108,7 +8971,7 @@ mod headless_tests {
         // Queue: CheckFaint for enemy (already at 0 HP)
         battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         // Should have transitioned to EnemyFainted
         assert!(matches!(battle.phase, BattlePhase::EnemyFainted { .. }),
@@ -9148,6 +9011,15 @@ mod headless_tests {
         }
     }
 
+    /// Test-only wrapper: step the queue using a temporary PokemonSim instance.
+    /// This bridges the old static call pattern with the new &mut self method.
+    fn test_step_queue(battle: &mut BattleState, party: &mut Vec<Pokemon>, engine: &mut crate::engine::Engine) {
+        let mut sim = PokemonSim::new();
+        sim.party = party.clone();
+        sim.step_execute_queue(battle, engine);
+        *party = sim.party;
+    }
+
     /// Step the queue until the phase changes from ExecuteQueue, or max_frames exceeded.
     /// Returns the number of frames stepped.
     fn step_until_phase_change(battle: &mut BattleState, party: &mut Vec<Pokemon>, engine: &mut crate::engine::Engine, max_frames: usize) -> usize {
@@ -9155,7 +9027,7 @@ mod headless_tests {
             if !matches!(battle.phase, BattlePhase::ExecuteQueue) {
                 return i;
             }
-            PokemonSim::step_execute_queue(battle, party, engine);
+            test_step_queue(battle, party, engine);
         }
         max_frames
     }
@@ -9179,7 +9051,7 @@ mod headless_tests {
 
         assert_eq!(battle.battle_queue.len(), 3);
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         // GoToPhase should have cleared the entire queue
         assert!(battle.battle_queue.is_empty(),
@@ -9202,7 +9074,7 @@ mod headless_tests {
         // Queue is empty by default
 
         assert!(battle.battle_queue.is_empty());
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert!(matches!(battle.phase, BattlePhase::ActionSelect { cursor: 0 }),
             "Empty queue should fall back to ActionSelect, got {:?}", battle.phase);
@@ -9348,7 +9220,7 @@ mod headless_tests {
 
         // Step through 15 frames (~0.25s) — should be mid-animation
         for _ in 0..15 {
-            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+            test_step_queue(&mut battle, &mut party, &mut engine);
         }
         // HP display should have moved toward 15 but not reached it yet
         assert!(battle.enemy_hp_display < 30.0, "HP display should be decreasing");
@@ -9356,7 +9228,7 @@ mod headless_tests {
 
         // Step through remaining frames until done (total ~30 frames for 0.5s)
         for _ in 0..20 {
-            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+            test_step_queue(&mut battle, &mut party, &mut engine);
         }
         // After 0.5s, should have completed and moved to next step
         assert!((battle.enemy_hp_display - 15.0).abs() < 1.0,
@@ -9386,7 +9258,7 @@ mod headless_tests {
             "Enemy should start with no status");
 
         // InflictStatus is instant (1 frame)
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert!(matches!(battle.enemy.status, StatusCondition::Poison),
             "Enemy should now be poisoned, got {:?}", battle.enemy.status);
@@ -9414,7 +9286,7 @@ mod headless_tests {
         });
         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert_eq!(battle.enemy_stages[STAGE_ATK], -1,
             "Enemy ATK stage should be -1 after Growl");
@@ -9440,7 +9312,7 @@ mod headless_tests {
             stages: 3,
         });
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert_eq!(battle.player_stages[STAGE_DEF], 6,
             "DEF stage should be clamped at +6, got {}", battle.player_stages[STAGE_DEF]);
@@ -9462,7 +9334,7 @@ mod headless_tests {
         battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: false });
         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         // Should still be in ExecuteQueue (CheckFaint passed, GoToPhase is next)
         assert!(matches!(battle.phase, BattlePhase::ExecuteQueue),
@@ -9486,7 +9358,7 @@ mod headless_tests {
         battle.battle_queue.push_back(BattleStep::CheckFaint { is_player: true });
         battle.battle_queue.push_back(BattleStep::Text("This should not execute".into()));
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert!(matches!(battle.phase, BattlePhase::PlayerFainted),
             "CheckFaint on fainted player should transition to PlayerFainted, got {:?}", battle.phase);
@@ -9507,7 +9379,7 @@ mod headless_tests {
 
         battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: true, amount: 7 });
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert_eq!(party[0].hp, initial_hp - 7,
             "Player HP should decrease by 7, got {} (expected {})", party[0].hp, initial_hp - 7);
@@ -9528,7 +9400,7 @@ mod headless_tests {
 
         battle.battle_queue.push_back(BattleStep::ApplyDamage { is_player: true, amount: 50 });
 
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
 
         assert_eq!(party[0].hp, 0, "HP should saturate at 0, not underflow");
     }
@@ -9549,13 +9421,13 @@ mod headless_tests {
 
         // Step a few frames without pressing anything — should still be on Text
         for _ in 0..5 {
-            PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+            test_step_queue(&mut battle, &mut party, &mut engine);
         }
         assert_eq!(battle.battle_queue.len(), 2, "Text should not advance without confirm or timeout");
 
         // Now simulate pressing confirm (add KeyZ to pressed keys)
         engine.input.keys_pressed.insert("KeyZ".to_string());
-        PokemonSim::step_execute_queue(&mut battle, &mut party, &mut engine);
+        test_step_queue(&mut battle, &mut party, &mut engine);
         engine.input.keys_pressed.clear();
 
         assert_eq!(battle.battle_queue.len(), 1, "Text should advance when confirm is pressed");
@@ -9599,5 +9471,183 @@ mod headless_tests {
             "Enemy HP should be {} after {} damage, got {}", target_hp, damage, battle.enemy.hp);
         assert!((battle.enemy_hp_display - target_hp as f64).abs() < 1.0,
             "Enemy HP display should match target HP");
+    }
+
+    #[test]
+    fn test_player_attack_queue_builds_correctly() {
+        // Verify that entering PlayerAttack builds a queue and transitions to ExecuteQueue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let mut party = vec![player_pkmn];
+        let enemy = Pokemon::new(PIDGEY, 5);
+        let initial_enemy_hp = enemy.hp;
+
+        let mut sim = PokemonSim::new();
+        sim.party = party.clone();
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+        battle.enemy_hp_display = initial_enemy_hp as f64;
+
+        // Enter PlayerAttack phase (player goes first, not from pending)
+        battle.phase = BattlePhase::PlayerAttack {
+            timer: 0.0, move_id: MOVE_TACKLE, damage: 8, effectiveness: 1.0,
+            is_crit: false, from_pending: false,
+        };
+
+        // Put battle into sim and step once
+        sim.battle = Some(battle);
+        sim.step_battle(&mut engine);
+
+        // After stepping, PlayerAttack should have built queue and transitioned to ExecuteQueue
+        let battle = sim.battle.as_ref().expect("battle should exist");
+        assert!(matches!(battle.phase, BattlePhase::ExecuteQueue),
+            "PlayerAttack should build queue and enter ExecuteQueue, got {:?}", battle.phase);
+        assert!(!battle.battle_queue.is_empty(),
+            "Queue should not be empty after PlayerAttack builds it");
+    }
+
+    #[test]
+    fn test_enemy_attack_queue_builds_correctly() {
+        // Verify that entering EnemyAttack builds a queue and transitions to ExecuteQueue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+
+        // Enter EnemyAttack phase
+        battle.phase = BattlePhase::EnemyAttack {
+            timer: 0.0, move_id: MOVE_TACKLE, damage: 5, effectiveness: 1.0, is_crit: false,
+        };
+
+        sim.battle = Some(battle);
+        sim.step_battle(&mut engine);
+
+        let battle = sim.battle.as_ref().expect("battle should exist");
+        assert!(matches!(battle.phase, BattlePhase::ExecuteQueue),
+            "EnemyAttack should build queue and enter ExecuteQueue, got {:?}", battle.phase);
+        assert!(!battle.battle_queue.is_empty(),
+            "Queue should not be empty after EnemyAttack builds it");
+    }
+
+    #[test]
+    fn test_player_attack_queue_applies_damage() {
+        // Full integration: PlayerAttack → ExecuteQueue → ActionSelect, verify HP changed
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 15);
+        let enemy = Pokemon::new(RATTATA, 5);
+        let initial_enemy_hp = enemy.hp;
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+        battle.enemy_hp_display = initial_enemy_hp as f64;
+        battle.player_hp_display = sim.party[0].hp as f64;
+
+        // Use damage=7, normal effectiveness, no crit
+        battle.phase = BattlePhase::PlayerAttack {
+            timer: 0.0, move_id: MOVE_TACKLE, damage: 7, effectiveness: 1.0,
+            is_crit: false, from_pending: false,
+        };
+
+        sim.battle = Some(battle);
+
+        // Step enough frames to process through all queue steps (text auto-advances at 1.5s = 90 frames)
+        for _ in 0..600 {
+            sim.step_battle(&mut engine);
+            if let Some(ref b) = sim.battle {
+                // Once we reach EnemyAttack, that means player attack resolved
+                if matches!(b.phase, BattlePhase::EnemyAttack { .. }) {
+                    break;
+                }
+            }
+        }
+
+        // Enemy should have taken damage
+        if let Some(ref b) = sim.battle {
+            assert!(b.enemy.hp < initial_enemy_hp,
+                "Enemy HP should be reduced after PlayerAttack, got {} (was {})", b.enemy.hp, initial_enemy_hp);
+        }
+    }
+
+    #[test]
+    fn test_screen_flash_step() {
+        // Verify ScreenFlash step sets screen_flash on PokemonSim
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+
+        battle.battle_queue.push_back(BattleStep::ScreenFlash(0.8));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        sim.step_execute_queue(&mut battle, &mut engine);
+
+        assert!((sim.screen_flash - 0.8).abs() < 0.01,
+            "ScreenFlash step should set screen_flash to 0.8, got {}", sim.screen_flash);
+        assert_eq!(battle.battle_queue.len(), 1, "ScreenFlash should pop itself");
+    }
+
+    #[test]
+    fn test_screen_shake_step() {
+        // Verify ScreenShake step sets screen_shake on PokemonSim
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+
+        battle.battle_queue.push_back(BattleStep::ScreenShake(5.0));
+        battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+
+        sim.step_execute_queue(&mut battle, &mut engine);
+
+        assert!((sim.screen_shake - 5.0).abs() < 0.01,
+            "ScreenShake step should set screen_shake to 5.0, got {}", sim.screen_shake);
+    }
+
+    #[test]
+    fn test_enemy_attack_recharge_skips_via_queue() {
+        // Verify EnemyAttack with must_recharge builds recharge text via queue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy, true);
+        battle.enemy_must_recharge = true;
+
+        battle.phase = BattlePhase::EnemyAttack {
+            timer: 0.0, move_id: MOVE_HYPER_BEAM, damage: 20, effectiveness: 1.0, is_crit: false,
+        };
+
+        sim.battle = Some(battle);
+        sim.step_battle(&mut engine);
+
+        // Should be in ExecuteQueue with recharge text
+        if let Some(ref b) = sim.battle {
+            assert!(matches!(b.phase, BattlePhase::ExecuteQueue),
+                "Recharge should enter ExecuteQueue, got {:?}", b.phase);
+            assert!(!b.enemy_must_recharge, "Recharge flag should be cleared");
+        }
     }
 }

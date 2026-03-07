@@ -385,6 +385,9 @@ pub const MOVE_PSYCHIC: MoveId = 94;
 pub const MOVE_CRUNCH: MoveId = 242;
 pub const MOVE_PETAL_DANCE: MoveId = 80;
 pub const MOVE_SLUDGE_BOMB: MoveId = 188;
+// Sprint 132: Tin Tower + Ho-Oh
+pub const HO_OH: SpeciesId = 250;
+pub const MOVE_SACRED_FIRE: MoveId = 221;
 
 /// Static species data
 #[derive(Debug)]
@@ -1777,6 +1780,19 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_CONVERSION), (9, MOVE_AGILITY), (12, MOVE_PSYBEAM), (20, MOVE_RECOVER), (24, MOVE_TRI_ATTACK)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 132: Ho-Oh (Fire/Flying) — Legendary, Tin Tower Roof ───
+    // Per pokecrystal: HP 106, Atk 130, Def 90, Spd 90, SpA 110, SpD 154
+    // Catch rate 3, base exp 220, Slow growth
+    // Learnset: Sacred Fire(1), Gust(22), Recover(33), Fire Blast(44), Sunny Day(55)
+    SpeciesData {
+        id: HO_OH, name: "Ho-Oh",
+        type1: PokemonType::Fire, type2: Some(PokemonType::Flying),
+        base_hp: 106, base_attack: 130, base_defense: 90,
+        base_sp_attack: 110, base_sp_defense: 154, base_speed: 90,
+        catch_rate: 3, base_exp_yield: 220, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_SACRED_FIRE), (22, MOVE_GUST), (33, MOVE_RECOVER), (44, MOVE_FIRE_BLAST), (55, MOVE_SUNNY_DAY)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1944,6 +1960,8 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SWEET_SCENT, name: "Sweet Scent", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Lowers foe's evasion." },
     MoveData { id: MOVE_CONVERSION, name: "Conversion", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Changes user type." },
     MoveData { id: MOVE_GLARE, name: "Glare", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 30, description: "May paralyze the foe." },
+    // Sprint 132: Ho-Oh signature move
+    MoveData { id: MOVE_SACRED_FIRE, name: "Sacred Fire", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 100, accuracy: 95, pp: 5, description: "A mystical fire that may burn." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

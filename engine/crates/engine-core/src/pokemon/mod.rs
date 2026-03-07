@@ -154,6 +154,7 @@ const FLAG_ILEX_FARFETCHD: u64 = 1 << 15; // Herded Farfetch'd back to charcoal 
 const FLAG_DRAGONS_DEN_QUIZ: u64 = 1 << 16; // Answered Dragon Master's quiz
 const FLAG_RADIO_TOWER_ROCKETS: u64 = 1 << 17; // Radio Tower Rocket takeover active
 const FLAG_RADIO_TOWER_CLEAR: u64 = 1 << 18; // Cleared Radio Tower (defeated Archer)
+const FLAG_HO_OH_ENCOUNTERED: u64 = 1 << 19; // Fought Ho-Oh on Tin Tower Roof
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -365,6 +366,7 @@ enum DialogueAction {
     StartFishBattle { species_id: SpeciesId, level: u8 },
     StartSudowoodoBattle,
     StartRedGyaradosBattle,
+    StartHoOhBattle,
     EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
@@ -496,6 +498,10 @@ impl PokemonSim {
         if dest == MapId::VictoryRoad && self.badges.count_ones() < 8 {
             return Some(&["You need all 8", "BADGES to enter", "VICTORY ROAD!"]);
         }
+        // Tin Tower: need Clear Bell (FLAG_RADIO_TOWER_CLEAR)
+        if dest == MapId::TinTower1F && !self.has_flag(FLAG_RADIO_TOWER_CLEAR) {
+            return Some(&["The door is locked.", "You need the CLEAR", "BELL to enter."]);
+        }
         None
     }
 
@@ -557,6 +563,10 @@ impl PokemonSim {
         // RadioTower5F: NPC 0 = Director (always), NPC 1 = Archer (takeover), NPC 2 = Ariana (takeover)
         if self.current_map_id == MapId::RadioTower5F {
             if npc_idx >= 1 && npc_idx <= 2 && !takeover_active { return false; }
+        }
+        // TinTowerRoof: NPC 0 = Ho-Oh (hidden after FLAG_HO_OH_ENCOUNTERED)
+        if self.current_map_id == MapId::TinTowerRoof && npc_idx == 0 && self.has_flag(FLAG_HO_OH_ENCOUNTERED) {
+            return false;
         }
         true
     }
@@ -2089,6 +2099,25 @@ impl PokemonSim {
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Tin Tower Roof: Ho-Oh legendary encounter (NPC 0)
+            if self.current_map_id == MapId::TinTowerRoof && npc_idx == 0
+                && !self.has_flag(FLAG_HO_OH_ENCOUNTERED)
+                && !self.party.is_empty()
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "Shaoooh!".to_string(),
+                        "The legendary HO-OH".to_string(),
+                        "swoops down to".to_string(),
+                        "challenge you!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::StartHoOhBattle,
                 });
                 self.phase = GamePhase::Dialogue;
                 return;
@@ -4581,6 +4610,43 @@ impl PokemonSim {
                 DialogueAction::StartRedGyaradosBattle => {
                     self.register_seen(GYARADOS);
                     let enemy = Pokemon::new(GYARADOS, 30);
+                    let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                    let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+                    self.battle = Some(BattleState {
+                        phase: BattlePhase::Intro { timer: 0.0 },
+                        enemy,
+                        player_idx,
+                        is_wild: true,
+                        player_hp_display: player_hp,
+                        enemy_hp_display: 0.0,
+                        turn_count: 0,
+                        trainer_team: Vec::new(),
+                        trainer_team_idx: 0,
+                        pending_player_move: None,
+                        player_stages: [0; 7],
+                        enemy_stages: [0; 7],
+                        enemy_flinched: false,
+                        player_flinched: false,
+                        player_confused: 0,
+                        enemy_confused: 0,
+                        player_trapped: false,
+                        player_must_recharge: false,
+                        enemy_must_recharge: false,
+                        player_rampage: (0, 0),
+                        enemy_rampage: (0, 0),
+                        pending_learn_moves: vec![],
+                        free_switch: false,
+                        confusion_snapout_msg: None,
+                        battle_queue: VecDeque::new(),
+                        queue_timer: 0.0,
+                    });
+                    self.encounter_flash_count = 0;
+                    self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                }
+                DialogueAction::StartHoOhBattle => {
+                    self.set_flag(FLAG_HO_OH_ENCOUNTERED);
+                    self.register_seen(HO_OH);
+                    let enemy = Pokemon::new(HO_OH, 60);
                     let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
                     let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                     self.battle = Some(BattleState {

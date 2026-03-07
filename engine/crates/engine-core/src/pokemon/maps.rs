@@ -9,7 +9,8 @@
 // PlayerHouse1F (10x8), PlayerHouse2F (10x8), ElmLab (10x10), PokemonCenter (10x8),
 // Route32 (20x30), UnionCave (16x16), GenericHouse (8x6), Route33 (20x12),
 // AzaleaTown (20x18), AzaleaGym (10x10), IlexForest (20x24), Route34 (16x20),
-// UnionCaveB1F (18x16), UnionCaveB2F (16x14).
+// UnionCaveB1F (18x16), UnionCaveB2F (16x14),
+// RadioTower1F-5F (12x10 each), TinTower1F-9F+Roof (10x10 each).
 
 // Species IDs used in encounter tables (matching data.rs constants)
 const CATERPIE: u16 = 10;
@@ -255,6 +256,16 @@ pub enum MapId {
     RadioTower3F,
     RadioTower4F,
     RadioTower5F,
+    TinTower1F,
+    TinTower2F,
+    TinTower3F,
+    TinTower4F,
+    TinTower5F,
+    TinTower6F,
+    TinTower7F,
+    TinTower8F,
+    TinTower9F,
+    TinTowerRoof,
 }
 
 impl MapId {
@@ -334,6 +345,16 @@ impl MapId {
             "RadioTower3F" => Some(MapId::RadioTower3F),
             "RadioTower4F" => Some(MapId::RadioTower4F),
             "RadioTower5F" => Some(MapId::RadioTower5F),
+            "TinTower1F" | "TinTower" => Some(MapId::TinTower1F),
+            "TinTower2F" => Some(MapId::TinTower2F),
+            "TinTower3F" => Some(MapId::TinTower3F),
+            "TinTower4F" => Some(MapId::TinTower4F),
+            "TinTower5F" => Some(MapId::TinTower5F),
+            "TinTower6F" => Some(MapId::TinTower6F),
+            "TinTower7F" => Some(MapId::TinTower7F),
+            "TinTower8F" => Some(MapId::TinTower8F),
+            "TinTower9F" => Some(MapId::TinTower9F),
+            "TinTowerRoof" => Some(MapId::TinTowerRoof),
             _ => None,
         }
     }
@@ -414,6 +435,16 @@ impl MapId {
             MapId::RadioTower3F => "RadioTower3F",
             MapId::RadioTower4F => "RadioTower4F",
             MapId::RadioTower5F => "RadioTower5F",
+            MapId::TinTower1F => "TinTower1F",
+            MapId::TinTower2F => "TinTower2F",
+            MapId::TinTower3F => "TinTower3F",
+            MapId::TinTower4F => "TinTower4F",
+            MapId::TinTower5F => "TinTower5F",
+            MapId::TinTower6F => "TinTower6F",
+            MapId::TinTower7F => "TinTower7F",
+            MapId::TinTower8F => "TinTower8F",
+            MapId::TinTower9F => "TinTower9F",
+            MapId::TinTowerRoof => "TinTowerRoof",
         }
     }
 }
@@ -586,6 +617,16 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::RadioTower3F => build_radio_tower_3f(),
         MapId::RadioTower4F => build_radio_tower_4f(),
         MapId::RadioTower5F => build_radio_tower_5f(),
+        MapId::TinTower1F => build_tin_tower_1f(),
+        MapId::TinTower2F => build_tin_tower_2f(),
+        MapId::TinTower3F => build_tin_tower_3f(),
+        MapId::TinTower4F => build_tin_tower_4f(),
+        MapId::TinTower5F => build_tin_tower_5f(),
+        MapId::TinTower6F => build_tin_tower_6f(),
+        MapId::TinTower7F => build_tin_tower_7f(),
+        MapId::TinTower8F => build_tin_tower_8f(),
+        MapId::TinTower9F => build_tin_tower_9f(),
+        MapId::TinTowerRoof => build_tin_tower_roof(),
     }
 }
 
@@ -5587,12 +5628,12 @@ fn build_ecruteak_city() -> MapData {
         TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
         // Row 1
         TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 2: Burned Tower roof
-        TREE_TOP,TREE_TOP,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
-        // Row 3: Burned Tower wall / Gym roof
-        TREE_BOTTOM,TREE_BOTTOM,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 4: Burned Tower door / Gym wall
-        GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,PATH,PATH,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 2: Burned Tower roof / Gym roof / Tin Tower roof
+        TREE_TOP,TREE_TOP,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,BUILDING_ROOF,TREE_TOP,TREE_TOP,
+        // Row 3: Burned Tower wall / Gym wall / Tin Tower wall
+        TREE_BOTTOM,TREE_BOTTOM,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 4: Burned Tower door / Gym door / Tin Tower door
+        GRASS,GRASS,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,PATH,PATH,PATH,GRASS,BUILDING_WALL,DOOR,BUILDING_WALL,BUILDING_WALL,DOOR,BUILDING_WALL,GRASS,GRASS,
         // Row 5
         GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,PATH,GRASS,PATH,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         // Row 6: paths
@@ -5627,11 +5668,11 @@ fn build_ecruteak_city() -> MapData {
         // Row 1
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 2
-        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         // Row 3
-        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 4: Burned Tower door at (4,4), Gym door at (13,4)
-        C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 4: Burned Tower door at (4,4), Gym door at (13,4), Tin Tower door at (16,4)
+        C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,
         // Row 5
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 6
@@ -5683,6 +5724,8 @@ fn build_ecruteak_city() -> MapData {
         WarpData { x: 4, y: 12, dest_map: MapId::GenericHouse, dest_x: 4, dest_y: 4 },
         // Pokemon Center (15,12)
         WarpData { x: 15, y: 12, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
+        // Tin Tower entrance (16,4) — gated by FLAG_RADIO_TOWER_CLEAR in check_warp_gate
+        WarpData { x: 16, y: 4, dest_map: MapId::TinTower1F, dest_x: 5, dest_y: 8 },
     ];
 
     let npcs = vec![
@@ -9818,7 +9861,7 @@ fn build_radio_tower_1f() -> MapData {
         // Exit → back to Goldenrod City (Radio Tower door position)
         WarpData { x: 5, y: 8, dest_map: MapId::GoldenrodCity, dest_x: 3, dest_y: 5 },
         // Stairs up to 2F (northeast corner)
-        WarpData { x: 10, y: 0, dest_map: MapId::RadioTower2F, dest_x: 10, dest_y: 8 },
+        WarpData { x: 10, y: 0, dest_map: MapId::RadioTower2F, dest_x: 10, dest_y: 7 },
     ];
 
     let npcs = vec![
@@ -9911,7 +9954,7 @@ fn build_radio_tower_2f() -> MapData {
         // Stairs down to 1F
         WarpData { x: 10, y: 8, dest_map: MapId::RadioTower1F, dest_x: 10, dest_y: 1 },
         // Stairs up to 3F
-        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower3F, dest_x: 1, dest_y: 1 },
+        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower3F, dest_x: 1, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -10020,7 +10063,7 @@ fn build_radio_tower_3f() -> MapData {
         // Stairs down to 2F
         WarpData { x: 1, y: 1, dest_map: MapId::RadioTower2F, dest_x: 1, dest_y: 7 },
         // Stairs up to 4F
-        WarpData { x: 10, y: 1, dest_map: MapId::RadioTower4F, dest_x: 10, dest_y: 8 },
+        WarpData { x: 10, y: 1, dest_map: MapId::RadioTower4F, dest_x: 10, dest_y: 7 },
     ];
 
     let npcs = vec![
@@ -10040,7 +10083,7 @@ fn build_radio_tower_3f() -> MapData {
         },
         // NPC 2: Rocket Grunt M7 (takeover) — Koffing/Grimer/Zubat/Rattata Lv23
         NpcDef {
-            x: 5, y: 2, sprite_id: 6, facing: Direction::Down,
+            x: 6, y: 2, sprite_id: 6, facing: Direction::Down,
             dialogue: &["ROCKET GRUNT:", "I've been given", "strict orders to", "crush anyone who", "challenges us!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[
@@ -10129,7 +10172,7 @@ fn build_radio_tower_4f() -> MapData {
         // Stairs down to 3F (left)
         WarpData { x: 10, y: 8, dest_map: MapId::RadioTower3F, dest_x: 10, dest_y: 2 },
         // Stairs up to 5F (right)
-        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower5F, dest_x: 1, dest_y: 1 },
+        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower5F, dest_x: 1, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -10278,6 +10321,587 @@ fn build_radio_tower_5f() -> MapData {
     MapData { id: MapId::RadioTower5F, name: "RADIO TOWER 5F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
 }
 
+// ─── Tin Tower 1F (10x10) ──────────────────────────────────
+// Entry lobby. Per pokecrystal: 6 Sage NPCs (non-trainer, dialogue only).
+// Warp: exit south to Ecruteak City, stairs up north to 2F.
+// Stairs to 2F only accessible after FLAG_RADIO_TOWER_CLEAR (gated in check_warp_gate).
+fn build_tin_tower_1f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north wall + stairs up
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        // Row 1: pillars + stairs
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 2
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        // Row 3
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 4: center area
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 5
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 6
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        // Row 7
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 8
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 9: south wall + exit
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower1F collision count mismatch");
+
+    let warps = vec![
+        // Stairs up to 2F (north center)
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower2F, dest_x: 5, dest_y: 8 },
+        // Exit south to Ecruteak City
+        WarpData { x: 5, y: 9, dest_map: MapId::EcruteakCity, dest_x: 16, dest_y: 5 },
+    ];
+
+    // Per pokecrystal: 6 Sage NPCs with dialogue about Ho-Oh legend
+    let npcs = vec![
+        NpcDef {
+            x: 3, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["According to legend,", "when the souls of", "POKEMON and humans", "commune, from the", "heavens descends a", "POKEMON of rainbow", "colors..."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef {
+            x: 7, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["When the BRASS", "TOWER burned down,", "three nameless", "POKEMON perished.", "But HO-OH gave", "them new life."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef {
+            x: 2, y: 7, sprite_id: 5, facing: Direction::Right,
+            dialogue: &["The two TOWERS are", "said to have been", "built to foster", "friendship between", "POKEMON and people."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef {
+            x: 5, y: 1, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["HO-OH appears to", "have descended", "upon this, the TIN", "TOWER!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef {
+            x: 5, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["I believe you are", "being tested.", "Free your mind", "from uncertainty,", "and advance."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        NpcDef {
+            x: 8, y: 7, sprite_id: 5, facing: Direction::Left,
+            dialogue: &["Of the legendary", "POKEMON, SUICUNE", "is said to be the", "closest to HO-OH."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    MapData { id: MapId::TinTower1F, name: "TIN TOWER 1F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 2F (10x10) ──────────────────────────────────
+// Per pokecrystal: no NPCs, no items. Wild encounters: Rattata/Gastly Lv20-24.
+fn build_tin_tower_2f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower2F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower3F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower1F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower2F, name: "TIN TOWER 2F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 3F (10x10) ──────────────────────────────────
+// Per pokecrystal: Full Heal item ball.
+fn build_tin_tower_3f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower3F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower3F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower4F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower2F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower3F, name: "TIN TOWER 3F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 4F (10x10) ──────────────────────────────────
+// Per pokecrystal: Ultra Ball, PP Up, Escape Rope item balls.
+fn build_tin_tower_4f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower4F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower4F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower5F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower3F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower4F, name: "TIN TOWER 4F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 5F (10x10) ──────────────────────────────────
+// Per pokecrystal: Rare Candy item ball. Midpoint floor.
+fn build_tin_tower_5f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower5F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower5F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower6F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower4F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower5F, name: "TIN TOWER 5F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 6F (10x10) ──────────────────────────────────
+// Per pokecrystal: Max Potion item ball.
+fn build_tin_tower_6f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower6F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower6F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower7F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower5F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower6F, name: "TIN TOWER 6F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 7F (10x10) ──────────────────────────────────
+// Per pokecrystal: Max Revive item ball.
+fn build_tin_tower_7f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower7F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower7F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower8F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower6F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower7F, name: "TIN TOWER 7F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 8F (10x10) ──────────────────────────────────
+// Per pokecrystal: Nugget, Max Elixir, Full Restore item balls.
+fn build_tin_tower_8f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower8F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower8F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTower9F, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower7F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower8F, name: "TIN TOWER 8F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower 9F (10x10) ──────────────────────────────────
+// Per pokecrystal: HP Up item ball. Final floor before roof.
+fn build_tin_tower_9f() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTower9F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTower9F collision count mismatch");
+
+    let warps = vec![
+        WarpData { x: 5, y: 0, dest_map: MapId::TinTowerRoof, dest_x: 5, dest_y: 8 },
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower8F, dest_x: 5, dest_y: 1 },
+    ];
+
+    let encounters = vec![
+        EncounterEntry { species_id: RATTATA, min_level: 20, max_level: 24, weight: 70 },
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 30 },
+    ];
+    let night_encounters = vec![
+        EncounterEntry { species_id: GASTLY, min_level: 20, max_level: 22, weight: 60 },
+        EncounterEntry { species_id: RATTATA, min_level: 22, max_level: 24, weight: 40 },
+    ];
+
+    MapData { id: MapId::TinTower9F, name: "TIN TOWER 9F", width: w, height: h, tiles, collision, warps, npcs: vec![], encounters, night_encounters, water_encounters: vec![], music_id: 12 }
+}
+
+// ─── Tin Tower Roof (10x10) ──────────────────────────────────
+// Per pokecrystal: Ho-Oh encounter. NPC 0 = Ho-Oh (visible via is_npc_active until FLAG_HO_OH_ENCOUNTERED).
+// Ho-Oh is level 60, Fire/Flying type. Interacting triggers legendary battle.
+fn build_tin_tower_roof() -> MapData {
+    let w: usize = 10;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "TinTowerRoof tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "TinTowerRoof collision count mismatch");
+
+    let warps = vec![
+        // Stairs back down to 9F
+        WarpData { x: 5, y: 9, dest_map: MapId::TinTower9F, dest_x: 5, dest_y: 1 },
+    ];
+
+    // NPC 0: Ho-Oh — visible until FLAG_HO_OH_ENCOUNTERED (gated in is_npc_active)
+    // Interacting triggers legendary battle via DialogueAction::StartHoOhBattle
+    let npcs = vec![
+        NpcDef {
+            x: 5, y: 3, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["Shaoooh!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    MapData { id: MapId::TinTowerRoof, name: "TIN TOWER ROOF", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 12 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -10420,6 +11044,9 @@ mod tests {
             MapId::ChampionLance,
             MapId::RocketHQ,
             MapId::UnionCaveB1F, MapId::UnionCaveB2F,
+            MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
+            MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
+            MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -10463,6 +11090,9 @@ mod tests {
             MapId::ChampionLance,
             MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
             MapId::UnionCaveB1F, MapId::UnionCaveB2F,
+            MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
+            MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
+            MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -10718,6 +11348,9 @@ mod tests {
             MapId::ChampionLance,
             MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
             MapId::UnionCaveB1F, MapId::UnionCaveB2F,
+            MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
+            MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
+            MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

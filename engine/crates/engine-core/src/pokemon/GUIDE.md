@@ -2828,3 +2828,42 @@ All warps land on C_WALK tiles (validated by test_all_warps_valid).
 #### Files Changed
 - `maps.rs` — Fixed GruntM_5 missing 5th Rattata Lv23 on RadioTower2F
 - `mod.rs` — Added Dragon's Den quiz handler (sets FLAG_DRAGONS_DEN_QUIZ, lore dialogue), removed dead_code allow, added 4 new QA tests
+
+### Sprint 132 — Tin Tower (10 Floors + Ho-Oh Legendary Encounter)
+
+**Scope**: Build full Tin Tower dungeon (TinTower1F through TinTower9F + TinTowerRoof) with Ho-Oh legendary encounter per pokecrystal.
+
+#### What Was Built
+- **10 new maps** (all 10x10 interior layouts):
+  - **TinTower1F**: 6 Sage NPCs with Ho-Oh lore dialogue, warps to Ecruteak City + 2F. No wild encounters.
+  - **TinTower2F-9F**: Sequential staircase warps (up at 5,0, down at 5,9). Wild encounters: Rattata Lv20-24 (day), Gastly Lv20-22 (night). No NPCs.
+  - **TinTowerRoof**: Ho-Oh NPC (sprite_id 5), single downward warp to 9F. No wild encounters.
+- **Ho-Oh species** (SpeciesId 250): Fire/Flying, HP 106 / Atk 130 / Def 90 / SpA 110 / SpD 154 / Spd 90, catch rate 3, Slow growth. Learnset: Sacred Fire(1), Gust(22), Recover(33), Fire Blast(44), Sunny Day(55).
+- **Sacred Fire move** (MoveId 221): Fire-type, Special (Gen 2), power 100, accuracy 95, PP 5.
+- **Ecruteak City modification**: Tin Tower building graphics (rows 2-4, positions 15-17) with BUILDING_ROOF/WALL/DOOR tiles. Warp from (16,4) to TinTower1F.
+- **Story flag**: `FLAG_HO_OH_ENCOUNTERED` (bit 19). Gates Ho-Oh NPC visibility on Roof.
+- **Warp gate**: TinTower1F entry requires `FLAG_RADIO_TOWER_CLEAR` (Clear Bell).
+- **Ho-Oh encounter**: NPC 0 on TinTowerRoof triggers `DialogueAction::StartHoOhBattle` — sets flag, registers seen, creates level 60 wild battle.
+- **NPC visibility**: Ho-Oh NPC hidden after `FLAG_HO_OH_ENCOUNTERED`.
+
+#### Bugs Found and Fixed
+1. **Sacred Fire category**: Initially set to Physical, but Gen 2 uses type-based physical/special split (Fire = Special). Fixed to MoveCategory::Special to pass test_all_move_categories_match_gen2_type_rules.
+2. **Ecruteak->TinTower1F warp landing on C_WARP**: Destination (5,9) was the exit warp tile. Fixed dest_y from 9 to 8.
+3. **RadioTower warp chain bugs** (pre-existing from Sprint 130): 4 inter-floor warps landed on C_WARP instead of C_WALK. Fixed destinations: RT1F->RT2F (10,8)->(10,7), RT2F->RT3F (1,1)->(1,2), RT3F->RT4F (10,8)->(10,7), RT4F->RT5F (1,1)->(1,2).
+4. **RadioTower3F NPC #2 on solid tile**: Rocket Grunt at (5,2) was on TABLE (C_SOLID). Moved to (6,2) which is C_WALK.
+5. **Unused HO_OH constant in maps.rs**: Defined but never used (Ho-Oh is an NPC encounter, not wild). Removed to eliminate warning.
+
+#### Data Sources
+- `pokecrystal-master/maps/TinTower1F.asm` through `TinTowerRoof.asm` — map layouts, warps, NPCs
+- `pokecrystal-master/data/wild/johto_grass.asm` — Rattata/Gastly encounters Lv20-24
+- `pokecrystal-master/data/pokemon/base_stats/ho_oh.asm` — base stats, types, catch rate
+- `pokecrystal-master/data/pokemon/evos_attacks.asm` — Ho-Oh learnset (Sacred Fire/Gust/Recover/Fire Blast/Sunny Day)
+
+#### Test Results
+- **1365 tests passing** (0 new tests, 3 pre-existing test failures fixed)
+- **0 compiler warnings**
+
+#### Files Changed
+- `data.rs` — Added Ho-Oh species (id 250), Sacred Fire move (id 221, Special category)
+- `maps.rs` — Added 10 TinTower maps, Ecruteak City building/warp, fixed RadioTower warp destinations and NPC placement, updated test map lists
+- `mod.rs` — Added FLAG_HO_OH_ENCOUNTERED (bit 19), DialogueAction::StartHoOhBattle, warp gate for TinTower1F, Ho-Oh NPC interaction handler, Ho-Oh battle handler, is_npc_active rule for TinTowerRoof

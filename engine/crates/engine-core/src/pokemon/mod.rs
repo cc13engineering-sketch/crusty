@@ -1518,6 +1518,7 @@ impl PokemonSim {
                         self.battle = Some(battle);
                         return;
                     }
+                    // Already confused — rampage ended silently, continue to ActionSelect
                 }
 
                 if is_down(engine) {
@@ -1872,7 +1873,8 @@ impl PokemonSim {
                     }
 
                     // Thrash/Outrage: start rampage if not already rampaging
-                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.player_rampage.0 == 0 {
+                    // player_rampage.1 == 0 means no active rampage (not just counter=0)
+                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.player_rampage.1 == 0 {
                         // 2-3 turns total; we just did the first turn, so 1-2 more
                         let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
                         battle.player_rampage = (remaining, move_id);
@@ -2232,7 +2234,7 @@ impl PokemonSim {
                     }
 
                     // Thrash/Outrage: start rampage if not already rampaging
-                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.enemy_rampage.0 == 0 {
+                    if (move_id == MOVE_THRASH || move_id == MOVE_OUTRAGE) && battle.enemy_rampage.1 == 0 {
                         let remaining = 1 + (engine.rng.next_u64() % 2) as u8;
                         battle.enemy_rampage = (remaining, move_id);
                     }

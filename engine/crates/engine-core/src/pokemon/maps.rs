@@ -3335,21 +3335,21 @@ fn build_union_cave_b1f() -> MapData {
         },
     ];
 
-    // Per pokecrystal: Geodude, Zubat, Onix, Rattata, Wooper (night)
+    // Per pokecrystal: Geodude (Lv8), Zubat (Lv6-8), Onix (Lv8), Rattata (Lv6-8)
     let encounters = vec![
-        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 15 },
         EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 30 },
         EncounterEntry { species_id: ONIX, min_level: 8, max_level: 8, weight: 10 },
-        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 25 },
-        EncounterEntry { species_id: SANDSHREW, min_level: 6, max_level: 8, weight: 10 },
+        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 45 },
     ];
 
+    // Per pokecrystal: night swaps Zubat slot for Wooper
     let night_encounters = vec![
-        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 25 },
-        EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: GEODUDE, min_level: 8, max_level: 8, weight: 15 },
+        EncounterEntry { species_id: ZUBAT, min_level: 6, max_level: 8, weight: 15 },
         EncounterEntry { species_id: WOOPER, min_level: 8, max_level: 8, weight: 15 },
         EncounterEntry { species_id: ONIX, min_level: 8, max_level: 8, weight: 10 },
-        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 25 },
+        EncounterEntry { species_id: RATTATA, min_level: 6, max_level: 8, weight: 45 },
     ];
 
     MapData {
@@ -3514,23 +3514,23 @@ fn build_union_cave_b2f() -> MapData {
         },
     ];
 
-    // Per pokecrystal: higher-level cave encounters
+    // Per pokecrystal: Zubat (Lv22), Golbat (Lv22), Raticate (Lv21), Geodude (Lv20), Onix (Lv23)
     let encounters = vec![
-        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 25 },
-        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 20 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 30 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 15 },
         EncounterEntry { species_id: GEODUDE, min_level: 20, max_level: 20, weight: 15 },
         EncounterEntry { species_id: RATICATE, min_level: 21, max_level: 21, weight: 15 },
-        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 15 },
-        EncounterEntry { species_id: GRAVELER, min_level: 22, max_level: 22, weight: 10 },
+        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 25 },
     ];
 
+    // Per pokecrystal: night replaces one Zubat slot with Quagsire
     let night_encounters = vec![
-        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 20 },
-        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 20 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 22, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 22, weight: 15 },
         EncounterEntry { species_id: QUAGSIRE, min_level: 22, max_level: 22, weight: 15 },
         EncounterEntry { species_id: RATICATE, min_level: 21, max_level: 21, weight: 15 },
         EncounterEntry { species_id: GEODUDE, min_level: 20, max_level: 20, weight: 15 },
-        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 15 },
+        EncounterEntry { species_id: ONIX, min_level: 23, max_level: 23, weight: 25 },
     ];
 
     MapData {
@@ -8916,6 +8916,8 @@ fn build_slowpoke_well_b1f() -> MapData {
     let warps = vec![
         // Exit back to Azalea Town
         WarpData { x: 9, y: 14, dest_map: MapId::AzaleaTown, dest_x: 14, dest_y: 4 },
+        // Ladder/passage to B2F (per pokecrystal: warp_event 7, 11 — in water, requires Surf)
+        WarpData { x: 7, y: 11, dest_map: MapId::SlowpokeWellB2F, dest_x: 7, dest_y: 9 },
     ];
 
     // Per pokecrystal: GruntM29 (Rattata Lv9 x2), GruntM1 (Koffing Lv14),
@@ -9277,13 +9279,12 @@ fn build_burned_tower_b1f() -> MapData {
         },
     ];
 
-    // Per pokecrystal: Rattata (Lv14), Koffing (Lv14-16), Zubat (Lv15), Weezing (Lv16)
+    // Per pokecrystal: Rattata (Lv14), Koffing (Lv12-16), Zubat (Lv15), Weezing (Lv16)
     let encounters = vec![
-        EncounterEntry { species_id: KOFFING, min_level: 12, max_level: 16, weight: 35 },
+        EncounterEntry { species_id: KOFFING, min_level: 12, max_level: 16, weight: 45 },
         EncounterEntry { species_id: RATTATA, min_level: 14, max_level: 14, weight: 25 },
-        EncounterEntry { species_id: ZUBAT, min_level: 15, max_level: 15, weight: 20 },
-        EncounterEntry { species_id: WEEZING, min_level: 16, max_level: 16, weight: 10 },
-        EncounterEntry { species_id: RATICATE, min_level: 14, max_level: 16, weight: 10 },
+        EncounterEntry { species_id: ZUBAT, min_level: 15, max_level: 15, weight: 15 },
+        EncounterEntry { species_id: WEEZING, min_level: 16, max_level: 16, weight: 15 },
     ];
 
     MapData {

@@ -89,6 +89,7 @@ mod tests {
         let mut c = Collider::default();
         let c2 = c.clone();
         c.is_trigger = true;
+        let _ = c; // suppress unused assignment warning
         assert_eq!(c2.is_trigger, false); // clone is unaffected
     }
 

@@ -9700,7 +9700,7 @@ mod headless_tests {
         engine.reset(42);
 
         let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
-        let mut party = vec![player_pkmn];
+        let party = vec![player_pkmn];
         let enemy = Pokemon::new(PIDGEY, 5);
         let initial_enemy_hp = enemy.hp;
 
@@ -10083,5 +10083,338 @@ mod headless_tests {
         assert_eq!(neal.trainer_team.len(), 1);
         assert_eq!(neal.trainer_team[0].species_id, BELLSPROUT);
         assert_eq!(neal.trainer_team[0].level, 6);
+    }
+
+    // ─── Sprint 128 QA Tests ──────────────────────────────────
+
+    #[test]
+    fn test_slowpoke_well_rocket_event_flow() {
+        // Test: Slowpoke Well Rocket event — verify flag, NPC visibility, trainer data
+        let map = load_map(MapId::SlowpokeWellB1F);
+
+        // Verify map structure
+        assert_eq!(map.width, 16);
+        assert_eq!(map.height, 16);
+        assert_eq!(map.tiles.len(), 16 * 16);
+        assert_eq!(map.collision.len(), 16 * 16);
+        assert_eq!(map.id, MapId::SlowpokeWellB1F);
+
+        // Verify exit warp back to Azalea Town
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::AzaleaTown),
+            "SlowpokeWellB1F must have warp back to AzaleaTown");
+
+        // Verify warp to B2F exists (per pokecrystal: warp_event 7, 11)
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::SlowpokeWellB2F),
+            "SlowpokeWellB1F must have warp to SlowpokeWellB2F");
+
+        // Verify 7 NPCs: 4 Rocket Grunts + Kurt + 2 Slowpokes
+        assert_eq!(map.npcs.len(), 7, "SlowpokeWellB1F should have 7 NPCs");
+
+        // Per pokecrystal: GruntM29 = Rattata Lv9 x2
+        let grunt0 = &map.npcs[0];
+        assert!(grunt0.is_trainer);
+        assert_eq!(grunt0.trainer_team.len(), 2);
+        assert_eq!(grunt0.trainer_team[0].species_id, RATTATA);
+        assert_eq!(grunt0.trainer_team[0].level, 9);
+        assert_eq!(grunt0.trainer_team[1].species_id, RATTATA);
+        assert_eq!(grunt0.trainer_team[1].level, 9);
+
+        // Per pokecrystal: GruntF1 = Zubat Lv9, Ekans Lv11
+        let grunt1 = &map.npcs[1];
+        assert!(grunt1.is_trainer);
+        assert_eq!(grunt1.trainer_team.len(), 2);
+        assert_eq!(grunt1.trainer_team[0].species_id, ZUBAT);
+        assert_eq!(grunt1.trainer_team[0].level, 9);
+        assert_eq!(grunt1.trainer_team[1].species_id, 23); // EKANS
+        assert_eq!(grunt1.trainer_team[1].level, 11);
+
+        // Per pokecrystal: GruntM2 = Rattata Lv7, Zubat Lv9 x2
+        let grunt2 = &map.npcs[2];
+        assert!(grunt2.is_trainer);
+        assert_eq!(grunt2.trainer_team.len(), 3);
+        assert_eq!(grunt2.trainer_team[0].species_id, RATTATA);
+        assert_eq!(grunt2.trainer_team[0].level, 7);
+
+        // Per pokecrystal: GruntM1 (Executive Proton) = Koffing Lv14
+        let exec = &map.npcs[3];
+        assert!(exec.is_trainer);
+        assert_eq!(exec.trainer_team.len(), 1);
+        assert_eq!(exec.trainer_team[0].species_id, KOFFING);
+        assert_eq!(exec.trainer_team[0].level, 14);
+
+        // Kurt (NPC 4) should NOT be a trainer
+        assert!(!map.npcs[4].is_trainer, "Kurt should not be a trainer");
+        // Slowpokes (NPCs 5-6) should NOT be trainers
+        assert!(!map.npcs[5].is_trainer, "Slowpoke should not be a trainer");
+        assert!(!map.npcs[6].is_trainer, "Slowpoke should not be a trainer");
+
+        // Test FLAG_SLOWPOKE_WELL event flow
+        let party = vec![Pokemon::new(CYNDAQUIL, 15)];
+        let sim = PokemonSim::with_state(MapId::SlowpokeWellB1F, 5, 5, party, 2);
+
+        // Before clearing: flag should not be set
+        assert!(!sim.has_flag(FLAG_SLOWPOKE_WELL), "FLAG_SLOWPOKE_WELL should not be set initially");
+
+        // All Rockets + Kurt + Slowpokes (NPCs 0-6) should be active before clearing
+        for i in 0..7 {
+            assert!(sim.is_npc_active(i), "NPC {} should be active before clearing", i);
+        }
+
+        // Simulate clearing: set the flag
+        let mut sim2 = sim;
+        sim2.set_flag(FLAG_SLOWPOKE_WELL);
+        assert!(sim2.has_flag(FLAG_SLOWPOKE_WELL));
+
+        // After clearing: all NPCs 0-6 should be hidden
+        for i in 0..7 {
+            assert!(!sim2.is_npc_active(i),
+                "NPC {} should be hidden after FLAG_SLOWPOKE_WELL set", i);
+        }
+    }
+
+    #[test]
+    fn test_burned_tower_beast_encounter_event() {
+        // Test: Burned Tower beast release event flow
+        let map_1f = load_map(MapId::BurnedTower);
+        let map_b1f = load_map(MapId::BurnedTowerB1F);
+
+        // Verify BurnedTower 1F has warp to B1F
+        assert!(map_1f.warps.iter().any(|w| w.dest_map == MapId::BurnedTowerB1F),
+            "BurnedTower must have warp to BurnedTowerB1F");
+        // Verify B1F has warp back to 1F
+        assert!(map_b1f.warps.iter().any(|w| w.dest_map == MapId::BurnedTower),
+            "BurnedTowerB1F must have warp back to BurnedTower");
+
+        // Verify BurnedTowerB1F dimensions
+        assert_eq!(map_b1f.width, 14);
+        assert_eq!(map_b1f.height, 14);
+
+        // Eusine NPC (index 0) is the only NPC in B1F
+        assert_eq!(map_b1f.npcs.len(), 1, "BurnedTowerB1F should have 1 NPC (Eusine)");
+        assert!(!map_b1f.npcs[0].is_trainer, "Eusine should not be a trainer in B1F");
+
+        // Test FLAG_BURNED_TOWER_RIVAL (1F rival battle)
+        let party = vec![Pokemon::new(CYNDAQUIL, 20)];
+        let mut sim = PokemonSim::with_state(MapId::BurnedTower, 7, 10, party.clone(), 4);
+        sim.rival_starter = TOTODILE;
+        assert!(!sim.has_flag(FLAG_BURNED_TOWER_RIVAL));
+
+        // Player at y=10, needs y<=7 to trigger
+        sim.player.y = 7;
+        let triggered = sim.check_burned_tower_rival();
+        assert!(triggered, "Rival event should trigger at y<=7 in BurnedTower");
+        assert!(sim.has_flag(FLAG_BURNED_TOWER_RIVAL));
+        assert!(matches!(sim.phase, GamePhase::Dialogue));
+
+        // Should not trigger again
+        sim.phase = GamePhase::Overworld;
+        let again = sim.check_burned_tower_rival();
+        assert!(!again, "Rival event should not trigger twice");
+
+        // Test FLAG_BEASTS_RELEASED (B1F beast event)
+        let mut sim_b1f = PokemonSim::with_state(MapId::BurnedTowerB1F, 7, 8, party, 4);
+        assert!(!sim_b1f.has_flag(FLAG_BEASTS_RELEASED));
+
+        // Eusine hidden before beasts released
+        assert!(!sim_b1f.is_npc_active(0), "Eusine should be hidden before beasts released");
+
+        // Player at y=8, needs y<=5 to trigger
+        sim_b1f.player.y = 5;
+        let triggered = sim_b1f.check_beasts_released();
+        assert!(triggered, "Beast event should trigger at y<=5 in BurnedTowerB1F");
+        assert!(sim_b1f.has_flag(FLAG_BEASTS_RELEASED));
+        assert!(matches!(sim_b1f.phase, GamePhase::Dialogue));
+
+        // Eusine visible after beasts released
+        assert!(sim_b1f.is_npc_active(0), "Eusine should be visible after beasts released");
+
+        // Should not trigger again
+        sim_b1f.phase = GamePhase::Overworld;
+        let again = sim_b1f.check_beasts_released();
+        assert!(!again, "Beast event should not trigger twice");
+
+        // Verify encounters in B1F per pokecrystal (no Raticate or Magmar)
+        assert!(map_b1f.encounters.iter().any(|e| e.species_id == KOFFING),
+            "BurnedTowerB1F should have Koffing encounters");
+        assert!(map_b1f.encounters.iter().any(|e| e.species_id == ZUBAT),
+            "BurnedTowerB1F should have Zubat encounters");
+        assert!(map_b1f.encounters.iter().any(|e| e.species_id == 110), // WEEZING
+            "BurnedTowerB1F should have Weezing encounters");
+        assert!(!map_b1f.encounters.iter().any(|e| e.species_id == 20), // RATICATE
+            "BurnedTowerB1F should NOT have Raticate per pokecrystal");
+    }
+
+    #[test]
+    fn test_ilex_forest_farfetchd_quest() {
+        // Test: Ilex Forest Farfetch'd quest — NPC visibility and flag logic
+        let map = load_map(MapId::IlexForest);
+
+        // Verify map structure
+        assert_eq!(map.width, 20);
+        assert_eq!(map.height, 24);
+        assert_eq!(map.id, MapId::IlexForest);
+
+        // Verify warps: north to Route34, south to AzaleaTown
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::Route34),
+            "IlexForest must have warp to Route34");
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::AzaleaTown),
+            "IlexForest must have warp to AzaleaTown");
+
+        // Verify NPC 0 = Farfetch'd (wanders, not trainer)
+        assert!(!map.npcs[0].is_trainer, "Farfetch'd should not be a trainer");
+        assert!(map.npcs[0].wanders, "Farfetch'd should wander");
+
+        // Verify NPC 1 = Apprentice (not trainer)
+        assert!(!map.npcs[1].is_trainer, "Apprentice should not be a trainer");
+
+        // Verify NPC 2 = Charcoal Master (gives HM Cut, not trainer)
+        assert!(!map.npcs[2].is_trainer, "Charcoal Master should not be a trainer");
+
+        // Verify NPC 4 = Bug Catcher Wayne (is trainer, per pokecrystal)
+        assert!(map.npcs[4].is_trainer, "Bug Catcher Wayne should be a trainer");
+        assert_eq!(map.npcs[4].trainer_team.len(), 2);
+        assert_eq!(map.npcs[4].trainer_team[0].species_id, CATERPIE);
+        assert_eq!(map.npcs[4].trainer_team[0].level, 8);
+        assert_eq!(map.npcs[4].trainer_team[1].species_id, WEEDLE);
+        assert_eq!(map.npcs[4].trainer_team[1].level, 8);
+
+        // Test FLAG_ILEX_FARFETCHD NPC visibility
+        let party = vec![Pokemon::new(CYNDAQUIL, 10)];
+        let sim = PokemonSim::with_state(MapId::IlexForest, 8, 12, party, 2);
+
+        // Before quest: Farfetch'd and Apprentice visible
+        assert!(!sim.has_flag(FLAG_ILEX_FARFETCHD));
+        assert!(sim.is_npc_active(0), "Farfetch'd should be visible before quest");
+        assert!(sim.is_npc_active(1), "Apprentice should be visible before quest");
+
+        // After quest: Farfetch'd and Apprentice hidden
+        let mut sim2 = sim;
+        sim2.set_flag(FLAG_ILEX_FARFETCHD);
+        assert!(!sim2.is_npc_active(0), "Farfetch'd should be hidden after quest");
+        assert!(!sim2.is_npc_active(1), "Apprentice should be hidden after quest");
+
+        // Charcoal Master (NPC 2) always visible (handled by interaction, not is_npc_active)
+        assert!(sim2.is_npc_active(2), "Charcoal Master should remain visible");
+
+        // Verify encounter data per pokecrystal
+        assert!(map.encounters.iter().any(|e| e.species_id == CATERPIE),
+            "IlexForest should have Caterpie encounters");
+        assert!(map.encounters.iter().any(|e| e.species_id == PARAS),
+            "IlexForest should have Paras encounters");
+        assert!(map.night_encounters.iter().any(|e| e.species_id == ODDISH),
+            "IlexForest should have Oddish night encounters");
+    }
+
+    #[test]
+    fn test_union_cave_floor_traversal() {
+        // Test: Union Cave 3-floor connectivity — 1F -> B1F -> B2F
+        let cave_1f = load_map(MapId::UnionCave);
+        let cave_b1f = load_map(MapId::UnionCaveB1F);
+        let cave_b2f = load_map(MapId::UnionCaveB2F);
+
+        // Verify map dimensions
+        assert_eq!(cave_1f.width, 16);
+        assert_eq!(cave_1f.height, 16);
+        assert_eq!(cave_b1f.width, 18);
+        assert_eq!(cave_b1f.height, 16);
+        assert_eq!(cave_b2f.width, 16);
+        assert_eq!(cave_b2f.height, 14);
+
+        // 1F -> B1F warp
+        assert!(cave_1f.warps.iter().any(|w| w.dest_map == MapId::UnionCaveB1F),
+            "UnionCave 1F must have warp to B1F");
+        // B1F -> 1F return warp
+        assert!(cave_b1f.warps.iter().any(|w| w.dest_map == MapId::UnionCave),
+            "UnionCaveB1F must have warp back to 1F");
+        // B1F -> B2F warp
+        assert!(cave_b1f.warps.iter().any(|w| w.dest_map == MapId::UnionCaveB2F),
+            "UnionCaveB1F must have warp to B2F");
+        // B2F -> B1F return warp
+        assert!(cave_b2f.warps.iter().any(|w| w.dest_map == MapId::UnionCaveB1F),
+            "UnionCaveB2F must have warp back to B1F");
+
+        // Verify B1F warp destinations land on non-solid tiles in 1F
+        let b1f_to_1f = cave_b1f.warps.iter().find(|w| w.dest_map == MapId::UnionCave);
+        if let Some(warp) = b1f_to_1f {
+            let idx = (warp.dest_y as usize) * cave_1f.width + (warp.dest_x as usize);
+            assert!(idx < cave_1f.collision.len(), "Warp dest out of bounds");
+            assert_ne!(cave_1f.collision[idx], 1u8, // C_SOLID
+                "B1F->1F warp destination ({},{}) must not be solid in 1F", warp.dest_x, warp.dest_y);
+        }
+
+        // Verify B1F trainer count (per pokecrystal: 4 trainers)
+        let b1f_trainers: Vec<_> = cave_b1f.npcs.iter().filter(|n| n.is_trainer).collect();
+        assert_eq!(b1f_trainers.len(), 4, "UnionCaveB1F should have 4 trainers");
+
+        // Verify B2F trainer count (per pokecrystal: 3 trainers)
+        let b2f_trainers: Vec<_> = cave_b2f.npcs.iter().filter(|n| n.is_trainer).collect();
+        assert_eq!(b2f_trainers.len(), 3, "UnionCaveB2F should have 3 trainers");
+
+        // Verify B2F has Lapras NPC (Friday encounter)
+        assert!(cave_b2f.npcs.iter().any(|n| !n.is_trainer && n.dialogue[0].contains("LAPRAS")),
+            "UnionCaveB2F should have Lapras NPC");
+
+        // Verify B2F has water encounters (Lapras)
+        assert!(!cave_b2f.water_encounters.is_empty(),
+            "UnionCaveB2F should have water encounters (Lapras)");
+        assert!(cave_b2f.water_encounters.iter().any(|e| e.species_id == LAPRAS),
+            "UnionCaveB2F water encounters should include Lapras");
+
+        // Verify night encounters exist for B1F and B2F
+        assert!(!cave_b1f.night_encounters.is_empty(),
+            "UnionCaveB1F should have night encounters");
+        assert!(!cave_b2f.night_encounters.is_empty(),
+            "UnionCaveB2F should have night encounters");
+
+        // Verify B2F night encounters include Quagsire (per pokecrystal)
+        assert!(cave_b2f.night_encounters.iter().any(|e| e.species_id == QUAGSIRE),
+            "UnionCaveB2F night encounters should include Quagsire per pokecrystal");
+
+        // Verify Slowpoke Well connectivity: AzaleaTown -> B1F -> B2F
+        let well_b1f = load_map(MapId::SlowpokeWellB1F);
+        let well_b2f = load_map(MapId::SlowpokeWellB2F);
+        assert!(well_b1f.warps.iter().any(|w| w.dest_map == MapId::SlowpokeWellB2F),
+            "SlowpokeWellB1F must have warp to B2F");
+        assert!(well_b2f.warps.iter().any(|w| w.dest_map == MapId::SlowpokeWellB1F),
+            "SlowpokeWellB2F must have warp back to B1F");
+    }
+
+    #[test]
+    fn test_azalea_slowpoke_well_warp_connectivity() {
+        // Verify bidirectional warps between Azalea Town and Slowpoke Well
+        let azalea = load_map(MapId::AzaleaTown);
+        let well = load_map(MapId::SlowpokeWellB1F);
+
+        // Azalea -> SlowpokeWellB1F
+        let az_to_well = azalea.warps.iter().find(|w| w.dest_map == MapId::SlowpokeWellB1F);
+        assert!(az_to_well.is_some(), "AzaleaTown must have warp to SlowpokeWellB1F");
+
+        // SlowpokeWellB1F -> Azalea
+        let well_to_az = well.warps.iter().find(|w| w.dest_map == MapId::AzaleaTown);
+        assert!(well_to_az.is_some(), "SlowpokeWellB1F must have warp back to AzaleaTown");
+
+        // Verify Azalea -> IlexForest warps exist
+        assert!(azalea.warps.iter().any(|w| w.dest_map == MapId::IlexForest),
+            "AzaleaTown must have warp to IlexForest");
+
+        // Verify Route34 -> IlexForest warps
+        let r34 = load_map(MapId::Route34);
+        assert!(r34.warps.iter().any(|w| w.dest_map == MapId::IlexForest),
+            "Route34 must have warp to IlexForest");
+
+        // Verify IlexForest has warps to both Route34 and AzaleaTown
+        let ilex = load_map(MapId::IlexForest);
+        assert!(ilex.warps.iter().any(|w| w.dest_map == MapId::Route34),
+            "IlexForest must have warp to Route34");
+        assert!(ilex.warps.iter().any(|w| w.dest_map == MapId::AzaleaTown),
+            "IlexForest must have warp to AzaleaTown");
+
+        // Verify Burned Tower bidirectional warps
+        let bt = load_map(MapId::BurnedTower);
+        let btb1f = load_map(MapId::BurnedTowerB1F);
+        assert!(bt.warps.iter().any(|w| w.dest_map == MapId::BurnedTowerB1F),
+            "BurnedTower must have warp to B1F");
+        assert!(btb1f.warps.iter().any(|w| w.dest_map == MapId::BurnedTower),
+            "BurnedTowerB1F must have warp back to BurnedTower");
     }
 }

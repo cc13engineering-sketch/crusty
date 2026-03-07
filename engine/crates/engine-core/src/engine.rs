@@ -874,7 +874,7 @@ mod tests {
     #[test]
     fn state_hash_sensitive_to_rng_state() {
         let mut e1 = Engine::new(100, 100);
-        let mut e2 = Engine::new(100, 100);
+        let e2 = Engine::new(100, 100);
         e1.rng.next_u64(); // advance rng
         assert_ne!(e1.state_hash(), e2.state_hash());
     }
@@ -906,7 +906,7 @@ mod tests {
         let mut engine = Engine::new(100, 100);
         engine.rng.next_u64();
         engine.rng.next_u64();
-        let rng_state_before = engine.rng.state;
+        let _rng_state_before = engine.rng.state;
 
         engine.reset(42);
         let fresh = SeededRng::new(42);

@@ -180,7 +180,7 @@ mod tests {
         let mut runner = HeadlessRunner::new(480, 270);
         let mut game = DemoBall::new();
         let inputs: Vec<InputFrame> = vec![InputFrame::default(); 60];
-        let straight = runner.run_sim_frames(&mut game, 42, &inputs, 60, config.clone());
+        let _straight = runner.run_sim_frames(&mut game, 42, &inputs, 60, config.clone());
 
         // Branch at frame 30 with empty params (same as no variant)
         let br = rewind_and_branch(&demo_factory, 42, 60, config, 30, &variant);

@@ -71,6 +71,7 @@ mod tests {
         let mut t = Transform { x: 1.0, y: 2.0, rotation: 0.0, scale: 1.0 };
         let t2 = t.clone();
         t.x = 99.0;
+        let _ = t; // suppress unused assignment warning
         assert_eq!(t2.x, 1.0); // clone is unaffected
     }
 

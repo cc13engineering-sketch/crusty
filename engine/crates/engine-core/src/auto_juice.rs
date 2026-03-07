@@ -305,7 +305,6 @@ impl AutoJuiceSystem {
 mod tests {
     use super::*;
     use crate::events::EventKind;
-    use crate::event_bus::BusEvent;
 
     fn empty_tags(_e: Entity) -> Vec<String> {
         Vec::new()

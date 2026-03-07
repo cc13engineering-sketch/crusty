@@ -119,6 +119,7 @@ mod tests {
         let mut rb = RigidBody::default();
         let rb2 = rb.clone();
         rb.mass = 99.0;
+        let _ = rb; // suppress unused assignment warning
         assert_eq!(rb2.mass, 1.0); // clone is unaffected
     }
 

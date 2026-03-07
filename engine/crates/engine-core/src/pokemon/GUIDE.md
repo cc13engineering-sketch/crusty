@@ -2547,4 +2547,89 @@ Added `test_step_queue(battle, party, engine)` helper that creates a temporary P
 - `mod.rs` -- FLAG_ILEX_FARFETCHD (bit 15), Farfetch'd quest event logic, Charcoal Master HM CUT dialogue, NPC visibility for Ilex Forest (Farfetch'd + Apprentice hidden after quest)
 - `data.rs` -- Metapod, Kakuna, Lapras species data; Caterpie/Weedle evolution chains
 
+---
+
+### Sprint 128 — QA Audit of Sprints 126-127
+
+**Type**: QA audit
+**Scope**: Slowpoke Well, Burned Tower B1F, Ilex Forest, Union Cave B1F/B2F
+
+#### Bugs Found and Fixed
+
+1. **Missing warp: SlowpokeWellB1F -> SlowpokeWellB2F**
+   - SlowpokeWellB1F had only one warp (exit to AzaleaTown) but was missing the ladder/passage to B2F
+   - Added `WarpData { x: 7, y: 11, dest_map: MapId::SlowpokeWellB2F, dest_x: 7, dest_y: 9 }` per pokecrystal `warp_event 7, 11, SLOWPOKE_WELL_B2F, 1`
+
+2. **BurnedTowerB1F encounters: RATICATE and MAGMAR not in pokecrystal data**
+   - Removed RATICATE and MAGMAR from BurnedTowerB1F encounters
+   - Per pokecrystal `data/wild/johto_grass.asm`: Koffing Lv12-16, Rattata Lv14, Zubat Lv15, Weezing Lv16
+   - Adjusted weights: Koffing 45, Rattata 25, Zubat 15, Weezing 15
+
+3. **UnionCaveB1F encounters: SANDSHREW belongs to 1F, not B1F**
+   - Removed SANDSHREW from UnionCaveB1F encounters
+   - Per pokecrystal: Geodude Lv8, Zubat Lv6-8, Onix Lv8, Rattata Lv6-8
+   - Adjusted weights: Zubat 30, Rattata 45, Geodude 15, Onix 10
+
+4. **UnionCaveB2F encounters: GRAVELER not in pokecrystal B2F data**
+   - Removed GRAVELER from UnionCaveB2F encounters
+   - Per pokecrystal: Zubat Lv22, Golbat Lv22, Geodude Lv20, Raticate Lv21, Onix Lv23
+   - Adjusted weights: Zubat 30, Onix 25, Golbat 15, Geodude 15, Raticate 15
+
+#### Compiler Warnings Fixed (8 total)
+
+- `mod.rs`: `let mut party` -> `let party` in test_player_attack_queue_builds_correctly (unused_mut)
+- `engine.rs`: `let mut e2` -> `let e2` (unused_mut); `let rng_state_before` -> `let _rng_state_before` (unused_variable)
+- `auto_juice.rs`: Removed unused import `use crate::event_bus::BusEvent`
+- `transform.rs`: Added `let _ = t;` to suppress unused assignment warning in clone_is_independent test
+- `rigidbody.rs`: Added `let _ = rb;` to suppress unused assignment warning in clone_is_independent test
+- `collider.rs`: Added `let _ = c;` to suppress unused assignment warning in clone_is_independent test
+- `variant_rewind.rs`: `let straight` -> `let _straight` (unused variable)
+
+#### Warp Verification
+
+All 6 warp pairs verified bidirectional:
+- AzaleaTown <-> SlowpokeWellB1F
+- SlowpokeWellB1F <-> SlowpokeWellB2F (FIXED -- was missing)
+- BurnedTower <-> BurnedTowerB1F
+- UnionCave <-> UnionCaveB1F <-> UnionCaveB2F
+- Route34 <-> IlexForest <-> AzaleaTown
+
+#### Trainer Team Verification
+
+All Slowpoke Well Rocket Grunt teams verified against `pokecrystal-master/data/trainers/parties.asm`:
+- GruntM(29): Rattata Lv9 x2
+- GruntM(1): Koffing Lv14
+- GruntM(2): Rattata Lv7, Zubat Lv9 x2
+- GruntF(1): Zubat Lv9, Ekans Lv11
+
+#### Story Flag Verification
+
+All 4 flags verified:
+- `FLAG_SLOWPOKE_WELL` -- Hides Rocket Grunts and Proton after clearing well
+- `FLAG_BURNED_TOWER_RIVAL` -- Triggers rival Silver battle at y<=7
+- `FLAG_BEASTS_RELEASED` -- Triggers beast release cutscene at y<=5; hides beasts and Eusine after
+- `FLAG_ILEX_FARFETCHD` -- Hides Farfetch'd and Apprentice after quest; gates HM CUT reward
+
+#### New Tests Added (5)
+
+1. `test_slowpoke_well_rocket_event_flow` -- Map structure, 7 NPCs, trainer teams per pokecrystal, FLAG_SLOWPOKE_WELL NPC visibility
+2. `test_burned_tower_beast_encounter_event` -- Warps, FLAG_BURNED_TOWER_RIVAL trigger, FLAG_BEASTS_RELEASED trigger, Eusine visibility, encounter accuracy
+3. `test_ilex_forest_farfetchd_quest` -- Map dimensions, warps, NPC roles, Bug Catcher Wayne team, FLAG_ILEX_FARFETCHD NPC visibility
+4. `test_union_cave_floor_traversal` -- 3-floor connectivity, warp destinations, trainer counts, Lapras NPC, night encounters with Quagsire
+5. `test_azalea_slowpoke_well_warp_connectivity` -- Bidirectional warp verification for all Sprint 126-127 maps
+
+#### Test Results
+- **1361 tests passing** (up from 1356, +5 new QA tests)
+- **0 compiler warnings**
+
+#### Files Changed
+- `maps.rs` -- Fixed SlowpokeWellB1F missing B2F warp, corrected BurnedTowerB1F/UnionCaveB1F/UnionCaveB2F encounter data
+- `mod.rs` -- Fixed unused_mut warning, added 5 new QA tests
+- `engine.rs` -- Fixed unused_mut and unused_variable warnings
+- `auto_juice.rs` -- Removed unused import
+- `transform.rs` -- Fixed unused assignment warning
+- `rigidbody.rs` -- Fixed unused assignment warning
+- `collider.rs` -- Fixed unused assignment warning
+- `variant_rewind.rs` -- Fixed unused variable warning
+
 **Test Results**: All 1361 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

@@ -155,6 +155,7 @@ enum GamePhase {
     MapFadeIn { timer: f64 },
     WhiteoutFade { timer: f64, money_lost: u32 },
     Credits { scroll_y: f64 },
+    TrainerCard,
 }
 
 // ─── Battle Phase ───────────────────────────────────────
@@ -3960,7 +3961,7 @@ impl PokemonSim {
     // ─── Menu Logic ────────────────────────────────────
 
     fn step_menu(&mut self, engine: &mut Engine) {
-        let items = 5u8;
+        let items = 6u8;
         if is_down(engine) {
             self.menu_cursor = (self.menu_cursor + 1) % items;
         } else if is_up(engine) {
@@ -3978,7 +3979,8 @@ impl PokemonSim {
                 0 => self.phase = GamePhase::PokemonMenu { cursor: 0 },
                 1 => self.phase = GamePhase::BagMenu { cursor: 0 },
                 2 => self.phase = GamePhase::Pokedex { cursor: 0, scroll: 0 },
-                3 => {
+                3 => self.phase = GamePhase::TrainerCard,
+                4 => {
                     // Save: trigger actual save via persist queue
                     self.needs_save = true;
                     self.dialogue = Some(DialogueState {
@@ -3988,7 +3990,7 @@ impl PokemonSim {
                     });
                     self.phase = GamePhase::Dialogue;
                 }
-                4 => self.phase = GamePhase::Overworld,
+                5 => self.phase = GamePhase::Overworld,
                 _ => {}
             }
         }
@@ -4221,6 +4223,12 @@ impl PokemonSim {
         }
 
         if is_cancel(engine) {
+            self.phase = GamePhase::Menu;
+        }
+    }
+
+    fn step_trainer_card(&mut self, engine: &mut Engine) {
+        if is_cancel(engine) || is_confirm(engine) {
             self.phase = GamePhase::Menu;
         }
     }
@@ -4872,8 +4880,8 @@ impl PokemonSim {
         let ctx = match &self.ctx { Some(c) => c, None => return };
         self.render_overworld(fb);
 
-        draw_text_box(fb, ctx, 96, 2, 60, 82);
-        let items = ["POKEMON", "BAG", "POKEDEX", "SAVE", "EXIT"];
+        draw_text_box(fb, ctx, 96, 2, 60, 96);
+        let items = ["POKEMON", "BAG", "POKEDEX", "TRAINER", "SAVE", "EXIT"];
         for (i, item) in items.iter().enumerate() {
             let y = 8 + i as i32 * 14;
             draw_text_pkmn(fb, ctx, item, 114, y, Color::from_rgba(40, 40, 48, 255));
@@ -5524,6 +5532,62 @@ impl PokemonSim {
         draw_text_pkmn(fb, ctx, "X/ESC TO CLOSE", 20, 133, Color::from_rgba(120, 120, 140, 255));
     }
 
+    fn render_trainer_card(&self, fb: &mut crate::rendering::framebuffer::Framebuffer) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        let dark = Color::from_rgba(40, 40, 48, 255);
+        let dim = Color::from_rgba(80, 80, 96, 255);
+        let gold = Color::from_rgba(208, 176, 48, 255);
+
+        fill_virtual_screen(fb, ctx, Color::from_rgba(248, 248, 248, 255));
+
+        // Title
+        draw_text_pkmn(fb, ctx, "TRAINER CARD", 32, 4, dark);
+        fill_rect_v(fb, ctx, 4, 13, 152, 1, Color::from_rgba(168, 168, 176, 255));
+
+        // Name
+        draw_text_pkmn(fb, ctx, "NAME: GOLD", 8, 18, dark);
+
+        // Money
+        let money_str = format!("MONEY: ${}", self.money);
+        draw_text_pkmn(fb, ctx, &money_str, 8, 30, dark);
+
+        // Pokedex
+        let seen_str = format!("SEEN: {}", self.pokedex_seen.len());
+        let caught_str = format!("OWN:  {}", self.pokedex_caught.len());
+        draw_text_pkmn(fb, ctx, &seen_str, 8, 42, dark);
+        draw_text_pkmn(fb, ctx, &caught_str, 80, 42, dark);
+
+        // Play time
+        let hours = (self.total_time / 3600.0) as u32;
+        let minutes = ((self.total_time % 3600.0) / 60.0) as u32;
+        let time_str = format!("TIME: {:02}:{:02}", hours, minutes);
+        draw_text_pkmn(fb, ctx, &time_str, 8, 54, dark);
+
+        // Badges section
+        draw_text_pkmn(fb, ctx, "BADGES", 52, 68, dim);
+        fill_rect_v(fb, ctx, 4, 77, 152, 1, Color::from_rgba(168, 168, 176, 255));
+
+        let badge_names = ["ZEPHYR", "HIVE", "PLAIN", "FOG", "MINERAL", "STORM", "GLACIER", "RISING"];
+        for i in 0..8 {
+            let x = 8 + (i % 4) * 38;
+            let y = 82 + (i / 4) * 24;
+            let has = self.badges & (1 << i) != 0;
+            if has {
+                // Draw filled badge indicator
+                fill_rect_v(fb, ctx, x as i32, y as i32, 32, 10, Color::from_rgba(232, 216, 168, 255));
+                fill_rect_v(fb, ctx, x as i32 + 1, y as i32 + 1, 30, 8, gold);
+                draw_text_pkmn(fb, ctx, badge_names[i], x as i32 + 2, y as i32 + 12, dark);
+            } else {
+                // Empty badge slot
+                fill_rect_v(fb, ctx, x as i32, y as i32, 32, 10, Color::from_rgba(200, 200, 208, 255));
+                fill_rect_v(fb, ctx, x as i32 + 1, y as i32 + 1, 30, 8, Color::from_rgba(224, 224, 232, 255));
+                draw_text_pkmn(fb, ctx, "---", x as i32 + 8, y as i32 + 12, dim);
+            }
+        }
+
+        draw_text_pkmn(fb, ctx, "PRESS Z/ESC", 32, 133, Color::from_rgba(120, 120, 140, 255));
+    }
+
     fn render_pokemart(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
         let ctx = match &self.ctx { Some(c) => c, None => return };
         let dark = Color::from_rgba(40, 40, 48, 255);
@@ -6097,6 +6161,7 @@ impl Simulation for PokemonSim {
             GamePhase::PokeMart { .. } => self.step_pokemart(engine),
             GamePhase::PokemonSummary { .. } => self.step_pokemon_summary(engine),
             GamePhase::Pokedex { .. } => self.step_pokedex(engine),
+            GamePhase::TrainerCard => self.step_trainer_card(engine),
             GamePhase::PCMenu { .. } => self.step_pc_menu(engine),
 
             GamePhase::Healing { timer } => {
@@ -6353,6 +6418,7 @@ impl Simulation for PokemonSim {
             GamePhase::PokeMart { cursor } => self.render_pokemart(fb, *cursor),
             GamePhase::PokemonSummary { index } => self.render_pokemon_summary(fb, *index),
             GamePhase::Pokedex { cursor, scroll } => self.render_pokedex(fb, *cursor, *scroll),
+            GamePhase::TrainerCard => self.render_trainer_card(fb),
             GamePhase::PCMenu { mode, cursor } => self.render_pc_menu(fb, *mode, *cursor),
             GamePhase::TrainerApproach { npc_idx, .. } => {
                 // Render overworld, then draw "!" above approaching trainer

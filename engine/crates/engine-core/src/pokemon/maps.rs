@@ -128,6 +128,12 @@ const WEEZING: u16 = 110;
 const METAPOD: u16 = 11;
 const KAKUNA: u16 = 14;
 const LAPRAS: u16 = 131;
+// Sprint 130: Radio Tower species
+const GRIMER: u16 = 88;
+const ARBOK: u16 = 24;
+const HOUNDOUR: u16 = 228;
+const GLOOM: u16 = 44;
+const PORYGON: u16 = 137;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -244,6 +250,11 @@ pub enum MapId {
     BurnedTowerB1F,
     UnionCaveB1F,
     UnionCaveB2F,
+    RadioTower1F,
+    RadioTower2F,
+    RadioTower3F,
+    RadioTower4F,
+    RadioTower5F,
 }
 
 impl MapId {
@@ -318,6 +329,11 @@ impl MapId {
             "BurnedTowerB1F" => Some(MapId::BurnedTowerB1F),
             "UnionCaveB1F" => Some(MapId::UnionCaveB1F),
             "UnionCaveB2F" => Some(MapId::UnionCaveB2F),
+            "RadioTower1F" => Some(MapId::RadioTower1F),
+            "RadioTower2F" => Some(MapId::RadioTower2F),
+            "RadioTower3F" => Some(MapId::RadioTower3F),
+            "RadioTower4F" => Some(MapId::RadioTower4F),
+            "RadioTower5F" => Some(MapId::RadioTower5F),
             _ => None,
         }
     }
@@ -393,6 +409,11 @@ impl MapId {
             MapId::BurnedTowerB1F => "BurnedTowerB1F",
             MapId::UnionCaveB1F => "UnionCaveB1F",
             MapId::UnionCaveB2F => "UnionCaveB2F",
+            MapId::RadioTower1F => "RadioTower1F",
+            MapId::RadioTower2F => "RadioTower2F",
+            MapId::RadioTower3F => "RadioTower3F",
+            MapId::RadioTower4F => "RadioTower4F",
+            MapId::RadioTower5F => "RadioTower5F",
         }
     }
 }
@@ -560,6 +581,11 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::BurnedTowerB1F => build_burned_tower_b1f(),
         MapId::UnionCaveB1F => build_union_cave_b1f(),
         MapId::UnionCaveB2F => build_union_cave_b2f(),
+        MapId::RadioTower1F => build_radio_tower_1f(),
+        MapId::RadioTower2F => build_radio_tower_2f(),
+        MapId::RadioTower3F => build_radio_tower_3f(),
+        MapId::RadioTower4F => build_radio_tower_4f(),
+        MapId::RadioTower5F => build_radio_tower_5f(),
     }
 }
 
@@ -4677,8 +4703,8 @@ fn build_goldenrod_city() -> MapData {
         C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 4: doors
-        C_WALK,C_WALK,C_SOLID,C_SIGN,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 4: doors (Radio Tower left, building right)
+        C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SIGN,C_SOLID,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 5: main road
@@ -4758,6 +4784,8 @@ fn build_goldenrod_city() -> MapData {
         WarpData { x: 10, y: 14, dest_map: MapId::PokemonCenter, dest_x: 4, dest_y: 6 },
         // Dept Store door → GenericHouse (mart)
         WarpData { x: 11, y: 8, dest_map: MapId::GenericHouse, dest_x: 3, dest_y: 5 },
+        // Radio Tower door
+        WarpData { x: 3, y: 4, dest_map: MapId::RadioTower1F, dest_x: 5, dest_y: 7 },
     ];
 
     let npcs = vec![
@@ -9734,6 +9762,519 @@ fn build_burned_tower_b1f() -> MapData {
         water_encounters: vec![],
         music_id: 9,
     }
+}
+
+// ─── Radio Tower 1F (12x10) ──────────────────────────────────
+// Lobby with reception desk, Lucky Number man, quiz host lady.
+// Per pokecrystal: normal NPCs hidden during takeover, Rocket Grunt appears.
+// NPCs 0-2 = normal civilians, NPC 3 = Rocket Grunt (takeover only).
+// Warps: south exit → GoldenrodCity, north stairs → 2F.
+fn build_radio_tower_1f() -> MapData {
+    let w: usize = 12;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north wall + stairs
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        // Row 1: upper corridor
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 2: corridor
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 3: reception area
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,TABLE,TABLE,TABLE,TABLE,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 4: main floor
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 5: main floor
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 6: lobby area
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 7: lobby
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 8: entrance row
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 9: south wall
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RadioTower1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RadioTower1F collision count mismatch");
+
+    let warps = vec![
+        // Exit → back to Goldenrod City (Radio Tower door position)
+        WarpData { x: 5, y: 8, dest_map: MapId::GoldenrodCity, dest_x: 3, dest_y: 5 },
+        // Stairs up to 2F (northeast corner)
+        WarpData { x: 10, y: 0, dest_map: MapId::RadioTower2F, dest_x: 10, dest_y: 8 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Receptionist (normal — hidden during takeover)
+        NpcDef {
+            x: 5, y: 5, sprite_id: 4, facing: Direction::Down,
+            dialogue: &["Welcome to the", "RADIO TOWER!", "Feel free to look", "around!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Lucky Number Man (normal — hidden during takeover)
+        NpcDef {
+            x: 7, y: 6, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["I run the LUCKY", "NUMBER SHOW!", "Come check your", "POKEMON IDs!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 2: Radio Card Quiz Lady (normal — hidden during takeover)
+        NpcDef {
+            x: 3, y: 6, sprite_id: 4, facing: Direction::Right,
+            dialogue: &["Want to take the", "RADIO CARD quiz?", "Answer 5 questions", "correctly to win!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 3: Rocket Grunt (takeover only) — per pokecrystal GRUNTM_3: Raticate Lv24, Raticate Lv24
+        NpcDef {
+            x: 5, y: 4, sprite_id: 6, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "We've taken over", "the RADIO TOWER!", "You won't stop us!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATICATE, level: 24 },
+                TrainerPokemon { species_id: RATICATE, level: 24 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RadioTower1F, name: "RADIO TOWER 1F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
+}
+
+// ─── Radio Tower 2F (12x10) ──────────────────────────────────
+// Sales floor with DJ booth area. Normal: Super Nerd, Teacher.
+// Takeover: GruntM_4 (Grimer x2+Muk), GruntM_5 (Rattata x5), GruntM_6 (Zubat x2), GruntF_2 (Arbok).
+// NPCs 0-1 = normal, NPCs 2-5 = Rocket (takeover only).
+fn build_radio_tower_2f() -> MapData {
+    let w: usize = 12;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: north wall + stairs
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        // Row 1: upper area with bookshelves
+        BUILDING_WALL,FLOOR,TABLE,TABLE,TABLE,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,BUILDING_WALL,
+        // Row 2
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 3: studio equipment
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 4
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 5
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 6
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 7
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 8: south stairs
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        // Row 9: south wall
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RadioTower2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RadioTower2F collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to 1F
+        WarpData { x: 10, y: 8, dest_map: MapId::RadioTower1F, dest_x: 10, dest_y: 1 },
+        // Stairs up to 3F
+        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower3F, dest_x: 1, dest_y: 1 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Super Nerd (normal — hidden during takeover)
+        NpcDef {
+            x: 5, y: 5, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["You can listen to", "the radio anywhere.", "Tune in!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Teacher/Buena (normal — hidden during takeover)
+        NpcDef {
+            x: 8, y: 4, sprite_id: 4, facing: Direction::Down,
+            dialogue: &["BUENA: Tune in to", "my PASSWORD SHOW!", "It's every night", "from six to twelve!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 2: Rocket Grunt M4 (takeover only) — Grimer Lv23, Grimer Lv23, Muk Lv25
+        NpcDef {
+            x: 2, y: 4, sprite_id: 6, facing: Direction::Right,
+            dialogue: &["ROCKET GRUNT:", "Three years ago,", "TEAM ROCKET was", "forced to disband.", "But we're back!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GRIMER, level: 23 },
+                TrainerPokemon { species_id: GRIMER, level: 23 },
+                TrainerPokemon { species_id: MUK, level: 25 },
+            ],
+        },
+        // NPC 3: Rocket Grunt M5 (takeover only) — Rattata x5
+        NpcDef {
+            x: 6, y: 2, sprite_id: 6, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "We're TEAM ROCKET,", "the exploiters of", "POKEMON!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATTATA, level: 21 },
+                TrainerPokemon { species_id: RATTATA, level: 21 },
+                TrainerPokemon { species_id: RATTATA, level: 23 },
+                TrainerPokemon { species_id: RATTATA, level: 23 },
+            ],
+        },
+        // NPC 4: Rocket Grunt M6 (takeover only) — Zubat Lv26, Zubat Lv26
+        NpcDef {
+            x: 9, y: 6, sprite_id: 6, facing: Direction::Left,
+            dialogue: &["ROCKET GRUNT:", "Hey, hey! Keep out", "of our way!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ZUBAT, level: 26 },
+                TrainerPokemon { species_id: ZUBAT, level: 26 },
+            ],
+        },
+        // NPC 5: Rocket GruntF 2 (takeover only) — Arbok Lv26
+        NpcDef {
+            x: 4, y: 7, sprite_id: 6, facing: Direction::Right,
+            dialogue: &["ROCKET GRUNT:", "Hahaha! It was far", "too easy to take", "over this place!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ARBOK, level: 26 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RadioTower2F, name: "RADIO TOWER 2F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
+}
+
+// ─── Radio Tower 3F (12x10) ──────────────────────────────────
+// Personnel floor with recording studio. Normal: Super Nerd, Gym Guide.
+// Takeover: GruntM_7 (Koffing/Grimer/Zubat/Rattata), GruntM_8 (Weezing), GruntM_9 (Raticate+Koffing), Scientist Marc.
+// NPCs 0-1 = normal, NPCs 2-5 = Rocket (takeover only).
+fn build_radio_tower_3f() -> MapData {
+    let w: usize = 12;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WARP,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RadioTower3F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RadioTower3F collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to 2F
+        WarpData { x: 1, y: 1, dest_map: MapId::RadioTower2F, dest_x: 1, dest_y: 7 },
+        // Stairs up to 4F
+        WarpData { x: 10, y: 1, dest_map: MapId::RadioTower4F, dest_x: 10, dest_y: 8 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Super Nerd (normal — hidden during takeover)
+        NpcDef {
+            x: 7, y: 4, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["We have recordings", "of the cries of all", "POKEMON that have", "been found."],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Gym Guide (normal — hidden during takeover)
+        NpcDef {
+            x: 4, y: 6, sprite_id: 3, facing: Direction::Right,
+            dialogue: &["We run 24 hours a", "day to broadcast", "entertaining", "programs!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 2: Rocket Grunt M7 (takeover) — Koffing/Grimer/Zubat/Rattata Lv23
+        NpcDef {
+            x: 5, y: 2, sprite_id: 6, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "I've been given", "strict orders to", "crush anyone who", "challenges us!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: KOFFING, level: 23 },
+                TrainerPokemon { species_id: GRIMER, level: 23 },
+                TrainerPokemon { species_id: ZUBAT, level: 23 },
+                TrainerPokemon { species_id: RATTATA, level: 23 },
+            ],
+        },
+        // NPC 3: Rocket Grunt M8 (takeover) — Weezing Lv26
+        NpcDef {
+            x: 7, y: 5, sprite_id: 6, facing: Direction::Left,
+            dialogue: &["ROCKET GRUNT:", "It feels great", "ordering POKEMON", "to commit crimes."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: WEEZING, level: 26 },
+            ],
+        },
+        // NPC 4: Rocket Grunt M9 (takeover) — Raticate Lv24, Koffing Lv26
+        NpcDef {
+            x: 9, y: 7, sprite_id: 6, facing: Direction::Up,
+            dialogue: &["ROCKET GRUNT:", "Why did the shutter", "open? Did you have", "something to do", "with this?"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RATICATE, level: 24 },
+                TrainerPokemon { species_id: KOFFING, level: 26 },
+            ],
+        },
+        // NPC 5: Scientist Marc (takeover) — Magnemite Lv27 x3
+        NpcDef {
+            x: 3, y: 7, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["SCIENTIST MARC:", "An unknown child", "wandering here?", "Who are you?"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: MAGNEMITE, level: 27 },
+                TrainerPokemon { species_id: MAGNEMITE, level: 27 },
+                TrainerPokemon { species_id: MAGNEMITE, level: 27 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RadioTower3F, name: "RADIO TOWER 3F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
+}
+
+// ─── Radio Tower 4F (12x10) ──────────────────────────────────
+// Production floor with studio. Normal: Fisher, DJ Mary.
+// Takeover: GruntM_10 (Zubat/Golbat/Grimer), Executive M2 (Golbat Lv36), GruntF_4 (Ekans/Oddish/Ekans/Gloom),
+//           Scientist Rich (Porygon Lv30).
+// NPCs 0-1 = normal, NPCs 2-5 = Rocket (takeover only).
+fn build_radio_tower_4f() -> MapData {
+    let w: usize = 12;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RadioTower4F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RadioTower4F collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to 3F (left)
+        WarpData { x: 10, y: 8, dest_map: MapId::RadioTower3F, dest_x: 10, dest_y: 2 },
+        // Stairs up to 5F (right)
+        WarpData { x: 1, y: 8, dest_map: MapId::RadioTower5F, dest_x: 1, dest_y: 1 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Fisher (normal — hidden during takeover)
+        NpcDef {
+            x: 5, y: 4, sprite_id: 3, facing: Direction::Up,
+            dialogue: &["I listened to the", "radio while I was", "at the RUINS.", "I heard a strange", "broadcast there."],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: DJ Mary (normal — hidden during takeover)
+        NpcDef {
+            x: 8, y: 7, sprite_id: 4, facing: Direction::Left,
+            dialogue: &["MARY: Please tune", "into PROF. OAK'S", "POKEMON TALK show!"],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 2: Rocket Grunt M10 (takeover) — Zubat Lv22, Golbat Lv24, Grimer Lv22
+        NpcDef {
+            x: 4, y: 6, sprite_id: 6, facing: Direction::Right,
+            dialogue: &["ROCKET GRUNT:", "You plan to rescue", "the DIRECTOR?", "That won't be", "possible!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ZUBAT, level: 22 },
+                TrainerPokemon { species_id: GOLBAT, level: 24 },
+                TrainerPokemon { species_id: GRIMER, level: 22 },
+            ],
+        },
+        // NPC 3: Executive M2 "the fortress" (takeover) — Golbat Lv36
+        NpcDef {
+            x: 8, y: 2, sprite_id: 0, facing: Direction::Left,
+            dialogue: &["EXECUTIVE:", "Stop! I'm known as", "the TEAM ROCKET", "fortress!", "You're not taking", "another step!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GOLBAT, level: 36 },
+            ],
+        },
+        // NPC 4: Rocket GruntF 4 (takeover) — Ekans Lv21, Oddish Lv23, Ekans Lv21, Gloom Lv24
+        NpcDef {
+            x: 7, y: 5, sprite_id: 6, facing: Direction::Down,
+            dialogue: &["ROCKET GRUNT:", "I'll think my", "POKEMON are cute--", "after they beat", "yours!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: EKANS, level: 21 },
+                TrainerPokemon { species_id: ODDISH, level: 23 },
+                TrainerPokemon { species_id: EKANS, level: 21 },
+                TrainerPokemon { species_id: GLOOM, level: 24 },
+            ],
+        },
+        // NPC 5: Scientist Rich (takeover) — Porygon Lv30
+        NpcDef {
+            x: 3, y: 2, sprite_id: 2, facing: Direction::Down,
+            dialogue: &["SCIENTIST RICH:", "Most excellent.", "This RADIO TOWER", "will fulfill our", "grand design."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: PORYGON, level: 30 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RadioTower4F, name: "RADIO TOWER 4F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
+}
+
+// ─── Radio Tower 5F (12x10) ──────────────────────────────────
+// Director's office. NPC 0 = Director/Fake Director (Petrel), always present.
+// Takeover: NPC 1 = Executive Archer (boss), NPC 2 = Executive Ariana.
+// After clearing: Director gives Clear Bell.
+// Executive M1 (Archer): Houndour Lv33, Koffing Lv33, Houndoom Lv35
+// Executive F1 (Ariana): Arbok Lv32, Vileplume Lv32, Murkrow Lv32
+fn build_radio_tower_5f() -> MapData {
+    let w: usize = 12;
+    let h: usize = 10;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,TABLE,FLOOR,FLOOR,FLOOR,TABLE,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,FLOOR,FLOOR,TABLE,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,FLOOR,BUILDING_WALL,
+        BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,BUILDING_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WARP,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "RadioTower5F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "RadioTower5F collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to 4F
+        WarpData { x: 1, y: 1, dest_map: MapId::RadioTower4F, dest_x: 1, dest_y: 7 },
+    ];
+
+    let npcs = vec![
+        // NPC 0: Director / Fake Director (Petrel) — always present
+        // During takeover, acts as Executive Petrel (disguised). Per pokecrystal EXECUTIVEM_3:
+        // Koffing Lv30 x4 + Weezing Lv32 + Koffing Lv30
+        NpcDef {
+            x: 5, y: 5, sprite_id: 0, facing: Direction::Down,
+            dialogue: &["DIRECTOR:", "Thank you for", "saving us!", "Please take this", "CLEAR BELL."],
+            is_trainer: false, is_mart: false, wanders: false,
+            trainer_team: &[],
+        },
+        // NPC 1: Executive Archer (boss) — takeover only
+        // Per pokecrystal EXECUTIVEM_1: Houndour Lv33, Koffing Lv33, Houndoom Lv35
+        NpcDef {
+            x: 8, y: 3, sprite_id: 0, facing: Direction::Left,
+            dialogue: &["EXECUTIVE ARCHER:", "We intend to take", "over this RADIO", "STATION and announce", "our comeback.", "I won't allow you", "to interfere!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: HOUNDOUR, level: 33 },
+                TrainerPokemon { species_id: KOFFING, level: 33 },
+                TrainerPokemon { species_id: HOUNDOOM, level: 35 },
+            ],
+        },
+        // NPC 2: Executive Ariana — takeover only
+        // Per pokecrystal EXECUTIVEF_1: Arbok Lv32, Vileplume Lv32, Murkrow Lv32
+        NpcDef {
+            x: 9, y: 6, sprite_id: 4, facing: Direction::Left,
+            dialogue: &["EXECUTIVE ARIANA:", "Remember me from", "the HIDEOUT in", "MAHOGANY TOWN?", "I lost then, but", "I won't this time."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: ARBOK, level: 32 },
+                TrainerPokemon { species_id: VILEPLUME, level: 32 },
+                TrainerPokemon { species_id: MURKROW, level: 32 },
+            ],
+        },
+    ];
+
+    MapData { id: MapId::RadioTower5F, name: "RADIO TOWER 5F", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 11 }
 }
 
 #[cfg(test)]

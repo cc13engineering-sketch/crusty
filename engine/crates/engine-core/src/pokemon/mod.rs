@@ -152,6 +152,8 @@ const FLAG_BURNED_TOWER_RIVAL: u64 = 1 << 13; // Fought rival at Burned Tower 1F
 const FLAG_BEASTS_RELEASED: u64 = 1 << 14; // Released legendary beasts from Burned Tower B1F
 const FLAG_ILEX_FARFETCHD: u64 = 1 << 15; // Herded Farfetch'd back to charcoal maker
 #[allow(dead_code)] const FLAG_DRAGONS_DEN_QUIZ: u64 = 1 << 16; // Answered Dragon Master's quiz
+const FLAG_RADIO_TOWER_ROCKETS: u64 = 1 << 17; // Radio Tower Rocket takeover active
+const FLAG_RADIO_TOWER_CLEAR: u64 = 1 << 18; // Cleared Radio Tower (defeated Archer)
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -529,6 +531,32 @@ impl PokemonSim {
             if npc_idx == 1 && self.has_flag(FLAG_ILEX_FARFETCHD) {
                 return false;
             }
+        }
+        // Radio Tower: takeover active = FLAG_ROCKET_MAHOGANY && !FLAG_RADIO_TOWER_CLEAR
+        let takeover_active = self.has_flag(FLAG_ROCKET_MAHOGANY) && !self.has_flag(FLAG_RADIO_TOWER_CLEAR);
+        // RadioTower1F: NPCs 0-2 = normal civilians, NPC 3 = Rocket Grunt (takeover only)
+        if self.current_map_id == MapId::RadioTower1F {
+            if npc_idx <= 2 && takeover_active { return false; }
+            if npc_idx == 3 && !takeover_active { return false; }
+        }
+        // RadioTower2F: NPCs 0-1 = normal civilians, NPCs 2-5 = Rocket Grunts (takeover only)
+        if self.current_map_id == MapId::RadioTower2F {
+            if npc_idx <= 1 && takeover_active { return false; }
+            if npc_idx >= 2 && npc_idx <= 5 && !takeover_active { return false; }
+        }
+        // RadioTower3F: NPCs 0-1 = normal civilians, NPCs 2-5 = Rocket trainers (takeover only)
+        if self.current_map_id == MapId::RadioTower3F {
+            if npc_idx <= 1 && takeover_active { return false; }
+            if npc_idx >= 2 && npc_idx <= 5 && !takeover_active { return false; }
+        }
+        // RadioTower4F: NPCs 0-1 = normal civilians, NPCs 2-5 = Rocket trainers (takeover only)
+        if self.current_map_id == MapId::RadioTower4F {
+            if npc_idx <= 1 && takeover_active { return false; }
+            if npc_idx >= 2 && npc_idx <= 5 && !takeover_active { return false; }
+        }
+        // RadioTower5F: NPC 0 = Director (always), NPC 1 = Archer (takeover), NPC 2 = Ariana (takeover)
+        if self.current_map_id == MapId::RadioTower5F {
+            if npc_idx >= 1 && npc_idx <= 2 && !takeover_active { return false; }
         }
         true
     }
@@ -2215,6 +2243,41 @@ impl PokemonSim {
                 return;
             }
 
+            // Radio Tower 5F: Director (NPC 0) — during takeover, acts as fake Director (Petrel)
+            if self.current_map_id == MapId::RadioTower5F && npc_idx == 0 {
+                let takeover = self.has_flag(FLAG_ROCKET_MAHOGANY) && !self.has_flag(FLAG_RADIO_TOWER_CLEAR);
+                let lines = if takeover {
+                    vec![
+                        "Y-you! You came to".to_string(),
+                        "rescue me?".to_string(),
+                        "Is that what you".to_string(),
+                        "were expecting?".to_string(),
+                        "Wrong! I'm an".to_string(),
+                        "imposter!".to_string(),
+                        "I pretended to be".to_string(),
+                        "the DIRECTOR to".to_string(),
+                        "prepare for our".to_string(),
+                        "takeover.".to_string(),
+                    ]
+                } else {
+                    vec![
+                        "DIRECTOR: Hello!".to_string(),
+                        "I love POKEMON.".to_string(),
+                        "I built this RADIO".to_string(),
+                        "TOWER so I could".to_string(),
+                        "express my love".to_string(),
+                        "of POKEMON.".to_string(),
+                    ]
+                };
+                self.dialogue = Some(DialogueState {
+                    lines,
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
             // D2 fix: Per-city dialogue for GenericHouse NPCs
             let lines: Vec<String> = if self.current_map_id == MapId::GenericHouse && !npc.is_trainer && !npc.is_mart {
                 match self.last_house_map {
@@ -3822,6 +3885,14 @@ impl PokemonSim {
                                     self.set_flag(FLAG_SLOWPOKE_WELL);
                                 }
 
+                                // Radio Tower 5F: beating Executive Archer (NPC 1) clears the takeover
+                                if map_id == MapId::RadioTower5F && npc_idx == 1 {
+                                    self.set_flag(FLAG_RADIO_TOWER_CLEAR);
+                                    self.set_flag(FLAG_RADIO_TOWER_ROCKETS);
+                                    // Give Clear Bell
+                                    self.bag.add_item(ITEM_CLEAR_BELL, 1);
+                                }
+
                                 let mut lines = vec![
                                     "Trainer was defeated!".to_string(),
                                     format!("Got ${} for winning!", reward),
@@ -3836,6 +3907,18 @@ impl PokemonSim {
                                     lines.push("taken off!".to_string());
                                     lines.push("My back's better too.".to_string());
                                     lines.push("Let's get out of here!".to_string());
+                                }
+                                // Radio Tower 5F: Archer defeated → Director appears, gives Clear Bell
+                                if map_id == MapId::RadioTower5F && npc_idx == 1 {
+                                    lines.push("TEAM ROCKET has".to_string());
+                                    lines.push("been disbanded!".to_string());
+                                    lines.push("DIRECTOR: Thank you!".to_string());
+                                    lines.push("Your courageous actions".to_string());
+                                    lines.push("saved POKEMON".to_string());
+                                    lines.push("nationwide!".to_string());
+                                    lines.push("Please take this".to_string());
+                                    lines.push("CLEAR BELL!".to_string());
+                                    lines.push("Got CLEAR BELL!".to_string());
                                 }
                                 self.dialogue = Some(DialogueState {
                                     lines,

@@ -363,10 +363,24 @@ pub const HITMONCHAN: SpeciesId = 107;
 pub const VILEPLUME: SpeciesId = 45;
 pub const MURKROW: SpeciesId = 198;
 pub const HOUNDOOM: SpeciesId = 229;
+pub const HOUNDOUR: SpeciesId = 228;
+pub const ARBOK: SpeciesId = 24;
+pub const EKANS: SpeciesId = 23;
+pub const GRIMER: SpeciesId = 88;
+pub const WEEZING: SpeciesId = 110;
+pub const GLOOM: SpeciesId = 44;
+pub const PORYGON: SpeciesId = 137;
 pub const AERODACTYL: SpeciesId = 142;
 pub const CHARIZARD: SpeciesId = 6;
 pub const TOGEPI: SpeciesId = 175;
 pub const TOGETIC: SpeciesId = 176;
+pub const ITEM_CLEAR_BELL: ItemId = 20;
+pub const MOVE_POISON_GAS: MoveId = 139;
+pub const MOVE_MINIMIZE: MoveId = 107;
+pub const MOVE_EXPLOSION: MoveId = 153;
+pub const MOVE_SWEET_SCENT: MoveId = 230;
+pub const MOVE_CONVERSION: MoveId = 160;
+pub const MOVE_GLARE: MoveId = 137;
 pub const MOVE_PSYCHIC: MoveId = 94;
 pub const MOVE_CRUNCH: MoveId = 242;
 pub const MOVE_PETAL_DANCE: MoveId = 80;
@@ -1692,6 +1706,77 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_WATER_GUN), (1, MOVE_GROWL), (8, MOVE_SING), (15, MOVE_CONFUSE_RAY), (22, MOVE_BODY_SLAM)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 130: Radio Tower species ──────────────────
+    // Houndour (Dark/Fire) — Executive Archer's team
+    SpeciesData {
+        id: HOUNDOUR, name: "Houndour",
+        type1: PokemonType::Dark, type2: Some(PokemonType::Fire),
+        base_hp: 45, base_attack: 60, base_defense: 30,
+        base_sp_attack: 80, base_sp_defense: 50, base_speed: 65,
+        catch_rate: 120, base_exp_yield: 114, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_LEER), (1, MOVE_EMBER), (7, MOVE_ROAR), (13, MOVE_SMOG), (19, MOVE_BITE), (25, MOVE_FAINT_ATTACK)],
+        evolution_level: Some(24), evolution_into: Some(HOUNDOOM),
+    },
+    // Ekans (Poison) — Rocket GruntF teams
+    SpeciesData {
+        id: EKANS, name: "Ekans",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 35, base_attack: 60, base_defense: 44,
+        base_sp_attack: 40, base_sp_defense: 54, base_speed: 55,
+        catch_rate: 255, base_exp_yield: 62, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (9, MOVE_POISON_STING), (15, MOVE_BITE), (22, MOVE_GLARE), (29, MOVE_SCREECH)],
+        evolution_level: Some(22), evolution_into: Some(ARBOK),
+    },
+    // Arbok (Poison) — Executive Ariana's team
+    SpeciesData {
+        id: ARBOK, name: "Arbok",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 60, base_attack: 85, base_defense: 69,
+        base_sp_attack: 65, base_sp_defense: 79, base_speed: 80,
+        catch_rate: 90, base_exp_yield: 147, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_WRAP), (1, MOVE_LEER), (1, MOVE_POISON_STING), (1, MOVE_BITE), (22, MOVE_GLARE), (30, MOVE_SCREECH), (36, MOVE_ACID)],
+        evolution_level: None, evolution_into: None,
+    },
+    // Grimer (Poison) — Rocket Grunt teams
+    SpeciesData {
+        id: GRIMER, name: "Grimer",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 80, base_attack: 80, base_defense: 50,
+        base_sp_attack: 40, base_sp_defense: 50, base_speed: 25,
+        catch_rate: 190, base_exp_yield: 90, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_GAS), (1, MOVE_POUND), (5, MOVE_DISABLE), (10, MOVE_HARDEN), (16, MOVE_SLUDGE), (23, MOVE_MINIMIZE)],
+        evolution_level: Some(38), evolution_into: Some(MUK),
+    },
+    // Weezing (Poison) — Executive Petrel's team
+    SpeciesData {
+        id: WEEZING, name: "Weezing",
+        type1: PokemonType::Poison, type2: None,
+        base_hp: 65, base_attack: 90, base_defense: 120,
+        base_sp_attack: 85, base_sp_defense: 70, base_speed: 60,
+        catch_rate: 60, base_exp_yield: 173, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_POISON_GAS), (1, MOVE_TACKLE), (1, MOVE_SMOG), (1, MOVE_SLUDGE), (33, MOVE_SMOKESCREEN), (44, MOVE_EXPLOSION)],
+        evolution_level: None, evolution_into: None,
+    },
+    // Gloom (Grass/Poison) — GruntF teams
+    SpeciesData {
+        id: GLOOM, name: "Gloom",
+        type1: PokemonType::Grass, type2: Some(PokemonType::Poison),
+        base_hp: 60, base_attack: 65, base_defense: 70,
+        base_sp_attack: 85, base_sp_defense: 75, base_speed: 40,
+        catch_rate: 120, base_exp_yield: 132, growth_rate: GrowthRate::MediumSlow,
+        learnset: &[(1, MOVE_ABSORB), (1, MOVE_SWEET_SCENT), (7, MOVE_POISON_POWDER), (14, MOVE_STUN_SPORE), (16, MOVE_SLEEP_POWDER), (24, MOVE_ACID)],
+        evolution_level: None, evolution_into: Some(VILEPLUME),
+    },
+    // Porygon (Normal) — Scientist Rich
+    SpeciesData {
+        id: PORYGON, name: "Porygon",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 65, base_attack: 60, base_defense: 70,
+        base_sp_attack: 85, base_sp_defense: 75, base_speed: 40,
+        catch_rate: 45, base_exp_yield: 130, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_CONVERSION), (9, MOVE_AGILITY), (12, MOVE_PSYBEAM), (20, MOVE_RECOVER), (24, MOVE_TRI_ATTACK)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1852,6 +1937,13 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_CRUNCH, name: "Crunch", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 80, accuracy: 100, pp: 15, description: "May lower Defense." },
     // ─── Sprint 64: Struggle ───────────────────────────────
     MoveData { id: MOVE_STRUGGLE, name: "Struggle", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 50, accuracy: 255, pp: 1, description: "Used only if all PP are gone. Also hurts the user." },
+    // ─── Sprint 130: Radio Tower moves ────────────────────
+    MoveData { id: MOVE_POISON_GAS, name: "Poison Gas", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 55, pp: 40, description: "May poison the foe." },
+    MoveData { id: MOVE_MINIMIZE, name: "Minimize", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Raises evasion." },
+    MoveData { id: MOVE_EXPLOSION, name: "Explosion", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 250, accuracy: 100, pp: 5, description: "Faints user; huge damage." },
+    MoveData { id: MOVE_SWEET_SCENT, name: "Sweet Scent", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Lowers foe's evasion." },
+    MoveData { id: MOVE_CONVERSION, name: "Conversion", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Changes user type." },
+    MoveData { id: MOVE_GLARE, name: "Glare", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 30, description: "May paralyze the foe." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -2224,6 +2316,8 @@ const ITEM_DB: &[ItemData] = &[
     ItemData { id: ITEM_ICE_HEAL, name: "Ice Heal", description: "Cures freeze.", heal_amount: 0, is_ball: false, price: 250, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
     ItemData { id: ITEM_SUPER_REPEL, name: "Super Repel", description: "Repels wild Pokemon for 200 steps.", heal_amount: 0, is_ball: false, price: 500, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 200 },
     ItemData { id: ITEM_MAX_REPEL, name: "Max Repel", description: "Repels wild Pokemon for 250 steps.", heal_amount: 0, is_ball: false, price: 700, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 250 },
+    // ─── Sprint 130: Key items ────────────────────────────
+    ItemData { id: ITEM_CLEAR_BELL, name: "Clear Bell", description: "A bell that makes a clear sound. Needed for Tin Tower.", heal_amount: 0, is_ball: false, price: 0, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
 ];
 
 pub fn get_item(id: ItemId) -> Option<&'static ItemData> {

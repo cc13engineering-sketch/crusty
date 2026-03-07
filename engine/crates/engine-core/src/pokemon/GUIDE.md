@@ -2701,3 +2701,88 @@ All 5 new maps added to the `is_indoor` check (3 locations in mod.rs) preventing
 - `mod.rs` -- Updated check_warp_gate, is_indoor matches, all IcePath test references; added FLAG_DRAGONS_DEN_QUIZ; fixed ice_sliding test to avoid unwrap()
 
 **Test Results**: All 1361 tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+---
+
+### Sprint 130 — Radio Tower (5 Floors + Team Rocket Takeover Event)
+
+#### Overview
+Built the Radio Tower (5 floors) and the Team Rocket takeover event in Goldenrod City. This is a major story event: after clearing the Mahogany Town Rocket hideout, Team Rocket seizes the Radio Tower. The player must fight through 5 floors of Rocket trainers to reach Executive Archer on the top floor.
+
+#### New Maps (5)
+- **RadioTower1F** (12x10) — Lobby with reception desk, stairs up to 2F, exit warp to GoldenrodCity
+- **RadioTower2F** (12x10) — Sales/DJ floor with studio equipment, stairs between 1F and 3F
+- **RadioTower3F** (12x10) — Personnel floor with desks and cubicles, stairs between 2F and 4F
+- **RadioTower4F** (12x10) — Production floor with broadcast equipment, stairs between 3F and 5F
+- **RadioTower5F** (12x10) — Director's office, stairs down to 4F
+
+#### Story Flags
+- `FLAG_RADIO_TOWER_ROCKETS` (bit 17) — Radio Tower Rocket takeover active
+- `FLAG_RADIO_TOWER_CLEAR` (bit 18) — Cleared Radio Tower (defeated Executive Archer)
+
+#### Event Flow
+1. After setting `FLAG_ROCKET_MAHOGANY` (Mahogany hideout cleared), the takeover activates
+2. Normal NPCs on each floor are hidden; Rocket trainers appear instead
+3. Player battles through Rocket Grunts, Scientists, and Executives across all 5 floors
+4. Defeating Executive Archer on 5F sets `FLAG_RADIO_TOWER_CLEAR`, disbands Team Rocket
+5. Player receives the Clear Bell item from the grateful Director
+6. After clearing, normal NPCs return to all floors
+
+#### NPC Visibility (is_npc_active)
+- Takeover condition: `has_flag(FLAG_ROCKET_MAHOGANY) && !has_flag(FLAG_RADIO_TOWER_CLEAR)`
+- 1F: NPCs 0-2 normal (hidden during takeover), NPC 3 Rocket Grunt
+- 2F: NPCs 0-1 normal, NPCs 2-5 Rocket (4 trainers)
+- 3F: NPCs 0-1 normal, NPCs 2-5 Rocket (3 Grunts + Scientist Marc)
+- 4F: NPCs 0-1 normal, NPCs 2-5 Rocket (Grunt, Executive, Grunt, Scientist Rich)
+- 5F: NPC 0 Director (always visible, dialogue changes), NPCs 1-2 Rocket Executives (Archer + Ariana)
+
+#### Trainer Teams (from pokecrystal-master/data/trainers/parties.asm)
+| Floor | Trainer | Team |
+|-------|---------|------|
+| 1F | GruntM_3 | Raticate Lv24 x2 |
+| 2F | GruntM_4 | Grimer Lv26 x2 + Muk Lv23 |
+| 2F | GruntM_5 | Rattata Lv24 x4 |
+| 2F | GruntM_6 | Zubat Lv26 x2 |
+| 2F | GruntF_2 | Arbok Lv26 |
+| 3F | GruntM_7 | Koffing Lv25 + Grimer Lv25 + Zubat Lv23 + Rattata Lv23 |
+| 3F | GruntM_8 | Weezing Lv26 |
+| 3F | GruntM_9 | Raticate Lv24 + Koffing Lv26 |
+| 3F | Scientist Marc | Magnemite Lv27 x3 |
+| 4F | GruntM_10 | Zubat Lv22 + Golbat Lv24 + Grimer Lv22 |
+| 4F | Executive M2 | Golbat Lv36 |
+| 4F | GruntF_4 | Ekans Lv21 + Oddish Lv23 + Ekans Lv21 + Gloom Lv24 |
+| 4F | Scientist Rich | Porygon Lv30 |
+| 5F | Executive Archer | Houndour Lv33 + Koffing Lv33 + Houndoom Lv35 |
+| 5F | Executive Ariana | Arbok Lv32 + Vileplume Lv32 + Murkrow Lv32 |
+
+#### New Species Data (7)
+Houndour, Ekans, Arbok, Grimer, Weezing, Gloom, Porygon — all with proper types, base stats, and learnsets.
+
+#### New Moves (6)
+Poison Gas, Minimize, Explosion, Sweet Scent, Conversion, Glare — for trainer team movesets.
+
+#### New Items (1)
+Clear Bell (ITEM_CLEAR_BELL = 20) — quest reward from Director after clearing the Radio Tower.
+
+#### Warp Chain
+- GoldenrodCity (3,4) -> RadioTower1F (5,7)
+- RadioTower1F (5,8) -> GoldenrodCity (3,5)
+- RadioTower1F (10,0) -> RadioTower2F (10,8)
+- RadioTower2F (10,8) -> RadioTower1F (10,1)
+- RadioTower2F (10,0) -> RadioTower3F (10,8)
+- RadioTower3F (10,8) -> RadioTower2F (10,1)
+- RadioTower3F (10,0) -> RadioTower4F (10,8)
+- RadioTower4F (10,8) -> RadioTower3F (10,1)
+- RadioTower4F (10,0) -> RadioTower5F (10,8)
+- RadioTower5F (10,8) -> RadioTower4F (10,1)
+
+All warps land on C_WALK tiles (validated by test_all_warps_valid).
+
+#### Test Results
+- **1361 tests passing** (including warp validation for all 5 new maps)
+- **0 compiler warnings**
+
+#### Files Changed
+- `data.rs` — Added 7 species (Houndour, Ekans, Arbok, Grimer, Weezing, Gloom, Porygon), 6 moves (Poison Gas, Minimize, Explosion, Sweet Scent, Conversion, Glare), 1 item (Clear Bell)
+- `maps.rs` — Added RadioTower1F through RadioTower5F (5 map builder functions), 5 new MapId variants, from_str/to_str/load_map dispatch, GoldenrodCity warp to Radio Tower, 5 local species constants
+- `mod.rs` — Added FLAG_RADIO_TOWER_ROCKETS/FLAG_RADIO_TOWER_CLEAR, is_npc_active rules for all 5 floors, trainer victory handling for Archer (sets clear flag + gives Clear Bell), Director dialogue override

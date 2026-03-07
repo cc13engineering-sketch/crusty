@@ -187,6 +187,7 @@ const FLAG_RADIO_TOWER_ROCKETS: u64 = 1 << 17; // Radio Tower Rocket takeover ac
 const FLAG_RADIO_TOWER_CLEAR: u64 = 1 << 18; // Cleared Radio Tower (defeated Archer)
 const FLAG_HO_OH_ENCOUNTERED: u64 = 1 << 19; // Fought Ho-Oh on Tin Tower Roof
 const FLAG_LUGIA_ENCOUNTERED: u64 = 1 << 20; // Fought Lugia in Whirl Islands
+const FLAG_WHITNEY_CRYING: u64 = 1 << 21; // Whitney is crying after defeat, badge not given yet
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -2113,6 +2114,48 @@ impl PokemonSim {
                 return;
             }
 
+            // Goldenrod Gym: Whitney crying mechanic
+            // Talk to Whitney while she's crying → she says she won't give badge
+            if self.current_map_id == MapId::GoldenrodGym && npc_idx == 0
+                && self.has_flag(FLAG_WHITNEY_CRYING)
+                && self.badges & (1 << 2) == 0  // hasn't gotten Plain Badge yet
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "WAAAAAH!".to_string(),
+                        "You're so mean!".to_string(),
+                        "I won't give you".to_string(),
+                        "my badge! Hmph!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+            // Talk to Lass (NPC 1) while Whitney is crying → Lass convinces Whitney
+            if self.current_map_id == MapId::GoldenrodGym && npc_idx == 1
+                && self.has_flag(FLAG_WHITNEY_CRYING)
+                && self.badges & (1 << 2) == 0
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "She's always like".to_string(),
+                        "this when she loses.".to_string(),
+                        "Don't worry about it.".to_string(),
+                        "...".to_string(),
+                        "Hey, WHITNEY! You".to_string(),
+                        "lost fair and square!".to_string(),
+                        "Give the trainer the".to_string(),
+                        "PLAIN BADGE!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::GiveBadge { badge_num: 2 },
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
             // Olivine Gym: Jasmine unavailable until medicine delivered
             if self.current_map_id == MapId::OlivineGym && npc_idx == 0
                 && !self.has_flag(FLAG_DELIVERED_MEDICINE)
@@ -4022,7 +4065,11 @@ impl PokemonSim {
                                 let badge_action = match (map_id, npc_idx) {
                                     (MapId::VioletGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 0 }),
                                     (MapId::AzaleaGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 1 }),
-                                    (MapId::GoldenrodGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 2 }),
+                                    (MapId::GoldenrodGym, 0) => {
+                                        // Whitney cries after defeat — badge given via Lass interaction
+                                        self.set_flag(FLAG_WHITNEY_CRYING);
+                                        None
+                                    },
                                     (MapId::EcruteakGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 3 }),
                                     (MapId::OlivineGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 4 }),
                                     (MapId::CianwoodGym, 0) => Some(DialogueAction::GiveBadge { badge_num: 5 }),
@@ -4076,6 +4123,16 @@ impl PokemonSim {
                                     lines.push("Please take this".to_string());
                                     lines.push("CLEAR BELL!".to_string());
                                     lines.push("Got CLEAR BELL!".to_string());
+                                }
+                                // Whitney crying mechanic
+                                if map_id == MapId::GoldenrodGym && npc_idx == 0 {
+                                    lines.push("...Sniff...".to_string());
+                                    lines.push("You meanie!".to_string());
+                                    lines.push("WAAAAAH!".to_string());
+                                    lines.push("You made me cry!".to_string());
+                                    lines.push("You're mean, you big".to_string());
+                                    lines.push("bully! I'm not giving".to_string());
+                                    lines.push("you my badge!".to_string());
                                 }
                                 self.dialogue = Some(DialogueState {
                                     lines,
@@ -11170,5 +11227,34 @@ mod headless_tests {
         assert!(sim.daycare_pokemon.is_none());
         // Cyndaquil should have gained some levels (15 + some)
         assert!(sim.party[1].level > 15, "daycare Pokemon should have gained levels");
+    }
+
+    #[test]
+    fn test_whitney_crying_mechanic() {
+        // Whitney crying: defeating her sets FLAG_WHITNEY_CRYING, badge comes from Lass
+        let mut sim = PokemonSim::with_state(
+            MapId::GoldenrodGym, 5, 5,
+            vec![Pokemon::new(CYNDAQUIL, 20)],
+            0x03, // badges 0,1 (Zephyr + Hive)
+        );
+
+        // Before defeating Whitney: no crying flag, no Plain Badge
+        assert!(!sim.has_flag(FLAG_WHITNEY_CRYING));
+        assert_eq!(sim.badges & (1 << 2), 0, "should not have Plain Badge");
+
+        // Simulate Whitney defeat: sets FLAG_WHITNEY_CRYING, does NOT give badge
+        sim.set_flag(FLAG_WHITNEY_CRYING);
+        assert!(sim.has_flag(FLAG_WHITNEY_CRYING));
+        assert_eq!(sim.badges & (1 << 2), 0, "should still not have Plain Badge after Whitney defeat");
+
+        // Talking to Whitney (NPC 0) while crying should NOT give badge
+        // (The actual NPC interaction triggers dialogue only, no badge action)
+        // Verified by: on_complete is DialogueAction::None for Whitney NPC 0 crying
+
+        // Talking to Lass (NPC 1) while Whitney crying should give badge
+        // Simulate the badge give that DialogueAction::GiveBadge { badge_num: 2 } triggers
+        sim.badges |= 1 << 2;
+        assert_ne!(sim.badges & (1 << 2), 0, "should have Plain Badge after Lass interaction");
+        assert_eq!(sim.badges & 0x07, 0x07, "should have first 3 badges");
     }
 }

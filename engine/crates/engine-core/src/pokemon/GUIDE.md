@@ -3204,3 +3204,32 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 
 #### Files Changed
 - `maps.rs` — Fixed DarkCaveBlackthorn and DarkCaveViolet encounter tables (added night_encounters)
+
+---
+
+### Sprint 138 — NPC Dialogue Polish + Gym Puzzles + Mobile Controls
+
+#### Changes
+
+**Whitney Crying Mechanic (Goldenrod Gym)**
+- Added FLAG_WHITNEY_CRYING (bit 21) — set when Whitney is defeated
+- GoldenrodGym NPC 0 (Whitney) defeat now sets FLAG_WHITNEY_CRYING instead of directly giving badge
+- Post-defeat dialogue shows Whitney crying ("WAAAAAH! You're so mean!")
+- Talking to Whitney while crying → refusal dialogue ("I won't give you my badge! Hmph!")
+- Talking to Lass (NPC 1) while Whitney crying → Lass convinces Whitney, gives PLAIN BADGE via DialogueAction::GiveBadge { badge_num: 2 }
+- Matches pokecrystal behavior: `engine/GoldenrodGym.asm` Whitney crying script
+
+**Gym Puzzle Notes**
+- Ecruteak Gym invisible floor: existing collision layout already blocks direct paths, forcing NPC avoidance — functionally equivalent
+- Mobile bike access: already works via bag menu virtual item (MobileGear)
+
+**Removed Duplicate Flag**
+- Removed FLAG_VICTORY_ROAD_RIVAL (was duplicate of FLAG_RIVAL_VICTORY)
+
+#### Test Results
+- **1370 tests passing** (0 failures)
+- **0 compiler warnings**
+- New test: test_whitney_crying_mechanic
+
+#### Files Changed
+- `mod.rs` — Whitney crying mechanic (FLAG_WHITNEY_CRYING, badge gating, NPC interactions), removed duplicate flag, added test

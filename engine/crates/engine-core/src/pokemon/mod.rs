@@ -1602,7 +1602,8 @@ impl PokemonSim {
                 MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                 MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                 MapId::MahoganyGym | MapId::BlackthornGym |
-                MapId::VictoryRoad | MapId::RocketHQ |
+                MapId::VictoryRoad | MapId::VictoryRoadB1F | MapId::RocketHQ |
+                MapId::DarkCaveViolet | MapId::DarkCaveBlackthorn | MapId::RuinsOfAlphInner |
                 MapId::EliteFourWill | MapId::EliteFourKoga |
                 MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
             );
@@ -6164,7 +6165,8 @@ impl PokemonSim {
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                     MapId::MahoganyGym | MapId::BlackthornGym |
-                    MapId::VictoryRoad | MapId::RocketHQ |
+                    MapId::VictoryRoad | MapId::VictoryRoadB1F | MapId::RocketHQ |
+                    MapId::DarkCaveViolet | MapId::DarkCaveBlackthorn | MapId::RuinsOfAlphInner |
                     MapId::EliteFourWill | MapId::EliteFourKoga |
                     MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
                 );
@@ -6198,7 +6200,8 @@ impl PokemonSim {
                     MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
                     MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
                     MapId::MahoganyGym | MapId::BlackthornGym |
-                    MapId::VictoryRoad | MapId::RocketHQ |
+                    MapId::VictoryRoad | MapId::VictoryRoadB1F | MapId::RocketHQ |
+                    MapId::DarkCaveViolet | MapId::DarkCaveBlackthorn | MapId::RuinsOfAlphInner |
                     MapId::EliteFourWill | MapId::EliteFourKoga |
                     MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
                 );
@@ -8897,7 +8900,9 @@ mod headless_tests {
                     | MapId::MahoganyGym | MapId::BlackthornGym
                     | MapId::OlivineLighthouse | MapId::BurnedTower
                     | MapId::UnionCave | MapId::IlexForest | MapId::IcePath1F | MapId::IcePathB1F | MapId::IcePathB2F | MapId::IcePathB3F | MapId::DragonsDenB1F
-                    | MapId::VictoryRoad | MapId::IndigoPlateau
+                    | MapId::VictoryRoad | MapId::VictoryRoadB1F | MapId::IndigoPlateau
+                    | MapId::DarkCaveViolet | MapId::DarkCaveBlackthorn
+                    | MapId::RuinsOfAlphOutside | MapId::RuinsOfAlphInner
                     | MapId::EliteFourWill | MapId::EliteFourKoga
                     | MapId::EliteFourBruno | MapId::EliteFourKaren
                     | MapId::ChampionLance

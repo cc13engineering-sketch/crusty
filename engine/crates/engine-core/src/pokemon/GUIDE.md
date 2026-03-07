@@ -2983,3 +2983,39 @@ All warps land on C_WALK tiles (validated by test_all_warps_valid).
 #### Files Changed
 - `mod.rs` — Whiteout routing fix (NewBarkTown default), NPC approach position tracking (approach_npc_idx), rival walk-up animations, wrap_text helper + text wrapping in all battle/dialogue rendering, per-frame game_phase export, TrainerSwitchPrompt layout redesign
 - `maps.rs` — Route 29/30/31 encounter table corrections per pokecrystal, updated Route 30 encounter test
+
+---
+
+### Sprint 135 — Victory Road B1F + Dark Cave + Ruins of Alph
+
+#### Summary
+Added 5 new maps and 8 new species/moves to complete Victory Road's basement, both Dark Cave sections (Violet/Blackthorn entrances), and the Ruins of Alph (outside area + inner Unown chamber).
+
+#### New Maps (5)
+1. **VictoryRoadB1F** (16x14) — Basement level connected to VictoryRoad 1F. Contains Rival Silver battle (Sneasel 34/Golbat 36/Magneton 35/Haunter 35/Kadabra 35/Feraligatr 38) plus 4 CoolTrainers. Wild: Graveler, Rhyhorn, Onix, Golbat, Sandslash, Rhydon (Lv32-36).
+2. **DarkCaveViolet** (16x16) — Violet City entrance connected to Route 31 (south), Route 46 (east), and DarkCaveBlackthorn (north). Wild: Geodude, Zubat, Teddiursa, Dunsparce (Lv2-4). NPC hints about Flash.
+3. **DarkCaveBlackthorn** (14x26) — Blackthorn entrance connected to Route 45 (north) and DarkCaveViolet (south). Higher-level encounters: Geodude, Zubat, Graveler, Ursaring, Golbat, Wobbuffet (Lv22-26). NPC gives Blackglasses.
+4. **RuinsOfAlphOutside** (14x16) — Outdoor area connected to Route 32. Has 5 chamber entrances leading to inner chamber. Day encounters: Natu, Smeargle (Lv18-24). Night: Natu, Wooper, Quagsire (Lv20-24). 3 NPCs (Scientist, Youngster, Fisher).
+5. **RuinsOfAlphInner** (12x16) — Inner Unown chamber with 5 warp exits back to outside. 100% Unown encounters at Lv5. 3 tourist NPCs.
+
+#### New Species (8)
+- Rhyhorn, Rhydon, Kadabra, Unown, Wobbuffet, Dunsparce, Natu, Smeargle — all with base stats, types, growth rates, and learnsets per pokecrystal.
+
+#### Integration
+- Added VictoryRoadB1F, DarkCaveViolet, DarkCaveBlackthorn, RuinsOfAlphInner to all 3 `is_indoor` match blocks (bicycle toggle, Fly check, bike-from-bag check)
+- Added new maps to warp bidirectional test skip list
+- Route 31 warp to DarkCaveViolet, Route 46 warp to DarkCaveViolet, Route 45 warp to DarkCaveBlackthorn, Route 32 warp to RuinsOfAlphOutside all bidirectional
+
+#### Data Sources
+- `pokecrystal-master/data/wild/johto_grass.asm` — Dark Cave, Ruins of Alph encounter tables
+- `pokecrystal-master/data/maps/map_data.asm` — map dimensions and connections
+- `pokecrystal-master/data/pokemon/base_stats/` — new species base stats
+
+#### Test Results
+- **1365 tests passing** (0 failures)
+- **0 compiler warnings**
+
+#### Files Changed
+- `data.rs` — Added 8 new species (Rhyhorn, Rhydon, Kadabra, Unown, Wobbuffet, Dunsparce, Natu, Smeargle)
+- `maps.rs` — Added 5 new maps with tiles, collision, warps, NPCs, encounters; added to all test arrays
+- `mod.rs` — Added new cave/indoor maps to 3 is_indoor match blocks and warp test skip list

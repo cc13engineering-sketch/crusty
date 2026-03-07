@@ -137,6 +137,17 @@ const GLOOM: u16 = 44;
 const PORYGON: u16 = 137;
 // Sprint 133: Whirl Islands species
 const CORSOLA: u16 = 222;
+// Sprint 135: Victory Road B1F + Dark Cave + Ruins of Alph
+const RHYHORN: u16 = 111;
+const RHYDON: u16 = 112;
+const KADABRA: u16 = 64;
+const MAGNETON: u16 = 82;
+const FERALIGATR: u16 = 160;
+const UNOWN: u16 = 201;
+const WOBBUFFET: u16 = 202;
+const DUNSPARCE: u16 = 206;
+const NATU: u16 = 177;
+const SMEARGLE: u16 = 235;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -272,6 +283,11 @@ pub enum MapId {
     WhirlIslandsB1F,
     WhirlIslandsB2F,
     WhirlIslandsLugiaChamber,
+    VictoryRoadB1F,
+    DarkCaveViolet,
+    DarkCaveBlackthorn,
+    RuinsOfAlphOutside,
+    RuinsOfAlphInner,
 }
 
 impl MapId {
@@ -365,6 +381,11 @@ impl MapId {
             "WhirlIslandsB1F" => Some(MapId::WhirlIslandsB1F),
             "WhirlIslandsB2F" => Some(MapId::WhirlIslandsB2F),
             "WhirlIslandsLugiaChamber" => Some(MapId::WhirlIslandsLugiaChamber),
+            "VictoryRoadB1F" => Some(MapId::VictoryRoadB1F),
+            "DarkCaveViolet" => Some(MapId::DarkCaveViolet),
+            "DarkCaveBlackthorn" => Some(MapId::DarkCaveBlackthorn),
+            "RuinsOfAlphOutside" => Some(MapId::RuinsOfAlphOutside),
+            "RuinsOfAlphInner" => Some(MapId::RuinsOfAlphInner),
             _ => None,
         }
     }
@@ -459,6 +480,11 @@ impl MapId {
             MapId::WhirlIslandsB1F => "WhirlIslandsB1F",
             MapId::WhirlIslandsB2F => "WhirlIslandsB2F",
             MapId::WhirlIslandsLugiaChamber => "WhirlIslandsLugiaChamber",
+            MapId::VictoryRoadB1F => "VictoryRoadB1F",
+            MapId::DarkCaveViolet => "DarkCaveViolet",
+            MapId::DarkCaveBlackthorn => "DarkCaveBlackthorn",
+            MapId::RuinsOfAlphOutside => "RuinsOfAlphOutside",
+            MapId::RuinsOfAlphInner => "RuinsOfAlphInner",
         }
     }
 }
@@ -645,6 +671,11 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::WhirlIslandsB1F => build_whirl_islands_b1f(),
         MapId::WhirlIslandsB2F => build_whirl_islands_b2f(),
         MapId::WhirlIslandsLugiaChamber => build_whirl_islands_lugia_chamber(),
+        MapId::VictoryRoadB1F => build_victory_road_b1f(),
+        MapId::DarkCaveViolet => build_dark_cave_violet(),
+        MapId::DarkCaveBlackthorn => build_dark_cave_blackthorn(),
+        MapId::RuinsOfAlphOutside => build_ruins_of_alph_outside(),
+        MapId::RuinsOfAlphInner => build_ruins_of_alph_inner(),
     }
 }
 
@@ -1546,10 +1577,10 @@ fn build_route_31() -> MapData {
         GRASS,GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,TALL_GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        // Row 11: grass
+        // Row 11: grass; Dark Cave entrance at (26,11)
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
         GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
-        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,CAVE_WALL,GRASS,GRASS,GRASS,
         // Row 12: tree tops along bottom
         TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
         TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
@@ -1606,10 +1637,10 @@ fn build_route_31() -> MapData {
         C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 11: grass
+        // Row 11: grass; cave entrance to Dark Cave at (26,11)
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,
         // Row 12: solid trees
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
@@ -1630,6 +1661,8 @@ fn build_route_31() -> MapData {
         // Right edge -> Violet City (west entry)
         WarpData { x: 29, y: 7, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 10 },
         WarpData { x: 29, y: 8, dest_map: MapId::VioletCity, dest_x: 1, dest_y: 11 },
+        // Dark Cave entrance (per pokecrystal: Route 31 → Dark Cave Violet)
+        WarpData { x: 26, y: 11, dest_map: MapId::DarkCaveViolet, dest_x: 3, dest_y: 14 },
     ];
 
     let npcs = vec![
@@ -3012,8 +3045,8 @@ fn build_route_32() -> MapData {
         // Row 14: grass, path
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
-        // Row 15: grass, path, tall grass right
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 15: grass, Ruins of Alph entrance at (1,15), tall grass right
+        C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
         C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,
         // Row 16: grass, path, tall grass right
         C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
@@ -3069,6 +3102,8 @@ fn build_route_32() -> MapData {
         // South exit to Union Cave (x=9,10 at row 29)
         WarpData { x: 9, y: 29, dest_map: MapId::UnionCave, dest_x: 7, dest_y: 2 },
         WarpData { x: 10, y: 29, dest_map: MapId::UnionCave, dest_x: 8, dest_y: 2 },
+        // Ruins of Alph entrance (west side, per pokecrystal)
+        WarpData { x: 1, y: 15, dest_map: MapId::RuinsOfAlphOutside, dest_x: 12, dest_y: 2 },
     ];
 
     let npcs = vec![
@@ -8274,8 +8309,8 @@ fn build_route_46() -> MapData {
         TREE_TOP,TREE_TOP,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,TREE_TOP,TREE_TOP,
         // Row 7
         TREE_BOTTOM,TREE_BOTTOM,GRASS,GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,TREE_BOTTOM,TREE_BOTTOM,
-        // Row 8
-        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: Dark Cave entrance at (9,8)
+        GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,CAVE_WALL,GRASS,GRASS,
         // Row 9
         GRASS,GRASS,GRASS,TALL_GRASS,PATH,PATH,GRASS,GRASS,TALL_GRASS,GRASS,GRASS,GRASS,
         // Row 10
@@ -8308,8 +8343,8 @@ fn build_route_46() -> MapData {
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 7
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
-        // Row 8
-        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: Dark Cave entrance at (9,8)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,
         // Row 9
         C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_WALK,C_WALK,C_WALK,
         // Row 10
@@ -8336,6 +8371,8 @@ fn build_route_46() -> MapData {
         WarpData { x: 5, y: 14, dest_map: MapId::Route29, dest_x: 27, dest_y: 5 },
         WarpData { x: 6, y: 14, dest_map: MapId::Route29, dest_x: 26, dest_y: 4 },
         WarpData { x: 7, y: 14, dest_map: MapId::Route29, dest_x: 27, dest_y: 4 },
+        // Dark Cave entrance (per pokecrystal: Route 46 → Dark Cave Violet via south side)
+        WarpData { x: 9, y: 8, dest_map: MapId::DarkCaveViolet, dest_x: 14, dest_y: 2 },
     ];
     let npcs = vec![
         // Trainer 1: Hiker
@@ -8736,8 +8773,8 @@ fn build_victory_road() -> MapData {
         C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
         // Row 9
         C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
-        // Row 10
-        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10: stairs at (11,10) → B1F
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_SOLID,
         // Row 11
         C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
         // Row 12: south exit warps
@@ -8756,10 +8793,12 @@ fn build_victory_road() -> MapData {
         // South exit → Route 26
         WarpData { x: 7, y: 12, dest_map: MapId::Route26, dest_x: 5, dest_y: 2 },
         WarpData { x: 8, y: 12, dest_map: MapId::Route26, dest_x: 6, dest_y: 2 },
+        // Stairs down to B1F (bottom-right area)
+        WarpData { x: 11, y: 10, dest_map: MapId::VictoryRoadB1F, dest_x: 2, dest_y: 2 },
     ];
 
     let npcs = vec![
-        // Cooltrainer — top left area
+        // Cooltrainer — top left area (per pokecrystal: diverse high-level teams)
         NpcDef {
             x: 2, y: 3, sprite_id: 2, facing: Direction::Right,
             dialogue: &["Only the strongest", "trainers make it", "through here!"],
@@ -8793,16 +8832,17 @@ fn build_victory_road() -> MapData {
         },
     ];
 
+    // Per pokecrystal kanto_grass.asm: Graveler, Rhyhorn, Onix, Golbat, Sandslash, Rhydon
     let encounters = vec![
-        EncounterEntry { species_id: GOLBAT, min_level: 32, max_level: 34, weight: 25 },
-        EncounterEntry { species_id: GRAVELER, min_level: 32, max_level: 34, weight: 20 },
+        EncounterEntry { species_id: GRAVELER, min_level: 32, max_level: 34, weight: 25 },
+        EncounterEntry { species_id: RHYHORN, min_level: 32, max_level: 34, weight: 20 },
         EncounterEntry { species_id: ONIX, min_level: 32, max_level: 34, weight: 15 },
-        EncounterEntry { species_id: MACHOKE, min_level: 32, max_level: 34, weight: 15 },
-        EncounterEntry { species_id: URSARING, min_level: 34, max_level: 36, weight: 10 },
-        EncounterEntry { species_id: GEODUDE, min_level: 30, max_level: 32, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 32, max_level: 34, weight: 20 },
+        EncounterEntry { species_id: SANDSLASH, min_level: 34, max_level: 36, weight: 10 },
+        EncounterEntry { species_id: RHYDON, min_level: 34, max_level: 36, weight: 10 },
     ];
 
-    MapData { id: MapId::VictoryRoad, name: "VICTORY ROAD", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
+    MapData { id: MapId::VictoryRoad, name: "VICTORY ROAD 1F", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
 // ─── Indigo Plateau (14x10) ──────────────────────────────
@@ -11247,6 +11287,632 @@ fn build_whirl_islands_lugia_chamber() -> MapData {
     ], music_id: 9 }
 }
 
+// ─── Victory Road B1F (16x14) ─────────────────────────────
+// Lower floor with Rival Silver battle, additional trainers, items.
+// Per pokecrystal: Rival with Sneasel/Golbat/Magneton/Haunter/Kadabra + starter evo
+fn build_victory_road_b1f() -> MapData {
+    let width: usize = 16;
+    let height: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 2: stairs up from 1F
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6: rival encounter area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10: items area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 12
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 2: stairs warp at (2,2)
+        C_SOLID,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "VictoryRoadB1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "VictoryRoadB1F collision count mismatch");
+
+    let warps = vec![
+        // Stairs up to 1F
+        WarpData { x: 2, y: 2, dest_map: MapId::VictoryRoad, dest_x: 11, dest_y: 10 },
+    ];
+
+    let npcs = vec![
+        // Rival Silver — FLAG_VICTORY_ROAD_RIVAL gates this encounter
+        // Per pokecrystal RIVAL1(13): Sneasel 34, Golbat 36, Magneton 35, Haunter 35, Kadabra 35, Meganium 38
+        NpcDef {
+            x: 8, y: 6, sprite_id: 5, facing: Direction::Up,
+            dialogue: &["Hold it.", "...Are you going to", "take the POKEMON", "LEAGUE challenge?", "I challenge you!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SNEASEL, level: 34 },
+                TrainerPokemon { species_id: GOLBAT, level: 36 },
+                TrainerPokemon { species_id: MAGNETON, level: 35 },
+                TrainerPokemon { species_id: HAUNTER, level: 35 },
+                TrainerPokemon { species_id: KADABRA, level: 35 },
+                TrainerPokemon { species_id: FERALIGATR, level: 38 },
+            ],
+        },
+        // CooltrainerM — left side
+        NpcDef {
+            x: 2, y: 5, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["The road to the", "POKEMON LEAGUE is", "long and hard!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: SANDSLASH, level: 35 },
+                TrainerPokemon { species_id: RHYDON, level: 37 },
+            ],
+        },
+        // CooltrainerF — right side
+        NpcDef {
+            x: 13, y: 5, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["I've trained all my", "life for this! You", "won't beat me!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: GOLBAT, level: 35 },
+                TrainerPokemon { species_id: ONIX, level: 36 },
+                TrainerPokemon { species_id: GRAVELER, level: 35 },
+            ],
+        },
+        // CooltrainerM — bottom area
+        NpcDef {
+            x: 5, y: 10, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["I won't lose to", "someone who made it", "this far by luck!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: RHYHORN, level: 34 },
+                TrainerPokemon { species_id: URSARING, level: 36 },
+            ],
+        },
+        // CooltrainerF — bottom right
+        NpcDef {
+            x: 12, y: 9, sprite_id: 3, facing: Direction::Down,
+            dialogue: &["The ELITE FOUR will", "be even tougher!", "Are you ready?"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: STEELIX, level: 37 },
+                TrainerPokemon { species_id: MACHOKE, level: 36 },
+            ],
+        },
+    ];
+
+    // Same encounters as 1F per pokecrystal
+    let encounters = vec![
+        EncounterEntry { species_id: GRAVELER, min_level: 32, max_level: 34, weight: 25 },
+        EncounterEntry { species_id: RHYHORN, min_level: 32, max_level: 34, weight: 20 },
+        EncounterEntry { species_id: ONIX, min_level: 32, max_level: 34, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 32, max_level: 34, weight: 20 },
+        EncounterEntry { species_id: SANDSLASH, min_level: 34, max_level: 36, weight: 10 },
+        EncounterEntry { species_id: RHYDON, min_level: 34, max_level: 36, weight: 10 },
+    ];
+
+    MapData { id: MapId::VictoryRoadB1F, name: "VICTORY ROAD B1F", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
+}
+
+// ─── Dark Cave Violet Entrance (16x16) ─────────────────────
+// Per pokecrystal: connects Route 31 (south) and Dark Cave Blackthorn (north)
+// Also connects to Route 46 (east). Items: Potion, Full Heal, Hyper Potion, Dire Hit
+fn build_dark_cave_violet() -> MapData {
+    let width: usize = 16;
+    let height: usize = 16;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1: north exit to Blackthorn section
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2: corridor to Route 46 entrance
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 12
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 14: south exit to Route 31
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        // Row 0
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 1: north exit to Blackthorn at (7,1)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: east connection at (14,2)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_SOLID,
+        // Row 3
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 4
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 5
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 6
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 8
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 9
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 11
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        // Row 12
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 13
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 14: south exit at (3,14)
+        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 15
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "DarkCaveViolet tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "DarkCaveViolet collision count mismatch");
+
+    let warps = vec![
+        // South exit → Route 31 (per pokecrystal: warp_event 3, 15, ROUTE_31, 3)
+        WarpData { x: 3, y: 14, dest_map: MapId::Route31, dest_x: 26, dest_y: 11 },
+        // North passage → Dark Cave Blackthorn
+        WarpData { x: 7, y: 1, dest_map: MapId::DarkCaveBlackthorn, dest_x: 3, dest_y: 24 },
+        // East passage → Route 46
+        WarpData { x: 14, y: 2, dest_map: MapId::Route46, dest_x: 9, dest_y: 8 },
+    ];
+
+    let npcs = vec![
+        // NPC hinting about Flash requirement
+        NpcDef {
+            x: 5, y: 6, sprite_id: 5, facing: Direction::Right,
+            dialogue: &["It's so dark in here!", "You need FLASH to see", "where you're going."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Geodude, Zubat, Teddiursa, Dunsparce (rare)
+    let encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 2, max_level: 4, weight: 35 },
+        EncounterEntry { species_id: ZUBAT, min_level: 2, max_level: 4, weight: 30 },
+        EncounterEntry { species_id: TEDDIURSA, min_level: 2, max_level: 4, weight: 20 },
+        EncounterEntry { species_id: DUNSPARCE, min_level: 3, max_level: 4, weight: 15 },
+    ];
+
+    MapData { id: MapId::DarkCaveViolet, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 6 }
+}
+
+// ─── Dark Cave Blackthorn Entrance (14x26) ─────────────────
+// Per pokecrystal: connects to Route 45 (north) and Dark Cave Violet (south)
+// Higher level encounters: Geodude, Zubat, Graveler, Ursaring, Wobbuffet, Golbat
+fn build_dark_cave_blackthorn() -> MapData {
+    let width: usize = 14;
+    let height: usize = 26;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 2: north exit to Route 45
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 12
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 14
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 16
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 17
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 18
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 19
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 20
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 21
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 22
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 23
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 24: south exit to Dark Cave Violet
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 25
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: north exit at (11,2)
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        // Row 24: south exit at (3,24)
+        C_SOLID,C_SOLID,C_SOLID,C_WARP,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "DarkCaveBlackthorn tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "DarkCaveBlackthorn collision count mismatch");
+
+    let warps = vec![
+        // North exit → Route 45
+        WarpData { x: 11, y: 2, dest_map: MapId::Route45, dest_x: 5, dest_y: 2 },
+        // South passage → Dark Cave Violet
+        WarpData { x: 3, y: 24, dest_map: MapId::DarkCaveViolet, dest_x: 7, dest_y: 1 },
+    ];
+
+    let npcs = vec![
+        // NPC who gives Blackglasses (per pokecrystal)
+        NpcDef {
+            x: 7, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["Whoa! You startled me!", "I had my BLACKGLASSES", "on, so I didn't notice", "you at all."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Geodude, Zubat, Graveler, Ursaring, Wobbuffet, Golbat (high level)
+    let encounters = vec![
+        EncounterEntry { species_id: GEODUDE, min_level: 22, max_level: 25, weight: 25 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 25, weight: 20 },
+        EncounterEntry { species_id: GRAVELER, min_level: 24, max_level: 26, weight: 15 },
+        EncounterEntry { species_id: URSARING, min_level: 24, max_level: 26, weight: 15 },
+        EncounterEntry { species_id: GOLBAT, min_level: 22, max_level: 25, weight: 15 },
+        EncounterEntry { species_id: WOBBUFFET, min_level: 20, max_level: 25, weight: 10 },
+    ];
+
+    MapData { id: MapId::DarkCaveBlackthorn, name: "DARK CAVE", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 6 }
+}
+
+// ─── Ruins of Alph Outside (14x16) ─────────────────────────
+// Per pokecrystal: connected to Route 32 and has 4 chamber entrances + inner chamber
+// Wild: Natu, Smeargle (day); Wooper, Quagsire (night)
+fn build_ruins_of_alph_outside() -> MapData {
+    let width: usize = 14;
+    let height: usize = 16;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 1
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+        // Row 2: east exit to Route 32
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,PATH,PATH,
+        // Row 3
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,SIGN,GRASS,GRASS,GRASS,GRASS,
+        // Row 4: Kabuto chamber entrance
+        GRASS,GRASS,GRASS,PATH,GRASS,GRASS,GRASS,GRASS,CAVE_WALL,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 5
+        GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 6: Ho-Oh chamber entrance
+        GRASS,CAVE_WALL,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 7
+        GRASS,GRASS,PATH,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 8: inner chamber entrance
+        GRASS,GRASS,GRASS,PATH,GRASS,TALL_GRASS,TALL_GRASS,GRASS,GRASS,PATH,CAVE_WALL,GRASS,GRASS,GRASS,
+        // Row 9
+        GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,
+        // Row 10: Omanyte chamber entrance
+        GRASS,CAVE_WALL,GRASS,GRASS,PATH,GRASS,GRASS,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 11
+        GRASS,GRASS,GRASS,GRASS,PATH,PATH,PATH,PATH,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 12: Aerodactyl chamber entrance
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,CAVE_WALL,GRASS,GRASS,GRASS,
+        // Row 13
+        GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,GRASS,
+        // Row 14
+        TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,TREE_TOP,
+        // Row 15
+        TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,TREE_BOTTOM,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        // Row 2: east exit at (12,2)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SIGN,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 4: Kabuto chamber at (8,4)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 6: Ho-Oh chamber at (1,6)
+        C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 8: Inner chamber at (10,8)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_TALL,C_TALL,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 10: Omanyte chamber at (1,10)
+        C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        // Row 12: Aerodactyl chamber at (10,12)
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,
+        C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "RuinsOfAlphOutside tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "RuinsOfAlphOutside collision count mismatch");
+
+    let warps = vec![
+        // East exit → Route 32
+        WarpData { x: 12, y: 2, dest_map: MapId::Route32, dest_x: 1, dest_y: 15 },
+        // Ho-Oh chamber entrance (simplified — goes to inner chamber)
+        WarpData { x: 1, y: 6, dest_map: MapId::RuinsOfAlphInner, dest_x: 3, dest_y: 14 },
+        // Kabuto chamber entrance
+        WarpData { x: 8, y: 4, dest_map: MapId::RuinsOfAlphInner, dest_x: 8, dest_y: 2 },
+        // Omanyte chamber entrance
+        WarpData { x: 1, y: 10, dest_map: MapId::RuinsOfAlphInner, dest_x: 3, dest_y: 10 },
+        // Aerodactyl chamber entrance
+        WarpData { x: 10, y: 12, dest_map: MapId::RuinsOfAlphInner, dest_x: 8, dest_y: 12 },
+        // Inner chamber direct entrance
+        WarpData { x: 10, y: 8, dest_map: MapId::RuinsOfAlphInner, dest_x: 5, dest_y: 7 },
+    ];
+
+    let npcs = vec![
+        // Scientist NPC
+        NpcDef {
+            x: 6, y: 5, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["The RUINS are from", "about 1500 years ago.", "Nobody knows who", "built them."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Youngster
+        NpcDef {
+            x: 4, y: 9, sprite_id: 2, facing: Direction::Up,
+            dialogue: &["There are many kinds", "of UNOWN, so we use", "them for our secret", "codes."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Fisher
+        NpcDef {
+            x: 7, y: 7, sprite_id: 1, facing: Direction::Left,
+            dialogue: &["The RUINS hide a", "huge secret!", "...I think..."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Natu and Smeargle (day), Wooper/Quagsire (night)
+    let encounters = vec![
+        EncounterEntry { species_id: NATU, min_level: 18, max_level: 24, weight: 40 },
+        EncounterEntry { species_id: SMEARGLE, min_level: 20, max_level: 22, weight: 30 },
+        EncounterEntry { species_id: NATU, min_level: 22, max_level: 24, weight: 30 },
+    ];
+
+    let night_encounters = vec![
+        EncounterEntry { species_id: NATU, min_level: 20, max_level: 24, weight: 40 },
+        EncounterEntry { species_id: WOOPER, min_level: 20, max_level: 22, weight: 30 },
+        EncounterEntry { species_id: QUAGSIRE, min_level: 22, max_level: 24, weight: 30 },
+    ];
+
+    MapData { id: MapId::RuinsOfAlphOutside, name: "RUINS OF ALPH", width, height, tiles, collision, warps, npcs, encounters, night_encounters, water_encounters: vec![], music_id: 8 }
+}
+
+// ─── Ruins of Alph Inner Chamber (12x16) ─────────────────────
+// Per pokecrystal: large chamber with Unown encounters, ancient statues
+// All encounter slots are Unown Lv5
+fn build_ruins_of_alph_inner() -> MapData {
+    let width: usize = 12;
+    let height: usize = 16;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 2: Kabuto chamber warp
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 7: center area
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10: Omanyte chamber warp
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 12: Aerodactyl chamber warp
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 13
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 14: Ho-Oh chamber warp
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 15
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 2: Kabuto warp at (8,2)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 7: center, outer exit at (5,7)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 10: Omanyte warp at (3,10)
+        C_SOLID,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 12: Aerodactyl warp at (8,12)
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        // Row 14: Ho-Oh warp at (3,14)
+        C_SOLID,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), width * height, "RuinsOfAlphInner tiles count mismatch");
+    debug_assert_eq!(collision.len(), width * height, "RuinsOfAlphInner collision count mismatch");
+
+    let warps = vec![
+        // Back to outside (center exit)
+        WarpData { x: 5, y: 7, dest_map: MapId::RuinsOfAlphOutside, dest_x: 10, dest_y: 8 },
+        // Kabuto chamber return
+        WarpData { x: 8, y: 2, dest_map: MapId::RuinsOfAlphOutside, dest_x: 8, dest_y: 4 },
+        // Omanyte chamber return
+        WarpData { x: 3, y: 10, dest_map: MapId::RuinsOfAlphOutside, dest_x: 1, dest_y: 10 },
+        // Aerodactyl chamber return
+        WarpData { x: 8, y: 12, dest_map: MapId::RuinsOfAlphOutside, dest_x: 10, dest_y: 12 },
+        // Ho-Oh chamber return
+        WarpData { x: 3, y: 14, dest_map: MapId::RuinsOfAlphOutside, dest_x: 1, dest_y: 6 },
+    ];
+
+    let npcs = vec![
+        // Fisher tourist
+        NpcDef {
+            x: 3, y: 5, sprite_id: 1, facing: Direction::Right,
+            dialogue: &["This is a big room,", "but there's nothing", "here."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Teacher tourist
+        NpcDef {
+            x: 8, y: 8, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["This place has a", "mystical quality.", "It feels ethereal."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+        // Gramps
+        NpcDef {
+            x: 5, y: 11, sprite_id: 5, facing: Direction::Up,
+            dialogue: &["Ancient buildings are", "often tombs of kings.", "Like the pyramids."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: 100% Unown at level 5 (6% encounter rate)
+    let encounters = vec![
+        EncounterEntry { species_id: UNOWN, min_level: 5, max_level: 5, weight: 100 },
+    ];
+
+    MapData { id: MapId::RuinsOfAlphInner, name: "INNER CHAMBER", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 8 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -11388,11 +12054,14 @@ mod tests {
             MapId::EliteFourKaren,
             MapId::ChampionLance,
             MapId::RocketHQ,
+            MapId::SlowpokeWellB1F, MapId::SlowpokeWellB2F,
+            MapId::BurnedTowerB1F,
             MapId::UnionCaveB1F, MapId::UnionCaveB2F,
             MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
             MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
+            MapId::VictoryRoadB1F, MapId::DarkCaveViolet, MapId::DarkCaveBlackthorn, MapId::RuinsOfAlphOutside, MapId::RuinsOfAlphInner,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -11440,6 +12109,7 @@ mod tests {
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
             MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
+            MapId::VictoryRoadB1F, MapId::DarkCaveViolet, MapId::DarkCaveBlackthorn, MapId::RuinsOfAlphOutside, MapId::RuinsOfAlphInner,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -11699,6 +12369,7 @@ mod tests {
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
             MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
+            MapId::VictoryRoadB1F, MapId::DarkCaveViolet, MapId::DarkCaveBlackthorn, MapId::RuinsOfAlphOutside, MapId::RuinsOfAlphInner,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {
@@ -11715,7 +12386,8 @@ mod tests {
                     continue;
                 }
                 let coll = dest.collision[dy * dest.width + dx];
-                if coll != C_WALK && coll != C_TALL && coll != C_ICE {
+                // C_WARP is valid for bidirectional warps (land on the partner warp tile)
+                if coll != C_WALK && coll != C_TALL && coll != C_ICE && coll != C_WARP {
                     let name = match coll {
                         C_SOLID => "C_SOLID", C_TALL => "C_TALL",
                         C_WATER => "C_WATER", C_WARP => "C_WARP",
@@ -11723,7 +12395,7 @@ mod tests {
                         C_SIGN => "C_SIGN", C_ICE => "C_ICE", _ => "UNKNOWN",
                     };
                     errors.push(format!(
-                        "{:?} warp #{} → {:?} ({},{}) — lands on {} (expected C_WALK)",
+                        "{:?} warp #{} → {:?} ({},{}) — lands on {} (expected C_WALK/C_WARP)",
                         src_id, wi, warp.dest_map, dx, dy, name
                     ));
                 }

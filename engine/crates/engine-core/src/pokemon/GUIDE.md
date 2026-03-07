@@ -2348,3 +2348,57 @@ Added `test_step_queue(battle, party, engine)` helper that creates a temporary P
 - `mod.rs` -- Added FLAG_SPROUT_RIVAL, DialogueAction::GiveFlash, check_sprout_tower_rival(), GiveFlash handler, updated 6 indoor match patterns, updated Elder Li team and map check, updated post-battle reward for Elder Li
 
 **Test Results**: All 1351 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+### Sprint 125 (QA) - Audit of Sprints 123-124
+
+**Goal**: QA audit of Sprint 123 (BattleStep queue migration) and Sprint 124 (Sprout Tower 3-floor overhaul).
+
+#### Audit Results
+
+**Sprout Tower Warps** -- All verified correct:
+- VioletCity (18,4) -> SproutTower1F (7,12): entrance
+- SproutTower1F door (7,13) -> VioletCity (18,5): exit
+- SproutTower1F stairs (12,1) -> SproutTower2F (2,12): up
+- SproutTower2F stairs (1,12) -> SproutTower1F (12,2): down
+- SproutTower2F stairs (12,1) -> SproutTower3F (2,12): up
+- SproutTower3F stairs (1,12) -> SproutTower2F (12,2): down
+- All warp tiles have C_WARP collision. Destinations land on C_WALK tiles (no re-warp loops).
+
+**Sage Trainer Teams vs pokecrystal-master** -- All 7 trainers match exactly:
+- Sage Chow (1F): 3x Bellsprout Lv3 -- matches
+- Sage Nico (2F): 3x Bellsprout Lv3 -- matches
+- Sage Edmond (2F): 3x Bellsprout Lv3 -- matches
+- Sage Jin (3F): Bellsprout Lv6 -- matches
+- Sage Troy (3F): Bellsprout Lv7 + Hoothoot Lv7 -- matches
+- Sage Neal (3F): Bellsprout Lv6 -- matches
+- Elder Li (3F): 2x Bellsprout Lv7 + Hoothoot Lv10 -- matches
+
+**Rival Event (3F)** -- FLAG_SPROUT_RIVAL gating verified:
+- Triggers at y<=5 on SproutTower3F when rival_starter>0 and flag not set
+- Sets FLAG_SPROUT_RIVAL (bit 11) on trigger
+- Does not re-trigger after flag is set
+- Fires before elder check in step_overworld
+
+**PlayerAttack/EnemyAttack Queue Edge Cases** -- All verified:
+- Miss: damage=0 with power>0 move correctly shows "Attack missed!", skips ScreenFlash/PlayHitSfx
+- Type effectiveness: eff_text returns correct messages for >1.5 (super), <0.5 (not very), <0.01 (no effect)
+- Critical hit: "Critical hit!" text pushed when is_crit=true and not a miss
+- Multi-hit: "Hit N times!" text pushed when num_hits>1 and not a miss
+- Faint during attack: CheckFaint properly routes to PlayerFainted/EnemyFainted phases
+- Recoil/Self-Destruct: player faint from recoil correctly handled via CheckFaint
+
+**Compiler Warnings** -- cargo check clean (no warnings in pokemon modules)
+
+**Bugs Found** -- None. All flows are correct.
+
+#### New Tests Added (5 tests)
+1. `test_sprout_tower_floor_traversal` -- Verifies warp chain 1F->2F->3F, warp counts, destinations, collision tiles
+2. `test_battle_queue_miss_scenario` -- PlayerAttack with damage=0 produces "Attack missed!", no ScreenFlash, enemy HP unchanged
+3. `test_battle_queue_super_effective_message` -- PlayerAttack with effectiveness=2.0 produces "Super effective!" and strong ScreenFlash
+4. `test_sprout_tower_rival_event_trigger` -- Rival event triggers at y<=5, sets FLAG_SPROUT_RIVAL, doesn't re-trigger
+5. `test_sprout_tower_sage_teams_match_pokecrystal` -- All 7 sage/elder teams verified against pokecrystal-master data
+
+#### Files Changed
+- `mod.rs` -- Added 5 new tests in headless_tests module (Sprint 125 QA Tests section)
+
+**Test Results**: All 1356 unit tests pass + 2 fuzz + 3 golden replay. Clean compilation.

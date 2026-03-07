@@ -9708,4 +9708,218 @@ mod headless_tests {
             assert!(!b.enemy_must_recharge, "Recharge flag should be cleared");
         }
     }
+
+    // ── Sprint 125 QA Tests ──────────────────────────────────────
+
+    #[test]
+    fn test_sprout_tower_floor_traversal() {
+        // Verify Sprout Tower warp chain: 1F -> 2F -> 3F via map data
+        let map1f = load_map(MapId::SproutTower1F);
+        let map2f = load_map(MapId::SproutTower2F);
+        let map3f = load_map(MapId::SproutTower3F);
+
+        // 1F: door to VioletCity at (7,13), stairs up to 2F at (12,1)
+        assert_eq!(map1f.warps.len(), 2, "SproutTower1F should have 2 warps");
+        assert_eq!(map1f.warps[0].dest_map, MapId::VioletCity, "1F warp 0 should go to VioletCity");
+        assert_eq!(map1f.warps[1].dest_map, MapId::SproutTower2F, "1F warp 1 should go to 2F");
+        assert_eq!(map1f.warps[1].x, 12, "1F stairs-up x should be 12");
+        assert_eq!(map1f.warps[1].y, 1, "1F stairs-up y should be 1");
+
+        // 2F: stairs down to 1F at (1,12), stairs up to 3F at (12,1)
+        assert_eq!(map2f.warps.len(), 2, "SproutTower2F should have 2 warps");
+        assert_eq!(map2f.warps[0].dest_map, MapId::SproutTower1F, "2F warp 0 should go to 1F");
+        assert_eq!(map2f.warps[0].x, 1, "2F stairs-down x should be 1");
+        assert_eq!(map2f.warps[0].y, 12, "2F stairs-down y should be 12");
+        assert_eq!(map2f.warps[1].dest_map, MapId::SproutTower3F, "2F warp 1 should go to 3F");
+
+        // 3F: stairs down to 2F at (1,12), no upward exit
+        assert_eq!(map3f.warps.len(), 1, "SproutTower3F should have 1 warp");
+        assert_eq!(map3f.warps[0].dest_map, MapId::SproutTower2F, "3F warp 0 should go to 2F");
+
+        // Verify bidirectional: 1F stairs-up dest matches 2F stairs-down position
+        assert_eq!(map1f.warps[1].dest_x, map2f.warps[0].x + 1,
+            "1F->2F dest_x should land near 2F stairs-down");
+        assert_eq!(map2f.warps[1].dest_x, map3f.warps[0].x + 1,
+            "2F->3F dest_x should land near 3F stairs-down");
+
+        // Verify collision tiles at warp positions are C_WARP (value 4)
+        let c_warp: u8 = 4;
+        let idx_1f_stairs = 1 * map1f.width + 12;
+        assert_eq!(map1f.collision[idx_1f_stairs], c_warp, "1F stairs collision should be C_WARP");
+        let idx_2f_down = 12 * map2f.width + 1;
+        assert_eq!(map2f.collision[idx_2f_down], c_warp, "2F stairs-down collision should be C_WARP");
+        let idx_2f_up = 1 * map2f.width + 12;
+        assert_eq!(map2f.collision[idx_2f_up], c_warp, "2F stairs-up collision should be C_WARP");
+        let idx_3f_down = 12 * map3f.width + 1;
+        assert_eq!(map3f.collision[idx_3f_down], c_warp, "3F stairs-down collision should be C_WARP");
+    }
+
+    #[test]
+    fn test_battle_queue_miss_scenario() {
+        // Verify PlayerAttack with damage=0 (miss) produces "Attack missed!" in queue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(PIDGEY, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy.clone(), true);
+        battle.enemy_hp_display = enemy.hp as f64;
+        battle.player_hp_display = sim.party[0].hp as f64;
+
+        // Set up a miss: damage=0, effectiveness=1.0 (not immune), power>0 move
+        battle.phase = BattlePhase::PlayerAttack {
+            timer: 0.0, move_id: MOVE_TACKLE, damage: 0, effectiveness: 1.0,
+            is_crit: false, from_pending: false,
+        };
+
+        sim.battle = Some(battle);
+        sim.step_battle(&mut engine);
+
+        // Should be in ExecuteQueue with queue containing "Attack missed!"
+        if let Some(ref b) = sim.battle {
+            assert!(matches!(b.phase, BattlePhase::ExecuteQueue),
+                "Miss should enter ExecuteQueue, got {:?}", b.phase);
+
+            let has_miss_text = b.battle_queue.iter().any(|step| {
+                if let BattleStep::Text(ref t) = step { t.contains("missed") } else { false }
+            });
+            assert!(has_miss_text, "Queue should contain 'Attack missed!' text");
+
+            // Miss should NOT have ScreenFlash (no visual hit effect)
+            let has_flash = b.battle_queue.iter().any(|step| matches!(step, BattleStep::ScreenFlash(_)));
+            assert!(!has_flash, "Miss should not produce ScreenFlash");
+
+            // Enemy HP should be unchanged (damage=0)
+            assert_eq!(b.enemy.hp, enemy.hp, "Enemy HP should be unchanged on miss");
+        }
+    }
+
+    #[test]
+    fn test_battle_queue_super_effective_message() {
+        // Verify PlayerAttack with effectiveness > 1.5 produces "Super effective!" in queue
+        let mut engine = crate::engine::Engine::new(160, 144);
+        engine.reset(42);
+
+        let player_pkmn = Pokemon::new(CYNDAQUIL, 10);
+        let enemy = Pokemon::new(BELLSPROUT, 5);
+
+        let mut sim = PokemonSim::new();
+        sim.party = vec![player_pkmn];
+        let mut battle = make_test_battle(&sim.party, enemy.clone(), true);
+        battle.enemy_hp_display = enemy.hp as f64;
+        battle.player_hp_display = sim.party[0].hp as f64;
+
+        // Super effective: effectiveness=2.0, damage>0
+        battle.phase = BattlePhase::PlayerAttack {
+            timer: 0.0, move_id: MOVE_EMBER, damage: 15, effectiveness: 2.0,
+            is_crit: false, from_pending: false,
+        };
+
+        sim.battle = Some(battle);
+        sim.step_battle(&mut engine);
+
+        if let Some(ref b) = sim.battle {
+            assert!(matches!(b.phase, BattlePhase::ExecuteQueue),
+                "Super effective should enter ExecuteQueue, got {:?}", b.phase);
+
+            let has_se_text = b.battle_queue.iter().any(|step| {
+                if let BattleStep::Text(ref t) = step { t.contains("Super effective") } else { false }
+            });
+            assert!(has_se_text, "Queue should contain 'Super effective!' text");
+
+            // Should have ScreenFlash with strong flash (>= 0.9 for super effective)
+            let has_strong_flash = b.battle_queue.iter().any(|step| {
+                if let BattleStep::ScreenFlash(val) = step { *val >= 0.9 } else { false }
+            });
+            assert!(has_strong_flash, "Super effective hit should produce strong ScreenFlash");
+        }
+    }
+
+    #[test]
+    fn test_sprout_tower_rival_event_trigger() {
+        // Verify the rival event on 3F triggers correctly and sets FLAG_SPROUT_RIVAL
+        let party = vec![Pokemon::new(CYNDAQUIL, 10)];
+        let mut sim = PokemonSim::with_state(MapId::SproutTower3F, 5, 6, party, 1);
+        sim.rival_starter = TOTODILE;
+
+        // Should not have the flag yet
+        assert!(!sim.has_flag(FLAG_SPROUT_RIVAL), "FLAG_SPROUT_RIVAL should not be set initially");
+
+        // Player is at y=6, needs to be at y<=5 to trigger — move up
+        sim.player.y = 5;
+        let triggered = sim.check_sprout_tower_rival();
+
+        assert!(triggered, "Rival event should trigger at y<=5 on 3F");
+        assert!(sim.has_flag(FLAG_SPROUT_RIVAL), "FLAG_SPROUT_RIVAL should be set after trigger");
+        assert!(matches!(sim.phase, GamePhase::Dialogue), "Phase should be Dialogue after rival event");
+
+        // Verify it doesn't trigger a second time
+        sim.phase = GamePhase::Overworld;
+        let triggered_again = sim.check_sprout_tower_rival();
+        assert!(!triggered_again, "Rival event should not trigger twice (flag already set)");
+    }
+
+    #[test]
+    fn test_sprout_tower_sage_teams_match_pokecrystal() {
+        // Verify all 7 Sprout Tower sage trainers have correct teams per pokecrystal data
+        let map1f = load_map(MapId::SproutTower1F);
+        let map2f = load_map(MapId::SproutTower2F);
+        let map3f = load_map(MapId::SproutTower3F);
+
+        // 1F NPC 4: Sage Chow — 3x Bellsprout Lv3
+        let chow = &map1f.npcs[4];
+        assert!(chow.is_trainer, "Sage Chow should be a trainer");
+        assert_eq!(chow.trainer_team.len(), 3, "Sage Chow should have 3 Pokemon");
+        for tp in chow.trainer_team {
+            assert_eq!(tp.species_id, BELLSPROUT);
+            assert_eq!(tp.level, 3);
+        }
+
+        // 2F NPC 0: Sage Nico — 3x Bellsprout Lv3
+        let nico = &map2f.npcs[0];
+        assert!(nico.is_trainer);
+        assert_eq!(nico.trainer_team.len(), 3);
+
+        // 2F NPC 1: Sage Edmond — 3x Bellsprout Lv3
+        let edmond = &map2f.npcs[1];
+        assert!(edmond.is_trainer);
+        assert_eq!(edmond.trainer_team.len(), 3);
+
+        // 3F NPC 0: Elder Li — 2x Bellsprout Lv7 + Hoothoot Lv10
+        let li = &map3f.npcs[0];
+        assert!(li.is_trainer);
+        assert_eq!(li.trainer_team.len(), 3, "Elder Li should have 3 Pokemon");
+        assert_eq!(li.trainer_team[0].species_id, BELLSPROUT);
+        assert_eq!(li.trainer_team[0].level, 7);
+        assert_eq!(li.trainer_team[1].species_id, BELLSPROUT);
+        assert_eq!(li.trainer_team[1].level, 7);
+        assert_eq!(li.trainer_team[2].species_id, HOOTHOOT);
+        assert_eq!(li.trainer_team[2].level, 10);
+
+        // 3F NPC 1: Sage Jin — Bellsprout Lv6
+        let jin = &map3f.npcs[1];
+        assert!(jin.is_trainer);
+        assert_eq!(jin.trainer_team.len(), 1);
+        assert_eq!(jin.trainer_team[0].species_id, BELLSPROUT);
+        assert_eq!(jin.trainer_team[0].level, 6);
+
+        // 3F NPC 2: Sage Troy — Bellsprout Lv7 + Hoothoot Lv7
+        let troy = &map3f.npcs[2];
+        assert!(troy.is_trainer);
+        assert_eq!(troy.trainer_team.len(), 2);
+        assert_eq!(troy.trainer_team[0].species_id, BELLSPROUT);
+        assert_eq!(troy.trainer_team[0].level, 7);
+        assert_eq!(troy.trainer_team[1].species_id, HOOTHOOT);
+        assert_eq!(troy.trainer_team[1].level, 7);
+
+        // 3F NPC 3: Sage Neal — Bellsprout Lv6
+        let neal = &map3f.npcs[3];
+        assert!(neal.is_trainer);
+        assert_eq!(neal.trainer_team.len(), 1);
+        assert_eq!(neal.trainer_team[0].species_id, BELLSPROUT);
+        assert_eq!(neal.trainer_team[0].level, 6);
+    }
 }

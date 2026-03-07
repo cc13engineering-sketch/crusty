@@ -1601,3 +1601,8 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - **GUIDE.md updated** — Marked project as "true 1:1 clone" of Pokemon Gold/Silver/Crystal in header.
 - All 1318 tests pass.
 - **Next (Sprint 91)**: Content sprint. Tile rendering integration, B8 (level-up stat display).
+
+### Sprint 91 (Content — Level-Up Stat Display)
+- **B8 FIX: Level-up stat delta display** — Added `stat_deltas: [i16; 6]` field to `BattlePhase::LevelUp`. Old stats captured before `recalc_stats()`, deltas accumulated for multi-level-ups. Render shows all 6 stats (HP, Atk, Def, SAtk, SDef, Spd) with current value and +N delta in a panel above the "grew to LV X!" message. Matches Gen 2's stat increase screen.
+- All 1318 tests pass.
+- **Next (Sprint 92 — QA)**: Full QA audit.

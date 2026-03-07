@@ -161,7 +161,7 @@ enum BattlePhase {
     PlayerFainted,
     EnemyFainted { exp_gained: u32 },
     ExpAwarded { exp_gained: u32 },
-    LevelUp { timer: f64 },
+    LevelUp { timer: f64, stat_deltas: [i16; 6] }, // [HP, Atk, Def, SpAtk, SpDef, Spd]
     LearnMove { new_move: MoveId, sub: LearnMoveSub },
     TrainerSwitchPrompt { next_name: String, cursor: u8 },
     Won { timer: f64 },
@@ -2722,14 +2722,20 @@ impl PokemonSim {
                     let mut leveled = false;
                     let mut pending_learns = Vec::new();
                     let mut auto_learn_msgs: Vec<String> = Vec::new();
+                    let mut stat_deltas: [i16; 6] = [0; 6]; // [HP, Atk, Def, SpAtk, SpDef, Spd]
                     // Loop for multi-level-up (e.g., low-level vs high-level enemy)
                     while p.level < 100 {
                         let sp = match get_species(p.species_id) { Some(s) => s, None => break };
                         let next_exp = exp_for_level(p.level + 1, sp.growth_rate);
                         if p.exp < next_exp { break; }
+                        // Capture old stats for delta display
+                        let old = [p.max_hp, p.attack, p.defense, p.sp_attack, p.sp_defense, p.speed];
                         p.level += 1;
                         leveled = true;
                         p.recalc_stats();
+                        // Accumulate stat deltas (handles multi-level-up)
+                        let new = [p.max_hp, p.attack, p.defense, p.sp_attack, p.sp_defense, p.speed];
+                        for i in 0..6 { stat_deltas[i] += new[i] as i16 - old[i] as i16; }
                         let new_moves = p.check_new_moves();
                         for new_move in new_moves {
                             if p.moves.iter().any(|m| *m == Some(new_move)) { continue; }
@@ -2761,7 +2767,7 @@ impl PokemonSim {
                             });
                         sfx_level_up(engine);
                         // Chain auto-learned move messages before LevelUp
-                        let mut lvlup_inner = BattlePhase::LevelUp { timer: 0.0 };
+                        let mut lvlup_inner = BattlePhase::LevelUp { timer: 0.0, stat_deltas };
                         for m in auto_learn_msgs.iter().rev() {
                             lvlup_inner = BattlePhase::Text { message: m.clone(), timer: 0.0, next_phase: Box::new(lvlup_inner) };
                         }
@@ -2803,7 +2809,7 @@ impl PokemonSim {
                 }
             }
 
-            BattlePhase::LevelUp { timer } => {
+            BattlePhase::LevelUp { timer, stat_deltas } => {
                 let t = timer + dt;
                 if t > 2.0 || is_confirm(engine) {
                     // Check for pending move learns before advancing
@@ -2829,7 +2835,7 @@ impl PokemonSim {
                         battle.phase = BattlePhase::Won { timer: 0.0 };
                     }
                 } else {
-                    battle.phase = BattlePhase::LevelUp { timer: t };
+                    battle.phase = BattlePhase::LevelUp { timer: t, stat_deltas };
                 }
             }
 
@@ -4238,7 +4244,20 @@ impl PokemonSim {
                 draw_text_pkmn(fb, ctx, &exp_msg, 10, 118, dark);
             }
 
-            BattlePhase::LevelUp { .. } => {
+            BattlePhase::LevelUp { stat_deltas, .. } => {
+                // Draw stat increase panel (Gen 2 style)
+                draw_text_box(fb, ctx, 2, 18, 156, 78);
+                if let Some(p) = self.party.get(battle.player_idx) {
+                    let labels = ["HP", "Atk", "Def", "SAtk", "SDef", "Spd"];
+                    let vals = [p.max_hp, p.attack, p.defense, p.sp_attack, p.sp_defense, p.speed];
+                    for i in 0..6 {
+                        let y = 26 + (i as i32) * 10;
+                        let delta_str = if stat_deltas[i] >= 0 { format!("+{}", stat_deltas[i]) } else { format!("{}", stat_deltas[i]) };
+                        let label = format!("{:<5}{:>3}  {}", labels[i], vals[i], delta_str);
+                        draw_text_pkmn(fb, ctx, &label, 10, y, dark);
+                    }
+                }
+                // Also show level-up message at bottom
                 draw_text_box(fb, ctx, 2, 98, 156, 42);
                 if let Some(p) = self.party.get(battle.player_idx) {
                     let msg = format!("{} grew to LV{}!", p.name(), p.level);

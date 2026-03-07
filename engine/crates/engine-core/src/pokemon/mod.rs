@@ -339,12 +339,41 @@ fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
     }
 }
 
+/// Look up the canonical trainer name for a (map_id, npc_idx) pair.
+/// Returns a recognizable name for gym leaders, rivals, and important trainers;
+/// falls back to "Trainer" for generic route trainers.
+fn trainer_name_for(map_id: MapId, npc_idx: u8) -> &'static str {
+    match (map_id, npc_idx) {
+        // Gym leaders
+        (MapId::VioletGym, 0) => "FALKNER",
+        (MapId::AzaleaGym, 0) => "BUGSY",
+        (MapId::GoldenrodGym, 0) => "WHITNEY",
+        (MapId::EcruteakGym, 0) => "MORTY",
+        (MapId::OlivineGym, 0) => "JASMINE",
+        (MapId::CianwoodGym, 0) => "CHUCK",
+        (MapId::MahoganyGym, 0) => "PRYCE",
+        (MapId::BlackthornGym, 0) => "CLAIR",
+        // Elite Four + Champion
+        (MapId::EliteFourWill, 0) => "WILL",
+        (MapId::EliteFourKoga, 0) => "KOGA",
+        (MapId::EliteFourBruno, 0) => "BRUNO",
+        (MapId::EliteFourKaren, 0) => "KAREN",
+        (MapId::ChampionLance, 0) => "CHAMPION LANCE",
+        // Special trainers
+        (MapId::SproutTower3F, 0) => "ELDER LI",
+        (MapId::RocketHQ, 4) => "EXECUTIVE",
+        (MapId::RadioTower5F, 1) => "EXECUTIVE ARCHER",
+        _ => "Trainer",
+    }
+}
+
 #[derive(Clone, Debug)]
 struct BattleState {
     phase: BattlePhase,
     enemy: Pokemon,
     player_idx: usize,
     is_wild: bool,
+    trainer_name: String, // e.g. "FALKNER" for gym leaders, "BUGCATCHER WADE" for route trainers
     player_hp_display: f64,
     enemy_hp_display: f64,
     turn_count: u32,
@@ -1823,6 +1852,7 @@ impl PokemonSim {
                                 confusion_snapout_msg: None,
                                 battle_queue: VecDeque::new(),
                                 queue_timer: 0.0,
+                                trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -4048,7 +4078,7 @@ impl PokemonSim {
                                 // Beat the Champion → credits!
                                 self.dialogue = Some(DialogueState {
                                     lines: vec![
-                                        "CHAMPION LANCE was defeated!".to_string(),
+                                        format!("{} was defeated!", battle.trainer_name),
                                         format!("Got ${} for winning!", reward),
                                         "Congratulations!".to_string(),
                                         "You are the new POKEMON CHAMPION!".to_string(),
@@ -4098,7 +4128,7 @@ impl PokemonSim {
                                 }
 
                                 let mut lines = vec![
-                                    "Trainer was defeated!".to_string(),
+                                    format!("{} was defeated!", battle.trainer_name),
                                     format!("Got ${} for winning!", reward),
                                 ];
                                 if map_id == MapId::RocketHQ && npc_idx == 4 {
@@ -4651,6 +4681,9 @@ impl PokemonSim {
                                 Pokemon::new(s, l)
                             })
                             .collect();
+                        let tname = self.trainer_battle_npc
+                            .map(|(m, n)| trainer_name_for(m, n).to_string())
+                            .unwrap_or_else(|| "Trainer".to_string());
                         self.battle = Some(BattleState {
                             phase: BattlePhase::Intro { timer: 0.0 },
                             enemy,
@@ -4678,6 +4711,7 @@ impl PokemonSim {
                             confusion_snapout_msg: None,
                             battle_queue: VecDeque::new(),
                             queue_timer: 0.0,
+                            trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4718,6 +4752,7 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+                        trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4754,6 +4789,7 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+                        trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4790,6 +4826,7 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+                        trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4827,6 +4864,7 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+                        trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -4864,6 +4902,7 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+                        trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
                     self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -5984,7 +6023,8 @@ impl PokemonSim {
 
             BattlePhase::TrainerSwitchPrompt { ref next_name, cursor } => {
                 draw_text_box(fb, ctx, 2, 88, 156, 52);
-                let line1 = format!("Foe sends out {}.", next_name);
+                let tname = if battle.trainer_name.is_empty() { "Foe" } else { &battle.trainer_name };
+                let line1 = format!("{} is about to use {}.", tname, next_name);
                 let wrapped = wrap_text(&line1, 18); // shorter max for left column
                 for (i, line) in wrapped.split('\n').enumerate() {
                     draw_text_pkmn(fb, ctx, line, 10, 96 + i as i32 * 12, dark);
@@ -9569,6 +9609,7 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+            trainer_name: String::new(),
         };
 
         // Pre-populate the queue: Text -> Pause -> ApplyDamage -> GoToPhase(ActionSelect)
@@ -9616,7 +9657,7 @@ mod headless_tests {
         let player_pkmn = Pokemon::new(CYNDAQUIL, 15);
         let mut party = vec![player_pkmn];
         let mut enemy = Pokemon::new(RATTATA, 3);
-        enemy.hp = 0; // Already fainted
+        enemy.hp = 0; // Already fainted (test_check_faint_queue)
 
         let mut battle = BattleState {
             phase: BattlePhase::ExecuteQueue,
@@ -9645,6 +9686,7 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+            trainer_name: String::new(),
         };
 
         // Queue: CheckFaint for enemy (already at 0 HP)
@@ -9687,6 +9729,7 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+            trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
 
@@ -11256,5 +11299,21 @@ mod headless_tests {
         sim.badges |= 1 << 2;
         assert_ne!(sim.badges & (1 << 2), 0, "should have Plain Badge after Lass interaction");
         assert_eq!(sim.badges & 0x07, 0x07, "should have first 3 badges");
+    }
+
+    #[test]
+    fn test_trainer_name_lookup() {
+        // Gym leaders
+        assert_eq!(trainer_name_for(MapId::VioletGym, 0), "FALKNER");
+        assert_eq!(trainer_name_for(MapId::AzaleaGym, 0), "BUGSY");
+        assert_eq!(trainer_name_for(MapId::GoldenrodGym, 0), "WHITNEY");
+        assert_eq!(trainer_name_for(MapId::BlackthornGym, 0), "CLAIR");
+        // Elite Four
+        assert_eq!(trainer_name_for(MapId::EliteFourWill, 0), "WILL");
+        assert_eq!(trainer_name_for(MapId::EliteFourKaren, 0), "KAREN");
+        assert_eq!(trainer_name_for(MapId::ChampionLance, 0), "CHAMPION LANCE");
+        // Fallback for generic trainers
+        assert_eq!(trainer_name_for(MapId::Route29, 0), "Trainer");
+        assert_eq!(trainer_name_for(MapId::VioletGym, 1), "Trainer"); // gym trainee, not leader
     }
 }

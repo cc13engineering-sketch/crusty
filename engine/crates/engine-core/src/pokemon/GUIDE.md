@@ -3233,3 +3233,41 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 
 #### Files Changed
 - `mod.rs` — Whitney crying mechanic (FLAG_WHITNEY_CRYING, badge gating, NPC interactions), removed duplicate flag, added test
+
+---
+
+### Sprint 139 — Battle UX Polish + Trainer Names + Transition Verification
+
+#### Changes
+
+**Trainer Name System**
+- Added `trainer_name: String` field to `BattleState` — populated when battle starts
+- Added `trainer_name_for(map_id, npc_idx)` lookup function with canonical names for:
+  - All 8 Gym Leaders (FALKNER, BUGSY, WHITNEY, MORTY, JASMINE, CHUCK, PRYCE, CLAIR)
+  - All 4 Elite Four (WILL, KOGA, BRUNO, KAREN) + CHAMPION LANCE
+  - Special trainers (ELDER LI, EXECUTIVE, EXECUTIVE ARCHER)
+  - Generic fallback: "Trainer" for route trainers
+- Defeat text now shows proper name: "FALKNER was defeated!" instead of "Trainer was defeated!"
+- Trainer switch prompt updated: "FALKNER is about to use PIDGEOTTO." instead of "Foe sends out PIDGEOTTO."
+- Champion Lance defeat text uses the same system for consistency
+
+**Battle UX Verification**
+- EXP gain text already existed: "{name} gained {exp} EXP!" (since Sprint 120+)
+- Money gain text already existed: "Got ${reward} for winning!" (since early sprints)
+- "Go! {POKEMON}!" send-out text already existed (Intro phase)
+- TrainerSwitchPrompt YES/NO already existed with free switch mechanic
+- Badge acquisition screen uses DialogueAction::GiveBadge with proper dialogue
+
+**Map Transition Verification**
+- MapFadeOut/MapFadeIn: 0.25s fade out → map change → 0.25s fade in (all warp types)
+- WhiteoutFade: fade to white → money loss → teleport to last PokeCenter
+- EncounterTransition: flash effect before wild/trainer battles
+- GenericHouse exit: already fixed (stores exact door x/y, exits 1 tile below)
+
+#### Test Results
+- **1371 tests passing** (0 failures)
+- **0 compiler warnings**
+- New tests: test_trainer_name_lookup
+
+#### Files Changed
+- `mod.rs` — trainer_name_for() helper, BattleState.trainer_name field, defeat/switch text updates, test

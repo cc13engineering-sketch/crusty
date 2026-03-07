@@ -3444,3 +3444,34 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 #### Test Results
 - **1376 tests passing** (0 failures)
 - **0 compiler warnings**
+
+---
+
+### Sprint 144 — Text Rendering Polish + Missing Johto Locations
+**Type:** Content sprint
+
+#### Changes Made
+
+1. **Text Speed Enhancement** (`mod.rs`)
+   - Added `is_held_confirm()` and `is_held_cancel()` helper functions for held key detection
+   - Modified `step_dialogue()` to run text at 2x speed when A/B button is held down
+   - Advance arrow rendering improvement
+
+2. **Mt. Mortar Cave** (`maps.rs`)
+   - Added `MapId::MtMortar` to enum, `from_str`, `to_str`, and `load_map`
+   - Built 12x12 simplified single-floor cave (pokecrystal has 4 floors)
+   - Karate King KIYO with Hitmonlee L34 + Hitmonchan L34 (canonical from pokecrystal B1F)
+   - Hiker trainer with Geodude L23 + Machop L23
+   - Cave encounters: Zubat, Golbat, Geodude, Machop, Machoke, Rattata
+   - Added Route 42 cave entrance warp at (9,5) linking to Mt. Mortar
+
+#### pokecrystal References
+- `data/maps/map_data.asm` — MtMortarOutside, MtMortar1F, MtMortar2F, MtMortarB1F
+- `data/trainers/party_pointers.asm` — KIYO (Hitmonlee/Hitmonchan L34)
+- `data/wild/johto_grass.asm` — Mt. Mortar encounter tables
+
+#### Test Results
+- **1379 tests passing** (+3 new, 0 failures)
+- `test_sprint144_mt_mortar_map` — map dimensions, warps, Kiyo NPC, encounters
+- `test_sprint144_route42_mt_mortar_warp` — Route 42 warp at (9,5) to Mt. Mortar
+- `test_sprint144_held_key_helpers` — held key detection functions

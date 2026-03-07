@@ -60,6 +60,17 @@ fn is_cancel(engine: &Engine) -> bool {
         || engine.input.keys_pressed.contains("Escape")
 }
 
+fn is_held_confirm(engine: &Engine) -> bool {
+    engine.input.keys_held.contains("KeyZ")
+        || engine.input.keys_held.contains("Space")
+        || engine.input.keys_held.contains("Enter")
+}
+
+fn is_held_cancel(engine: &Engine) -> bool {
+    engine.input.keys_held.contains("KeyX")
+        || engine.input.keys_held.contains("Escape")
+}
+
 fn is_up(engine: &Engine) -> bool {
     engine.input.keys_pressed.contains("ArrowUp")
         || engine.input.keys_pressed.contains("KeyW")
@@ -4650,7 +4661,10 @@ impl PokemonSim {
         let mut action = DialogueAction::None;
 
         if let Some(dialogue) = &mut self.dialogue {
-            dialogue.timer += dt;
+            // Speed up text when A or B is held (2x speed)
+            let held = is_held_confirm(engine) || is_held_cancel(engine);
+            let speed_mult = if held { 2.0 } else { 1.0 };
+            dialogue.timer += dt * speed_mult;
             let chars_per_sec = 30.0;
             let target = (dialogue.timer * chars_per_sec) as usize;
             let line_len = dialogue.lines.get(dialogue.current_line).map(|l| l.len()).unwrap_or(0);
@@ -4660,6 +4674,7 @@ impl PokemonSim {
 
             if confirm {
                 if dialogue.char_index < line_len {
+                    // Instant-complete current line
                     dialogue.char_index = line_len;
                     dialogue.timer = line_len as f64 / chars_per_sec;
                 } else if dialogue.current_line + 1 < dialogue.lines.len() {
@@ -6216,9 +6231,12 @@ impl PokemonSim {
                 for (i, vis_line) in visible.split('\n').enumerate() {
                     draw_text_pkmn(fb, ctx, vis_line, 10, 106 + i as i32 * 12, dark);
                 }
-                // Show advance arrow when full line is revealed
-                if dialogue.char_index >= line.len() && (self.frame_count / 20) % 2 == 0 {
-                    draw_text_pkmn(fb, ctx, "V", 146, 132, dark);
+                // Show blinking advance arrow when full line is revealed
+                if dialogue.char_index >= line.len() {
+                    if (self.frame_count / 20) % 2 == 0 {
+                        // Draw down-pointing triangle as "more text" indicator
+                        draw_text_pkmn(fb, ctx, "v", 148, 132, dark);
+                    }
                 }
             }
         }
@@ -11539,5 +11557,46 @@ mod headless_tests {
         // Test that the species data for evolution targets exists
         assert!(get_species(QUILAVA).is_some());
         assert!(get_species(TYPHLOSION).is_some());
+    }
+
+    #[test]
+    fn test_sprint144_mt_mortar_map() {
+        use crate::pokemon::maps::*;
+        let map = load_map(MapId::MtMortar);
+        assert_eq!(map.name, "MT. MORTAR");
+        assert_eq!(map.width, 12);
+        assert_eq!(map.height, 12);
+        // Warp back to Route 42
+        assert!(map.warps.iter().any(|w| w.dest_map == MapId::Route42));
+        // Karate King Kiyo NPC with Hitmonlee/Hitmonchan
+        let kiyo = map.npcs.iter().find(|n| n.trainer_team.iter().any(|t| t.species_id == HITMONLEE));
+        assert!(kiyo.is_some(), "Karate King Kiyo should have Hitmonlee");
+        let kiyo = kiyo.unwrap();
+        assert!(kiyo.is_trainer);
+        assert!(kiyo.trainer_team.iter().any(|t| t.species_id == HITMONCHAN));
+        // Cave encounters should exist
+        assert!(!map.encounters.is_empty());
+    }
+
+    #[test]
+    fn test_sprint144_route42_mt_mortar_warp() {
+        use crate::pokemon::maps::*;
+        let map = load_map(MapId::Route42);
+        // Route 42 should have a warp leading to Mt. Mortar
+        let mt_mortar_warp = map.warps.iter().find(|w| w.dest_map == MapId::MtMortar);
+        assert!(mt_mortar_warp.is_some(), "Route 42 should have a warp to Mt. Mortar");
+        let warp = mt_mortar_warp.unwrap();
+        assert_eq!(warp.x, 9);
+        assert_eq!(warp.y, 5);
+    }
+
+    #[test]
+    fn test_sprint144_held_key_helpers() {
+        // Verify held key helper functions exist and compile by testing their key names
+        // The functions check keys_held for: KeyZ, Space, Enter (confirm) and KeyX, Escape (cancel)
+        let engine = Engine::new(320, 288);
+        // With no keys held, both should return false
+        assert!(!is_held_confirm(&engine));
+        assert!(!is_held_cancel(&engine));
     }
 }

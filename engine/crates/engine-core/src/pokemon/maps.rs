@@ -235,6 +235,7 @@ pub enum MapId {
     CianwoodCity,
     CianwoodGym,
     Route42,
+    MtMortar,
     MahoganyTown,
     MahoganyGym,
     Route43,
@@ -333,6 +334,7 @@ impl MapId {
             "CianwoodCity" => Some(MapId::CianwoodCity),
             "CianwoodGym" => Some(MapId::CianwoodGym),
             "Route42" => Some(MapId::Route42),
+            "MtMortar" => Some(MapId::MtMortar),
             "MahoganyTown" => Some(MapId::MahoganyTown),
             "MahoganyGym" => Some(MapId::MahoganyGym),
             "Route43" => Some(MapId::Route43),
@@ -432,6 +434,7 @@ impl MapId {
             MapId::CianwoodCity => "CianwoodCity",
             MapId::CianwoodGym => "CianwoodGym",
             MapId::Route42 => "Route42",
+            MapId::MtMortar => "MtMortar",
             MapId::MahoganyTown => "MahoganyTown",
             MapId::MahoganyGym => "MahoganyGym",
             MapId::Route43 => "Route43",
@@ -623,6 +626,7 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::CianwoodCity => build_cianwood_city(),
         MapId::CianwoodGym => build_cianwood_gym(),
         MapId::Route42 => build_route_42(),
+        MapId::MtMortar => build_mt_mortar(),
         MapId::MahoganyTown => build_mahogany_town(),
         MapId::MahoganyGym => build_mahogany_gym(),
         MapId::Route43 => build_route_43(),
@@ -6822,6 +6826,11 @@ fn build_route_42() -> MapData {
         // Row 13
         C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
     ];
+    // Add cave entrance for Mt. Mortar at (9,5) — change tile and collision
+    let mut tiles = tiles;
+    tiles[5 * width + 9] = CAVE_WALL; // cave entrance tile at (9,5)
+    let mut collision = collision;
+    collision[5 * width + 9] = C_WARP; // walkable warp at cave entrance
     let warps = vec![
         // West entrance → Ecruteak City south exit
         WarpData { x: 1, y: 1, dest_map: MapId::EcruteakCity, dest_x: 9, dest_y: 15 },
@@ -6831,6 +6840,8 @@ fn build_route_42() -> MapData {
         WarpData { x: 19, y: 9, dest_map: MapId::MahoganyTown, dest_x: 2, dest_y: 8 },
         WarpData { x: 18, y: 10, dest_map: MapId::MahoganyTown, dest_x: 2, dest_y: 9 },
         WarpData { x: 19, y: 10, dest_map: MapId::MahoganyTown, dest_x: 2, dest_y: 9 },
+        // Mt. Mortar cave entrance
+        WarpData { x: 9, y: 5, dest_map: MapId::MtMortar, dest_x: 5, dest_y: 9 },
     ];
     let npcs = vec![
         NpcDef {
@@ -6862,6 +6873,93 @@ fn build_route_42() -> MapData {
         EncounterEntry { species_id: MAREEP, min_level: 13, max_level: 15, weight: 10 },
     ];
     MapData { id: MapId::Route42, name: "ROUTE 42", width, height, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 2 }
+}
+
+// ─── Mt. Mortar (12×12) ─────────────────────────────────
+// Simplified single floor. Cave dungeon off Route 42 with Karate King KIYO.
+// pokecrystal: 4 floors (1F outside, 1F inside, 2F, B1F). Kiyo on B1F with Hitmonlee/Hitmonchan L34.
+fn build_mt_mortar() -> MapData {
+    let w: usize = 12;
+    let h: usize = 12;
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        // Row 0: cave walls
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 1
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 2
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 3
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 4
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 5
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 6
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        // Row 7
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 8
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 9: entrance
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        // Row 10
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        // Row 11
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+    debug_assert_eq!(tiles.len(), w * h);
+    debug_assert_eq!(collision.len(), w * h);
+    let warps = vec![
+        // Exit back to Route 42
+        WarpData { x: 5, y: 9, dest_map: MapId::Route42, dest_x: 9, dest_y: 6 },
+    ];
+    let npcs = vec![
+        // Karate King KIYO — pokecrystal: Hitmonlee L34, Hitmonchan L34
+        NpcDef {
+            x: 5, y: 2, sprite_id: 4, facing: Direction::Down,
+            dialogue: &["I am KIYO, a devotee", "of the fighting arts!", "You must be strong to", "get this deep. Let me", "test your mettle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: HITMONLEE, level: 34 },
+                TrainerPokemon { species_id: HITMONCHAN, level: 34 },
+            ],
+        },
+        // Hiker
+        NpcDef {
+            x: 8, y: 5, sprite_id: 2, facing: Direction::Left,
+            dialogue: &["This cave goes deep!", "There are rare Pokemon", "here if you look hard."],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[
+                TrainerPokemon { species_id: MACHOKE, level: 28 },
+                TrainerPokemon { species_id: GRAVELER, level: 28 },
+            ],
+        },
+    ];
+    let encounters = vec![
+        EncounterEntry { species_id: ZUBAT, min_level: 14, max_level: 18, weight: 30 },
+        EncounterEntry { species_id: GOLBAT, min_level: 18, max_level: 22, weight: 15 },
+        EncounterEntry { species_id: GEODUDE, min_level: 14, max_level: 18, weight: 20 },
+        EncounterEntry { species_id: MACHOP, min_level: 16, max_level: 18, weight: 20 },
+        EncounterEntry { species_id: MACHOKE, min_level: 20, max_level: 22, weight: 10 },
+        EncounterEntry { species_id: RATTATA, min_level: 14, max_level: 16, weight: 5 },
+    ];
+    MapData { id: MapId::MtMortar, name: "MT. MORTAR", width: w, height: h, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![], music_id: 5 }
 }
 
 // ─── Mahogany Town (16×14) ──────────────────────────────

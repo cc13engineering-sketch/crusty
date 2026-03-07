@@ -128,6 +128,7 @@ const FLAG_ROCKET_MAHOGANY: u64   = 1 << 6;  // Cleared Rocket HQ
 #[allow(dead_code)] const FLAG_MEDICINE: u64           = 1 << 7;  // Got SecretPotion
 #[allow(dead_code)] const FLAG_DELIVERED_MEDICINE: u64 = 1 << 8;  // Delivered medicine
 const FLAG_RIVAL_VICTORY: u64   = 1 << 9;  // Fought rival at Victory Road
+const FLAG_SQUIRTBOTTLE: u64    = 1 << 10; // Got Squirtbottle from Flower Shop
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -300,6 +301,7 @@ enum DialogueAction {
     GiveStarter,
     StartTrainerBattle { team: Vec<(SpeciesId, u8)> },
     StartFishBattle { species_id: SpeciesId, level: u8 },
+    StartSudowoodoBattle,
     EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
@@ -1021,64 +1023,9 @@ impl PokemonSim {
         false
     }
 
-    /// Sudowoodo: blocking tree on Route 36, forced wild encounter
+    /// Sudowoodo: blocking tree on Route 36 — now fully handled by NPC interaction + Squirtbottle
     fn check_sudowoodo(&mut self, _engine: &mut Engine) -> bool {
-        // Legacy position-based check — now handled by NPC interaction
-        // Keep as fallback for saves where player is already past x=14 without flag
-        if self.current_map_id == MapId::Route36
-            && !self.has_flag(FLAG_SUDOWOODO)
-            && self.player.x >= 15 && self.player.y >= 5 && self.player.y <= 7
-            && self.badges.count_ones() >= 3
-            && !self.party.is_empty()
-        {
-            self.check_sudowoodo_battle();
-            return true;
-        }
         false
-    }
-
-    fn check_sudowoodo_battle(&mut self) {
-        self.set_flag(FLAG_SUDOWOODO);
-        self.dialogue = Some(DialogueState {
-            lines: vec![
-                "The weird tree moved!".to_string(),
-                "It's a POKEMON!".to_string(),
-            ],
-            current_line: 0, char_index: 0, timer: 0.0,
-            on_complete: DialogueAction::None,
-        });
-        self.register_seen(SUDOWOODO);
-        let enemy = Pokemon::new(SUDOWOODO, 20);
-        let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
-        let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
-        self.battle = Some(BattleState {
-            phase: BattlePhase::Intro { timer: 0.0 },
-            enemy,
-            player_idx,
-            is_wild: true,
-            player_hp_display: player_hp,
-            enemy_hp_display: 0.0,
-            turn_count: 0,
-            trainer_team: Vec::new(),
-            trainer_team_idx: 0,
-            pending_player_move: None,
-            player_stages: [0; 7],
-            enemy_stages: [0; 7],
-            enemy_flinched: false,
-            player_flinched: false,
-            player_confused: 0,
-            enemy_confused: 0,
-            player_trapped: false,
-            player_must_recharge: false,
-            enemy_must_recharge: false,
-            player_rampage: (0, 0),
-            enemy_rampage: (0, 0),
-            pending_learn_moves: vec![],
-            free_switch: false,
-            confusion_snapout_msg: None,
-        });
-        self.encounter_flash_count = 0;
-        self.phase = GamePhase::EncounterTransition { timer: 0.0 };
     }
 
     // ─── Overworld Logic ───────────────────────────────
@@ -1568,13 +1515,57 @@ impl PokemonSim {
                 return;
             }
 
-            // Sudowoodo NPC interaction — triggers battle if player has 3+ badges
+            // Sudowoodo NPC interaction — requires Squirtbottle
             if self.current_map_id == MapId::Route36 && npc_idx == 2
                 && !self.has_flag(FLAG_SUDOWOODO)
-                && self.badges.count_ones() >= 3
                 && !self.party.is_empty()
             {
-                self.check_sudowoodo_battle();
+                if self.has_flag(FLAG_SQUIRTBOTTLE) {
+                    self.set_flag(FLAG_SUDOWOODO);
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            "Used the SQUIRTBOTTLE!".to_string(),
+                            "The tree doesn't like".to_string(),
+                            "the water!".to_string(),
+                            "The weird tree is".to_string(),
+                            "attacking!".to_string(),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::StartSudowoodoBattle,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec![
+                            "A weird tree is".to_string(),
+                            "blocking the path.".to_string(),
+                            "It won't budge...".to_string(),
+                        ],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                }
+                return;
+            }
+
+            // Goldenrod Flower Shop: give Squirtbottle after Whitney badge
+            if self.current_map_id == MapId::GoldenrodCity && npc_idx == 0
+                && !self.has_flag(FLAG_SQUIRTBOTTLE) && (self.badges & (1 << 2)) != 0
+            {
+                self.set_flag(FLAG_SQUIRTBOTTLE);
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "Oh, you beat WHITNEY!".to_string(),
+                        "Here, take this!".to_string(),
+                        "Received SQUIRTBOTTLE!".to_string(),
+                        "Use it on the weird".to_string(),
+                        "tree on ROUTE 36!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                self.phase = GamePhase::Dialogue;
                 return;
             }
 
@@ -3725,6 +3716,40 @@ impl PokemonSim {
                 DialogueAction::StartFishBattle { species_id, level } => {
                     self.register_seen(species_id);
                     let enemy = Pokemon::new(species_id, level);
+                    let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                    let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+                    self.battle = Some(BattleState {
+                        phase: BattlePhase::Intro { timer: 0.0 },
+                        enemy,
+                        player_idx,
+                        is_wild: true,
+                        player_hp_display: player_hp,
+                        enemy_hp_display: 0.0,
+                        turn_count: 0,
+                        trainer_team: Vec::new(),
+                        trainer_team_idx: 0,
+                        pending_player_move: None,
+                        player_stages: [0; 7],
+                        enemy_stages: [0; 7],
+                        enemy_flinched: false,
+                        player_flinched: false,
+                        player_confused: 0,
+                        enemy_confused: 0,
+                        player_trapped: false,
+                        player_must_recharge: false,
+                        enemy_must_recharge: false,
+                        player_rampage: (0, 0),
+                        enemy_rampage: (0, 0),
+                        pending_learn_moves: vec![],
+                        free_switch: false,
+                        confusion_snapout_msg: None,
+                    });
+                    self.encounter_flash_count = 0;
+                    self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                }
+                DialogueAction::StartSudowoodoBattle => {
+                    self.register_seen(SUDOWOODO);
+                    let enemy = Pokemon::new(SUDOWOODO, 20);
                     let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
                     let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                     self.battle = Some(BattleState {
@@ -6773,19 +6798,17 @@ mod headless_tests {
 
     #[test]
     fn test_sudowoodo_requires_3_badges() {
+        // Sudowoodo is now NPC-based + requires Squirtbottle.
+        // check_sudowoodo() always returns false (legacy stub).
         let mut sim = PokemonSim::new();
         sim.party.push(Pokemon::new(CHIKORITA, 10));
         sim.change_map(MapId::Route36, 15, 6);
-
-        // With 2 badges, should NOT trigger
-        sim.badges = 0b00000011; // 2 badges
-        assert!(!sim.check_sudowoodo(&mut Engine::new(160, 144)));
-
-        // With 3 badges, should trigger
         sim.badges = 0b00000111; // 3 badges
-        let mut eng = Engine::new(160, 144);
-        assert!(sim.check_sudowoodo(&mut eng));
-        assert!(sim.has_flag(FLAG_SUDOWOODO));
+        // Legacy function always returns false now
+        assert!(!sim.check_sudowoodo(&mut Engine::new(160, 144)));
+        // Squirtbottle flag enables interaction via NPC dialogue system
+        sim.set_flag(FLAG_SQUIRTBOTTLE);
+        assert!(sim.has_flag(FLAG_SQUIRTBOTTLE));
     }
 
     #[test]

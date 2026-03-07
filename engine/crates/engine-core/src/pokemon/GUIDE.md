@@ -1670,3 +1670,10 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - NPC sprite cache now holds 8 sprites (indices 0-7).
 - All tests pass.
 - **Next (Sprint 101)**: Content sprint.
+
+### Sprint 101 (Content — Squirtbottle + Sudowoodo Refactor)
+- **Squirtbottle item flow** — Goldenrod Flower Shop lady (NPC 0) gives Squirtbottle after player earns Plain Badge (badge 2, Whitney). Uses FLAG_SQUIRTBOTTLE (bit 10). Without Squirtbottle, interacting with Sudowoodo shows "A weird tree is blocking the path" dialogue.
+- **Sudowoodo refactored to dialogue-action pattern** — Removed legacy `check_sudowoodo_battle()`. Sudowoodo NPC interaction now shows "Used the SQUIRTBOTTLE!" dialogue, then `DialogueAction::StartSudowoodoBattle` triggers the Lv20 wild Sudowoodo battle on_complete. Fixes old bug where battle dialogue was skipped.
+- **Legacy `check_sudowoodo()` stubbed** — Always returns false; position-based check removed since NPC interaction handles everything. Test updated to verify Squirtbottle flag system.
+- All tests pass.
+- **Next (Sprint 102 — QA)**: Full QA audit of Sprints 100-101.

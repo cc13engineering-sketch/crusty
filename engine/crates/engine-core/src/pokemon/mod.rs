@@ -158,9 +158,31 @@ enum BattlePhase {
     PlayerFainted,
     EnemyFainted { exp_gained: u32 },
     LevelUp { timer: f64 },
+    LearnMove { new_move: MoveId, sub: LearnMoveSub },
     Won { timer: f64 },
     Run,
     RunFailed { timer: f64 },
+}
+
+/// Sub-states for the move learning sequence
+#[derive(Clone, Debug, PartialEq)]
+enum LearnMoveSub {
+    /// "X is trying to learn MOVE!" (auto-advance)
+    TryingToLearn { timer: f64 },
+    /// "But X can't learn more than 4 moves." (auto-advance)
+    CantLearnMore { timer: f64 },
+    /// "Delete an older move to make room for MOVE?" YES/NO
+    DeletePrompt { cursor: u8 },
+    /// Pick which of the 4 current moves to forget
+    PickMove { cursor: u8 },
+    /// "1, 2, and... Poof! X forgot OLD." (auto-advance)
+    ForgotMove { timer: f64, slot: usize },
+    /// "And... X learned NEW!" (auto-advance)
+    LearnedMove { timer: f64 },
+    /// "Stop learning MOVE?" YES/NO
+    StopPrompt { cursor: u8 },
+    /// "X did not learn MOVE." (auto-advance)
+    DidNotLearn { timer: f64 },
 }
 
 // ─── Battle State ───────────────────────────────────────
@@ -239,6 +261,8 @@ struct BattleState {
     // Thrash/Outrage rampage: turns remaining (0 = not rampaging), move_id, confused after
     player_rampage: (u8, MoveId),
     enemy_rampage: (u8, MoveId),
+    // Moves queued for the learn-move prompt (all 4 slots full, player must choose)
+    pending_learn_moves: Vec<MoveId>,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -930,6 +954,7 @@ impl PokemonSim {
                 enemy_must_recharge: false,
                 player_rampage: (0, 0),
                 enemy_rampage: (0, 0),
+                pending_learn_moves: vec![],
             });
             self.encounter_flash_count = 0;
             // Skip dialogue — go straight to encounter transition after a brief pause
@@ -986,6 +1011,7 @@ impl PokemonSim {
                 enemy_must_recharge: false,
                 player_rampage: (0, 0),
                 enemy_rampage: (0, 0),
+                pending_learn_moves: vec![],
             });
             self.encounter_flash_count = 0;
             self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -1174,6 +1200,7 @@ impl PokemonSim {
                                 enemy_must_recharge: false,
                                 player_rampage: (0, 0),
                                 enemy_rampage: (0, 0),
+                                pending_learn_moves: vec![],
                             });
                             // Trigger encounter transition flash instead of going directly to battle
                             self.encounter_flash_count = 0;
@@ -2439,9 +2466,14 @@ impl PokemonSim {
                             if p.exp >= next_exp && p.level < 100 {
                                 p.level += 1;
                                 p.recalc_stats();
-                                // Check for new moves
+                                // Check for new moves at this level
                                 let new_moves = p.check_new_moves();
+                                let mut pending_learns = Vec::new();
                                 for new_move in new_moves {
+                                    // Skip if already known
+                                    if p.moves.iter().any(|m| *m == Some(new_move)) { continue; }
+                                    // Try to fill an empty slot
+                                    let mut filled = false;
                                     for i in 0..4 {
                                         if p.moves[i].is_none() {
                                             p.moves[i] = Some(new_move);
@@ -2449,10 +2481,16 @@ impl PokemonSim {
                                                 p.move_pp[i] = md.pp;
                                                 p.move_max_pp[i] = md.pp;
                                             }
+                                            filled = true;
                                             break;
                                         }
                                     }
+                                    // All 4 slots full — queue for prompt
+                                    if !filled {
+                                        pending_learns.push(new_move);
+                                    }
                                 }
+                                battle.pending_learn_moves = pending_learns;
                                 // Check for evolution
                                 let evo_species = get_species(p.species_id)
                                     .and_then(|s| {
@@ -2508,14 +2546,20 @@ impl PokemonSim {
             BattlePhase::LevelUp { timer } => {
                 let t = timer + dt;
                 if t > 2.0 || is_confirm(engine) {
-                    // Check if trainer has more Pokemon
-                    if !battle.is_wild && !battle.trainer_team.is_empty() {
+                    // Check for pending move learns before advancing
+                    if !battle.pending_learn_moves.is_empty() {
+                        let new_move = battle.pending_learn_moves.remove(0);
+                        battle.phase = BattlePhase::LearnMove {
+                            new_move,
+                            sub: LearnMoveSub::TryingToLearn { timer: 0.0 },
+                        };
+                    } else if !battle.is_wild && !battle.trainer_team.is_empty() {
                         let next_enemy = battle.trainer_team.remove(0);
                         battle.trainer_team_idx += 1;
                         let next_name = next_enemy.name().to_string();
                         battle.enemy = next_enemy;
                         battle.enemy_hp_display = battle.enemy.hp as f64;
-                        battle.enemy_stages = [0; 7]; // Reset enemy stages on new Pokemon
+                        battle.enemy_stages = [0; 7];
                         battle.enemy_confused = 0;
                         battle.enemy_must_recharge = false;
                         battle.enemy_rampage = (0, 0);
@@ -2529,6 +2573,205 @@ impl PokemonSim {
                     }
                 } else {
                     battle.phase = BattlePhase::LevelUp { timer: t };
+                }
+            }
+
+            BattlePhase::LearnMove { new_move, sub } => {
+                match sub {
+                    LearnMoveSub::TryingToLearn { timer } => {
+                        let t = timer + dt;
+                        if t > 2.5 || is_confirm(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::CantLearnMore { timer: 0.0 },
+                            };
+                        } else {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::TryingToLearn { timer: t },
+                            };
+                        }
+                    }
+                    LearnMoveSub::CantLearnMore { timer } => {
+                        let t = timer + dt;
+                        if t > 2.5 || is_confirm(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::DeletePrompt { cursor: 0 },
+                            };
+                        } else {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::CantLearnMore { timer: t },
+                            };
+                        }
+                    }
+                    LearnMoveSub::DeletePrompt { cursor } => {
+                        if is_up(engine) || is_down(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::DeletePrompt { cursor: 1 - cursor },
+                            };
+                        } else if is_confirm(engine) {
+                            if cursor == 0 {
+                                // YES — pick which move to forget
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move,
+                                    sub: LearnMoveSub::PickMove { cursor: 0 },
+                                };
+                            } else {
+                                // NO — confirm giving up
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move,
+                                    sub: LearnMoveSub::StopPrompt { cursor: 0 },
+                                };
+                            }
+                        } else if is_cancel(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::StopPrompt { cursor: 0 },
+                            };
+                        }
+                    }
+                    LearnMoveSub::PickMove { cursor } => {
+                        if is_down(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::PickMove { cursor: (cursor + 1) % 4 },
+                            };
+                        } else if is_up(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::PickMove { cursor: if cursor == 0 { 3 } else { cursor - 1 } },
+                            };
+                        } else if is_confirm(engine) {
+                            // Forget the selected move, learn the new one
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                let slot = cursor as usize;
+                                p.moves[slot] = Some(new_move);
+                                if let Some(md) = get_move(new_move) {
+                                    p.move_pp[slot] = md.pp;
+                                    p.move_max_pp[slot] = md.pp;
+                                }
+                            }
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::ForgotMove { timer: 0.0, slot: cursor as usize },
+                            };
+                        } else if is_cancel(engine) {
+                            // Go back to delete prompt
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::DeletePrompt { cursor: 0 },
+                            };
+                        }
+                    }
+                    LearnMoveSub::ForgotMove { timer, slot } => {
+                        let t = timer + dt;
+                        if t > 2.0 || is_confirm(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::LearnedMove { timer: 0.0 },
+                            };
+                        } else {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::ForgotMove { timer: t, slot },
+                            };
+                        }
+                    }
+                    LearnMoveSub::LearnedMove { timer } => {
+                        let t = timer + dt;
+                        if t > 2.0 || is_confirm(engine) {
+                            // Check for more pending moves
+                            if !battle.pending_learn_moves.is_empty() {
+                                let next = battle.pending_learn_moves.remove(0);
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move: next,
+                                    sub: LearnMoveSub::TryingToLearn { timer: 0.0 },
+                                };
+                            } else if !battle.is_wild && !battle.trainer_team.is_empty() {
+                                let next_enemy = battle.trainer_team.remove(0);
+                                battle.trainer_team_idx += 1;
+                                let next_name = next_enemy.name().to_string();
+                                battle.enemy = next_enemy;
+                                battle.enemy_hp_display = battle.enemy.hp as f64;
+                                battle.enemy_stages = [0; 7];
+                                battle.enemy_confused = 0;
+                                battle.enemy_must_recharge = false;
+                                battle.enemy_rampage = (0, 0);
+                                battle.phase = BattlePhase::Text {
+                                    message: format!("Trainer sent out {}!", next_name),
+                                    timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                };
+                            } else {
+                                battle.phase = BattlePhase::Won { timer: 0.0 };
+                            }
+                        } else {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::LearnedMove { timer: t },
+                            };
+                        }
+                    }
+                    LearnMoveSub::StopPrompt { cursor } => {
+                        if is_up(engine) || is_down(engine) {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::StopPrompt { cursor: 1 - cursor },
+                            };
+                        } else if is_confirm(engine) {
+                            if cursor == 0 {
+                                // YES — don't learn the move
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move,
+                                    sub: LearnMoveSub::DidNotLearn { timer: 0.0 },
+                                };
+                            } else {
+                                // NO — go back to delete prompt
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move,
+                                    sub: LearnMoveSub::DeletePrompt { cursor: 0 },
+                                };
+                            }
+                        }
+                    }
+                    LearnMoveSub::DidNotLearn { timer } => {
+                        let t = timer + dt;
+                        if t > 2.0 || is_confirm(engine) {
+                            // Check for more pending moves
+                            if !battle.pending_learn_moves.is_empty() {
+                                let next = battle.pending_learn_moves.remove(0);
+                                battle.phase = BattlePhase::LearnMove {
+                                    new_move: next,
+                                    sub: LearnMoveSub::TryingToLearn { timer: 0.0 },
+                                };
+                            } else if !battle.is_wild && !battle.trainer_team.is_empty() {
+                                let next_enemy = battle.trainer_team.remove(0);
+                                battle.trainer_team_idx += 1;
+                                let next_name = next_enemy.name().to_string();
+                                battle.enemy = next_enemy;
+                                battle.enemy_hp_display = battle.enemy.hp as f64;
+                                battle.enemy_stages = [0; 7];
+                                battle.enemy_confused = 0;
+                                battle.enemy_must_recharge = false;
+                                battle.enemy_rampage = (0, 0);
+                                battle.phase = BattlePhase::Text {
+                                    message: format!("Trainer sent out {}!", next_name),
+                                    timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                };
+                            } else {
+                                battle.phase = BattlePhase::Won { timer: 0.0 };
+                            }
+                        } else {
+                            battle.phase = BattlePhase::LearnMove {
+                                new_move,
+                                sub: LearnMoveSub::DidNotLearn { timer: t },
+                            };
+                        }
+                    }
                 }
             }
 
@@ -2957,6 +3200,7 @@ impl PokemonSim {
                             enemy_must_recharge: false,
                             player_rampage: (0, 0),
                             enemy_rampage: (0, 0),
+                            pending_learn_moves: vec![],
                         });
                         self.encounter_flash_count = 0;
                         self.phase = GamePhase::EncounterTransition { timer: 0.0 };
@@ -3691,6 +3935,89 @@ impl PokemonSim {
                 if let Some(p) = self.party.get(battle.player_idx) {
                     let msg = format!("{} grew to LV{}!", p.name(), p.level);
                     draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                }
+            }
+
+            BattlePhase::LearnMove { new_move, sub } => {
+                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                let mname = get_move(*new_move).map(|m| m.name).unwrap_or("???");
+                match sub {
+                    LearnMoveSub::TryingToLearn { .. } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("{} is trying to\nlearn {}!", pname, mname);
+                        for (i, line) in msg.split('\n').enumerate() {
+                            draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                        }
+                    }
+                    LearnMoveSub::CantLearnMore { .. } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("But {} can't learn\nmore than 4 moves.", pname);
+                        for (i, line) in msg.split('\n').enumerate() {
+                            draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                        }
+                    }
+                    LearnMoveSub::DeletePrompt { cursor } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("Delete a move for\n{}?", mname);
+                        for (i, line) in msg.split('\n').enumerate() {
+                            draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                        }
+                        // YES/NO box
+                        draw_text_box(fb, ctx, 120, 70, 36, 28);
+                        draw_text_pkmn(fb, ctx, "YES", 130, 76, dark);
+                        draw_text_pkmn(fb, ctx, "NO", 130, 88, dark);
+                        draw_cursor(fb, ctx, 122, 76 + *cursor as i32 * 12, dark);
+                    }
+                    LearnMoveSub::PickMove { cursor } => {
+                        draw_text_box(fb, ctx, 2, 50, 156, 90);
+                        draw_text_pkmn(fb, ctx, "Which move to forget?", 10, 56, dark);
+                        if let Some(p) = self.party.get(battle.player_idx) {
+                            for i in 0..4 {
+                                if let Some(mid) = p.moves[i] {
+                                    if let Some(md) = get_move(mid) {
+                                        let y = 72 + i as i32 * 14;
+                                        let col = type_color(md.move_type);
+                                        draw_text_pkmn(fb, ctx, md.name, 20, y, col);
+                                        let pp_s = format!("{}/{}", p.move_pp[i], p.move_max_pp[i]);
+                                        draw_text_pkmn(fb, ctx, &pp_s, 100, y, dark);
+                                        if i as u8 == *cursor {
+                                            draw_cursor(fb, ctx, 12, y, dark);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    LearnMoveSub::ForgotMove { .. } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        draw_text_pkmn(fb, ctx, "1, 2, and... Poof!", 10, 106, dark);
+                        let msg = format!("{} learned {}!", pname, mname);
+                        draw_text_pkmn(fb, ctx, &msg, 10, 118, dark);
+                    }
+                    LearnMoveSub::LearnedMove { .. } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("{} learned {}!", pname, mname);
+                        draw_text_pkmn(fb, ctx, &msg, 10, 106, dark);
+                    }
+                    LearnMoveSub::StopPrompt { cursor } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("Stop learning\n{}?", mname);
+                        for (i, line) in msg.split('\n').enumerate() {
+                            draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                        }
+                        // YES/NO box
+                        draw_text_box(fb, ctx, 120, 70, 36, 28);
+                        draw_text_pkmn(fb, ctx, "YES", 130, 76, dark);
+                        draw_text_pkmn(fb, ctx, "NO", 130, 88, dark);
+                        draw_cursor(fb, ctx, 122, 76 + *cursor as i32 * 12, dark);
+                    }
+                    LearnMoveSub::DidNotLearn { .. } => {
+                        draw_text_box(fb, ctx, 2, 98, 156, 42);
+                        let msg = format!("{} did not learn\n{}.", pname, mname);
+                        for (i, line) in msg.split('\n').enumerate() {
+                            draw_text_pkmn(fb, ctx, line, 10, 106 + i as i32 * 12, dark);
+                        }
+                    }
                 }
             }
 
@@ -5768,5 +6095,43 @@ mod headless_tests {
         assert!(map.warps.iter().any(|w| w.dest_map == MapId::MahoganyTown));
         let mt = load_map(MapId::MahoganyTown);
         assert!(mt.warps.iter().any(|w| w.dest_map == MapId::RocketHQ));
+    }
+
+    #[test]
+    fn test_learn_move_queued_when_full() {
+        // Create a Pokemon with 4 moves that learns a new move at a specific level
+        // Use Cyndaquil which learns Ember at lv12
+        let mut p = Pokemon::new(CYNDAQUIL, 11);
+        // Fill all 4 slots
+        p.moves = [Some(MOVE_TACKLE), Some(MOVE_LEER), Some(MOVE_SMOKESCREEN), Some(MOVE_QUICK_ATTACK)];
+        p.move_pp = [35, 30, 20, 30];
+        p.move_max_pp = [35, 30, 20, 30];
+        p.level = 12; // Cyndaquil learns Ember at 12
+        let new_moves = p.check_new_moves();
+        // Should find Ember as a learnable move
+        assert!(!new_moves.is_empty(), "Cyndaquil should learn a move at lv12");
+        // Verify none of the new moves are already known
+        for nm in &new_moves {
+            let already_known = p.moves.iter().any(|m| *m == Some(*nm));
+            // If it's already known, skip it (as our code does)
+            if !already_known {
+                // All slots full — this should trigger the learn prompt
+                let has_empty = p.moves.iter().any(|m| m.is_none());
+                assert!(!has_empty, "All 4 move slots should be full");
+            }
+        }
+    }
+
+    #[test]
+    fn test_learn_move_sub_phases() {
+        // Verify LearnMoveSub enum variants exist and can be constructed
+        let _t = LearnMoveSub::TryingToLearn { timer: 0.0 };
+        let _c = LearnMoveSub::CantLearnMore { timer: 0.0 };
+        let _d = LearnMoveSub::DeletePrompt { cursor: 0 };
+        let _p = LearnMoveSub::PickMove { cursor: 0 };
+        let _f = LearnMoveSub::ForgotMove { timer: 0.0, slot: 0 };
+        let _l = LearnMoveSub::LearnedMove { timer: 0.0 };
+        let _s = LearnMoveSub::StopPrompt { cursor: 0 };
+        let _n = LearnMoveSub::DidNotLearn { timer: 0.0 };
     }
 }

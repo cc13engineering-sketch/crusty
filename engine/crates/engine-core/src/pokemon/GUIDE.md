@@ -1747,7 +1747,15 @@ Full audit of every transition, progression gate, battle text sequence, and map 
 - All 1313 tests pass. 0 bugs.
 - **Next (Sprint 110)**: Content sprint.
 
-### Sprint 112 — Progression gates refactor + mobile bike + gym audit
+### Sprint 110 (Content — Trainer Card Screen)
+- **Trainer Card**: New `GamePhase::TrainerCard` with player name, money, Pokedex seen/caught, play time, and 8-badge grid. Accessible from pause menu (new TRAINER option between POKEDEX and SAVE). Menu expanded from 5 to 6 items.
+- All 1313 tests pass.
+
+### Sprint 111 (Content — Party Management)
+- **Party swap/reorder**: PokemonMenu expanded with 3 action modes: browse, sub-menu (SUMMARY/SWAP/CANCEL), and swap selection. Players select two Pokemon to swap positions. Yellow highlight on swap source, "SWAP TO?" prompt. Battle switch path unchanged. Swap correctly updates battle player_idx if active Pokemon involved.
+- All 1313 tests pass.
+
+### Sprint 112 (Content — Progression Gates + Mobile Bike + Gym Audit)
 
 - **`check_warp_gate` helper** — Extracted all 6 inline warp gate checks (Route27, UnionCave, IlexForest->Route34, RocketHQ, IcePath, VictoryRoad) into a single `fn check_warp_gate(&self, dest: MapId) -> Option<&'static [&'static str]>` method. Returns gate dialogue lines if blocked, None if passable. Reduces the warp processing code from ~90 lines of repetitive if-blocks to a single 10-line call site. All gate logic is now centralized and easy to audit/extend.
 - **Mobile bike access via BAG** — When `has_bicycle` is true and not in battle, BICYCLE appears as the first item in the Bag menu. Selecting it toggles `on_bicycle` with feedback dialogue ("Got on the BICYCLE!" / "Got off the BICYCLE."). Indoor maps show "Can't use that here!" message. The bicycle shows "ON" status when riding, "x1" otherwise. Mobile/touch players who cannot press C/Shift can now access the bicycle. Keyboard shortcut still works too.

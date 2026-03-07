@@ -1,0 +1,926 @@
+================================================================================
+JOHTO REGION — CITIES, PROGRESSION GATES & MAP CONNECTIVITY
+Source: Bulbapedia (fetched 2026-03-07)
+Scope: Full Johto storyline + detailed city data for first 5 towns
+================================================================================
+
+################################################################################
+SECTION 1: COMPLETE MAP CONNECTIVITY
+################################################################################
+
+Every location and what it connects to:
+
+  New Bark Town
+    West  -> Route 29
+    East  -> Route 27 (requires Surf; late-game path to Kanto)
+
+  Route 29
+    East  -> New Bark Town
+    West  -> Cherrygrove City
+    North -> Route 46 (lower section only; one-way ledges from above)
+
+  Cherrygrove City
+    East  -> Route 29
+    North -> Route 30
+
+  Route 30
+    South     -> Cherrygrove City
+    North     -> Route 31
+    Northeast -> Mr. Pokemon's House
+
+  Route 31
+    West -> Route 30
+    East -> Violet City
+    East -> Dark Cave (western entrance; requires Flash)
+
+  Violet City
+    East  -> Route 31
+    South -> Route 32
+    West  -> Route 36
+    North -> Sprout Tower (interior)
+
+  Route 32
+    North -> Violet City
+    West  -> Ruins of Alph
+    South -> Union Cave
+
+  Ruins of Alph
+    East  -> Route 32
+    South -> Route 36 (alternative exit)
+
+  Union Cave
+    North -> Route 32
+    South -> Route 33
+    (Interior requires Surf for lower levels; Lapras on Fridays in B2F)
+
+  Route 33
+    North -> Union Cave
+    West  -> Azalea Town
+
+  Azalea Town
+    East -> Route 33
+    West -> Ilex Forest
+    North -> Slowpoke Well (interior)
+
+  Ilex Forest
+    East  -> Azalea Town
+    West  -> Route 34
+    (Requires Cut to navigate through)
+
+  Route 34
+    North -> Ilex Forest gate
+    South -> Goldenrod City
+    (Pokemon Day Care is on this route)
+
+  Goldenrod City
+    North -> Route 35
+    South -> Route 34
+
+  Route 35
+    South -> Goldenrod City
+    North -> National Park
+
+  National Park
+    South -> Route 35
+    East  -> Route 36
+
+  Route 36
+    West  -> National Park
+    East  -> Violet City
+    North -> Route 37
+    South -> Ruins of Alph
+    (BLOCKED by Sudowoodo until SquirtBottle obtained after Whitney)
+
+  Route 37
+    South -> Route 36
+    North -> Ecruteak City
+
+  Ecruteak City
+    South -> Route 37
+    West  -> Route 38
+    East  -> Route 42
+    North -> Burned Tower (interior)
+    North -> Tin Tower / Bell Tower (interior; story-gated)
+
+  Route 38
+    East -> Ecruteak City
+    West -> Route 39
+
+  Route 39
+    East  -> Route 38
+    South -> Olivine City
+    (Moomoo Farm is on this route)
+
+  Olivine City
+    North -> Route 39
+    South -> Route 40 (requires Surf)
+    East  -> Olivine Lighthouse (interior)
+    (Battle Frontier in Crystal only)
+
+  Route 40
+    North -> Olivine City
+    South -> Route 41
+
+  Route 41
+    North -> Route 40
+    South -> Cianwood City
+    Center -> Whirl Islands (requires Whirlpool)
+
+  Cianwood City
+    North -> Route 41 (requires Surf to leave)
+    (Pharmacy, Chuck's Gym)
+
+  Route 42
+    West   -> Ecruteak City
+    East   -> Mahogany Town
+    Center -> Mt. Mortar (3 entrances)
+    (Requires Surf to cross water sections)
+
+  Mahogany Town
+    West  -> Route 42
+    North -> Route 43
+    East  -> Route 44
+    Below -> Team Rocket HQ (story event; under shop)
+
+  Route 43
+    South -> Mahogany Town
+    North -> Lake of Rage
+    (Team Rocket toll gate during Rocket arc)
+
+  Lake of Rage
+    South -> Route 43
+    (Red Gyarados event)
+
+  Route 44
+    West -> Mahogany Town
+    East -> Ice Path
+
+  Ice Path
+    West -> Route 44
+    East -> Blackthorn City
+    (Requires Strength to navigate ice puzzles)
+
+  Blackthorn City
+    West  -> Ice Path
+    South -> Route 45
+    Below -> Dragon's Den (requires Surf + Whirlpool)
+
+  Route 45
+    North -> Blackthorn City
+    South -> Route 46 (one-way; ledges going south only)
+
+  Route 46
+    North -> Route 45
+    South -> Route 29
+
+  --- KANTO BORDER ---
+
+  Route 27
+    West -> New Bark Town (requires Surf)
+    East -> Route 26
+    (Tohjo Falls interior; requires Waterfall)
+
+  Route 26
+    West -> Route 27
+    East -> Victory Road / Indigo Plateau
+
+
+################################################################################
+SECTION 2: HM BADGE REQUIREMENTS (PROGRESSION GATES)
+################################################################################
+
+  HM# | Move      | Obtained Where              | Badge Required to Use
+  ----+-----------+-----------------------------+----------------------------
+  01  | Cut       | Ilex Forest (after Farfetch'd) | Hive Badge (Gym 2, Bugsy)
+  02  | Fly       | Cianwood City (Chuck's wife)   | Storm Badge (Gym 5, Chuck)
+  03  | Surf      | Ecruteak City (Dance Theater)  | Fog Badge (Gym 4, Morty)
+  04  | Strength  | Olivine City (sailor in cafe)  | Plain Badge (Gym 3, Whitney)
+  05  | Flash     | Sprout Tower (Sage Li)         | Zephyr Badge (Gym 1, Falkner)
+  06  | Whirlpool | Rocket HQ (from Lance)         | Glacier Badge (Gym 7, Pryce)
+  07  | Waterfall | Ice Path                       | Rising Badge (Gym 8, Clair)
+
+Required HMs for game completion: Cut, Surf, Strength, Whirlpool, Waterfall
+
+
+################################################################################
+SECTION 3: STORY PROGRESSION GATES (what blocks what)
+################################################################################
+
+Gate 1: Elm's Errand
+  Trigger:  Start of game
+  Blocker:  Cannot leave New Bark Town until receiving starter from Elm
+  Clears:   Obtaining starter Pokemon + Potion
+
+Gate 2: Mr. Pokemon's Egg
+  Trigger:  Arrive at Mr. Pokemon's house (Route 30)
+  Blocker:  Must deliver Mystery Egg to Elm before progressing
+  Clears:   Receive Pokedex from Oak, 5 Poke Balls from Elm's aide
+
+Gate 3: Dark Cave
+  Blocker:  Requires Flash (HM05) to navigate; optional area
+  Clears:   After Zephyr Badge
+
+Gate 4: Sprout Tower
+  Blocker:  None (optional but recommended before gym)
+  Clears:   HM05 Flash from Sage Li
+
+Gate 5: Violet Gym
+  Blocker:  None
+  Clears:   Zephyr Badge -> Flash usable outside battle
+  Reward:   TM31 Mud-Slap, Mystery Egg from Elm's aide
+
+Gate 6: Ruins of Alph
+  Blocker:  Most puzzles require Surf (later in game)
+  Clears:   Unown encounters (optional)
+
+Gate 7: Union Cave
+  Blocker:  Lower levels require Surf (later)
+  Clears:   Path to Route 33 / Azalea Town
+
+Gate 8: Slowpoke Well
+  Trigger:  Arrive in Azalea Town
+  Blocker:  Team Rocket controls the well; must defeat them
+  Clears:   Kurt gives Lure Ball, access to Azalea Gym
+
+Gate 9: Azalea Gym
+  Blocker:  Must clear Slowpoke Well first
+  Clears:   Hive Badge -> Cut usable outside battle
+  Reward:   TM49 Fury Cutter
+
+Gate 10: Ilex Forest
+  Blocker:  Requires Cut (from HM01 after Slowpoke Well)
+  Also:     Must catch/guide Farfetch'd back to charcoal maker
+  Clears:   Path to Route 34 / Goldenrod City
+  Reward:   TM02 Headbutt
+
+Gate 11: Goldenrod Gym
+  Blocker:  None
+  Clears:   Plain Badge -> Strength usable outside battle
+  Reward:   TM45 Attract
+
+Gate 12: Flower Shop / Sudowoodo
+  Trigger:  Defeat Whitney
+  Blocker:  Sudowoodo blocks Route 36 until sprayed with SquirtBottle
+  Clears:   SquirtBottle from Flower Shop (requires Plain Badge)
+  Result:   Battle Sudowoodo (Lv.20 Rock-type), path to Route 37 opens
+
+Gate 13: Burned Tower
+  Trigger:  Enter Ecruteak City
+  Blocker:  Must explore Burned Tower basement to release legendary beasts
+  Also:     Rival battle inside (Silver)
+  Clears:   Raikou, Entei, Suicune begin roaming; access to Ecruteak Gym
+
+Gate 14: Ecruteak Gym + Dance Theater
+  Blocker:  Must defeat Kimono Girls (5 Eevee evolutions) at Dance Theater
+  Clears:   Fog Badge -> Surf usable outside battle
+  Reward:   TM30 Shadow Ball, HM03 Surf (from old man after Kimono Girls)
+
+Gate 15: Olivine Lighthouse
+  Trigger:  Arrive in Olivine City
+  Blocker:  Jasmine stays with sick Ampharos; won't battle at gym
+  Clears:   Must Surf to Cianwood to get Secret Potion from pharmacy
+
+Gate 16: Cianwood Gym
+  Blocker:  None (can challenge Chuck immediately)
+  Clears:   Storm Badge -> Fly usable outside battle
+  Reward:   TM01 DynamicPunch, HM02 Fly (from Chuck's wife outside gym)
+
+Gate 17: Return to Olivine
+  Trigger:  Obtain Secret Potion from Cianwood pharmacy
+  Blocker:  Must deliver potion to Jasmine at lighthouse
+  Clears:   Jasmine returns to gym; Olivine Gym now open
+
+Gate 18: Olivine Gym
+  Blocker:  Must cure Ampharos first
+  Clears:   Mineral Badge
+  Reward:   TM23 Iron Tail
+
+Gate 19: Lake of Rage
+  Trigger:  Arrive in Mahogany Town, head north
+  Blocker:  Red Gyarados event; must battle/capture it
+  Clears:   Meet Lance, begin Rocket HQ infiltration
+
+Gate 20: Rocket HQ (Mahogany)
+  Trigger:  Meet Lance at Lake of Rage
+  Blocker:  Must disable signal broadcasting machine (3 Electrode)
+  Clears:   Mahogany Gym opens, HM06 Whirlpool from Lance
+
+Gate 21: Mahogany Gym
+  Blocker:  Must clear Rocket HQ first
+  Clears:   Glacier Badge -> Whirlpool usable outside battle
+  Reward:   TM16 Icy Wind
+
+Gate 22: Radio Tower Takeover
+  Trigger:  After Mahogany Gym, return to Goldenrod
+  Blocker:  Team Rocket controls Radio Tower; must clear all 5 floors
+  Also:     Must rescue Director from Underground Warehouse
+  Clears:   Rainbow Wing (Gold) or Silver Wing (Silver)
+            Route 44 fully accessible
+
+Gate 23: Ice Path
+  Blocker:  Requires Strength to push boulders through ice puzzles
+  Clears:   Path to Blackthorn City, HM07 Waterfall found inside
+
+Gate 24: Blackthorn Gym
+  Blocker:  None
+  Clears:   Rising Badge -> Waterfall usable outside battle
+  BUT:      Clair refuses to give badge; must complete Dragon's Den test
+
+Gate 25: Dragon's Den
+  Trigger:  Defeat Clair but she refuses badge
+  Blocker:  Must retrieve Dragon Fang from Dragon's Den (Surf + Whirlpool)
+  Clears:   Clair awards Rising Badge + TM24 DragonBreath
+
+Gate 26: Victory Road
+  Blocker:  All 8 badges required; Waterfall needed in Tohjo Falls
+  Clears:   Path to Indigo Plateau
+
+
+################################################################################
+SECTION 4: DETAILED CITY DATA — NEW BARK TOWN
+################################################################################
+
+Slogan: "The Town Where Winds of a New Beginning Blow"
+
+Connections:
+  West -> Route 29
+  East -> Route 27 (requires Surf; late-game)
+
+Buildings:
+  1. Player's House
+     - Bedroom: PC, bed, radio, N64 (decoration)
+     - Ground floor: Mom saves money, buys decorations
+  2. Professor Elm's Lab
+     - Bookshelves, computer, Pokemon restoration machine
+     - Table with 3 Poke Balls (starters)
+  3. Rival's House (Silver's house in Gen II)
+     - His mother/grandmother lives here
+
+Key NPCs:
+  Mom (Player's Mother)
+    - Gives Pokegear at game start
+    - Saves portion of prize money when called
+    - Buys decorations for bedroom (dolls, beds, carpets)
+  Professor Elm
+    - Gives starter Pokemon (Chikorita/Cyndaquil/Totodile, Lv.5)
+    - Gives 1 Potion (via aide)
+    - Gives Everstone (after showing hatched Togepi)
+    - Gives Master Ball (after all 8 badges)
+    - Gives S.S. Ticket (after Hall of Fame)
+  Elm's Aide
+    - Gives 1 Potion when leaving lab first time
+    - Gives 5 Poke Balls after first rival battle
+
+Items:
+  - Pokegear (from Mom)
+  - Potion x1 (from Elm's aide)
+  - Berry (held by starter Pokemon)
+  - Poke Ball x5 (from aide, after defeating Silver)
+  - Everstone (from Elm, after Togepi hatches)
+  - Master Ball (from Elm, after 8 badges)
+  - S.S. Ticket (from Elm, post-game)
+
+Story Events (chronological):
+  1. Game begins in player's bedroom
+  2. Go downstairs, receive Pokegear from Mom
+  3. Visit Elm's lab, select starter Pokemon (Lv.5)
+  4. See Silver spying through lab window
+  5. Elm's aide gives Potion
+  6. Elm asks player to visit Mr. Pokemon on Route 30
+  7. Depart west via Route 29
+  --- LATER ---
+  8. Return after Mr. Pokemon errand, find lab was robbed
+  9. Name the rival (Silver), give Elm the Mystery Egg
+  10. Receive Pokedex, 5 Poke Balls
+  --- MUCH LATER ---
+  11. Return with Togepi -> Everstone
+  12. Return with 8 badges -> Master Ball
+  13. After Elite Four -> S.S. Ticket
+
+Pokemon Encounters (water, available late-game with Surf):
+  Surfing:    Tentacool (Lv.15-24, 90%), Tentacruel (Lv.20-24, 10%)
+  Old Rod:    Magikarp (Lv.10, 85%), Tentacool (Lv.10, 15%)
+  Good Rod:   Magikarp (Lv.20, 35%), Tentacool (Lv.20, 35%),
+              Shellder (Lv.20, 10%), Chinchou (Lv.20, 20%)
+  Super Rod:  Chinchou (Lv.40, 40%), Shellder (Lv.40, 30%),
+              Tentacruel (Lv.40, 20%), Lanturn (Lv.40, 10%)
+
+
+################################################################################
+SECTION 5: DETAILED CITY DATA — CHERRYGROVE CITY
+################################################################################
+
+Slogan: "The City of Cute, Fragrant Flowers"
+
+Connections:
+  East  -> Route 29
+  North -> Route 30
+
+Buildings:
+  1. Pokemon Center
+     - Standard healing
+     - Communication Center (2F)
+  2. Poke Mart
+     - See inventory below
+  3. Guide Gent's House
+     - Mandatory city tour on first visit
+     - Gives Map Card for Pokegear after tour
+
+Key NPCs:
+  Guide Gent
+    - Gives city tour (introduces Center, Mart, sea, Route 30)
+    - Rewards Map Card after tour completion
+  Mystic Water Man (offshore island, requires Surf)
+    - Gives Mystic Water item (late-game)
+
+Poke Mart Inventory:
+  Item           | Price
+  ---------------+------
+  Poke Ball      | $200  (available after Elm's aide gives you Balls)
+  Potion         | $300
+  Antidote       | $100
+  Paralyze Heal  | $200
+  Awakening      | $250
+
+Items:
+  - Map Card (from Guide Gent)
+  - Mystic Water (from man on island; requires Surf)
+
+Story Events (chronological):
+  1. Arrive from Route 29
+  2. Guide Gent gives tour + Map Card
+  3. Heal at Pokemon Center (first time)
+  4. Continue north to Route 30
+  --- ON RETURN FROM MR. POKEMON ---
+  5. Rival Silver ambushes player near Route 30 exit
+  6. Rival battle: Silver has Lv.5 starter (type advantage over yours)
+     - If you chose Chikorita, he has Cyndaquil
+     - If you chose Cyndaquil, he has Totodile
+     - If you chose Totodile, he has Chikorita
+  7. Victory: $300 reward
+  8. Continue east to New Bark Town
+
+Pokemon Encounters (water):
+  Surfing:    Tentacool (Lv.15-24, 90%), Tentacruel (Lv.20-24, 10%)
+  Old Rod:    Magikarp (Lv.10, 85%), Krabby (Lv.10, 15%)
+  Good Rod:   Magikarp (Lv.20, 35%), Krabby (Lv.20, 55%),
+              Staryu (Lv.20, 10%), Corsola (Lv.20, 10%)
+  Super Rod:  Krabby (Lv.40, 60%), Staryu (Lv.40, 30%),
+              Corsola (Lv.40, 30%), Kingler (Lv.40, 10%)
+
+
+################################################################################
+SECTION 6: DETAILED CITY DATA — VIOLET CITY
+################################################################################
+
+Slogan: "The City of Nostalgic Scents"
+Description: "This old village is still surrounded by trees and other scenery."
+
+Connections:
+  East  -> Route 31
+  South -> Route 32
+  West  -> Route 36
+
+Buildings:
+  1. Pokemon Center
+     - Standard healing
+     - Elm's aide waits here after gym victory (gives Mystery Egg)
+  2. Poke Mart
+     - See inventory below
+  3. Pokemon Academy (Earl's Pokemon Academy)
+     - Run by Earl Dervish
+     - Blackboard explains status conditions
+     - Educational NPCs for new players
+  4. Violet Gym
+     - Leader: Falkner (Flying-type)
+     - S-shaped raised platform with trainer battles
+  5. Sprout Tower
+     - Multi-floor pagoda north of city
+     - Flexible central pillar (sways to resist earthquakes)
+     - Sages train Bellsprout and Hoothoot
+  6. In-Game Trade House (southwest)
+     - NPC Kyle/Rudy trades Onix (nicknamed "Rocky") for Bellsprout
+     - Rocky holds Bitter Berry
+
+Key NPCs:
+  Falkner (Gym Leader)
+    - Awards Zephyr Badge + TM31 Mud-Slap
+  Earl Dervish (Academy)
+    - Teaches status conditions and battle basics
+  Kyle/Rudy (Trade House)
+    - Trades Onix for Bellsprout
+  Elm's Aide (Pokemon Center, post-gym)
+    - Gives Mystery Egg (hatches into Togepi)
+  Sage Li (Sprout Tower top floor)
+    - Awards HM05 Flash after defeat
+
+Poke Mart Inventory:
+  Item           | Price
+  ---------------+------
+  Poke Ball      | $200
+  Potion         | $300
+  Escape Rope    | $550
+  Antidote       | $100
+  Paralyze Heal  | $200
+  Awakening      | $250
+  X Defend       | $550
+  X Attack       | $500
+  X Speed        | $350
+  Flower Mail    | $50
+
+Items:
+  - HM05 Flash (Sprout Tower, defeat Sage Li)
+  - TM31 Mud-Slap (Violet Gym reward)
+  - Mystery Egg (from Elm's aide at Center, after Zephyr Badge)
+  - PRZCureBerry (berry tree near Route 32 exit, daily)
+  - PP Up (across western water; requires Surf)
+  - Rare Candy (across eastern water; requires Surf)
+  - Hyper Potion (hidden, between Center and Academy; requires Cut)
+
+Sprout Tower Details:
+  Floors: 3
+  Trainers (all Sages using Bellsprout + Hoothoot):
+    Sage Nico    — Bellsprout Lv.3 x3
+    Sage Chow    — Bellsprout Lv.3 x3
+    Sage Edmond  — Bellsprout Lv.3 x2
+    Sage Jin     — Bellsprout Lv.6
+    Sage Neal    — Bellsprout Lv.6
+    Sage Troy    — Bellsprout Lv.7, Hoothoot Lv.7
+    Sage Li      — Bellsprout Lv.7 x2, Hoothoot Lv.10
+  Items inside: Paralyze Heal, X Defend (X Accuracy), Potion, Escape Rope
+  Reward: HM05 Flash (from Sage Li)
+
+Violet Gym Details:
+  Type: Flying
+  Leader: Falkner ("The Elegant Master of Flying Pokemon")
+  Gym Trainers:
+    Bird Keeper Abe — Spearow Lv.9
+    Bird Keeper Rod — Pidgey Lv.7, Pidgey Lv.7
+  Leader's Team:
+    Pidgey    Lv.7  — Mud-Slap, Tackle, Gust
+    Pidgeotto Lv.9  — Mud-Slap, Tackle, Gust
+  Badge: Zephyr Badge
+    - Attack stat boosted
+    - Flash usable outside battle
+  TM: TM31 Mud-Slap
+  Prize Money: $900
+
+Story Events (chronological):
+  1. Arrive from Route 31
+  2. Explore Academy (optional)
+  3. Challenge Sprout Tower (optional but recommended)
+     - Defeat 7 Sages, receive HM05 Flash
+  4. Challenge Violet Gym
+     - Defeat Bird Keepers Abe and Rod
+     - Defeat Falkner
+     - Receive Zephyr Badge + TM31
+  5. Elm calls via Pokegear
+  6. Visit Pokemon Center, Elm's aide gives Mystery Egg
+  7. Continue south to Route 32
+
+Pokemon Encounters (water):
+  Surfing:    Poliwag (Lv.15-24, 90%), Poliwhirl (Lv.20-24, 10%)
+  Old Rod:    Magikarp (Lv.10, 85%), Poliwag (Lv.10, 15%)
+  Good Rod:   Poliwag (Lv.20, 65%), Magikarp (Lv.20, 35%)
+  Super Rod:  Poliwag (Lv.40, 80%), Magikarp (Lv.40, 20%)
+
+
+################################################################################
+SECTION 7: DETAILED CITY DATA — AZALEA TOWN
+################################################################################
+
+Slogan: "Where People and Pokemon Live in Happy Harmony!"
+
+Connections:
+  East -> Route 33
+  West -> Ilex Forest
+
+Buildings:
+  1. Pokemon Center
+     - Standard healing
+  2. Poke Mart
+     - See inventory below
+  3. Kurt's House (northwest)
+     - Kurt the Poke Ball craftsman
+     - Granddaughter Maizie + her Slowpoke
+     - White Apricorn tree outside (daily)
+  4. Azalea Gym (southwest)
+     - Leader: Bugsy (Bug-type)
+  5. Charcoal Kiln (near gym)
+     - Family-run charcoal production
+     - Uses Farfetch'd to collect wood from Ilex Forest
+  6. Slowpoke Well (northeast)
+     - Underground cavern, 2 floors
+     - Sacred to town (400-year legend about Slowpoke ending drought)
+
+Key NPCs:
+  Kurt (Poke Ball Maker)
+    - Crafts custom Poke Balls from Apricorns (1 per day in G/S)
+    - Apricorn -> Ball conversions:
+        Red Apricorn    -> Level Ball
+        Yellow Apricorn -> Moon Ball
+        Blue Apricorn   -> Lure Ball
+        Green Apricorn  -> Friend Ball
+        Pink Apricorn   -> Love Ball
+        White Apricorn  -> Fast Ball
+        Black Apricorn  -> Heavy Ball
+    - Gives Lure Ball as gift after Team Rocket is defeated
+  Bugsy (Gym Leader)
+    - Awards Hive Badge + TM49 Fury Cutter
+  Charcoal Maker
+    - Related to Ilex Forest Farfetch'd quest
+    - Gives Charcoal item + HM01 Cut after Farfetch'd is returned
+
+Poke Mart Inventory:
+  Item           | Price
+  ---------------+-------
+  Poke Ball      | $200
+  Potion         | $300
+  Super Potion   | $700
+  Escape Rope    | $550
+  Repel          | $350
+  Antidote       | $100
+  Paralyze Heal  | $200
+  Charcoal       | $9,800
+  Flower Mail    | $50
+
+Items:
+  - White Apricorn (daily, tree outside Kurt's house)
+  - Lure Ball (gift from Kurt, after clearing Slowpoke Well)
+  - Full Heal (hidden, north of Slowpoke Well)
+  - HM01 Cut (from charcoal maker after Ilex Forest quest)
+  - Charcoal (from charcoal kiln family)
+
+Slowpoke Well Details:
+  Access: Initially blocked by Team Rocket Grunt
+  Floors: 2 (B1F accessible, B2F requires Surf + Strength later)
+  Trainers:
+    Rocket Grunt 1 — Rattata Lv.9, Zubat Lv.9
+    Rocket Grunt 2 — Zubat Lv.9, Ekans Lv.11
+    Rocket Grunt 3 — Rattata Lv.7, Zubat Lv.9, Zubat Lv.9
+    Executive Proton — Zubat Lv.8, Koffing Lv.12
+  Items: Super Potion, TM18 Rain Dance
+  Later: King's Rock on B2F island (requires Surf + Strength)
+  Wild Pokemon: Zubat, Slowpoke
+
+Azalea Gym Details:
+  Type: Bug
+  Leader: Bugsy ("The Walking Bug Pokemon Encyclopedia")
+  Gym Trainers:
+    Bug Catcher Al    — Caterpie Lv.12, Weedle Lv.12
+    Bug Catcher Benny — Weedle Lv.7 x3, Kakuna Lv.9, Beedrill Lv.12
+    Bug Catcher Josh  — Paras Lv.13
+  Leader's Team:
+    Metapod  Lv.14 — Tackle, String Shot, Harden
+    Kakuna   Lv.14 — Poison Sting, String Shot, Harden
+    Scyther  Lv.16 — Fury Cutter, Quick Attack, Leer
+  Badge: Hive Badge
+    - Pokemon up to Lv.30 obey
+    - Cut usable outside battle
+  TM: TM49 Fury Cutter
+  Prize Money: $1,920
+
+Story Events (chronological):
+  1. Arrive from Route 33
+  2. Town in crisis — Team Rocket cutting Slowpoke tails
+  3. Visit Kurt's house; he rushes to Slowpoke Well
+  4. Enter Slowpoke Well, defeat 3 Grunts + Executive Proton
+  5. Slowpoke are freed
+  6. Return to Kurt — receive Lure Ball
+  7. Challenge Azalea Gym
+     - Defeat Bug Catchers Al, Benny, Josh
+     - Defeat Bugsy
+     - Receive Hive Badge + TM49
+  8. Rival Silver appears at Ilex Forest entrance, battles you
+     Silver's Team (2nd rival battle):
+       Gastly   Lv.12
+       Zubat    Lv.14
+       [Starter] Lv.16 (Bayleef/Quilava/Croconaw)
+  9. Enter Ilex Forest
+
+Pokemon Encounters (Headbutt Trees, all Lv.10):
+  Moderate chance trees:
+    Caterpie, Butterfree, Weedle, Beedrill,
+    Spearow, Ekans, Exeggcute, Aipom, Pineco
+  Low chance trees:
+    Caterpie, Metapod, Butterfree, Weedle, Kakuna, Beedrill,
+    Spearow, Exeggcute, Aipom, Heracross
+
+
+################################################################################
+SECTION 8: DETAILED CITY DATA — GOLDENROD CITY
+################################################################################
+
+Slogan: "The Festive City of Opulent Charm"
+Description: "A developing city where people and Pokemon come and go as they like."
+Note: Largest city in Johto. Major economic center.
+
+Connections:
+  North -> Route 35
+  South -> Route 34
+
+Buildings:
+  1. Pokemon Center
+     - Standard healing
+  2. Goldenrod Department Store (6 floors)
+     - 2F: Trainer's Market (basic items)
+     - 3F: Battle Collection (stat boosters)
+     - 4F: Medicine Box (vitamins, $9,800 each)
+     - 5F: TM Corner (elemental punches, $3,000)
+     - 6F: Rooftop Square (vending machines)
+     - B1F: Connected to Goldenrod Tunnel
+     - Sunday: TM27 Return or TM21 Frustration (friendship-based)
+  3. Goldenrod Gym
+     - Leader: Whitney (Normal-type)
+     - Flower maze layout
+  4. Radio Tower (5 floors)
+     - 1F: Lucky Number Lottery, Radio Card quiz
+     - 2F+: Story-locked until Radio Tower takeover
+     - Broadcasts: Pokemon Talk, Pokemon Music, Lucky Channel
+  5. Game Corner
+     - Slot machines (1-3 coins/play)
+     - Card Flip game (Gen II exclusive)
+     - Coin purchase: 50 for $1,000 or 500 for $10,000
+     - Prizes:
+         Abra Lv.10         — 200 coins
+         Ekans Lv.10 (Gold) / Sandshrew Lv.10 (Silver) — 700 coins
+         Dratini Lv.10      — 2,100 coins
+         TM25 Thunder       — 5,500 coins
+         TM14 Blizzard      — 5,500 coins
+         TM38 Fire Blast    — 5,500 coins
+  6. Magnet Train Station
+     - Connects Goldenrod to Saffron City (Kanto)
+     - Requires Pass (post-game)
+  7. Goldenrod Tunnel (Underground)
+     - Connects SW to NW city
+     - Shops:
+       Herbal Shop (weekends only):
+         Energy Root $800, Energy Powder $500
+         Revival Herb $2,800, Heal Powder $450
+       Pokemon Salon (Haircut Brothers):
+         Younger brother (Sun/Wed/Fri): $300
+         Older brother (Tue/Thu/Sat): $500
+         Closed Mondays
+       Bargain Shop (Mon 4-9 AM only):
+         Nugget $4,500, Pearl $650, Big Pearl $3,500
+         Stardust $900, Star Piece $4,600
+     - Trainers in tunnel:
+       PokeManiac Donald  — Slowpoke Lv.10 x2
+       Super Nerd Teru    — Magnemite Lv.7, Voltorb Lv.11, Magnemite Lv.7 x2
+       PokeManiac Isaac   — Lickitung Lv.12
+       Super Nerd Eric    — Grimer Lv.11 x2
+  8. Bike Shop (Miracle Cycle)
+     - Free Bicycle (loaned, later permanent)
+  9. Bill's House
+     - Gives Eevee Lv.20 (after meeting Bill in Ecruteak City)
+  10. Flower Shop (NE area)
+      - Gives SquirtBottle (requires Plain Badge)
+  11. Name Rater House (near Route 35 gate)
+      - Changes Pokemon nicknames (only player-caught Pokemon)
+  12. Friendship Checker House (near Bike Shop)
+      - Evaluates lead Pokemon's friendship level
+
+Key NPCs:
+  Whitney (Gym Leader)
+    - Awards Plain Badge + TM45 Attract
+  Bill (Pokemon Storage creator)
+    - Gives Eevee Lv.20
+  Bike Shop Owner
+    - Free Bicycle
+  Flower Shop Lady
+    - SquirtBottle (after Whitney defeated)
+  Name Rater
+    - Rename Pokemon
+  Radio Quiz Host (1F Radio Tower)
+    - Radio Card quiz answers: Yes, Yes, No, Yes, No
+
+Goldenrod Gym Details:
+  Type: Normal
+  Leader: Whitney ("The Incredibly Pretty Girl!")
+  Gym Trainers:
+    Beauty Victoria — Sentret Lv.9, Sentret Lv.13, Sentret Lv.17
+    Beauty Samantha — Meowth Lv.16, Meowth Lv.16
+    Lass Carrie    — Snubbull Lv.18
+    Lass Bridget   — Jigglypuff Lv.15 x3
+  Leader's Team:
+    Clefairy Lv.18 — Encore, DoubleSlap, Mimic, Metronome
+    Miltank  Lv.20 — Stomp, Attract, Milk Drink, Rollout
+  Badge: Plain Badge
+    - Speed stat boosted
+    - Strength usable outside battle
+  TM: TM45 Attract
+  Prize Money: $2,000
+  Notes:
+    - Whitney cries after losing; must talk to her again to get badge
+    - Miltank's Rollout doubles power each consecutive hit (very dangerous)
+    - Miltank's Milk Drink restores HP
+    - Attract prevents male Pokemon from attacking 50% of the time
+    - Counter: Trade Drowzee for Machop at Dept Store (Fighting-type)
+
+Items Available in Goldenrod:
+  - Bicycle (Bike Shop, free)
+  - SquirtBottle (Flower Shop, after Plain Badge)
+  - Eevee Lv.20 (Bill's house, after meeting him in Ecruteak)
+  - Radio Card (Radio Tower 1F, pass quiz)
+  - Coin Case (Underground tunnel)
+  - TM45 Attract (gym reward)
+  - TM27 Return or TM21 Frustration (Dept Store 6F, Sundays)
+
+Pokemon Encounters:
+  Gift Pokemon: Eevee Lv.20 (from Bill, late-game)
+  Game Corner:  Abra Lv.10, Ekans/Sandshrew Lv.10, Dratini Lv.10
+  In-Game Trade: Machop (for Drowzee), holds Gold Berry
+
+Story Events (chronological):
+  1. Arrive from Route 34
+  2. Obtain Bicycle from Bike Shop
+  3. Explore Department Store, Game Corner, Radio Tower
+  4. Pass Radio Quiz -> Radio Card
+  5. Challenge Goldenrod Gym
+     - Navigate flower maze
+     - Defeat Beauties and Lasses
+     - Defeat Whitney
+     - Whitney cries -> talk to her again -> Plain Badge + TM45
+  6. Visit Flower Shop -> SquirtBottle
+  7. Head north to Route 35
+  --- LATER (after Mahogany Gym) ---
+  8. Team Rocket takes over Radio Tower
+  9. Must clear 5 floors of Rockets
+  10. Rescue Director from Underground Warehouse
+  11. Defeat Executives Proton, Ariana, Archer
+  12. Receive Rainbow Wing (Gold) / Silver Wing (Silver)
+
+
+################################################################################
+SECTION 9: GYM LEADER QUICK REFERENCE (all 8 Johto gyms)
+################################################################################
+
+  Gym | Leader  | Type     | Team                              | Badge     | TM
+  ----+---------+----------+-----------------------------------+-----------+------
+   1  | Falkner | Flying   | Pidgey 7, Pidgeotto 9             | Zephyr    | TM31
+   2  | Bugsy   | Bug      | Metapod 14, Kakuna 14, Scyther 16 | Hive      | TM49
+   3  | Whitney | Normal   | Clefairy 18, Miltank 20           | Plain     | TM45
+   4  | Morty   | Ghost    | Gastly 21, Haunter 21, Gengar 25, | Fog       | TM30
+      |         |          | Haunter 23                        |           |
+   5  | Chuck   | Fighting | Primeape 27, Poliwrath 30         | Storm     | TM01
+   6  | Jasmine | Steel    | Magnemite 30 x2, Steelix 35      | Mineral   | TM23
+   7  | Pryce   | Ice      | Seel 27, Dewgong 28, Piloswine 31 | Glacier  | TM16
+   8  | Clair   | Dragon   | Dragonair 37 x3, Kingdra 40      | Rising    | TM24
+
+  Badge unlock chain:
+    Zephyr  -> Flash
+    Hive    -> Cut
+    Plain   -> Strength
+    Fog     -> Surf
+    Storm   -> Fly
+    Mineral -> (none; 6th badge)
+    Glacier -> Whirlpool
+    Rising  -> Waterfall
+
+
+################################################################################
+SECTION 10: KEY ITEMS TIMELINE
+################################################################################
+
+  When                  | Item            | Source
+  ----------------------+-----------------+----------------------------------
+  Game start            | Pokegear        | Mom
+  Game start            | Berry           | Held by starter
+  Elm's lab             | Potion          | Elm's aide
+  Cherrygrove arrival   | Map Card        | Guide Gent
+  Mr. Pokemon's house   | Mystery Egg     | Mr. Pokemon
+  Mr. Pokemon's house   | Pokedex         | Professor Oak
+  Return to Elm         | Poke Ball x5    | Elm's aide
+  Sprout Tower          | HM05 Flash      | Sage Li
+  Violet Gym            | TM31 Mud-Slap   | Falkner
+  Violet Pokemon Center | Mystery Egg     | Elm's aide (hatches -> Togepi)
+  Route 32 Poke Center  | Old Rod         | Fishing Guru
+  Slowpoke Well         | TM18 Rain Dance | Found in well
+  After Slowpoke Well   | Lure Ball       | Kurt
+  Azalea Gym            | TM49 Fury Cutter| Bugsy
+  Ilex Forest           | HM01 Cut        | Charcoal maker apprentice
+  Ilex Forest           | TM02 Headbutt   | NPC in forest
+  Goldenrod Bike Shop   | Bicycle         | Shop owner
+  Goldenrod Radio Tower | Radio Card      | Pass quiz
+  Goldenrod Gym         | TM45 Attract    | Whitney
+  Goldenrod Flower Shop | SquirtBottle    | Flower Shop lady (post-Whitney)
+  Ecruteak Dance Theater| HM03 Surf       | Old man (after Kimono Girls)
+  Ecruteak Gym          | TM30 Shadow Ball| Morty
+  Olivine Cafe          | HM04 Strength   | Sailor
+  Olivine Lighthouse    | (must climb to find Jasmine + sick Ampharos)
+  Cianwood Pharmacy     | Secret Potion   | Pharmacist
+  Cianwood Gym          | TM01 DynamicPunch| Chuck
+  After Chuck           | HM02 Fly        | Chuck's wife
+  Olivine Gym           | TM23 Iron Tail  | Jasmine
+  Olivine               | Good Rod        | Fisherman south of gym
+  Rocket HQ (Mahogany)  | HM06 Whirlpool  | Lance
+  Rocket HQ             | TM46 Thief      | Found in HQ
+  Mahogany Gym          | TM16 Icy Wind   | Pryce
+  Radio Tower           | Rainbow/Silver Wing | After defeating Archer
+  Ice Path              | HM07 Waterfall  | Found in cave
+  Blackthorn Gym        | TM24 DragonBreath| Clair (after Dragon's Den)
+
+
+================================================================================
+END OF DATA FILE
+================================================================================

@@ -1964,3 +1964,67 @@ All 99 Pokemon module tests pass.
 - `render.rs` - added palette mappings for tile IDs 29-37
 
 **Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.
+
+---
+
+## Sprint 118: Fly system + overworld item use + repel system
+
+### 1. FLY SYSTEM
+
+**Visited cities tracking**: Added `visited_cities: Vec<MapId>` to PokemonSim. When the player enters a city (tracked in `change_map()`), it's added to the list if not already present. 10 flyable cities: NewBarkTown, CherrygroveCity, VioletCity, AzaleaTown, GoldenrodCity, EcruteakCity, OlivineCity, CianwoodCity, MahoganyTown, BlackthornCity.
+
+**Helper methods**:
+- `is_fly_city(MapId) -> bool` - checks if a map is a flyable city
+- `fly_spawn(MapId) -> (u8, u8)` - returns spawn coordinates for each city (from pokecrystal-master/data/maps/spawn_points.asm)
+- `city_name(MapId) -> &str` - display name for the fly menu
+
+**FlyMenu phase**: `GamePhase::FlyMenu { cursor: u8 }` shows a list of visited cities. Navigate with up/down, confirm with Z to fly, cancel with X.
+
+**Access from bag**: FLY appears as a virtual item at the top of the bag menu when the player has any badges and is not in battle. Selecting it opens the FlyMenu. Indoor locations block FLY use.
+
+**Fly execution**: When a city is selected, auto-dismounts bicycle, clears ice_sliding, and triggers MapFadeOut to the city's spawn point.
+
+**Persistence**: `visited_cities` is serialized as a JSON array of map name strings in save data, and parsed back on load.
+
+### 2. OVERWORLD ITEM USE
+
+**New items added to data.rs** (8 new item types, IDs 12-19):
+- Hyper Potion (ID 12) - restores 200 HP, $1200
+- Max Potion (ID 13) - fully restores HP, $2500
+- Full Restore (ID 14) - fully restores HP + cures status, $3000
+- Rare Candy (ID 15) - raises Pokemon by 1 level, $4800
+- Awakening (ID 16) - cures sleep, $250
+- Ice Heal (ID 17) - cures freeze, $250
+- Super Repel (ID 18) - 200 steps, $500
+- Max Repel (ID 19) - 250 steps, $700
+
+**ItemData struct extended** with two new fields:
+- `is_rare_candy: bool` - identifies Rare Candy for level-up handling
+- `repel_steps: u32` - number of repel steps (0 = not a repel item)
+
+**Full Restore handling**: Detects items with both `heal_amount > 0` and `is_status_heal`, heals HP fully and cures status in one use.
+
+**Rare Candy handling**: From BagUseItem target selection:
+- Blocked for fainted or LV100 Pokemon
+- Increments level, sets EXP to level threshold
+- Recalcs stats (HP difference added to current HP)
+- Auto-learns moves at new level (or shows "slots full" message)
+- Checks evolution and triggers via `DialogueAction::CheckEvolution`
+
+**New DialogueAction::CheckEvolution**: After Rare Candy dialogue completes, checks `pending_evolution` global state and triggers Evolution phase if needed.
+
+### 3. REPEL SYSTEM
+
+**Generic repel handling**: All repel items (Repel/Super Repel/Max Repel) now use the `repel_steps` field from ItemData. Single code path handles all three.
+
+**Repel wore off dialogue**: When `repel_steps` decrements to 0 during a step, shows "REPEL's effect wore off!" dialogue and transitions to Dialogue phase.
+
+**Gen 2 encounter suppression**: Wild encounter check now implements the Gen 2 rule: if repel is active AND the wild Pokemon's level is less than the lead Pokemon's level, the encounter is suppressed. Wild Pokemon at or above the lead's level can still appear even with repel active.
+
+**Repel activation message**: "REPEL's effect lingered!" shown when using any repel item (matches Gen 2).
+
+**Files changed**:
+- `data.rs` - 8 new item constants (IDs 12-19), ItemData struct extended with `is_rare_candy` and `repel_steps` fields, 8 new ITEM_DB entries
+- `mod.rs` - FlyMenu GamePhase, visited_cities field + save/load, fly helper methods, step_fly_menu/render_fly_menu, FLY virtual item in bag, generic repel handling, Rare Candy + Full Restore in BagUseItem, Gen 2 repel encounter suppression, repel wore-off dialogue, CheckEvolution DialogueAction, AI-INSTRUCTIONS updated
+
+**Test Results**: All 1324 tests pass + 2 fuzz + 3 golden replay. Clean compilation.

@@ -4,8 +4,9 @@
 // Battle Pokemon sprites loaded from web in JS layer; overworld tiles/characters rendered in Rust.
 // Features: multi-Pokemon trainer battles, status conditions (PSN/BRN/PAR/SLP/FRZ), paralysis
 // speed/skip checks, PP tracking, Pokedex (seen/caught), PC storage (Bill's PC with deposit/withdraw),
-// Poke Mart (9 items incl. Repel/Escape Rope), badge system, day/night cycle, evolution,
-// SFX via SoundCommand, whiteout with money loss, critical hits (1/16), smart enemy AI (50% best move).
+// Poke Mart (19 items incl. Repel/Super Repel/Max Repel/Escape Rope/Rare Candy), badge system,
+// day/night cycle, evolution, SFX via SoundCommand, whiteout with money loss, critical hits (1/16),
+// smart enemy AI (50% best move).
 // Key pattern: battle uses take-put-back for BattleState borrow management.
 // NPC trainers have trainer_team field with typed Pokemon lists (TrainerPokemon in maps.rs).
 // Input helpers: is_confirm/is_cancel/is_up/is_down/is_left/is_right + held_ variants.
@@ -20,6 +21,9 @@
 // Ice sliding: C_ICE tiles (8) cause player to slide until hitting non-ice. ice_sliding: Option<Direction>.
 // Daycare: Route34 NPC 0 deposits/returns Pokemon. 1 EXP/step, auto-level, Gen 2 move replacement. Saved.
 // Daycare cost: $100 + $100 * levels_gained. daycare_deposit_level tracks level at deposit time.
+// Fly system: visited_cities Vec tracks cities entered. FlyMenu selects destination. Accessed from bag.
+// Repel: Repel/Super Repel/Max Repel (100/200/250 steps). Gen 2 rule: only blocks wild < lead level.
+// Overworld items: Potions (20/50/200/full), Full Restore (HP+status), Rare Candy (+1 level+evo check).
 // Test infra: with_state(map, x, y, party, badges) skips title; helpers press/hold/wait/walk_dir/sequence.
 
 pub mod data;
@@ -164,6 +168,7 @@ enum GamePhase {
     TrainerCard,
     DaycareDeposit { cursor: u8 },
     DaycarePrompt { cursor: u8 }, // YES/NO prompt for daycare deposit/return
+    FlyMenu { cursor: u8 },
 }
 
 // ─── Battle Phase ───────────────────────────────────────
@@ -318,6 +323,7 @@ enum DialogueAction {
     Credits,
     DaycareDeposit,
     DaycareReturn,
+    CheckEvolution,
 }
 
 // ─── Player State ───────────────────────────────────────
@@ -406,6 +412,8 @@ pub struct PokemonSim {
     daycare_pokemon: Option<Pokemon>,
     daycare_steps: u32,
     daycare_deposit_level: u8, // level at deposit time, for cost calculation
+    // Fly system: tracks which cities the player has visited
+    visited_cities: Vec<MapId>,
 }
 
 impl PokemonSim {
@@ -529,6 +537,7 @@ impl PokemonSim {
             daycare_pokemon: None,
             daycare_steps: 0,
             daycare_deposit_level: 0,
+            visited_cities: Vec::new(),
         }
     }
 
@@ -575,7 +584,55 @@ impl PokemonSim {
         self.npc_sprite_cache = npc_strs.iter().map(|s| decode_sprite(s)).collect();
     }
 
+    /// Returns true if a map is a flyable city destination.
+    fn is_fly_city(map_id: MapId) -> bool {
+        matches!(map_id,
+            MapId::NewBarkTown | MapId::CherrygroveCity | MapId::VioletCity |
+            MapId::AzaleaTown | MapId::GoldenrodCity | MapId::EcruteakCity |
+            MapId::OlivineCity | MapId::CianwoodCity | MapId::MahoganyTown |
+            MapId::BlackthornCity
+        )
+    }
+
+    /// Get the fly spawn point for a city.
+    fn fly_spawn(map_id: MapId) -> (u8, u8) {
+        match map_id {
+            MapId::NewBarkTown => (5, 8),
+            MapId::CherrygroveCity => (15, 5),
+            MapId::VioletCity => (12, 10),
+            MapId::AzaleaTown => (5, 5),
+            MapId::GoldenrodCity => (12, 12),
+            MapId::EcruteakCity => (8, 8),
+            MapId::OlivineCity => (10, 8),
+            MapId::CianwoodCity => (6, 6),
+            MapId::MahoganyTown => (6, 5),
+            MapId::BlackthornCity => (8, 8),
+            _ => (5, 5),
+        }
+    }
+
+    /// Get the display name for a city on the fly menu.
+    fn city_name(map_id: MapId) -> &'static str {
+        match map_id {
+            MapId::NewBarkTown => "NEW BARK TOWN",
+            MapId::CherrygroveCity => "CHERRYGROVE",
+            MapId::VioletCity => "VIOLET CITY",
+            MapId::AzaleaTown => "AZALEA TOWN",
+            MapId::GoldenrodCity => "GOLDENROD",
+            MapId::EcruteakCity => "ECRUTEAK",
+            MapId::OlivineCity => "OLIVINE CITY",
+            MapId::CianwoodCity => "CIANWOOD",
+            MapId::MahoganyTown => "MAHOGANY TOWN",
+            MapId::BlackthornCity => "BLACKTHORN",
+            _ => "???",
+        }
+    }
+
     fn change_map(&mut self, map_id: MapId, dest_x: u8, dest_y: u8) {
+        // Track visited cities for fly system
+        if Self::is_fly_city(map_id) && !self.visited_cities.contains(&map_id) {
+            self.visited_cities.push(map_id);
+        }
         // Track which city the player came from when entering shared interiors
         if map_id == MapId::PokemonCenter {
             self.last_pokecenter_map = self.current_map_id;
@@ -688,7 +745,7 @@ impl PokemonSim {
             Direction::Up => 0, Direction::Down => 1, Direction::Left => 2, Direction::Right => 3,
         };
 
-        format!(
+        let mut base = format!(
             "{{\"map\":\"{}\",\"x\":{},\"y\":{},\"facing\":{},\"money\":{},\"badges\":{},\"time\":{},\"rng\":{},\"steps\":{},\"rival_starter\":{},\"rival_done\":{},\"has_starter\":{},\"last_pc\":\"{}\",\"last_house\":\"{}\",\"last_house_x\":{},\"last_house_y\":{},\"repel\":{},\"flags\":{},\"has_bike\":{},\"party\":{},\"pc\":{},\"defeated\":{},\"bag\":{},\"seen\":{},\"caught\":{},\"daycare\":{},\"daycare_steps\":{},\"daycare_dlvl\":{}}}",
             self.current_map_id.to_str(),
             self.player.x, self.player.y, facing,
@@ -702,7 +759,22 @@ impl PokemonSim {
             party_json, pc_json, defeated_json, bag_json,
             seen_json, caught_json,
             daycare_json, self.daycare_steps, self.daycare_deposit_level,
-        )
+        );
+        // Append visited_cities to save
+        let mut vcities = String::from("[");
+        for (i, c) in self.visited_cities.iter().enumerate() {
+            if i > 0 { vcities.push(','); }
+            vcities.push('"');
+            vcities.push_str(c.to_str());
+            vcities.push('"');
+        }
+        vcities.push(']');
+        // Insert visited_cities before closing brace
+        if base.ends_with('}') {
+            base.pop();
+            base.push_str(&format!(",\"visited_cities\":{}}}", vcities));
+        }
+        base
     }
 
     fn load_from_save(&mut self, json: &str) {
@@ -1003,6 +1075,25 @@ impl PokemonSim {
             }
         }
 
+        // Parse visited_cities: array of string map names
+        self.visited_cities.clear();
+        let vcities_arr = get_array(json, "visited_cities");
+        let vcities_inner = &vcities_arr[1..vcities_arr.len()-1];
+        if !vcities_inner.is_empty() {
+            for s in vcities_inner.split(',') {
+                let trimmed = s.trim().trim_matches('"');
+                if let Some(m) = MapId::from_str(trimmed) {
+                    if Self::is_fly_city(m) && !self.visited_cities.contains(&m) {
+                        self.visited_cities.push(m);
+                    }
+                }
+            }
+        }
+        // If no visited_cities were saved, auto-populate from current map
+        if self.visited_cities.is_empty() && Self::is_fly_city(self.current_map_id) {
+            self.visited_cities.push(self.current_map_id);
+        }
+
         // Snap camera
         let target_x = self.player.x as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_X * TILE_PX / 2) as f64;
         let target_y = self.player.y as f64 * TILE_PX as f64 + TILE_PX as f64 / 2.0 - (VIEW_TILES_Y * TILE_PX / 2) as f64;
@@ -1258,9 +1349,17 @@ impl PokemonSim {
                 self.player.walk_frame = 1;
                 self.step_count += 1;
 
-                // Decrement repel
+                // Decrement repel and show "wore off" dialogue when it expires
                 if self.repel_steps > 0 {
                     self.repel_steps -= 1;
+                    if self.repel_steps == 0 {
+                        self.dialogue = Some(DialogueState {
+                            lines: vec!["REPEL's effect wore off!".to_string()],
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        // We don't change phase here — dialogue will be picked up after walk finishes
+                    }
                 }
 
                 // Daycare step counting: 1 EXP per step
@@ -1373,10 +1472,15 @@ impl PokemonSim {
                     return;
                 }
 
-                // Check wild encounter (blocked by repel)
+                // Show repel wore off dialogue if it just expired
+                if self.dialogue.is_some() && self.repel_steps == 0 {
+                    self.phase = GamePhase::Dialogue;
+                    return;
+                }
+
+                // Check wild encounter (repel: Gen 2 rule — blocks if wild level < lead level)
                 if self.current_map.is_tall_grass(self.player.x as usize, self.player.y as usize)
                     && !self.party.is_empty()
-                    && self.repel_steps == 0
                 {
                     let roll = engine.rng.next_f64();
                     if roll < ENCOUNTER_RATE {
@@ -1384,6 +1488,17 @@ impl PokemonSim {
                         let r2 = engine.rng.next_f64();
                         let is_night = self.time_of_day < 5.0 || self.time_of_day >= 19.0;
                         if let Some((species_id, level)) = self.current_map.roll_encounter_timed(r1, r2, is_night) {
+                            // Repel check: if repel active and wild level < lead Pokemon level, skip
+                            if self.repel_steps > 0 {
+                                let lead_level = self.party.iter()
+                                    .find(|p| !p.is_fainted())
+                                    .map(|p| p.level)
+                                    .unwrap_or(0);
+                                if level < lead_level {
+                                    // Encounter suppressed by repel
+                                    return;
+                                }
+                            }
                             self.register_seen(species_id);
                             let enemy = Pokemon::new(species_id, level);
                             let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
@@ -4119,6 +4234,15 @@ impl PokemonSim {
                     // Show YES/NO prompt
                     self.phase = GamePhase::DaycarePrompt { cursor: 0 };
                 }
+                DialogueAction::CheckEvolution => {
+                    let pending_evo = engine.global_state.get_f64("pending_evolution").unwrap_or(0.0) as u16;
+                    if pending_evo > 0 {
+                        engine.global_state.set_f64("pending_evolution", 0.0);
+                        self.phase = GamePhase::Evolution { timer: 0.0, new_species: pending_evo };
+                    } else {
+                        self.phase = GamePhase::Overworld;
+                    }
+                }
             }
         }
     }
@@ -5341,9 +5465,12 @@ impl PokemonSim {
 
     fn step_bag_menu(&mut self, engine: &mut Engine) {
         let cursor = if let GamePhase::BagMenu { cursor } = &self.phase { *cursor } else { 0 };
-        // Virtual BICYCLE item shown at the top when has_bicycle and not in battle
+        // Virtual items shown at top when not in battle
+        let has_fly = self.battle.is_none() && self.badges > 0;
+        let fly_offset: u8 = if has_fly { 1 } else { 0 };
         let bike_offset: u8 = if self.has_bicycle && self.battle.is_none() { 1 } else { 0 };
-        let total_count = self.bag.items.len() as u8 + bike_offset;
+        let virtual_offset = fly_offset + bike_offset;
+        let total_count = self.bag.items.len() as u8 + virtual_offset;
         if total_count == 0 {
             self.dialogue = Some(DialogueState {
                 lines: vec!["Bag is empty!".to_string()],
@@ -5373,8 +5500,42 @@ impl PokemonSim {
         }
 
         if confirm {
-            // Bicycle: virtual item at cursor 0 when bike_offset > 0
-            if bike_offset > 0 && cursor == 0 {
+            // FLY: virtual item at cursor 0 when fly_offset > 0
+            if fly_offset > 0 && cursor == 0 {
+                // Check if indoors — can't fly from indoors
+                let is_indoor = matches!(self.current_map_id,
+                    MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
+                    MapId::PlayerHouse1F | MapId::PlayerHouse2F |
+                    MapId::SproutTower | MapId::UnionCave | MapId::IlexForest |
+                    MapId::BurnedTower | MapId::OlivineLighthouse | MapId::IcePath |
+                    MapId::VioletGym | MapId::AzaleaGym | MapId::GoldenrodGym |
+                    MapId::EcruteakGym | MapId::OlivineGym | MapId::CianwoodGym |
+                    MapId::MahoganyGym | MapId::BlackthornGym |
+                    MapId::VictoryRoad | MapId::RocketHQ |
+                    MapId::EliteFourWill | MapId::EliteFourKoga |
+                    MapId::EliteFourBruno | MapId::EliteFourKaren | MapId::ChampionLance
+                );
+                if is_indoor {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec!["Can't use FLY here!".to_string()],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else if self.visited_cities.is_empty() {
+                    self.dialogue = Some(DialogueState {
+                        lines: vec!["No cities visited yet!".to_string()],
+                        current_line: 0, char_index: 0, timer: 0.0,
+                        on_complete: DialogueAction::None,
+                    });
+                    self.phase = GamePhase::Dialogue;
+                } else {
+                    self.phase = GamePhase::FlyMenu { cursor: 0 };
+                }
+                return;
+            }
+            // Bicycle: virtual item at cursor fly_offset when bike_offset > 0
+            if bike_offset > 0 && cursor == fly_offset {
                 let is_indoor = matches!(self.current_map_id,
                     MapId::PokemonCenter | MapId::GenericHouse | MapId::ElmLab |
                     MapId::PlayerHouse1F | MapId::PlayerHouse2F |
@@ -5406,7 +5567,7 @@ impl PokemonSim {
                 }
                 return;
             }
-            let bag_cursor = (cursor - bike_offset) as usize;
+            let bag_cursor = (cursor - virtual_offset) as usize;
             if let Some(&(item_id, _qty)) = self.bag.items.get(bag_cursor) {
                 if let Some(item_data) = get_item(item_id) {
                     if item_data.is_ball {
@@ -5424,8 +5585,8 @@ impl PokemonSim {
                     } else if item_data.heal_amount > 0 || item_data.is_revive || item_data.is_status_heal {
                         // Healing/revive/status heal: select target Pokemon
                         self.phase = GamePhase::BagUseItem { item_id, target_cursor: 0 };
-                    } else if item_id == ITEM_REPEL {
-                        // Repel: prevent wild encounters for 100 steps
+                    } else if item_data.repel_steps > 0 {
+                        // Repel/Super Repel/Max Repel: prevent wild encounters
                         if self.battle.is_some() {
                             self.dialogue = Some(DialogueState {
                                 lines: vec!["Can't use that here!".to_string()],
@@ -5434,15 +5595,23 @@ impl PokemonSim {
                             });
                             self.phase = GamePhase::Dialogue;
                         } else {
+                            let steps = item_data.repel_steps;
+                            let name = item_data.name.to_string();
                             self.bag.use_item(item_id);
-                            self.repel_steps = 100;
+                            self.repel_steps = steps;
                             self.dialogue = Some(DialogueState {
-                                lines: vec!["Used a REPEL!".to_string(), "Wild Pokemon won't appear for a while.".to_string()],
+                                lines: vec![
+                                    format!("Used a {}!", name),
+                                    "REPEL's effect lingered!".to_string(),
+                                ],
                                 current_line: 0, char_index: 0, timer: 0.0,
                                 on_complete: DialogueAction::None,
                             });
                             self.phase = GamePhase::Dialogue;
                         }
+                    } else if item_data.is_rare_candy {
+                        // Rare Candy: select target Pokemon to level up
+                        self.phase = GamePhase::BagUseItem { item_id, target_cursor: 0 };
                     } else if item_id == ITEM_ESCAPE_ROPE {
                         // Escape Rope: warp to last Pokemon Center
                         if self.battle.is_some() {
@@ -5623,6 +5792,128 @@ impl PokemonSim {
                         return;
                     }
 
+                    // Rare Candy: gain 1 level, recalc stats, check evolution
+                    if item_data.is_rare_candy {
+                        if pkmn.is_fainted() {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} has fainted!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        if pkmn.level >= 100 {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} is already LV100!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        self.bag.use_item(item_id);
+                        pkmn.level += 1;
+                        // Set EXP to the threshold for this level
+                        if let Some(species) = get_species(pkmn.species_id) {
+                            pkmn.exp = exp_for_level(pkmn.level, species.growth_rate);
+                        }
+                        let old_max_hp = pkmn.max_hp;
+                        pkmn.recalc_stats();
+                        let hp_diff = pkmn.max_hp.saturating_sub(old_max_hp);
+                        pkmn.hp = (pkmn.hp + hp_diff).min(pkmn.max_hp);
+                        let mut msgs = vec![
+                            format!("Used {} on {}!", item_name, name),
+                            format!("{} grew to LV{}!", name, pkmn.level),
+                        ];
+                        // Check for new moves at this level
+                        if let Some(species) = get_species(pkmn.species_id) {
+                            for &(lvl, move_id) in species.learnset.iter() {
+                                if lvl == pkmn.level {
+                                    // Try to auto-learn if there's an empty slot
+                                    let mut learned = false;
+                                    for i in 0..4 {
+                                        if pkmn.moves[i].is_none() {
+                                            pkmn.moves[i] = Some(move_id);
+                                            if let Some(md) = get_move(move_id) {
+                                                pkmn.move_pp[i] = md.pp;
+                                                pkmn.move_max_pp[i] = md.pp;
+                                            }
+                                            let mname = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                                            msgs.push(format!("{} learned {}!", name, mname));
+                                            learned = true;
+                                            break;
+                                        }
+                                    }
+                                    if !learned {
+                                        // All 4 slots full — skip (simplified, no forget prompt in overworld)
+                                        let mname = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                                        msgs.push(format!("{} can't learn {}!", name, mname));
+                                        msgs.push("All move slots are full.".to_string());
+                                    }
+                                }
+                            }
+                            // Check evolution
+                            if let (Some(evo_lvl), Some(evo_into)) = (species.evolution_level, species.evolution_into) {
+                                if pkmn.level >= evo_lvl {
+                                    engine.global_state.set_f64("pending_evolution", evo_into as f64);
+                                }
+                            }
+                        }
+                        let pending_evo = engine.global_state.get_f64("pending_evolution").unwrap_or(0.0) as u16;
+                        let on_complete = if pending_evo > 0 {
+                            DialogueAction::CheckEvolution
+                        } else {
+                            DialogueAction::None
+                        };
+                        self.dialogue = Some(DialogueState {
+                            lines: msgs,
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
+
+                    // Full Restore: heals HP and cures status (handle before HP-only healing)
+                    if item_data.heal_amount > 0 && item_data.is_status_heal {
+                        if pkmn.is_fainted() {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} has fainted!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        if pkmn.hp >= pkmn.max_hp && matches!(pkmn.status, StatusCondition::None) {
+                            self.dialogue = Some(DialogueState {
+                                lines: vec![format!("{} is already healthy!", name)],
+                                current_line: 0, char_index: 0, timer: 0.0,
+                                on_complete: DialogueAction::None,
+                            });
+                            self.phase = GamePhase::Dialogue;
+                            return;
+                        }
+                        let old_hp = pkmn.hp;
+                        pkmn.hp = pkmn.max_hp; // Full Restore always fully heals
+                        pkmn.clear_status();
+                        let healed = pkmn.hp - old_hp;
+                        self.bag.use_item(item_id);
+                        let mut msgs = vec![format!("Used {} on {}!", item_name, name)];
+                        if healed > 0 {
+                            msgs.push(format!("Restored {} HP!", healed));
+                        }
+                        msgs.push(format!("{} is fully healthy!", name));
+                        self.dialogue = Some(DialogueState {
+                            lines: msgs,
+                            current_line: 0, char_index: 0, timer: 0.0,
+                            on_complete: DialogueAction::None,
+                        });
+                        self.phase = GamePhase::Dialogue;
+                        return;
+                    }
+
                     // HP healing item
                     if pkmn.hp >= pkmn.max_hp {
                         self.dialogue = Some(DialogueState {
@@ -5677,6 +5968,68 @@ impl PokemonSim {
                 }
             }
         }
+    }
+
+    // ─── Fly Menu Logic ────────────────────────────────
+
+    fn step_fly_menu(&mut self, engine: &mut Engine) {
+        let cursor = if let GamePhase::FlyMenu { cursor } = &self.phase { *cursor } else { 0 };
+        let city_count = self.visited_cities.len() as u8;
+        if city_count == 0 {
+            self.phase = GamePhase::BagMenu { cursor: 0 };
+            return;
+        }
+
+        if is_down(engine) {
+            self.phase = GamePhase::FlyMenu { cursor: (cursor + 1) % city_count };
+        } else if is_up(engine) {
+            self.phase = GamePhase::FlyMenu { cursor: if cursor == 0 { city_count - 1 } else { cursor - 1 } };
+        }
+
+        if is_cancel(engine) {
+            self.phase = GamePhase::BagMenu { cursor: 0 };
+            return;
+        }
+
+        if is_confirm(engine) {
+            if let Some(&city) = self.visited_cities.get(cursor as usize) {
+                let (sx, sy) = Self::fly_spawn(city);
+                // Show "used FLY!" dialogue, then MapFadeOut to city
+                self.on_bicycle = false;
+                self.ice_sliding = None;
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "POKEMON used FLY!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::None,
+                });
+                // We can't chain dialogue→fade, so set up a MapFadeOut directly
+                // and show the dialogue text as a brief flash via the phase transition
+                self.phase = GamePhase::MapFadeOut { dest_map: city, dest_x: sx, dest_y: sy, timer: 0.0 };
+            }
+        }
+    }
+
+    fn render_fly_menu(&self, fb: &mut crate::rendering::framebuffer::Framebuffer, cursor: u8) {
+        let ctx = match &self.ctx { Some(c) => c, None => return };
+        let dark = Color::from_rgba(40, 40, 48, 255);
+
+        fill_virtual_screen(fb, ctx, Color::from_rgba(220, 232, 248, 255));
+        draw_text_pkmn(fb, ctx, "FLY TO?", 55, 3, dark);
+        fill_rect_v(fb, ctx, 4, 12, 152, 1, Color::from_rgba(168, 168, 176, 255));
+
+        for (i, city) in self.visited_cities.iter().enumerate() {
+            let y = 16 + i as i32 * 14;
+            if y > 128 { break; }
+            if i as u8 == cursor {
+                fill_rect_v(fb, ctx, 2, y - 1, 156, 13, Color::from_rgba(248, 248, 255, 255));
+                draw_cursor(fb, ctx, 4, y + 1, dark);
+            }
+            draw_text_pkmn(fb, ctx, Self::city_name(*city), 14, y + 1, dark);
+        }
+
+        draw_text_pkmn(fb, ctx, "X/ESC TO CANCEL", 15, 133, Color::from_rgba(120, 120, 140, 255));
     }
 
     fn try_catch_pokemon(&mut self, engine: &mut Engine) {
@@ -5812,30 +6165,43 @@ impl PokemonSim {
         draw_text_pkmn(fb, ctx, "BAG", 65, 3, dark);
         fill_rect_v(fb, ctx, 4, 12, 152, 1, Color::from_rgba(168, 168, 176, 255));
 
-        // Virtual BICYCLE item at top when has_bicycle and not in battle
+        // Virtual items at top when not in battle
+        let has_fly = self.battle.is_none() && self.badges > 0;
+        let fly_offset: u8 = if has_fly { 1 } else { 0 };
         let bike_offset: u8 = if self.has_bicycle && self.battle.is_none() { 1 } else { 0 };
-        let total_count = self.bag.items.len() as u8 + bike_offset;
+        let virtual_offset = fly_offset + bike_offset;
+        let total_count = self.bag.items.len() as u8 + virtual_offset;
 
         if total_count == 0 {
             draw_text_pkmn(fb, ctx, "Empty!", 55, 60, Color::from_rgba(120, 120, 140, 255));
         } else {
             let mut row: u8 = 0;
-            // Draw bicycle item first if applicable
-            if bike_offset > 0 {
-                let y = 16;
+            // Draw FLY item first if applicable
+            if fly_offset > 0 {
+                let y = 16 + row as i32 * 18;
                 if cursor == 0 {
+                    fill_rect_v(fb, ctx, 2, y - 1, 156, 16, Color::from_rgba(220, 232, 248, 255));
+                    draw_cursor(fb, ctx, 4, y + 2, dark);
+                }
+                draw_text_pkmn(fb, ctx, "FLY", 14, y + 2, Color::from_rgba(60, 80, 160, 255));
+                row += 1;
+            }
+            // Draw bicycle item if applicable
+            if bike_offset > 0 {
+                let y = 16 + row as i32 * 18;
+                if cursor == fly_offset {
                     fill_rect_v(fb, ctx, 2, y - 1, 156, 16, Color::from_rgba(232, 240, 248, 255));
                     draw_cursor(fb, ctx, 4, y + 2, dark);
                 }
                 draw_text_pkmn(fb, ctx, "BICYCLE", 14, y + 2, dark);
                 let status = if self.on_bicycle { "ON" } else { "x1" };
                 draw_text_pkmn(fb, ctx, status, 120, y + 2, Color::from_rgba(80, 80, 96, 255));
-                row = 1;
+                row += 1;
             }
             for (i, &(item_id, qty)) in self.bag.items.iter().enumerate() {
                 let y = 16 + (row as i32 + i as i32) * 18;
                 if y > 128 { break; }
-                let display_cursor = i as u8 + bike_offset;
+                let display_cursor = i as u8 + virtual_offset;
                 if display_cursor == cursor {
                     fill_rect_v(fb, ctx, 2, y - 1, 156, 16, Color::from_rgba(232, 240, 248, 255));
                     draw_cursor(fb, ctx, 4, y + 2, dark);
@@ -6591,6 +6957,7 @@ impl Simulation for PokemonSim {
                             self.total_time = 0.0;
                             self.repel_steps = 0;
                             self.story_flags = 0;
+                            self.visited_cities.clear();
                             self.last_pokecenter_map = MapId::CherrygroveCity;
                             self.last_house_map = MapId::NewBarkTown;
                             self.last_house_x = 12;
@@ -6672,6 +7039,7 @@ impl Simulation for PokemonSim {
             GamePhase::PCMenu { .. } => self.step_pc_menu(engine),
             GamePhase::DaycareDeposit { .. } => self.step_daycare_deposit(engine),
             GamePhase::DaycarePrompt { .. } => self.step_daycare_prompt(engine),
+            GamePhase::FlyMenu { .. } => self.step_fly_menu(engine),
 
             GamePhase::Healing { timer } => {
                 let t = timer + 1.0 / 60.0;
@@ -6932,6 +7300,7 @@ impl Simulation for PokemonSim {
             GamePhase::PCMenu { mode, cursor } => self.render_pc_menu(fb, *mode, *cursor),
             GamePhase::DaycareDeposit { cursor } => self.render_daycare_deposit(fb, *cursor),
             GamePhase::DaycarePrompt { cursor } => self.render_daycare_prompt(fb, *cursor),
+            GamePhase::FlyMenu { cursor } => self.render_fly_menu(fb, *cursor),
             GamePhase::TrainerApproach { npc_idx, .. } => {
                 // Render overworld, then draw "!" above approaching trainer
                 self.render_overworld_with_approach(fb, *npc_idx);

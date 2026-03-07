@@ -2149,6 +2149,14 @@ pub const ITEM_GREAT_BALL: ItemId = 8;
 pub const ITEM_ETHER: ItemId = 9;
 pub const ITEM_ESCAPE_ROPE: ItemId = 10;
 pub const ITEM_REPEL: ItemId = 11;
+pub const ITEM_HYPER_POTION: ItemId = 12;
+pub const ITEM_MAX_POTION: ItemId = 13;
+pub const ITEM_FULL_RESTORE: ItemId = 14;
+pub const ITEM_RARE_CANDY: ItemId = 15;
+pub const ITEM_AWAKENING: ItemId = 16;
+pub const ITEM_ICE_HEAL: ItemId = 17;
+pub const ITEM_SUPER_REPEL: ItemId = 18;
+pub const ITEM_MAX_REPEL: ItemId = 19;
 
 #[derive(Clone, Debug)]
 pub struct ItemData {
@@ -2160,20 +2168,30 @@ pub struct ItemData {
     pub price: u16,
     pub is_revive: bool,
     pub is_status_heal: bool,
+    pub is_rare_candy: bool,
+    pub repel_steps: u32,
 }
 
 const ITEM_DB: &[ItemData] = &[
-    ItemData { id: ITEM_POTION, name: "Potion", description: "Restores 20 HP.", heal_amount: 20, is_ball: false, price: 300, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_SUPER_POTION, name: "Super Potion", description: "Restores 50 HP.", heal_amount: 50, is_ball: false, price: 700, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_ANTIDOTE, name: "Antidote", description: "Cures poison.", heal_amount: 0, is_ball: false, price: 100, is_revive: false, is_status_heal: true },
-    ItemData { id: ITEM_POKE_BALL, name: "Poke Ball", description: "Catches wild Pokemon.", heal_amount: 0, is_ball: true, price: 200, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_PARALYZE_HEAL, name: "Paralyze Heal", description: "Cures paralysis.", heal_amount: 0, is_ball: false, price: 200, is_revive: false, is_status_heal: true },
-    ItemData { id: ITEM_REVIVE, name: "Revive", description: "Revives a fainted Pokemon to 50% HP.", heal_amount: 0, is_ball: false, price: 1500, is_revive: true, is_status_heal: false },
-    ItemData { id: ITEM_FULL_HEAL, name: "Full Heal", description: "Cures all status conditions.", heal_amount: 0, is_ball: false, price: 600, is_revive: false, is_status_heal: true },
-    ItemData { id: ITEM_GREAT_BALL, name: "Great Ball", description: "A good Ball with a higher catch rate.", heal_amount: 0, is_ball: true, price: 600, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_ETHER, name: "Ether", description: "Restores 10 PP to one move.", heal_amount: 0, is_ball: false, price: 1200, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_ESCAPE_ROPE, name: "Escape Rope", description: "Escapes from dungeons instantly.", heal_amount: 0, is_ball: false, price: 550, is_revive: false, is_status_heal: false },
-    ItemData { id: ITEM_REPEL, name: "Repel", description: "Repels wild Pokemon for 100 steps.", heal_amount: 0, is_ball: false, price: 350, is_revive: false, is_status_heal: false },
+    ItemData { id: ITEM_POTION, name: "Potion", description: "Restores 20 HP.", heal_amount: 20, is_ball: false, price: 300, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_SUPER_POTION, name: "Super Potion", description: "Restores 50 HP.", heal_amount: 50, is_ball: false, price: 700, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_ANTIDOTE, name: "Antidote", description: "Cures poison.", heal_amount: 0, is_ball: false, price: 100, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_POKE_BALL, name: "Poke Ball", description: "Catches wild Pokemon.", heal_amount: 0, is_ball: true, price: 200, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_PARALYZE_HEAL, name: "Paralyze Heal", description: "Cures paralysis.", heal_amount: 0, is_ball: false, price: 200, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_REVIVE, name: "Revive", description: "Revives a fainted Pokemon to 50% HP.", heal_amount: 0, is_ball: false, price: 1500, is_revive: true, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_FULL_HEAL, name: "Full Heal", description: "Cures all status conditions.", heal_amount: 0, is_ball: false, price: 600, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_GREAT_BALL, name: "Great Ball", description: "A good Ball with a higher catch rate.", heal_amount: 0, is_ball: true, price: 600, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_ETHER, name: "Ether", description: "Restores 10 PP to one move.", heal_amount: 0, is_ball: false, price: 1200, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_ESCAPE_ROPE, name: "Escape Rope", description: "Escapes from dungeons instantly.", heal_amount: 0, is_ball: false, price: 550, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_REPEL, name: "Repel", description: "Repels wild Pokemon for 100 steps.", heal_amount: 0, is_ball: false, price: 350, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 100 },
+    ItemData { id: ITEM_HYPER_POTION, name: "Hyper Potion", description: "Restores 200 HP.", heal_amount: 200, is_ball: false, price: 1200, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_MAX_POTION, name: "Max Potion", description: "Fully restores HP.", heal_amount: 9999, is_ball: false, price: 2500, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_FULL_RESTORE, name: "Full Restore", description: "Fully restores HP and cures status.", heal_amount: 9999, is_ball: false, price: 3000, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_RARE_CANDY, name: "Rare Candy", description: "Raises a Pokemon by one level.", heal_amount: 0, is_ball: false, price: 4800, is_revive: false, is_status_heal: false, is_rare_candy: true, repel_steps: 0 },
+    ItemData { id: ITEM_AWAKENING, name: "Awakening", description: "Cures sleep.", heal_amount: 0, is_ball: false, price: 250, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_ICE_HEAL, name: "Ice Heal", description: "Cures freeze.", heal_amount: 0, is_ball: false, price: 250, is_revive: false, is_status_heal: true, is_rare_candy: false, repel_steps: 0 },
+    ItemData { id: ITEM_SUPER_REPEL, name: "Super Repel", description: "Repels wild Pokemon for 200 steps.", heal_amount: 0, is_ball: false, price: 500, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 200 },
+    ItemData { id: ITEM_MAX_REPEL, name: "Max Repel", description: "Repels wild Pokemon for 250 steps.", heal_amount: 0, is_ball: false, price: 700, is_revive: false, is_status_heal: false, is_rare_candy: false, repel_steps: 250 },
 ];
 
 pub fn get_item(id: ItemId) -> Option<&'static ItemData> {

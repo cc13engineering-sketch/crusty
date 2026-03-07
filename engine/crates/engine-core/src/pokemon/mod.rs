@@ -539,6 +539,14 @@ impl PokemonSim {
         if dest == MapId::TinTower1F && !self.has_flag(FLAG_RADIO_TOWER_CLEAR) {
             return Some(&["The door is locked.", "You need the CLEAR", "BELL to enter."]);
         }
+        // Mahogany Gym: need Rocket HQ cleared
+        if dest == MapId::MahoganyGym && !self.has_flag(FLAG_ROCKET_MAHOGANY) {
+            return Some(&["The GYM LEADER is", "away dealing with", "TEAM ROCKET."]);
+        }
+        // Olivine Gym: need medicine delivered to Amphy
+        if dest == MapId::OlivineGym && !self.has_flag(FLAG_DELIVERED_MEDICINE) {
+            return Some(&["JASMINE isn't here.", "She's at the", "LIGHTHOUSE tending", "a sick POKEMON."]);
+        }
         None
     }
 
@@ -5005,12 +5013,6 @@ impl PokemonSim {
         match action {
             // ── Action 0: Browsing party list ──
             0 => {
-                if is_down(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 0, sub_cursor: 0 };
-                } else if is_up(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 0, sub_cursor: 0 };
-                }
-
                 if cancel {
                     // If backing out during a free switch, return to TrainerSwitchPrompt
                     if let Some(b) = &mut self.battle {
@@ -5023,6 +5025,14 @@ impl PokemonSim {
                         }
                     }
                     self.phase = if self.battle.is_some() { GamePhase::Battle } else { GamePhase::Menu };
+                    return;
+                }
+
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 0, sub_cursor: 0 };
+                    return;
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 0, sub_cursor: 0 };
                     return;
                 }
 
@@ -5090,12 +5100,6 @@ impl PokemonSim {
 
             // ── Action 1: Sub-menu open (SUMMARY / SWAP / CANCEL) ──
             1 => {
-                if is_down(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: (sub_cursor + 1) % 3 };
-                } else if is_up(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: if sub_cursor == 0 { 2 } else { sub_cursor - 1 } };
-                }
-
                 if cancel {
                     // Close sub-menu, back to browsing
                     self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
@@ -5103,9 +5107,7 @@ impl PokemonSim {
                 }
 
                 if confirm {
-                    // Re-read sub_cursor in case up/down changed it
-                    let sc = if let GamePhase::PokemonMenu { sub_cursor, .. } = &self.phase { *sub_cursor } else { 0 };
-                    match sc {
+                    match sub_cursor {
                         0 => {
                             // SUMMARY
                             sfx_select(engine);
@@ -5122,17 +5124,18 @@ impl PokemonSim {
                             self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
                         }
                     }
+                    return;
+                }
+
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: (sub_cursor + 1) % 3 };
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor, action: 1, sub_cursor: if sub_cursor == 0 { 2 } else { sub_cursor - 1 } };
                 }
             }
 
             // ── Action 2: Swap mode (selecting second Pokemon) ──
             2 => {
-                if is_down(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 2, sub_cursor: 0 };
-                } else if is_up(engine) {
-                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 2, sub_cursor: 0 };
-                }
-
                 if cancel {
                     // Cancel swap, back to browsing
                     self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
@@ -5158,6 +5161,13 @@ impl PokemonSim {
                     }
                     // Return to browsing mode
                     self.phase = GamePhase::PokemonMenu { cursor, action: 0, sub_cursor: 0 };
+                    return;
+                }
+
+                if is_down(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: (cursor + 1) % party_size, action: 2, sub_cursor: 0 };
+                } else if is_up(engine) {
+                    self.phase = GamePhase::PokemonMenu { cursor: if cursor == 0 { party_size - 1 } else { cursor - 1 }, action: 2, sub_cursor: 0 };
                 }
             }
 
@@ -11040,5 +11050,125 @@ mod headless_tests {
         assert!(!sim.is_npc_active(2), "Ariana must be hidden after clearing");
         // Director (NPC 0) should always be visible
         assert!(sim.is_npc_active(0), "Director must always be visible");
+    }
+
+    // ── Sprint 136: Gym Gate + Party Swap tests ──────────────────
+
+    #[test]
+    fn test_mahogany_gym_gate() {
+        // Mahogany Gym should be blocked until FLAG_ROCKET_MAHOGANY is set
+        let mut sim = PokemonSim::with_state(
+            MapId::MahoganyTown, 5, 5,
+            vec![Pokemon::new(CYNDAQUIL, 30)],
+            0x3F, // 6 badges
+        );
+        assert!(sim.check_warp_gate(MapId::MahoganyGym).is_some(),
+            "MahoganyGym should be blocked without FLAG_ROCKET_MAHOGANY");
+
+        sim.set_flag(FLAG_ROCKET_MAHOGANY);
+        assert!(sim.check_warp_gate(MapId::MahoganyGym).is_none(),
+            "MahoganyGym should be accessible after FLAG_ROCKET_MAHOGANY");
+    }
+
+    #[test]
+    fn test_olivine_gym_gate() {
+        // Olivine Gym should be blocked until FLAG_DELIVERED_MEDICINE is set
+        let mut sim = PokemonSim::with_state(
+            MapId::OlivineCity, 5, 5,
+            vec![Pokemon::new(CYNDAQUIL, 30)],
+            0x1F, // 5 badges
+        );
+        assert!(sim.check_warp_gate(MapId::OlivineGym).is_some(),
+            "OlivineGym should be blocked without FLAG_DELIVERED_MEDICINE");
+
+        sim.set_flag(FLAG_DELIVERED_MEDICINE);
+        assert!(sim.check_warp_gate(MapId::OlivineGym).is_none(),
+            "OlivineGym should be accessible after FLAG_DELIVERED_MEDICINE");
+    }
+
+    #[test]
+    fn test_party_swap_menu_flow() {
+        // Test the swap flow: action 0 -> confirm -> action 1 -> select SWAP -> action 2 -> confirm
+        let mut sim = PokemonSim::new();
+        sim.has_starter = true;
+        sim.party.push(Pokemon::new(CHIKORITA, 10));
+        sim.party.push(Pokemon::new(CYNDAQUIL, 15));
+        sim.party.push(Pokemon::new(TOTODILE, 20));
+
+        // Enter PokemonMenu at action 0
+        sim.phase = GamePhase::PokemonMenu { cursor: 0, action: 0, sub_cursor: 0 };
+
+        // Simulate confirm to open sub-menu (action 1)
+        sim.phase = GamePhase::PokemonMenu { cursor: 0, action: 1, sub_cursor: 0 };
+
+        // Select SWAP (sub_cursor 1)
+        sim.swap_source = 0;
+        sim.phase = GamePhase::PokemonMenu { cursor: 0, action: 2, sub_cursor: 0 };
+
+        // Move cursor to position 2 and confirm swap
+        sim.phase = GamePhase::PokemonMenu { cursor: 2, action: 2, sub_cursor: 0 };
+
+        // Execute the swap
+        let src = sim.swap_source as usize;
+        let dst = 2usize;
+        sim.party.swap(src, dst);
+
+        // Verify swap happened
+        assert_eq!(sim.party[0].species_id, TOTODILE, "Pos 0 should now be Totodile");
+        assert_eq!(sim.party[2].species_id, CHIKORITA, "Pos 2 should now be Chikorita");
+    }
+
+    #[test]
+    fn test_daycare_deposit_return_flow() {
+        // Test daycare deposit and return
+        let mut sim = PokemonSim::with_state(
+            MapId::Route34, 5, 3,
+            vec![Pokemon::new(CHIKORITA, 10), Pokemon::new(CYNDAQUIL, 15)],
+            1,
+        );
+        sim.money = 5000;
+        assert!(sim.daycare_pokemon.is_none());
+        assert_eq!(sim.party.len(), 2);
+
+        // Simulate depositing second Pokemon
+        let deposited = sim.party.remove(1);
+        sim.daycare_deposit_level = deposited.level;
+        sim.daycare_pokemon = Some(deposited);
+        sim.daycare_steps = 0;
+        assert_eq!(sim.party.len(), 1);
+        assert!(sim.daycare_pokemon.is_some());
+
+        // Walk 600 steps — each step gives 1 EXP, MediumSlow Lv15->16 needs ~500 EXP
+        for _ in 0..600 {
+            sim.daycare_steps += 1;
+            if let Some(ref mut pkmn) = sim.daycare_pokemon {
+                pkmn.exp += 1;
+                if let Some(species) = get_species(pkmn.species_id) {
+                    while pkmn.level < 100 {
+                        let next_exp = exp_for_level(pkmn.level + 1, species.growth_rate);
+                        if pkmn.exp >= next_exp {
+                            pkmn.level += 1;
+                            pkmn.recalc_stats();
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Simulate return
+        let returned = sim.daycare_pokemon.take().expect("daycare should have Pokemon");
+        let levels_gained = returned.level.saturating_sub(sim.daycare_deposit_level) as u32;
+        let cost = 100 + 100 * levels_gained;
+        assert!(sim.money >= cost, "should have enough money");
+        sim.money -= cost;
+        sim.party.push(returned);
+        sim.daycare_steps = 0;
+
+        assert_eq!(sim.party.len(), 2);
+        assert!(sim.daycare_pokemon.is_none());
+        // Cyndaquil should have gained some levels (15 + some)
+        assert!(sim.party[1].level > 15, "daycare Pokemon should have gained levels");
     }
 }

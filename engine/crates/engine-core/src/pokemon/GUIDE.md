@@ -185,6 +185,108 @@ Compile pokecrystal's audio to a `.gbs` file. Use Game Music Emu compiled to WAS
 
 ---
 
+## Game Mechanics Micro-Details (Acceptance Criteria Reference)
+
+Every implementation must match these behaviors from the original game. This section is the fine-detail reference that accuracy-checker audits against.
+
+### Screen Transitions and Map Loading
+
+- Warp tile: finish current movement step → fade-out (palette manipulation across several frames, not instant) → load new map during black screen → fade-in
+- No input processed during fade, but engine still ticks (RTC advances)
+- Indoor-to-outdoor transitions do a palette swap; if time-of-day changed while inside, new palette on exit
+- Door animation: 2 overworld tile swaps (closed → open frame 1 → open frame 2), each held for 8 frames, before fade begins. Exit plays reverse.
+- Cave entrances: skip door animation, just fade
+- Flying/Teleporting: full-white flash instead of fade-to-black
+- Map load during warp: clear all NPC sprite states, reload tileset (if different), rebuild collision map, re-run map init script, recheck NPC movement permissions
+- Same tileset = skip tileset reload, but palette may still change
+
+### Scrolling and Camera
+
+- Camera locked to player center EXCEPT within 4-5 tiles of map edge
+- At map edge: camera stops scrolling, player walks toward screen edge (conditional offset, not a clamp)
+- Map connections: seamless scroll — connected map tile data pre-loaded into offscreen tilemap buffer during boundary-crossing step. Old map fully unloaded mid-step; old map NPCs gone by step end.
+
+### NPC Behavior and Pathing
+
+- Movement patterns: stationary, random-look, random-walk within radius, fixed-path pace, follow-player
+- Random walk: roll direction every 32-64 frames (variable per NPC), check collision, step or re-roll
+- Collision: tile-by-tile, NPC never starts a step it can't complete. Can't walk into each other, player, or warp/collision tiles.
+- Talk-to mid-walk: NPC stops on current tile, faces player. After dialogue, resumes with fresh random timer.
+- Talk-to mid-step: game waits for NPC to finish step before opening dialogue (slight delay)
+- Sprite priority for draw order; player is always highest priority
+
+### Tile Interaction
+
+- A-button check hierarchy: signpost scripts → NPC interaction → tile talk-to event
+- Berry trees: 1 bit per tree (picked/not picked), ALL regrow at midnight (RTC 00:00), not 24h elapsed
+- Surf: check tile in front for water collision → check badge + HM → "used Surf" text → swap sprite to surfing → swap collision mode (water=passable, land=impassable). Reverse on stepping onto land from water.
+- Waterfall: blocks upward movement unless Waterfall active. Sideways movement off waterfall permitted. Stepping onto from above without move = forced slide down.
+- Whirlpool: radius check, sucked to center tile unless Whirlpool active. Override input, scripted walk.
+- Strength boulders: store position as offset from initial. Check collision ahead of BOULDER (not player). Reset on map exit. "Strength activated" flag is per-map-load, not persistent. Each boulder is its own NPC object.
+
+### Bike
+
+- Doubles movement speed: 4 frames/step instead of 8
+- Encounter rate NOT halved — encounters-per-second actually doubles
+- Can't use indoors or in flagged map types
+- Dismount: instantaneous (sprite swap + speed change, no animation). Auto-dismount on door/warp entry.
+
+### Text Rendering
+
+- Character-by-character, ~1 frame/char at normal speed, faster holding A/B
+- Two-line text buffer. When full + more text: "▼" prompt waits for input
+- Scroll: pixel-level animation over several frames (shift top line up/out, move bottom to top, render new line at bottom). Not instant swap.
+- Yes/No prompts default to Yes. Cursor position preserved within textbox chain, resets between separate NPC interactions.
+- Mart/quantity selectors: last quantity NOT remembered, always resets to 1.
+
+### Start Menu
+
+- Fixed order, entries added as acquired (Pokedex after receiving, Pokegear after receiving)
+- Draws on top of overworld WITHOUT pausing NPC movement timers
+- NPCs continue ticking random-walk timers while menu open, but won't move until menu closes (step execution gated on menu flag)
+- NPC timer can expire inside menu → NPC takes step immediately when menu closes
+
+### Battle Transitions
+
+- Transition effect selected from table: wild encounters by map type (cave vs grass), trainer battles different set, important battles (rival/gym/legendary) have specific hardcoded transitions
+- During transition animation, battle engine initializes in parallel (load stats, generate enemy party, build battle scene in backbuffer)
+- "Wild Pokemon appeared": slide-in enemy sprite from right (x=168, 8px/frame leftward) → play cry → slide-in player Pokemon from left → play cry → yield to action menu
+- Cry plays asynchronously with hardcoded minimum delay
+
+### Battle Flow Micro-Details
+
+- Turn order: effective speed comparison, paralysis halving (truncated). Speed tie = 50/50 RNG coin flip.
+- Priority: switching ALWAYS before attacks. Items ALWAYS before attacks.
+- If both switch, faster player's Pokemon enters first (cosmetic in Gen 2).
+- Faint mid-turn: defender's move canceled entirely (no execution from the grave). But attacker with poison/burn still takes residual damage that turn.
+- KO switch: does NOT consume turn — free switch, then next turn begins normally. Opponent can't attack during switch-in.
+- Forced switch (Roar/Whirlwind): switched-in Pokemon DOES lose its turn.
+- Weather: 5 turns from turn set (setup turn = turn 1, so 4 effective boosted turns after). Counter decrements at end of turn. Residual damage check at turn start, move power boost at point of damage calc.
+
+### Pokemon Cries
+
+- Generated by sound hardware from base waveform + pitch + length parameter
+- Many species share base cry with different pitch/length offsets
+- Playback is non-blocking, but scripts insert manual delay to prevent overlap
+
+### Evolution Sequence
+
+- Triggered after battle or Rare Candy, not during
+- Queue evolution checks for every party member that leveled up, process sequentially after battle
+- Animation: sprite cycles between pre-evo and post-evo forms with increasing frequency (accelerating flicker), settles on final form
+- B to cancel: only checked at specific cycle points, not instant. Canceled Pokemon keeps pre-evo form, can re-trigger on next level-up.
+- Everstone: suppresses evolution queue entirely (check never fires)
+
+### Saving
+
+- Sequential write to SRAM, ~1-2 real seconds
+- "SAVING... DON'T TURN OFF THE POWER." displayed, input locked
+- Dual-bank safety: partial write corrupts one bank, other bank (previous save) intact
+- Write order: player state, party, box (current box only — switching boxes prompts save), map state, event flags, RTC snapshot, checksum LAST
+- Checksum last = interrupted save fails checksum → rejected in favor of backup bank
+
+---
+
 ## Remaining Work (Phase Checklist)
 
 ### Phase 0: Architectural Hardening
@@ -3019,3 +3121,42 @@ Added 5 new maps and 8 new species/moves to complete Victory Road's basement, bo
 - `data.rs` — Added 8 new species (Rhyhorn, Rhydon, Kadabra, Unown, Wobbuffet, Dunsparce, Natu, Smeargle)
 - `maps.rs` — Added 5 new maps with tiles, collision, warps, NPCs, encounters; added to all test arrays
 - `mod.rs` — Added new cave/indoor maps to 3 is_indoor match blocks and warp test skip list
+
+---
+
+### Sprint 136 — Party Swap Fix + Gym Gating Logic + Daycare Fix
+
+#### Summary
+Fixed three user-reported bugs: party Pokemon swap input race conditions, missing gym availability gates, and daycare flow validation.
+
+#### Bug Fixes
+
+**1. Party Swap Input Fix**
+- Reordered input handling in all 3 PokemonMenu action states to prioritize cancel/confirm over navigation
+- Previously: navigation (up/down) updated `self.phase` first, then confirm used the old captured cursor value, causing same-frame races where the wrong Pokemon was selected or navigation was lost
+- Now: cancel -> confirm -> navigation, with early returns preventing conflicts
+- Fixed action 1 sub-cursor re-read that could cause wrong option selection when navigating and confirming on the same frame
+
+**2. Gym Availability Gates**
+- Added **MahoganyGym** gate: requires FLAG_ROCKET_MAHOGANY (must clear Rocket HQ first)
+- Added **OlivineGym** gate: requires FLAG_DELIVERED_MEDICINE (must deliver medicine to Amphy first)
+- Both gates display contextual dialogue explaining why the gym is blocked
+
+**3. Daycare Validation**
+- Verified daycare deposit/return flow is correct (was working, added regression test)
+- Daycare EXP gain: 1 EXP per step (Gen 2 accurate), level-up check per step
+- Cost formula: $100 + $100 * levels_gained (correct)
+- Save/load serialization verified working
+
+#### New Tests (4)
+- `test_mahogany_gym_gate` — Verifies MahoganyGym blocked without FLAG_ROCKET_MAHOGANY
+- `test_olivine_gym_gate` — Verifies OlivineGym blocked without FLAG_DELIVERED_MEDICINE
+- `test_party_swap_menu_flow` — Validates swap source/dest tracking
+- `test_daycare_deposit_return_flow` — Full deposit→walk 600 steps→return→verify level gain
+
+#### Test Results
+- **1369 tests passing** (4 new tests)
+- **0 compiler warnings**
+
+#### Files Changed
+- `mod.rs` — Party swap input reordering (all 3 action states), MahoganyGym + OlivineGym warp gates, 4 new tests

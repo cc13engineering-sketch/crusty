@@ -388,6 +388,9 @@ pub const MOVE_SLUDGE_BOMB: MoveId = 188;
 // Sprint 132: Tin Tower + Ho-Oh
 pub const HO_OH: SpeciesId = 250;
 pub const MOVE_SACRED_FIRE: MoveId = 221;
+// Sprint 133: Whirl Islands + Lugia
+pub const LUGIA: SpeciesId = 249;
+pub const MOVE_AEROBLAST: MoveId = 177;
 
 /// Static species data
 #[derive(Debug)]
@@ -1793,6 +1796,19 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_SACRED_FIRE), (22, MOVE_GUST), (33, MOVE_RECOVER), (44, MOVE_FIRE_BLAST), (55, MOVE_SUNNY_DAY)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 133: Lugia (Psychic/Flying) — Legendary, Whirl Islands ───
+    // Per pokecrystal: HP 106, Atk 90, Def 130, Spd 110, SpA 90, SpD 154
+    // Catch rate 3, base exp 220, Slow growth
+    // Learnset: Aeroblast(1), Safeguard(11), Gust(22), Recover(33), Hydro Pump(44), Whirlwind(55)
+    SpeciesData {
+        id: LUGIA, name: "Lugia",
+        type1: PokemonType::Psychic, type2: Some(PokemonType::Flying),
+        base_hp: 106, base_attack: 90, base_defense: 130,
+        base_sp_attack: 90, base_sp_defense: 154, base_speed: 110,
+        catch_rate: 3, base_exp_yield: 220, growth_rate: GrowthRate::Slow,
+        learnset: &[(1, MOVE_AEROBLAST), (11, MOVE_SAFEGUARD), (22, MOVE_GUST), (33, MOVE_RECOVER), (44, MOVE_HYDRO_PUMP), (55, MOVE_WHIRLWIND)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -1962,6 +1978,8 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_GLARE, name: "Glare", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 75, pp: 30, description: "May paralyze the foe." },
     // Sprint 132: Ho-Oh signature move
     MoveData { id: MOVE_SACRED_FIRE, name: "Sacred Fire", move_type: PokemonType::Fire, category: MoveCategory::Special, power: 100, accuracy: 95, pp: 5, description: "A mystical fire that may burn." },
+    // Sprint 133: Lugia signature move
+    MoveData { id: MOVE_AEROBLAST, name: "Aeroblast", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 100, accuracy: 95, pp: 5, description: "A vortex of air that has a high critical-hit ratio." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

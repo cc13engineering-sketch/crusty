@@ -135,6 +135,8 @@ const ARBOK: u16 = 24;
 const HOUNDOUR: u16 = 228;
 const GLOOM: u16 = 44;
 const PORYGON: u16 = 137;
+// Sprint 133: Whirl Islands species
+const CORSOLA: u16 = 222;
 
 // ─── Tile IDs (matching sprites.rs) ─────────────────────
 const GRASS: u8 = 0;
@@ -266,6 +268,10 @@ pub enum MapId {
     TinTower8F,
     TinTower9F,
     TinTowerRoof,
+    WhirlIslandsEntrance,
+    WhirlIslandsB1F,
+    WhirlIslandsB2F,
+    WhirlIslandsLugiaChamber,
 }
 
 impl MapId {
@@ -355,6 +361,10 @@ impl MapId {
             "TinTower8F" => Some(MapId::TinTower8F),
             "TinTower9F" => Some(MapId::TinTower9F),
             "TinTowerRoof" => Some(MapId::TinTowerRoof),
+            "WhirlIslandsEntrance" | "WhirlIslands" => Some(MapId::WhirlIslandsEntrance),
+            "WhirlIslandsB1F" => Some(MapId::WhirlIslandsB1F),
+            "WhirlIslandsB2F" => Some(MapId::WhirlIslandsB2F),
+            "WhirlIslandsLugiaChamber" => Some(MapId::WhirlIslandsLugiaChamber),
             _ => None,
         }
     }
@@ -445,6 +455,10 @@ impl MapId {
             MapId::TinTower8F => "TinTower8F",
             MapId::TinTower9F => "TinTower9F",
             MapId::TinTowerRoof => "TinTowerRoof",
+            MapId::WhirlIslandsEntrance => "WhirlIslandsEntrance",
+            MapId::WhirlIslandsB1F => "WhirlIslandsB1F",
+            MapId::WhirlIslandsB2F => "WhirlIslandsB2F",
+            MapId::WhirlIslandsLugiaChamber => "WhirlIslandsLugiaChamber",
         }
     }
 }
@@ -627,6 +641,10 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::TinTower8F => build_tin_tower_8f(),
         MapId::TinTower9F => build_tin_tower_9f(),
         MapId::TinTowerRoof => build_tin_tower_roof(),
+        MapId::WhirlIslandsEntrance => build_whirl_islands_entrance(),
+        MapId::WhirlIslandsB1F => build_whirl_islands_b1f(),
+        MapId::WhirlIslandsB2F => build_whirl_islands_b2f(),
+        MapId::WhirlIslandsLugiaChamber => build_whirl_islands_lugia_chamber(),
     }
 }
 
@@ -6485,8 +6503,8 @@ fn build_route_40() -> MapData {
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
-        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
-        WATER,WATER,PATH,PATH,PATH,PATH,WATER,WATER,
+        WATER,WATER,CAVE_WALL,CAVE_WALL,PATH,PATH,WATER,WATER,
+        WATER,WATER,CAVE_WALL,DOOR,PATH,PATH,WATER,WATER,
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
         WATER,WATER,WATER,PATH,PATH,WATER,WATER,WATER,
@@ -6508,8 +6526,8 @@ fn build_route_40() -> MapData {
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
-        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
-        C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,
+        C_WATER,C_WATER,C_SOLID,C_WARP,C_WALK,C_WALK,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
         C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,
@@ -6521,6 +6539,8 @@ fn build_route_40() -> MapData {
         WarpData { x: 4, y: 0, dest_map: MapId::OlivineCity, dest_x: 6, dest_y: 14 },
         WarpData { x: 3, y: 19, dest_map: MapId::CianwoodCity, dest_x: 9, dest_y: 1 },
         WarpData { x: 4, y: 19, dest_map: MapId::CianwoodCity, dest_x: 10, dest_y: 1 },
+        // Whirl Islands cave entrance
+        WarpData { x: 3, y: 14, dest_map: MapId::WhirlIslandsEntrance, dest_x: 7, dest_y: 12 },
     ];
     let npcs = vec![
         NpcDef { x: 3, y: 4, sprite_id: 2, facing: Direction::Down,
@@ -6533,7 +6553,7 @@ fn build_route_40() -> MapData {
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: KRABBY, level: 21 }],
         },
-        NpcDef { x: 3, y: 14, sprite_id: 2, facing: Direction::Down,
+        NpcDef { x: 4, y: 16, sprite_id: 2, facing: Direction::Down,
             dialogue: &["Swimmer RANDALL", "wants to battle!"],
             is_trainer: true, is_mart: false, wanders: false,
             trainer_team: &[TrainerPokemon { species_id: TENTACOOL, level: 18 }, TrainerPokemon { species_id: TENTACRUEL, level: 22 }],
@@ -10902,6 +10922,326 @@ fn build_tin_tower_roof() -> MapData {
     MapData { id: MapId::TinTowerRoof, name: "TIN TOWER ROOF", width: w, height: h, tiles, collision, warps, npcs, encounters: vec![], night_encounters: vec![], water_encounters: vec![], music_id: 12 }
 }
 
+// ─── Whirl Islands Entrance (14×14) ─── Surface cave, accessible from Route 40 ───
+// Per pokecrystal: cave tileset, dark palette, Krabby/Zubat/Seel/Golbat encounters
+fn build_whirl_islands_entrance() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,WATER,WATER,WATER,WATER,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,WATER,WATER,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,C_WATER,C_WATER,C_WATER,C_WATER,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WATER,C_WATER,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "WhirlIslandsEntrance tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "WhirlIslandsEntrance collision count mismatch");
+
+    let warps = vec![
+        // Stairs down to B1F
+        WarpData { x: 7, y: 4, dest_map: MapId::WhirlIslandsB1F, dest_x: 7, dest_y: 1 },
+        // Exit back to Route 40
+        WarpData { x: 7, y: 12, dest_map: MapId::Route40, dest_x: 4, dest_y: 13 },
+    ];
+
+    // NPC 0: Old man hinting at Lugia
+    let npcs = vec![
+        NpcDef {
+            x: 3, y: 3, sprite_id: 5, facing: Direction::Right,
+            dialogue: &["They say a legendary", "POKEMON lives deep", "beneath the WHIRL", "ISLANDS..."],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Krabby, Zubat, Seel, Golbat
+    let encounters = vec![
+        EncounterEntry { species_id: KRABBY, min_level: 22, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 22, max_level: 23, weight: 30 },
+        EncounterEntry { species_id: SEEL, min_level: 22, max_level: 24, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 25, max_level: 25, weight: 15 },
+    ];
+
+    MapData { id: MapId::WhirlIslandsEntrance, name: "WHIRL ISLANDS", width: w, height: h, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
+        EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 40 },
+        EncounterEntry { species_id: HORSEA, min_level: 15, max_level: 20, weight: 35 },
+        EncounterEntry { species_id: TENTACRUEL, min_level: 20, max_level: 24, weight: 25 },
+    ], music_id: 9 }
+}
+
+// ─── Whirl Islands B1F (14×14) ─── Upper cave tunnels with trainers ───
+// Per pokecrystal: Krabby/Zubat/Seel/Golbat at slightly higher levels
+fn build_whirl_islands_b1f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "WhirlIslandsB1F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "WhirlIslandsB1F collision count mismatch");
+
+    let warps = vec![
+        // Stairs back up to Entrance
+        WarpData { x: 7, y: 1, dest_map: MapId::WhirlIslandsEntrance, dest_x: 9, dest_y: 5 },
+        // Stairs down to B2F
+        WarpData { x: 6, y: 12, dest_map: MapId::WhirlIslandsB2F, dest_x: 7, dest_y: 1 },
+    ];
+
+    // Trainers per pokecrystal patterns — Swimmer and Cooltrainer types
+    let npcs = vec![
+        NpcDef {
+            x: 2, y: 4, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Swimmer MATTHEW", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: KRABBY, level: 25 }, TrainerPokemon { species_id: SEEL, level: 25 }],
+        },
+        NpcDef {
+            x: 12, y: 8, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["Cooltrainer LANA", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: CORSOLA, level: 27 }, TrainerPokemon { species_id: GOLBAT, level: 26 }],
+        },
+    ];
+
+    // Per pokecrystal: B1F has slightly higher levels
+    let encounters = vec![
+        EncounterEntry { species_id: KRABBY, min_level: 23, max_level: 25, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 24, max_level: 24, weight: 25 },
+        EncounterEntry { species_id: SEEL, min_level: 23, max_level: 25, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 26, max_level: 26, weight: 20 },
+    ];
+
+    MapData { id: MapId::WhirlIslandsB1F, name: "WHIRL ISLANDS B1F", width: w, height: h, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
+        EncounterEntry { species_id: HORSEA, min_level: 15, max_level: 20, weight: 40 },
+        EncounterEntry { species_id: TENTACOOL, min_level: 20, max_level: 24, weight: 35 },
+        EncounterEntry { species_id: TENTACRUEL, min_level: 20, max_level: 24, weight: 25 },
+    ], music_id: 9 }
+}
+
+// ─── Whirl Islands B2F (14×14) ─── Deep cave, leads to Lugia's chamber ───
+// Per pokecrystal: higher level encounters, water passages
+fn build_whirl_islands_b2f() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,WATER,WATER,WATER,WATER,WATER,WATER,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,WATER,WATER,WATER,WATER,WATER,WATER,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_WARP,C_WALK,C_SOLID,C_SOLID,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WARP,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "WhirlIslandsB2F tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "WhirlIslandsB2F collision count mismatch");
+
+    let warps = vec![
+        // Stairs back up to B1F
+        WarpData { x: 7, y: 1, dest_map: MapId::WhirlIslandsB1F, dest_x: 5, dest_y: 11 },
+        // Passage to Lugia Chamber
+        WarpData { x: 7, y: 9, dest_map: MapId::WhirlIslandsLugiaChamber, dest_x: 7, dest_y: 12 },
+        // Exit stairs (back up shortcut)
+        WarpData { x: 6, y: 12, dest_map: MapId::WhirlIslandsB1F, dest_x: 8, dest_y: 2 },
+    ];
+
+    // Trainers — stronger swimmers/cooltrainers
+    let npcs = vec![
+        NpcDef {
+            x: 2, y: 6, sprite_id: 2, facing: Direction::Right,
+            dialogue: &["Swimmer KYLE", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: SEEL, level: 27 }, TrainerPokemon { species_id: DEWGONG, level: 29 }],
+        },
+        NpcDef {
+            x: 12, y: 10, sprite_id: 3, facing: Direction::Left,
+            dialogue: &["Cooltrainer REENA", "wants to battle!"],
+            is_trainer: true, is_mart: false, wanders: false,
+            trainer_team: &[TrainerPokemon { species_id: GOLBAT, level: 28 }, TrainerPokemon { species_id: SEADRA, level: 30 }],
+        },
+    ];
+
+    // Per pokecrystal: B2F higher levels
+    let encounters = vec![
+        EncounterEntry { species_id: KRABBY, min_level: 24, max_level: 26, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 25, max_level: 25, weight: 20 },
+        EncounterEntry { species_id: SEEL, min_level: 24, max_level: 26, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 27, max_level: 27, weight: 25 },
+    ];
+
+    MapData { id: MapId::WhirlIslandsB2F, name: "WHIRL ISLANDS B2F", width: w, height: h, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
+        EncounterEntry { species_id: HORSEA, min_level: 15, max_level: 20, weight: 35 },
+        EncounterEntry { species_id: HORSEA, min_level: 20, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: TENTACRUEL, min_level: 20, max_level: 24, weight: 35 },
+    ], music_id: 9 }
+}
+
+// ─── Whirl Islands Lugia Chamber (14×14) ─── Large waterfall chamber ───
+// Per pokecrystal: Lugia at center, level 60. Requires Silver Wing (simplified: always present).
+// NPC 0 = Lugia, hidden after FLAG_LUGIA_ENCOUNTERED.
+fn build_whirl_islands_lugia_chamber() -> MapData {
+    let w: usize = 14;
+    let h: usize = 14;
+
+    #[rustfmt::skip]
+    let tiles: Vec<u8> = vec![
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,WATER,WATER,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_FLOOR,CAVE_WALL,
+        CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,CAVE_WALL,
+    ];
+
+    #[rustfmt::skip]
+    let collision: Vec<u8> = vec![
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WATER,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WATER,C_WATER,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_WALK,C_SOLID,
+        C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_WARP,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,C_SOLID,
+    ];
+
+    debug_assert_eq!(tiles.len(), w * h, "WhirlIslandsLugiaChamber tiles count mismatch");
+    debug_assert_eq!(collision.len(), w * h, "WhirlIslandsLugiaChamber collision count mismatch");
+
+    let warps = vec![
+        // Exit back up to B2F
+        WarpData { x: 7, y: 13, dest_map: MapId::WhirlIslandsB2F, dest_x: 7, dest_y: 10 },
+    ];
+
+    // NPC 0: Lugia — visible until FLAG_LUGIA_ENCOUNTERED (gated in is_npc_active)
+    // Interacting triggers legendary battle via DialogueAction::StartLugiaBattle
+    let npcs = vec![
+        NpcDef {
+            x: 7, y: 6, sprite_id: 5, facing: Direction::Down,
+            dialogue: &["Gyaaas!"],
+            is_trainer: false, is_mart: false, wanders: false, trainer_team: &[],
+        },
+    ];
+
+    // Per pokecrystal: Lugia Chamber encounters
+    let encounters = vec![
+        EncounterEntry { species_id: KRABBY, min_level: 25, max_level: 27, weight: 30 },
+        EncounterEntry { species_id: ZUBAT, min_level: 26, max_level: 26, weight: 20 },
+        EncounterEntry { species_id: SEEL, min_level: 25, max_level: 27, weight: 25 },
+        EncounterEntry { species_id: GOLBAT, min_level: 28, max_level: 28, weight: 25 },
+    ];
+
+    MapData { id: MapId::WhirlIslandsLugiaChamber, name: "LUGIA'S CHAMBER", width: w, height: h, tiles, collision, warps, npcs, encounters, night_encounters: vec![], water_encounters: vec![
+        EncounterEntry { species_id: HORSEA, min_level: 20, max_level: 24, weight: 30 },
+        EncounterEntry { species_id: TENTACRUEL, min_level: 20, max_level: 24, weight: 35 },
+        EncounterEntry { species_id: SEADRA, min_level: 20, max_level: 24, weight: 35 },
+    ], music_id: 9 }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -11047,6 +11387,7 @@ mod tests {
             MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
+            MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
         ];
         for id in &maps {
             let map = load_map(*id);
@@ -11093,6 +11434,7 @@ mod tests {
             MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
+            MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
         ];
         for map_id in &all_maps {
             let map = load_map(*map_id);
@@ -11351,6 +11693,7 @@ mod tests {
             MapId::RadioTower1F, MapId::RadioTower2F, MapId::RadioTower3F, MapId::RadioTower4F, MapId::RadioTower5F,
             MapId::TinTower1F, MapId::TinTower2F, MapId::TinTower3F, MapId::TinTower4F, MapId::TinTower5F,
             MapId::TinTower6F, MapId::TinTower7F, MapId::TinTower8F, MapId::TinTower9F, MapId::TinTowerRoof,
+            MapId::WhirlIslandsEntrance, MapId::WhirlIslandsB1F, MapId::WhirlIslandsB2F, MapId::WhirlIslandsLugiaChamber,
         ];
         let mut errors = Vec::new();
         for &src_id in &all_maps {

@@ -155,6 +155,7 @@ const FLAG_DRAGONS_DEN_QUIZ: u64 = 1 << 16; // Answered Dragon Master's quiz
 const FLAG_RADIO_TOWER_ROCKETS: u64 = 1 << 17; // Radio Tower Rocket takeover active
 const FLAG_RADIO_TOWER_CLEAR: u64 = 1 << 18; // Cleared Radio Tower (defeated Archer)
 const FLAG_HO_OH_ENCOUNTERED: u64 = 1 << 19; // Fought Ho-Oh on Tin Tower Roof
+const FLAG_LUGIA_ENCOUNTERED: u64 = 1 << 20; // Fought Lugia in Whirl Islands
 
 // ─── Game Phase ─────────────────────────────────────────
 
@@ -367,6 +368,7 @@ enum DialogueAction {
     StartSudowoodoBattle,
     StartRedGyaradosBattle,
     StartHoOhBattle,
+    StartLugiaBattle,
     EscapeRope,
     OpenMart,
     GiveBadge { badge_num: u8 },
@@ -566,6 +568,10 @@ impl PokemonSim {
         }
         // TinTowerRoof: NPC 0 = Ho-Oh (hidden after FLAG_HO_OH_ENCOUNTERED)
         if self.current_map_id == MapId::TinTowerRoof && npc_idx == 0 && self.has_flag(FLAG_HO_OH_ENCOUNTERED) {
+            return false;
+        }
+        // WhirlIslandsLugiaChamber: NPC 0 = Lugia (hidden after FLAG_LUGIA_ENCOUNTERED)
+        if self.current_map_id == MapId::WhirlIslandsLugiaChamber && npc_idx == 0 && self.has_flag(FLAG_LUGIA_ENCOUNTERED) {
             return false;
         }
         true
@@ -2118,6 +2124,25 @@ impl PokemonSim {
                     ],
                     current_line: 0, char_index: 0, timer: 0.0,
                     on_complete: DialogueAction::StartHoOhBattle,
+                });
+                self.phase = GamePhase::Dialogue;
+                return;
+            }
+
+            // Whirl Islands Lugia Chamber: Lugia legendary encounter (NPC 0)
+            if self.current_map_id == MapId::WhirlIslandsLugiaChamber && npc_idx == 0
+                && !self.has_flag(FLAG_LUGIA_ENCOUNTERED)
+                && !self.party.is_empty()
+            {
+                self.dialogue = Some(DialogueState {
+                    lines: vec![
+                        "Gyaaas!".to_string(),
+                        "The legendary LUGIA".to_string(),
+                        "rises from the".to_string(),
+                        "deep to challenge you!".to_string(),
+                    ],
+                    current_line: 0, char_index: 0, timer: 0.0,
+                    on_complete: DialogueAction::StartLugiaBattle,
                 });
                 self.phase = GamePhase::Dialogue;
                 return;
@@ -4647,6 +4672,43 @@ impl PokemonSim {
                     self.set_flag(FLAG_HO_OH_ENCOUNTERED);
                     self.register_seen(HO_OH);
                     let enemy = Pokemon::new(HO_OH, 60);
+                    let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
+                    let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
+                    self.battle = Some(BattleState {
+                        phase: BattlePhase::Intro { timer: 0.0 },
+                        enemy,
+                        player_idx,
+                        is_wild: true,
+                        player_hp_display: player_hp,
+                        enemy_hp_display: 0.0,
+                        turn_count: 0,
+                        trainer_team: Vec::new(),
+                        trainer_team_idx: 0,
+                        pending_player_move: None,
+                        player_stages: [0; 7],
+                        enemy_stages: [0; 7],
+                        enemy_flinched: false,
+                        player_flinched: false,
+                        player_confused: 0,
+                        enemy_confused: 0,
+                        player_trapped: false,
+                        player_must_recharge: false,
+                        enemy_must_recharge: false,
+                        player_rampage: (0, 0),
+                        enemy_rampage: (0, 0),
+                        pending_learn_moves: vec![],
+                        free_switch: false,
+                        confusion_snapout_msg: None,
+                        battle_queue: VecDeque::new(),
+                        queue_timer: 0.0,
+                    });
+                    self.encounter_flash_count = 0;
+                    self.phase = GamePhase::EncounterTransition { timer: 0.0 };
+                }
+                DialogueAction::StartLugiaBattle => {
+                    self.set_flag(FLAG_LUGIA_ENCOUNTERED);
+                    self.register_seen(LUGIA);
+                    let enemy = Pokemon::new(LUGIA, 60);
                     let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
                     let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                     self.battle = Some(BattleState {

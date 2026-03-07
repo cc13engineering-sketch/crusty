@@ -2867,3 +2867,64 @@ All warps land on C_WALK tiles (validated by test_all_warps_valid).
 - `data.rs` — Added Ho-Oh species (id 250), Sacred Fire move (id 221, Special category)
 - `maps.rs` — Added 10 TinTower maps, Ecruteak City building/warp, fixed RadioTower warp destinations and NPC placement, updated test map lists
 - `mod.rs` — Added FLAG_HO_OH_ENCOUNTERED (bit 19), DialogueAction::StartHoOhBattle, warp gate for TinTower1F, Ho-Oh NPC interaction handler, Ho-Oh battle handler, is_npc_active rule for TinTowerRoof
+
+---
+
+### Sprint 133: Whirl Islands Dungeon + Lugia Legendary Encounter
+
+**Scope**: Multi-floor cave dungeon accessible from Route 40, culminating in the legendary Lugia encounter. Four new maps with trainers, wild encounters, and water features per pokecrystal data.
+
+#### New Content
+- **4 Maps**: WhirlIslandsEntrance (14x14), WhirlIslandsB1F (14x14), WhirlIslandsB2F (14x14), WhirlIslandsLugiaChamber (14x14)
+- **Lugia species** (id 249): Psychic/Flying, HP 106 / Atk 90 / Def 130 / SpA 90 / SpD 154 / Spd 110, catch rate 3, Slow growth
+- **Aeroblast move** (id 177): Flying, Physical (per Gen 2 type-based split), power 100, accuracy 95, PP 5
+- **Lugia learnset**: Aeroblast(1), Safeguard(11), Gust(22), Recover(33), Hydro Pump(44), Whirlwind(55)
+- **FLAG_LUGIA_ENCOUNTERED** (bit 20): Controls Lugia NPC visibility in the chamber
+- **DialogueAction::StartLugiaBattle**: Triggers Lugia battle at level 60
+
+#### Map Design
+- **Entrance**: Cave with central water pool, old man NPC hinting at Lugia, exit warp to Route 40
+- **B1F**: Upper tunnels with Swimmer MATTHEW (Krabby 25, Seel 25) and Cooltrainer LANA (Corsola 27, Golbat 26)
+- **B2F**: Deep cave with larger water pool, Swimmer KYLE (Seel 27, Dewgong 29) and Cooltrainer REENA (Golbat 28, Seadra 30), passage to Lugia Chamber
+- **Lugia Chamber**: Massive water-ringed island, Lugia NPC at center (7,6), hidden after encounter
+
+#### Warp Chain
+- Route 40 (3,14) -> WhirlIslandsEntrance (7,12)
+- WhirlIslandsEntrance (7,4) -> WhirlIslandsB1F (7,1)
+- WhirlIslandsB1F (6,12) -> WhirlIslandsB2F (7,1)
+- WhirlIslandsB2F (7,9) -> WhirlIslandsLugiaChamber (7,12)
+- All return warps verified to land on C_WALK tiles
+
+#### Wild Encounters (per pokecrystal)
+- **Entrance**: Krabby 22-24, Zubat 22-23, Seel 22-24, Golbat 25
+- **B1F**: Krabby 23-25, Zubat 24, Seel 23-25, Golbat 26
+- **B2F**: Krabby 24-26, Zubat 25, Seel 24-26, Golbat 27
+- **Water** (all floors): Tentacool, Horsea, Tentacruel at levels 15-24
+
+#### Route 40 Modifications
+- Added cave entrance tiles at rows 13-14 (CAVE_WALL, DOOR)
+- Added warp at (3,14) to WhirlIslandsEntrance
+- Moved NPC (Swimmer RANDALL) from (3,14) to (4,16) to avoid warp tile conflict
+
+#### Bugs Fixed
+1. **WhirlIslandsEntrance exit warp**: dest (3,13) on Route 40 landed on C_SOLID (cave wall). Fixed to (4,13) which is C_WALK.
+2. **WhirlIslandsB1F back-up warp**: dest (7,5) in Entrance landed on C_WATER. Fixed to (9,5) which is C_WALK.
+3. **WhirlIslandsB2F back-up warp**: dest (6,11) in B1F landed on C_SOLID. Fixed to (5,11) which is C_WALK.
+4. **WhirlIslandsB2F shortcut warp**: dest (7,2) in B1F landed on C_SOLID. Fixed to (8,2) which is C_WALK.
+
+#### Data Sources
+- `pokecrystal-master/data/pokemon/base_stats/lugia.asm` — base stats, types, catch rate
+- `pokecrystal-master/data/pokemon/evos_attacks.asm` — Lugia learnset
+- `pokecrystal-master/data/wild/johto_grass.asm` — Whirl Islands floor encounters
+- `pokecrystal-master/data/wild/johto_water.asm` — Water encounter data
+- `pokecrystal-master/constants/move_constants.asm` — Aeroblast = 177 (0xB1)
+- `pokecrystal-master/maps/WhirlIslandLugiaChamber.asm` — Lugia at level 60, EVENT_FOUGHT_LUGIA
+
+#### Test Results
+- **1365 tests passing** (0 new tests, 4 warp validation bugs fixed)
+- **0 compiler warnings**
+
+#### Files Changed
+- `data.rs` — Added Lugia species (id 249), Aeroblast move (id 177)
+- `maps.rs` — Added 4 Whirl Islands maps, modified Route 40 (cave entrance + warp), added CORSOLA constant, updated test map lists
+- `mod.rs` — Added FLAG_LUGIA_ENCOUNTERED (bit 20), DialogueAction::StartLugiaBattle, Lugia NPC interaction handler, Lugia battle handler, is_npc_active rule for WhirlIslandsLugiaChamber

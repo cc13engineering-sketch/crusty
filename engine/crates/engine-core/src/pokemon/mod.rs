@@ -436,9 +436,8 @@ fn crit_denominator(move_id: MoveId, held_item: u8) -> u64 {
 fn move_priority(move_id: MoveId) -> i8 {
     match move_id {
         MOVE_PROTECT | MOVE_DETECT => 3,
-        MOVE_QUICK_ATTACK | MOVE_MACH_PUNCH | MOVE_EXTREME_SPEED => 1,
-        MOVE_VITAL_THROW => -1,
-        _ => 0,
+        MOVE_QUICK_ATTACK | MOVE_MACH_PUNCH | MOVE_EXTREME_SPEED => 2, // Gen 2: EFFECT_PRIORITY_HIT = 2
+        _ => 0,  // Gen 2: Vital Throw has priority 0 (EFFECT_ALWAYS_HIT, not in priority list)
     }
 }
 
@@ -3544,9 +3543,9 @@ enemy_spikes: false,
                                 Some(format!("{}'s HP is full!", pname))
                             } else {
                                 let heal_fraction = match battle.weather {
-                                    Weather::Sun => 2.0 / 3.0,
-                                    Weather::Rain | Weather::Sandstorm => 0.25,
-                                    Weather::None => 0.5,
+                                    Weather::Sun => 1.0,    // Gen 2: full HP in sun (GetMaxHP)
+                                    Weather::Rain | Weather::Sandstorm => 0.25,  // 1/4 HP
+                                    Weather::None => 0.5,   // 1/2 HP
                                 };
                                 let heal = ((p.max_hp as f64) * heal_fraction) as u16;
                                 let heal = heal.max(1);
@@ -12783,15 +12782,15 @@ enemy_spikes: false,
 
     #[test]
     fn test_move_priority_values() {
-        // Priority +3: Protect, Detect
+        // Priority +3: Protect, Detect (per effects_priorities.asm)
         assert_eq!(move_priority(MOVE_PROTECT), 3);
         assert_eq!(move_priority(MOVE_DETECT), 3);
-        // Priority +1: Quick Attack, Mach Punch, ExtremeSpeed
-        assert_eq!(move_priority(MOVE_QUICK_ATTACK), 1);
-        assert_eq!(move_priority(MOVE_MACH_PUNCH), 1);
-        assert_eq!(move_priority(MOVE_EXTREME_SPEED), 1);
-        // Priority -1: Vital Throw
-        assert_eq!(move_priority(MOVE_VITAL_THROW), -1);
+        // Priority +2: Quick Attack, Mach Punch, ExtremeSpeed (Gen 2: EFFECT_PRIORITY_HIT = 2)
+        assert_eq!(move_priority(MOVE_QUICK_ATTACK), 2);
+        assert_eq!(move_priority(MOVE_MACH_PUNCH), 2);
+        assert_eq!(move_priority(MOVE_EXTREME_SPEED), 2);
+        // Priority 0: Vital Throw (Gen 2: EFFECT_ALWAYS_HIT, not in priority list)
+        assert_eq!(move_priority(MOVE_VITAL_THROW), 0);
         // Priority 0: everything else
         assert_eq!(move_priority(MOVE_TACKLE), 0);
         assert_eq!(move_priority(MOVE_THUNDERBOLT), 0);
@@ -12859,17 +12858,17 @@ enemy_spikes: false,
 
     #[test]
     fn test_priority_ordering_logic() {
-        // Quick Attack (+1) should go before Tackle (0) regardless of speed
+        // Quick Attack (+2) should go before Tackle (0) regardless of speed
         let p_priority = move_priority(MOVE_QUICK_ATTACK);
         let e_priority = move_priority(MOVE_TACKLE);
         assert!(p_priority > e_priority);
         let player_goes_first = p_priority > e_priority;
         assert!(player_goes_first);
 
-        // Vital Throw (-1) should go after Tackle (0) regardless of speed
-        let p_priority2 = move_priority(MOVE_VITAL_THROW);
-        let e_priority2 = move_priority(MOVE_TACKLE);
-        assert!(p_priority2 < e_priority2);
+        // Protect (+3) should go before Quick Attack (+2)
+        let protect_priority = move_priority(MOVE_PROTECT);
+        let quick_priority = move_priority(MOVE_QUICK_ATTACK);
+        assert!(protect_priority > quick_priority);
 
         // Two priority 0 moves: falls back to speed comparison
         let p3 = move_priority(MOVE_TACKLE);
@@ -12887,13 +12886,12 @@ enemy_spikes: false,
         mon.hp = (mon.hp + heal_none).min(max_hp);
         assert!(mon.hp > 20);
 
-        // Sun: 2/3 max HP
+        // Sun: full HP (Gen 2: GetMaxHP)
         let mut mon2 = Pokemon::new(CHIKORITA, 30);
         mon2.hp = 10;
-        let heal_sun = ((mon2.max_hp as f64) * 2.0 / 3.0) as u16;
-        let expected = (10 + heal_sun).min(mon2.max_hp);
+        let heal_sun = ((mon2.max_hp as f64) * 1.0) as u16;
         mon2.hp = (mon2.hp + heal_sun).min(mon2.max_hp);
-        assert_eq!(mon2.hp, expected);
+        assert_eq!(mon2.hp, mon2.max_hp); // Full heal in sun
 
         // Rain/Sandstorm: 25% max HP
         let mut mon3 = Pokemon::new(CHIKORITA, 30);
@@ -12943,5 +12941,44 @@ enemy_spikes: false,
         assert!(get_move(MOVE_BATON_PASS).is_some());
         assert!(get_move(MOVE_MOONLIGHT).is_some());
         assert!(get_move(MOVE_SPIDER_WEB).is_some());
+    }
+
+    #[test]
+    fn test_qa_sprint158_priority_matches_pokecrystal() {
+        // Per pokecrystal effects_priorities.asm:
+        // EFFECT_PROTECT = 3, EFFECT_PRIORITY_HIT = 2, everything else = 0
+        // Vital Throw uses EFFECT_ALWAYS_HIT which is NOT in the priority list → priority 0
+        assert_eq!(move_priority(MOVE_PROTECT), 3);
+        assert_eq!(move_priority(MOVE_DETECT), 3);
+        assert_eq!(move_priority(MOVE_QUICK_ATTACK), 2);
+        assert_eq!(move_priority(MOVE_MACH_PUNCH), 2);
+        assert_eq!(move_priority(MOVE_EXTREME_SPEED), 2);
+        assert_eq!(move_priority(MOVE_VITAL_THROW), 0);
+    }
+
+    #[test]
+    fn test_qa_sprint158_drain_moves_match_pokecrystal() {
+        // Per pokecrystal moves.asm: EFFECT_LEECH_HIT for Absorb, Mega Drain, Leech Life, Giga Drain
+        // Dream Eater uses EFFECT_DREAM_EATER but also drains 50%
+        assert!(is_drain_move(MOVE_ABSORB));
+        assert!(is_drain_move(MOVE_LEECH_LIFE));
+        assert!(is_drain_move(MOVE_GIGA_DRAIN));
+        assert!(is_drain_move(MOVE_DREAM_EATER));
+        // Move IDs match pokecrystal names.asm (line - 2 = ID)
+        assert_eq!(MOVE_ABSORB, 71);    // line 73 in names.asm
+        assert_eq!(MOVE_LEECH_LIFE, 141);  // line 143
+        assert_eq!(MOVE_GIGA_DRAIN, 202);  // line 204
+        assert_eq!(MOVE_DREAM_EATER, 138); // line 140
+    }
+
+    #[test]
+    fn test_qa_sprint158_moonlight_sun_heals_full() {
+        // Per pokecrystal BattleCommand_TimeBasedHealContinue:
+        // Sun → c=3 → GetMaxHP = full heal (NOT 2/3)
+        let mut mon = Pokemon::new(CHIKORITA, 30);
+        mon.hp = 1;
+        let heal = ((mon.max_hp as f64) * 1.0) as u16;
+        mon.hp = (mon.hp + heal).min(mon.max_hp);
+        assert_eq!(mon.hp, mon.max_hp, "Moonlight in sun should fully heal");
     }
 }

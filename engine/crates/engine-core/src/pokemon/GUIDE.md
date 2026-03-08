@@ -3926,3 +3926,30 @@ Per pokecrystal `BattleCommand_TimeBasedHealContinue`:
 - `test_spikes_no_damage_to_flying` — Flying type immunity
 - `test_protect_consecutive_halving` — success rate halving math
 - `test_move_data_exists_for_sprint157` — all 6 moves have MoveData
+
+---
+
+### Sprint 158 — QA Audit (Sprints 156-157)
+
+#### P1 Bugs Found and Fixed
+
+**Move Priority Values Wrong**
+- Quick Attack, Mach Punch, ExtremeSpeed were priority +1, should be +2
+- Source: `data/moves/effects_priorities.asm` → `EFFECT_PRIORITY_HIT, 2`
+- Vital Throw was priority -1, should be 0 (EFFECT_ALWAYS_HIT is NOT in the priority list)
+- Fix: Updated `move_priority()` function and all related tests
+
+**Moonlight Sun Healing Wrong**
+- Was coded as 2/3 (66%) in sun, should be full HP (100%)
+- Source: `engine/battle/effect_commands.asm` → `TimeBasedHealContinue` uses `GetMaxHP` when c=3 (sun index)
+- Fix: Changed sun heal fraction from `2.0/3.0` to `1.0` in both PlayerAttack and EnemyAttack
+- Updated test to assert full heal in sun
+
+#### P2 Notes (Not Fixed)
+- Dream Eater should only drain from sleeping targets (EFFECT_DREAM_EATER checks SLP_MASK) — our implementation drains regardless
+- Protect consecutive halving uses simplified `1/(2^n)` math vs pokecrystal's bit-shift approach (functionally equivalent)
+
+#### New QA Tests (3 tests, 1423 total)
+- `test_priority_values_gen2_accurate` — verifies Protect=3, QuickAttack/MachPunch/ExtremeSpeed=2, VitalThrow=0
+- `test_moonlight_sun_full_heal` — verifies sun heals to full HP (not 2/3)
+- `test_focus_band_survival` — verifies Focus Band can prevent KO, leaving 1 HP

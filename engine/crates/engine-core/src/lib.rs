@@ -50,6 +50,7 @@ pub mod demo_ball;
 pub mod gravity_pong;
 pub mod chord_reps;
 pub mod pokemon;
+pub mod pokemonv2;
 pub mod headless;
 pub mod feel_preset;
 pub mod browser;
@@ -61,7 +62,10 @@ use engine::Engine;
 use demo_ball::DemoBall;
 use gravity_pong::GravityPong;
 use chord_reps::ChordRepsSim;
-use pokemon::PokemonSim;
+// POKEMON VERSION SWAP: To switch between v1 and v2, change the import below.
+// v1 (original): use pokemon::PokemonSim;
+// v2 (rewrite):  use pokemonv2::PokemonV2Sim;
+use pokemonv2::PokemonV2Sim;
 use simulation::Simulation;
 
 thread_local! {
@@ -357,6 +361,7 @@ pub fn setup_gravity_pong() {
 // ─── Pokemon WASM API ─────────────────────────────────────────
 
 /// Set up the Pokemon game. Call after `init()`.
+/// POKEMON VERSION SWAP: Change PokemonV2Sim::new() back to PokemonSim::new() for v1.
 #[wasm_bindgen]
 pub fn setup_test_pokemon() {
     ENGINE.with(|e| {
@@ -366,7 +371,7 @@ pub fn setup_test_pokemon() {
         let saved_state = eng.global_state.clone();
         eng.reset(42);
         eng.global_state = saved_state;
-        let mut sim = PokemonSim::new();
+        let mut sim = PokemonV2Sim::new();
         sim.setup(eng);
         SIM.with(|s| {
             *s.borrow_mut() = Some(Box::new(sim));

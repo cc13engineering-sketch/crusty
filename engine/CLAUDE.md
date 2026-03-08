@@ -24,6 +24,12 @@
 - Trails/streaks use `fill_tapered_trail` (single-pass distance-field polyline) — never raw `draw_line`.
 - Glow effects: render a wider, low-alpha pass underneath the bright core pass.
 
+## Pokemon Generation 2 Source of Truth
+Whenever we need to lookup, verify, or research pokemon generation 2 related data, refer to `<crusty>/data`. Ignore `<crusty>/data/_pipeline`.
+
+## Pokemon Version 2 Rewrite
+If you are an agent working on them rewrite (engine/crates/engine-core/src/pokemonv2) note the following important rule: you can reference the previous pokemon version's code (engine/crates/engine-core/src/pokemon) - but know this - we'd prefer to work from first principles - using our new sprints to guide our architecture, patterns, compiler usage, abstractions, etc, etc, etc. Study the old version to help make better decisions. But do not blindly follow your previous patterns - only where it makes sense. 
+
 ## File Conventions
 - Adding a component: create file in components/, add to components/mod.rs, add store to world.rs, add to World::new/despawn/clear, add SchemaInfo impl.
 - Adding a system: create file in systems/, add to systems/mod.rs, add call in engine.rs tick().

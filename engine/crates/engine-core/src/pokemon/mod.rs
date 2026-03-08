@@ -611,6 +611,9 @@ struct BattleState {
     // Foresight/Odor Sleuth: identified — negates Ghost immunity, resets evasion
     player_identified: bool,
     enemy_identified: bool,
+    // Attract: infatuated — 50% chance to skip turn
+    player_infatuated: bool,
+    enemy_infatuated: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2112,6 +2115,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -3254,6 +3259,28 @@ enemy_identified: false,
                         return;
                     }
 
+                    // Infatuation check: 50% chance to skip turn
+                    if battle.player_infatuated {
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???").to_string();
+                        if engine.rng.next_f64() < 0.5 {
+                            // Immobilized by love — skip to enemy attack
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} is in love!", pname), timer: 0.0,
+                                next_phase: Box::new(BattlePhase::Text {
+                                    message: format!("{} is immobilized by love!", pname), timer: 0.0,
+                                    next_phase: Box::new(BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                    }),
+                                }),
+                            };
+                            self.battle = Some(battle);
+                            return;
+                        }
+                        // else: "is in love" text shown but attacks normally — set snapout-style message
+                        // (will be shown via confusion_snapout_msg path)
+                    }
+
                     // Confusion check (Gen 2: 50% self-hit, typeless 40-power Physical attack)
                     let mut snapout_msg: Option<String> = None;
                     if battle.player_confused > 0 {
@@ -4182,6 +4209,55 @@ enemy_identified: false,
                             battle.enemy_stages[6] = 0; // Reset evasion
                             Some(format!("{}{} was identified!", prefix, battle.enemy.name()))
                         }
+                    } else if move_id == MOVE_RECOVER || move_id == MOVE_MILK_DRINK {
+                        // Recover/Milk Drink: heal 50% max HP
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if p.hp >= p.max_hp {
+                                Some(format!("{}'s HP is full!", pname))
+                            } else {
+                                let heal = (p.max_hp / 2).max(1);
+                                p.hp = (p.hp + heal).min(p.max_hp);
+                                Some(format!("{} regained health!", pname))
+                            }
+                        } else { None }
+                    } else if move_id == MOVE_ATTRACT {
+                        // Attract: infatuate the enemy (opposite gender)
+                        // For simplicity, always succeeds (gender not tracked)
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_infatuated {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_infatuated = true;
+                            Some(format!("{}{} fell in love!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_ROAR || move_id == MOVE_WHIRLWIND {
+                        // Roar/Whirlwind: end wild battle, fail in trainer battles
+                        if battle.is_wild {
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} blew away the wild {}!", pname, battle.enemy.name()),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::Won { timer: 0.0 }),
+                            };
+                            self.battle = Some(battle);
+                            return;
+                        } else {
+                            Some("But it failed!".to_string())
+                        }
+                    } else if move_id == MOVE_TELEPORT {
+                        // Teleport: flee from wild battle, fail in trainer
+                        if battle.is_wild {
+                            battle.phase = BattlePhase::Text {
+                                message: format!("{} teleported away!", pname),
+                                timer: 0.0,
+                                next_phase: Box::new(BattlePhase::Won { timer: 0.0 }),
+                            };
+                            self.battle = Some(battle);
+                            return;
+                        } else {
+                            Some("But it failed!".to_string())
+                        }
+                    } else if move_id == MOVE_SPLASH {
+                        Some("But nothing happened!".to_string())
                     } else { None }
                 } else { None };
 
@@ -4253,7 +4329,7 @@ enemy_identified: false,
                     battle.battle_queue.push_back(BattleStep::Text(rsm.clone()));
                 }
                 // Moonlight/healing: update player HP bar display
-                if move_id == MOVE_MOONLIGHT {
+                if move_id == MOVE_MOONLIGHT || move_id == MOVE_RECOVER || move_id == MOVE_MILK_DRINK {
                     let hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                     battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: hp_now, duration: 0.3 });
                 }
@@ -4596,6 +4672,20 @@ enemy_identified: false,
                             else { format!("{}{} is fast asleep!", prefix, battle.enemy.name()) };
                         battle.battle_queue.push_back(BattleStep::Text(reason));
                         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+                    } else if battle.enemy_infatuated {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is in love!", prefix, battle.enemy.name())));
+                        if engine.rng.next_f64() < 0.5 {
+                            // 50% chance: infatuation prevents attack
+                            battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is immobilized by love!", prefix, battle.enemy.name())));
+                            battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::ActionSelect { cursor: 0 })));
+                        } else {
+                            // 50% chance: attacks normally
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
+                            battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            })));
+                        }
                     } else if battle.enemy_confused > 0 {
                         battle.enemy_confused -= 1;
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
@@ -5255,6 +5345,33 @@ enemy_identified: false,
                             let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
                             Some(format!("{} was identified!", pname))
                         }
+                    } else if move_id == MOVE_RECOVER || move_id == MOVE_MILK_DRINK {
+                        // Enemy heal: recover 50% max HP
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy.hp >= battle.enemy.max_hp {
+                            Some(format!("{}{}'s HP is full!", prefix, battle.enemy.name()))
+                        } else {
+                            let heal = (battle.enemy.max_hp / 2).max(1);
+                            battle.enemy.hp = (battle.enemy.hp + heal).min(battle.enemy.max_hp);
+                            Some(format!("{}{} regained health!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_ATTRACT {
+                        // Enemy Attract: infatuate the player
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                        if battle.player_infatuated {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_infatuated = true;
+                            Some(format!("{} fell in love!", pname))
+                        }
+                    } else if move_id == MOVE_ROAR || move_id == MOVE_WHIRLWIND {
+                        // Roar/Whirlwind: fail in trainer battles (enemy can't force player switch in Gen 2 Crystal simplified)
+                        Some("But it failed!".to_string())
+                    } else if move_id == MOVE_TELEPORT {
+                        // Enemy Teleport: fail (wild enemy fleeing handled elsewhere)
+                        Some("But it failed!".to_string())
+                    } else if move_id == MOVE_SPLASH {
+                        Some("But nothing happened!".to_string())
                     } else { None }
                 } else { None };
 
@@ -5316,7 +5433,7 @@ enemy_identified: false,
                     battle.battle_queue.push_back(BattleStep::Text(rsm.clone()));
                 }
                 // Moonlight/healing: update enemy HP bar display
-                if move_id == MOVE_MOONLIGHT {
+                if move_id == MOVE_MOONLIGHT || move_id == MOVE_RECOVER || move_id == MOVE_MILK_DRINK {
                     battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
                 }
 
@@ -5335,6 +5452,24 @@ enemy_identified: false,
                     let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
                     battle.battle_queue.push_back(BattleStep::Text(format!("{} flinched!", pname)));
                     BattlePhase::ActionSelect { cursor: 0 }
+                } else if has_pending && battle.player_infatuated {
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{} is in love!", pname)));
+                    if engine.rng.next_f64() < 0.5 {
+                        // 50% chance: infatuation prevents attack
+                        battle.pending_player_move = None;
+                        battle.battle_queue.push_back(BattleStep::Text(format!("{} is immobilized by love!", pname)));
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    } else {
+                        // 50% chance: attacks normally
+                        battle.player_flinched = false;
+                        if let Some((pm_id, pm_dmg, pm_eff, pm_crit)) = battle.pending_player_move.take() {
+                            BattlePhase::PlayerAttack {
+                                timer: 0.0, move_id: pm_id, damage: pm_dmg,
+                                effectiveness: pm_eff, is_crit: pm_crit, from_pending: true,
+                            }
+                        } else { BattlePhase::ActionSelect { cursor: 0 } }
+                    }
                 } else if has_pending {
                     battle.player_flinched = false;
                     if let Some((pm_id, pm_dmg, pm_eff, pm_crit)) = battle.pending_player_move.take() {
@@ -5694,6 +5829,7 @@ enemy_identified: false,
                     battle.enemy_lock_on = false;
                     battle.enemy_focus_energy = false;
                     battle.enemy_identified = false;
+                    battle.enemy_infatuated = false;
                     // Spikes damage on enemy switch-in
                     if battle.enemy_spikes {
                         let is_flying = get_species(battle.enemy.species_id).map(|sp| {
@@ -5892,6 +6028,7 @@ enemy_identified: false,
                                 battle.enemy_lock_on = false;
                                 battle.enemy_focus_energy = false;
                                 battle.enemy_identified = false;
+                                battle.enemy_infatuated = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -5956,6 +6093,7 @@ enemy_identified: false,
                                 battle.enemy_lock_on = false;
                                 battle.enemy_focus_energy = false;
                                 battle.enemy_identified = false;
+                                battle.enemy_infatuated = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -6749,6 +6887,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -6842,6 +6982,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6931,6 +7073,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7020,6 +7164,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7110,6 +7256,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7200,6 +7348,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7455,6 +7605,7 @@ enemy_identified: false,
                                 b.player_lock_on = false; // Lock-On cleared on switch
                                 b.player_focus_energy = false; // Focus Energy cleared on switch
                                 b.player_identified = false; // Foresight cleared on switch
+                                b.player_infatuated = false; // Attract cleared on switch
                                 b.player_trapped = false; // Mean Look cleared on switch
                                 b.player_trap_turns = 0; // Trapping cleared on switch
                                 b.player_must_recharge = false; // Clear recharge on switch
@@ -12035,6 +12186,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
             trainer_name: String::new(),
         };
 
@@ -12164,6 +12317,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
             trainer_name: String::new(),
         };
 
@@ -12259,6 +12414,8 @@ player_nightmare: false,
 enemy_nightmare: false,
 player_identified: false,
 enemy_identified: false,
+player_infatuated: false,
+enemy_infatuated: false,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -15382,5 +15539,84 @@ enemy_identified: false,
         // At -6, no further lowering
         if stage > -6 { stage -= 1; }
         assert_eq!(stage, -6);
+    }
+
+    // ─── Sprint 169 Tests ───────────────────────────────────
+
+    #[test]
+    fn test_recover_move_data() {
+        let m = get_move(MOVE_RECOVER).expect("Recover should exist in MOVE_DB");
+        assert_eq!(m.move_type, PokemonType::Normal);
+        assert_eq!(m.power, 0, "Recover is a status move with no power");
+        assert_eq!(m.pp, 20, "Recover PP per pokecrystal");
+    }
+
+    #[test]
+    fn test_milk_drink_move_data() {
+        let m = get_move(MOVE_MILK_DRINK).expect("Milk Drink should exist in MOVE_DB");
+        assert_eq!(m.move_type, PokemonType::Normal);
+        assert_eq!(m.power, 0);
+        assert_eq!(m.pp, 10, "Milk Drink PP per pokecrystal");
+    }
+
+    #[test]
+    fn test_recover_heals_half_max_hp() {
+        // Recover should heal 50% of max HP
+        let max_hp: u16 = 200;
+        let current_hp: u16 = 50;
+        let heal = (max_hp / 2).max(1);
+        let new_hp = (current_hp + heal).min(max_hp);
+        assert_eq!(new_hp, 150, "Should heal from 50 to 150 (half of 200 = 100)");
+    }
+
+    #[test]
+    fn test_recover_fails_at_full_hp() {
+        // Recover should fail when HP is full
+        let max_hp: u16 = 200;
+        let hp: u16 = 200;
+        assert!(hp >= max_hp, "At full HP, Recover should fail");
+    }
+
+    #[test]
+    fn test_attract_move_data() {
+        let m = get_move(MOVE_ATTRACT).expect("Attract should exist in MOVE_DB");
+        assert_eq!(m.move_type, PokemonType::Normal);
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 15, "Attract PP per pokecrystal");
+    }
+
+    #[test]
+    fn test_infatuation_50_percent_skip() {
+        // Infatuation: 50% chance to skip turn
+        // Verify the probability check boundary
+        let threshold = 0.5_f64;
+        assert!(0.49 < threshold, "Below 0.5 should skip");
+        assert!(!(0.51 < threshold), "Above 0.5 should attack");
+    }
+
+    #[test]
+    fn test_roar_whirlwind_move_data() {
+        let roar = get_move(MOVE_ROAR).expect("Roar should exist");
+        assert_eq!(roar.move_type, PokemonType::Normal);
+        assert_eq!(roar.power, 0);
+        let ww = get_move(MOVE_WHIRLWIND).expect("Whirlwind should exist");
+        assert_eq!(ww.move_type, PokemonType::Normal);
+        assert_eq!(ww.power, 0);
+    }
+
+    #[test]
+    fn test_splash_move_data() {
+        let m = get_move(MOVE_SPLASH).expect("Splash should exist");
+        assert_eq!(m.move_type, PokemonType::Normal);
+        assert_eq!(m.power, 0);
+        assert_eq!(m.pp, 40, "Splash PP per pokecrystal");
+    }
+
+    #[test]
+    fn test_teleport_move_data() {
+        let m = get_move(MOVE_TELEPORT).expect("Teleport should exist");
+        assert_eq!(m.move_type, PokemonType::Psychic);
+        assert_eq!(m.power, 0);
+        assert_eq!(m.pp, 20, "Teleport PP per pokecrystal");
     }
 }

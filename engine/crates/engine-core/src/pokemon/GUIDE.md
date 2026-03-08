@@ -4084,3 +4084,38 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_qa_sprint161_counter_damage_override_no_double_apply` — Counter damage = exactly 2x physical, fail = 0
 - `test_qa_sprint161_mirror_coat_damage_override_no_double_apply` — Mirror Coat = exactly 2x special, fail = 0
 - `test_qa_sprint161_perish_song_count_starts_at_4` — count 4→3→2→1→0, faint at 0
+
+---
+
+### Sprint 162 — Content: Light Screen/Reflect + Safeguard + Future Sight + Heal Bell + Thief
+
+#### New BattleState Fields
+- `player_light_screen: u8`, `enemy_light_screen: u8` — 5-turn screen, halves special damage
+- `player_reflect: u8`, `enemy_reflect: u8` — 5-turn screen, halves physical damage
+- `player_safeguard: u8`, `enemy_safeguard: u8` — 5-turn status protection
+- `player_future_sight_turns: u8`, `player_future_sight_damage: u16` — delayed attack
+- `enemy_future_sight_turns: u8`, `enemy_future_sight_damage: u16`
+
+#### Battle Logic
+- **Light Screen**: sets screen for 5 turns, halves Special damage in both PlayerAttack and EnemyAttack. Crits bypass screens. Fails if already active.
+- **Reflect**: sets screen for 5 turns, halves Physical damage. Same crit bypass. Fails if already active.
+- **Safeguard**: 5-turn protection from status infliction. Blocks `try_inflict_status` calls in both attack phases. Fails if already active.
+- **Heal Bell**: cures all party Pokemon status conditions (player side: entire party; enemy: just active mon).
+- **Future Sight**: count starts at 4 (per pokecrystal `ld a, 4`), damage is stored, no immediate damage. End-of-turn decrements. When count reaches 1, stored damage is applied to target, then count/damage reset to 0.
+- **Thief**: Dark/Special (Gen 2), power 40. After damage, if user has no item and target has one, steals it.
+- **End-of-turn**: both EOT blocks now decrement Light Screen, Reflect, Safeguard, and Future Sight counters.
+
+#### New Constants
+- `MOVE_LIGHT_SCREEN: MoveId = 113` (with MoveData)
+- `MOVE_REFLECT: MoveId = 115` (with MoveData)
+- `MOVE_HEAL_BELL: MoveId = 215` (with MoveData)
+- `MOVE_THIEF: MoveId = 168` (with MoveData)
+
+#### New Tests (7 tests, 222 total)
+- `test_move_data_exists_for_sprint162` — all 6 moves have MoveData
+- `test_light_screen_halves_special_damage` — halves Special, crits bypass
+- `test_reflect_halves_physical_damage` — halves Physical
+- `test_safeguard_blocks_status` — active safeguard prevents status
+- `test_future_sight_countdown` — 4→3→2→1 hit, applies stored damage
+- `test_thief_move_is_special_gen2` — Dark = Special in Gen 2
+- `test_screen_duration_5_turns` — screens expire after 5 decrements

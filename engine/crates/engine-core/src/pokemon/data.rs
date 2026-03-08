@@ -555,6 +555,11 @@ pub const MOVE_PAIN_SPLIT: MoveId = 220;
 pub const MOVE_DESTINY_BOND: MoveId = 194;
 pub const MOVE_PERISH_SONG: MoveId = 195;
 pub const MOVE_HIDDEN_POWER: MoveId = 237;
+// Sprint 162 moves
+pub const MOVE_LIGHT_SCREEN: MoveId = 113;
+pub const MOVE_REFLECT: MoveId = 115;
+pub const MOVE_HEAL_BELL: MoveId = 215;
+pub const MOVE_THIEF: MoveId = 168;
 pub const MOVE_SKETCH: MoveId = 166;
 pub const MOVE_HORN_DRILL: MoveId = 32;
 pub const MOVE_KINESIS: MoveId = 134;
@@ -2375,6 +2380,11 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_VITAL_THROW, name: "Vital Throw", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 70, accuracy: 255, pp: 10, description: "Always goes last, but never misses." },
     MoveData { id: MOVE_MOONLIGHT, name: "Moonlight", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Recovers HP. Amount varies with weather." },
     MoveData { id: MOVE_ANCIENT_POWER, name: "AncientPower", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 5, description: "10% chance to raise all stats by 1." },
+    // Sprint 162 moves
+    MoveData { id: MOVE_LIGHT_SCREEN, name: "Light Screen", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Halves special damage for 5 turns." },
+    MoveData { id: MOVE_REFLECT, name: "Reflect", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Halves physical damage for 5 turns." },
+    MoveData { id: MOVE_HEAL_BELL, name: "Heal Bell", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Cures all party Pokemon of status conditions." },
+    MoveData { id: MOVE_THIEF, name: "Thief", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 10, description: "Attacks and steals the foe's held item." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

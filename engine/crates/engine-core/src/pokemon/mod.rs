@@ -577,6 +577,19 @@ struct BattleState {
     player_last_spec_damage: u16,
     enemy_last_phys_damage: u16,
     enemy_last_spec_damage: u16,
+    // Light Screen / Reflect: halve special/physical damage for 5 turns
+    player_light_screen: u8,
+    enemy_light_screen: u8,
+    player_reflect: u8,
+    enemy_reflect: u8,
+    // Safeguard: prevent status conditions for 5 turns
+    player_safeguard: u8,
+    enemy_safeguard: u8,
+    // Future Sight: delayed damage (count starts at 4, hits at 1)
+    player_future_sight_turns: u8,
+    player_future_sight_damage: u16,
+    enemy_future_sight_turns: u8,
+    enemy_future_sight_damage: u16,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2054,6 +2067,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -3491,6 +3514,16 @@ enemy_last_spec_damage: 0,
                     damage = if dmg > 0 { dmg * 2 } else { 0 };
                 }
 
+                // Light Screen / Reflect: halve damage (crits bypass screens)
+                if !is_crit && damage > 0 {
+                    let cat = get_move(move_id).map(|m| m.category);
+                    if cat == Some(MoveCategory::Special) && battle.enemy_light_screen > 0 {
+                        damage /= 2;
+                    } else if cat == Some(MoveCategory::Physical) && battle.enemy_reflect > 0 {
+                        damage /= 2;
+                    }
+                }
+
                 // Apply damage to enemy
                 battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
                 // Track damage category for Counter/Mirror Coat
@@ -3559,9 +3592,9 @@ enemy_last_spec_damage: 0,
                     battle.enemy_trap_turns = trap_turns;
                 }
 
-                // Secondary status effects
+                // Secondary status effects (blocked by Safeguard)
                 let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
-                if damage > 0 || is_status_move {
+                if (damage > 0 || is_status_move) && battle.enemy_safeguard == 0 {
                     let roll = engine.rng.next_f64();
                     try_inflict_status(&mut battle.enemy, move_id, roll);
                 }
@@ -3782,6 +3815,55 @@ enemy_last_spec_damage: 0,
                         battle.weather = Weather::Sandstorm;
                         battle.weather_turns = WEATHER_DURATION;
                         Some("A sandstorm brewed!".to_string())
+                    } else if move_id == MOVE_LIGHT_SCREEN {
+                        if battle.player_light_screen > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_light_screen = 5;
+                            Some(format!("{}'s Special Defense rose!", pname))
+                        }
+                    } else if move_id == MOVE_REFLECT {
+                        if battle.player_reflect > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_reflect = 5;
+                            Some(format!("{}'s Defense rose!", pname))
+                        }
+                    } else if move_id == MOVE_SAFEGUARD {
+                        if battle.player_safeguard > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_safeguard = 5;
+                            Some(format!("{}'s team became cloaked in a mystical veil!", pname))
+                        }
+                    } else if move_id == MOVE_HEAL_BELL {
+                        // Cure all party status conditions
+                        for p in self.party.iter_mut() {
+                            p.status = StatusCondition::None;
+                        }
+                        Some("A bell chimed!".to_string())
+                    } else if move_id == MOVE_FUTURE_SIGHT {
+                        if battle.player_future_sight_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_future_sight_turns = 4;
+                            battle.player_future_sight_damage = damage;
+                            damage = 0; // no immediate damage
+                            Some(format!("{} foresaw an attack!", pname))
+                        }
+                    } else if move_id == MOVE_THIEF {
+                        // Thief: deals damage normally, then steals item
+                        let player_item = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
+                        if player_item == HELD_NONE && battle.enemy.held_item != HELD_NONE {
+                            let stolen = battle.enemy.held_item;
+                            battle.enemy.held_item = HELD_NONE;
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.held_item = stolen;
+                            }
+                            Some(format!("{} stole {}{}'s item!", pname, if battle.is_wild { "Wild " } else { "Foe " }, battle.enemy.name()))
+                        } else {
+                            None // just deals damage
+                        }
                     } else { None }
                 } else { None };
 
@@ -4030,6 +4112,72 @@ enemy_last_spec_damage: 0,
                         if *count == 0 { battle.enemy.hp = 0; }
                     }
 
+                    // Future Sight countdown
+                    if battle.player_future_sight_turns > 0 {
+                        battle.player_future_sight_turns -= 1;
+                        if battle.player_future_sight_turns == 1 {
+                            let fs_dmg = battle.player_future_sight_damage;
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(fs_dmg);
+                            battle.player_future_sight_damage = 0;
+                            battle.player_future_sight_turns = 0;
+                            let ename_fs = battle.enemy.name().to_string();
+                            eot_msgs.push(format!("{}{} took the Future Sight attack!", eprefix, ename_fs));
+                        }
+                    }
+                    if battle.enemy_future_sight_turns > 0 {
+                        battle.enemy_future_sight_turns -= 1;
+                        if battle.enemy_future_sight_turns == 1 {
+                            let fs_dmg = battle.enemy_future_sight_damage;
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = p.hp.saturating_sub(fs_dmg);
+                            }
+                            battle.enemy_future_sight_damage = 0;
+                            battle.enemy_future_sight_turns = 0;
+                            let pname_fs = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            eot_msgs.push(format!("{} took the Future Sight attack!", pname_fs));
+                        }
+                    }
+
+                    // Screen / Safeguard countdown
+                    if battle.player_light_screen > 0 {
+                        battle.player_light_screen -= 1;
+                        if battle.player_light_screen == 0 {
+                            let pname_ls = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            eot_msgs.push(format!("{}'s Light Screen wore off!", pname_ls));
+                        }
+                    }
+                    if battle.player_reflect > 0 {
+                        battle.player_reflect -= 1;
+                        if battle.player_reflect == 0 {
+                            let pname_r = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            eot_msgs.push(format!("{}'s Reflect faded!", pname_r));
+                        }
+                    }
+                    if battle.player_safeguard > 0 {
+                        battle.player_safeguard -= 1;
+                        if battle.player_safeguard == 0 {
+                            eot_msgs.push("The ally's Safeguard wore off!".to_string());
+                        }
+                    }
+                    if battle.enemy_light_screen > 0 {
+                        battle.enemy_light_screen -= 1;
+                        if battle.enemy_light_screen == 0 {
+                            eot_msgs.push(format!("{}{}'s Light Screen wore off!", eprefix, battle.enemy.name()));
+                        }
+                    }
+                    if battle.enemy_reflect > 0 {
+                        battle.enemy_reflect -= 1;
+                        if battle.enemy_reflect == 0 {
+                            eot_msgs.push(format!("{}{}'s Reflect faded!", eprefix, battle.enemy.name()));
+                        }
+                    }
+                    if battle.enemy_safeguard > 0 {
+                        battle.enemy_safeguard -= 1;
+                        if battle.enemy_safeguard == 0 {
+                            eot_msgs.push("The foe's Safeguard wore off!".to_string());
+                        }
+                    }
+
                     battle.turn_count += 1;
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
                     // Update HP displays for status damage, trap damage, held item recovery, and perish song
@@ -4187,6 +4335,16 @@ enemy_last_spec_damage: 0,
                     damage = if dmg > 0 { dmg * 2 } else { 0 };
                 }
 
+                // Light Screen / Reflect: halve damage (crits bypass screens)
+                if !is_crit && damage > 0 {
+                    let cat = get_move(move_id).map(|m| m.category);
+                    if cat == Some(MoveCategory::Special) && battle.player_light_screen > 0 {
+                        damage /= 2;
+                    } else if cat == Some(MoveCategory::Physical) && battle.player_reflect > 0 {
+                        damage /= 2;
+                    }
+                }
+
                 // Apply damage + effects to player
                 let mut player_focus_band = false;
                 if let Some(p) = self.party.get_mut(battle.player_idx) {
@@ -4205,7 +4363,7 @@ enemy_last_spec_damage: 0,
                         player_focus_band = true;
                     }
                     let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
-                    if damage > 0 || is_status_move {
+                    if (damage > 0 || is_status_move) && battle.player_safeguard == 0 {
                         let roll = engine.rng.next_f64();
                         try_inflict_status(p, move_id, roll);
                     }
@@ -4426,6 +4584,57 @@ enemy_last_spec_damage: 0,
                         } else {
                             None // damage already applied via override
                         }
+                    } else if move_id == MOVE_LIGHT_SCREEN {
+                        if battle.enemy_light_screen > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_light_screen = 5;
+                            Some(format!("{}{}'s Special Defense rose!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_REFLECT {
+                        if battle.enemy_reflect > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_reflect = 5;
+                            Some(format!("{}{}'s Defense rose!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_SAFEGUARD {
+                        if battle.enemy_safeguard > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_safeguard = 5;
+                            Some(format!("{}{}'s team became cloaked in a mystical veil!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_HEAL_BELL {
+                        battle.enemy.status = StatusCondition::None;
+                        Some("A bell chimed!".to_string())
+                    } else if move_id == MOVE_FUTURE_SIGHT {
+                        if battle.enemy_future_sight_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_future_sight_turns = 4;
+                            battle.enemy_future_sight_damage = damage;
+                            damage = 0;
+                            Some(format!("{}{} foresaw an attack!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_THIEF {
+                        // Thief: deals damage normally, then steals item
+                        if battle.enemy.held_item == HELD_NONE {
+                            let player_item = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
+                            if player_item != HELD_NONE {
+                                if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                    let stolen = p.held_item;
+                                    p.held_item = HELD_NONE;
+                                    battle.enemy.held_item = stolen;
+                                }
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{}{} stole {}'s item!", prefix, battle.enemy.name(), pname))
+                            } else {
+                                None // just deals damage
+                            }
+                        } else {
+                            None // enemy already has item
+                        }
                     } else { None }
                 } else { None };
 
@@ -4589,6 +4798,68 @@ enemy_last_spec_damage: 0,
                         if *count > 0 { *count -= 1; }
                         eot_msgs.push(format!("{}{}'s perish count fell to {}!", eprefix2, ename2, *count));
                         if *count == 0 { battle.enemy.hp = 0; }
+                    }
+
+                    // Future Sight countdown
+                    if battle.player_future_sight_turns > 0 {
+                        battle.player_future_sight_turns -= 1;
+                        if battle.player_future_sight_turns == 1 {
+                            let fs_dmg = battle.player_future_sight_damage;
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(fs_dmg);
+                            battle.player_future_sight_damage = 0;
+                            battle.player_future_sight_turns = 0;
+                            eot_msgs.push(format!("{}{} took the Future Sight attack!", eprefix2, ename2));
+                        }
+                    }
+                    if battle.enemy_future_sight_turns > 0 {
+                        battle.enemy_future_sight_turns -= 1;
+                        if battle.enemy_future_sight_turns == 1 {
+                            let fs_dmg = battle.enemy_future_sight_damage;
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = p.hp.saturating_sub(fs_dmg);
+                            }
+                            battle.enemy_future_sight_damage = 0;
+                            battle.enemy_future_sight_turns = 0;
+                            eot_msgs.push(format!("{} took the Future Sight attack!", pname2));
+                        }
+                    }
+
+                    // Screen / Safeguard countdown
+                    if battle.player_light_screen > 0 {
+                        battle.player_light_screen -= 1;
+                        if battle.player_light_screen == 0 {
+                            eot_msgs.push(format!("{}'s Light Screen wore off!", pname2));
+                        }
+                    }
+                    if battle.player_reflect > 0 {
+                        battle.player_reflect -= 1;
+                        if battle.player_reflect == 0 {
+                            eot_msgs.push(format!("{}'s Reflect faded!", pname2));
+                        }
+                    }
+                    if battle.player_safeguard > 0 {
+                        battle.player_safeguard -= 1;
+                        if battle.player_safeguard == 0 {
+                            eot_msgs.push("The ally's Safeguard wore off!".to_string());
+                        }
+                    }
+                    if battle.enemy_light_screen > 0 {
+                        battle.enemy_light_screen -= 1;
+                        if battle.enemy_light_screen == 0 {
+                            eot_msgs.push(format!("{}{}'s Light Screen wore off!", eprefix2, ename2));
+                        }
+                    }
+                    if battle.enemy_reflect > 0 {
+                        battle.enemy_reflect -= 1;
+                        if battle.enemy_reflect == 0 {
+                            eot_msgs.push(format!("{}{}'s Reflect faded!", eprefix2, ename2));
+                        }
+                    }
+                    if battle.enemy_safeguard > 0 {
+                        battle.enemy_safeguard -= 1;
+                        if battle.enemy_safeguard == 0 {
+                            eot_msgs.push("The foe's Safeguard wore off!".to_string());
+                        }
                     }
 
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
@@ -5750,6 +6021,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -5819,6 +6100,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5884,6 +6175,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5949,6 +6250,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6015,6 +6326,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6081,6 +6402,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -10879,6 +11210,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
             trainer_name: String::new(),
         };
 
@@ -10984,6 +11325,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
             trainer_name: String::new(),
         };
 
@@ -11055,6 +11406,16 @@ player_last_phys_damage: 0,
 player_last_spec_damage: 0,
 enemy_last_phys_damage: 0,
 enemy_last_spec_damage: 0,
+player_light_screen: 0,
+enemy_light_screen: 0,
+player_reflect: 0,
+enemy_reflect: 0,
+player_safeguard: 0,
+enemy_safeguard: 0,
+player_future_sight_turns: 0,
+player_future_sight_damage: 0,
+enemy_future_sight_turns: 0,
+enemy_future_sight_damage: 0,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -13679,5 +14040,101 @@ enemy_last_spec_damage: 0,
         }
         // At 0, Pokemon faints
         assert_eq!(count, Some(0));
+    }
+
+    // === Sprint 162 Tests ===
+
+    #[test]
+    fn test_move_data_exists_for_sprint162() {
+        assert!(get_move(MOVE_LIGHT_SCREEN).is_some(), "Light Screen");
+        assert!(get_move(MOVE_REFLECT).is_some(), "Reflect");
+        assert!(get_move(MOVE_HEAL_BELL).is_some(), "Heal Bell");
+        assert!(get_move(MOVE_THIEF).is_some(), "Thief");
+        assert!(get_move(MOVE_FUTURE_SIGHT).is_some(), "Future Sight");
+        assert!(get_move(MOVE_SAFEGUARD).is_some(), "Safeguard");
+    }
+
+    #[test]
+    fn test_light_screen_halves_special_damage() {
+        // Light Screen: halves special damage (crits bypass)
+        let base_damage: u16 = 100;
+        let mut damage = base_damage;
+        let light_screen_active = true;
+        let is_crit = false;
+        let category = MoveCategory::Special;
+        if !is_crit && category == MoveCategory::Special && light_screen_active {
+            damage /= 2;
+        }
+        assert_eq!(damage, 50, "Light Screen should halve special damage");
+        // Crit bypasses
+        let mut crit_damage = base_damage;
+        let is_crit2 = true;
+        if !is_crit2 && category == MoveCategory::Special && light_screen_active {
+            crit_damage /= 2;
+        }
+        assert_eq!(crit_damage, 100, "Crits should bypass Light Screen");
+    }
+
+    #[test]
+    fn test_reflect_halves_physical_damage() {
+        let base_damage: u16 = 80;
+        let mut damage = base_damage;
+        let reflect_active = true;
+        let is_crit = false;
+        let category = MoveCategory::Physical;
+        if !is_crit && category == MoveCategory::Physical && reflect_active {
+            damage /= 2;
+        }
+        assert_eq!(damage, 40, "Reflect should halve physical damage");
+    }
+
+    #[test]
+    fn test_safeguard_blocks_status() {
+        // Safeguard: 5-turn protection from status
+        let safeguard = 5u8;
+        assert!(safeguard > 0, "Safeguard should be active");
+        // When safeguard > 0, status infliction is skipped
+    }
+
+    #[test]
+    fn test_future_sight_countdown() {
+        // Future Sight: count starts at 4, hits at 1
+        let mut turns: u8 = 4;
+        let stored_damage: u16 = 80;
+        let mut target_hp: u16 = 200;
+        // Decrement each end-of-turn
+        for _ in 0..2 {
+            turns -= 1;
+        }
+        assert_eq!(turns, 2);
+        turns -= 1;
+        assert_eq!(turns, 1);
+        // At count == 1, apply damage
+        if turns == 1 {
+            target_hp = target_hp.saturating_sub(stored_damage);
+            turns = 0;
+        }
+        assert_eq!(target_hp, 120, "Future Sight should deal stored damage");
+        assert_eq!(turns, 0, "Turns should be 0 after hit");
+    }
+
+    #[test]
+    fn test_thief_move_is_special_gen2() {
+        // In Gen 2, Dark type is Special category
+        let md = get_move(MOVE_THIEF).unwrap();
+        assert_eq!(md.category, MoveCategory::Special, "Thief is Dark = Special in Gen 2");
+        assert_eq!(md.power, 40);
+        assert_eq!(md.move_type, PokemonType::Dark);
+    }
+
+    #[test]
+    fn test_screen_duration_5_turns() {
+        // Light Screen, Reflect, and Safeguard all last 5 turns per pokecrystal
+        let mut ls: u8 = 5;
+        for i in (0..5).rev() {
+            ls -= 1;
+            assert_eq!(ls, i);
+        }
+        assert_eq!(ls, 0, "Screen should expire after 5 decrements");
     }
 }

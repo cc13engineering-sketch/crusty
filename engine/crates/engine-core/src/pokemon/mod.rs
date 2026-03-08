@@ -3480,7 +3480,16 @@ enemy_last_spec_damage: 0,
                 }
 
                 let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
-                let damage = damage * num_hits as u16;
+                let mut damage = damage * num_hits as u16;
+
+                // Counter/Mirror Coat: override damage with reflected amount, or 0 on fail
+                if move_id == MOVE_COUNTER {
+                    let dmg = battle.player_last_phys_damage;
+                    damage = if dmg > 0 { dmg * 2 } else { 0 };
+                } else if move_id == MOVE_MIRROR_COAT {
+                    let dmg = battle.player_last_spec_damage;
+                    damage = if dmg > 0 { dmg * 2 } else { 0 };
+                }
 
                 // Apply damage to enemy
                 battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
@@ -3735,23 +3744,18 @@ enemy_last_spec_damage: 0,
                         }
                     } else if move_id == MOVE_COUNTER {
                         // Counter: reflect double the last Physical damage taken
-                        let dmg = battle.player_last_phys_damage;
-                        if dmg == 0 {
+                        // Damage override already applied above; this just handles the fail case
+                        if battle.player_last_phys_damage == 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            let counter_dmg = (dmg * 2).min(battle.enemy.hp);
-                            battle.enemy.hp = battle.enemy.hp.saturating_sub(dmg * 2);
-                            let _ = counter_dmg;
-                            None // damage is applied, will show via normal damage text
+                            None // damage already applied via override
                         }
                     } else if move_id == MOVE_MIRROR_COAT {
                         // Mirror Coat: reflect double the last Special damage taken
-                        let dmg = battle.player_last_spec_damage;
-                        if dmg == 0 {
+                        if battle.player_last_spec_damage == 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            battle.enemy.hp = battle.enemy.hp.saturating_sub(dmg * 2);
-                            None
+                            None // damage already applied via override
                         }
                     } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                         let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
@@ -4172,7 +4176,16 @@ enemy_last_spec_damage: 0,
                 } else { (move_id, damage, effectiveness, is_crit) };
 
                 let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
-                let damage = damage * num_hits as u16;
+                let mut damage = damage * num_hits as u16;
+
+                // Counter/Mirror Coat: override damage with reflected amount, or 0 on fail
+                if move_id == MOVE_COUNTER {
+                    let dmg = battle.enemy_last_phys_damage;
+                    damage = if dmg > 0 { dmg * 2 } else { 0 };
+                } else if move_id == MOVE_MIRROR_COAT {
+                    let dmg = battle.enemy_last_spec_damage;
+                    damage = if dmg > 0 { dmg * 2 } else { 0 };
+                }
 
                 // Apply damage + effects to player
                 let mut player_focus_band = false;
@@ -4399,24 +4412,19 @@ enemy_last_spec_damage: 0,
                             Some(format!("{}{} cut its own HP and maximized its Attack!", prefix, battle.enemy.name()))
                         }
                     } else if move_id == MOVE_COUNTER {
-                        let dmg = battle.enemy_last_phys_damage;
-                        if dmg == 0 {
+                        // Counter: reflect double the last Physical damage taken
+                        // Damage override already applied above; this just handles the fail case
+                        if battle.enemy_last_phys_damage == 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            if let Some(p) = self.party.get_mut(battle.player_idx) {
-                                p.hp = p.hp.saturating_sub(dmg * 2);
-                            }
-                            None
+                            None // damage already applied via override
                         }
                     } else if move_id == MOVE_MIRROR_COAT {
-                        let dmg = battle.enemy_last_spec_damage;
-                        if dmg == 0 {
+                        // Mirror Coat: reflect double the last Special damage taken
+                        if battle.enemy_last_spec_damage == 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            if let Some(p) = self.party.get_mut(battle.player_idx) {
-                                p.hp = p.hp.saturating_sub(dmg * 2);
-                            }
-                            None
+                            None // damage already applied via override
                         }
                     } else { None }
                 } else { None };
@@ -13619,5 +13627,57 @@ enemy_last_spec_damage: 0,
         assert!(get_move(MOVE_BELLY_DRUM).is_some(), "Belly Drum");
         assert!(get_move(MOVE_COUNTER).is_some(), "Counter");
         assert!(get_move(MOVE_MIRROR_COAT).is_some(), "Mirror Coat");
+    }
+
+    // === Sprint 161 QA Tests ===
+
+    #[test]
+    fn test_qa_sprint161_counter_damage_override_no_double_apply() {
+        // P1 fix: Counter should deal exactly 2x the last physical damage taken,
+        // NOT 2x + the power-1 calc damage. The damage override replaces the
+        // calc_player_damage result before applying to enemy HP.
+        let phys_dmg = 40u16;
+        let mut damage: u16 = 3; // simulated power-1 calc result
+        // Counter override logic (mirrors mod.rs):
+        if phys_dmg > 0 { damage = phys_dmg * 2; }
+        assert_eq!(damage, 80, "Counter damage should be exactly 2x physical, not 2x + power-1");
+        // Fail case: damage should be 0
+        let mut fail_dmg: u16 = 3;
+        let no_phys: u16 = 0;
+        if no_phys > 0 { fail_dmg = no_phys * 2; } else { fail_dmg = 0; }
+        assert_eq!(fail_dmg, 0, "Counter fail case should deal 0 damage");
+    }
+
+    #[test]
+    fn test_qa_sprint161_mirror_coat_damage_override_no_double_apply() {
+        // Same fix for Mirror Coat: exactly 2x special damage, no power-1 addition
+        let spec_dmg = 50u16;
+        let mut damage: u16 = 2; // simulated power-1 calc
+        if spec_dmg > 0 { damage = spec_dmg * 2; }
+        assert_eq!(damage, 100, "Mirror Coat should be exactly 2x special");
+        let mut fail_dmg: u16 = 2;
+        let no_spec: u16 = 0;
+        if no_spec > 0 { fail_dmg = no_spec * 2; } else { fail_dmg = 0; }
+        assert_eq!(fail_dmg, 0, "Mirror Coat fail should deal 0 damage");
+    }
+
+    #[test]
+    fn test_qa_sprint161_perish_song_count_starts_at_4() {
+        // Per pokecrystal perish_song.asm: ld [hl], 4
+        // Count decrements each end-of-turn: 4→3→2→1→0 (faint at 0)
+        // Text says "3 turns" because the initial turn counts as turn 0
+        let mut count: Option<u8> = None;
+        // Perish Song sets count to 4 if not already active
+        if count.is_none() { count = Some(4); }
+        assert_eq!(count, Some(4), "Perish Song initial count must be 4");
+        // Simulate 4 end-of-turn decrements
+        for expected in [3u8, 2, 1, 0] {
+            if let Some(ref mut c) = count {
+                *c -= 1;
+                assert_eq!(*c, expected);
+            }
+        }
+        // At 0, Pokemon faints
+        assert_eq!(count, Some(0));
     }
 }

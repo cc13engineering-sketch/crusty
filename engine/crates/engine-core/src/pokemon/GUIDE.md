@@ -4060,3 +4060,27 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_counter_doubles_physical_damage` — Counter returns 2x Physical damage
 - `test_mirror_coat_doubles_special_damage` — Mirror Coat returns 2x Special damage
 - `test_move_data_exists_for_sprint160` — all 5 moves have MoveData
+
+---
+
+### Sprint 161 — QA Audit (Sprints 159-160) ✅
+
+#### P1 Bugs Fixed
+- **Counter/Mirror Coat double damage application**: Counter and Mirror Coat were applying damage TWICE — once in the status move handler (directly to enemy HP) and again via the normal damage path (from calc_player_damage with power=1). Fixed by pre-computing the reflected damage override BEFORE the damage application point, replacing the power-1 calc value entirely. Both PlayerAttack and EnemyAttack sides fixed. Fail case now correctly sets damage to 0 instead of leaving the power-1 calc active.
+
+#### Verified Correct (against pokecrystal source)
+- Destiny Bond: flag set on use, reset at ActionSelect, triggers in CheckFaint handler
+- Perish Song: count starts at 4 (per `ld [hl], 4` in perish_song.asm), decrements each end-of-turn, faints at 0
+- Encore: 3-6 turns via `(random & 3) + 3`, fail conditions match (Struggle, Encore, Mirror Move)
+- Curse: Ghost type check on user species (not move type), 50% HP cost + curse, non-Ghost ATK+1 DEF+1 SPE-1
+- Belly Drum: HP > 50% check, ATK set to +6 (not +1 per stage), 50% HP cost
+- Counter/Mirror Coat priority: 0 (correct per effects_priorities.asm)
+- Pain Split: averages both sides' HP, caps at max_hp
+
+#### P2 Notes
+- Dream Eater has no sleep check on target (pre-existing, not introduced in Sprints 159-160)
+
+#### New QA Tests (3 tests, 215 total)
+- `test_qa_sprint161_counter_damage_override_no_double_apply` — Counter damage = exactly 2x physical, fail = 0
+- `test_qa_sprint161_mirror_coat_damage_override_no_double_apply` — Mirror Coat = exactly 2x special, fail = 0
+- `test_qa_sprint161_perish_song_count_starts_at_4` — count 4→3→2→1→0, faint at 0

@@ -414,16 +414,20 @@ fn is_high_crit_move(move_id: MoveId) -> bool {
     matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_WIND | MOVE_RAZOR_LEAF | MOVE_CRABHAMMER | MOVE_SLASH | MOVE_AEROBLAST | MOVE_CROSS_CHOP)
 }
 
-/// Get crit rate denominator accounting for high-crit moves and Scope Lens.
-/// Gen 2: base 1/16, high-crit 1/4, Scope Lens bumps base to 1/8.
-const CRIT_CHANCE_SCOPE_LENS: u64 = 8; // 1/8 crit rate with Scope Lens
+/// Get crit rate denominator using Gen 2 crit level system.
+/// Per pokecrystal data/battle/critical_hit_chances.asm:
+///   Level 0 (base): ~1/16, Level 1 (Scope Lens OR Focus Energy): 1/8,
+///   Level 2 (high-crit move): 1/4, Level 3 (high-crit + Scope Lens): 1/3
+/// High-crit moves add +2 to crit level (pokecrystal BattleCommand_Critical).
 fn crit_denominator(move_id: MoveId, held_item: u8) -> u64 {
-    if is_high_crit_move(move_id) {
-        CRIT_CHANCE_HIGH
-    } else if held_item == HELD_SCOPE_LENS {
-        CRIT_CHANCE_SCOPE_LENS
-    } else {
-        CRIT_CHANCE
+    let mut level = 0u8;
+    if is_high_crit_move(move_id) { level += 2; }
+    if held_item == HELD_SCOPE_LENS { level += 1; }
+    match level {
+        0 => CRIT_CHANCE,     // 16 (~1/16)
+        1 => 8,               // 1/8
+        2 => CRIT_CHANCE_HIGH, // 4 (1/4)
+        _ => 3,               // 1/3 (level 3+)
     }
 }
 
@@ -12201,14 +12205,14 @@ weather_turns: 0,
 
     #[test]
     fn test_sprint153_crit_denominator() {
-        // Base crit: 1/16
+        // Base crit: 1/16 (level 0)
         assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE), 16);
-        // High-crit move: 1/4
+        // High-crit move: 1/4 (level 2, +2 from high-crit)
         assert_eq!(crit_denominator(MOVE_SLASH, HELD_NONE), 4);
-        // Scope Lens on non-high-crit: 1/8
+        // Scope Lens on non-high-crit: 1/8 (level 1)
         assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS), 8);
-        // Scope Lens on high-crit move: still 1/4 (high-crit takes priority)
-        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 4);
+        // Scope Lens + high-crit move: 1/3 (level 3, per pokecrystal)
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 3);
     }
 
     #[test]
@@ -12340,5 +12344,68 @@ weather_turns: 0,
         assert_eq!(roll_wild_held_item(DRAGONITE, 255), HELD_NONE);
         // No items species always returns NONE
         assert_eq!(roll_wild_held_item(RATTATA, 0), HELD_NONE);
+    }
+
+    // ─── Sprint 155: QA Audit ──────────────────────────────
+
+    #[test]
+    fn test_sprint155_qa_move_ids_match_pokecrystal() {
+        // All 12 Sprint 154 move IDs verified against pokecrystal data/moves/names.asm
+        assert_eq!(MOVE_EGG_BOMB, 121);
+        assert_eq!(MOVE_HI_JUMP_KICK, 136);
+        assert_eq!(MOVE_ACID_ARMOR, 151);
+        assert_eq!(MOVE_SPIDER_WEB, 169);
+        assert_eq!(MOVE_MACH_PUNCH, 183);
+        assert_eq!(MOVE_SPIKES, 191);
+        assert_eq!(MOVE_DETECT, 197);
+        assert_eq!(MOVE_GIGA_DRAIN, 202);
+        assert_eq!(MOVE_BATON_PASS, 226);
+        assert_eq!(MOVE_VITAL_THROW, 233);
+        assert_eq!(MOVE_MOONLIGHT, 236);
+        assert_eq!(MOVE_ANCIENT_POWER, 246);
+    }
+
+    #[test]
+    fn test_sprint155_qa_crit_level_system() {
+        // Verify crit denominator matches pokecrystal CriticalHitChances table
+        // Level 0 (base): 1/16 (pokecrystal: 17/256 ≈ 1/15, we use 1/16)
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE), 16);
+        // Level 1 (Scope Lens only): 1/8
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS), 8);
+        // Level 2 (high-crit move, +2): 1/4
+        assert_eq!(crit_denominator(MOVE_RAZOR_LEAF, HELD_NONE), 4);
+        assert_eq!(crit_denominator(MOVE_CROSS_CHOP, HELD_NONE), 4);
+        // Level 3 (high-crit + Scope Lens): 1/3
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 3);
+        assert_eq!(crit_denominator(MOVE_AEROBLAST, HELD_SCOPE_LENS), 3);
+    }
+
+    #[test]
+    fn test_sprint155_qa_type_boost_completeness() {
+        // Verify all 17 type-boost items cover all 17 types
+        // (Normal uses Pink Bow, Dragon uses Dragon Scale per pokecrystal bug)
+        let types_and_items: &[(PokemonType, u8)] = &[
+            (PokemonType::Normal, HELD_PINK_BOW),
+            (PokemonType::Fighting, HELD_BLACK_BELT),
+            (PokemonType::Flying, HELD_SHARP_BEAK),
+            (PokemonType::Poison, HELD_POISON_BARB),
+            (PokemonType::Ground, HELD_SOFT_SAND),
+            (PokemonType::Rock, HELD_HARD_STONE),
+            (PokemonType::Bug, HELD_SILVER_POWDER),
+            (PokemonType::Ghost, HELD_SPELL_TAG),
+            (PokemonType::Fire, HELD_CHARCOAL),
+            (PokemonType::Water, HELD_MYSTIC_WATER),
+            (PokemonType::Grass, HELD_MIRACLE_SEED),
+            (PokemonType::Electric, HELD_MAGNET),
+            (PokemonType::Psychic, HELD_TWISTED_SPOON),
+            (PokemonType::Ice, HELD_NEVERMELTICE),
+            (PokemonType::Dragon, HELD_DRAGON_SCALE),
+            (PokemonType::Dark, HELD_BLACK_GLASSES),
+            (PokemonType::Steel, HELD_METAL_COAT),
+        ];
+        for &(ptype, item) in types_and_items {
+            assert_eq!(held_item_type_boost(item, ptype), 1.1,
+                "Type boost failed for {:?}", ptype);
+        }
     }
 }

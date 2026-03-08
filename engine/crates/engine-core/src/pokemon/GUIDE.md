@@ -3796,3 +3796,41 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 - `test_sprint154_acid_armor_stage_effect` — Def +2 verified
 - `test_sprint154_wild_held_items` — species→item mapping
 - `test_sprint154_roll_wild_held_item` — probability thresholds
+
+---
+
+### Sprint 155 — QA Audit: Sprints 153-154
+
+**Type**: QA | **Tests**: 1409 (+3 new, 0 failures)
+
+#### Verified Against pokecrystal
+
+**Move IDs (Sprint 154)**: All 12 move IDs verified against `data/moves/names.asm` — each line number (minus 2) matches our constant.
+
+**Move Stats (Sprint 154)**: All power/accuracy/PP/type verified against `data/moves/moves.asm`:
+- EGG_BOMB: 100/75/10/Normal ✓
+- HI_JUMP_KICK: 85/90/20/Fighting ✓
+- ACID_ARMOR: 0/100/40/Poison (DEFENSE_UP_2 effect) ✓
+- SPIDER_WEB: 0/100/10/Bug ✓
+- MACH_PUNCH: 40/100/30/Fighting ✓
+- SPIKES: 0/100/20/Ground ✓
+- DETECT: 0/100/5/Fighting ✓
+- GIGA_DRAIN: 60/100/5/Grass ✓
+- BATON_PASS: 0/100/40/Normal ✓
+- VITAL_THROW: 70/100/10/Fighting (EFFECT_ALWAYS_HIT) ✓
+- MOONLIGHT: 0/100/5/Normal ✓
+- ANCIENTPOWER: 60/100/5/Rock ✓
+
+**Type Boost Items (Sprint 153)**: All 17 items verified against `data/types/type_boost_items.asm`. 10% boost matches (110/100).
+
+**Held Item Berry Mechanics**: Verified against pokecrystal `HandleHPHealingItem` — HP < 50% trigger confirmed.
+
+#### Bugs Found and Fixed
+- **P1**: Crit level system was wrong — high-crit moves give +2 levels (not simple 1/4 override). Scope Lens (+1) stacks: high-crit + Scope Lens = level 3 (1/3 crit rate). Fixed `crit_denominator` to use proper level accumulation per pokecrystal `BattleCommand_Critical`.
+- **P2**: Wild held item probability uses single-roll approximation vs pokecrystal's two-roll system. Functionally close (2.3% vs 2%, 22.7% vs 23%).
+- **P2**: Base crit rate is 17/256 ≈ 1/15 in pokecrystal, we use 1/16. Minor difference.
+
+#### New Tests
+- `test_sprint155_qa_move_ids_match_pokecrystal` — all 12 move IDs verified
+- `test_sprint155_qa_crit_level_system` — crit levels 0-3 including Scope Lens + high-crit stacking
+- `test_sprint155_qa_type_boost_completeness` — all 17 types have corresponding boost item

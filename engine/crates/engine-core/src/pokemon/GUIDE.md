@@ -3690,3 +3690,37 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 - **1393 tests passing** (+2 new, 0 failures)
 - `test_sprint151_weather_modifiers` — all weather type damage multipliers verified
 - `test_sprint151_weather_moves_exist` — move data for Rain Dance, Sandstorm, Sunny Day
+
+---
+
+### Sprint 152 — QA Audit: Sprints 150-151
+
+**Type**: QA | **Tests**: 1395 (+2 new, 0 failures)
+
+#### Verified Against pokecrystal
+
+**Species Stats (Sprint 150)**:
+- Kingler: 55/130/115/50/50/75 — matches `data/pokemon/base_stats/kingler.asm`
+- Persian: 65/70/60/65/65/115 — matches `data/pokemon/base_stats/persian.asm`
+- Parasect: 60/95/80/60/80/30 — matches `data/pokemon/base_stats/parasect.asm`
+- Granbull: 90/120/75/60/60/45 — matches `data/pokemon/base_stats/granbull.asm`
+
+**Move Data (Sprint 150)**:
+- Razor Wind: 80 power, 75% accuracy — matches pokecrystal
+- Crabhammer: 90 power, 85% accuracy — matches pokecrystal
+- Guillotine: OHKO, 30% accuracy — matches pokecrystal
+- Protect: Status, 0 power — matches pokecrystal
+
+**Weather System (Sprint 151)**:
+- WEATHER_DURATION = 5 turns — matches pokecrystal
+- Weather expiry messages match pokecrystal (minor P2: capitalization differences)
+- Rain/Sun/Sandstorm damage modifiers verified against weather_modifiers.asm
+
+#### Bugs Found
+- **P0/P1**: None
+- **P2**: Weather expiry messages use slightly different capitalization than pokecrystal (cosmetic)
+- **P3**: None
+
+#### New Tests
+- `test_sprint152_qa_new_species_stats` — verifies Kingler, Persian, Parasect, Granbull base stats
+- `test_sprint152_qa_weather_duration` — verifies WEATHER_DURATION=5 and weather edge cases

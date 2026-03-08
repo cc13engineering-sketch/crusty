@@ -12067,4 +12067,28 @@ weather_turns: 0,
         assert_eq!(get_move(MOVE_RAIN_DANCE).unwrap().move_type, PokemonType::Water);
         assert_eq!(get_move(MOVE_SANDSTORM).unwrap().move_type, PokemonType::Rock);
     }
+
+    #[test]
+    fn test_sprint152_qa_new_species_stats() {
+        // Verify Sprint 150 species against pokecrystal base_stats/*.asm
+        let kingler = get_species(KINGLER).unwrap();
+        assert_eq!((kingler.base_hp, kingler.base_attack, kingler.base_defense), (55, 130, 115));
+        assert_eq!((kingler.base_speed, kingler.base_sp_attack, kingler.base_sp_defense), (75, 50, 50));
+        let persian = get_species(PERSIAN).unwrap();
+        assert_eq!((persian.base_hp, persian.base_attack, persian.base_defense), (65, 70, 60));
+        assert_eq!((persian.base_speed, persian.base_sp_attack, persian.base_sp_defense), (115, 65, 65));
+        let parasect = get_species(PARASECT).unwrap();
+        assert_eq!(parasect.type1, PokemonType::Bug);
+        assert_eq!(parasect.type2, Some(PokemonType::Grass));
+        let granbull = get_species(GRANBULL).unwrap();
+        assert_eq!(granbull.growth_rate, GrowthRate::Fast);
+    }
+
+    #[test]
+    fn test_sprint152_qa_weather_duration() {
+        assert_eq!(WEATHER_DURATION, 5);
+        // Weather modifier edge cases
+        assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Grass, MOVE_RAZOR_LEAF), 1.0);
+        assert_eq!(weather_move_modifier(Weather::Sun, PokemonType::Grass, MOVE_SOLAR_BEAM), 1.0);
+    }
 }

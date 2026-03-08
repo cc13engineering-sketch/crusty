@@ -753,4 +753,195 @@ mod tests {
         assert_eq!(sim.scene_state.get(MapId::ElmsLab), SCENE_ELMSLAB_AIDE_GIVES_POTION,
             "Gimli fix: after starter, ElmsLab scene should be AIDE_GIVES_POTION=5");
     }
+
+    // ── Sprint 3 QA: Group 1 — Player Spawn & Initial State ────────────
+
+    #[test]
+    fn test_player_spawn_position_and_initial_state() {
+        let sim = PokemonV2Sim::new();
+        assert_eq!(sim.current_map_id, MapId::PlayersHouse2F);
+        assert_eq!(sim.player.x, 3);
+        assert_eq!(sim.player.y, 3);
+        assert_eq!(sim.phase, GamePhase::TitleScreen);
+        assert!(sim.party.is_empty(), "Party should be empty at start");
+        assert_eq!(sim.money, 3000);
+        assert_eq!(sim.badges, 0);
+        assert!(sim.bag.is_empty());
+        assert!(sim.battle.is_none());
+    }
+
+    // ── Sprint 3 QA: Group 4 — Starter Selection All Three ─────────────
+
+    #[test]
+    fn test_starter_selection_cyndaquil() {
+        let mut sim = PokemonV2Sim::with_state(MapId::ElmsLab, 6, 4, vec![]);
+        sim.scene_state.set(MapId::ElmsLab, SCENE_ELMSLAB_CANT_LEAVE);
+        sim.phase = GamePhase::StarterSelect { cursor: 0 };
+        let mut engine = Engine::new(160, 144);
+        engine.input.keys_pressed.insert("KeyZ".to_string());
+        sim.step(&mut engine);
+        assert_eq!(sim.party.len(), 1);
+        assert_eq!(sim.party[0].species, CYNDAQUIL);
+        assert_eq!(sim.party[0].level, 5);
+        assert!(sim.event_flags.has(EVENT_GOT_A_POKEMON_FROM_ELM));
+        assert!(sim.event_flags.has(EVENT_GOT_CYNDAQUIL_FROM_ELM));
+        assert!(sim.event_flags.has(EVENT_CYNDAQUIL_POKEBALL_IN_ELMS_LAB));
+        assert_eq!(sim.scene_state.get(MapId::ElmsLab), SCENE_ELMSLAB_AIDE_GIVES_POTION);
+        assert_eq!(sim.scene_state.get(MapId::NewBarkTown), SCENE_NEWBARKTOWN_NOOP);
+    }
+
+    #[test]
+    fn test_starter_selection_totodile() {
+        let mut sim = PokemonV2Sim::with_state(MapId::ElmsLab, 7, 4, vec![]);
+        sim.scene_state.set(MapId::ElmsLab, SCENE_ELMSLAB_CANT_LEAVE);
+        sim.phase = GamePhase::StarterSelect { cursor: 1 };
+        let mut engine = Engine::new(160, 144);
+        engine.input.keys_pressed.insert("KeyZ".to_string());
+        sim.step(&mut engine);
+        assert_eq!(sim.party.len(), 1);
+        assert_eq!(sim.party[0].species, TOTODILE);
+        assert!(sim.event_flags.has(EVENT_GOT_TOTODILE_FROM_ELM));
+        assert!(sim.event_flags.has(EVENT_TOTODILE_POKEBALL_IN_ELMS_LAB));
+    }
+
+    #[test]
+    fn test_starter_selection_chikorita() {
+        let mut sim = PokemonV2Sim::with_state(MapId::ElmsLab, 8, 4, vec![]);
+        sim.scene_state.set(MapId::ElmsLab, SCENE_ELMSLAB_CANT_LEAVE);
+        sim.phase = GamePhase::StarterSelect { cursor: 2 };
+        let mut engine = Engine::new(160, 144);
+        engine.input.keys_pressed.insert("KeyZ".to_string());
+        sim.step(&mut engine);
+        assert_eq!(sim.party.len(), 1);
+        assert_eq!(sim.party[0].species, CHIKORITA);
+        assert!(sim.event_flags.has(EVENT_GOT_CHIKORITA_FROM_ELM));
+        assert!(sim.event_flags.has(EVENT_CHIKORITA_POKEBALL_IN_ELMS_LAB));
+    }
+
+    #[test]
+    fn test_starter_held_item_berry() {
+        let mut sim = PokemonV2Sim::with_state(MapId::ElmsLab, 6, 4, vec![]);
+        sim.scene_state.set(MapId::ElmsLab, SCENE_ELMSLAB_CANT_LEAVE);
+        sim.phase = GamePhase::StarterSelect { cursor: 0 };
+        let mut engine = Engine::new(160, 144);
+        engine.input.keys_pressed.insert("KeyZ".to_string());
+        sim.step(&mut engine);
+        assert_eq!(sim.party[0].held_item, Some(ITEM_BERRY),
+            "Starter should hold a Berry");
+    }
+
+    // ── Sprint 3 QA: Group 9 — Rival Species Counter ───────────────────
+
+    #[test]
+    fn test_rival_species_counters_starter() {
+        // Cyndaquil -> rival Totodile
+        let mut sim = PokemonV2Sim::new();
+        sim.event_flags.set(EVENT_GOT_CYNDAQUIL_FROM_ELM);
+        assert_eq!(sim.get_rival_species(), TOTODILE);
+
+        // Totodile -> rival Chikorita
+        let mut sim2 = PokemonV2Sim::new();
+        sim2.event_flags.set(EVENT_GOT_TOTODILE_FROM_ELM);
+        assert_eq!(sim2.get_rival_species(), CHIKORITA);
+
+        // Chikorita -> rival Cyndaquil
+        let sim3 = PokemonV2Sim::new();
+        // No flag set = default = Cyndaquil
+        assert_eq!(sim3.get_rival_species(), CYNDAQUIL);
+    }
+
+    #[test]
+    fn test_canlose_battle_does_not_blackout() {
+        let mut sim = PokemonV2Sim::with_state(
+            MapId::CherrygroveCity, 33, 6,
+            vec![Pokemon::new(CYNDAQUIL, 5)],
+        );
+        // Simulate battle ending with Lost + CanLose
+        sim.battle = Some(battle::BattleState::new_trainer(TOTODILE, 5, BattleType::CanLose));
+        sim.phase = GamePhase::Battle;
+        // Manually set result to Lost
+        if let Some(ref mut b) = sim.battle {
+            b.result = Some(BattleResult::Lost);
+            b.phase = battle::BattlePhase::Defeat;
+        }
+        let mut engine = Engine::new(160, 144);
+        sim.step(&mut engine);
+        // Should NOT warp to pokecenter — should return to overworld or script
+        let expected = sim.current_map_id == MapId::CherrygroveCity;
+        assert!(expected, "CanLose battle loss should keep player on same map, not blackout");
+    }
+
+    // ── Sprint 3 QA: Group 7 — Cherrygrove Flypoint ────────────────────
+
+    #[test]
+    fn test_cherrygrove_flypoint_set_on_entry() {
+        let mut sim = PokemonV2Sim::with_state(
+            MapId::Route29, 0, 10,
+            vec![Pokemon::new(CYNDAQUIL, 5)],
+        );
+        assert!(!sim.event_flags.has(EVENT_ENGINE_FLYPOINT_CHERRYGROVE));
+        sim.handle_map_connection(Direction::Left, MapId::CherrygroveCity, 0);
+        assert!(sim.event_flags.has(EVENT_ENGINE_FLYPOINT_CHERRYGROVE),
+            "Entering Cherrygrove should set flypoint flag");
+    }
+
+    // ── Sprint 3 QA: Group 10 — Integration Tests ──────────────────────
+
+    #[test]
+    fn test_all_map_entry_scripts_dont_panic() {
+        let all_maps = [
+            MapId::PlayersHouse2F, MapId::PlayersHouse1F, MapId::NewBarkTown,
+            MapId::ElmsLab, MapId::ElmsHouse, MapId::PlayersNeighborsHouse,
+            MapId::Route29, MapId::Route27, MapId::Route29Route46Gate,
+            MapId::CherrygroveCity, MapId::CherrygrovePokecenter1F,
+            MapId::CherrygroveMart, MapId::GuideGentsHouse,
+            MapId::CherrygroveGymSpeechHouse, MapId::CherrygroveEvolutionSpeechHouse,
+            MapId::Route46, MapId::Route30,
+        ];
+        for &map_id in &all_maps {
+            let mut sim = PokemonV2Sim::with_state(map_id, 1, 1, vec![]);
+            sim.check_map_entry_scripts();
+            sim.check_map_callbacks();
+            // Just verify no panic
+        }
+    }
+
+    #[test]
+    fn test_full_bedroom_to_new_bark_flow() {
+        // Start at stair warp position in 2F
+        let mut sim = PokemonV2Sim::with_state(MapId::PlayersHouse2F, 7, 1, vec![]);
+        let mut engine = Engine::new(160, 144);
+
+        // Walk up to stair warp
+        engine.input.keys_held.insert("ArrowUp".to_string());
+        for _ in 0..4 {
+            sim.step(&mut engine);
+            engine.input.keys_pressed.clear();
+        }
+        engine.input.keys_held.clear();
+
+        // Run transition to completion
+        for _ in 0..120 {
+            sim.step(&mut engine);
+        }
+
+        // Should be in House1F now
+        let in_1f = sim.current_map_id == MapId::PlayersHouse1F;
+        assert!(in_1f, "Should have warped to House1F, was on {:?}", sim.current_map_id);
+    }
+
+    #[test]
+    fn test_npc_visibility_refresh() {
+        let mut sim = PokemonV2Sim::with_state(MapId::NewBarkTown, 5, 5, vec![]);
+        // Rival NPC (index 2) has event_flag=9, event_flag_show=true
+        // Flag not set -> should be invisible
+        assert!(!sim.event_flags.has(EVENT_RIVAL_NEW_BARK_TOWN));
+        sim.refresh_npc_visibility();
+        assert!(!sim.npc_states[2].visible, "Rival should be hidden when flag 9 is not set");
+
+        // Set the flag -> should become visible
+        sim.event_flags.set(EVENT_RIVAL_NEW_BARK_TOWN);
+        sim.refresh_npc_visibility();
+        assert!(sim.npc_states[2].visible, "Rival should be visible when flag 9 is set");
+    }
 }

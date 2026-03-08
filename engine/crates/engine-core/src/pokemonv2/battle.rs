@@ -349,4 +349,65 @@ mod tests {
         assert!(!still_running, "Battle should eventually complete");
         assert!(battle.result.is_some(), "Battle should have a result");
     }
+
+    // ── Sprint 3 QA: Group 9 — Rival Battle ─────────────────────────────
+
+    #[test]
+    fn test_rival_battle_completes() {
+        use super::super::data::{Pokemon, TOTODILE};
+        // Rival has Totodile (counter to player's Cyndaquil)
+        let mut battle = BattleState::new_trainer(TOTODILE, 5, BattleType::CanLose);
+        let mut player = Pokemon::new(CYNDAQUIL, 5);
+
+        let mut still_running = true;
+        for _ in 0..3600 {
+            if !still_running { break; }
+            still_running = step_battle(&mut battle, &mut player, 1.0 / 60.0, 50);
+        }
+        assert!(!still_running, "Rival battle should complete");
+        assert!(battle.result.is_some());
+        // CanLose: result should be Won, Lost, or Fled -- never Caught
+        assert!(!matches!(battle.result, Some(BattleResult::Caught)),
+            "Trainer battle should never result in Caught");
+    }
+
+    #[test]
+    fn test_starter_vs_rival_damage_nonzero() {
+        use super::super::data::{Pokemon, TOTODILE, CHIKORITA};
+        // Cyndaquil vs Totodile
+        let attacker = Pokemon::new(CYNDAQUIL, 5);
+        let defender = Pokemon::new(TOTODILE, 5);
+        let dmg = calc_damage(&attacker, &defender, super::super::data::MOVE_TACKLE, 128);
+        assert!(dmg > 0, "Cyndaquil Tackle vs Totodile should deal > 0");
+
+        // Totodile vs Chikorita
+        let attacker2 = Pokemon::new(TOTODILE, 5);
+        let defender2 = Pokemon::new(CHIKORITA, 5);
+        let dmg2 = calc_damage(&attacker2, &defender2, super::super::data::MOVE_SCRATCH, 128);
+        assert!(dmg2 > 0, "Totodile Scratch vs Chikorita should deal > 0");
+
+        // Chikorita vs Cyndaquil
+        let attacker3 = Pokemon::new(CHIKORITA, 5);
+        let defender3 = Pokemon::new(CYNDAQUIL, 5);
+        let dmg3 = calc_damage(&attacker3, &defender3, super::super::data::MOVE_TACKLE, 128);
+        assert!(dmg3 > 0, "Chikorita Tackle vs Cyndaquil should deal > 0");
+    }
+
+    #[test]
+    fn test_canlose_battle_result_is_lost() {
+        use super::super::data::Pokemon;
+        // Intentionally give player very weak Pokemon that will lose
+        let mut battle = BattleState::new_trainer(CYNDAQUIL, 50, BattleType::CanLose);
+        let mut player = Pokemon::new(PIDGEY, 2); // Level 2 Pidgey vs Level 50
+
+        let mut still_running = true;
+        for _ in 0..3600 {
+            if !still_running { break; }
+            still_running = step_battle(&mut battle, &mut player, 1.0 / 60.0, 100);
+        }
+        assert!(!still_running, "Battle should complete");
+        // Player should lose (level 2 vs level 50)
+        assert!(matches!(battle.result, Some(BattleResult::Lost)),
+            "Level 2 Pidgey vs Level 50 Cyndaquil should result in Lost, got {:?}", battle.result);
+    }
 }

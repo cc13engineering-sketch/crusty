@@ -436,4 +436,64 @@ mod tests {
             assert!(result.is_none(), "Should not encounter with rng=255");
         }
     }
+
+    // ── Sprint 3 QA: Group 5 — Wild Encounter Slot Distribution ────────
+
+    #[test]
+    fn test_wild_encounter_slot_distribution() {
+        let map = load_map(MapId::Route29);
+        let grass_pos = map.collision.iter().enumerate()
+            .find(|(_, &c)| c == super::super::maps::C_GRASS).unwrap().0;
+        let x = (grass_pos as i32) % map.width;
+        let y = (grass_pos as i32) / map.width;
+
+        // Pokecrystal slot probabilities: 0=30%, 1=30%, 2=20%, 3=10%, 4=5%, 5=2.5%, 6=2.5%
+        let test_cases: Vec<(u8, usize)> = vec![
+            (0, 0),     // rng_slot=0 -> slot 0
+            (77, 1),    // rng_slot=77 -> slot 1
+            (154, 2),   // rng_slot=154 -> slot 2
+            (205, 3),   // rng_slot=205 -> slot 3
+            (230, 4),   // rng_slot=230 -> slot 4
+            (243, 5),   // rng_slot=243 -> slot 5
+            (249, 6),   // rng_slot=249 -> slot 6
+        ];
+        let table = map.wild_encounters.as_ref().unwrap();
+        for (rng_slot, expected_slot) in test_cases {
+            let result = check_wild_encounter(&map, x, y, TimeOfDay::Day, 0, rng_slot);
+            assert!(result.is_some(), "rng_slot={} should trigger encounter", rng_slot);
+            let (species, level) = result.unwrap();
+            assert_eq!(species, table.day[expected_slot].species,
+                "rng_slot={} -> slot {}: species mismatch", rng_slot, expected_slot);
+            assert_eq!(level, table.day[expected_slot].level,
+                "rng_slot={} -> slot {}: level mismatch", rng_slot, expected_slot);
+        }
+    }
+
+    #[test]
+    fn test_wild_encounter_not_on_floor() {
+        let map = load_map(MapId::Route29);
+        // Find a floor tile (not grass)
+        let floor_pos = map.collision.iter().enumerate()
+            .find(|(_, &c)| c == super::super::maps::C_FLOOR);
+        if let Some((idx, _)) = floor_pos {
+            let x = (idx as i32) % map.width;
+            let y = (idx as i32) / map.width;
+            let result = check_wild_encounter(&map, x, y, TimeOfDay::Day, 0, 0);
+            assert!(result.is_none(), "Should NOT encounter on floor tiles");
+        }
+    }
+
+    #[test]
+    fn test_wild_encounter_time_of_day_matters() {
+        let map = load_map(MapId::Route29);
+        let grass_pos = map.collision.iter().enumerate()
+            .find(|(_, &c)| c == super::super::maps::C_GRASS).unwrap().0;
+        let x = (grass_pos as i32) % map.width;
+        let y = (grass_pos as i32) / map.width;
+
+        let morning = check_wild_encounter(&map, x, y, TimeOfDay::Morning, 0, 0).unwrap();
+        let night = check_wild_encounter(&map, x, y, TimeOfDay::Night, 0, 0).unwrap();
+        // Morning slot 0 is Pidgey, Night slot 0 is Hoothoot -- different species
+        assert_ne!(morning.0, night.0, "Morning and Night slot 0 should have different species");
+    }
 }

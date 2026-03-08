@@ -16,9 +16,8 @@ The team lead is responsible for:
 - Continuing until all sprints in `queued.jsonl` are exhausted
 
 **The only reasons to stop are:**
-1. A compilation error that no agent can resolve after 3 attempts
-2. All sprints are complete (queued.jsonl is empty, progress.jsonl is empty)
-3. The session is forcibly terminated
+1. All sprints are complete (queued.jsonl is empty, progress.jsonl is empty)
+2. The session is forcibly terminated
 
 ---
 

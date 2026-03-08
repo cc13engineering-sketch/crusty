@@ -1096,4 +1096,384 @@ mod tests {
             assert!(is_walkable(&m, x, y), "Grass tile should be walkable");
         }
     }
+
+    // ── Sprint 3 QA: Group 1 — Player Spawn & Bedroom ──────────────────
+
+    #[test]
+    fn test_bedroom_map_structure() {
+        let m = load_map(MapId::PlayersHouse2F);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 6);
+        assert_eq!(m.warps.len(), 1, "Bedroom has 1 staircase warp");
+        assert_eq!(m.warps[0].x, 7);
+        assert_eq!(m.warps[0].y, 0);
+        assert_eq!(m.warps[0].dest_map, MapId::PlayersHouse1F);
+        assert_eq!(m.npcs.len(), 4, "4 decoration NPCs");
+        assert_eq!(m.bg_events.len(), 4);
+        assert!(m.wild_encounters.is_none());
+        assert!(m.coord_events.is_empty());
+    }
+
+    // ── Sprint 3 QA: Group 2 — Stair Warp & Mom ────────────────────────
+
+    #[test]
+    fn test_house1f_map_structure() {
+        let m = load_map(MapId::PlayersHouse1F);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 3, "2 exit doors + 1 staircase");
+        // Exit doors
+        assert_eq!(m.warps[0].dest_map, MapId::NewBarkTown);
+        assert_eq!(m.warps[1].dest_map, MapId::NewBarkTown);
+        // Staircase
+        assert_eq!(m.warps[2].dest_map, MapId::PlayersHouse2F);
+        assert_eq!(m.npcs.len(), 5, "MOM1, MOM2, MOM3, MOM4, NEIGHBOR");
+        // Mom variants with event flags
+        assert_eq!(m.npcs[0].event_flag, Some(3)); // MOM1
+        assert_eq!(m.npcs[1].event_flag, Some(4)); // MOM2
+        assert_eq!(m.npcs[4].event_flag, Some(16)); // NEIGHBOR
+        // Coord events for meet-mom cutscene
+        assert_eq!(m.coord_events.len(), 2);
+        assert_eq!(m.coord_events[0].x, 8);
+        assert_eq!(m.coord_events[0].y, 4);
+        assert_eq!(m.coord_events[0].scene_id, 0);
+    }
+
+    // ── Sprint 3 QA: Group 3 — New Bark Town ───────────────────────────
+
+    #[test]
+    fn test_new_bark_town_full_structure() {
+        let m = load_map(MapId::NewBarkTown);
+        assert_eq!(m.width, 18);
+        assert_eq!(m.height, 20);
+        assert_eq!(m.warps.len(), 4, "ElmsLab, PlayersHouse1F, NeighborsHouse, ElmsHouse");
+        assert_eq!(m.warps[0].dest_map, MapId::ElmsLab);
+        assert_eq!(m.warps[1].dest_map, MapId::PlayersHouse1F);
+        assert_eq!(m.warps[2].dest_map, MapId::PlayersNeighborsHouse);
+        assert_eq!(m.warps[3].dest_map, MapId::ElmsHouse);
+        assert_eq!(m.npcs.len(), 3, "TEACHER, FISHER, RIVAL");
+        assert_eq!(m.npcs[0].name, "TEACHER");
+        assert_eq!(m.npcs[0].x, 6);
+        assert_eq!(m.npcs[0].y, 8);
+        assert_eq!(m.npcs[2].name, "RIVAL");
+        assert_eq!(m.npcs[2].event_flag, Some(9));
+        assert_eq!(m.coord_events.len(), 2);
+        assert_eq!(m.bg_events.len(), 4);
+        // Map connections
+        assert!(m.connections.east.is_some());
+        assert_eq!(m.connections.east.as_ref().unwrap().dest_map, MapId::Route27);
+        assert!(m.connections.west.is_some());
+        assert_eq!(m.connections.west.as_ref().unwrap().dest_map, MapId::Route29);
+        assert!(m.connections.north.is_none());
+        assert!(m.connections.south.is_none());
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_teacher_block_coord_events() {
+        let m = load_map(MapId::NewBarkTown);
+        let teacher_events: Vec<_> = m.coord_events.iter()
+            .filter(|e| e.scene_id == 0)
+            .collect();
+        assert_eq!(teacher_events.len(), 2);
+        assert!(teacher_events.iter().any(|e| e.x == 1 && e.y == 8));
+        assert!(teacher_events.iter().any(|e| e.x == 1 && e.y == 9));
+    }
+
+    // ── Sprint 3 QA: Group 4 — Elm's Lab ───────────────────────────────
+
+    #[test]
+    fn test_elms_lab_full_structure() {
+        let m = load_map(MapId::ElmsLab);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 12);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::NewBarkTown);
+        assert_eq!(m.npcs.len(), 6, "ELM, AIDE, 3 pokeballs, OFFICER");
+        // Pokeball event flags: hidden when set
+        assert_eq!(m.npcs[2].event_flag, Some(13));
+        assert!(!m.npcs[2].event_flag_show);
+        assert_eq!(m.npcs[3].event_flag, Some(14));
+        assert!(!m.npcs[3].event_flag_show);
+        assert_eq!(m.npcs[4].event_flag, Some(15));
+        assert!(!m.npcs[4].event_flag_show);
+        assert_eq!(m.coord_events.len(), 8);
+        assert_eq!(m.bg_events.len(), 12);
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_elms_lab_scene_coord_events() {
+        let m = load_map(MapId::ElmsLab);
+        // Cant-leave events at scene_id=1, y=6
+        let cant_leave: Vec<_> = m.coord_events.iter()
+            .filter(|e| e.scene_id == 1)
+            .collect();
+        assert_eq!(cant_leave.len(), 2);
+        assert!(cant_leave.iter().all(|e| e.y == 6));
+        // Meet-officer events at scene_id=3
+        let meet_officer: Vec<_> = m.coord_events.iter()
+            .filter(|e| e.scene_id == 3)
+            .collect();
+        assert_eq!(meet_officer.len(), 2);
+    }
+
+    // ── Sprint 3 QA: Group 5 — Route 29 ────────────────────────────────
+
+    #[test]
+    fn test_route29_full_structure() {
+        let m = load_map(MapId::Route29);
+        assert_eq!(m.width, 60);
+        assert_eq!(m.height, 18);
+        assert_eq!(m.warps.len(), 1, "1 warp to Route29Route46Gate");
+        assert_eq!(m.warps[0].x, 27);
+        assert_eq!(m.warps[0].y, 1);
+        assert_eq!(m.warps[0].dest_map, MapId::Route29Route46Gate);
+        assert_eq!(m.npcs.len(), 8, "DUDE, YOUNGSTER, TEACHER, FRUIT_TREE, FISHER, COOLTRAINER_M, TUSCANY, POTION_BALL");
+        assert_eq!(m.coord_events.len(), 2);
+        assert_eq!(m.bg_events.len(), 2);
+        // Connections
+        assert!(m.connections.north.is_some());
+        assert_eq!(m.connections.north.as_ref().unwrap().dest_map, MapId::Route46);
+        assert!(m.connections.east.is_some());
+        assert_eq!(m.connections.east.as_ref().unwrap().dest_map, MapId::NewBarkTown);
+        assert!(m.connections.west.is_some());
+        assert_eq!(m.connections.west.as_ref().unwrap().dest_map, MapId::CherrygroveCity);
+    }
+
+    #[test]
+    fn test_route29_wild_encounters_by_time_of_day() {
+        let m = load_map(MapId::Route29);
+        let table = m.wild_encounters.as_ref().unwrap();
+        assert_eq!(table.encounter_rate, 10);
+        // Morning
+        assert_eq!(table.morning[0].species, PIDGEY);
+        assert_eq!(table.morning[0].level, 2);
+        assert_eq!(table.morning[1].species, SENTRET);
+        assert_eq!(table.morning[1].level, 2);
+        // Day
+        assert_eq!(table.day[0].species, PIDGEY);
+        assert_eq!(table.day[0].level, 2);
+        assert_eq!(table.day[1].species, SENTRET);
+        assert_eq!(table.day[1].level, 2);
+        // Night
+        assert_eq!(table.night[0].species, HOOTHOOT);
+        assert_eq!(table.night[0].level, 2);
+        assert_eq!(table.night[1].species, RATTATA);
+        assert_eq!(table.night[1].level, 2);
+    }
+
+    #[test]
+    fn test_route29_grass_tiles_present() {
+        let m = load_map(MapId::Route29);
+        let grass_count = m.collision.iter().filter(|&&c| c == C_GRASS).count();
+        assert!(grass_count > 10, "Route29 should have many grass tiles, found {}", grass_count);
+    }
+
+    #[test]
+    fn test_route29_ledge_tiles_one_way() {
+        let m = load_map(MapId::Route29);
+        let ledge_pos = m.collision.iter().enumerate().find(|(_, &c)| c == C_LEDGE_D);
+        assert!(ledge_pos.is_some(), "Route29 should have south-facing ledge tiles");
+        let (idx, _) = ledge_pos.unwrap();
+        let x = (idx as i32) % m.width;
+        let y = (idx as i32) / m.width;
+        assert!(is_walkable_with_direction(&m, x, y, Direction::Down));
+        assert!(!is_walkable_with_direction(&m, x, y, Direction::Up));
+        assert!(!is_walkable_with_direction(&m, x, y, Direction::Left));
+        assert!(!is_walkable_with_direction(&m, x, y, Direction::Right));
+    }
+
+    #[test]
+    fn test_route29_potion_item_ball() {
+        let m = load_map(MapId::Route29);
+        let potion_npc = m.npcs.iter().find(|n| n.name == "POTION_BALL");
+        assert!(potion_npc.is_some());
+        let npc = potion_npc.unwrap();
+        assert_eq!(npc.x, 48);
+        assert_eq!(npc.y, 2);
+        assert_eq!(npc.event_flag, Some(26));
+        assert!(!npc.event_flag_show, "Hidden when flag IS set (item already picked up)");
+    }
+
+    #[test]
+    fn test_route29_tuscany_event_flag() {
+        let m = load_map(MapId::Route29);
+        let tuscany = m.npcs.iter().find(|n| n.name == "TUSCANY");
+        assert!(tuscany.is_some());
+        let npc = tuscany.unwrap();
+        assert_eq!(npc.event_flag, Some(25));
+        assert!(npc.event_flag_show, "Visible only when flag is set");
+    }
+
+    #[test]
+    fn test_catching_tutorial_coord_events() {
+        let m = load_map(MapId::Route29);
+        let tutorial_events: Vec<_> = m.coord_events.iter()
+            .filter(|e| e.scene_id == 1)
+            .collect();
+        assert_eq!(tutorial_events.len(), 2);
+        assert!(tutorial_events.iter().any(|e| e.x == 53 && e.y == 8));
+        assert!(tutorial_events.iter().any(|e| e.x == 53 && e.y == 9));
+    }
+
+    // ── Sprint 3 QA: Group 6 — Route 29/46 Gate ────────────────────────
+
+    #[test]
+    fn test_route29_route46_gate_structure() {
+        let m = load_map(MapId::Route29Route46Gate);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 4, "2 north to Route46, 2 south to Route29");
+        assert_eq!(m.npcs.len(), 2, "OFFICER, YOUNGSTER");
+        assert!(m.wild_encounters.is_none());
+        assert!(m.coord_events.is_empty());
+    }
+
+    #[test]
+    fn test_gate_warp_connectivity() {
+        let gate = load_map(MapId::Route29Route46Gate);
+        // South warps -> Route29
+        assert_eq!(gate.warps[2].dest_map, MapId::Route29);
+        assert_eq!(gate.warps[3].dest_map, MapId::Route29);
+        // North warps -> Route46
+        assert_eq!(gate.warps[0].dest_map, MapId::Route46);
+        assert_eq!(gate.warps[1].dest_map, MapId::Route46);
+        // Route29 warp -> gate
+        let r29 = load_map(MapId::Route29);
+        assert_eq!(r29.warps[0].dest_map, MapId::Route29Route46Gate);
+    }
+
+    // ── Sprint 3 QA: Group 7 — Cherrygrove City ────────────────────────
+
+    #[test]
+    fn test_cherrygrove_city_full_structure() {
+        let m = load_map(MapId::CherrygroveCity);
+        assert_eq!(m.width, 40);
+        assert_eq!(m.height, 18);
+        assert_eq!(m.warps.len(), 5);
+        assert_eq!(m.npcs.len(), 5, "GUIDE_GENT, RIVAL, TEACHER, YOUNGSTER, MYSTIC_WATER_GUY");
+        // Guide Gent: hidden when EVENT_GUIDE_GENT_IN_HIS_HOUSE (18) set
+        assert_eq!(m.npcs[0].name, "GUIDE_GENT");
+        assert_eq!(m.npcs[0].event_flag, Some(18));
+        assert!(!m.npcs[0].event_flag_show);
+        // Rival: visible when EVENT_RIVAL_CHERRYGROVE_CITY (19) set
+        assert_eq!(m.npcs[1].name, "RIVAL");
+        assert_eq!(m.npcs[1].event_flag, Some(19));
+        assert!(m.npcs[1].event_flag_show);
+        assert_eq!(m.coord_events.len(), 2);
+        assert_eq!(m.bg_events.len(), 4);
+        // Connections
+        assert!(m.connections.north.is_some());
+        assert_eq!(m.connections.north.as_ref().unwrap().dest_map, MapId::Route30);
+        assert!(m.connections.east.is_some());
+        assert_eq!(m.connections.east.as_ref().unwrap().dest_map, MapId::Route29);
+        assert!(m.connections.west.is_none());
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_rival_ambush_coord_events() {
+        let m = load_map(MapId::CherrygroveCity);
+        let rival_events: Vec<_> = m.coord_events.iter()
+            .filter(|e| e.scene_id == 1)
+            .collect();
+        assert_eq!(rival_events.len(), 2);
+        assert!(rival_events.iter().any(|e| e.x == 33 && e.y == 6));
+        assert!(rival_events.iter().any(|e| e.x == 33 && e.y == 7));
+    }
+
+    // ── Sprint 3 QA: Group 8 — Cherrygrove Buildings ────────────────────
+
+    #[test]
+    fn test_cherrygrove_pokecenter_structure() {
+        let m = load_map(MapId::CherrygrovePokecenter1F);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::CherrygroveCity);
+        assert_eq!(m.npcs.len(), 4, "NURSE, FISHER, GENTLEMAN, TEACHER");
+        assert_eq!(m.npcs[0].name, "NURSE");
+    }
+
+    #[test]
+    fn test_cherrygrove_mart_structure() {
+        let m = load_map(MapId::CherrygroveMart);
+        assert_eq!(m.width, 12);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::CherrygroveCity);
+        assert_eq!(m.npcs.len(), 3, "CLERK, COOLTRAINER, YOUNGSTER");
+        assert_eq!(m.npcs[0].name, "CLERK");
+    }
+
+    #[test]
+    fn test_guide_gents_house_structure() {
+        let m = load_map(MapId::GuideGentsHouse);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::CherrygroveCity);
+        assert_eq!(m.npcs.len(), 1);
+        assert_eq!(m.npcs[0].event_flag, Some(17));
+        assert!(m.npcs[0].event_flag_show);
+        assert_eq!(m.bg_events.len(), 2);
+    }
+
+    #[test]
+    fn test_gym_speech_house_structure() {
+        let m = load_map(MapId::CherrygroveGymSpeechHouse);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.npcs.len(), 2);
+        assert_eq!(m.bg_events.len(), 2);
+    }
+
+    #[test]
+    fn test_evo_speech_house_structure() {
+        let m = load_map(MapId::CherrygroveEvolutionSpeechHouse);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.npcs.len(), 2);
+        assert_eq!(m.bg_events.len(), 2);
+    }
+
+    #[test]
+    fn test_all_cherrygrove_building_warps_bidirectional() {
+        let buildings = [
+            MapId::CherrygrovePokecenter1F,
+            MapId::CherrygroveMart,
+            MapId::GuideGentsHouse,
+            MapId::CherrygroveGymSpeechHouse,
+            MapId::CherrygroveEvolutionSpeechHouse,
+        ];
+        let city = load_map(MapId::CherrygroveCity);
+        for &bldg_id in &buildings {
+            let bldg = load_map(bldg_id);
+            // Building has warp back to CherrygroveCity
+            let has_exit = bldg.warps.iter().any(|w| w.dest_map == MapId::CherrygroveCity);
+            assert!(has_exit, "{:?} should have warp back to CherrygroveCity", bldg_id);
+            // CherrygroveCity has warp into building
+            let has_entry = city.warps.iter().any(|w| w.dest_map == bldg_id);
+            assert!(has_entry, "CherrygroveCity should have warp into {:?}", bldg_id);
+        }
+    }
+
+    #[test]
+    fn test_route46_stub() {
+        let m = load_map(MapId::Route46);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 8);
+        assert!(m.warps.len() >= 1);
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_route30_stub_has_south_connection() {
+        let m = load_map(MapId::Route30);
+        assert!(m.connections.south.is_some());
+        assert_eq!(m.connections.south.as_ref().unwrap().dest_map, MapId::CherrygroveCity);
+    }
 }

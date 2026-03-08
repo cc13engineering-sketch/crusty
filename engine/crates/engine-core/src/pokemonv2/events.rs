@@ -1120,4 +1120,160 @@ mod tests {
             assert!(!steps.is_empty(), "Script {} returned empty", id);
         }
     }
+
+    // ── Sprint 3 QA: Group 2 — Meet Mom Script ─────────────────────────
+
+    #[test]
+    fn test_meet_mom_script_gives_pokegear() {
+        let steps = get_script(SCRIPT_MEET_MOM);
+        let has_pokegear_event = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_ENGINE_POKEGEAR)));
+        let has_pokegear_item = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: 59, count: 1 }));
+        let has_scene_noop = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetScene { map: MapId::PlayersHouse1F, scene_id: 1 }));
+        let has_set_mom1 = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_PLAYERS_HOUSE_MOM_1)));
+        let has_clear_mom2 = steps.iter().any(|s| matches!(s, ScriptStep::ClearEvent(EVENT_PLAYERS_HOUSE_MOM_2)));
+        assert!(has_pokegear_event, "Should set EVENT_ENGINE_POKEGEAR");
+        assert!(has_pokegear_item, "Should give PokeGear item 59");
+        assert!(has_scene_noop, "Should set PlayersHouse1F scene to NOOP");
+        assert!(has_set_mom1, "Should set EVENT_PLAYERS_HOUSE_MOM_1");
+        assert!(has_clear_mom2, "Should clear EVENT_PLAYERS_HOUSE_MOM_2");
+    }
+
+    #[test]
+    fn test_meet_mom_script_execution() {
+        let mut script = ScriptState::from_id(SCRIPT_MEET_MOM);
+        let mut player = PlayerState {
+            x: 8, y: 4, facing: Direction::Down,
+            walk_offset: 0.0, is_walking: false,
+            walk_frame: 0, frame_timer: 0.0,
+            name: "GOLD".to_string(),
+        };
+        let mut npc_states = vec![NpcState {
+            x: 7, y: 4, facing: Direction::Left, walk_offset: 0.0,
+            is_walking: false, visible: true, wander_timer: 0.0, emote: None,
+        }];
+        let mut flags = EventFlags::new();
+        let mut scenes = SceneState::new();
+        let mut party = Vec::new();
+        let mut bag = Vec::new();
+
+        // Run script to completion (press confirm at each text prompt)
+        for _ in 0..200 {
+            let result = step_script(&mut script, &mut player, &mut npc_states,
+                &mut flags, &mut scenes, MapId::PlayersHouse1F,
+                &mut party, &mut bag, true, false, false, false);
+            if matches!(result, ScriptResult::Ended) { break; }
+        }
+        assert!(flags.has(EVENT_ENGINE_POKEGEAR), "After script: pokegear flag set");
+        assert!(bag.iter().any(|(id, _)| *id == 59), "After script: bag has pokegear");
+        assert_eq!(scenes.get(MapId::PlayersHouse1F), SCENE_PLAYERSHOUSE1F_NOOP);
+    }
+
+    // ── Sprint 3 QA: Group 3 — Teacher Stops Script ────────────────────
+
+    #[test]
+    fn test_teacher_stops_scripts_move_player_right() {
+        let steps1 = get_script(SCRIPT_TEACHER_STOPS_1);
+        let has_move_right = steps1.iter().any(|s| match s {
+            ScriptStep::MovePlayer { steps } => steps.iter().any(|(d, _)| *d == Direction::Right),
+            _ => false,
+        });
+        assert!(has_move_right, "Teacher stops script 1 should move player right");
+
+        let steps2 = get_script(SCRIPT_TEACHER_STOPS_2);
+        let has_move_right2 = steps2.iter().any(|s| match s {
+            ScriptStep::MovePlayer { steps } => steps.iter().any(|(d, _)| *d == Direction::Right),
+            _ => false,
+        });
+        assert!(has_move_right2, "Teacher stops script 2 should move player right");
+    }
+
+    // ── Sprint 3 QA: Group 4 — Starter Selection ───────────────────────
+
+    #[test]
+    fn test_cant_leave_lab_without_starter() {
+        let steps = get_script(SCRIPT_LAB_TRY_TO_LEAVE);
+        let has_push_back = steps.iter().any(|s| match s {
+            ScriptStep::MovePlayer { steps } => steps.iter().any(|(d, _)| *d == Direction::Up),
+            _ => false,
+        });
+        assert!(has_push_back, "Lab try-to-leave script should push player back (Up)");
+    }
+
+    // ── Sprint 3 QA: Group 5 — Route 29 Scripts ────────────────────────
+
+    #[test]
+    fn test_route29_potion_script_gives_item() {
+        let steps = get_script(SCRIPT_ROUTE29_POTION);
+        let has_give_potion = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 }));
+        let has_set_flag = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_ROUTE_29_POTION)));
+        assert!(has_give_potion, "Should give ITEM_POTION");
+        assert!(has_set_flag, "Should set EVENT_ROUTE_29_POTION");
+    }
+
+    #[test]
+    fn test_catching_tutorial_dude_starts_tutorial_battle() {
+        let steps = get_script(SCRIPT_CATCHING_TUTORIAL_DUDE);
+        let has_load_wild = steps.iter().any(|s| matches!(s, ScriptStep::LoadWildMon { species: HOPPIP, level: 3 }));
+        let has_tutorial_battle = steps.iter().any(|s| matches!(s, ScriptStep::StartBattle { battle_type: BattleType::Tutorial }));
+        let has_learned_flag = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_LEARNED_TO_CATCH_POKEMON)));
+        assert!(has_load_wild, "Should load Hoppip level 3");
+        assert!(has_tutorial_battle, "Should start Tutorial battle");
+        assert!(has_learned_flag, "Should set EVENT_LEARNED_TO_CATCH_POKEMON");
+    }
+
+    // ── Sprint 3 QA: Group 7 — Cherrygrove Scripts ─────────────────────
+
+    #[test]
+    fn test_guide_gent_tour_script_correctness() {
+        let steps = build_guide_gent_tour_script();
+        let has_map_card_flag = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_ENGINE_MAP_CARD)));
+        let has_gent_in_house = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_GUIDE_GENT_IN_HIS_HOUSE)));
+        let has_gent_visible = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE)));
+        let has_follow = steps.iter().any(|s| matches!(s, ScriptStep::Follow { .. }));
+        let has_stop_follow = steps.iter().any(|s| matches!(s, ScriptStep::StopFollow));
+        let has_play_music = steps.iter().any(|s| matches!(s, ScriptStep::PlayMusic(MUSIC_SHOW_ME_AROUND)));
+        let has_play_map_music = steps.iter().any(|s| matches!(s, ScriptStep::PlayMapMusic));
+        assert!(has_map_card_flag, "Should set EVENT_ENGINE_MAP_CARD flag");
+        assert!(has_gent_in_house);
+        assert!(has_gent_visible);
+        assert!(has_follow);
+        assert!(has_stop_follow);
+        assert!(has_play_music);
+        assert!(has_play_map_music);
+    }
+
+    #[test]
+    fn test_rival_ambush_starts_canlose_battle() {
+        let steps = get_script(SCRIPT_CHERRYGROVE_RIVAL);
+        let has_canlose = steps.iter().any(|s| matches!(s, ScriptStep::StartBattle { battle_type: BattleType::CanLose }));
+        let has_rival_music = steps.iter().any(|s| matches!(s, ScriptStep::PlayMusic(MUSIC_RIVAL_ENCOUNTER)));
+        assert!(has_canlose, "Cherrygrove rival should use BattleType::CanLose");
+        assert!(has_rival_music, "Should play rival encounter music");
+    }
+
+    #[test]
+    fn test_mystic_water_guy_gives_item_once() {
+        let steps = get_script(SCRIPT_MYSTIC_WATER_GUY);
+        let has_check = steps.iter().any(|s| matches!(s, ScriptStep::CheckEvent { flag: EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE, .. }));
+        let has_give = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: ITEM_MYSTIC_WATER, count: 1 }));
+        let has_set = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE)));
+        assert!(has_check, "Should check if already received");
+        assert!(has_give, "Should give ITEM_MYSTIC_WATER");
+        assert!(has_set, "Should set the received flag");
+    }
+
+    #[test]
+    fn test_pokecenter_nurse_heals_party() {
+        let steps = get_script(SCRIPT_CHERRYGROVE_NURSE);
+        let has_heal = steps.iter().any(|s| matches!(s, ScriptStep::Special(SpecialFn::HealParty)));
+        assert!(has_heal, "Nurse script should heal party via Special::HealParty");
+    }
+
+    #[test]
+    fn test_mart_clerk_gives_free_potion() {
+        let steps = get_script(SCRIPT_CHERRYGROVE_CLERK);
+        let has_give_potion = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 }));
+        assert!(has_give_potion, "Mart clerk should give free POTION");
+    }
 }

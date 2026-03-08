@@ -24,6 +24,14 @@ pub enum PokemonType {
     Steel,
 }
 
+pub const ALL_TYPES: [PokemonType; 17] = [
+    PokemonType::Normal, PokemonType::Fire, PokemonType::Water, PokemonType::Grass,
+    PokemonType::Electric, PokemonType::Ice, PokemonType::Fighting, PokemonType::Poison,
+    PokemonType::Ground, PokemonType::Flying, PokemonType::Psychic, PokemonType::Bug,
+    PokemonType::Rock, PokemonType::Ghost, PokemonType::Dragon, PokemonType::Dark,
+    PokemonType::Steel,
+];
+
 impl PokemonType {
     /// Gen 2 move category derived from type.
     /// Physical: Normal, Fighting, Poison, Ground, Flying, Bug, Rock, Ghost, Steel
@@ -592,6 +600,10 @@ pub const MOVE_BATON_PASS: MoveId = 226;
 pub const MOVE_VITAL_THROW: MoveId = 233;
 pub const MOVE_MOONLIGHT: MoveId = 236;
 pub const MOVE_ANCIENT_POWER: MoveId = 246;
+pub const MOVE_PSYCH_UP: MoveId = 244;
+pub const MOVE_LOCK_ON: MoveId = 199;
+pub const MOVE_MIND_READER: MoveId = 170;
+pub const MOVE_CONVERSION_2: MoveId = 176;
 
 /// Static species data
 #[derive(Debug)]
@@ -2390,6 +2402,11 @@ const MOVE_DB: &[MoveData] = &[
     // Sprint 163 moves
     MoveData { id: MOVE_SLEEP_TALK, name: "Sleep Talk", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Randomly uses a move while asleep." },
     MoveData { id: MOVE_SNORE, name: "Snore", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 15, description: "An attack usable only while asleep. 30% flinch." },
+    // Sprint 165 moves
+    MoveData { id: MOVE_PSYCH_UP, name: "Psych Up", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Copies the foe's stat changes." },
+    MoveData { id: MOVE_LOCK_ON, name: "Lock-On", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Ensures the next attack will hit." },
+    MoveData { id: MOVE_MIND_READER, name: "Mind Reader", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Ensures the next attack will hit." },
+    MoveData { id: MOVE_CONVERSION_2, name: "Conversion2", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Changes type to resist foe's last move." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

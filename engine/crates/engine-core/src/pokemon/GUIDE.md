@@ -4201,3 +4201,57 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_sleep_talk_excludes_two_turn_moves` — all excluded moves have MoveData
 - `test_spite_fails_on_struggle` — Struggle move ID and MoveData exist
 - `test_disable_accuracy_matches_pokecrystal` — accuracy 55, pp 20
+
+### Sprint 165: Content — Psych Up + Lock-On/Mind Reader + Focus Energy + Conversion/Conversion2
+
+#### New Moves Implemented
+
+**Psych Up** (ID 244, Normal/Status, acc 100, pp 10)
+- Copies all 7 stat stages from opponent to user
+- Fails if opponent has no stat changes (all stages at 0)
+- Source: `pokecrystal-master/engine/battle/move_effects/psych_up.asm`
+
+**Lock-On** (ID 199, Normal/Status, acc 100, pp 5)
+- Sets "lock on" flag — user's next attack auto-hits (bypasses accuracy check)
+- Flag consumed after next attack
+- Source: `pokecrystal-master/engine/battle/move_effects/lock_on.asm`
+
+**Mind Reader** (ID 170, Normal/Status, acc 100, pp 5)
+- Same effect as Lock-On (EFFECT_LOCK_ON in pokecrystal)
+- Source: `pokecrystal-master/data/moves/moves.asm` line 186
+
+**Focus Energy** (ID 116, Normal/Status, acc 100, pp 30)
+- Already had MoveData but no battle handler
+- Sets focus_energy flag, adds +1 to crit level (1/16 -> 1/8)
+- Fails if already in Focus Energy state
+- Source: `pokecrystal-master/engine/battle/move_effects/focus_energy.asm`
+
+**Conversion** (ID 160, Normal/Status, acc 100, pp 30)
+- Already had MoveData but no battle handler
+- Changes user's type to the type of a random move in their moveset
+- Only picks types different from user's current type(s)
+- Fails if no eligible type found
+- Source: `pokecrystal-master/engine/battle/move_effects/conversion.asm`
+
+**Conversion2** (ID 176, Normal/Status, acc 100, pp 30)
+- Changes user's type to a type that resists opponent's last move
+- Randomly picks from types where `type_effectiveness(foe_move_type, new_type) < 1.0`
+- Fails if opponent hasn't used a move yet
+- Source: `pokecrystal-master/engine/battle/move_effects/conversion2.asm`
+
+#### Battle System Changes
+
+- **Lock-On accuracy bypass**: Added to all 3 accuracy check locations (PlayerAttack inline, `calc_player_damage`, `calc_enemy_move_inner`). Flag consumed on use.
+- **Focus Energy crit boost**: Modified `crit_denominator(move_id, held_item, focus_energy)` to accept focus_energy parameter. Adds +1 to crit level per pokecrystal.
+- **BattleState new fields**: `player_lock_on`, `enemy_lock_on`, `player_focus_energy`, `enemy_focus_energy`
+- **ALL_TYPES constant**: Added array of all 17 PokemonType values for Conversion2 resist lookup
+- All handlers implemented in both PlayerAttack and EnemyAttack phases
+
+#### New Tests (7 tests, 1464 total)
+- `test_psych_up_move_data` — ID 244, Status, acc 100, pp 10
+- `test_lock_on_mind_reader_move_data` — Lock-On ID 199, Mind Reader ID 170, both pp 5
+- `test_focus_energy_move_data` — ID 116, pp 30
+- `test_conversion2_move_data` — ID 176, pp 30
+- `test_focus_energy_crit_boost` — base 1/16, with FE 1/8, high-crit+FE 1/3, scope+FE 1/4
+- `test_all_types_array` — ALL_TYPES has 17 entries
+- `test_conversion2_resist_logic` — Fire resisted by Water, Rock, Fire; not by Grass

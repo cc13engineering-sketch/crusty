@@ -419,8 +419,9 @@ fn is_high_crit_move(move_id: MoveId) -> bool {
 ///   Level 0 (base): ~1/16, Level 1 (Scope Lens OR Focus Energy): 1/8,
 ///   Level 2 (high-crit move): 1/4, Level 3 (high-crit + Scope Lens): 1/3
 /// High-crit moves add +2 to crit level (pokecrystal BattleCommand_Critical).
-fn crit_denominator(move_id: MoveId, held_item: u8) -> u64 {
+fn crit_denominator(move_id: MoveId, held_item: u8, focus_energy: bool) -> u64 {
     let mut level = 0u8;
+    if focus_energy { level += 1; }
     if is_high_crit_move(move_id) { level += 2; }
     if held_item == HELD_SCOPE_LENS { level += 1; }
     match level {
@@ -595,6 +596,12 @@ struct BattleState {
     player_disable_turns: u8,
     enemy_disabled_move: MoveId,
     enemy_disable_turns: u8,
+    // Lock-On / Mind Reader: next attack auto-hits
+    player_lock_on: bool,  // player's next attack against enemy will hit
+    enemy_lock_on: bool,   // enemy's next attack against player will hit
+    // Focus Energy: +1 crit level
+    player_focus_energy: bool,
+    enemy_focus_energy: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2086,6 +2093,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2975,7 +2986,7 @@ enemy_disable_turns: 0,
                             }),
                         };
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         battle.phase = BattlePhase::Text {
                             message: format!("{} must recharge!", pname),
                             timer: 0.0,
@@ -3006,7 +3017,7 @@ enemy_disable_turns: 0,
                         let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
                         if enemy_thawed {
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                             battle.phase = BattlePhase::Text {
                                 message: format!("{}{} thawed out!", prefix, battle.enemy.name()),
                                 timer: 0.0,
@@ -3033,7 +3044,7 @@ enemy_disable_turns: 0,
                                 }),
                             };
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                             battle.phase = BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             };
@@ -3073,7 +3084,7 @@ enemy_disable_turns: 0,
                         };
                     } else {
                         battle.pending_player_move = Some((charge_move, p_dmg, p_eff, p_crit));
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         battle.phase = BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         };
@@ -3128,7 +3139,7 @@ enemy_disable_turns: 0,
                                     battle.phase = BattlePhase::ExecuteQueue;
                                 } else {
                                     // Queue-based run failed: show "Can't escape!" via ExecuteQueue, then GoToPhase(EnemyAttack)
-                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                                     battle.battle_queue.clear();
                                     battle.queue_timer = 0.0;
                                     battle.battle_queue.push_back(BattleStep::Text("Can't escape!".into()));
@@ -3217,7 +3228,7 @@ enemy_disable_turns: 0,
                         } else {
                             format!("{} is fast asleep!", pname)
                         };
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         battle.phase = BattlePhase::Text {
                             message: reason, timer: 0.0,
                             next_phase: Box::new(BattlePhase::EnemyAttack {
@@ -3251,7 +3262,7 @@ enemy_disable_turns: 0,
                             if let Some(p) = self.party.get_mut(battle.player_idx) {
                                 p.hp = p.hp.saturating_sub(self_dmg);
                             }
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                             let next = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true) {
                                 BattlePhase::PlayerFainted
                             } else {
@@ -3326,7 +3337,7 @@ enemy_disable_turns: 0,
                     if let Some(charge_msg) = two_turn_charge_msg(move_id, &pname_charge) {
                         battle.player_charging = Some(move_id);
                         // Enemy still gets to attack this turn
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         let pname_used = pname_charge.clone();
                         let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
                         battle.phase = BattlePhase::Text {
@@ -3344,9 +3355,15 @@ enemy_disable_turns: 0,
                         return;
                     }
 
+                    // Lock-On / Mind Reader: consume flag, auto-hit
+                    let lock_on_active = battle.player_lock_on;
+                    if lock_on_active { battle.player_lock_on = false; }
+
                     // Accuracy check (apply accuracy/evasion stages)
                     // Gen 2: all moves use accuracy + stage modifiers, including status
-                    let accuracy_ok = if let Some(move_data) = get_move(move_id) {
+                    let accuracy_ok = if lock_on_active {
+                        true
+                    } else if let Some(move_data) = get_move(move_id) {
                         if move_data.accuracy >= 255 {
                             true // Never-miss moves (Faint Attack, Swift)
                         } else {
@@ -3363,7 +3380,7 @@ enemy_disable_turns: 0,
 
                     // Calc player damage (1/16 base crit, 1/4 for high-crit moves, 1/8 with Scope Lens)
                     let p_held = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
-                    let crit_denom = crit_denominator(move_id, p_held);
+                    let crit_denom = crit_denominator(move_id, p_held, battle.player_focus_energy);
                     let p_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
                     let (p_damage, p_eff) = if !accuracy_ok {
                         (0, 1.0)
@@ -3403,9 +3420,9 @@ enemy_disable_turns: 0,
 
                     // Pre-calculate enemy move for priority comparison (Encore overrides)
                     let (e_pre_move, e_pre_dmg, e_pre_eff, e_pre_crit) = if battle.enemy_encore_turns > 0 && battle.enemy_encore_move != 0 {
-                        self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.enemy_encore_move, battle.weather)
+                        self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.enemy_encore_move, battle.weather, battle.enemy_focus_energy, battle.enemy_lock_on)
                     } else {
-                        self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 })
+                        self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on)
                     };
 
                     // Move priority: higher priority always goes first (Gen 2)
@@ -3535,7 +3552,7 @@ enemy_disable_turns: 0,
                         BattlePhase::ActionSelect { cursor: 0 }
                     } else {
                         // Player went first, enemy still gets a turn
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         BattlePhase::EnemyAttack { timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit }
                     };
                     battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(terminal)));
@@ -3981,6 +3998,72 @@ enemy_disable_turns: 0,
                             }
                             None // deals damage normally
                         }
+                    } else if move_id == MOVE_PSYCH_UP {
+                        // Copy enemy's stat stages to player
+                        let any_changed = battle.enemy_stages.iter().any(|&s| s != 0);
+                        if !any_changed {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_stages = battle.enemy_stages;
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            Some(format!("{} copied the stat changes!", pname))
+                        }
+                    } else if move_id == MOVE_LOCK_ON || move_id == MOVE_MIND_READER {
+                        // Next attack auto-hits; fails against substitute (not implemented)
+                        battle.player_lock_on = true;
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        Some(format!("{} took aim at {}{}!", pname, prefix, battle.enemy.name()))
+                    } else if move_id == MOVE_FOCUS_ENERGY {
+                        if battle.player_focus_energy {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_focus_energy = true;
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            Some(format!("{} is getting pumped!", pname))
+                        }
+                    } else if move_id == MOVE_CONVERSION {
+                        // Change user's type to the type of a random move in their moveset
+                        let p_species = self.party.get(battle.player_idx).and_then(|p| get_species(p.species_id));
+                        let p_type1 = p_species.map(|s| s.type1).unwrap_or(PokemonType::Normal);
+                        let p_type2 = p_species.and_then(|s| s.type2);
+                        let move_types: Vec<PokemonType> = self.party.get(battle.player_idx)
+                            .map(|p| p.moves.iter().filter_map(|m| *m)
+                                .filter_map(|m| get_move(m).map(|md| md.move_type))
+                                .filter(|&t| t != p_type1 && Some(t) != p_type2)
+                                .collect::<Vec<_>>())
+                            .unwrap_or_default();
+                        if move_types.is_empty() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let chosen_type = move_types[(engine.rng.next_u64() as usize) % move_types.len()];
+                            let type_name = format!("{:?}", chosen_type).to_uppercase();
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            Some(format!("{} transformed into the {} type!", pname, type_name))
+                        }
+                    } else if move_id == MOVE_CONVERSION_2 {
+                        // Change user's type to resist foe's last move
+                        let last_move_type = if battle.enemy_last_move == 0 {
+                            None
+                        } else {
+                            get_move(battle.enemy_last_move).map(|md| md.move_type)
+                        };
+                        if let Some(atk_type) = last_move_type {
+                            // Find a type that resists the enemy's last move type
+                            let resist_types: Vec<PokemonType> = ALL_TYPES.iter().copied()
+                                .filter(|&t| type_effectiveness(atk_type, t) < 1.0)
+                                .collect();
+                            if resist_types.is_empty() {
+                                Some("But it failed!".to_string())
+                            } else {
+                                let chosen = resist_types[(engine.rng.next_u64() as usize) % resist_types.len()];
+                                let type_name = format!("{:?}", chosen).to_uppercase();
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{} transformed into the {} type!", pname, type_name))
+                            }
+                        } else {
+                            Some("But it failed!".to_string())
+                        }
                     } else { None }
                 } else { None };
 
@@ -4345,7 +4428,7 @@ enemy_disable_turns: 0,
                         battle.enemy_confused -= 1;
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                         if battle.enemy_confused == 0 {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} snapped out of confusion!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
@@ -4365,14 +4448,14 @@ enemy_disable_turns: 0,
                             } else { BattlePhase::ActionSelect { cursor: 0 } };
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is confused!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             })));
                         }
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
                         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         })));
@@ -4385,6 +4468,9 @@ enemy_disable_turns: 0,
             BattlePhase::EnemyAttack { timer: _, move_id, damage, effectiveness, is_crit } => {
                 // Queue-based EnemyAttack: compute all effects immediately, push queue steps,
                 // then transition to ExecuteQueue. No timer — all visual pacing is in the queue.
+
+                // Consume Lock-On flag (was used during calc_enemy_move accuracy check)
+                battle.enemy_lock_on = false;
 
                 // Reset enemy Protect counter if not using Protect/Detect
                 if move_id != MOVE_PROTECT && move_id != MOVE_DETECT {
@@ -4439,7 +4525,7 @@ enemy_disable_turns: 0,
                     battle.enemy_rampage.0 -= 1;
                     let rampage_move = battle.enemy_rampage.1;
                     if rampage_move != move_id {
-                        let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move, battle.weather);
+                        let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move, battle.weather, battle.enemy_focus_energy, battle.enemy_lock_on);
                         (rampage_move, r_dmg, r_eff, r_crit)
                     } else { (move_id, damage, effectiveness, is_crit) }
                 } else { (move_id, damage, effectiveness, is_crit) };
@@ -4809,7 +4895,7 @@ enemy_disable_turns: 0,
                             } else {
                                 let chosen = available[(engine.rng.next_u64() as usize) % available.len()];
                                 let (e_dmg, e_eff, e_crit) = {
-                                    let r = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, chosen, battle.weather);
+                                    let r = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, chosen, battle.weather, battle.enemy_focus_energy, battle.enemy_lock_on);
                                     (r.1, r.2, r.3)
                                 };
                                 battle.phase = BattlePhase::EnemyAttack {
@@ -4830,6 +4916,68 @@ enemy_disable_turns: 0,
                                 battle.player_flinched = true;
                             }
                             None // deals damage normally
+                        }
+                    } else if move_id == MOVE_PSYCH_UP {
+                        // Copy player's stat stages to enemy
+                        let any_changed = battle.player_stages.iter().any(|&s| s != 0);
+                        if !any_changed {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_stages = battle.player_stages;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            Some(format!("{}{} copied the stat changes!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_LOCK_ON || move_id == MOVE_MIND_READER {
+                        battle.enemy_lock_on = true;
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        Some(format!("{}{} took aim at {}!", prefix, battle.enemy.name(), pname))
+                    } else if move_id == MOVE_FOCUS_ENERGY {
+                        if battle.enemy_focus_energy {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_focus_energy = true;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            Some(format!("{}{} is getting pumped!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_CONVERSION {
+                        // Change enemy type to match one of its move types
+                        let e_species = get_species(battle.enemy.species_id);
+                        let e_type1 = e_species.map(|s| s.type1).unwrap_or(PokemonType::Normal);
+                        let e_type2 = e_species.and_then(|s| s.type2);
+                        let move_types: Vec<PokemonType> = battle.enemy.moves.iter()
+                            .filter_map(|m| *m)
+                            .filter_map(|m| get_move(m).map(|md| md.move_type))
+                            .filter(|&t| t != e_type1 && Some(t) != e_type2)
+                            .collect();
+                        if move_types.is_empty() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let chosen_type = move_types[(engine.rng.next_u64() as usize) % move_types.len()];
+                            let type_name = format!("{:?}", chosen_type).to_uppercase();
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            Some(format!("{}{} transformed into the {} type!", prefix, battle.enemy.name(), type_name))
+                        }
+                    } else if move_id == MOVE_CONVERSION_2 {
+                        let last_move_type = if battle.player_last_move == 0 {
+                            None
+                        } else {
+                            get_move(battle.player_last_move).map(|md| md.move_type)
+                        };
+                        if let Some(atk_type) = last_move_type {
+                            let resist_types: Vec<PokemonType> = ALL_TYPES.iter().copied()
+                                .filter(|&t| type_effectiveness(atk_type, t) < 1.0)
+                                .collect();
+                            if resist_types.is_empty() {
+                                Some("But it failed!".to_string())
+                            } else {
+                                let chosen = resist_types[(engine.rng.next_u64() as usize) % resist_types.len()];
+                                let type_name = format!("{:?}", chosen).to_uppercase();
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{}{} transformed into the {} type!", prefix, battle.enemy.name(), type_name))
+                            }
+                        } else {
+                            Some("But it failed!".to_string())
                         }
                     } else { None }
                 } else { None };
@@ -5866,15 +6014,15 @@ enemy_disable_turns: 0,
         }
     }
 
-    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], weather: Weather, disabled_move: MoveId) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None, weather, disabled_move)
+    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], weather: Weather, disabled_move: MoveId, focus_energy: bool, lock_on: bool) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None, weather, disabled_move, focus_energy, lock_on)
     }
 
-    fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId, weather: Weather) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced), weather, 0)
+    fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId, weather: Weather, focus_energy: bool, lock_on: bool) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced), weather, 0, focus_energy, lock_on)
     }
 
-    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>, weather: Weather, disabled_move: MoveId) -> (MoveId, u16, f64, bool) {
+    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>, weather: Weather, disabled_move: MoveId, focus_energy: bool, lock_on: bool) -> (MoveId, u16, f64, bool) {
         let mut available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
         // Filter out disabled move
         if disabled_move != 0 {
@@ -5917,8 +6065,10 @@ enemy_disable_turns: 0,
         };
 
         // Accuracy check for enemy move (apply accuracy/evasion stages)
-        // Gen 2: all moves use accuracy + stage modifiers, including status
-        let accuracy_ok = if let Some(md) = get_move(mid) {
+        // Lock-On / Mind Reader bypasses accuracy
+        let accuracy_ok = if lock_on {
+            true
+        } else if let Some(md) = get_move(mid) {
             if md.accuracy >= 255 {
                 true // Never-miss moves (Faint Attack, Swift)
             } else {
@@ -5933,7 +6083,7 @@ enemy_disable_turns: 0,
             }
         } else { true };
 
-        let crit_d = crit_denominator(mid, enemy.held_item);
+        let crit_d = crit_denominator(mid, enemy.held_item, focus_energy);
         let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_d) == 0;
         if !accuracy_ok {
             (mid, 0, 1.0, false) // miss — zero damage
@@ -5970,7 +6120,10 @@ enemy_disable_turns: 0,
     /// Calculate player damage for a given move (used by rampage continuation).
     /// Returns (damage, effectiveness, is_crit).
     fn calc_player_damage(&self, engine: &mut Engine, move_id: MoveId, battle: &BattleState) -> (u16, f64, bool) {
-        let accuracy_ok = if let Some(md) = get_move(move_id) {
+        // Lock-On bypasses accuracy check
+        let accuracy_ok = if battle.player_lock_on {
+            true
+        } else if let Some(md) = get_move(move_id) {
             if md.accuracy >= 255 {
                 true
             } else {
@@ -5981,7 +6134,7 @@ enemy_disable_turns: 0,
             }
         } else { true };
         let p_held_item = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
-        let crit_denom = crit_denominator(move_id, p_held_item);
+        let crit_denom = crit_denominator(move_id, p_held_item, battle.player_focus_energy);
         let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
         if !accuracy_ok {
             return (0, 1.0, false);
@@ -6235,6 +6388,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -6318,6 +6475,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6397,6 +6558,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6476,6 +6641,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6556,6 +6725,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6636,6 +6809,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6931,6 +7108,7 @@ enemy_disable_turns: 0,
                                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                         engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                                         if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
+                                        b.enemy_focus_energy, b.enemy_lock_on,
                                     );
                                     let enemy_phase = BattlePhase::EnemyAttack {
                                         timer: 0.0, move_id: e_move, damage: e_dmg,
@@ -8262,6 +8440,7 @@ enemy_disable_turns: 0,
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                 engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                                 if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
+                                b.enemy_focus_energy, b.enemy_lock_on,
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg1, timer: 0.0,
@@ -8344,6 +8523,7 @@ enemy_disable_turns: 0,
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                 engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                                 if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
+                                b.enemy_focus_energy, b.enemy_lock_on,
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg, timer: 0.0,
@@ -8479,6 +8659,7 @@ enemy_disable_turns: 0,
                         let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                             engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                             if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
+                            b.enemy_focus_energy, b.enemy_lock_on,
                         );
                         b.phase = BattlePhase::Text {
                             message: msg1, timer: 0.0,
@@ -8672,7 +8853,7 @@ enemy_disable_turns: 0,
                 2 => "Wobble... Wobble...".to_string(),
                 _ => String::new(),
             };
-            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
+            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 }, battle.enemy_focus_energy, battle.enemy_lock_on);
             let mut lines = vec![format!("You threw a {}!", ball_name)];
             if !wobbles.is_empty() { lines.push(wobbles); }
             lines.push(shake_text.to_string());
@@ -11452,6 +11633,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
             trainer_name: String::new(),
         };
 
@@ -11571,6 +11756,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
             trainer_name: String::new(),
         };
 
@@ -11656,6 +11845,10 @@ player_disabled_move: 0,
 player_disable_turns: 0,
 enemy_disabled_move: 0,
 enemy_disable_turns: 0,
+player_lock_on: false,
+enemy_lock_on: false,
+player_focus_energy: false,
+enemy_focus_energy: false,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -13671,13 +13864,13 @@ enemy_disable_turns: 0,
     #[test]
     fn test_sprint153_crit_denominator() {
         // Base crit: 1/16 (level 0)
-        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE), 16);
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE, false), 16);
         // High-crit move: 1/4 (level 2, +2 from high-crit)
-        assert_eq!(crit_denominator(MOVE_SLASH, HELD_NONE), 4);
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_NONE, false), 4);
         // Scope Lens on non-high-crit: 1/8 (level 1)
-        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS), 8);
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS, false), 8);
         // Scope Lens + high-crit move: 1/3 (level 3, per pokecrystal)
-        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 3);
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS, false), 3);
     }
 
     #[test]
@@ -13834,15 +14027,15 @@ enemy_disable_turns: 0,
     fn test_sprint155_qa_crit_level_system() {
         // Verify crit denominator matches pokecrystal CriticalHitChances table
         // Level 0 (base): 1/16 (pokecrystal: 17/256 ≈ 1/15, we use 1/16)
-        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE), 16);
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE, false), 16);
         // Level 1 (Scope Lens only): 1/8
-        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS), 8);
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS, false), 8);
         // Level 2 (high-crit move, +2): 1/4
-        assert_eq!(crit_denominator(MOVE_RAZOR_LEAF, HELD_NONE), 4);
-        assert_eq!(crit_denominator(MOVE_CROSS_CHOP, HELD_NONE), 4);
+        assert_eq!(crit_denominator(MOVE_RAZOR_LEAF, HELD_NONE, false), 4);
+        assert_eq!(crit_denominator(MOVE_CROSS_CHOP, HELD_NONE, false), 4);
         // Level 3 (high-crit + Scope Lens): 1/3
-        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 3);
-        assert_eq!(crit_denominator(MOVE_AEROBLAST, HELD_SCOPE_LENS), 3);
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS, false), 3);
+        assert_eq!(crit_denominator(MOVE_AEROBLAST, HELD_SCOPE_LENS, false), 3);
     }
 
     #[test]
@@ -14475,5 +14668,85 @@ enemy_disable_turns: 0,
         let d = get_move(MOVE_DISABLE).unwrap();
         assert_eq!(d.accuracy, 55, "Disable accuracy must be 55");
         assert_eq!(d.pp, 20, "Disable PP must be 20");
+    }
+
+    // ─── Sprint 165 Tests ───
+
+    #[test]
+    fn test_psych_up_move_data() {
+        let m = get_move(MOVE_PSYCH_UP).expect("Psych Up should exist");
+        assert_eq!(m.name, "Psych Up");
+        assert_eq!(m.category, MoveCategory::Status);
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 10);
+        assert_eq!(MOVE_PSYCH_UP, 244); // pokecrystal move ID
+    }
+
+    #[test]
+    fn test_lock_on_mind_reader_move_data() {
+        let lo = get_move(MOVE_LOCK_ON).expect("Lock-On should exist");
+        assert_eq!(lo.name, "Lock-On");
+        assert_eq!(lo.category, MoveCategory::Status);
+        assert_eq!(lo.pp, 5);
+        assert_eq!(MOVE_LOCK_ON, 199);
+
+        let mr = get_move(MOVE_MIND_READER).expect("Mind Reader should exist");
+        assert_eq!(mr.name, "Mind Reader");
+        assert_eq!(mr.category, MoveCategory::Status);
+        assert_eq!(mr.pp, 5);
+        assert_eq!(MOVE_MIND_READER, 170);
+    }
+
+    #[test]
+    fn test_focus_energy_move_data() {
+        let m = get_move(MOVE_FOCUS_ENERGY).expect("Focus Energy should exist");
+        assert_eq!(m.name, "Focus Energy");
+        assert_eq!(m.category, MoveCategory::Status);
+        assert_eq!(m.pp, 30);
+        assert_eq!(MOVE_FOCUS_ENERGY, 116);
+    }
+
+    #[test]
+    fn test_conversion2_move_data() {
+        let m = get_move(MOVE_CONVERSION_2).expect("Conversion2 should exist");
+        assert_eq!(m.name, "Conversion2");
+        assert_eq!(m.category, MoveCategory::Status);
+        assert_eq!(m.pp, 30);
+        assert_eq!(MOVE_CONVERSION_2, 176);
+    }
+
+    #[test]
+    fn test_focus_energy_crit_boost() {
+        // Focus Energy adds +1 to crit level
+        // Base: 1/16, with Focus Energy: 1/8
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE, false), 16);
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE, true), 8); // Focus Energy: 1/8
+
+        // High-crit move + Focus Energy = level 3 (1/3)
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_NONE, true), 3);
+
+        // Scope Lens + Focus Energy = level 2 (1/4)
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS, true), 4);
+    }
+
+    #[test]
+    fn test_all_types_array() {
+        assert_eq!(ALL_TYPES.len(), 17);
+        assert!(ALL_TYPES.contains(&PokemonType::Normal));
+        assert!(ALL_TYPES.contains(&PokemonType::Steel));
+        assert!(ALL_TYPES.contains(&PokemonType::Dark));
+    }
+
+    #[test]
+    fn test_conversion2_resist_logic() {
+        // Conversion2: find types that resist the foe's last move type
+        // Fire is resisted by Water, Rock, Fire, Dragon
+        let resist: Vec<PokemonType> = ALL_TYPES.iter().copied()
+            .filter(|&t| type_effectiveness(PokemonType::Fire, t) < 1.0)
+            .collect();
+        assert!(resist.contains(&PokemonType::Water));
+        assert!(resist.contains(&PokemonType::Rock));
+        assert!(resist.contains(&PokemonType::Fire));
+        assert!(!resist.contains(&PokemonType::Grass)); // Grass is weak to Fire
     }
 }

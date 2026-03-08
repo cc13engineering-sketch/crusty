@@ -307,6 +307,35 @@ enum LearnMoveSub {
 // ─── Battle State ───────────────────────────────────────
 
 // Stat stage indices: ATK=0, DEF=1, SPA=2, SPD=3, SPE=4, ACC=5, EVA=6
+/// Weather conditions (Gen 2: Rain Dance, Sunny Day, Sandstorm)
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Weather {
+    None,
+    Rain,
+    Sun,
+    Sandstorm,
+}
+
+/// Weather damage/modifier per pokecrystal data/battle/weather_modifiers.asm
+fn weather_move_modifier(weather: Weather, move_type: PokemonType, move_id: MoveId) -> f64 {
+    match weather {
+        Weather::Rain => {
+            if move_type == PokemonType::Water { 1.5 }
+            else if move_type == PokemonType::Fire { 0.5 }
+            else if move_id == MOVE_SOLAR_BEAM { 0.5 }
+            else { 1.0 }
+        }
+        Weather::Sun => {
+            if move_type == PokemonType::Fire { 1.5 }
+            else if move_type == PokemonType::Water { 0.5 }
+            else { 1.0 }
+        }
+        _ => 1.0,
+    }
+}
+
+const WEATHER_DURATION: u8 = 5;
+
 const STAGE_ATK: usize = 0;
 const STAGE_DEF: usize = 1;
 const STAGE_SPA: usize = 2;
@@ -482,6 +511,9 @@ struct BattleState {
     // Queue-based sequencer: steps processed in FIFO order during ExecuteQueue phase
     battle_queue: VecDeque<BattleStep>,
     queue_timer: f64,
+    // Weather: Rain Dance, Sunny Day, Sandstorm — lasts 5 turns
+    weather: Weather,
+    weather_turns: u8,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -1932,6 +1964,8 @@ impl PokemonSim {
                                 confusion_snapout_msg: None,
                                 battle_queue: VecDeque::new(),
                                 queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2793,7 +2827,7 @@ impl PokemonSim {
                             }),
                         };
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                         battle.phase = BattlePhase::Text {
                             message: format!("{} must recharge!", pname),
                             timer: 0.0,
@@ -2824,7 +2858,7 @@ impl PokemonSim {
                         let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
                         if enemy_thawed {
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.phase = BattlePhase::Text {
                                 message: format!("{}{} thawed out!", prefix, battle.enemy.name()),
                                 timer: 0.0,
@@ -2851,7 +2885,7 @@ impl PokemonSim {
                                 }),
                             };
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.phase = BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             };
@@ -2891,7 +2925,7 @@ impl PokemonSim {
                         };
                     } else {
                         battle.pending_player_move = Some((charge_move, p_dmg, p_eff, p_crit));
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                         battle.phase = BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         };
@@ -2946,7 +2980,7 @@ impl PokemonSim {
                                     battle.phase = BattlePhase::ExecuteQueue;
                                 } else {
                                     // Queue-based run failed: show "Can't escape!" via ExecuteQueue, then GoToPhase(EnemyAttack)
-                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                                     battle.battle_queue.clear();
                                     battle.queue_timer = 0.0;
                                     battle.battle_queue.push_back(BattleStep::Text("Can't escape!".into()));
@@ -3012,7 +3046,7 @@ impl PokemonSim {
                         } else {
                             format!("{} is fast asleep!", pname)
                         };
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                         battle.phase = BattlePhase::Text {
                             message: reason, timer: 0.0,
                             next_phase: Box::new(BattlePhase::EnemyAttack {
@@ -3046,7 +3080,7 @@ impl PokemonSim {
                             if let Some(p) = self.party.get_mut(battle.player_idx) {
                                 p.hp = p.hp.saturating_sub(self_dmg);
                             }
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             let next = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true) {
                                 BattlePhase::PlayerFainted
                             } else {
@@ -3109,7 +3143,7 @@ impl PokemonSim {
                     if let Some(charge_msg) = two_turn_charge_msg(move_id, &pname_charge) {
                         battle.player_charging = Some(move_id);
                         // Enemy still gets to attack this turn
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                         let pname_used = pname_charge.clone();
                         let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
                         battle.phase = BattlePhase::Text {
@@ -3172,7 +3206,9 @@ impl PokemonSim {
                         let atk_mult = if p_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
                         let def_mult = if p_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
                         if let Some(atk) = self.party.get(battle.player_idx) {
-                            calc_damage(atk, def_stat, dt1, dt2, move_data, rng, p_crit, atk_mult, def_mult)
+                            let (d, e) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, p_crit, atk_mult, def_mult);
+                            let wm = weather_move_modifier(battle.weather, move_data.move_type, move_id);
+                            ((d as f64 * wm) as u16, e)
                         } else {
                             (0, 1.0)
                         }
@@ -3212,7 +3248,7 @@ impl PokemonSim {
                             battle.enemy_confused -= 1;
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                             if battle.enemy_confused == 0 {
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                                 battle.phase = BattlePhase::Text {
                                     message: format!("{}{} snapped out of confusion!", prefix, battle.enemy.name()),
                                     timer: 0.0,
@@ -3251,7 +3287,7 @@ impl PokemonSim {
                                     }),
                                 };
                             } else {
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                                 battle.phase = BattlePhase::Text {
                                     message: format!("{}{} is confused!", prefix, battle.enemy.name()),
                                     timer: 0.0,
@@ -3261,7 +3297,7 @@ impl PokemonSim {
                                 };
                             }
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.phase = BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             };
@@ -3388,6 +3424,18 @@ impl PokemonSim {
                             let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
                             Some(format!("{} won't {}", match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" }, dir))
                         }
+                    } else if move_id == MOVE_RAIN_DANCE {
+                        battle.weather = Weather::Rain;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("It started to rain!".to_string())
+                    } else if move_id == MOVE_SUNNY_DAY {
+                        battle.weather = Weather::Sun;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("The sunlight got bright!".to_string())
+                    } else if move_id == MOVE_SANDSTORM {
+                        battle.weather = Weather::Sandstorm;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("A sandstorm brewed!".to_string())
                     } else { None }
                 } else { None };
 
@@ -3503,6 +3551,45 @@ impl PokemonSim {
                         }
                     }
 
+                    // Weather tick: decrement turns, sandstorm damage
+                    if battle.weather != Weather::None {
+                        if battle.weather_turns > 0 {
+                            battle.weather_turns -= 1;
+                        }
+                        if battle.weather_turns == 0 {
+                            let msg = match battle.weather {
+                                Weather::Rain => "The rain stopped.",
+                                Weather::Sun => "The sunlight faded.",
+                                Weather::Sandstorm => "The sandstorm subsided.",
+                                Weather::None => "",
+                            };
+                            if !msg.is_empty() { eot_msgs.push(msg.to_string()); }
+                            battle.weather = Weather::None;
+                        } else if battle.weather == Weather::Sandstorm {
+                            // Sandstorm: 1/16 max HP to non-Rock/Ground/Steel
+                            fn immune_to_sandstorm(species_id: SpeciesId) -> bool {
+                                if let Some(sp) = get_species(species_id) {
+                                    let t1 = sp.type1; let t2 = sp.type2;
+                                    matches!(t1, PokemonType::Rock | PokemonType::Ground | PokemonType::Steel)
+                                    || matches!(t2, Some(PokemonType::Rock) | Some(PokemonType::Ground) | Some(PokemonType::Steel))
+                                } else { false }
+                            }
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                if !immune_to_sandstorm(p.species_id) {
+                                    let sd = (p.max_hp / 16).max(1);
+                                    p.hp = p.hp.saturating_sub(sd);
+                                    eot_msgs.push(format!("{} is buffeted by the sandstorm!", p.name()));
+                                }
+                            }
+                            if !immune_to_sandstorm(battle.enemy.species_id) {
+                                let sd = (battle.enemy.max_hp / 16).max(1);
+                                battle.enemy.hp = battle.enemy.hp.saturating_sub(sd);
+                                eot_msgs.push(format!("{}{} is buffeted by the sandstorm!", eprefix, ename_eot));
+                            }
+                            eot_msgs.push("The sandstorm rages.".to_string());
+                        }
+                    }
+
                     battle.turn_count += 1;
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
                     // Update HP displays for status damage and trap damage
@@ -3549,7 +3636,7 @@ impl PokemonSim {
                         battle.enemy_confused -= 1;
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                         if battle.enemy_confused == 0 {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} snapped out of confusion!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
@@ -3569,14 +3656,14 @@ impl PokemonSim {
                             } else { BattlePhase::ActionSelect { cursor: 0 } };
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is confused!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             })));
                         }
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         })));
@@ -3614,7 +3701,7 @@ impl PokemonSim {
                     battle.enemy_rampage.0 -= 1;
                     let rampage_move = battle.enemy_rampage.1;
                     if rampage_move != move_id {
-                        let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move);
+                        let (_, r_dmg, r_eff, r_crit) = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, rampage_move, battle.weather);
                         (rampage_move, r_dmg, r_eff, r_crit)
                     } else { (move_id, damage, effectiveness, is_crit) }
                 } else { (move_id, damage, effectiveness, is_crit) };
@@ -3706,6 +3793,18 @@ impl PokemonSim {
                             let dir = if delta > 0 { "go any higher!" } else { "go any lower!" };
                             Some(format!("{} won't {}", match stat_idx { STAGE_ATK => "Attack", STAGE_DEF => "Defense", STAGE_SPA => "Sp. Atk", STAGE_SPD => "Sp. Def", STAGE_SPE => "Speed", STAGE_ACC => "accuracy", _ => "evasion" }, dir))
                         }
+                    } else if move_id == MOVE_RAIN_DANCE {
+                        battle.weather = Weather::Rain;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("It started to rain!".to_string())
+                    } else if move_id == MOVE_SUNNY_DAY {
+                        battle.weather = Weather::Sun;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("The sunlight got bright!".to_string())
+                    } else if move_id == MOVE_SANDSTORM {
+                        battle.weather = Weather::Sandstorm;
+                        battle.weather_turns = WEATHER_DURATION;
+                        Some("A sandstorm brewed!".to_string())
                     } else { None }
                 } else { None };
 
@@ -4595,15 +4694,15 @@ impl PokemonSim {
         }
     }
 
-    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7]) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None)
+    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], weather: Weather) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None, weather)
     }
 
-    fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced))
+    fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId, weather: Weather) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced), weather)
     }
 
-    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>) -> (MoveId, u16, f64, bool) {
+    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>, weather: Weather) -> (MoveId, u16, f64, bool) {
         let available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
         if available.is_empty() { return (MOVE_TACKLE, 5, 1.0, false); }
 
@@ -4684,7 +4783,8 @@ impl PokemonSim {
             let atk_mult = if is_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
             let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
             let (dmg, eff) = calc_damage(enemy, def_stat, dt1, dt2, md, rng, is_crit, atk_mult, def_mult);
-            (mid, dmg, eff, is_crit)
+            let wm = weather_move_modifier(weather, md.move_type, mid);
+            (mid, (dmg as f64 * wm) as u16, eff, is_crit)
         } else {
             (mid, 5, 1.0, false)
         }
@@ -4729,7 +4829,8 @@ impl PokemonSim {
             let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
             if let Some(atk) = self.party.get(battle.player_idx) {
                 let (dmg, eff) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, is_crit, atk_mult, def_mult);
-                (dmg, eff, is_crit)
+                let wm = weather_move_modifier(battle.weather, move_data.move_type, move_id);
+                ((dmg as f64 * wm) as u16, eff, is_crit)
             } else {
                 (0, 1.0, false)
             }
@@ -4917,6 +5018,8 @@ impl PokemonSim {
                             confusion_snapout_msg: None,
                             battle_queue: VecDeque::new(),
                             queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -4962,6 +5065,8 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5003,6 +5108,8 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5044,6 +5151,8 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5086,6 +5195,8 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5128,6 +5239,8 @@ impl PokemonSim {
                         confusion_snapout_msg: None,
                         battle_queue: VecDeque::new(),
                         queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5399,7 +5512,7 @@ impl PokemonSim {
                                     };
                                 } else {
                                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                                        engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                                        engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                                     );
                                     b.phase = BattlePhase::Text {
                                         message: format!("Go! {}!", pname),
@@ -6723,7 +6836,7 @@ impl PokemonSim {
                         if self.battle.is_some() {
                             let mut b = self.battle.take().unwrap();
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg1, timer: 0.0,
@@ -6804,7 +6917,7 @@ impl PokemonSim {
                         if self.battle.is_some() {
                             let mut b = self.battle.take().unwrap();
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                                engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg, timer: 0.0,
@@ -6938,7 +7051,7 @@ impl PokemonSim {
                         // In battle: use battle text system, enemy gets a turn
                         let mut b = self.battle.take().unwrap();
                         let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
-                            engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages,
+                            engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                         );
                         b.phase = BattlePhase::Text {
                             message: msg1, timer: 0.0,
@@ -7132,7 +7245,7 @@ impl PokemonSim {
                 2 => "Wobble... Wobble...".to_string(),
                 _ => String::new(),
             };
-            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages);
+            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
             let mut lines = vec![format!("You threw a {}!", ball_name)];
             if !wobbles.is_empty() { lines.push(wobbles); }
             lines.push(shake_text.to_string());
@@ -9874,6 +9987,8 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
             trainer_name: String::new(),
         };
 
@@ -9955,6 +10070,8 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
             trainer_name: String::new(),
         };
 
@@ -10002,6 +10119,8 @@ mod headless_tests {
             confusion_snapout_msg: None,
             battle_queue: VecDeque::new(),
             queue_timer: 0.0,
+weather: Weather::None,
+weather_turns: 0,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -11921,5 +12040,31 @@ mod headless_tests {
         // Guillotine and Protect exist
         assert!(get_move(MOVE_GUILLOTINE).is_some());
         assert!(get_move(MOVE_PROTECT).is_some());
+    }
+
+    #[test]
+    fn test_sprint151_weather_modifiers() {
+        // Rain: Water x1.5, Fire x0.5, SolarBeam x0.5
+        assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Water, MOVE_SURF), 1.5);
+        assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Fire, MOVE_EMBER), 0.5);
+        assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Grass, MOVE_SOLAR_BEAM), 0.5);
+        assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Normal, MOVE_TACKLE), 1.0);
+        // Sun: Fire x1.5, Water x0.5
+        assert_eq!(weather_move_modifier(Weather::Sun, PokemonType::Fire, MOVE_EMBER), 1.5);
+        assert_eq!(weather_move_modifier(Weather::Sun, PokemonType::Water, MOVE_SURF), 0.5);
+        assert_eq!(weather_move_modifier(Weather::Sun, PokemonType::Normal, MOVE_TACKLE), 1.0);
+        // Sandstorm: no move modifier
+        assert_eq!(weather_move_modifier(Weather::Sandstorm, PokemonType::Rock, MOVE_ROCK_THROW), 1.0);
+        // None: no modifier
+        assert_eq!(weather_move_modifier(Weather::None, PokemonType::Water, MOVE_SURF), 1.0);
+    }
+
+    #[test]
+    fn test_sprint151_weather_moves_exist() {
+        assert!(get_move(MOVE_RAIN_DANCE).is_some());
+        assert!(get_move(MOVE_SANDSTORM).is_some());
+        assert!(get_move(MOVE_SUNNY_DAY).is_some());
+        assert_eq!(get_move(MOVE_RAIN_DANCE).unwrap().move_type, PokemonType::Water);
+        assert_eq!(get_move(MOVE_SANDSTORM).unwrap().move_type, PokemonType::Rock);
     }
 }

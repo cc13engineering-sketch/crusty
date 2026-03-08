@@ -3661,3 +3661,32 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 - **1391 tests passing** (+2 new, 0 failures)
 - `test_sprint150_new_species_and_evolutions` — species stats, evolution chains
 - `test_sprint150_new_moves` — move data, high-crit flags, charge messages
+
+---
+
+### Sprint 151 — Weather System + Weather Moves (Content)
+
+#### Weather Mechanics
+- Added `Weather` enum: None, Rain, Sun, Sandstorm
+- Added `weather` and `weather_turns` fields to BattleState
+- Weather lasts 5 turns (WEATHER_DURATION constant)
+
+#### Weather Damage Modifiers (per pokecrystal weather_modifiers.asm)
+- **Rain**: Water x1.5, Fire x0.5, SolarBeam x0.5
+- **Sun**: Fire x1.5, Water x0.5
+- **Sandstorm**: No move modifier, but 1/16 max HP damage each turn to non-Rock/Ground/Steel
+
+#### Weather Moves (3)
+- **Rain Dance** (Water, Status, 5 PP) — "It started to rain!"
+- **Sunny Day** (Fire, Status, 5 PP) — "The sunlight got bright!" (already existed as constant)
+- **Sandstorm** (Rock, Status, 10 PP) — "A sandstorm brewed!"
+
+#### Weather Integration
+- All 3 damage calc paths (player, enemy, charge move) apply weather modifier
+- End-of-turn: weather countdown, sandstorm damage, expiry messages
+- Both player and enemy can set weather via status move handling
+
+#### Test Results
+- **1393 tests passing** (+2 new, 0 failures)
+- `test_sprint151_weather_modifiers` — all weather type damage multipliers verified
+- `test_sprint151_weather_moves_exist` — move data for Rain Dance, Sandstorm, Sunny Day

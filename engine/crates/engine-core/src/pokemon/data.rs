@@ -200,6 +200,9 @@ pub const PARASECT: SpeciesId = 47;
 pub const GRANBULL: SpeciesId = 210;
 pub const MOVE_GUILLOTINE: MoveId = 12; // OHKO move
 pub const MOVE_PROTECT: MoveId = 182;
+// ─── Sprint 151: Weather moves ──────────────────────────
+pub const MOVE_RAIN_DANCE: MoveId = 240;
+pub const MOVE_SANDSTORM: MoveId = 201;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -2206,6 +2209,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_CRABHAMMER, name: "Crabhammer", move_type: PokemonType::Water, category: MoveCategory::Special, power: 90, accuracy: 85, pp: 10, description: "A large pincer attack with a high critical-hit ratio." },
     MoveData { id: MOVE_GUILLOTINE, name: "Guillotine", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 0, accuracy: 30, pp: 5, description: "A one-hit KO attack with pincers." },
     MoveData { id: MOVE_PROTECT, name: "Protect", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Protects the user from all attacks." },
+    // ─── Sprint 151: Weather moves ───────────────────────
+    MoveData { id: MOVE_RAIN_DANCE, name: "Rain Dance", move_type: PokemonType::Water, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Boosts Water moves for 5 turns." },
+    MoveData { id: MOVE_SANDSTORM, name: "Sandstorm", move_type: PokemonType::Rock, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Causes a sandstorm for 5 turns." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

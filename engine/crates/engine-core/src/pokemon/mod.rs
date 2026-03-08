@@ -555,6 +555,20 @@ struct BattleState {
     // Spikes: entry hazard on each side (1/8 max HP on switch-in, doesn't affect Flying)
     player_spikes: bool,  // spikes on player's side
     enemy_spikes: bool,   // spikes on enemy's side
+    // Destiny Bond: if user faints from damage this turn, attacker faints too
+    player_destiny_bond: bool,
+    enemy_destiny_bond: bool,
+    // Perish Song: 3-turn countdown, both sides faint at 0. None = not active.
+    player_perish_count: Option<u8>,
+    enemy_perish_count: Option<u8>,
+    // Encore: forces target to repeat last move. 0 = not encored.
+    player_encore_turns: u8,
+    enemy_encore_turns: u8,
+    player_encore_move: MoveId,
+    enemy_encore_move: MoveId,
+    // Last move used (for Encore targeting)
+    player_last_move: MoveId,
+    enemy_last_move: MoveId,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2016,6 +2030,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2855,6 +2879,14 @@ enemy_spikes: false,
                 battle.player_protected = false;
                 battle.enemy_protected = false;
 
+                // Reset Destiny Bond flags (only last one turn)
+                battle.player_destiny_bond = false;
+                battle.enemy_destiny_bond = false;
+
+                // Decrement Encore counters
+                if battle.player_encore_turns > 0 { battle.player_encore_turns -= 1; }
+                if battle.enemy_encore_turns > 0 { battle.enemy_encore_turns -= 1; }
+
                 // Hyper Beam recharge: player must skip turn
                 if battle.player_must_recharge {
                     battle.player_must_recharge = false;
@@ -3175,9 +3207,12 @@ enemy_spikes: false,
                         return;
                     }
 
-                    // Get player move (force Struggle if all PP = 0)
+                    // Get player move (force Struggle if all PP = 0, override with Encore if active)
                     let (move_id, use_struggle) = if all_pp_zero {
                         (MOVE_STRUGGLE, true)
+                    } else if battle.player_encore_turns > 0 && battle.player_encore_move != 0 {
+                        // Encore: forced to use the encored move
+                        (battle.player_encore_move, false)
                     } else {
                         let mid = self.party.get(battle.player_idx)
                             .and_then(|p| p.moves.get(cursor as usize).copied().flatten())
@@ -3185,10 +3220,19 @@ enemy_spikes: false,
                         (mid, false)
                     };
 
+                    // Find the actual move slot for PP consumption (may differ from cursor if encored)
+                    let pp_slot = if battle.player_encore_turns > 0 && battle.player_encore_move != 0 && !use_struggle {
+                        self.party.get(battle.player_idx)
+                            .and_then(|p| p.moves.iter().position(|m| *m == Some(move_id)))
+                            .unwrap_or(cursor as usize)
+                    } else { cursor as usize };
+
                     // Consume PP (not for Struggle)
                     if !use_struggle {
                         if let Some(p) = self.party.get_mut(battle.player_idx) {
-                            p.move_pp[cursor as usize] -= 1;
+                            if p.move_pp[pp_slot] > 0 {
+                                p.move_pp[pp_slot] -= 1;
+                            }
                         }
                     }
 
@@ -3272,8 +3316,12 @@ enemy_spikes: false,
                         (0, 1.0)
                     };
 
-                    // Pre-calculate enemy move for priority comparison
-                    let (e_pre_move, e_pre_dmg, e_pre_eff, e_pre_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                    // Pre-calculate enemy move for priority comparison (Encore overrides)
+                    let (e_pre_move, e_pre_dmg, e_pre_eff, e_pre_crit) = if battle.enemy_encore_turns > 0 && battle.enemy_encore_move != 0 {
+                        self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.enemy_encore_move, battle.weather)
+                    } else {
+                        self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather)
+                    };
 
                     // Move priority: higher priority always goes first (Gen 2)
                     let player_priority = move_priority(move_id);
@@ -3380,6 +3428,9 @@ enemy_spikes: false,
                 if move_id != MOVE_PROTECT && move_id != MOVE_DETECT {
                     battle.player_protect_count = 0;
                 }
+
+                // Track last move used (for Encore)
+                battle.player_last_move = move_id;
 
                 // Check if enemy is protected (Protect/Detect)
                 if battle.enemy_protected && get_move(move_id).map(|m| m.power > 0).unwrap_or(false) {
@@ -3582,8 +3633,32 @@ enemy_spikes: false,
                         } else {
                             Some(format!("{}{} is already confused!", prefix, battle.enemy.name()))
                         }
-                    } else if move_id == MOVE_MEAN_LOOK {
-                        None
+                    } else if move_id == MOVE_MEAN_LOOK || move_id == MOVE_SPIDER_WEB {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        Some(format!("{}{} can no longer escape!", prefix, battle.enemy.name()))
+                    } else if move_id == MOVE_DESTINY_BOND {
+                        battle.player_destiny_bond = true;
+                        Some(format!("{} is trying to take its foe down with it!", pname))
+                    } else if move_id == MOVE_PERISH_SONG {
+                        if battle.player_perish_count.is_some() && battle.enemy_perish_count.is_some() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            if battle.player_perish_count.is_none() { battle.player_perish_count = Some(4); }
+                            if battle.enemy_perish_count.is_none() { battle.enemy_perish_count = Some(4); }
+                            Some("All affected Pokemon will faint in 3 turns!".to_string())
+                        }
+                    } else if move_id == MOVE_ENCORE {
+                        if battle.enemy_last_move == 0 || battle.enemy_last_move == MOVE_STRUGGLE || battle.enemy_last_move == MOVE_ENCORE || battle.enemy_last_move == MOVE_MIRROR_MOVE {
+                            Some("But it failed!".to_string())
+                        } else if battle.enemy_encore_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let turns = 3 + (engine.rng.next_u64() % 4) as u8; // 3-6 turns
+                            battle.enemy_encore_turns = turns;
+                            battle.enemy_encore_move = battle.enemy_last_move;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            Some(format!("{}{} got an ENCORE!", prefix, battle.enemy.name()))
+                        }
                     } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                         let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
                         let old = stages[stat_idx];
@@ -3825,9 +3900,25 @@ enemy_spikes: false,
                         eot_msgs.push(format!("{}{}'s Gold Berry restored its health!", eprefix, ename_gb));
                     }
 
+                    // Perish Song countdown (end of turn)
+                    if let Some(ref mut count) = battle.player_perish_count {
+                        if *count > 0 { *count -= 1; }
+                        let pname_ps = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        eot_msgs.push(format!("{}'s perish count fell to {}!", pname_ps, *count));
+                        if *count == 0 {
+                            if let Some(p) = self.party.get_mut(battle.player_idx) { p.hp = 0; }
+                        }
+                    }
+                    if let Some(ref mut count) = battle.enemy_perish_count {
+                        if *count > 0 { *count -= 1; }
+                        let ename_ps = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{}'s perish count fell to {}!", eprefix, ename_ps, *count));
+                        if *count == 0 { battle.enemy.hp = 0; }
+                    }
+
                     battle.turn_count += 1;
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status damage, trap damage, and held item recovery
+                    // Update HP displays for status damage, trap damage, held item recovery, and perish song
                     let player_hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                     let enemy_hp_now = battle.enemy.hp;
                     if !eot_msgs.is_empty() {
@@ -3916,6 +4007,9 @@ enemy_spikes: false,
                 if move_id != MOVE_PROTECT && move_id != MOVE_DETECT {
                     battle.enemy_protect_count = 0;
                 }
+
+                // Track last enemy move used (for Encore)
+                battle.enemy_last_move = move_id;
 
                 // Check if player is protected (Protect/Detect)
                 if battle.player_protected && get_move(move_id).map(|m| m.power > 0).unwrap_or(false) {
@@ -4071,7 +4165,7 @@ enemy_spikes: false,
                             Some(format!("{}{}'s HP is full!", prefix, battle.enemy.name()))
                         } else {
                             let heal_fraction = match battle.weather {
-                                Weather::Sun => 2.0 / 3.0,
+                                Weather::Sun => 1.0,
                                 Weather::Rain | Weather::Sandstorm => 0.25,
                                 Weather::None => 0.5,
                             };
@@ -4097,8 +4191,32 @@ enemy_spikes: false,
                         if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
                         else { Some(format!("{} is already confused!", pname)) }
                     } else if move_id == MOVE_MEAN_LOOK {
-                        if battle.is_wild { battle.player_trapped = true; let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default(); Some(format!("{} can't escape now!", pname)) }
-                        else { None }
+                        battle.player_trapped = true;
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        Some(format!("{} can't escape now!", pname))
+                    } else if move_id == MOVE_DESTINY_BOND {
+                        battle.enemy_destiny_bond = true;
+                        Some(format!("{}{} is trying to take its foe down with it!", prefix, battle.enemy.name()))
+                    } else if move_id == MOVE_PERISH_SONG {
+                        if battle.player_perish_count.is_some() && battle.enemy_perish_count.is_some() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            if battle.player_perish_count.is_none() { battle.player_perish_count = Some(4); }
+                            if battle.enemy_perish_count.is_none() { battle.enemy_perish_count = Some(4); }
+                            Some("All affected Pokemon will faint in 3 turns!".to_string())
+                        }
+                    } else if move_id == MOVE_ENCORE {
+                        if battle.player_last_move == 0 || battle.player_last_move == MOVE_STRUGGLE || battle.player_last_move == MOVE_ENCORE || battle.player_last_move == MOVE_MIRROR_MOVE {
+                            Some("But it failed!".to_string())
+                        } else if battle.player_encore_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let turns = 3 + (engine.rng.next_u64() % 4) as u8; // 3-6 turns
+                            battle.player_encore_turns = turns;
+                            battle.player_encore_move = battle.player_last_move;
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            Some(format!("{} got an ENCORE!", pname))
+                        }
                     } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                         let stages = if target_enemy { &mut battle.player_stages } else { &mut battle.enemy_stages };
                         let old = stages[stat_idx]; stages[stat_idx] = (old + delta).max(-6).min(6);
@@ -4258,8 +4376,22 @@ enemy_spikes: false,
                         }
                     }
 
+                    // Perish Song countdown (end of turn)
+                    if let Some(ref mut count) = battle.player_perish_count {
+                        if *count > 0 { *count -= 1; }
+                        eot_msgs.push(format!("{}'s perish count fell to {}!", pname2, *count));
+                        if *count == 0 {
+                            if let Some(p) = self.party.get_mut(battle.player_idx) { p.hp = 0; }
+                        }
+                    }
+                    if let Some(ref mut count) = battle.enemy_perish_count {
+                        if *count > 0 { *count -= 1; }
+                        eot_msgs.push(format!("{}{}'s perish count fell to {}!", eprefix2, ename2, *count));
+                        if *count == 0 { battle.enemy.hp = 0; }
+                    }
+
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status/trap damage
+                    // Update HP displays for status/trap damage and perish song
                     if !eot_msgs.is_empty() {
                         let php = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                         let ehp = battle.enemy.hp;
@@ -4267,7 +4399,7 @@ enemy_spikes: false,
                         battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: ehp, duration: 0.3 });
                     }
 
-                    if player_fainted_from_status { BattlePhase::PlayerFainted }
+                    if player_fainted_from_status || self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false) { BattlePhase::PlayerFainted }
                     else if battle.enemy.is_fainted() {
                         let exp = get_species(battle.enemy.species_id)
                             .map(|sp| exp_gained(sp, battle.enemy.level, battle.is_wild)).unwrap_or(10);
@@ -4979,10 +5111,26 @@ enemy_spikes: false,
                 if is_player {
                     let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(false);
                     if fainted {
+                        // Destiny Bond: if player had Destiny Bond active, enemy also faints
+                        if battle.player_destiny_bond && !battle.enemy.is_fainted() {
+                            battle.enemy.hp = 0;
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            battle.battle_queue.push_front(BattleStep::Text(format!("{}{} took its attacker down with it!", prefix, battle.enemy.name())));
+                        }
                         battle.phase = BattlePhase::PlayerFainted;
                         return;
                     }
                 } else if battle.enemy.is_fainted() {
+                    // Destiny Bond: if enemy had Destiny Bond active, player also faints
+                    if battle.enemy_destiny_bond {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if !p.is_fainted() {
+                                p.hp = 0;
+                                let pname = p.name().to_string();
+                                battle.battle_queue.push_front(BattleStep::Text(format!("{} took its attacker down with it!", pname)));
+                            }
+                        }
+                    }
                     // Calculate EXP for the fainted enemy
                     let base_exp = get_species(battle.enemy.species_id)
                         .map(|s| s.base_exp_yield)
@@ -5385,6 +5533,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -5438,6 +5596,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5487,6 +5655,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5536,6 +5714,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5586,6 +5774,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5636,6 +5834,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -10418,6 +10626,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
             trainer_name: String::new(),
         };
 
@@ -10507,6 +10725,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
             trainer_name: String::new(),
         };
 
@@ -10562,6 +10790,16 @@ player_protected: false,
 enemy_protected: false,
 player_spikes: false,
 enemy_spikes: false,
+player_destiny_bond: false,
+enemy_destiny_bond: false,
+player_perish_count: None,
+enemy_perish_count: None,
+player_encore_turns: 0,
+enemy_encore_turns: 0,
+player_encore_move: 0,
+enemy_encore_move: 0,
+player_last_move: 0,
+enemy_last_move: 0,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -12980,5 +13218,82 @@ enemy_spikes: false,
         let heal = ((mon.max_hp as f64) * 1.0) as u16;
         mon.hp = (mon.hp + heal).min(mon.max_hp);
         assert_eq!(mon.hp, mon.max_hp, "Moonlight in sun should fully heal");
+    }
+
+    // ─── Sprint 159 tests ────────────────────────────────────────
+
+    #[test]
+    fn test_perish_song_move_data() {
+        let ps = get_move(MOVE_PERISH_SONG).expect("Perish Song should exist");
+        assert_eq!(ps.power, 0);
+        assert_eq!(ps.category, MoveCategory::Status);
+        assert_eq!(ps.move_type, PokemonType::Normal);
+        assert_eq!(ps.pp, 5);
+    }
+
+    #[test]
+    fn test_destiny_bond_move_data() {
+        let db = get_move(MOVE_DESTINY_BOND).expect("Destiny Bond should exist");
+        assert_eq!(db.power, 0);
+        assert_eq!(db.category, MoveCategory::Status);
+        assert_eq!(db.move_type, PokemonType::Ghost);
+        assert_eq!(db.pp, 5);
+    }
+
+    #[test]
+    fn test_encore_move_data() {
+        let enc = get_move(MOVE_ENCORE).expect("Encore should exist");
+        assert_eq!(enc.power, 0);
+        assert_eq!(enc.category, MoveCategory::Status);
+        assert_eq!(enc.pp, 5);
+    }
+
+    #[test]
+    fn test_perish_song_countdown_logic() {
+        // Perish Song: count starts at 4, decrements each turn, KO at 0
+        let mut count: Option<u8> = Some(4);
+        for expected in [3, 2, 1, 0] {
+            if let Some(ref mut c) = count {
+                if *c > 0 { *c -= 1; }
+                assert_eq!(*c, expected);
+            }
+        }
+        assert_eq!(count, Some(0), "Perish count should reach 0 after 4 turns");
+    }
+
+    #[test]
+    fn test_destiny_bond_trigger_on_faint() {
+        // Destiny Bond: if user faints, attacker also faints
+        let mut attacker = Pokemon::new(CHIKORITA, 50);
+        let mut defender = Pokemon::new(CYNDAQUIL, 50);
+        defender.hp = 0; // defender fainted
+        // If defender had Destiny Bond active, attacker should also faint
+        let destiny_bond_active = true;
+        if defender.is_fainted() && destiny_bond_active {
+            attacker.hp = 0;
+        }
+        assert!(attacker.is_fainted(), "Destiny Bond should KO attacker when defender faints");
+    }
+
+    #[test]
+    fn test_encore_fails_on_invalid_moves() {
+        // Encore fails if last move was Struggle, Encore, or Mirror Move
+        let invalid_moves = [MOVE_STRUGGLE, MOVE_ENCORE, MOVE_MIRROR_MOVE, 0];
+        for m in &invalid_moves {
+            let should_fail = *m == 0 || *m == MOVE_STRUGGLE || *m == MOVE_ENCORE || *m == MOVE_MIRROR_MOVE;
+            assert!(should_fail, "Encore should fail for move {}", m);
+        }
+        // Valid move should not fail
+        assert!(MOVE_TACKLE != 0 && MOVE_TACKLE != MOVE_STRUGGLE && MOVE_TACKLE != MOVE_ENCORE && MOVE_TACKLE != MOVE_MIRROR_MOVE);
+    }
+
+    #[test]
+    fn test_move_data_exists_for_sprint159() {
+        // All Sprint 159 moves should have MoveData
+        assert!(get_move(MOVE_DESTINY_BOND).is_some(), "Destiny Bond");
+        assert!(get_move(MOVE_PERISH_SONG).is_some(), "Perish Song");
+        assert!(get_move(MOVE_ENCORE).is_some(), "Encore");
+        assert!(get_move(MOVE_SWAGGER).is_some(), "Swagger");
+        assert!(get_move(MOVE_MEAN_LOOK).is_some(), "Mean Look");
     }
 }

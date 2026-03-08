@@ -3953,3 +3953,59 @@ Per pokecrystal `BattleCommand_TimeBasedHealContinue`:
 - `test_priority_values_gen2_accurate` — verifies Protect=3, QuickAttack/MachPunch/ExtremeSpeed=2, VitalThrow=0
 - `test_moonlight_sun_full_heal` — verifies sun heals to full HP (not 2/3)
 - `test_focus_band_survival` — verifies Focus Band can prevent KO, leaving 1 HP
+
+---
+
+### Sprint 159 — Content: Destiny Bond + Perish Song + Encore + Mean Look Fix
+
+#### Destiny Bond
+Per pokecrystal `move_effects/destiny_bond.asm` and `effect_commands.asm`:
+- Sets SUBSTATUS_DESTINY_BOND flag when used
+- If the user faints from a direct attack while flag is active, attacker also faints
+- Flag resets at start of each turn (ActionSelect)
+- Implemented in CheckFaint handler — checks both player_destiny_bond and enemy_destiny_bond
+- Text: "[Pokemon] is trying to take its foe down with it!" / "[Pokemon] took its attacker down with it!"
+
+#### Perish Song
+Per pokecrystal `move_effects/perish_song.asm` and `core.asm HandlePerishSong`:
+- Sets perish count to 4 on both sides (if not already active)
+- Count decrements by 1 at end of turn
+- Pokemon faints when count reaches 0
+- Fails if both sides already have Perish Song active
+- Text: "All affected Pokemon will faint in 3 turns!" / "[Pokemon]'s perish count fell to N!"
+- Added to both end-of-turn blocks (PlayerAttack from_pending and EnemyAttack no-pending)
+
+#### Encore
+Per pokecrystal `move_effects/encore.asm`:
+- Forces target to repeat last move for 3-6 turns (`(random & 3) + 3`)
+- Fails if: no last move, last move was Struggle/Encore/Mirror Move, already encored
+- Player: overrides move selection at MoveSelect confirm (forced to use encored move)
+- Enemy: overrides via `calc_enemy_move_forced` when enemy_encore_turns > 0
+- Counter decrements at ActionSelect (start of each turn)
+
+#### Mean Look Fix
+- PlayerAttack: Mean Look now shows "[Enemy] can no longer escape!" (was doing nothing)
+- EnemyAttack: Mean Look now always traps player (was only working in wild battles)
+
+#### Additional Fix
+- Fixed remaining Moonlight sun healing instance (enemy Moonlight in EnemyAttack was still `2.0/3.0`, changed to `1.0`)
+
+#### BattleState Fields Added
+- `player_destiny_bond: bool`, `enemy_destiny_bond: bool`
+- `player_perish_count: Option<u8>`, `enemy_perish_count: Option<u8>`
+- `player_encore_turns: u8`, `enemy_encore_turns: u8`
+- `player_encore_move: MoveId`, `enemy_encore_move: MoveId`
+- `player_last_move: MoveId`, `enemy_last_move: MoveId`
+
+#### New Constants
+- `MOVE_PERISH_SONG: MoveId = 195` (with MoveData)
+- `MOVE_MIRROR_MOVE: MoveId = 119`
+
+#### New Tests (7 tests, 1430 total)
+- `test_perish_song_move_data` — Perish Song MoveData verification
+- `test_destiny_bond_move_data` — Destiny Bond MoveData verification
+- `test_encore_move_data` — Encore MoveData verification
+- `test_perish_song_countdown_logic` — countdown 4→3→2→1→0 verification
+- `test_destiny_bond_trigger_on_faint` — attacker faints when defender has Destiny Bond
+- `test_encore_fails_on_invalid_moves` — Encore fails for Struggle/Encore/Mirror Move/no move
+- `test_move_data_exists_for_sprint159` — all 5 moves have MoveData

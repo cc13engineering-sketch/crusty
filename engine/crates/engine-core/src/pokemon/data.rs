@@ -549,7 +549,9 @@ pub const MOVE_FURY_CUTTER: MoveId = 210;
 pub const MOVE_FUTURE_SIGHT: MoveId = 248;
 pub const MOVE_COUNTER: MoveId = 68;
 pub const MOVE_MIRROR_COAT: MoveId = 243;
+pub const MOVE_MIRROR_MOVE: MoveId = 119;
 pub const MOVE_DESTINY_BOND: MoveId = 194;
+pub const MOVE_PERISH_SONG: MoveId = 195;
 pub const MOVE_HIDDEN_POWER: MoveId = 237;
 pub const MOVE_SKETCH: MoveId = 166;
 pub const MOVE_HORN_DRILL: MoveId = 32;
@@ -2332,6 +2334,7 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_COUNTER, name: "Counter", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 1, accuracy: 100, pp: 20, description: "A retaliation move that counters any physical attack." },
     MoveData { id: MOVE_MIRROR_COAT, name: "Mirror Coat", move_type: PokemonType::Psychic, category: MoveCategory::Special, power: 1, accuracy: 100, pp: 20, description: "Counters any special attack, dealing double damage." },
     MoveData { id: MOVE_DESTINY_BOND, name: "Destiny Bond", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "If the user faints, the foe is also made to faint." },
+    MoveData { id: MOVE_PERISH_SONG, name: "Perish Song", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Both Pokemon faint in 3 turns." },
     MoveData { id: MOVE_HIDDEN_POWER, name: "Hidden Power", move_type: PokemonType::Normal, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 15, description: "A unique attack that varies in type." },
     MoveData { id: MOVE_SKETCH, name: "Sketch", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 1, description: "Copies the foe's last used move permanently." },
     MoveData { id: MOVE_HORN_DRILL, name: "Horn Drill", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 30, pp: 5, description: "A one-hit KO attack that uses a horn." },

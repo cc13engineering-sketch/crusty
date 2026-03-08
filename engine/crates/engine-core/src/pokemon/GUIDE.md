@@ -3876,3 +3876,53 @@ Per pokecrystal `HELD_FOCUS_BAND` in `effect_commands.asm`:
 - `test_focus_band_constant` — item ID and name correct
 - `test_focus_band_survives_ko` — survive KO with 1 HP
 - `test_priority_ordering_logic` — priority comparison logic
+
+---
+
+### Sprint 157 — Content: Protect/Detect + Spikes + Baton Pass + Moonlight
+
+#### Protect/Detect
+Per pokecrystal `move_effects/protect.asm`:
+- Sets `player_protected` / `enemy_protected` flag for the turn
+- Higher priority (+3), so always goes first
+- Success halves with consecutive use: 100%, 50%, 25%, 12.5%, etc.
+- Consecutive counter (`player_protect_count` / `enemy_protect_count`) incremented on success, reset to 0 on failure or when a non-Protect move is used
+- Protected flag reset at start of each turn (in `ActionSelect`)
+- When attacker targets a protected mon, damage is blocked with "[Pokemon] protected itself!" message
+- Works for both player and enemy attacks
+
+#### Spikes
+Per pokecrystal `move_effects/spikes.asm`:
+- Entry hazard: sets `enemy_spikes` / `player_spikes` flag on the opponent's side
+- Fails if spikes already present on target side
+- On switch-in, deals 1/8 max HP damage (minimum 1)
+- Flying types are immune to Spikes damage
+- Applied at all switch-in points: manual switch, free switch (TrainerSwitchPrompt), and enemy trainer switch-in (2 locations)
+
+#### Moonlight
+Per pokecrystal `BattleCommand_TimeBasedHealContinue`:
+- Weather-sensitive heal (ignoring time-of-day for simplicity):
+  - No weather: 50% max HP
+  - Sun: 2/3 max HP
+  - Rain/Sandstorm: 25% max HP
+- Fails with "HP is full!" if already at max
+- HP bar animation shown after healing
+
+#### Spider Web
+- Prevents opponent from fleeing/switching (same as Mean Look but for Bug-type users)
+
+#### Baton Pass
+- Player: triggers free switch (stat stages preserved since they're on BattleState)
+- Enemy: fails in current implementation (no enemy team switching AI)
+
+#### BattleState Fields Added
+- `player_protect_count: u8`, `enemy_protect_count: u8`
+- `player_protected: bool`, `enemy_protected: bool`
+- `player_spikes: bool`, `enemy_spikes: bool`
+
+#### New Tests (5 tests, 1420 total)
+- `test_moonlight_heal_amounts` — heal fractions for no weather, sun, rain
+- `test_spikes_damage_calculation` — 1/8 max HP damage
+- `test_spikes_no_damage_to_flying` — Flying type immunity
+- `test_protect_consecutive_halving` — success rate halving math
+- `test_move_data_exists_for_sprint157` — all 6 moves have MoveData

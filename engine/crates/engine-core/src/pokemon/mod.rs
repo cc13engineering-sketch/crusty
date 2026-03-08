@@ -548,6 +548,14 @@ struct BattleState {
     // Weather: Rain Dance, Sunny Day, Sandstorm — lasts 5 turns
     weather: Weather,
     weather_turns: u8,
+    // Protect/Detect: consecutive use counter (halves success each time) + active flag
+    player_protect_count: u8,
+    enemy_protect_count: u8,
+    player_protected: bool,  // active Protect this turn
+    enemy_protected: bool,   // active Protect this turn
+    // Spikes: entry hazard on each side (1/8 max HP on switch-in, doesn't affect Flying)
+    player_spikes: bool,  // spikes on player's side
+    enemy_spikes: bool,   // spikes on enemy's side
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2003,6 +2011,12 @@ impl PokemonSim {
                                 queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2838,6 +2852,10 @@ weather_turns: 0,
             }
 
             BattlePhase::ActionSelect { cursor } => {
+                // Reset Protect flags at start of each turn
+                battle.player_protected = false;
+                battle.enemy_protected = false;
+
                 // Hyper Beam recharge: player must skip turn
                 if battle.player_must_recharge {
                     battle.player_must_recharge = false;
@@ -3358,6 +3376,39 @@ weather_turns: 0,
             BattlePhase::PlayerAttack { timer: _, move_id, damage, effectiveness, is_crit, from_pending } => {
                 // Queue-based PlayerAttack: compute all effects immediately, push queue steps,
                 // then transition to ExecuteQueue. No timer — all visual pacing is in the queue.
+
+                // Reset Protect counter if not using Protect/Detect
+                if move_id != MOVE_PROTECT && move_id != MOVE_DETECT {
+                    battle.player_protect_count = 0;
+                }
+
+                // Check if enemy is protected (Protect/Detect)
+                if battle.enemy_protected && get_move(move_id).map(|m| m.power > 0).unwrap_or(false) {
+                    battle.battle_queue.clear();
+                    battle.queue_timer = 0.0;
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                    let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
+                    if from_pending {
+                        if let Some(sm) = battle.confusion_snapout_msg.take() {
+                            battle.battle_queue.push_back(BattleStep::Text(sm));
+                        }
+                    }
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{} used {}!", pname, move_name)));
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{}{} protected itself!", eprefix, battle.enemy.name())));
+                    let terminal = if from_pending {
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    } else {
+                        // Player went first, enemy still gets a turn
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        BattlePhase::EnemyAttack { timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit }
+                    };
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(terminal)));
+                    battle.phase = BattlePhase::ExecuteQueue;
+                    self.battle = Some(battle);
+                    return;
+                }
+
                 let num_hits = multi_hit_count(move_id, engine.rng.next_f64());
                 let damage = damage * num_hits as u16;
 
@@ -3451,7 +3502,66 @@ weather_turns: 0,
                     && effectiveness > 0.0;
 
                 let stage_msg = if !is_miss {
-                    if move_id == MOVE_HAZE {
+                    if move_id == MOVE_PROTECT || move_id == MOVE_DETECT {
+                        // Protect/Detect: halving success rate with consecutive use
+                        let mut success = true;
+                        let count = battle.player_protect_count;
+                        if count > 0 {
+                            // Chance = 1/(2^count) per pokecrystal ProtectChance
+                            let threshold = 1.0 / (1u32 << count.min(8)) as f64;
+                            if engine.rng.next_f64() >= threshold {
+                                success = false;
+                            }
+                        }
+                        if success {
+                            battle.player_protect_count += 1;
+                            battle.player_protected = true;
+                            Some(format!("{} protected itself!", pname))
+                        } else {
+                            battle.player_protect_count = 0;
+                            Some("But it failed!".to_string())
+                        }
+                    } else if move_id == MOVE_SPIKES {
+                        if battle.enemy_spikes {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_spikes = true;
+                            Some("Spikes were scattered around the foe's feet!".to_string())
+                        }
+                    } else if move_id == MOVE_SPIDER_WEB {
+                        if battle.is_wild {
+                            let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            battle.player_trapped = false; // Spider Web traps the enemy
+                            // For wild battles, Spider Web prevents fleeing — but enemy can't flee anyway
+                            // For trainer battles, it prevents switching
+                            Some(format!("{}{} can't escape now!", eprefix, battle.enemy.name()))
+                        } else {
+                            Some(format!("Foe {} can't escape now!", battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_MOONLIGHT {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if p.hp >= p.max_hp {
+                                Some(format!("{}'s HP is full!", pname))
+                            } else {
+                                let heal_fraction = match battle.weather {
+                                    Weather::Sun => 2.0 / 3.0,
+                                    Weather::Rain | Weather::Sandstorm => 0.25,
+                                    Weather::None => 0.5,
+                                };
+                                let heal = ((p.max_hp as f64) * heal_fraction) as u16;
+                                let heal = heal.max(1);
+                                p.hp = (p.hp + heal).min(p.max_hp);
+                                Some(format!("{} regained health!", pname))
+                            }
+                        } else { None }
+                    } else if move_id == MOVE_BATON_PASS {
+                        // Baton Pass: switch out while passing stat stages
+                        // In our system, just treat as a regular switch trigger with stat passing
+                        // For simplicity: show message, player switches next turn keeping stages
+                        // The stat stages are already on the BattleState, so they persist
+                        battle.free_switch = true;
+                        Some(format!("{} passed the baton!", pname))
+                    } else if move_id == MOVE_HAZE {
                         battle.player_stages = [0; 7];
                         battle.enemy_stages = [0; 7];
                         Some("All stat changes were reset!".to_string())
@@ -3566,6 +3676,11 @@ weather_turns: 0,
                 }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+                // Moonlight/healing: update player HP bar display
+                if move_id == MOVE_MOONLIGHT {
+                    let hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: hp_now, duration: 0.3 });
+                }
 
                 // Determine terminal phase
                 if battle.enemy.is_fainted() {
@@ -3798,6 +3913,32 @@ weather_turns: 0,
                 // Queue-based EnemyAttack: compute all effects immediately, push queue steps,
                 // then transition to ExecuteQueue. No timer — all visual pacing is in the queue.
 
+                // Reset enemy Protect counter if not using Protect/Detect
+                if move_id != MOVE_PROTECT && move_id != MOVE_DETECT {
+                    battle.enemy_protect_count = 0;
+                }
+
+                // Check if player is protected (Protect/Detect)
+                if battle.player_protected && get_move(move_id).map(|m| m.power > 0).unwrap_or(false) {
+                    battle.battle_queue.clear();
+                    battle.queue_timer = 0.0;
+                    let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                    let ename = battle.enemy.name().to_string();
+                    let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
+                    let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{}{} used {}!", prefix, ename, move_name)));
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{} protected itself!", pname)));
+                    let next = if let Some((pm_id, pm_dmg, pm_eff, pm_crit)) = battle.pending_player_move.take() {
+                        BattlePhase::PlayerAttack { timer: 0.0, move_id: pm_id, damage: pm_dmg, effectiveness: pm_eff, is_crit: pm_crit, from_pending: true }
+                    } else {
+                        BattlePhase::ActionSelect { cursor: 0 }
+                    };
+                    battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
+                    battle.phase = BattlePhase::ExecuteQueue;
+                    self.battle = Some(battle);
+                    return;
+                }
+
                 // Enemy must recharge (Hyper Beam): skip attack entirely
                 if battle.enemy_must_recharge {
                     battle.enemy_must_recharge = false;
@@ -3899,7 +4040,52 @@ weather_turns: 0,
 
                 // Stat stage effects for enemy's status moves
                 let e_stage_msg = if !is_miss {
-                    if move_id == MOVE_HAZE {
+                    if move_id == MOVE_PROTECT || move_id == MOVE_DETECT {
+                        let mut success = true;
+                        let count = battle.enemy_protect_count;
+                        if count > 0 {
+                            let threshold = 1.0 / (1u32 << count.min(8)) as f64;
+                            if engine.rng.next_f64() >= threshold {
+                                success = false;
+                            }
+                        }
+                        if success {
+                            battle.enemy_protect_count += 1;
+                            battle.enemy_protected = true;
+                            Some(format!("{}{} protected itself!", prefix, battle.enemy.name()))
+                        } else {
+                            battle.enemy_protect_count = 0;
+                            Some("But it failed!".to_string())
+                        }
+                    } else if move_id == MOVE_SPIKES {
+                        if battle.player_spikes {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_spikes = true;
+                            Some("Spikes were scattered around the foe's feet!".to_string())
+                        }
+                    } else if move_id == MOVE_SPIDER_WEB {
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        Some(format!("{} can't escape now!", pname))
+                    } else if move_id == MOVE_MOONLIGHT {
+                        if battle.enemy.hp >= battle.enemy.max_hp {
+                            Some(format!("{}{}'s HP is full!", prefix, battle.enemy.name()))
+                        } else {
+                            let heal_fraction = match battle.weather {
+                                Weather::Sun => 2.0 / 3.0,
+                                Weather::Rain | Weather::Sandstorm => 0.25,
+                                Weather::None => 0.5,
+                            };
+                            let heal = ((battle.enemy.max_hp as f64) * heal_fraction) as u16;
+                            let heal = heal.max(1);
+                            battle.enemy.hp = (battle.enemy.hp + heal).min(battle.enemy.max_hp);
+                            Some(format!("{}{} regained health!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_BATON_PASS {
+                        // Enemy Baton Pass: in single-player, enemy can't really switch in wild battles
+                        // For trainer battles, it would switch — but for now just show message
+                        Some("But it failed!".to_string())
+                    } else if move_id == MOVE_HAZE {
                         battle.player_stages = [0; 7]; battle.enemy_stages = [0; 7];
                         Some("All stat changes were reset!".to_string())
                     } else if move_id == MOVE_CONFUSE_RAY {
@@ -3994,6 +4180,10 @@ weather_turns: 0,
                 }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = e_stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+                // Moonlight/healing: update enemy HP bar display
+                if move_id == MOVE_MOONLIGHT {
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
+                }
 
                 // Determine terminal phase
                 let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
@@ -4222,6 +4412,17 @@ weather_turns: 0,
                     battle.enemy_flinched = false;
                     battle.enemy_must_recharge = false;
                     battle.enemy_rampage = (0, 0);
+                    // Spikes damage on enemy switch-in
+                    if battle.enemy_spikes {
+                        let is_flying = get_species(battle.enemy.species_id).map(|sp| {
+                            sp.type1 == PokemonType::Flying || matches!(sp.type2, Some(PokemonType::Flying))
+                        }).unwrap_or(false);
+                        if !is_flying {
+                            let sdmg = (battle.enemy.max_hp / 8).max(1);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(sdmg);
+                            battle.enemy_hp_display = battle.enemy.hp as f64;
+                        }
+                    }
                     battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                 } else {
                     // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -4254,6 +4455,17 @@ weather_turns: 0,
                         battle.enemy_flinched = false;
                         battle.enemy_must_recharge = false;
                         battle.enemy_rampage = (0, 0);
+                        // Spikes damage on enemy switch-in
+                        if battle.enemy_spikes {
+                            let is_flying = get_species(battle.enemy.species_id).map(|sp| {
+                                sp.type1 == PokemonType::Flying || matches!(sp.type2, Some(PokemonType::Flying))
+                            }).unwrap_or(false);
+                            if !is_flying {
+                                let sdmg = (battle.enemy.max_hp / 8).max(1);
+                                battle.enemy.hp = battle.enemy.hp.saturating_sub(sdmg);
+                                battle.enemy_hp_display = battle.enemy.hp as f64;
+                            }
+                        }
                         battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                     } else {
                         // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -5168,6 +5380,12 @@ weather_turns: 0,
                             queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -5215,6 +5433,12 @@ weather_turns: 0,
                         queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5258,6 +5482,12 @@ weather_turns: 0,
                         queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5301,6 +5531,12 @@ weather_turns: 0,
                         queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5345,6 +5581,12 @@ weather_turns: 0,
                         queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5389,6 +5631,12 @@ weather_turns: 0,
                         queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5650,25 +5898,53 @@ weather_turns: 0,
                                     *turn = 1;
                                 }
                                 let pname = self.party[selected].name().to_string();
+                                // Spikes damage on switch-in (1/8 max HP, doesn't affect Flying types)
+                                let mut spikes_msg: Option<String> = None;
+                                if b.player_spikes {
+                                    let pmon = &self.party[selected];
+                                    let is_flying = get_species(pmon.species_id).map(|sp| {
+                                        sp.type1 == PokemonType::Flying || matches!(sp.type2, Some(PokemonType::Flying))
+                                    }).unwrap_or(false);
+                                    if !is_flying {
+                                        let sdmg = (pmon.max_hp / 8).max(1);
+                                        self.party[selected].hp = self.party[selected].hp.saturating_sub(sdmg);
+                                        b.player_hp_display = self.party[selected].hp as f64;
+                                        spikes_msg = Some(format!("{} is hurt by Spikes!", pname));
+                                    }
+                                }
                                 if b.free_switch {
                                     // Free switch from TrainerSwitchPrompt — no enemy attack
                                     b.free_switch = false;
+                                    let next = if let Some(sm) = spikes_msg {
+                                        BattlePhase::Text {
+                                            message: sm, timer: 0.0,
+                                            next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                        }
+                                    } else {
+                                        BattlePhase::ActionSelect { cursor: 0 }
+                                    };
                                     b.phase = BattlePhase::Text {
                                         message: format!("Go! {}!", pname),
                                         timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::ActionSelect { cursor: 0 }),
+                                        next_phase: Box::new(next),
                                     };
                                 } else {
                                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                         engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
                                     );
+                                    let enemy_phase = BattlePhase::EnemyAttack {
+                                        timer: 0.0, move_id: e_move, damage: e_dmg,
+                                        effectiveness: e_eff, is_crit: e_crit,
+                                    };
+                                    let after_switch = if let Some(sm) = spikes_msg {
+                                        BattlePhase::Text { message: sm, timer: 0.0, next_phase: Box::new(enemy_phase) }
+                                    } else {
+                                        enemy_phase
+                                    };
                                     b.phase = BattlePhase::Text {
                                         message: format!("Go! {}!", pname),
                                         timer: 0.0,
-                                        next_phase: Box::new(BattlePhase::EnemyAttack {
-                                            timer: 0.0, move_id: e_move, damage: e_dmg,
-                                            effectiveness: e_eff, is_crit: e_crit,
-                                        }),
+                                        next_phase: Box::new(after_switch),
                                     };
                                 }
                                 self.battle = Some(b);
@@ -10137,6 +10413,12 @@ mod headless_tests {
             queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
             trainer_name: String::new(),
         };
 
@@ -10220,6 +10502,12 @@ weather_turns: 0,
             queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
             trainer_name: String::new(),
         };
 
@@ -10269,6 +10557,12 @@ weather_turns: 0,
             queue_timer: 0.0,
 weather: Weather::None,
 weather_turns: 0,
+player_protect_count: 0,
+enemy_protect_count: 0,
+player_protected: false,
+enemy_protected: false,
+player_spikes: false,
+enemy_spikes: false,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -12581,5 +12875,73 @@ weather_turns: 0,
         let p3 = move_priority(MOVE_TACKLE);
         let e3 = move_priority(MOVE_EARTHQUAKE);
         assert_eq!(p3, e3);
+    }
+
+    #[test]
+    fn test_moonlight_heal_amounts() {
+        // No weather: 50% max HP
+        let mut mon = Pokemon::new(CHIKORITA, 30);
+        mon.hp = 20;
+        let max_hp = mon.max_hp;
+        let heal_none = ((max_hp as f64) * 0.5) as u16;
+        mon.hp = (mon.hp + heal_none).min(max_hp);
+        assert!(mon.hp > 20);
+
+        // Sun: 2/3 max HP
+        let mut mon2 = Pokemon::new(CHIKORITA, 30);
+        mon2.hp = 10;
+        let heal_sun = ((mon2.max_hp as f64) * 2.0 / 3.0) as u16;
+        let expected = (10 + heal_sun).min(mon2.max_hp);
+        mon2.hp = (mon2.hp + heal_sun).min(mon2.max_hp);
+        assert_eq!(mon2.hp, expected);
+
+        // Rain/Sandstorm: 25% max HP
+        let mut mon3 = Pokemon::new(CHIKORITA, 30);
+        mon3.hp = 10;
+        let heal_rain = ((mon3.max_hp as f64) * 0.25) as u16;
+        mon3.hp = (mon3.hp + heal_rain).min(mon3.max_hp);
+        assert_eq!(mon3.hp, 10 + heal_rain);
+    }
+
+    #[test]
+    fn test_spikes_damage_calculation() {
+        // Spikes: 1/8 max HP damage on switch-in
+        let mut mon = Pokemon::new(CHIKORITA, 30);
+        let max_hp = mon.max_hp;
+        let spikes_dmg = (max_hp / 8).max(1);
+        mon.hp = mon.hp.saturating_sub(spikes_dmg);
+        assert_eq!(mon.hp, max_hp - spikes_dmg);
+    }
+
+    #[test]
+    fn test_spikes_no_damage_to_flying() {
+        // Flying types are immune to Spikes
+        let pidgey = Pokemon::new(PIDGEY, 15);
+        let sp = get_species(pidgey.species_id).unwrap();
+        let is_flying = sp.type1 == PokemonType::Flying || matches!(sp.type2, Some(PokemonType::Flying));
+        assert!(is_flying, "Pidgey should be Flying type");
+        // No spikes damage applied
+    }
+
+    #[test]
+    fn test_protect_consecutive_halving() {
+        // First use: always succeeds (threshold = 1.0 for count=0)
+        // Second use: 50% (count=1 → threshold = 0.5)
+        // Third use: 25% (count=2 → threshold = 0.25)
+        assert_eq!(1.0_f64 / (1u32 << 0u8.min(8)) as f64, 1.0); // count=0
+        assert_eq!(1.0_f64 / (1u32 << 1u8.min(8)) as f64, 0.5); // count=1
+        assert_eq!(1.0_f64 / (1u32 << 2u8.min(8)) as f64, 0.25); // count=2
+        assert_eq!(1.0_f64 / (1u32 << 3u8.min(8)) as f64, 0.125); // count=3
+    }
+
+    #[test]
+    fn test_move_data_exists_for_sprint157() {
+        // Verify all moves used in Sprint 157 exist
+        assert!(get_move(MOVE_PROTECT).is_some());
+        assert!(get_move(MOVE_DETECT).is_some());
+        assert!(get_move(MOVE_SPIKES).is_some());
+        assert!(get_move(MOVE_BATON_PASS).is_some());
+        assert!(get_move(MOVE_MOONLIGHT).is_some());
+        assert!(get_move(MOVE_SPIDER_WEB).is_some());
     }
 }

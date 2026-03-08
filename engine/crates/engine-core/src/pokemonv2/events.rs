@@ -5,9 +5,11 @@
 
 use super::data::{
     BattleType, Direction, Emote, NpcState, PlayerState, Pokemon, SpeciesId,
-    ITEM_BERRY, ITEM_MYSTIC_WATER, ITEM_POTION,
+    ITEM_BERRY, ITEM_MYSTIC_WATER, ITEM_POTION, ITEM_MYSTERY_EGG,
     CYNDAQUIL, TOTODILE, CHIKORITA,
+    CATERPIE, PIDGEY, RATTATA,
     MUSIC_SHOW_ME_AROUND, MUSIC_RIVAL_ENCOUNTER, MUSIC_RIVAL_AFTER,
+    MUSIC_PROF_OAK,
     HOPPIP,
 };
 use super::maps::MapId;
@@ -47,6 +49,19 @@ pub const EVENT_GOT_PINK_BOW_FROM_TUSCANY: u16 = 28;
 pub const EVENT_GAVE_MYSTERY_EGG_TO_ELM: u16 = 29;
 pub const EVENT_ENGINE_POKEDEX: u16 = 30;
 pub const EVENT_ENGINE_ZEPHYRBADGE: u16 = 31;
+// Sprint 4 additions
+pub const EVENT_BEAT_YOUNGSTER_JOEY: u16 = 32;
+pub const EVENT_BEAT_YOUNGSTER_MIKEY: u16 = 33;
+pub const EVENT_BEAT_BUG_CATCHER_DON: u16 = 34;
+pub const EVENT_ROUTE_30_BATTLE: u16 = 35;
+pub const EVENT_ROUTE_30_YOUNGSTER_JOEY: u16 = 36;
+pub const EVENT_ROUTE_30_ANTIDOTE: u16 = 37;
+pub const EVENT_ROUTE_30_HIDDEN_POTION: u16 = 38;
+pub const EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE: u16 = 39;
+pub const EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON: u16 = 40;
+pub const EVENT_MR_POKEMONS_HOUSE_OAK: u16 = 41;
+pub const EVENT_JOEY_ASKED_FOR_PHONE_NUMBER: u16 = 42;
+pub const EVENT_PLAYERS_NEIGHBORS_HOUSE_NEIGHBOR: u16 = 43;
 
 // ── Scene Constants ───────────────────────────────────────────────────────────
 
@@ -70,6 +85,10 @@ pub const SCENE_ROUTE29_CATCH_TUTORIAL: u8 = 1;
 
 pub const SCENE_CHERRYGROVECITY_NOOP: u8 = 0;
 pub const SCENE_CHERRYGROVECITY_MEET_RIVAL: u8 = 1;
+
+// Sprint 4 scenes
+pub const SCENE_MRPOKEMONSHOUSE_MEET_MR_POKEMON: u8 = 0;
+pub const SCENE_MRPOKEMONSHOUSE_NOOP: u8 = 1;
 
 // ── Script ID Constants ───────────────────────────────────────────────────────
 
@@ -156,6 +175,33 @@ pub const SCRIPT_GYM_SPEECH_BOOKSHELF: u16 = 282;
 pub const SCRIPT_EVO_SPEECH_LASS: u16 = 290;
 pub const SCRIPT_EVO_SPEECH_YOUNGSTER: u16 = 291;
 pub const SCRIPT_EVO_SPEECH_BOOKSHELF: u16 = 292;
+
+// Sprint 4: Route 30 scripts
+pub const SCRIPT_JOEY_PREBATTLE_CUTSCENE: u16 = 300;
+pub const SCRIPT_TRAINER_JOEY: u16 = 301;
+pub const SCRIPT_TRAINER_MIKEY: u16 = 302;
+pub const SCRIPT_TRAINER_DON: u16 = 303;
+pub const SCRIPT_ROUTE30_YOUNGSTER_DIRECTIONS: u16 = 304;
+pub const SCRIPT_ROUTE30_COOLTRAINER_F: u16 = 305;
+pub const SCRIPT_ROUTE30_SIGN: u16 = 306;
+pub const SCRIPT_MR_POKEMON_HOUSE_DIRECTIONS_SIGN: u16 = 307;
+pub const SCRIPT_MR_POKEMON_HOUSE_SIGN: u16 = 308;
+pub const SCRIPT_ROUTE30_TRAINER_TIPS: u16 = 309;
+pub const SCRIPT_ROUTE30_ANTIDOTE: u16 = 310;
+pub const SCRIPT_ROUTE30_FRUIT_TREE_1: u16 = 311;
+pub const SCRIPT_ROUTE30_FRUIT_TREE_2: u16 = 312;
+pub const SCRIPT_ROUTE30_HIDDEN_POTION: u16 = 313;
+
+// Sprint 4: Berry House scripts
+pub const SCRIPT_BERRY_HOUSE_POKEFAN: u16 = 320;
+pub const SCRIPT_BERRY_HOUSE_BOOKSHELF: u16 = 321;
+
+// Sprint 4: Mr. Pokemon's House scripts
+pub const SCRIPT_MR_POKEMON: u16 = 330;
+pub const SCRIPT_MR_POKEMON_MEET: u16 = 331;
+pub const SCRIPT_MR_POKEMON_MAGAZINES: u16 = 332;
+pub const SCRIPT_MR_POKEMON_COMPUTER: u16 = 333;
+pub const SCRIPT_MR_POKEMON_COINS: u16 = 334;
 
 // ── EventFlags ───────────────────────────────────────────────────────────────
 
@@ -284,6 +330,8 @@ pub enum ScriptStep {
     // Sprint 2 additions
     LoadWildMon { species: SpeciesId, level: u8 },
     StartBattle { battle_type: BattleType },
+    // Sprint 4: trainer party loading
+    LoadTrainerParty { party: Vec<(SpeciesId, u8)>, beaten_flag: u16 },
     Follow { npc_idx: u8 },
     StopFollow,
     MoveObject { npc_idx: u8, x: i32, y: i32 },
@@ -306,6 +354,8 @@ pub struct ScriptState {
     pub move_progress: f64,
     pub moving_npc: Option<u8>,
     pub loaded_wild_species: Option<(SpeciesId, u8)>,  // Review #2: for LoadWildMon->StartBattle handoff
+    pub trainer_party: Option<Vec<(SpeciesId, u8)>>,  // Sprint 4: for LoadTrainerParty->StartBattle
+    pub trainer_beaten_flag: Option<u16>,              // Sprint 4: flag to set on trainer defeat
 }
 
 impl ScriptState {
@@ -322,6 +372,8 @@ impl ScriptState {
             move_progress: 0.0,
             moving_npc: None,
             loaded_wild_species: None,
+            trainer_party: None,
+            trainer_beaten_flag: None,
         }
     }
 
@@ -614,6 +666,12 @@ pub fn step_script(
             script.pc += 1;
         }
 
+        ScriptStep::LoadTrainerParty { party, beaten_flag } => {
+            script.trainer_party = Some(party);
+            script.trainer_beaten_flag = Some(beaten_flag);
+            script.pc += 1;
+        }
+
         ScriptStep::StartBattle { battle_type } => {
             let species = script.loaded_wild_species.take();
             script.pc += 1;
@@ -744,6 +802,32 @@ pub fn get_script(id: u16) -> Vec<ScriptStep> {
         SCRIPT_EVO_SPEECH_LASS  => simple_text("POKeMON change? I would be shocked if one did that!"),
         SCRIPT_EVO_SPEECH_YOUNGSTER => simple_text("POKeMON gain experience in battle and change their form."),
         SCRIPT_EVO_SPEECH_BOOKSHELF => simple_text("A book about POKeMON evolution."),
+
+        // Sprint 4: Route 30 scripts
+        SCRIPT_JOEY_PREBATTLE_CUTSCENE => build_joey_phone_script(),
+        SCRIPT_TRAINER_JOEY => build_trainer_joey_script(),
+        SCRIPT_TRAINER_MIKEY => build_trainer_mikey_script(),
+        SCRIPT_TRAINER_DON => build_trainer_don_script(),
+        SCRIPT_ROUTE30_YOUNGSTER_DIRECTIONS => simple_text("YOUNGSTER: MR.POKeMON's house is\nup ahead on this route."),
+        SCRIPT_ROUTE30_COOLTRAINER_F => simple_text("COOLTRAINER: Battling wild POKeMON\nmakes your team stronger!"),
+        SCRIPT_ROUTE30_SIGN => simple_text("ROUTE 30\n\nMR. POKeMON'S HOUSE AHEAD"),
+        SCRIPT_MR_POKEMON_HOUSE_DIRECTIONS_SIGN => simple_text("MR. POKeMON'S HOUSE\nJUST AHEAD"),
+        SCRIPT_MR_POKEMON_HOUSE_SIGN => simple_text("MR. POKeMON'S HOUSE"),
+        SCRIPT_ROUTE30_TRAINER_TIPS => simple_text("TRAINER TIPS\n\nContact PROF.ELM by\nusing the POKeGEAR."),
+        SCRIPT_ROUTE30_ANTIDOTE => build_route30_antidote_script(),
+        SCRIPT_ROUTE30_FRUIT_TREE_1 | SCRIPT_ROUTE30_FRUIT_TREE_2 => build_fruit_tree_script(),
+        SCRIPT_ROUTE30_HIDDEN_POTION => build_route30_hidden_potion_script(),
+
+        // Sprint 4: Berry House scripts
+        SCRIPT_BERRY_HOUSE_POKEFAN => build_berry_house_pokefan_script(),
+        SCRIPT_BERRY_HOUSE_BOOKSHELF => simple_text("Magazines about rare POKeMON."),
+
+        // Sprint 4: Mr. Pokemon's House scripts
+        SCRIPT_MR_POKEMON => build_mr_pokemon_talk_script(),
+        SCRIPT_MR_POKEMON_MEET => build_mr_pokemon_meet_script(),
+        SCRIPT_MR_POKEMON_MAGAZINES => simple_text("Piles of Pokemon magazines."),
+        SCRIPT_MR_POKEMON_COMPUTER => simple_text("A PC connected to the network."),
+        SCRIPT_MR_POKEMON_COINS => simple_text("An impressive coin collection."),
 
         _ => vec![ScriptStep::End],
     }
@@ -997,6 +1081,148 @@ fn build_mart_clerk_script() -> Vec<ScriptStep> {
         ScriptStep::ShowText("CLERK: We have POTION - 300\nANTIDOTE - 100".to_string()),
         ScriptStep::ShowText("CLERK: Here's a free POTION for your first visit!".to_string()),
         ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 },
+        ScriptStep::End,
+    ]
+}
+
+// ── Sprint 4 Script Builders ────────────────────────────────────────────────
+
+pub fn build_trainer_joey_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("JOEY: I just got my POKeMON!\nWant to battle?".to_string()),
+        ScriptStep::LoadTrainerParty { party: vec![(RATTATA, 4)], beaten_flag: EVENT_BEAT_YOUNGSTER_JOEY },
+        ScriptStep::StartBattle { battle_type: BattleType::Normal },
+        ScriptStep::ShowText("JOEY: My RATTATA is in the top\npercentage of RATTATA!".to_string()),
+        ScriptStep::SetEvent(EVENT_JOEY_ASKED_FOR_PHONE_NUMBER),
+        ScriptStep::End,
+    ]
+}
+
+fn build_trainer_mikey_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 1 },
+        ScriptStep::ShowText("MIKEY: I'm raising some POKeMON!\nLet's battle!".to_string()),
+        ScriptStep::LoadTrainerParty { party: vec![(PIDGEY, 2), (RATTATA, 4)], beaten_flag: EVENT_BEAT_YOUNGSTER_MIKEY },
+        ScriptStep::StartBattle { battle_type: BattleType::Normal },
+        ScriptStep::ShowText("MIKEY: Wow, you're pretty strong!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_trainer_don_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 2 },
+        ScriptStep::ShowText("DON: I caught some bug POKeMON!\nCheck them out!".to_string()),
+        ScriptStep::LoadTrainerParty { party: vec![(CATERPIE, 3), (CATERPIE, 3)], beaten_flag: EVENT_BEAT_BUG_CATCHER_DON },
+        ScriptStep::StartBattle { battle_type: BattleType::Normal },
+        ScriptStep::ShowText("DON: My bug POKeMON are still\ntoo weak...".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_joey_phone_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 10 },
+        ScriptStep::ShowText("JOEY: Hey! Want my phone number?".to_string()),
+        ScriptStep::ShowText("JOEY: I'll call you when I want\nto battle again!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route30_antidote_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::GiveItem { item_id: 3, count: 1 },  // ANTIDOTE = item 3
+        ScriptStep::SetEvent(EVENT_ROUTE_30_ANTIDOTE),
+        ScriptStep::ShowText("Found an ANTIDOTE!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route30_hidden_potion_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 },
+        ScriptStep::SetEvent(EVENT_ROUTE_30_HIDDEN_POTION),
+        ScriptStep::ShowText("Found a POTION!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_berry_house_pokefan_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::CheckEvent { flag: EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE, jump_if_true: 4 },
+        ScriptStep::ShowText("Here, take this BERRY!".to_string()),
+        ScriptStep::GiveItem { item_id: ITEM_BERRY, count: 1 },
+        ScriptStep::SetEvent(EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE),
+        // jump target 5 (after):
+        ScriptStep::ShowText("If your POKeMON holds that BERRY,\nit can heal itself in battle!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+pub fn build_mr_pokemon_meet_script() -> Vec<ScriptStep> {
+    vec![
+        // Mr. Pokemon notices player
+        ScriptStep::ShowEmote { npc_idx: 0, emote: Emote::Shock, frames: 15 },
+        ScriptStep::TurnNpc { npc_idx: 0, direction: Direction::Down },
+        ScriptStep::ShowText("MR.POKeMON: Ah! You must be\n<PLAYER> from ELM's lab!".to_string()),
+        ScriptStep::ShowText("MR.POKeMON: I've been expecting you!".to_string()),
+        // Player walks to Mr. Pokemon
+        ScriptStep::MovePlayer { steps: vec![(Direction::Right, 1), (Direction::Up, 1)] },
+        // Mr. Pokemon explains the egg
+        ScriptStep::ShowText("MR.POKeMON: I breed POKeMON.\nA friend gave me this EGG.".to_string()),
+        ScriptStep::ShowText("MR.POKeMON: Please deliver it\nto PROF.ELM!".to_string()),
+        ScriptStep::GiveItem { item_id: ITEM_MYSTERY_EGG, count: 1 },
+        ScriptStep::SetEvent(EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON),
+        ScriptStep::ShowText("<PLAYER> received MYSTERY EGG!".to_string()),
+        ScriptStep::ShowText("MR.POKeMON: That couple at the\nDAY-CARE can look after POKeMON.".to_string()),
+        // Mr. Pokemon introduces Oak
+        ScriptStep::TurnNpc { npc_idx: 0, direction: Direction::Right },
+        ScriptStep::ShowText("MR.POKeMON: This is PROF.OAK!\nThe famous POKeMON researcher!".to_string()),
+        // Oak turns to player
+        ScriptStep::TurnNpc { npc_idx: 1, direction: Direction::Left },
+        ScriptStep::ShowText("OAK: Hello, there! I'm PROF.OAK.".to_string()),
+        ScriptStep::PlayMusic(MUSIC_PROF_OAK),
+        // Oak walks to player
+        ScriptStep::MoveNpc { npc_idx: 1, steps: vec![(Direction::Down, 1), (Direction::Left, 2)] },
+        ScriptStep::TurnPlayer(Direction::Right),
+        ScriptStep::ShowText("OAK: I've heard about you from\nELM! You're quite the trainer!".to_string()),
+        ScriptStep::ShowText("OAK: I want you to have this\nPOKeDEX!".to_string()),
+        ScriptStep::SetEvent(EVENT_ENGINE_POKEDEX),
+        ScriptStep::ShowText("<PLAYER> received POKeDEX!".to_string()),
+        ScriptStep::ShowText("OAK: It records data on all the\nPOKeMON you've seen or caught.".to_string()),
+        ScriptStep::ShowText("OAK: Well, I must be on my way!\nGood luck on your journey!".to_string()),
+        // Oak leaves
+        ScriptStep::TurnPlayer(Direction::Down),
+        ScriptStep::MoveNpc { npc_idx: 1, steps: vec![(Direction::Down, 1), (Direction::Left, 1)] },
+        ScriptStep::HideNpc(1),
+        ScriptStep::SetEvent(EVENT_MR_POKEMONS_HOUSE_OAK),
+        ScriptStep::Special(SpecialFn::RestartMapMusic),
+        ScriptStep::Pause(0.25),
+        // Mr. Pokemon offers to heal
+        ScriptStep::TurnPlayer(Direction::Up),
+        ScriptStep::TurnNpc { npc_idx: 0, direction: Direction::Down },
+        ScriptStep::ShowText("MR.POKeMON: You should rest\nbefore heading back.".to_string()),
+        ScriptStep::Heal,
+        ScriptStep::ShowText("MR.POKeMON: Your POKeMON look\nfighting fit!".to_string()),
+        ScriptStep::ShowText("MR.POKeMON: I'm depending on you!".to_string()),
+        // Set up rival encounter and Elm's Lab scene
+        ScriptStep::SetEvent(EVENT_RIVAL_NEW_BARK_TOWN),
+        ScriptStep::SetEvent(EVENT_PLAYERS_HOUSE_1F_NEIGHBOR),
+        ScriptStep::ClearEvent(EVENT_PLAYERS_NEIGHBORS_HOUSE_NEIGHBOR),
+        ScriptStep::SetScene { map: MapId::MrPokemonsHouse, scene_id: SCENE_MRPOKEMONSHOUSE_NOOP },
+        ScriptStep::SetScene { map: MapId::CherrygroveCity, scene_id: SCENE_CHERRYGROVECITY_MEET_RIVAL },
+        ScriptStep::SetScene { map: MapId::ElmsLab, scene_id: SCENE_ELMSLAB_MEET_OFFICER },
+        ScriptStep::ClearEvent(EVENT_COP_IN_ELMS_LAB),
+        ScriptStep::End,
+    ]
+}
+
+fn build_mr_pokemon_talk_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("MR.POKeMON: Please take good care\nof that EGG for PROF.ELM!".to_string()),
         ScriptStep::End,
     ]
 }
@@ -1275,5 +1501,124 @@ mod tests {
         let steps = get_script(SCRIPT_CHERRYGROVE_CLERK);
         let has_give_potion = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 }));
         assert!(has_give_potion, "Mart clerk should give free POTION");
+    }
+
+    // ── Sprint 4: Route 30 + Mr. Pokemon Script Tests ──────────────────
+
+    #[test]
+    fn test_trainer_scripts_compile() {
+        let ids = [
+            SCRIPT_TRAINER_JOEY, SCRIPT_TRAINER_MIKEY, SCRIPT_TRAINER_DON,
+            SCRIPT_JOEY_PREBATTLE_CUTSCENE,
+            SCRIPT_ROUTE30_YOUNGSTER_DIRECTIONS, SCRIPT_ROUTE30_COOLTRAINER_F,
+            SCRIPT_ROUTE30_SIGN, SCRIPT_MR_POKEMON_HOUSE_DIRECTIONS_SIGN,
+            SCRIPT_MR_POKEMON_HOUSE_SIGN, SCRIPT_ROUTE30_TRAINER_TIPS,
+            SCRIPT_ROUTE30_ANTIDOTE, SCRIPT_ROUTE30_FRUIT_TREE_1,
+            SCRIPT_ROUTE30_FRUIT_TREE_2, SCRIPT_ROUTE30_HIDDEN_POTION,
+            SCRIPT_BERRY_HOUSE_POKEFAN, SCRIPT_BERRY_HOUSE_BOOKSHELF,
+            SCRIPT_MR_POKEMON, SCRIPT_MR_POKEMON_MEET,
+            SCRIPT_MR_POKEMON_MAGAZINES, SCRIPT_MR_POKEMON_COMPUTER,
+            SCRIPT_MR_POKEMON_COINS,
+        ];
+        for id in ids {
+            let steps = get_script(id);
+            assert!(!steps.is_empty(), "Script {} returned empty", id);
+        }
+    }
+
+    #[test]
+    fn test_trainer_joey_has_load_trainer_party() {
+        let steps = get_script(SCRIPT_TRAINER_JOEY);
+        let has_party = steps.iter().any(|s| matches!(s, ScriptStep::LoadTrainerParty { .. }));
+        let has_battle = steps.iter().any(|s| matches!(s, ScriptStep::StartBattle { battle_type: BattleType::Normal }));
+        assert!(has_party, "Joey script should have LoadTrainerParty");
+        assert!(has_battle, "Joey script should start Normal battle");
+    }
+
+    #[test]
+    fn test_trainer_mikey_has_multi_mon_party() {
+        let steps = get_script(SCRIPT_TRAINER_MIKEY);
+        let party_step = steps.iter().find(|s| matches!(s, ScriptStep::LoadTrainerParty { .. }));
+        assert!(party_step.is_some(), "Mikey script should have LoadTrainerParty");
+        if let Some(ScriptStep::LoadTrainerParty { party, beaten_flag }) = party_step {
+            assert_eq!(party.len(), 2, "Mikey should have 2 Pokemon: Pidgey/2 + Rattata/4");
+            assert_eq!(*beaten_flag, EVENT_BEAT_YOUNGSTER_MIKEY);
+        }
+    }
+
+    #[test]
+    fn test_berry_house_gives_berry_once() {
+        let steps = get_script(SCRIPT_BERRY_HOUSE_POKEFAN);
+        let has_check = steps.iter().any(|s| matches!(s,
+            ScriptStep::CheckEvent { flag, .. } if *flag == EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE));
+        let has_give_berry = steps.iter().any(|s| matches!(s,
+            ScriptStep::GiveItem { item_id: ITEM_BERRY, count: 1 }));
+        let has_set_flag = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetEvent(f) if *f == EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE));
+        assert!(has_check, "Berry house should check if already received");
+        assert!(has_give_berry, "Berry house should give ITEM_BERRY");
+        assert!(has_set_flag, "Berry house should set the received flag");
+    }
+
+    #[test]
+    fn test_mr_pokemon_meet_script_sets_flags() {
+        let steps = build_mr_pokemon_meet_script();
+        let gives_egg = steps.iter().any(|s| matches!(s,
+            ScriptStep::GiveItem { item_id: ITEM_MYSTERY_EGG, count: 1 }));
+        let sets_oak_flag = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetEvent(f) if *f == EVENT_MR_POKEMONS_HOUSE_OAK));
+        let sets_pokedex = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetEvent(f) if *f == EVENT_ENGINE_POKEDEX));
+        let sets_rival = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetScene { map: MapId::CherrygroveCity, scene_id: SCENE_CHERRYGROVECITY_MEET_RIVAL }));
+        let has_heal = steps.iter().any(|s| matches!(s, ScriptStep::Heal));
+        assert!(gives_egg, "Should give MYSTERY EGG");
+        assert!(sets_oak_flag, "Should set EVENT_MR_POKEMONS_HOUSE_OAK");
+        assert!(sets_pokedex, "Should set EVENT_ENGINE_POKEDEX");
+        assert!(sets_rival, "Should set Cherrygrove rival scene");
+        assert!(has_heal, "Should heal party before leaving");
+    }
+
+    #[test]
+    fn test_mr_pokemon_scene_sets_noop_after_meet() {
+        let steps = build_mr_pokemon_meet_script();
+        let sets_noop = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetScene { map: MapId::MrPokemonsHouse, scene_id: SCENE_MRPOKEMONSHOUSE_NOOP }));
+        assert!(sets_noop, "Mr Pokemon meet script should set MrPokemonsHouse scene to NOOP");
+    }
+
+    #[test]
+    fn test_load_trainer_party_step_sets_script_state() {
+        let steps = vec![
+            ScriptStep::LoadTrainerParty { party: vec![(RATTATA, 4)], beaten_flag: 32 },
+            ScriptStep::StartBattle { battle_type: BattleType::Normal },
+            ScriptStep::End,
+        ];
+        let mut script = ScriptState::new(steps);
+        let mut player = PlayerState {
+            x: 0, y: 0, facing: Direction::Down,
+            walk_offset: 0.0, is_walking: false,
+            walk_frame: 0, frame_timer: 0.0,
+            name: "TEST".to_string(),
+        };
+        let mut npc_states = Vec::new();
+        let mut flags = EventFlags::new();
+        let mut scenes = SceneState::new();
+        let mut party = Vec::new();
+        let mut bag = Vec::new();
+
+        // Frame 1: LoadTrainerParty
+        let result = step_script(&mut script, &mut player, &mut npc_states,
+            &mut flags, &mut scenes, MapId::Route30,
+            &mut party, &mut bag, false, false, false, false);
+        assert!(matches!(result, ScriptResult::Running));
+        assert!(script.trainer_party.is_some());
+        assert_eq!(script.trainer_beaten_flag, Some(32));
+
+        // Frame 2: StartBattle — should return StartBattle result
+        let result = step_script(&mut script, &mut player, &mut npc_states,
+            &mut flags, &mut scenes, MapId::Route30,
+            &mut party, &mut bag, false, false, false, false);
+        assert!(matches!(result, ScriptResult::StartBattle { battle_type: BattleType::Normal, .. }));
     }
 }

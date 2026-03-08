@@ -342,13 +342,13 @@ fn render_battle(sim: &PokemonV2Sim, engine: &mut Engine) {
     if let Some(ref battle) = sim.battle {
         if let Some(ref player_mon) = sim.party.first() {
             let player_sdata = data::species_data(player_mon.species);
-            let enemy_sdata = data::species_data(battle.enemy.species);
+            let enemy_sdata = data::species_data(battle.current_enemy().species);
 
             // Enemy info top-left (Review #12: draw_text arg order: engine, text, x, y, color)
             draw_text(engine, enemy_sdata.name, 8, 8, Color::from_rgba(0, 0, 0, 255));
-            draw_text(engine, &format!("Lv{}", battle.enemy.level), 8, 18, Color::from_rgba(0, 0, 0, 255));
-            let enemy_hp_pct = if battle.enemy.max_hp > 0 {
-                battle.enemy.hp as f64 / battle.enemy.max_hp as f64
+            draw_text(engine, &format!("Lv{}", battle.current_enemy().level), 8, 18, Color::from_rgba(0, 0, 0, 255));
+            let enemy_hp_pct = if battle.current_enemy().max_hp > 0 {
+                battle.current_enemy().hp as f64 / battle.current_enemy().max_hp as f64
             } else { 0.0 };
             draw_hp_bar(engine, 8, 28, enemy_hp_pct);
 

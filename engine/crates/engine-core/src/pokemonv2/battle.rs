@@ -33,37 +33,68 @@ pub enum BattlePhase {
 
 #[derive(Clone, Debug)]
 pub struct BattleState {
-    pub enemy: Pokemon,
+    pub enemy_party: Vec<Pokemon>,
+    pub enemy_index: usize,
     pub battle_type: BattleType,
     pub turn_count: u8,
     pub phase: BattlePhase,
     pub message: Option<String>,
     pub message_timer: f64,
     pub result: Option<BattleResult>,
+    pub beaten_flag: Option<u16>,
 }
 
 impl BattleState {
+    pub fn current_enemy(&self) -> &Pokemon {
+        &self.enemy_party[self.enemy_index]
+    }
+
+    pub fn current_enemy_mut(&mut self) -> &mut Pokemon {
+        &mut self.enemy_party[self.enemy_index]
+    }
+
     pub fn new_wild(species: SpeciesId, level: u8, battle_type: BattleType) -> Self {
         Self {
-            enemy: Pokemon::new(species, level),
+            enemy_party: vec![Pokemon::new(species, level)],
+            enemy_index: 0,
             battle_type,
             turn_count: 0,
             phase: BattlePhase::Intro,
             message: None,
             message_timer: 0.0,
             result: None,
+            beaten_flag: None,
         }
     }
 
-    pub fn new_trainer(species: SpeciesId, level: u8, battle_type: BattleType) -> Self {
+    /// Create a trainer battle with a multi-mon party.
+    pub fn new_trainer_party(party: Vec<(SpeciesId, u8)>, battle_type: BattleType, beaten_flag: Option<u16>) -> Self {
+        let enemy_party: Vec<Pokemon> = party.iter().map(|&(sp, lv)| Pokemon::new(sp, lv)).collect();
         Self {
-            enemy: Pokemon::new(species, level),
+            enemy_party,
+            enemy_index: 0,
             battle_type,
             turn_count: 0,
             phase: BattlePhase::Intro,
             message: None,
             message_timer: 0.0,
             result: None,
+            beaten_flag,
+        }
+    }
+
+    /// Backward-compatible: single species trainer battle.
+    pub fn new_trainer(species: SpeciesId, level: u8, battle_type: BattleType) -> Self {
+        Self {
+            enemy_party: vec![Pokemon::new(species, level)],
+            enemy_index: 0,
+            battle_type,
+            turn_count: 0,
+            phase: BattlePhase::Intro,
+            message: None,
+            message_timer: 0.0,
+            result: None,
+            beaten_flag: None,
         }
     }
 }
@@ -140,8 +171,13 @@ pub fn step_battle(
 ) -> bool {
     match battle.phase {
         BattlePhase::Intro => {
-            let enemy_data = species_data(battle.enemy.species);
-            battle.message = Some(format!("Wild {} appeared!", enemy_data.name));
+            let enemy_data = species_data(battle.current_enemy().species);
+            let intro_msg = if battle.battle_type == BattleType::Wild || battle.battle_type == BattleType::Tutorial {
+                format!("Wild {} appeared!", enemy_data.name)
+            } else {
+                format!("Trainer sent out {}!", enemy_data.name)
+            };
+            battle.message = Some(intro_msg);
             battle.message_timer = MESSAGE_TIME;
             battle.phase = BattlePhase::Message;
         }
@@ -172,7 +208,7 @@ pub fn step_battle(
 
             // Tutorial: auto-catch on TUTORIAL_CATCH_TURN
             if battle.battle_type == BattleType::Tutorial && battle.turn_count >= TUTORIAL_CATCH_TURN {
-                let enemy_data = species_data(battle.enemy.species);
+                let enemy_data = species_data(battle.current_enemy().species);
                 battle.message = Some(format!("Threw a POKe BALL! {} was caught!", enemy_data.name));
                 battle.message_timer = MESSAGE_TIME;
                 battle.result = Some(BattleResult::Caught);
@@ -191,10 +227,10 @@ pub fn step_battle(
 
             // Player attacks with best move
             let player_move = pick_damaging_move(player_mon);
-            let dmg = calc_damage(player_mon, &battle.enemy, player_move, rng_byte);
+            let dmg = calc_damage(player_mon, battle.current_enemy(), player_move, rng_byte);
 
             let md = move_data(player_move);
-            battle.enemy.hp = battle.enemy.hp.saturating_sub(dmg);
+            battle.current_enemy_mut().hp = battle.current_enemy().hp.saturating_sub(dmg);
 
             battle.message = Some(format!("{} used {}!",
                 species_data(player_mon.species).name,
@@ -202,22 +238,27 @@ pub fn step_battle(
             battle.message_timer = MESSAGE_TIME * 0.5;
             battle.phase = BattlePhase::Message;
 
-            if battle.enemy.hp == 0 {
-                battle.result = Some(BattleResult::Won);
+            if battle.current_enemy().hp == 0 {
+                // Check if trainer has more Pokemon
+                if battle.enemy_index + 1 < battle.enemy_party.len() {
+                    battle.enemy_index += 1;
+                    let next_name = species_data(battle.current_enemy().species).name;
+                    battle.message = Some(format!("Trainer sent out {}!", next_name));
+                    battle.message_timer = MESSAGE_TIME;
+                    battle.phase = BattlePhase::Message;
+                    // No result yet; next turn after message
+                } else {
+                    battle.result = Some(BattleResult::Won);
+                }
             } else {
                 // After message: go to enemy turn
                 battle.phase = BattlePhase::Message;
-                // Use a tiny message then chain to enemy turn
-                // (simplified: set to EnemyTurn directly after message clears)
-                let _ = (); // enemy turn happens after message
             }
 
             // If no result yet, enemy attacks next
-            if battle.result.is_none() {
-                // We'll chain: Message -> EnemyTurn logic below
-                // For simplicity, compute enemy attack inline and set one combined message
-                let enemy_move = pick_damaging_move(&battle.enemy);
-                let enemy_dmg = calc_damage(&battle.enemy, player_mon, enemy_move, rng_byte.wrapping_add(77));
+            if battle.result.is_none() && battle.current_enemy().hp > 0 {
+                let enemy_move = pick_damaging_move(battle.current_enemy());
+                let enemy_dmg = calc_damage(battle.current_enemy(), player_mon, enemy_move, rng_byte.wrapping_add(77));
                 let enemy_md = move_data(enemy_move);
 
                 player_mon.hp = player_mon.hp.saturating_sub(enemy_dmg);
@@ -225,14 +266,14 @@ pub fn step_battle(
                 if player_mon.hp == 0 {
                     battle.result = Some(BattleResult::Lost);
                     let player_name = species_data(player_mon.species).name;
-                    let enemy_name = species_data(battle.enemy.species).name;
+                    let enemy_name = species_data(battle.current_enemy().species).name;
                     battle.message = Some(format!(
                         "{} used {}! {} fainted!",
                         enemy_name, enemy_md.name, player_name
                     ));
                 } else {
                     let player_name = species_data(player_mon.species).name;
-                    let enemy_name = species_data(battle.enemy.species).name;
+                    let enemy_name = species_data(battle.current_enemy().species).name;
                     battle.message = Some(format!(
                         "{} used {}! {}'s HP: {}/{}",
                         enemy_name, enemy_md.name, player_name,
@@ -277,8 +318,8 @@ mod tests {
     #[test]
     fn test_new_wild_battle() {
         let battle = BattleState::new_wild(PIDGEY, 2, BattleType::Wild);
-        assert_eq!(battle.enemy.species, PIDGEY);
-        assert_eq!(battle.enemy.level, 2);
+        assert_eq!(battle.current_enemy().species, PIDGEY);
+        assert_eq!(battle.current_enemy().level, 2);
         assert_eq!(battle.battle_type, BattleType::Wild);
         assert_eq!(battle.phase, BattlePhase::Intro);
         assert!(battle.result.is_none());
@@ -287,8 +328,61 @@ mod tests {
     #[test]
     fn test_new_trainer_battle() {
         let battle = BattleState::new_trainer(CYNDAQUIL, 5, BattleType::CanLose);
-        assert_eq!(battle.enemy.species, CYNDAQUIL);
+        assert_eq!(battle.current_enemy().species, CYNDAQUIL);
         assert_eq!(battle.battle_type, BattleType::CanLose);
+    }
+
+    #[test]
+    fn test_multi_pokemon_party() {
+        use super::super::data::Pokemon;
+        // Mikey: Pidgey/2 + Rattata/4
+        let mut battle = BattleState::new_trainer_party(
+            vec![(PIDGEY, 2), (super::super::data::RATTATA, 4)],
+            BattleType::Normal,
+            Some(33),
+        );
+        let mut player = Pokemon::new(CYNDAQUIL, 10); // high level to guarantee win
+
+        assert_eq!(battle.enemy_party.len(), 2);
+        assert_eq!(battle.current_enemy().species, PIDGEY);
+
+        let mut still_running = true;
+        for _ in 0..3600 {
+            if !still_running { break; }
+            still_running = step_battle(&mut battle, &mut player, 1.0 / 60.0, 42);
+        }
+        assert!(!still_running, "Multi-mon battle should complete");
+        assert!(matches!(battle.result, Some(BattleResult::Won)),
+            "Player level 10 should beat Pidgey/2 + Rattata/4, got {:?}", battle.result);
+        assert_eq!(battle.beaten_flag, Some(33));
+    }
+
+    #[test]
+    fn test_single_pokemon_backward_compat() {
+        let battle = BattleState::new_wild(PIDGEY, 3, BattleType::Wild);
+        assert_eq!(battle.enemy_party.len(), 1);
+        assert_eq!(battle.enemy_index, 0);
+        assert_eq!(battle.current_enemy().species, PIDGEY);
+        assert!(battle.beaten_flag.is_none());
+    }
+
+    #[test]
+    fn test_trainer_joey_party() {
+        use super::super::data::{Pokemon, RATTATA};
+        let mut battle = BattleState::new_trainer_party(
+            vec![(RATTATA, 4)],
+            BattleType::Normal,
+            Some(32),
+        );
+        let mut player = Pokemon::new(CYNDAQUIL, 5);
+
+        let mut still_running = true;
+        for _ in 0..3600 {
+            if !still_running { break; }
+            still_running = step_battle(&mut battle, &mut player, 1.0 / 60.0, 50);
+        }
+        assert!(!still_running);
+        assert!(battle.result.is_some());
     }
 
     #[test]

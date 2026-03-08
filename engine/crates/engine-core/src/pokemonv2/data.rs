@@ -408,6 +408,72 @@ static HOPPIP_DATA: SpeciesData = SpeciesData {
     learnset: HOPPIP_LEARNSET,
 };
 
+// Sprint 4 learnsets
+static CATERPIE_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE), (1, MOVE_STRING_SHOT),
+];
+static METAPOD_LEARNSET: &[(u8, MoveId)] = &[(1, MOVE_HARDEN)];
+static WEEDLE_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT),
+];
+static ZUBAT_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_LEECH_LIFE), (6, MOVE_SUPERSONIC),
+];
+static POLIWAG_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_BUBBLE),
+];
+static LEDYBA_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE), (8, MOVE_SUPERSONIC),
+];
+static SPINARAK_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT),
+    (11, MOVE_CONSTRICT),
+];
+
+// Sprint 4 species data
+static CATERPIE_DATA: SpeciesData = SpeciesData {
+    id: CATERPIE, name: "CATERPIE", type1: PokemonType::Bug, type2: PokemonType::Bug,
+    base_hp: 45, base_attack: 30, base_defense: 35, base_speed: 45,
+    base_sp_attack: 20, base_sp_defense: 20, catch_rate: 255, base_exp: 53,
+    growth_rate: GrowthRate::MediumFast, learnset: CATERPIE_LEARNSET,
+};
+static METAPOD_DATA: SpeciesData = SpeciesData {
+    id: METAPOD, name: "METAPOD", type1: PokemonType::Bug, type2: PokemonType::Bug,
+    base_hp: 50, base_attack: 20, base_defense: 55, base_speed: 30,
+    base_sp_attack: 25, base_sp_defense: 25, catch_rate: 120, base_exp: 72,
+    growth_rate: GrowthRate::MediumFast, learnset: METAPOD_LEARNSET,
+};
+static WEEDLE_DATA: SpeciesData = SpeciesData {
+    id: WEEDLE, name: "WEEDLE", type1: PokemonType::Bug, type2: PokemonType::Poison,
+    base_hp: 40, base_attack: 35, base_defense: 30, base_speed: 50,
+    base_sp_attack: 20, base_sp_defense: 20, catch_rate: 255, base_exp: 52,
+    growth_rate: GrowthRate::MediumFast, learnset: WEEDLE_LEARNSET,
+};
+static ZUBAT_DATA: SpeciesData = SpeciesData {
+    id: ZUBAT, name: "ZUBAT", type1: PokemonType::Poison, type2: PokemonType::Flying,
+    base_hp: 40, base_attack: 45, base_defense: 35, base_speed: 55,
+    base_sp_attack: 30, base_sp_defense: 40, catch_rate: 255, base_exp: 54,
+    growth_rate: GrowthRate::MediumFast, learnset: ZUBAT_LEARNSET,
+};
+static POLIWAG_DATA: SpeciesData = SpeciesData {
+    id: POLIWAG, name: "POLIWAG", type1: PokemonType::Water, type2: PokemonType::Water,
+    base_hp: 40, base_attack: 50, base_defense: 40, base_speed: 90,
+    base_sp_attack: 40, base_sp_defense: 40, catch_rate: 255, base_exp: 77,
+    growth_rate: GrowthRate::MediumSlow, learnset: POLIWAG_LEARNSET,
+};
+static LEDYBA_DATA: SpeciesData = SpeciesData {
+    id: LEDYBA, name: "LEDYBA", type1: PokemonType::Bug, type2: PokemonType::Flying,
+    base_hp: 40, base_attack: 20, base_defense: 30, base_speed: 55,
+    base_sp_attack: 40, base_sp_defense: 80, catch_rate: 255, base_exp: 54,
+    growth_rate: GrowthRate::Fast, learnset: LEDYBA_LEARNSET,
+};
+static SPINARAK_DATA: SpeciesData = SpeciesData {
+    id: SPINARAK, name: "SPINARAK", type1: PokemonType::Bug, type2: PokemonType::Poison,
+    base_hp: 40, base_attack: 60, base_defense: 40, base_speed: 30,
+    base_sp_attack: 40, base_sp_defense: 40, catch_rate: 255, base_exp: 54,
+    growth_rate: GrowthRate::Fast, learnset: SPINARAK_LEARNSET,
+};
+
 /// Return species data for the given id. Returns Chikorita data for unknown species.
 pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
     match id {
@@ -419,6 +485,14 @@ pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
         SENTRET => &SENTRET_DATA,
         HOOTHOOT => &HOOTHOOT_DATA,
         HOPPIP => &HOPPIP_DATA,
+        // Sprint 4
+        CATERPIE => &CATERPIE_DATA,
+        METAPOD => &METAPOD_DATA,
+        WEEDLE => &WEEDLE_DATA,
+        ZUBAT => &ZUBAT_DATA,
+        POLIWAG => &POLIWAG_DATA,
+        LEDYBA => &LEDYBA_DATA,
+        SPINARAK => &SPINARAK_DATA,
         _ => &CHIKORITA_DATA, // fallback
     }
 }
@@ -537,6 +611,36 @@ static SYNTHESIS_DATA: MoveData = MoveData {
     is_special: true,
 };
 
+// Sprint 4 move data
+static STRING_SHOT_DATA: MoveData = MoveData {
+    id: MOVE_STRING_SHOT, name: "STRING SHOT",
+    move_type: PokemonType::Bug, power: 0, accuracy: 95, pp: 40, is_special: false,
+};
+static POISON_STING_DATA: MoveData = MoveData {
+    id: MOVE_POISON_STING, name: "POISON STING",
+    move_type: PokemonType::Poison, power: 15, accuracy: 100, pp: 35, is_special: false,
+};
+static HARDEN_DATA: MoveData = MoveData {
+    id: MOVE_HARDEN, name: "HARDEN",
+    move_type: PokemonType::Normal, power: 0, accuracy: 100, pp: 30, is_special: false,
+};
+static LEECH_LIFE_DATA: MoveData = MoveData {
+    id: MOVE_LEECH_LIFE, name: "LEECH LIFE",
+    move_type: PokemonType::Bug, power: 20, accuracy: 100, pp: 15, is_special: false,
+};
+static CONSTRICT_DATA: MoveData = MoveData {
+    id: MOVE_CONSTRICT, name: "CONSTRICT",
+    move_type: PokemonType::Normal, power: 10, accuracy: 100, pp: 35, is_special: false,
+};
+static BUBBLE_DATA: MoveData = MoveData {
+    id: MOVE_BUBBLE, name: "BUBBLE",
+    move_type: PokemonType::Water, power: 20, accuracy: 100, pp: 30, is_special: true,
+};
+static SUPERSONIC_DATA: MoveData = MoveData {
+    id: MOVE_SUPERSONIC, name: "SUPERSONIC",
+    move_type: PokemonType::Normal, power: 0, accuracy: 55, pp: 20, is_special: false,
+};
+
 /// Return move data for the given id. Returns Tackle data for unknown moves.
 pub fn move_data(id: MoveId) -> &'static MoveData {
     match id {
@@ -550,6 +654,14 @@ pub fn move_data(id: MoveId) -> &'static MoveData {
         MOVE_SPLASH => &SPLASH_DATA,
         MOVE_STRUGGLE => &STRUGGLE_DATA,
         MOVE_SYNTHESIS => &SYNTHESIS_DATA,
+        // Sprint 4
+        MOVE_STRING_SHOT => &STRING_SHOT_DATA,
+        MOVE_POISON_STING => &POISON_STING_DATA,
+        MOVE_HARDEN => &HARDEN_DATA,
+        MOVE_LEECH_LIFE => &LEECH_LIFE_DATA,
+        MOVE_CONSTRICT => &CONSTRICT_DATA,
+        MOVE_BUBBLE => &BUBBLE_DATA,
+        MOVE_SUPERSONIC => &SUPERSONIC_DATA,
         _ => &TACKLE_DATA, // fallback
     }
 }
@@ -644,6 +756,7 @@ pub const ITEM_POTION: u8 = 17;
 pub const ITEM_POKEGEAR: u8 = 59;
 pub const ITEM_MYSTIC_WATER: u8 = 95;
 pub const ITEM_PINK_BOW: u8 = 104;
+pub const ITEM_MYSTERY_EGG: u8 = 130;  // key item, not consumed
 // NOTE: MAP_CARD is NOT a bag item. It is tracked via EVENT_ENGINE_MAP_CARD flag only.
 
 // --- Move ID Constants (Sprint 2 additions) ---
@@ -654,12 +767,30 @@ pub const MOVE_SPLASH: MoveId = 150;
 pub const MOVE_STRUGGLE: MoveId = 165;
 pub const MOVE_SYNTHESIS: MoveId = 235;
 
+// --- Move ID Constants (Sprint 4 additions) ---
+pub const MOVE_STRING_SHOT: MoveId = 81;
+pub const MOVE_POISON_STING: MoveId = 40;
+pub const MOVE_HARDEN: MoveId = 106;
+pub const MOVE_LEECH_LIFE: MoveId = 141;
+pub const MOVE_CONSTRICT: MoveId = 132;
+pub const MOVE_BUBBLE: MoveId = 145;
+pub const MOVE_SUPERSONIC: MoveId = 48;
+
 // --- Species ID Constants (Sprint 2 additions) ---
 pub const PIDGEY: SpeciesId = 16;
 pub const RATTATA: SpeciesId = 19;
 pub const SENTRET: SpeciesId = 161;
 pub const HOOTHOOT: SpeciesId = 163;
 pub const HOPPIP: SpeciesId = 187;
+
+// --- Species ID Constants (Sprint 4 additions) ---
+pub const CATERPIE: SpeciesId = 10;
+pub const METAPOD: SpeciesId = 11;
+pub const WEEDLE: SpeciesId = 13;
+pub const ZUBAT: SpeciesId = 41;
+pub const POLIWAG: SpeciesId = 60;
+pub const LEDYBA: SpeciesId = 165;
+pub const SPINARAK: SpeciesId = 167;
 
 // --- Battle Enums ---
 
@@ -704,3 +835,91 @@ pub fn get_time_of_day(total_time: f64) -> TimeOfDay {
 pub const MUSIC_SHOW_ME_AROUND: u8 = 10;
 pub const MUSIC_RIVAL_ENCOUNTER: u8 = 11;
 pub const MUSIC_RIVAL_AFTER: u8 = 12;
+pub const MUSIC_PROF_OAK: u8 = 13;
+pub const MUSIC_JOHTO_TRAINER_BATTLE: u8 = 14;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_species_data() {
+        let species = [CATERPIE, METAPOD, WEEDLE, ZUBAT, POLIWAG, LEDYBA, SPINARAK];
+        for &sp in &species {
+            let data = species_data(sp);
+            assert!(data.base_hp > 0, "Species {} should have non-zero HP", sp);
+            assert!(data.base_attack > 0, "Species {} should have non-zero Attack", sp);
+            assert!(!data.learnset.is_empty(), "Species {} should have a learnset", sp);
+        }
+    }
+
+    #[test]
+    fn test_caterpie_data_accuracy() {
+        let data = species_data(CATERPIE);
+        assert_eq!(data.name, "CATERPIE");
+        assert_eq!(data.type1, PokemonType::Bug);
+        assert_eq!(data.base_hp, 45);
+        assert_eq!(data.base_attack, 30);
+        assert_eq!(data.base_defense, 35);
+        assert_eq!(data.base_speed, 45);
+        assert_eq!(data.catch_rate, 255);
+        assert!(matches!(data.growth_rate, GrowthRate::MediumFast));
+    }
+
+    #[test]
+    fn test_new_moves_data() {
+        let moves = [MOVE_STRING_SHOT, MOVE_POISON_STING, MOVE_HARDEN,
+                     MOVE_LEECH_LIFE, MOVE_CONSTRICT, MOVE_BUBBLE, MOVE_SUPERSONIC];
+        for &mv in &moves {
+            let data = move_data(mv);
+            assert!(!data.name.is_empty(), "Move {} should have a name", mv);
+            assert!(data.pp > 0, "Move {} should have non-zero PP", mv);
+        }
+    }
+
+    #[test]
+    fn test_caterpie_learnset_at_level3() {
+        let poke = Pokemon::new(CATERPIE, 3);
+        // Caterpie at level 3 should know Tackle (lv1) + StringShot (lv1)
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 2, "Level 3 Caterpie should know 2 moves");
+        assert!(known.contains(&MOVE_TACKLE));
+        assert!(known.contains(&MOVE_STRING_SHOT));
+    }
+
+    #[test]
+    fn test_poliwag_learnset_at_level4() {
+        let poke = Pokemon::new(POLIWAG, 4);
+        // Poliwag at level 4 only knows Bubble (lv1)
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 1, "Level 4 Poliwag should know only Bubble");
+        assert!(known.contains(&MOVE_BUBBLE));
+    }
+
+    #[test]
+    fn test_zubat_learnset_at_level3() {
+        let poke = Pokemon::new(ZUBAT, 3);
+        // Zubat at level 3 only knows LeechLife (lv1)
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 1, "Level 3 Zubat should know only LeechLife");
+        assert!(known.contains(&MOVE_LEECH_LIFE));
+    }
+
+    #[test]
+    fn test_spinarak_learnset_at_level3() {
+        let poke = Pokemon::new(SPINARAK, 3);
+        // Spinarak at level 3 knows PoisonSting (lv1) + StringShot (lv1)
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 2, "Level 3 Spinarak should know 2 moves");
+        assert!(known.contains(&MOVE_POISON_STING));
+        assert!(known.contains(&MOVE_STRING_SHOT));
+    }
+
+    #[test]
+    fn test_bubble_is_special() {
+        let data = move_data(MOVE_BUBBLE);
+        assert!(data.is_special, "Bubble should be a special move");
+        assert_eq!(data.power, 20);
+        assert_eq!(data.move_type, PokemonType::Water);
+    }
+}

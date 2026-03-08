@@ -33,6 +33,8 @@ pub enum OverworldResult {
     TriggerCoordEvent { script_id: u16 },
     WildEncounter { species: SpeciesId, level: u8 },
     MapConnection { direction: Direction, dest_map: MapId, offset: i8 },
+    /// Sprint 4: a trainer spotted the player via line-of-sight
+    TrainerBattle { npc_idx: u8, script_id: u16 },
 }
 
 // ── Main Step ─────────────────────────────────────────────────────────────────
@@ -43,7 +45,7 @@ pub fn step_overworld(
     camera: &mut CameraState,
     map: &MapData,
     npc_states: &mut Vec<NpcState>,
-    _flags: &EventFlags,
+    flags: &EventFlags,
     scenes: &SceneState,
     engine: &Engine,
     time_of_day: TimeOfDay,
@@ -91,6 +93,26 @@ pub fn step_overworld(
                 let script_id = evt.script_id;
                 update_camera(camera, player);
                 return OverworldResult::TriggerCoordEvent { script_id };
+            }
+
+            // Sprint 4: check trainer sight lines after each step
+            for (i, npc_def) in map.npcs.iter().enumerate() {
+                if let Some(range) = npc_def.trainer_range {
+                    // Skip trainers whose beaten event flag is already set
+                    if let Some(flag) = npc_def.event_flag {
+                        if flags.has(flag) { continue; }
+                    }
+                    if let Some(npc_state) = npc_states.get(i) {
+                        if !npc_state.visible { continue; }
+                        if is_in_sight(npc_state.x, npc_state.y, npc_def.facing, player.x, player.y, range) {
+                            update_camera(camera, player);
+                            return OverworldResult::TrainerBattle {
+                                npc_idx: i as u8,
+                                script_id: npc_def.script_id,
+                            };
+                        }
+                    }
+                }
             }
 
             update_camera(camera, player);
@@ -356,6 +378,20 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
 
             _ => {}
         }
+    }
+}
+
+// ── Trainer Sight ─────────────────────────────────────────────────────────────
+
+/// Returns true if (px, py) is within `range` tiles in the NPC's facing direction.
+/// Mirrors pokecrystal's SeeYouScript: exact column/row alignment, range in tiles.
+pub fn is_in_sight(npc_x: i32, npc_y: i32, npc_facing: Direction, px: i32, py: i32, range: u8) -> bool {
+    let range = range as i32;
+    match npc_facing {
+        Direction::Up    => px == npc_x && py < npc_y  && (npc_y - py) <= range,
+        Direction::Down  => px == npc_x && py > npc_y  && (py - npc_y) <= range,
+        Direction::Left  => py == npc_y && px < npc_x  && (npc_x - px) <= range,
+        Direction::Right => py == npc_y && px > npc_x  && (px - npc_x) <= range,
     }
 }
 

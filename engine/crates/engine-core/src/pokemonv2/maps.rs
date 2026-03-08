@@ -5,7 +5,8 @@
 // Import graph: maps.rs <- data.rs ONLY
 
 use super::data::{Direction, NpcState, SpeciesId,
-    PIDGEY, RATTATA, SENTRET, HOOTHOOT, HOPPIP};
+    PIDGEY, RATTATA, SENTRET, HOOTHOOT, HOPPIP,
+    CATERPIE, WEEDLE, ZUBAT, POLIWAG, LEDYBA, SPINARAK};
 
 // ── Collision Tile Constants ──────────────────────────────────────────────────
 pub const C_FLOOR: u8 = 0;    // walkable
@@ -41,6 +42,10 @@ pub enum MapId {
     CherrygroveEvolutionSpeechHouse,
     Route46,
     Route30,
+    // Sprint 4 (new)
+    Route30BerryHouse,
+    MrPokemonsHouse,
+    Route31,
 }
 
 /// NPC movement patterns. Matches pokecrystal's SPRITEMOVEDATA_ constants.
@@ -116,6 +121,7 @@ pub struct NpcDef {
     pub palette: u8,
     pub facing: Direction,
     pub name: &'static str,
+    pub trainer_range: Option<u8>,  // sight range for trainer battles
 }
 
 pub struct CoordEvent {
@@ -247,7 +253,10 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::CherrygroveGymSpeechHouse => build_cherrygrove_gym_speech_house(),
         MapId::CherrygroveEvolutionSpeechHouse => build_cherrygrove_evo_speech_house(),
         MapId::Route46              => build_route46_stub(),
-        MapId::Route30              => build_route30_stub(),
+        MapId::Route30              => build_route30(),
+        MapId::Route30BerryHouse    => build_route30_berry_house(),
+        MapId::MrPokemonsHouse      => build_mr_pokemons_house(),
+        MapId::Route31              => build_route31_stub(),
     }
 }
 
@@ -306,10 +315,10 @@ fn build_players_house_2f() -> MapData {
             WarpDef { x: 7, y: 0, dest_map: MapId::PlayersHouse1F, dest_warp_id: 2 },
         ],
         npcs: vec![
-            NpcDef { x: 4, y: 2, sprite_id: 10, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "CONSOLE" },
-            NpcDef { x: 4, y: 4, sprite_id: 11, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DOLL_1" },
-            NpcDef { x: 5, y: 4, sprite_id: 12, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DOLL_2" },
-            NpcDef { x: 0, y: 1, sprite_id: 13, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "BIG_DOLL" },
+            NpcDef { x: 4, y: 2, sprite_id: 10, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "CONSOLE", trainer_range: None },
+            NpcDef { x: 4, y: 4, sprite_id: 11, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DOLL_1", trainer_range: None },
+            NpcDef { x: 5, y: 4, sprite_id: 12, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DOLL_2", trainer_range: None },
+            NpcDef { x: 0, y: 1, sprite_id: 13, move_type: NpcMoveType::Still, script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "BIG_DOLL", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![
@@ -348,11 +357,11 @@ fn build_players_house_1f() -> MapData {
             WarpDef { x: 9, y: 0, dest_map: MapId::PlayersHouse2F, dest_warp_id: 0 },
         ],
         npcs: vec![
-            NpcDef { x: 7, y: 4, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Left), script_id: 1, event_flag: Some(3), event_flag_show: false, palette: 0, facing: Direction::Left, name: "MOM1" },
-            NpcDef { x: 2, y: 2, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Up), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Up, name: "MOM2" },
-            NpcDef { x: 7, y: 4, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Left), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Left, name: "MOM3" },
-            NpcDef { x: 0, y: 2, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Up), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Up, name: "MOM4" },
-            NpcDef { x: 4, y: 4, sprite_id: 9, move_type: NpcMoveType::Standing(Direction::Right), script_id: 0, event_flag: Some(16), event_flag_show: true, palette: 0, facing: Direction::Right, name: "NEIGHBOR" },
+            NpcDef { x: 7, y: 4, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Left), script_id: 1, event_flag: Some(3), event_flag_show: false, palette: 0, facing: Direction::Left, name: "MOM1", trainer_range: None },
+            NpcDef { x: 2, y: 2, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Up), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Up, name: "MOM2", trainer_range: None },
+            NpcDef { x: 7, y: 4, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Left), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Left, name: "MOM3", trainer_range: None },
+            NpcDef { x: 0, y: 2, sprite_id: 1, move_type: NpcMoveType::Standing(Direction::Up), script_id: 1, event_flag: Some(4), event_flag_show: true, palette: 0, facing: Direction::Up, name: "MOM4", trainer_range: None },
+            NpcDef { x: 4, y: 4, sprite_id: 9, move_type: NpcMoveType::Standing(Direction::Right), script_id: 0, event_flag: Some(16), event_flag_show: true, palette: 0, facing: Direction::Right, name: "NEIGHBOR", trainer_range: None },
         ],
         coord_events: vec![
             CoordEvent { x: 8, y: 4, scene_id: 0, script_id: 1 },
@@ -406,9 +415,9 @@ fn build_new_bark_town() -> MapData {
             WarpDef { x: 11, y: 13, dest_map: MapId::ElmsHouse,            dest_warp_id: 0 },
         ],
         npcs: vec![
-            NpcDef { x: 6,  y: 8, sprite_id: 3, move_type: NpcMoveType::SpinRandom, script_id: 2, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER" },
-            NpcDef { x: 12, y: 9, sprite_id: 4, move_type: NpcMoveType::WalkUpDown,  script_id: 0, event_flag: None, event_flag_show: false, palette: 1, facing: Direction::Down, name: "FISHER" },
-            NpcDef { x: 3,  y: 2, sprite_id: 5, move_type: NpcMoveType::Standing(Direction::Right), script_id: 4, event_flag: Some(9), event_flag_show: true, palette: 0, facing: Direction::Right, name: "RIVAL" },
+            NpcDef { x: 6,  y: 8, sprite_id: 3, move_type: NpcMoveType::SpinRandom, script_id: 2, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER", trainer_range: None },
+            NpcDef { x: 12, y: 9, sprite_id: 4, move_type: NpcMoveType::WalkUpDown,  script_id: 0, event_flag: None, event_flag_show: false, palette: 1, facing: Direction::Down, name: "FISHER", trainer_range: None },
+            NpcDef { x: 3,  y: 2, sprite_id: 5, move_type: NpcMoveType::Standing(Direction::Right), script_id: 4, event_flag: Some(9), event_flag_show: true, palette: 0, facing: Direction::Right, name: "RIVAL", trainer_range: None },
         ],
         coord_events: vec![
             CoordEvent { x: 1, y: 8, scene_id: 0, script_id: 2 },
@@ -456,12 +465,12 @@ fn build_elms_lab() -> MapData {
             WarpDef { x: 5, y: 11, dest_map: MapId::NewBarkTown, dest_warp_id: 0 },
         ],
         npcs: vec![
-            NpcDef { x: 5, y: 2, sprite_id: 2, move_type: NpcMoveType::Standing(Direction::Down), script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "ELM" },
-            NpcDef { x: 2, y: 9, sprite_id: 7, move_type: NpcMoveType::SpinRandom, script_id: 0, event_flag: Some(12), event_flag_show: true, palette: 0, facing: Direction::Down, name: "AIDE" },
-            NpcDef { x: 6, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 6, event_flag: Some(13), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_CYNDAQUIL" },
-            NpcDef { x: 7, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 7, event_flag: Some(14), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_TOTODILE" },
-            NpcDef { x: 8, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 8, event_flag: Some(15), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_CHIKORITA" },
-            NpcDef { x: 5, y: 3, sprite_id: 8, move_type: NpcMoveType::Standing(Direction::Up), script_id: 0, event_flag: Some(11), event_flag_show: true, palette: 0, facing: Direction::Up, name: "OFFICER" },
+            NpcDef { x: 5, y: 2, sprite_id: 2, move_type: NpcMoveType::Standing(Direction::Down), script_id: 0, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "ELM", trainer_range: None },
+            NpcDef { x: 2, y: 9, sprite_id: 7, move_type: NpcMoveType::SpinRandom, script_id: 0, event_flag: Some(12), event_flag_show: true, palette: 0, facing: Direction::Down, name: "AIDE", trainer_range: None },
+            NpcDef { x: 6, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 6, event_flag: Some(13), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_CYNDAQUIL", trainer_range: None },
+            NpcDef { x: 7, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 7, event_flag: Some(14), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_TOTODILE", trainer_range: None },
+            NpcDef { x: 8, y: 3, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 8, event_flag: Some(15), event_flag_show: false, palette: 0, facing: Direction::Down, name: "BALL_CHIKORITA", trainer_range: None },
+            NpcDef { x: 5, y: 3, sprite_id: 8, move_type: NpcMoveType::Standing(Direction::Up), script_id: 0, event_flag: Some(11), event_flag_show: true, palette: 0, facing: Direction::Up, name: "OFFICER", trainer_range: None },
         ],
         coord_events: vec![
             CoordEvent { x: 4, y: 6, scene_id: 1, script_id: 9 },
@@ -629,21 +638,21 @@ fn build_route29() -> MapData {
         ],
         npcs: vec![
             // idx 0: Dude (catching tutorial) at (50,12)
-            NpcDef { x: 50, y: 12, sprite_id: 14, move_type: NpcMoveType::SpinRandom, script_id: 202, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DUDE" },
+            NpcDef { x: 50, y: 12, sprite_id: 14, move_type: NpcMoveType::SpinRandom, script_id: 202, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "DUDE", trainer_range: None },
             // idx 1: Youngster at (27,16)
-            NpcDef { x: 27, y: 16, sprite_id: 15, move_type: NpcMoveType::WalkUpDown, script_id: 205, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER" },
+            NpcDef { x: 27, y: 16, sprite_id: 15, move_type: NpcMoveType::WalkUpDown, script_id: 205, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
             // idx 2: Teacher at (15,11)
-            NpcDef { x: 15, y: 11, sprite_id: 3, move_type: NpcMoveType::WalkLeftRight, script_id: 206, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER" },
+            NpcDef { x: 15, y: 11, sprite_id: 3, move_type: NpcMoveType::WalkLeftRight, script_id: 206, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER", trainer_range: None },
             // idx 3: Fruit Tree at (12,2)
-            NpcDef { x: 12, y: 2, sprite_id: 16, move_type: NpcMoveType::Still, script_id: 209, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "FRUIT_TREE" },
+            NpcDef { x: 12, y: 2, sprite_id: 16, move_type: NpcMoveType::Still, script_id: 209, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "FRUIT_TREE", trainer_range: None },
             // idx 4: Fisher at (25,3)
-            NpcDef { x: 25, y: 3, sprite_id: 4, move_type: NpcMoveType::Standing(Direction::Up), script_id: 207, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up, name: "FISHER" },
+            NpcDef { x: 25, y: 3, sprite_id: 4, move_type: NpcMoveType::Standing(Direction::Up), script_id: 207, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up, name: "FISHER", trainer_range: None },
             // idx 5: CooltrainerM at (13,4)
-            NpcDef { x: 13, y: 4, sprite_id: 14, move_type: NpcMoveType::Standing(Direction::Down), script_id: 208, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "COOLTRAINER_M" },
+            NpcDef { x: 13, y: 4, sprite_id: 14, move_type: NpcMoveType::Standing(Direction::Down), script_id: 208, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "COOLTRAINER_M", trainer_range: None },
             // idx 6: Tuscany at (29,12) -- hidden unless EVENT_ROUTE_29_TUSCANY_OF_TUESDAY is set
-            NpcDef { x: 29, y: 12, sprite_id: 3, move_type: NpcMoveType::SpinRandom, script_id: 211, event_flag: Some(25), event_flag_show: true, palette: 0, facing: Direction::Down, name: "TUSCANY" },
+            NpcDef { x: 29, y: 12, sprite_id: 3, move_type: NpcMoveType::SpinRandom, script_id: 211, event_flag: Some(25), event_flag_show: true, palette: 0, facing: Direction::Down, name: "TUSCANY", trainer_range: None },
             // idx 7: Potion PokeBall at (48,2) -- visible when EVENT_ROUTE_29_POTION NOT set
-            NpcDef { x: 48, y: 2, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 210, event_flag: Some(26), event_flag_show: false, palette: 0, facing: Direction::Down, name: "POTION_BALL" },
+            NpcDef { x: 48, y: 2, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 210, event_flag: Some(26), event_flag_show: false, palette: 0, facing: Direction::Down, name: "POTION_BALL", trainer_range: None },
         ],
         coord_events: vec![
             CoordEvent { x: 53, y: 8, scene_id: 1, script_id: 203 },
@@ -686,8 +695,8 @@ fn build_route29_route46_gate() -> MapData {
             WarpDef { x: 5, y: 7, dest_map: MapId::Route29, dest_warp_id: 0 },
         ],
         npcs: vec![
-            NpcDef { x: 0, y: 4, sprite_id: 8, move_type: NpcMoveType::Standing(Direction::Right), script_id: 220, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "OFFICER" },
-            NpcDef { x: 6, y: 4, sprite_id: 15, move_type: NpcMoveType::WalkUpDown, script_id: 221, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER" },
+            NpcDef { x: 0, y: 4, sprite_id: 8, move_type: NpcMoveType::Standing(Direction::Right), script_id: 220, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "OFFICER", trainer_range: None },
+            NpcDef { x: 6, y: 4, sprite_id: 15, move_type: NpcMoveType::WalkUpDown, script_id: 221, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![],
@@ -743,15 +752,15 @@ fn build_cherrygrove_city() -> MapData {
         ],
         npcs: vec![
             // idx 0: Guide Gent -- hidden when EVENT_GUIDE_GENT_IN_HIS_HOUSE (18) is set
-            NpcDef { x: 32, y: 6, sprite_id: 17, move_type: NpcMoveType::Standing(Direction::Down), script_id: 230, event_flag: Some(18), event_flag_show: false, palette: 0, facing: Direction::Down, name: "GUIDE_GENT" },
+            NpcDef { x: 32, y: 6, sprite_id: 17, move_type: NpcMoveType::Standing(Direction::Down), script_id: 230, event_flag: Some(18), event_flag_show: false, palette: 0, facing: Direction::Down, name: "GUIDE_GENT", trainer_range: None },
             // idx 1: Rival -- visible when EVENT_RIVAL_CHERRYGROVE_CITY (19) is set
-            NpcDef { x: 39, y: 6, sprite_id: 5, move_type: NpcMoveType::SpinRandom, script_id: 231, event_flag: Some(19), event_flag_show: true, palette: 0, facing: Direction::Down, name: "RIVAL" },
+            NpcDef { x: 39, y: 6, sprite_id: 5, move_type: NpcMoveType::SpinRandom, script_id: 231, event_flag: Some(19), event_flag_show: true, palette: 0, facing: Direction::Down, name: "RIVAL", trainer_range: None },
             // idx 2: Teacher
-            NpcDef { x: 27, y: 12, sprite_id: 3, move_type: NpcMoveType::WalkLeftRight, script_id: 232, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER" },
+            NpcDef { x: 27, y: 12, sprite_id: 3, move_type: NpcMoveType::WalkLeftRight, script_id: 232, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER", trainer_range: None },
             // idx 3: Youngster
-            NpcDef { x: 23, y: 7, sprite_id: 15, move_type: NpcMoveType::WalkLeftRight, script_id: 233, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER" },
+            NpcDef { x: 23, y: 7, sprite_id: 15, move_type: NpcMoveType::WalkLeftRight, script_id: 233, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
             // idx 4: Fisher (Mystic Water Guy)
-            NpcDef { x: 7, y: 12, sprite_id: 4, move_type: NpcMoveType::Standing(Direction::Right), script_id: 234, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "MYSTIC_WATER_GUY" },
+            NpcDef { x: 7, y: 12, sprite_id: 4, move_type: NpcMoveType::Standing(Direction::Right), script_id: 234, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "MYSTIC_WATER_GUY", trainer_range: None },
         ],
         coord_events: vec![
             CoordEvent { x: 33, y: 6, scene_id: 1, script_id: 231 },
@@ -792,10 +801,10 @@ fn build_cherrygrove_pokecenter_1f() -> MapData {
             WarpDef { x: 4, y: 7, dest_map: MapId::CherrygroveCity, dest_warp_id: 2 },
         ],
         npcs: vec![
-            NpcDef { x: 3, y: 1, sprite_id: 18, move_type: NpcMoveType::Standing(Direction::Down), script_id: 250, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "NURSE" },
-            NpcDef { x: 2, y: 3, sprite_id: 4,  move_type: NpcMoveType::Standing(Direction::Up),   script_id: 251, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up,   name: "FISHER" },
-            NpcDef { x: 8, y: 6, sprite_id: 19, move_type: NpcMoveType::Standing(Direction::Up),   script_id: 252, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up,   name: "GENTLEMAN" },
-            NpcDef { x: 1, y: 6, sprite_id: 3,  move_type: NpcMoveType::Standing(Direction::Right), script_id: 253, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "TEACHER" },
+            NpcDef { x: 3, y: 1, sprite_id: 18, move_type: NpcMoveType::Standing(Direction::Down), script_id: 250, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "NURSE", trainer_range: None },
+            NpcDef { x: 2, y: 3, sprite_id: 4,  move_type: NpcMoveType::Standing(Direction::Up),   script_id: 251, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up,   name: "FISHER", trainer_range: None },
+            NpcDef { x: 8, y: 6, sprite_id: 19, move_type: NpcMoveType::Standing(Direction::Up),   script_id: 252, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Up,   name: "GENTLEMAN", trainer_range: None },
+            NpcDef { x: 1, y: 6, sprite_id: 3,  move_type: NpcMoveType::Standing(Direction::Right), script_id: 253, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "TEACHER", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![],
@@ -823,9 +832,9 @@ fn build_cherrygrove_mart() -> MapData {
             WarpDef { x: 3, y: 7, dest_map: MapId::CherrygroveCity, dest_warp_id: 1 },
         ],
         npcs: vec![
-            NpcDef { x: 1, y: 3, sprite_id: 20, move_type: NpcMoveType::Standing(Direction::Right), script_id: 260, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "CLERK" },
-            NpcDef { x: 7, y: 6, sprite_id: 14, move_type: NpcMoveType::WalkLeftRight, script_id: 261, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "COOLTRAINER" },
-            NpcDef { x: 2, y: 5, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Down), script_id: 262, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER" },
+            NpcDef { x: 1, y: 3, sprite_id: 20, move_type: NpcMoveType::Standing(Direction::Right), script_id: 260, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "CLERK", trainer_range: None },
+            NpcDef { x: 7, y: 6, sprite_id: 14, move_type: NpcMoveType::WalkLeftRight, script_id: 261, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "COOLTRAINER", trainer_range: None },
+            NpcDef { x: 2, y: 5, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Down), script_id: 262, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![],
@@ -854,7 +863,7 @@ fn build_guide_gents_house() -> MapData {
         ],
         npcs: vec![
             // Gramps: visible when EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE (17) IS set
-            NpcDef { x: 2, y: 3, sprite_id: 17, move_type: NpcMoveType::Standing(Direction::Right), script_id: 270, event_flag: Some(17), event_flag_show: true, palette: 0, facing: Direction::Right, name: "GUIDE_GENT_HOME" },
+            NpcDef { x: 2, y: 3, sprite_id: 17, move_type: NpcMoveType::Standing(Direction::Right), script_id: 270, event_flag: Some(17), event_flag_show: true, palette: 0, facing: Direction::Right, name: "GUIDE_GENT_HOME", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![
@@ -885,8 +894,8 @@ fn build_cherrygrove_gym_speech_house() -> MapData {
             WarpDef { x: 3, y: 7, dest_map: MapId::CherrygroveCity, dest_warp_id: 3 },
         ],
         npcs: vec![
-            NpcDef { x: 2, y: 3, sprite_id: 21, move_type: NpcMoveType::Standing(Direction::Down), script_id: 280, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "POKEFAN_M" },
-            NpcDef { x: 5, y: 5, sprite_id: 22, move_type: NpcMoveType::WalkLeftRight, script_id: 281, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "BUG_CATCHER" },
+            NpcDef { x: 2, y: 3, sprite_id: 21, move_type: NpcMoveType::Standing(Direction::Down), script_id: 280, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "POKEFAN_M", trainer_range: None },
+            NpcDef { x: 5, y: 5, sprite_id: 22, move_type: NpcMoveType::WalkLeftRight, script_id: 281, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "BUG_CATCHER", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![
@@ -917,8 +926,8 @@ fn build_cherrygrove_evo_speech_house() -> MapData {
             WarpDef { x: 3, y: 7, dest_map: MapId::CherrygroveCity, dest_warp_id: 5 },
         ],
         npcs: vec![
-            NpcDef { x: 3, y: 5, sprite_id: 23, move_type: NpcMoveType::Standing(Direction::Left), script_id: 290, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Left, name: "LASS" },
-            NpcDef { x: 2, y: 5, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Right), script_id: 291, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "YOUNGSTER" },
+            NpcDef { x: 3, y: 5, sprite_id: 23, move_type: NpcMoveType::Standing(Direction::Left), script_id: 290, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Left, name: "LASS", trainer_range: None },
+            NpcDef { x: 2, y: 5, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Right), script_id: 291, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "YOUNGSTER", trainer_range: None },
         ],
         coord_events: vec![],
         bg_events: vec![
@@ -959,16 +968,221 @@ fn build_route46_stub() -> MapData {
     }
 }
 
-// ── Route30 Stub (20 x 20) ───────────────────────────────────────────────────
+// ── Route 30 Full (20 x 54) ──────────────────────────────────────────────────
+// Sprint 4: Full outdoor route with grass, water, 11 NPCs, 2 warps to houses,
+// connections north to Route31 and south to CherrygroveCity.
+// Trainers: Youngster Joey (Rattata/4), Youngster Mikey (Pidgey/2 + Rattata/4),
+//           Bug Catcher Don (Caterpie/3 + Caterpie/3)
 
-fn build_route30_stub() -> MapData {
+fn build_route30() -> MapData {
+    let (w, h) = (20i32, 54i32);
+    let mut tiles = vec![1u8; (w * h) as usize];
+    let mut col   = vec![C_WALL; (w * h) as usize];
+
+    // Helper to set tile + collision
+    let set = |tiles: &mut Vec<u8>, col: &mut Vec<u8>, x: i32, y: i32, t: u8, c: u8| {
+        if x >= 0 && x < w && y >= 0 && y < h {
+            let idx = (y * w + x) as usize;
+            tiles[idx] = t;
+            col[idx] = c;
+        }
+    };
+
+    // Fill walkable corridor: columns 3-16, full height
+    for y in 0..h {
+        for x in 3..17 {
+            set(&mut tiles, &mut col, x, y, 0, C_FLOOR);
+        }
+    }
+
+    // Grass patches: Route 30 has grass areas per pokecrystal
+    // Southern grass patches (y=42..50, x=5..12)
+    for y in 42..50 {
+        for x in 5..12 {
+            set(&mut tiles, &mut col, x, y, 2, C_GRASS);
+        }
+    }
+    // Middle grass patches (y=25..32, x=8..15)
+    for y in 25..32 {
+        for x in 8..15 {
+            set(&mut tiles, &mut col, x, y, 2, C_GRASS);
+        }
+    }
+    // Northern grass patches (y=8..15, x=4..11)
+    for y in 8..15 {
+        for x in 4..11 {
+            set(&mut tiles, &mut col, x, y, 2, C_GRASS);
+        }
+    }
+
+    // Water on east side (y=18..24, x=14..16)
+    for y in 18..24 {
+        for x in 14..17 {
+            set(&mut tiles, &mut col, x, y, 3, C_WATER);
+        }
+    }
+
+    // Warp mats for house doors
+    set(&mut tiles, &mut col, 7, 39, 4, C_WARP);  // Berry House door
+    set(&mut tiles, &mut col, 17, 5, 4, C_WARP);   // Mr. Pokemon's House door
+
+    MapData {
+        id: MapId::Route30,
+        name: "ROUTE 30",
+        width: w,
+        height: h,
+        tiles,
+        collision: col,
+        warps: vec![
+            WarpDef { x: 7, y: 39, dest_map: MapId::Route30BerryHouse, dest_warp_id: 0 },
+            WarpDef { x: 17, y: 5, dest_map: MapId::MrPokemonsHouse, dest_warp_id: 0 },
+        ],
+        npcs: vec![
+            // 0: Youngster Joey — trainer, script 301, beaten flag 32, range 3
+            NpcDef { x: 10, y: 35, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Left), script_id: 301, event_flag: Some(32), event_flag_show: false, palette: 0, facing: Direction::Left, name: "JOEY", trainer_range: Some(3) },
+            // 1: Youngster Mikey — trainer, script 302, beaten flag 33, range 1
+            NpcDef { x: 8, y: 22, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Down), script_id: 302, event_flag: Some(33), event_flag_show: false, palette: 0, facing: Direction::Down, name: "MIKEY", trainer_range: Some(1) },
+            // 2: Bug Catcher Don — trainer, script 303, beaten flag 34, range 3
+            NpcDef { x: 6, y: 16, sprite_id: 22, move_type: NpcMoveType::Standing(Direction::Right), script_id: 303, event_flag: Some(34), event_flag_show: false, palette: 0, facing: Direction::Right, name: "DON", trainer_range: Some(3) },
+            // 3: Youngster giving directions
+            NpcDef { x: 12, y: 44, sprite_id: 15, move_type: NpcMoveType::WalkUpDown, script_id: 304, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "YOUNGSTER_DIRECTIONS", trainer_range: None },
+            // 4: CooltrainerF
+            NpcDef { x: 14, y: 33, sprite_id: 24, move_type: NpcMoveType::Standing(Direction::Down), script_id: 305, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "COOLTRAINER_F", trainer_range: None },
+            // 5: Fruit Tree 1
+            NpcDef { x: 5, y: 37, sprite_id: 16, move_type: NpcMoveType::Still, script_id: 311, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "FRUIT_TREE_1", trainer_range: None },
+            // 6: Fruit Tree 2
+            NpcDef { x: 15, y: 20, sprite_id: 16, move_type: NpcMoveType::Still, script_id: 312, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "FRUIT_TREE_2", trainer_range: None },
+            // 7: Antidote item ball
+            NpcDef { x: 4, y: 18, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 310, event_flag: Some(37), event_flag_show: false, palette: 0, facing: Direction::Down, name: "ANTIDOTE_BALL", trainer_range: None },
+            // 8: Battle guy
+            NpcDef { x: 13, y: 38, sprite_id: 14, move_type: NpcMoveType::Standing(Direction::Left), script_id: 309, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Left, name: "BATTLE_GUY", trainer_range: None },
+            // 9: Hidden Potion
+            NpcDef { x: 16, y: 10, sprite_id: 6, move_type: NpcMoveType::Still, script_id: 313, event_flag: Some(38), event_flag_show: false, palette: 0, facing: Direction::Down, name: "HIDDEN_POTION", trainer_range: None },
+            // 10: Joey pre-battle cutscene NPC (phone number request after battle)
+            NpcDef { x: 10, y: 36, sprite_id: 15, move_type: NpcMoveType::Standing(Direction::Up), script_id: 300, event_flag: Some(42), event_flag_show: true, palette: 0, facing: Direction::Up, name: "JOEY_PHONE", trainer_range: None },
+        ],
+        coord_events: vec![],
+        bg_events: vec![
+            BgEvent { x: 10, y: 53, kind: BgEventKind::Read, script_id: 306 },  // Route 30 sign (south end)
+            BgEvent { x: 17, y: 6,  kind: BgEventKind::Read, script_id: 308 },  // Mr. Pokemon's House sign
+            BgEvent { x: 7, y: 40,  kind: BgEventKind::Read, script_id: 307 },  // Berry House directions sign
+            BgEvent { x: 12, y: 34, kind: BgEventKind::Read, script_id: 309 },  // Trainer Tips sign
+            BgEvent { x: 10, y: 0,  kind: BgEventKind::Read, script_id: 306 },  // Route 30 sign (north end)
+        ],
+        wild_encounters: Some(build_route30_encounters()),
+        connections: MapConnections {
+            north: Some(MapConnection { direction: Direction::Up, dest_map: MapId::Route31, offset: -10 }),
+            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::CherrygroveCity, offset: -5 }),
+            east: None,
+            west: None,
+        },
+        music_id: 0,
+    }
+}
+
+fn build_route30_encounters() -> WildEncounterTable {
+    WildEncounterTable {
+        encounter_rate: 10,
+        morning: vec![
+            WildSlot { species: LEDYBA,   level: 3 },
+            WildSlot { species: CATERPIE, level: 3 },
+            WildSlot { species: CATERPIE, level: 4 },
+            WildSlot { species: PIDGEY,   level: 4 },
+            WildSlot { species: WEEDLE,   level: 3 },
+            WildSlot { species: HOPPIP,   level: 4 },
+            WildSlot { species: HOPPIP,   level: 4 },
+        ],
+        day: vec![
+            WildSlot { species: PIDGEY,   level: 3 },
+            WildSlot { species: CATERPIE, level: 3 },
+            WildSlot { species: CATERPIE, level: 4 },
+            WildSlot { species: PIDGEY,   level: 4 },
+            WildSlot { species: WEEDLE,   level: 3 },
+            WildSlot { species: HOPPIP,   level: 4 },
+            WildSlot { species: HOPPIP,   level: 4 },
+        ],
+        night: vec![
+            WildSlot { species: SPINARAK, level: 3 },
+            WildSlot { species: HOOTHOOT, level: 3 },
+            WildSlot { species: POLIWAG,  level: 4 },
+            WildSlot { species: HOOTHOOT, level: 4 },
+            WildSlot { species: ZUBAT,    level: 3 },
+            WildSlot { species: HOOTHOOT, level: 4 },
+            WildSlot { species: HOOTHOOT, level: 4 },
+        ],
+    }
+}
+
+// ── Route 30 Berry House (8 x 8) ────────────────────────────────────────────
+
+fn build_route30_berry_house() -> MapData {
+    let (w, h) = (8i32, 8i32);
+    let (tiles, col) = fill_room(w, h, 0);
+    MapData {
+        id: MapId::Route30BerryHouse,
+        name: "ROUTE 30 BERRY HOUSE",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            WarpDef { x: 2, y: 7, dest_map: MapId::Route30, dest_warp_id: 0 },
+            WarpDef { x: 3, y: 7, dest_map: MapId::Route30, dest_warp_id: 0 },
+        ],
+        npcs: vec![
+            NpcDef { x: 2, y: 3, sprite_id: 21, move_type: NpcMoveType::Standing(Direction::Down), script_id: 320, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "POKEFAN_BERRY", trainer_range: None },
+        ],
+        coord_events: vec![],
+        bg_events: vec![
+            BgEvent { x: 0, y: 1, kind: BgEventKind::Read, script_id: 321 },
+            BgEvent { x: 1, y: 1, kind: BgEventKind::Read, script_id: 321 },
+        ],
+        wild_encounters: None,
+        connections: MapConnections { north: None, south: None, east: None, west: None },
+        music_id: 0,
+    }
+}
+
+// ── Mr. Pokemon's House (8 x 8) ─────────────────────────────────────────────
+
+fn build_mr_pokemons_house() -> MapData {
+    let (w, h) = (8i32, 8i32);
+    let (tiles, col) = fill_room(w, h, 0);
+    MapData {
+        id: MapId::MrPokemonsHouse,
+        name: "MR. POKEMON'S HOUSE",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            WarpDef { x: 2, y: 7, dest_map: MapId::Route30, dest_warp_id: 1 },
+            WarpDef { x: 3, y: 7, dest_map: MapId::Route30, dest_warp_id: 1 },
+        ],
+        npcs: vec![
+            // 0: MR_POKEMON (Gentleman sprite) — always present
+            NpcDef { x: 3, y: 5, sprite_id: 19, move_type: NpcMoveType::Standing(Direction::Right), script_id: 330, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Right, name: "MR_POKEMON", trainer_range: None },
+            // 1: OAK — disappears when EVENT_MR_POKEMONS_HOUSE_OAK (41) is set
+            NpcDef { x: 6, y: 5, sprite_id: 25, move_type: NpcMoveType::Standing(Direction::Up), script_id: 0, event_flag: Some(41), event_flag_show: false, palette: 0, facing: Direction::Up, name: "OAK", trainer_range: None },
+        ],
+        coord_events: vec![],
+        bg_events: vec![
+            BgEvent { x: 0, y: 1, kind: BgEventKind::Read, script_id: 332 },   // magazines
+            BgEvent { x: 1, y: 1, kind: BgEventKind::Read, script_id: 332 },   // magazines
+            BgEvent { x: 6, y: 1, kind: BgEventKind::Read, script_id: 333 },   // computer
+            BgEvent { x: 7, y: 1, kind: BgEventKind::Read, script_id: 333 },   // computer
+            BgEvent { x: 4, y: 3, kind: BgEventKind::Read, script_id: 334 },   // coins on table
+        ],
+        wild_encounters: None,
+        connections: MapConnections { north: None, south: None, east: None, west: None },
+        music_id: 0,
+    }
+}
+
+// ── Route 31 Stub (20 x 20) ─────────────────────────────────────────────────
+
+fn build_route31_stub() -> MapData {
     let (w, h) = (20i32, 20i32);
     let tiles = vec![0u8; (w * h) as usize];
     let col = vec![C_FLOOR; (w * h) as usize];
 
     MapData {
-        id: MapId::Route30,
-        name: "ROUTE 30",
+        id: MapId::Route31,
+        name: "ROUTE 31",
         width: w, height: h, tiles, collision: col,
         warps: vec![],
         npcs: vec![],
@@ -977,7 +1191,7 @@ fn build_route30_stub() -> MapData {
         wild_encounters: None,
         connections: MapConnections {
             north: None,
-            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::CherrygroveCity, offset: -5 }),
+            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::Route30, offset: 10 }),
             east: None,
             west: None,
         },
@@ -1475,5 +1689,149 @@ mod tests {
         let m = load_map(MapId::Route30);
         assert!(m.connections.south.is_some());
         assert_eq!(m.connections.south.as_ref().unwrap().dest_map, MapId::CherrygroveCity);
+    }
+
+    // ── Sprint 4: Route 30 + Mr. Pokemon's House Tests ──────────────────
+
+    #[test]
+    fn test_route30_dimensions() {
+        let m = load_map(MapId::Route30);
+        assert_eq!(m.width, 20);
+        assert_eq!(m.height, 54);
+    }
+
+    #[test]
+    fn test_route30_has_wild_encounters() {
+        let m = load_map(MapId::Route30);
+        assert!(m.wild_encounters.is_some());
+        let table = m.wild_encounters.as_ref().unwrap();
+        assert_eq!(table.morning.len(), 7);
+        assert_eq!(table.day.len(), 7);
+        assert_eq!(table.night.len(), 7);
+        assert_eq!(table.encounter_rate, 10);
+    }
+
+    #[test]
+    fn test_route30_connections() {
+        let m = load_map(MapId::Route30);
+        assert!(m.connections.north.is_some());
+        assert_eq!(m.connections.north.as_ref().unwrap().dest_map, MapId::Route31);
+        assert!(m.connections.south.is_some());
+        assert_eq!(m.connections.south.as_ref().unwrap().dest_map, MapId::CherrygroveCity);
+    }
+
+    #[test]
+    fn test_route30_warps() {
+        let m = load_map(MapId::Route30);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::Route30BerryHouse);
+        assert_eq!(m.warps[1].dest_map, MapId::MrPokemonsHouse);
+    }
+
+    #[test]
+    fn test_route30_npcs() {
+        let m = load_map(MapId::Route30);
+        assert_eq!(m.npcs.len(), 11, "Route 30 should have 11 NPCs");
+        // Trainers have trainer_range
+        let trainers: Vec<_> = m.npcs.iter().filter(|n| n.trainer_range.is_some()).collect();
+        assert_eq!(trainers.len(), 3, "Route 30 should have 3 trainers: Joey, Mikey, Don");
+        assert_eq!(trainers[0].name, "JOEY");
+        assert_eq!(trainers[0].trainer_range, Some(3));
+        assert_eq!(trainers[1].name, "MIKEY");
+        assert_eq!(trainers[1].trainer_range, Some(1));
+        assert_eq!(trainers[2].name, "DON");
+        assert_eq!(trainers[2].trainer_range, Some(3));
+    }
+
+    #[test]
+    fn test_route30_berry_house() {
+        let m = load_map(MapId::Route30BerryHouse);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.npcs.len(), 1);
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::Route30);
+        assert_eq!(m.bg_events.len(), 2);
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_mr_pokemons_house() {
+        let m = load_map(MapId::MrPokemonsHouse);
+        assert_eq!(m.width, 8);
+        assert_eq!(m.height, 8);
+        assert_eq!(m.npcs.len(), 2, "MR_POKEMON + OAK");
+        assert_eq!(m.npcs[0].name, "MR_POKEMON");
+        assert_eq!(m.npcs[1].name, "OAK");
+        assert_eq!(m.npcs[1].event_flag, Some(41)); // EVENT_MR_POKEMONS_HOUSE_OAK
+        assert!(!m.npcs[1].event_flag_show, "Oak disappears when flag is set");
+        assert_eq!(m.warps.len(), 2);
+        assert_eq!(m.warps[0].dest_map, MapId::Route30);
+        assert_eq!(m.bg_events.len(), 5);
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_route30_bidirectional_warps() {
+        // Route30 -> BerryHouse warps back to Route30
+        let berry = load_map(MapId::Route30BerryHouse);
+        let has_exit = berry.warps.iter().any(|w| w.dest_map == MapId::Route30);
+        assert!(has_exit, "Berry House should warp back to Route30");
+
+        // Route30 -> MrPokemonsHouse warps back to Route30
+        let mr = load_map(MapId::MrPokemonsHouse);
+        let has_exit = mr.warps.iter().any(|w| w.dest_map == MapId::Route30);
+        assert!(has_exit, "Mr. Pokemon's House should warp back to Route30");
+
+        // Route30 has warps into both houses
+        let route30 = load_map(MapId::Route30);
+        let has_berry = route30.warps.iter().any(|w| w.dest_map == MapId::Route30BerryHouse);
+        let has_mr = route30.warps.iter().any(|w| w.dest_map == MapId::MrPokemonsHouse);
+        assert!(has_berry, "Route30 should have warp to Berry House");
+        assert!(has_mr, "Route30 should have warp to Mr. Pokemon's House");
+    }
+
+    #[test]
+    fn test_route31_stub() {
+        let m = load_map(MapId::Route31);
+        assert_eq!(m.width, 20);
+        assert_eq!(m.height, 20);
+        assert!(m.connections.south.is_some());
+        assert_eq!(m.connections.south.as_ref().unwrap().dest_map, MapId::Route30);
+        assert!(m.wild_encounters.is_none());
+    }
+
+    #[test]
+    fn test_sprint4_all_maps_load() {
+        let ids = [
+            MapId::Route30, MapId::Route30BerryHouse,
+            MapId::MrPokemonsHouse, MapId::Route31,
+        ];
+        for &id in &ids {
+            let m = load_map(id);
+            assert!(m.width > 0, "Map {:?} has zero width", id);
+            assert!(m.height > 0, "Map {:?} has zero height", id);
+            assert_eq!(m.tiles.len(), (m.width * m.height) as usize, "tiles mismatch {:?}", id);
+            assert_eq!(m.collision.len(), (m.width * m.height) as usize, "collision mismatch {:?}", id);
+        }
+    }
+
+    #[test]
+    fn test_route30_grass_tiles_present() {
+        let m = load_map(MapId::Route30);
+        let grass_count = m.collision.iter().filter(|&&c| c == C_GRASS).count();
+        assert!(grass_count > 20, "Route 30 should have many grass tiles, found {}", grass_count);
+    }
+
+    #[test]
+    fn test_route30_trainer_event_flags() {
+        let m = load_map(MapId::Route30);
+        // Joey has beaten flag 32
+        assert_eq!(m.npcs[0].event_flag, Some(32));
+        assert!(!m.npcs[0].event_flag_show, "Trainer NPCs should hide when beaten flag set");
+        // Mikey has beaten flag 33
+        assert_eq!(m.npcs[1].event_flag, Some(33));
+        // Don has beaten flag 34
+        assert_eq!(m.npcs[2].event_flag, Some(34));
     }
 }

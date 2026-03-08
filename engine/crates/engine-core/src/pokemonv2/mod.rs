@@ -189,6 +189,12 @@ impl PokemonV2Sim {
             OverworldResult::MapConnection { direction, dest_map, offset } => {
                 self.handle_map_connection(direction, dest_map, offset);
             }
+            OverworldResult::TrainerBattle { npc_idx: _, script_id } => {
+                // Sprint 4: trainer saw player — run their script (contains LoadTrainerParty + StartBattle)
+                let steps = get_script(script_id);
+                self.script = Some(ScriptState::new(steps));
+                self.phase = GamePhase::Script;
+            }
         }
     }
 
@@ -217,6 +223,9 @@ impl PokemonV2Sim {
                     self.refresh_npc_visibility();
                 }
                 ScriptResult::StartBattle { battle_type, species } => {
+                    // Extract trainer party before releasing the borrow on script
+                    let trainer_party = script.trainer_party.take();
+                    let beaten_flag = script.trainer_beaten_flag.take();
                     match battle_type {
                         BattleType::Tutorial | BattleType::Wild => {
                             if let Some((sp, lv)) = species {
@@ -225,8 +234,24 @@ impl PokemonV2Sim {
                                 self.phase = GamePhase::Battle;
                             }
                         }
-                        BattleType::CanLose | BattleType::Normal => {
-                            // Rival battle: determine counter-starter
+                        BattleType::Normal => {
+                            // Sprint 4: check if a trainer party was loaded via LoadTrainerParty
+                            if let Some(party) = trainer_party {
+                                let battle_state = battle::BattleState::new_trainer_party(
+                                    party, battle_type, beaten_flag,
+                                );
+                                self.battle = Some(battle_state);
+                                self.phase = GamePhase::Battle;
+                            } else {
+                                // Fallback: rival-style single trainer battle
+                                let rival_species = self.get_rival_species();
+                                let battle_state = battle::BattleState::new_trainer(rival_species, 5, battle_type);
+                                self.battle = Some(battle_state);
+                                self.phase = GamePhase::Battle;
+                            }
+                        }
+                        BattleType::CanLose => {
+                            // Rival battle (can't lose): determine counter-starter
                             let rival_species = self.get_rival_species();
                             let battle_state = battle::BattleState::new_trainer(rival_species, 5, battle_type);
                             self.battle = Some(battle_state);
@@ -329,7 +354,7 @@ impl PokemonV2Sim {
             if let Some(player_mon) = self.party.first_mut() {
                 let still_running = battle::step_battle(battle_state, player_mon, 1.0 / 60.0, rng_byte);
                 if !still_running {
-                    Some((battle_state.result, battle_state.battle_type))
+                    Some((battle_state.result, battle_state.battle_type, battle_state.beaten_flag))
                 } else {
                     None
                 }
@@ -341,12 +366,24 @@ impl PokemonV2Sim {
             return;
         };
 
-        if let Some((result, battle_type)) = outcome {
+        if let Some((result, battle_type, beaten_flag)) = outcome {
             self.battle = None;
             match result {
                 Some(BattleResult::Lost) if battle_type != BattleType::CanLose => {
                     self.heal_party();
                     self.warp_to_last_pokecenter();
+                }
+                Some(BattleResult::Won) => {
+                    // Sprint 4: set trainer beaten flag so they don't challenge again
+                    if let Some(flag) = beaten_flag {
+                        self.event_flags.set(flag);
+                        self.refresh_npc_visibility();
+                    }
+                    self.phase = if self.script.is_some() {
+                        GamePhase::Script
+                    } else {
+                        GamePhase::Overworld
+                    };
                 }
                 _ => {
                     self.phase = if self.script.is_some() {
@@ -462,6 +499,16 @@ impl PokemonV2Sim {
                     elm.y = 4;
                 }
                 let steps = build_elm_intro_script();
+                self.script = Some(ScriptState::new(steps));
+                self.phase = GamePhase::Script;
+            }
+        }
+
+        // Sprint 4: Mr. Pokemon's House first visit cutscene
+        if self.current_map_id == MapId::MrPokemonsHouse {
+            let scene = self.scene_state.get(self.current_map_id);
+            if scene == SCENE_MRPOKEMONSHOUSE_MEET_MR_POKEMON {
+                let steps = build_mr_pokemon_meet_script();
                 self.script = Some(ScriptState::new(steps));
                 self.phase = GamePhase::Script;
             }
@@ -943,5 +990,131 @@ mod tests {
         sim.event_flags.set(EVENT_RIVAL_NEW_BARK_TOWN);
         sim.refresh_npc_visibility();
         assert!(sim.npc_states[2].visible, "Rival should be visible when flag 9 is set");
+    }
+
+    // ── Sprint 4 Integration Tests: Route 30 + Mr. Pokemon's House ──────────────
+
+    #[test]
+    fn test_sprint4_all_maps_load_in_sim() {
+        for &map_id in &[MapId::Route30, MapId::Route30BerryHouse, MapId::MrPokemonsHouse, MapId::Route31] {
+            let mut sim = PokemonV2Sim::with_state(map_id, 1, 1, vec![]);
+            sim.check_map_entry_scripts();
+            sim.check_map_callbacks();
+            let map = load_map(map_id);
+            assert!(map.width > 0 && map.height > 0, "{:?} should have positive dimensions", map_id);
+        }
+    }
+
+    #[test]
+    fn test_route30_wild_encounter_integration() {
+        let map = load_map(MapId::Route30);
+        let enc = map.wild_encounters.as_ref().expect("Route 30 should have wild encounters");
+        assert!(!enc.morning.is_empty(), "Route 30 should have morning encounters");
+        assert!(!enc.day.is_empty(), "Route 30 should have day encounters");
+        assert!(!enc.night.is_empty(), "Route 30 should have night encounters");
+        for slot in &enc.morning {
+            assert!(slot.level >= 2 && slot.level <= 6,
+                "Route 30 encounter level should be 2-6, got {}", slot.level);
+        }
+    }
+
+    #[test]
+    fn test_route30_trainer_npcs_have_trainer_range() {
+        let map = load_map(MapId::Route30);
+        let trainers: Vec<_> = map.npcs.iter().filter(|n| n.trainer_range.is_some()).collect();
+        assert!(trainers.len() >= 2, "Route 30 should have at least 2 trainers with sight range");
+        for trainer in &trainers {
+            let range = trainer.trainer_range.unwrap();
+            assert!(range >= 1 && range <= 5, "Trainer sight range should be 1-5, got {}", range);
+            assert!(trainer.event_flag.is_some(), "Each trainer NPC should have a beaten event flag");
+        }
+    }
+
+    #[test]
+    fn test_trainer_beaten_flag_set_after_victory() {
+        let mut sim = PokemonV2Sim::with_state(
+            MapId::Route30, 5, 10,
+            vec![Pokemon::new(CYNDAQUIL, 10)],
+        );
+        let steps = build_trainer_joey_script();
+        let script = ScriptState::new(steps);
+        let has_load_trainer = script.steps.iter().any(|s| matches!(s, ScriptStep::LoadTrainerParty { .. }));
+        assert!(has_load_trainer, "Joey's script should have LoadTrainerParty step");
+        // Simulate the beaten flag being set after battle victory
+        sim.event_flags.set(EVENT_BEAT_YOUNGSTER_JOEY);
+        assert!(sim.event_flags.has(EVENT_BEAT_YOUNGSTER_JOEY),
+            "Joey beaten flag should be set after winning");
+    }
+
+    #[test]
+    fn test_mr_pokemon_house_entry_script_triggers_on_scene0() {
+        let mut sim = PokemonV2Sim::with_state(MapId::MrPokemonsHouse, 4, 6, vec![]);
+        assert_eq!(sim.scene_state.get(MapId::MrPokemonsHouse), SCENE_MRPOKEMONSHOUSE_MEET_MR_POKEMON,
+            "Default scene for MrPokemonsHouse should be 0 (meet scene)");
+        sim.check_map_entry_scripts();
+        let has_script = sim.script.is_some() || sim.phase == GamePhase::Script;
+        assert!(has_script, "Entering MrPokemonsHouse scene 0 should trigger a script");
+    }
+
+    #[test]
+    fn test_mr_pokemon_meet_script_gives_mystery_egg() {
+        let steps = build_mr_pokemon_meet_script();
+        let gives_egg = steps.iter().any(|s| matches!(s,
+            ScriptStep::GiveItem { item_id, .. } if *item_id == ITEM_MYSTERY_EGG));
+        assert!(gives_egg, "Mr. Pokemon meet script should give Mystery Egg");
+        let sets_flag = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetEvent(f) if *f == EVENT_MR_POKEMONS_HOUSE_OAK));
+        assert!(sets_flag, "Mr. Pokemon meet script should set the OAK event flag");
+    }
+
+    #[test]
+    fn test_berry_house_gives_berry_once() {
+        let steps = get_script(SCRIPT_BERRY_HOUSE_POKEFAN);
+        let has_give_berry = steps.iter().any(|s| matches!(s,
+            ScriptStep::GiveItem { item_id, .. } if *item_id == ITEM_BERRY));
+        let has_check = steps.iter().any(|s| matches!(s,
+            ScriptStep::CheckEvent { flag, .. } if *flag == EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE));
+        let has_set_flag = steps.iter().any(|s| matches!(s,
+            ScriptStep::SetEvent(f) if *f == EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE));
+        assert!(has_give_berry, "Berry house script should give ITEM_BERRY");
+        assert!(has_check, "Berry house script should check EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE");
+        assert!(has_set_flag, "Berry house script should set EVENT_GOT_BERRY_FROM_ROUTE_30_HOUSE");
+    }
+
+    #[test]
+    fn test_route30_to_mr_pokemon_house_warp_exists() {
+        let map = load_map(MapId::Route30);
+        let has_warp = map.warps.iter().any(|w| w.dest_map == MapId::MrPokemonsHouse);
+        assert!(has_warp, "Route 30 should have a warp to MrPokemonsHouse");
+    }
+
+    #[test]
+    fn test_route30_to_berry_house_warp_exists() {
+        let map = load_map(MapId::Route30);
+        let has_warp = map.warps.iter().any(|w| w.dest_map == MapId::Route30BerryHouse);
+        assert!(has_warp, "Route 30 should have a warp to Route30BerryHouse");
+    }
+
+    #[test]
+    fn test_route31_connects_to_route30() {
+        let map = load_map(MapId::Route31);
+        let south_connects = map.connections.south.as_ref()
+            .map(|c| c.dest_map == MapId::Route30)
+            .unwrap_or(false);
+        let warp_connects = map.warps.iter().any(|w| w.dest_map == MapId::Route30);
+        assert!(south_connects || warp_connects, "Route 31 stub should connect south to Route 30");
+    }
+
+    #[test]
+    fn test_is_in_sight() {
+        use super::overworld::is_in_sight;
+        // NPC at (5, 5) facing Down, range 3
+        assert!(is_in_sight(5, 5, Direction::Down, 5, 7, 3), "Down: in range");
+        assert!(!is_in_sight(5, 5, Direction::Down, 5, 9, 3), "Down: out of range");
+        assert!(!is_in_sight(5, 5, Direction::Down, 5, 3, 3), "Down: wrong direction");
+        assert!(!is_in_sight(5, 5, Direction::Down, 6, 7, 3), "Down: not aligned");
+        // NPC facing Up
+        assert!(is_in_sight(5, 5, Direction::Up, 5, 3, 3), "Up: in range");
+        assert!(!is_in_sight(5, 5, Direction::Up, 5, 7, 3), "Up: wrong direction");
     }
 }

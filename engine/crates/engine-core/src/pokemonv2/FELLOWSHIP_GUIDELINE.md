@@ -21,6 +21,22 @@ The team lead is responsible for:
 
 ---
 
+## Engine-Wide Changes Are Allowed
+
+The Fellowship is NOT restricted to the `pokemonv2/` folder. Sprints may introduce changes to **core engine code** outside of `pokemonv2/` when architecturally appropriate. Examples:
+
+- New component types in `components/`
+- New systems in `systems/`
+- Extensions to `world.rs`, `engine.rs`, or `simulation.rs`
+- Shared rendering utilities in `shapes.rs` or `render/`
+- New traits or abstractions that benefit the engine platform
+
+**Why this matters:** Crusty is a game engine platform, not just a Pokemon game. Concepts built for Pokemon (tile maps, NPC systems, dialogue engines, battle systems, inventory management, event flags, scene scripting) will transfer directly to future game experiments — including a planned Stardew Valley-style simulation. Good engine abstractions benefit all future builds.
+
+**Rule of thumb:** If a system is Pokemon-specific (starter selection, Gym badges, Pokédex), keep it in `pokemonv2/`. If it's a general game concept (tile-based maps, NPC pathfinding, dialogue trees, inventory, scripted cutscenes), consider whether it belongs in the core engine.
+
+---
+
 ## Sprint Pipeline
 
 Each sprint follows this pipeline in order:
@@ -238,6 +254,10 @@ Once you've determined the actual state, update `progress.jsonl` with the correc
 ---
 
 ## Process Refinements Log
+
+### 2026-03-08: Engine-Wide Changes Allowed
+**Context**: User clarified that the Fellowship can modify core engine code outside pokemonv2/, not just game-specific code. Engine abstractions (tile maps, NPC systems, dialogue, scripting) benefit future game experiments including a planned Stardew Valley build.
+**Impact**: Agents should consider whether new systems belong in core engine vs pokemonv2/ based on generality.
 
 ### 2026-03-08: Continuous Operation Rule Added
 **Problem**: Team lead was pausing between sprints to ask for user confirmation, wasting time when user is AFK.

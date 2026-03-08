@@ -563,6 +563,9 @@ pub const MOVE_THIEF: MoveId = 168;
 pub const MOVE_SKETCH: MoveId = 166;
 pub const MOVE_HORN_DRILL: MoveId = 32;
 pub const MOVE_KINESIS: MoveId = 134;
+// Sprint 163 moves
+pub const MOVE_SLEEP_TALK: MoveId = 214;
+pub const MOVE_SNORE: MoveId = 173;
 // ─── Sprint 141: Battle mechanics moves ─────────────────
 pub const MOVE_FLY: MoveId = 19;
 pub const MOVE_DIG: MoveId = 91;
@@ -2348,7 +2351,6 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SKETCH, name: "Sketch", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 1, description: "Copies the foe's last used move permanently." },
     MoveData { id: MOVE_HORN_DRILL, name: "Horn Drill", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 1, accuracy: 30, pp: 5, description: "A one-hit KO attack that uses a horn." },
     MoveData { id: MOVE_KINESIS, name: "Kinesis", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 80, pp: 15, description: "Lowers the foe's accuracy." },
-    MoveData { id: MOVE_SPITE, name: "Spite", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Cuts the PP of the foe's last move." },
     // Sprint 141: Battle mechanics moves
     MoveData { id: MOVE_FLY, name: "Fly", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 70, accuracy: 95, pp: 15, description: "Flies up on the first turn, then strikes next turn." },
     MoveData { id: MOVE_DIG, name: "Dig", move_type: PokemonType::Ground, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 10, description: "Digs underground, then attacks next turn." },
@@ -2385,6 +2387,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_REFLECT, name: "Reflect", move_type: PokemonType::Psychic, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Halves physical damage for 5 turns." },
     MoveData { id: MOVE_HEAL_BELL, name: "Heal Bell", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Cures all party Pokemon of status conditions." },
     MoveData { id: MOVE_THIEF, name: "Thief", move_type: PokemonType::Dark, category: MoveCategory::Special, power: 40, accuracy: 100, pp: 10, description: "Attacks and steals the foe's held item." },
+    // Sprint 163 moves
+    MoveData { id: MOVE_SLEEP_TALK, name: "Sleep Talk", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Randomly uses a move while asleep." },
+    MoveData { id: MOVE_SNORE, name: "Snore", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 15, description: "An attack usable only while asleep. 30% flinch." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

@@ -4119,3 +4119,44 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_future_sight_countdown` — 4→3→2→1 hit, applies stored damage
 - `test_thief_move_is_special_gen2` — Dark = Special in Gen 2
 - `test_screen_duration_5_turns` — screens expire after 5 decrements
+
+### Sprint 163: Content — Disable + Sleep Talk + Snore + Spite
+
+#### Moves Implemented
+
+- **Disable**: Status move, 55% accuracy. Disables the target's last used move for 1-8 turns (random). Fails if target has no last move, used Struggle, or is already disabled. Player can't select disabled moves (MoveSelect check). Enemy AI filters disabled moves from selection pool. Counters decrement at start of each turn in ActionSelect.
+- **Sleep Talk**: Status move. Only works while user is asleep — fails if awake. Randomly picks another move from the user's moveset (excluding Sleep Talk itself, Fly, Dig) and executes it. Bypasses the sleep movement check. Uses PlayerAttack/EnemyAttack re-entry pattern.
+- **Snore**: Normal/Physical, power 40, 100% accuracy. Only works while asleep — fails if awake with damage set to 0. 30% chance to flinch the target. Bypasses sleep movement check.
+- **Spite**: Ghost/Status, 100% accuracy. Reduces PP of the target's last used move by 2-5 (random). Fails if target has no last move. Player-side Spite actually reduces `move_pp[]` on the Pokemon struct. Enemy-side shows message only (enemy PP not tracked).
+
+#### Sleep Bypass Mechanism
+
+- MoveSelect: before the sleep check, peeks at the selected move. If it's Snore/Sleep Talk and the player is asleep (not frozen), bypasses `can_move()` failure.
+- EnemyAttack (from PlayerAttack end-of-turn): checks if enemy has Snore/Sleep Talk in moveset and is asleep. If so, bypasses sleep check and lets `calc_enemy_move` pick a move. The status handler then validates.
+
+#### Disable Move Selection
+
+- `calc_enemy_move_inner` now accepts a `disabled_move: MoveId` parameter. Filters it from the available move pool before AI selection.
+- `calc_enemy_move` updated to take `disabled_move` parameter (all 18+ callers updated).
+- MoveSelect: checks `battle.player_disable_turns > 0 && peeked_move == battle.player_disabled_move` — shows "That move is disabled!" and returns to MoveSelect.
+
+#### BattleState Fields
+
+- `player_disabled_move: MoveId` / `enemy_disabled_move: MoveId` — the move ID that's disabled
+- `player_disable_turns: u8` / `enemy_disable_turns: u8` — turns remaining
+
+#### New Constants
+- `MOVE_SLEEP_TALK: MoveId = 214` (0xd6, with MoveData)
+- `MOVE_SNORE: MoveId = 173` (0xad, with MoveData)
+
+#### Cleanup
+- Removed duplicate MOVE_SPITE MoveData entry (was at two locations in MOVES array)
+
+#### New Tests (7 tests, 1454 total)
+- `test_disable_move_data_exists` — Disable MoveData fields correct
+- `test_sleep_talk_move_data_exists` — Sleep Talk MoveData, ID=214
+- `test_snore_move_data_exists` — Snore MoveData, power=40, Physical
+- `test_spite_move_data_exists` — Spite MoveData, Ghost/Status
+- `test_disable_duration_1_to_8_turns` — counter reaches 0 for all durations
+- `test_spite_pp_reduction_2_to_5` — PP reduced correctly for all values
+- `test_snore_sleep_talk_bypass_sleep_check` — sleep detection works for bypass

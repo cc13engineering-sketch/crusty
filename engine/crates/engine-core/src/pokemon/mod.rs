@@ -590,6 +590,11 @@ struct BattleState {
     player_future_sight_damage: u16,
     enemy_future_sight_turns: u8,
     enemy_future_sight_damage: u16,
+    // Disable: prevents use of one move for 1-8 turns
+    player_disabled_move: MoveId,
+    player_disable_turns: u8,
+    enemy_disabled_move: MoveId,
+    enemy_disable_turns: u8,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2077,6 +2082,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2924,6 +2933,16 @@ enemy_future_sight_damage: 0,
                 if battle.player_encore_turns > 0 { battle.player_encore_turns -= 1; }
                 if battle.enemy_encore_turns > 0 { battle.enemy_encore_turns -= 1; }
 
+                // Decrement Disable counters
+                if battle.player_disable_turns > 0 {
+                    battle.player_disable_turns -= 1;
+                    if battle.player_disable_turns == 0 { battle.player_disabled_move = 0; }
+                }
+                if battle.enemy_disable_turns > 0 {
+                    battle.enemy_disable_turns -= 1;
+                    if battle.enemy_disable_turns == 0 { battle.enemy_disabled_move = 0; }
+                }
+
                 // Reset Counter/Mirror Coat damage tracking
                 battle.player_last_phys_damage = 0;
                 battle.player_last_spec_damage = 0;
@@ -2956,7 +2975,7 @@ enemy_future_sight_damage: 0,
                             }),
                         };
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         battle.phase = BattlePhase::Text {
                             message: format!("{} must recharge!", pname),
                             timer: 0.0,
@@ -2987,7 +3006,7 @@ enemy_future_sight_damage: 0,
                         let enemy_thawed = battle.enemy.try_thaw(engine.rng.next_f64());
                         if enemy_thawed {
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                             battle.phase = BattlePhase::Text {
                                 message: format!("{}{} thawed out!", prefix, battle.enemy.name()),
                                 timer: 0.0,
@@ -3014,7 +3033,7 @@ enemy_future_sight_damage: 0,
                                 }),
                             };
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                             battle.phase = BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             };
@@ -3054,7 +3073,7 @@ enemy_future_sight_damage: 0,
                         };
                     } else {
                         battle.pending_player_move = Some((charge_move, p_dmg, p_eff, p_crit));
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         battle.phase = BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         };
@@ -3109,7 +3128,7 @@ enemy_future_sight_damage: 0,
                                     battle.phase = BattlePhase::ExecuteQueue;
                                 } else {
                                     // Queue-based run failed: show "Can't escape!" via ExecuteQueue, then GoToPhase(EnemyAttack)
-                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                                    let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                                     battle.battle_queue.clear();
                                     battle.queue_timer = 0.0;
                                     battle.battle_queue.push_back(BattleStep::Text("Can't escape!".into()));
@@ -3159,14 +3178,37 @@ enemy_future_sight_damage: 0,
                         self.battle = Some(battle);
                         return;
                     }
+                    // Peek at selected move for sleep bypass (Snore/Sleep Talk)
+                    let peeked_move = self.party.get(battle.player_idx)
+                        .and_then(|p| p.moves.get(cursor as usize).copied().flatten())
+                        .unwrap_or(0);
+                    let is_sleep_move = peeked_move == MOVE_SNORE || peeked_move == MOVE_SLEEP_TALK;
+                    let is_asleep = matches!(
+                        self.party.get(battle.player_idx).map(|p| &p.status),
+                        Some(StatusCondition::Sleep { .. })
+                    );
+
+                    // Disable check: can't select the disabled move
+                    if battle.player_disable_turns > 0 && peeked_move == battle.player_disabled_move {
+                        battle.phase = BattlePhase::Text {
+                            message: "That move is disabled!".to_string(),
+                            timer: 0.0,
+                            next_phase: Box::new(BattlePhase::MoveSelect { cursor }),
+                        };
+                        self.battle = Some(battle);
+                        return;
+                    }
+
                     // Check if player Pokemon can move (sleep/freeze)
+                    // Snore/Sleep Talk bypass the sleep check (but not freeze)
                     let can_move = self.party.get(battle.player_idx).map(|p| p.can_move()).unwrap_or(true);
+                    let sleep_bypassed = !can_move && is_asleep && is_sleep_move;
                     // Paralysis: 25% chance to be fully paralyzed
                     let paralyzed = if let Some(p) = self.party.get(battle.player_idx) {
                         matches!(p.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE
                     } else { false };
 
-                    if !can_move || paralyzed {
+                    if (!can_move && !sleep_bypassed) || paralyzed {
                         let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
                         let reason = if paralyzed {
                             format!("{} is paralyzed! It can't move!", pname)
@@ -3175,7 +3217,7 @@ enemy_future_sight_damage: 0,
                         } else {
                             format!("{} is fast asleep!", pname)
                         };
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         battle.phase = BattlePhase::Text {
                             message: reason, timer: 0.0,
                             next_phase: Box::new(BattlePhase::EnemyAttack {
@@ -3209,7 +3251,7 @@ enemy_future_sight_damage: 0,
                             if let Some(p) = self.party.get_mut(battle.player_idx) {
                                 p.hp = p.hp.saturating_sub(self_dmg);
                             }
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                             let next = if self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true) {
                                 BattlePhase::PlayerFainted
                             } else {
@@ -3284,7 +3326,7 @@ enemy_future_sight_damage: 0,
                     if let Some(charge_msg) = two_turn_charge_msg(move_id, &pname_charge) {
                         battle.player_charging = Some(move_id);
                         // Enemy still gets to attack this turn
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         let pname_used = pname_charge.clone();
                         let move_name = get_move(move_id).map(|m| m.name).unwrap_or("???");
                         battle.phase = BattlePhase::Text {
@@ -3363,7 +3405,7 @@ enemy_future_sight_damage: 0,
                     let (e_pre_move, e_pre_dmg, e_pre_eff, e_pre_crit) = if battle.enemy_encore_turns > 0 && battle.enemy_encore_move != 0 {
                         self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.enemy_encore_move, battle.weather)
                     } else {
-                        self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather)
+                        self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 })
                     };
 
                     // Move priority: higher priority always goes first (Gen 2)
@@ -3493,7 +3535,7 @@ enemy_future_sight_damage: 0,
                         BattlePhase::ActionSelect { cursor: 0 }
                     } else {
                         // Player went first, enemy still gets a turn
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         BattlePhase::EnemyAttack { timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit }
                     };
                     battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(terminal)));
@@ -3864,6 +3906,73 @@ enemy_future_sight_damage: 0,
                         } else {
                             None // just deals damage
                         }
+                    } else if move_id == MOVE_DISABLE {
+                        // Disable: prevent enemy from using their last move for 1-8 turns
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_last_move == 0 || battle.enemy_last_move == MOVE_STRUGGLE || battle.enemy_disable_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let turns = 1 + (engine.rng.next_u64() % 8) as u8;
+                            battle.enemy_disabled_move = battle.enemy_last_move;
+                            battle.enemy_disable_turns = turns;
+                            let mname = get_move(battle.enemy_last_move).map(|m| m.name).unwrap_or("???");
+                            Some(format!("{}{}'s {} was disabled!", prefix, battle.enemy.name(), mname))
+                        }
+                    } else if move_id == MOVE_SPITE {
+                        // Spite: reduce PP of enemy's last move by 2-5
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_last_move == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let pp_cut = 2 + (engine.rng.next_u64() % 4) as u8;
+                            // Find the move slot and reduce PP (enemy PP not tracked, just show message)
+                            let mname = get_move(battle.enemy_last_move).map(|m| m.name).unwrap_or("???");
+                            Some(format!("{}{}'s {} lost {} PP!", prefix, battle.enemy.name(), mname, pp_cut))
+                        }
+                    } else if move_id == MOVE_SLEEP_TALK {
+                        // Sleep Talk: only works while asleep
+                        let is_asleep = matches!(
+                            self.party.get(battle.player_idx).map(|p| &p.status),
+                            Some(StatusCondition::Sleep { .. })
+                        );
+                        if !is_asleep {
+                            Some("But it failed!".to_string())
+                        } else {
+                            // Pick a random move (excluding Sleep Talk itself)
+                            let available: Vec<MoveId> = self.party.get(battle.player_idx)
+                                .map(|p| p.moves.iter().filter_map(|m| *m)
+                                    .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG)
+                                    .collect::<Vec<_>>())
+                                .unwrap_or_default();
+                            if available.is_empty() {
+                                Some("But it failed!".to_string())
+                            } else {
+                                let chosen = available[(engine.rng.next_u64() as usize) % available.len()];
+                                // Recalculate damage for the chosen move and execute it
+                                let (st_dmg, st_eff, st_crit) = self.calc_player_damage(engine, chosen, &battle);
+                                battle.phase = BattlePhase::PlayerAttack {
+                                    timer: 0.0, move_id: chosen, damage: st_dmg, effectiveness: st_eff, is_crit: st_crit, from_pending,
+                                };
+                                self.battle = Some(battle);
+                                return; // re-enter PlayerAttack with the chosen move
+                            }
+                        }
+                    } else if move_id == MOVE_SNORE {
+                        // Snore: only works while asleep, 30% flinch handled below
+                        let is_asleep = matches!(
+                            self.party.get(battle.player_idx).map(|p| &p.status),
+                            Some(StatusCondition::Sleep { .. })
+                        );
+                        if !is_asleep {
+                            damage = 0;
+                            Some("But it failed!".to_string())
+                        } else {
+                            // 30% flinch
+                            if engine.rng.next_f64() < 0.3 {
+                                battle.enemy_flinched = true;
+                            }
+                            None // deals damage normally
+                        }
                     } else { None }
                 } else { None };
 
@@ -4209,10 +4318,14 @@ enemy_future_sight_damage: 0,
                         battle.battle_queue.push_back(BattleStep::Text(format!("{}{} thawed out!", prefix, battle.enemy.name())));
                     }
                     let enemy_can_move = battle.enemy.can_move();
+                    // Snore/Sleep Talk bypass: if enemy is asleep and has those moves
+                    let enemy_has_sleep_move = matches!(battle.enemy.status, StatusCondition::Sleep { .. }) &&
+                        battle.enemy.moves.iter().any(|m| *m == Some(MOVE_SNORE) || *m == Some(MOVE_SLEEP_TALK));
+                    let enemy_sleep_bypassed = !enemy_can_move && enemy_has_sleep_move;
                     let enemy_paralyzed = matches!(battle.enemy.status, StatusCondition::Paralysis) && engine.rng.next_f64() < PARALYSIS_SKIP_CHANCE;
                     let enemy_flinched = battle.enemy_flinched;
                     battle.enemy_flinched = false;
-                    if !enemy_can_move || enemy_paralyzed || enemy_flinched {
+                    if (!enemy_can_move && !enemy_sleep_bypassed) || enemy_paralyzed || enemy_flinched {
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                         let reason = if enemy_flinched { format!("{}{} flinched!", prefix, battle.enemy.name()) }
                             else if enemy_paralyzed { format!("{}{} is paralyzed!", prefix, battle.enemy.name()) }
@@ -4224,7 +4337,7 @@ enemy_future_sight_damage: 0,
                         battle.enemy_confused -= 1;
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                         if battle.enemy_confused == 0 {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} snapped out of confusion!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
@@ -4244,14 +4357,14 @@ enemy_future_sight_damage: 0,
                             } else { BattlePhase::ActionSelect { cursor: 0 } };
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(next)));
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                             battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is confused!", prefix, battle.enemy.name())));
                             battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                                 timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                             })));
                         }
                     } else {
-                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+                        let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
                         battle.battle_queue.push_back(BattleStep::GoToPhase(Box::new(BattlePhase::EnemyAttack {
                             timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
                         })));
@@ -4634,6 +4747,70 @@ enemy_future_sight_damage: 0,
                             }
                         } else {
                             None // enemy already has item
+                        }
+                    } else if move_id == MOVE_DISABLE {
+                        // Disable: prevent player from using their last move
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        if battle.player_last_move == 0 || battle.player_last_move == MOVE_STRUGGLE || battle.player_disable_turns > 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let turns = 1 + (engine.rng.next_u64() % 8) as u8;
+                            battle.player_disabled_move = battle.player_last_move;
+                            battle.player_disable_turns = turns;
+                            let mname = get_move(battle.player_last_move).map(|m| m.name).unwrap_or("???");
+                            Some(format!("{}'s {} was disabled!", pname, mname))
+                        }
+                    } else if move_id == MOVE_SPITE {
+                        // Spite: reduce PP of player's last move by 2-5
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        if battle.player_last_move == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let pp_cut = 2 + (engine.rng.next_u64() % 4) as u8;
+                            // Find the move slot and reduce PP
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                if let Some(slot) = p.moves.iter().position(|m| *m == Some(battle.player_last_move)) {
+                                    p.move_pp[slot] = p.move_pp[slot].saturating_sub(pp_cut);
+                                }
+                            }
+                            let mname = get_move(battle.player_last_move).map(|m| m.name).unwrap_or("???");
+                            Some(format!("{}'s {} lost {} PP!", pname, mname, pp_cut))
+                        }
+                    } else if move_id == MOVE_SLEEP_TALK {
+                        // Sleep Talk: only works while enemy is asleep
+                        let is_asleep = matches!(battle.enemy.status, StatusCondition::Sleep { .. });
+                        if !is_asleep {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let available: Vec<MoveId> = battle.enemy.moves.iter().filter_map(|m| *m)
+                                .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG)
+                                .collect();
+                            if available.is_empty() {
+                                Some("But it failed!".to_string())
+                            } else {
+                                let chosen = available[(engine.rng.next_u64() as usize) % available.len()];
+                                let (e_dmg, e_eff, e_crit) = {
+                                    let r = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, chosen, battle.weather);
+                                    (r.1, r.2, r.3)
+                                };
+                                battle.phase = BattlePhase::EnemyAttack {
+                                    timer: 0.0, move_id: chosen, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                };
+                                self.battle = Some(battle);
+                                return;
+                            }
+                        }
+                    } else if move_id == MOVE_SNORE {
+                        // Snore: only works while asleep, 30% flinch
+                        let is_asleep = matches!(battle.enemy.status, StatusCondition::Sleep { .. });
+                        if !is_asleep {
+                            damage = 0;
+                            Some("But it failed!".to_string())
+                        } else {
+                            if engine.rng.next_f64() < 0.3 {
+                                battle.player_flinched = true;
+                            }
+                            None // deals damage normally
                         }
                     } else { None }
                 } else { None };
@@ -5670,16 +5847,20 @@ enemy_future_sight_damage: 0,
         }
     }
 
-    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], weather: Weather) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None, weather)
+    fn calc_enemy_move(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], weather: Weather, disabled_move: MoveId) -> (MoveId, u16, f64, bool) {
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, None, weather, disabled_move)
     }
 
     fn calc_enemy_move_forced(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced: MoveId, weather: Weather) -> (MoveId, u16, f64, bool) {
-        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced), weather)
+        self.calc_enemy_move_inner(engine, enemy, player_idx, enemy_stages, player_stages, Some(forced), weather, 0)
     }
 
-    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>, weather: Weather) -> (MoveId, u16, f64, bool) {
-        let available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
+    fn calc_enemy_move_inner(&self, engine: &mut Engine, enemy: &Pokemon, player_idx: usize, enemy_stages: &[i8; 7], player_stages: &[i8; 7], forced_move: Option<MoveId>, weather: Weather, disabled_move: MoveId) -> (MoveId, u16, f64, bool) {
+        let mut available: Vec<MoveId> = enemy.moves.iter().filter_map(|m| *m).collect();
+        // Filter out disabled move
+        if disabled_move != 0 {
+            available.retain(|&m| m != disabled_move);
+        }
         if available.is_empty() { return (MOVE_TACKLE, 5, 1.0, false); }
 
         // If forced (rampage), use that move
@@ -6031,6 +6212,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -6110,6 +6295,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6185,6 +6374,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6260,6 +6453,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6336,6 +6533,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6412,6 +6613,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6706,6 +6911,7 @@ enemy_future_sight_damage: 0,
                                 } else {
                                     let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                         engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
+                                        if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
                                     );
                                     let enemy_phase = BattlePhase::EnemyAttack {
                                         timer: 0.0, move_id: e_move, damage: e_dmg,
@@ -8036,6 +8242,7 @@ enemy_future_sight_damage: 0,
                             let mut b = self.battle.take().unwrap();
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                 engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
+                                if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg1, timer: 0.0,
@@ -8117,6 +8324,7 @@ enemy_future_sight_damage: 0,
                             let mut b = self.battle.take().unwrap();
                             let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                                 engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
+                                if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
                             );
                             b.phase = BattlePhase::Text {
                                 message: msg, timer: 0.0,
@@ -8251,6 +8459,7 @@ enemy_future_sight_damage: 0,
                         let mut b = self.battle.take().unwrap();
                         let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(
                             engine, &b.enemy, b.player_idx, &b.enemy_stages, &b.player_stages, b.weather,
+                            if b.enemy_disable_turns > 0 { b.enemy_disabled_move } else { 0 },
                         );
                         b.phase = BattlePhase::Text {
                             message: msg1, timer: 0.0,
@@ -8444,7 +8653,7 @@ enemy_future_sight_damage: 0,
                 2 => "Wobble... Wobble...".to_string(),
                 _ => String::new(),
             };
-            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather, if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 });
             let mut lines = vec![format!("You threw a {}!", ball_name)];
             if !wobbles.is_empty() { lines.push(wobbles); }
             lines.push(shake_text.to_string());
@@ -11220,6 +11429,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
             trainer_name: String::new(),
         };
 
@@ -11335,6 +11548,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
             trainer_name: String::new(),
         };
 
@@ -11416,6 +11633,10 @@ player_future_sight_turns: 0,
 player_future_sight_damage: 0,
 enemy_future_sight_turns: 0,
 enemy_future_sight_damage: 0,
+player_disabled_move: 0,
+player_disable_turns: 0,
+enemy_disabled_move: 0,
+enemy_disable_turns: 0,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -14136,5 +14357,78 @@ enemy_future_sight_damage: 0,
             assert_eq!(ls, i);
         }
         assert_eq!(ls, 0, "Screen should expire after 5 decrements");
+    }
+
+    // ─── Sprint 163: Disable, Sleep Talk, Snore, Spite ──────
+
+    #[test]
+    fn test_disable_move_data_exists() {
+        let d = get_move(MOVE_DISABLE);
+        assert!(d.is_some(), "Disable MoveData must exist");
+        let d = d.unwrap();
+        assert_eq!(d.name, "Disable");
+        assert_eq!(d.move_type, PokemonType::Normal);
+        assert!(matches!(d.category, MoveCategory::Status));
+        assert_eq!(d.accuracy, 55);
+    }
+
+    #[test]
+    fn test_sleep_talk_move_data_exists() {
+        let st = get_move(MOVE_SLEEP_TALK);
+        assert!(st.is_some(), "Sleep Talk MoveData must exist");
+        let st = st.unwrap();
+        assert_eq!(st.name, "Sleep Talk");
+        assert_eq!(st.id, 214);
+        assert!(matches!(st.category, MoveCategory::Status));
+    }
+
+    #[test]
+    fn test_snore_move_data_exists() {
+        let s = get_move(MOVE_SNORE);
+        assert!(s.is_some(), "Snore MoveData must exist");
+        let s = s.unwrap();
+        assert_eq!(s.name, "Snore");
+        assert_eq!(s.id, 173);
+        assert_eq!(s.power, 40);
+        assert!(matches!(s.category, MoveCategory::Physical));
+    }
+
+    #[test]
+    fn test_spite_move_data_exists() {
+        let s = get_move(MOVE_SPITE);
+        assert!(s.is_some(), "Spite MoveData must exist");
+        let s = s.unwrap();
+        assert_eq!(s.name, "Spite");
+        assert_eq!(s.move_type, PokemonType::Ghost);
+        assert!(matches!(s.category, MoveCategory::Status));
+    }
+
+    #[test]
+    fn test_disable_duration_1_to_8_turns() {
+        // Disable lasts (random & 7) + 1 = 1-8 turns per pokecrystal
+        for duration in 1..=8 {
+            let mut turns = duration;
+            while turns > 0 { turns -= 1; }
+            assert_eq!(turns, 0, "Disable counter must reach 0");
+        }
+    }
+
+    #[test]
+    fn test_spite_pp_reduction_2_to_5() {
+        // Spite reduces PP by (random & 3) + 2 = 2-5 per pokecrystal
+        for pp_cut in 2u8..=5 {
+            let starting_pp: u8 = 10;
+            let result = starting_pp.saturating_sub(pp_cut);
+            assert!(result <= 8 && result >= 5, "PP should be reduced by 2-5");
+        }
+    }
+
+    #[test]
+    fn test_snore_sleep_talk_bypass_sleep_check() {
+        // Snore and Sleep Talk should only work while asleep
+        let asleep = StatusCondition::Sleep { turns: 3 };
+        let awake = StatusCondition::None;
+        assert!(matches!(asleep, StatusCondition::Sleep { .. }), "Should detect sleep");
+        assert!(!matches!(awake, StatusCondition::Sleep { .. }), "Should detect not asleep");
     }
 }

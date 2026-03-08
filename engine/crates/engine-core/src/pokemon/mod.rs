@@ -382,6 +382,7 @@ fn status_move_stage_effect(move_id: MoveId) -> Option<(bool, usize, i8)> {
         MOVE_DEFENSE_CURL => Some((false, STAGE_DEF, 1)),
         MOVE_HARDEN => Some((false, STAGE_DEF, 1)),
         MOVE_BARRIER => Some((false, STAGE_DEF, 2)),
+        MOVE_ACID_ARMOR => Some((false, STAGE_DEF, 2)),
         MOVE_SWORDS_DANCE => Some((false, STAGE_ATK, 2)),
         MOVE_AMNESIA => Some((false, STAGE_SPD, 2)),
         MOVE_AGILITY => Some((false, STAGE_SPE, 2)),
@@ -1943,7 +1944,10 @@ impl PokemonSim {
                                 }
                             }
                             self.register_seen(species_id);
-                            let enemy = Pokemon::new(species_id, level);
+                            let mut enemy = Pokemon::new(species_id, level);
+                            // Roll for wild held item (Gen 2: 23% item1, 2% item2)
+                            let rng_byte = (engine.rng.next_u64() & 0xFF) as u8;
+                            enemy.held_item = roll_wild_held_item(species_id, rng_byte);
                             let player_idx = self.party.iter().position(|p| !p.is_fainted()).unwrap_or(0);
                             let player_hp = self.party.get(player_idx).map(|p| p.hp as f64).unwrap_or(0.0);
                             self.battle = Some(BattleState {
@@ -12245,5 +12249,96 @@ weather_turns: 0,
         }
         assert_eq!(p.hp, hp_before + 10);
         assert_eq!(p.held_item, HELD_NONE); // consumed
+    }
+
+    // ─── Sprint 154: Missing moves + Wild held items ───────
+
+    #[test]
+    fn test_sprint154_new_moves_exist() {
+        // Verify all 12 new E4/Champion moves have MoveData
+        assert!(get_move(MOVE_EGG_BOMB).is_some());
+        assert!(get_move(MOVE_HI_JUMP_KICK).is_some());
+        assert!(get_move(MOVE_ACID_ARMOR).is_some());
+        assert!(get_move(MOVE_SPIDER_WEB).is_some());
+        assert!(get_move(MOVE_MACH_PUNCH).is_some());
+        assert!(get_move(MOVE_SPIKES).is_some());
+        assert!(get_move(MOVE_DETECT).is_some());
+        assert!(get_move(MOVE_GIGA_DRAIN).is_some());
+        assert!(get_move(MOVE_BATON_PASS).is_some());
+        assert!(get_move(MOVE_VITAL_THROW).is_some());
+        assert!(get_move(MOVE_MOONLIGHT).is_some());
+        assert!(get_move(MOVE_ANCIENT_POWER).is_some());
+    }
+
+    #[test]
+    fn test_sprint154_move_data_accuracy() {
+        // Verify key move properties match pokecrystal
+        let egg = get_move(MOVE_EGG_BOMB).unwrap();
+        assert_eq!(egg.power, 100);
+        assert_eq!(egg.accuracy, 75);
+        assert_eq!(egg.move_type, PokemonType::Normal);
+
+        let hjk = get_move(MOVE_HI_JUMP_KICK).unwrap();
+        assert_eq!(hjk.power, 85);
+        assert_eq!(hjk.accuracy, 90);
+        assert_eq!(hjk.move_type, PokemonType::Fighting);
+
+        let vt = get_move(MOVE_VITAL_THROW).unwrap();
+        assert_eq!(vt.power, 70);
+        assert_eq!(vt.accuracy, 255); // never misses
+
+        let gd = get_move(MOVE_GIGA_DRAIN).unwrap();
+        assert_eq!(gd.power, 60);
+        assert_eq!(gd.pp, 5); // Gen 2: 5 PP
+
+        let mp = get_move(MOVE_MACH_PUNCH).unwrap();
+        assert_eq!(mp.power, 40);
+        assert_eq!(mp.move_type, PokemonType::Fighting);
+
+        let ap = get_move(MOVE_ANCIENT_POWER).unwrap();
+        assert_eq!(ap.power, 60);
+        assert_eq!(ap.move_type, PokemonType::Rock);
+    }
+
+    #[test]
+    fn test_sprint154_acid_armor_stage_effect() {
+        // Acid Armor should raise Defense by 2
+        let effect = status_move_stage_effect(MOVE_ACID_ARMOR);
+        assert_eq!(effect, Some((false, STAGE_DEF, 2)));
+    }
+
+    #[test]
+    fn test_sprint154_wild_held_items() {
+        // Dragonite line holds Dragon Scale (rare)
+        let (item1, item2) = wild_held_items(DRAGONITE);
+        assert_eq!(item1, HELD_NONE);
+        assert_eq!(item2, HELD_DRAGON_SCALE);
+
+        // Furret holds Berry (common) or Gold Berry (rare)
+        let (item1, item2) = wild_held_items(162);
+        assert_eq!(item1, HELD_BERRY);
+        assert_eq!(item2, HELD_GOLD_BERRY);
+
+        // Generic Pokemon has no items
+        let (item1, item2) = wild_held_items(RATTATA);
+        assert_eq!(item1, HELD_NONE);
+        assert_eq!(item2, HELD_NONE);
+    }
+
+    #[test]
+    fn test_sprint154_roll_wild_held_item() {
+        // rng_byte 0-5 = item2 (rare)
+        assert_eq!(roll_wild_held_item(DRAGONITE, 0), HELD_DRAGON_SCALE);
+        assert_eq!(roll_wild_held_item(DRAGONITE, 5), HELD_DRAGON_SCALE);
+        // rng_byte 6-63 = item1 (common), but Dragonite has NO_ITEM for item1
+        assert_eq!(roll_wild_held_item(DRAGONITE, 6), HELD_NONE);
+        // Furret: item1 = Berry
+        assert_eq!(roll_wild_held_item(162, 10), HELD_BERRY);
+        assert_eq!(roll_wild_held_item(162, 2), HELD_GOLD_BERRY);
+        // rng_byte 64+ = no item
+        assert_eq!(roll_wild_held_item(DRAGONITE, 64), HELD_NONE);
+        assert_eq!(roll_wild_held_item(DRAGONITE, 255), HELD_NONE);
+        // No items species always returns NONE
+        assert_eq!(roll_wild_held_item(RATTATA, 0), HELD_NONE);
     }
 }

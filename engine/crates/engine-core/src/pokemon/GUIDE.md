@@ -3762,3 +3762,37 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 - `test_sprint153_pokemon_held_item_default` — new Pokemon has HELD_NONE
 - `test_sprint153_leftovers_recovery` — 1/16 max HP recovery math
 - `test_sprint153_berry_consumption` — heal + consumption logic
+
+---
+
+### Sprint 154 — E4/Champion Moves + Wild Held Items
+
+**Type**: Content | **Tests**: 1406 (+5 new, 0 failures)
+
+#### New Moves (12, all used by E4/Champion/Gym Leaders)
+- **Egg Bomb** (Normal, 100 power, 75% acc)
+- **Hi Jump Kick** (Fighting, 85 power, 90% acc, crash damage on miss)
+- **Acid Armor** (Poison, Status, Def +2, added to status_move_stage_effect)
+- **Spider Web** (Bug, Status, prevents fleeing)
+- **Mach Punch** (Fighting, 40 power, priority)
+- **Spikes** (Ground, Status, entry hazard)
+- **Detect** (Fighting, Status, blocks all moves)
+- **Giga Drain** (Grass, 60 power, 5 PP, absorbs 50%)
+- **Baton Pass** (Normal, Status, passes stat changes)
+- **Vital Throw** (Fighting, 70 power, never-miss, -1 priority)
+- **Moonlight** (Normal, Status, weather-dependent healing)
+- **AncientPower** (Rock, 60 power, 10% all-stats boost)
+
+#### Wild Pokemon Held Items
+- Implemented `wild_held_items(species_id)` mapping species to (item1, item2) per pokecrystal
+- `roll_wild_held_item(species_id, rng_byte)` — Gen 2 probability: 23% item1, 2% item2, 75% none
+- Applied in wild encounter creation (rng_byte from engine RNG)
+- Species with items: Dragonite line (Dragon Scale), Furret (Berry/Gold Berry), Pikachu (Berry), Fearow/Dodrio (Sharp Beak), Butterfree (SilverPowder), Beedrill (Poison Barb), Magnemite/Magneton (Metal Coat)
+
+#### Test Results
+- **1406 tests passing** (+5 new, 0 failures)
+- `test_sprint154_new_moves_exist` — all 12 moves have MoveData
+- `test_sprint154_move_data_accuracy` — key properties match pokecrystal
+- `test_sprint154_acid_armor_stage_effect` — Def +2 verified
+- `test_sprint154_wild_held_items` — species→item mapping
+- `test_sprint154_roll_wild_held_item` — probability thresholds

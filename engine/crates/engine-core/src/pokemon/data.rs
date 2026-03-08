@@ -165,6 +165,44 @@ pub fn held_item_name(item: u8) -> &'static str {
     }
 }
 
+/// Wild Pokemon held item tables (per pokecrystal base_stats/*.asm).
+/// Returns (item1, item2) where item1 has 23% chance, item2 has 2% chance.
+/// Most Pokemon have (NO_ITEM, NO_ITEM).
+pub fn wild_held_items(species_id: SpeciesId) -> (u8, u8) {
+    match species_id {
+        // Dragon-line holds Dragon Scale
+        149 | 148 | 147 | 230 | 116 | 117 => (HELD_NONE, HELD_DRAGON_SCALE), // Dragonite/Dragonair/Dratini/Kingdra/Horsea/Seadra
+        // Metal Coat holders
+        81 | 82 => (HELD_NONE, HELD_METAL_COAT), // Magnemite/Magneton
+        // Berry/Gold Berry holders
+        162 => (HELD_BERRY, HELD_GOLD_BERRY), // Furret
+        25 => (HELD_NONE, HELD_BERRY),         // Pikachu
+        // Sharp Beak
+        22 | 85 => (HELD_NONE, HELD_SHARP_BEAK), // Fearow/Dodrio
+        // Silver Powder
+        12 => (HELD_NONE, HELD_SILVER_POWDER), // Butterfree
+        // Poison Barb
+        15 => (HELD_NONE, HELD_POISON_BARB), // Beedrill
+        _ => (HELD_NONE, HELD_NONE),
+    }
+}
+
+/// Roll for a wild Pokemon's held item using provided RNG value (0-255 range).
+/// Gen 2: 0-5 = item2 (2%), 6-63 = item1 (23%), 64-255 = no item (75%).
+pub fn roll_wild_held_item(species_id: SpeciesId, rng_byte: u8) -> u8 {
+    let (item1, item2) = wild_held_items(species_id);
+    if item1 == HELD_NONE && item2 == HELD_NONE {
+        return HELD_NONE;
+    }
+    if rng_byte < 6 && item2 != HELD_NONE {
+        item2
+    } else if rng_byte < 64 && item1 != HELD_NONE {
+        item1
+    } else {
+        HELD_NONE
+    }
+}
+
 // ─── Species IDs ────────────────────────────────────────
 pub const CHIKORITA: SpeciesId = 152;
 pub const BAYLEEF: SpeciesId = 153;
@@ -529,6 +567,19 @@ pub const MOVE_CLAMP: MoveId = 128;
 // ─── Sprint 150: Missing high-crit moves ────────────────
 pub const MOVE_RAZOR_WIND: MoveId = 13;
 pub const MOVE_CRABHAMMER: MoveId = 152;
+// ─── Sprint 154: E4/Champion missing moves ──────────────
+pub const MOVE_EGG_BOMB: MoveId = 121;
+pub const MOVE_HI_JUMP_KICK: MoveId = 136;
+pub const MOVE_ACID_ARMOR: MoveId = 151;
+pub const MOVE_SPIDER_WEB: MoveId = 169;
+pub const MOVE_MACH_PUNCH: MoveId = 183;
+pub const MOVE_SPIKES: MoveId = 191;
+pub const MOVE_DETECT: MoveId = 197;
+pub const MOVE_GIGA_DRAIN: MoveId = 202;
+pub const MOVE_BATON_PASS: MoveId = 226;
+pub const MOVE_VITAL_THROW: MoveId = 233;
+pub const MOVE_MOONLIGHT: MoveId = 236;
+pub const MOVE_ANCIENT_POWER: MoveId = 246;
 
 /// Static species data
 #[derive(Debug)]
@@ -2304,6 +2355,19 @@ const MOVE_DB: &[MoveData] = &[
     // ─── Sprint 151: Weather moves ───────────────────────
     MoveData { id: MOVE_RAIN_DANCE, name: "Rain Dance", move_type: PokemonType::Water, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Boosts Water moves for 5 turns." },
     MoveData { id: MOVE_SANDSTORM, name: "Sandstorm", move_type: PokemonType::Rock, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Causes a sandstorm for 5 turns." },
+    // ─── Sprint 154: E4/Champion missing moves ──────────
+    MoveData { id: MOVE_EGG_BOMB, name: "Egg Bomb", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 100, accuracy: 75, pp: 10, description: "A large egg is hurled at the foe." },
+    MoveData { id: MOVE_HI_JUMP_KICK, name: "Hi Jump Kick", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 85, accuracy: 90, pp: 20, description: "A jumping knee kick. Crash damage on miss." },
+    MoveData { id: MOVE_ACID_ARMOR, name: "Acid Armor", move_type: PokemonType::Poison, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Raises Defense by 2 stages." },
+    MoveData { id: MOVE_SPIDER_WEB, name: "Spider Web", move_type: PokemonType::Bug, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Prevents the foe from fleeing." },
+    MoveData { id: MOVE_MACH_PUNCH, name: "Mach Punch", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 30, description: "A priority punch. Always strikes first." },
+    MoveData { id: MOVE_SPIKES, name: "Spikes", move_type: PokemonType::Ground, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 20, description: "Lays spikes that damage switching-in foes." },
+    MoveData { id: MOVE_DETECT, name: "Detect", move_type: PokemonType::Fighting, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Blocks all attacks this turn." },
+    MoveData { id: MOVE_GIGA_DRAIN, name: "Giga Drain", move_type: PokemonType::Grass, category: MoveCategory::Special, power: 60, accuracy: 100, pp: 5, description: "Absorbs half the damage dealt." },
+    MoveData { id: MOVE_BATON_PASS, name: "Baton Pass", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Switches out, passing stat changes." },
+    MoveData { id: MOVE_VITAL_THROW, name: "Vital Throw", move_type: PokemonType::Fighting, category: MoveCategory::Physical, power: 70, accuracy: 255, pp: 10, description: "Always goes last, but never misses." },
+    MoveData { id: MOVE_MOONLIGHT, name: "Moonlight", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Recovers HP. Amount varies with weather." },
+    MoveData { id: MOVE_ANCIENT_POWER, name: "AncientPower", move_type: PokemonType::Rock, category: MoveCategory::Physical, power: 60, accuracy: 100, pp: 5, description: "10% chance to raise all stats by 1." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

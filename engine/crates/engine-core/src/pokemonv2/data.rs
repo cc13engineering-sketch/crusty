@@ -1,6 +1,9 @@
 // AI-INSTRUCTIONS: pokemonv2/data.rs — Leaf module. No sibling imports.
 // Defines all shared data types: enums, structs, Pokemon, species/move data.
 // Lives at the bottom of the import graph. Everything else imports from here.
+// Sprint 4: Added 7 new species (Caterpie, Metapod, Weedle, Zubat, Poliwag, Ledyba, Spinarak),
+//           7 new moves (StringShot, PoisonSting, Harden, LeechLife, Constrict, Bubble, Supersonic),
+//           ITEM_MYSTERY_EGG, MUSIC_PROF_OAK, MUSIC_JOHTO_TRAINER_BATTLE.
 
 // --- Type Aliases ---
 

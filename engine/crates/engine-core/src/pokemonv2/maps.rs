@@ -2,6 +2,8 @@
 // MapId enum, MapData struct, all warp/NPC/event types, load_map() returning data for all maps.
 // Sprint 2: New maps (Route29 full, CherrygroveCity, Route29Route46Gate, buildings), WildEncounterTable,
 //           C_GRASS/C_LEDGE collision, is_walkable_with_direction, MapConnection handling.
+// Sprint 4: Route30 full (20x54), Route30BerryHouse, MrPokemonsHouse, Route31 stub.
+//           NpcDef.trainer_range for sight-range trainer battles. Route30 encounter data.
 // Import graph: maps.rs <- data.rs ONLY
 
 use super::data::{Direction, NpcState, SpeciesId,

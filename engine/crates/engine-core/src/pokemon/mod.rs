@@ -372,15 +372,16 @@ fn two_turn_charge_msg(move_id: MoveId, user_name: &str) -> Option<String> {
         MOVE_SOLAR_BEAM => Some(format!("{} took in sunlight!", user_name)),
         MOVE_SKULL_BASH => Some(format!("{} lowered its head!", user_name)),
         MOVE_SKY_ATTACK => Some(format!("{} is glowing!", user_name)),
+        MOVE_RAZOR_WIND => Some(format!("{} made a whirlwind!", user_name)),
         _ => None,
     }
 }
 
 /// Returns true if this move has a high critical hit rate (1/4 instead of 1/16).
-/// Gen 2: Karate Chop, Razor Leaf, Crabhammer, Slash, Aeroblast, Cross Chop
-/// (Razor Wind and Crabhammer omitted — moves not yet defined in MOVE_DB)
+/// Gen 2 high-crit: Karate Chop, Razor Wind, Razor Leaf, Crabhammer, Slash, Aeroblast, Cross Chop
+/// Matches pokecrystal data/moves/critical_hit_moves.asm exactly
 fn is_high_crit_move(move_id: MoveId) -> bool {
-    matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_LEAF | MOVE_SLASH | MOVE_AEROBLAST | MOVE_CROSS_CHOP)
+    matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_WIND | MOVE_RAZOR_LEAF | MOVE_CRABHAMMER | MOVE_SLASH | MOVE_AEROBLAST | MOVE_CROSS_CHOP)
 }
 
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
@@ -11878,5 +11879,47 @@ mod headless_tests {
         let skiploom = get_species(SKIPLOOM).unwrap();
         assert_eq!(skiploom.evolution_level, Some(27));
         assert_eq!(skiploom.evolution_into, Some(JUMPLUFF));
+    }
+
+    #[test]
+    fn test_sprint150_new_species_and_evolutions() {
+        // Kingler exists with correct stats
+        let kingler = get_species(KINGLER).unwrap();
+        assert_eq!((kingler.base_hp, kingler.base_attack, kingler.base_defense), (55, 130, 115));
+        assert_eq!((kingler.base_speed, kingler.base_sp_attack, kingler.base_sp_defense), (75, 50, 50));
+        // Krabby evolves into Kingler at 28
+        let krabby = get_species(KRABBY).unwrap();
+        assert_eq!(krabby.evolution_level, Some(28));
+        assert_eq!(krabby.evolution_into, Some(KINGLER));
+        // Persian exists
+        let persian = get_species(PERSIAN).unwrap();
+        assert_eq!(persian.base_speed, 115);
+        // Meowth evolves into Persian
+        let meowth = get_species(MEOWTH).unwrap();
+        assert_eq!(meowth.evolution_into, Some(PERSIAN));
+        // Granbull exists
+        let granbull = get_species(GRANBULL).unwrap();
+        assert_eq!(granbull.base_attack, 120);
+        // Parasect exists
+        let parasect = get_species(PARASECT).unwrap();
+        assert_eq!(parasect.base_attack, 95);
+    }
+
+    #[test]
+    fn test_sprint150_new_moves() {
+        // Crabhammer and Razor Wind exist
+        let crabhammer = get_move(MOVE_CRABHAMMER).unwrap();
+        assert_eq!(crabhammer.power, 90);
+        assert_eq!(crabhammer.accuracy, 85);
+        let razor_wind = get_move(MOVE_RAZOR_WIND).unwrap();
+        assert_eq!(razor_wind.power, 80);
+        // Both are high-crit moves
+        assert!(is_high_crit_move(MOVE_CRABHAMMER));
+        assert!(is_high_crit_move(MOVE_RAZOR_WIND));
+        // Razor Wind is a two-turn charge move
+        assert!(two_turn_charge_msg(MOVE_RAZOR_WIND, "TEST").is_some());
+        // Guillotine and Protect exist
+        assert!(get_move(MOVE_GUILLOTINE).is_some());
+        assert!(get_move(MOVE_PROTECT).is_some());
     }
 }

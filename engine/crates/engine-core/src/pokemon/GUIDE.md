@@ -3624,3 +3624,40 @@ Full QA audit of Sprint 135 (new maps) and Sprint 136 (bug fixes). Fixed encount
 - **1389 tests passing** (+2 new QA tests, 0 failures)
 - `test_sprint149_qa_species_stats` — all 5 species stats verified against pokecrystal
 - `test_sprint149_qa_evolution_levels` — Pidgeotto→Pidgeot(36), Psyduck→Golduck(33), Skiploom→Jumpluff(27)
+
+---
+
+### Sprint 150 — Missing Moves + Species + Type Chart (Content)
+
+#### New Moves (4)
+- **Razor Wind** (Normal, 80 power, 75 acc, 10 PP) — two-turn charge, high-crit
+- **Crabhammer** (Water, 90 power, 85 acc, 10 PP) — high-crit
+- **Guillotine** (Normal, OHKO, 30 acc, 5 PP) — one-hit KO move
+- **Protect** (Normal, Status, 100 acc, 10 PP) — blocks all attacks
+
+#### Complete High-Crit Move List
+Now matches pokecrystal `data/moves/critical_hit_moves.asm` exactly (7 moves):
+Karate Chop, Razor Wind, Razor Leaf, Crabhammer, Slash, Aeroblast, Cross Chop
+
+#### Razor Wind Two-Turn Charge
+Added to `two_turn_charge_msg()`: "{name} made a whirlwind!" (matches pokecrystal common_2.asm)
+
+#### New Species (4)
+- **Kingler** (99) — Water, 55/130/115/75/50/50, learns Crabhammer at L49
+- **Persian** (53) — Normal, 65/70/60/115/65/65, learns Slash at L53
+- **Parasect** (47) — Bug/Grass, 60/95/80/30/60/80
+- **Granbull** (210) — Normal, 90/120/75/45/60/60
+
+#### Fixed Evolution Links (4)
+- Krabby → Kingler (L28)
+- Meowth → Persian (L28) — changed raw ID 53 → named constant
+- Paras → Parasect (L24) — changed raw ID 47 → named constant
+- Snubbull → Granbull (L23) — changed raw ID 210 → named constant
+
+#### Type Chart
+Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — all correct.
+
+#### Test Results
+- **1391 tests passing** (+2 new, 0 failures)
+- `test_sprint150_new_species_and_evolutions` — species stats, evolution chains
+- `test_sprint150_new_moves` — move data, high-crit flags, charge messages

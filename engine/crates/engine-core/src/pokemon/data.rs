@@ -193,6 +193,13 @@ pub const GOLDUCK: SpeciesId = 55;
 pub const JUMPLUFF: SpeciesId = 189;
 pub const SHELLDER: SpeciesId = 90;
 pub const CLOYSTER: SpeciesId = 91;
+// ─── Sprint 150: Kingler + missing evo targets ──────────
+pub const KINGLER: SpeciesId = 99;
+pub const PERSIAN: SpeciesId = 53;
+pub const PARASECT: SpeciesId = 47;
+pub const GRANBULL: SpeciesId = 210;
+pub const MOVE_GUILLOTINE: MoveId = 12; // OHKO move
+pub const MOVE_PROTECT: MoveId = 182;
 
 // ─── Move IDs ───────────────────────────────────────────
 pub const MOVE_SMOG: MoveId = 123;
@@ -425,6 +432,9 @@ pub const MOVE_WHIRLPOOL: MoveId = 250;
 pub const MOVE_SKULL_BASH: MoveId = 130;
 pub const MOVE_SKY_ATTACK: MoveId = 143;
 pub const MOVE_CLAMP: MoveId = 128;
+// ─── Sprint 150: Missing high-crit moves ────────────────
+pub const MOVE_RAZOR_WIND: MoveId = 13;
+pub const MOVE_CRABHAMMER: MoveId = 152;
 
 /// Static species data
 #[derive(Debug)]
@@ -793,7 +803,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 45, base_sp_defense: 55, base_speed: 25,
         catch_rate: 190, base_exp_yield: 70, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_SCRATCH), (7, MOVE_STUN_SPORE), (13, MOVE_POISON_POWDER), (19, MOVE_LEECH_LIFE)],
-        evolution_level: Some(24), evolution_into: Some(47), // Parasect
+        evolution_level: Some(24), evolution_into: Some(PARASECT),
     },
     // ─── Goldenrod / Whitney Gym species ─────────────────
     SpeciesData {
@@ -821,7 +831,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 40, base_sp_defense: 40, base_speed: 30,
         catch_rate: 190, base_exp_yield: 63, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_TACKLE), (1, MOVE_SCARY_FACE), (7, MOVE_BITE), (13, MOVE_LICK)],
-        evolution_level: Some(23), evolution_into: Some(210), // Granbull
+        evolution_level: Some(23), evolution_into: Some(GRANBULL),
     },
     SpeciesData {
         id: JIGGLYPUFF, name: "Jigglypuff",
@@ -839,7 +849,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 40, base_sp_defense: 40, base_speed: 90,
         catch_rate: 255, base_exp_yield: 69, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (11, MOVE_BITE), (20, MOVE_FURY_SWIPES)],
-        evolution_level: Some(28), evolution_into: Some(53), // Persian
+        evolution_level: Some(28), evolution_into: Some(PERSIAN),
     },
     // ─── Route 35-37, Ecruteak, Morty species ───────────────
     SpeciesData {
@@ -1158,7 +1168,7 @@ const SPECIES_DB: &[SpeciesData] = &[
         base_sp_attack: 25, base_sp_defense: 25, base_speed: 50,
         catch_rate: 225, base_exp_yield: 115, growth_rate: GrowthRate::MediumFast,
         learnset: &[(1, MOVE_BUBBLE), (5, MOVE_LEER), (12, MOVE_VICEGRIP), (16, MOVE_HARDEN), (23, MOVE_STOMP)],
-        evolution_level: Some(28), evolution_into: None,
+        evolution_level: Some(28), evolution_into: Some(KINGLER),
     },
     SpeciesData {
         id: STEELIX, name: "Steelix",
@@ -1962,6 +1972,43 @@ const SPECIES_DB: &[SpeciesData] = &[
         learnset: &[(1, MOVE_DEFENSE_CURL), (1, MOVE_SUPERSONIC), (1, MOVE_AURORA_BEAM), (1, MOVE_LEER)],
         evolution_level: None, evolution_into: None,
     },
+    // ─── Sprint 150: Missing evolution targets ───────────
+    SpeciesData {
+        id: KINGLER, name: "Kingler",
+        type1: PokemonType::Water, type2: None,
+        base_hp: 55, base_attack: 130, base_defense: 115,
+        base_sp_attack: 50, base_sp_defense: 50, base_speed: 75,
+        catch_rate: 60, base_exp_yield: 206, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_BUBBLE), (1, MOVE_LEER), (1, MOVE_VICEGRIP), (5, MOVE_LEER), (12, MOVE_VICEGRIP), (16, MOVE_HARDEN), (23, MOVE_STOMP), (27, MOVE_GUILLOTINE), (38, MOVE_PROTECT), (49, MOVE_CRABHAMMER)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: PERSIAN, name: "Persian",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 65, base_attack: 70, base_defense: 60,
+        base_sp_attack: 65, base_sp_defense: 65, base_speed: 115,
+        catch_rate: 90, base_exp_yield: 148, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_GROWL), (1, MOVE_BITE), (11, MOVE_BITE), (20, MOVE_PAY_DAY), (29, MOVE_FAINT_ATTACK), (38, MOVE_SCREECH), (46, MOVE_FURY_SWIPES), (53, MOVE_SLASH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: PARASECT, name: "Parasect",
+        type1: PokemonType::Bug, type2: Some(PokemonType::Grass),
+        base_hp: 60, base_attack: 95, base_defense: 80,
+        base_sp_attack: 60, base_sp_defense: 80, base_speed: 30,
+        catch_rate: 75, base_exp_yield: 128, growth_rate: GrowthRate::MediumFast,
+        learnset: &[(1, MOVE_SCRATCH), (1, MOVE_STUN_SPORE), (1, MOVE_POISON_POWDER), (7, MOVE_STUN_SPORE), (13, MOVE_POISON_POWDER), (19, MOVE_LEECH_LIFE), (37, MOVE_SLASH)],
+        evolution_level: None, evolution_into: None,
+    },
+    SpeciesData {
+        id: GRANBULL, name: "Granbull",
+        type1: PokemonType::Normal, type2: None,
+        base_hp: 90, base_attack: 120, base_defense: 75,
+        base_sp_attack: 60, base_sp_defense: 60, base_speed: 45,
+        catch_rate: 75, base_exp_yield: 178, growth_rate: GrowthRate::Fast,
+        learnset: &[(1, MOVE_TACKLE), (1, MOVE_SCARY_FACE), (4, MOVE_TAIL_WHIP), (13, MOVE_BITE), (19, MOVE_LICK), (28, MOVE_ROAR), (38, MOVE_RAGE), (51, MOVE_TAKE_DOWN)],
+        evolution_level: None, evolution_into: None,
+    },
 ];
 
 // ─── Move Database ──────────────────────────────────────
@@ -2154,6 +2201,11 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_SKULL_BASH, name: "Skull Bash", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 100, accuracy: 100, pp: 15, description: "Raises Defense, then attacks on the next turn." },
     MoveData { id: MOVE_SKY_ATTACK, name: "Sky Attack", move_type: PokemonType::Flying, category: MoveCategory::Physical, power: 140, accuracy: 90, pp: 5, description: "Charges first turn, attacks with high critical ratio next turn." },
     MoveData { id: MOVE_CLAMP, name: "Clamp", move_type: PokemonType::Water, category: MoveCategory::Special, power: 35, accuracy: 75, pp: 10, description: "Traps the foe for 2-5 turns." },
+    // ─── Sprint 150: Missing high-crit moves ─────────────
+    MoveData { id: MOVE_RAZOR_WIND, name: "Razor Wind", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 80, accuracy: 75, pp: 10, description: "Whips up a whirlwind to attack on the next turn." },
+    MoveData { id: MOVE_CRABHAMMER, name: "Crabhammer", move_type: PokemonType::Water, category: MoveCategory::Special, power: 90, accuracy: 85, pp: 10, description: "A large pincer attack with a high critical-hit ratio." },
+    MoveData { id: MOVE_GUILLOTINE, name: "Guillotine", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 0, accuracy: 30, pp: 5, description: "A one-hit KO attack with pincers." },
+    MoveData { id: MOVE_PROTECT, name: "Protect", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 10, description: "Protects the user from all attacks." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────
@@ -2643,8 +2695,9 @@ mod tests {
     /// bugs that have recurred across multiple sprints.
     #[test]
     fn test_all_move_categories_match_gen2_type_rules() {
-        // Hidden Power is Normal-typed but always Special in Gen 2 (actual type varies by DVs)
-        let exceptions: &[MoveId] = &[MOVE_HIDDEN_POWER];
+        // Exceptions: Hidden Power is Normal-typed but always Special in Gen 2;
+        // Guillotine is an OHKO (power=0 but Physical, not Status)
+        let exceptions: &[MoveId] = &[MOVE_HIDDEN_POWER, MOVE_GUILLOTINE];
         let mut errors = Vec::new();
         for m in MOVE_DB.iter() {
             if exceptions.contains(&m.id) { continue; }

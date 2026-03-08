@@ -130,6 +130,96 @@ Located at `<crusty>/sprints/tracker/`:
 
 ---
 
+## Session Recovery — Resuming After Abrupt Cutoff
+
+A new Claude Code session may start with no context about where the Fellowship left off. Here is how to recover:
+
+### Step 1: Read the Tracker Files
+
+```
+Read: <crusty>/sprints/tracker/progress.jsonl
+Read: <crusty>/sprints/tracker/done.jsonl
+```
+
+- `progress.jsonl` tells you **which sprint** is active and **which pipeline stage** it's at
+- `done.jsonl` tells you what's already been completed and committed
+- If `progress.jsonl` is empty and `done.jsonl` has entries, all sprints may be done — check `queued.jsonl`
+
+### Step 2: Check the `fellowship_pipeline_stage` Field
+
+The progress.jsonl entry has a `fellowship_pipeline_stage` field. Map it to where to resume:
+
+| Stage Value | What Happened | What To Do Next |
+|-------------|---------------|-----------------|
+| `not_started` | Sprint was just moved from queue | Spawn Gandalf + Aragorn for architecture |
+| `gandalf_aragorn_architecture` | Architecture in progress or done | Check if `SPRINT{N}_ARCHITECTURE.md` exists in pokemonv2/. If yes → spawn Frodo. If no → spawn Gandalf+Aragorn |
+| `frodo_implementation_plan` | Plan in progress or done | Check if `SPRINT{N}_IMPLEMENTATION_PLAN.md` exists. If yes → spawn Bilbo for review. If no → spawn Frodo |
+| `bilbo_review_round{1,2,3}` | Bilbo reviewing | Check if `BILBO_REVIEW_S{N}.md` exists. If yes → check verdict. ACCEPT → next stage. MODIFICATIONS → spawn Bilbo to incorporate. VETO → back to Gandalf |
+| `bilbo_incorporates_modifications` | Bilbo patching plan | Check if `SPRINT{N}_REVISED_PLAN.md` exists. If yes → spawn Gimli. If no → spawn Bilbo |
+| `gimli_review_round{1,2,3}` | Gimli reviewing | Check if `GIMLI_REVIEW_S{N}.md` exists. If yes → check verdict. ACCEPT → spawn Mary/Pippin/Sam. MODIFICATIONS → send fixes to Bilbo |
+| `parallel_implementation` | Mary/Pippin/Sam coding | Check worktree branches for commits. If all three have commits → spawn Bilbo for review. If some are missing → re-spawn missing agents |
+| `bilbo_final_execution` | Bilbo executing final code | Run `cargo check` — if it passes, run `cargo test`. If all pass → commit and push. If errors → spawn Bilbo to fix |
+| `commit_push` | Committing | Check `git status` — if clean, the commit was made. Check `git log` for the sprint commit. If present → update tracker and move to next sprint |
+
+### Step 3: Check for Artifact Files
+
+The presence or absence of these files in `pokemonv2/` tells you exactly what's been done:
+
+```
+SPRINT{N}_ARCHITECTURE.md      → Architecture proposal exists
+SPRINT{N}_IMPLEMENTATION_PLAN.md → Frodo's plan exists
+BILBO_REVIEW_S{N}.md           → Bilbo reviewed (read verdict inside)
+SPRINT{N}_REVISED_PLAN.md      → Bilbo incorporated modifications
+GIMLI_REVIEW_S{N}.md           → Gimli reviewed (read verdict inside)
+```
+
+### Step 4: Check Git State
+
+```bash
+git log --oneline -5        # See if the sprint was already committed
+git status                  # See if there are uncommitted changes (mid-implementation)
+git branch | grep worktree  # See if Mary/Pippin/Sam branches exist with commits
+cargo check                 # See if current code compiles
+```
+
+### Step 5: Update the Tracker
+
+Once you've determined the actual state, update `progress.jsonl` with the correct `fellowship_pipeline_stage` and `completed_stages` before spawning any agents.
+
+### Quick Recovery Checklist
+
+1. Read `progress.jsonl` → get sprint index and stage
+2. `ls pokemonv2/SPRINT*` → see which artifacts exist
+3. `git log --oneline -3` → see if sprint was committed
+4. `cargo check` → see if code compiles
+5. Update tracker → set correct stage
+6. Spawn the right agents → resume pipeline
+
+### Common Recovery Scenarios
+
+**Session cut during Mary/Pippin/Sam implementation:**
+- Worktree changes may be lost (if agents didn't commit)
+- Check `git branch | grep worktree` for branches with commits
+- If no commits found, re-spawn all three with the WORKTREE COMMIT RULE
+- If some committed, only re-spawn the ones that didn't
+
+**Session cut during Bilbo final execution:**
+- Run `cargo check` — if errors, the implementation is partial
+- Read the current pokemonv2/*.rs files + the revised plan
+- Spawn Bilbo to finish the implementation
+
+**Session cut after commit but before push:**
+- Run `git log --oneline -1` to confirm the commit exists
+- Run `git push` to push it
+- Update tracker files (done.jsonl, progress.jsonl, queued.jsonl)
+
+**Session cut after push but before tracker update:**
+- The code is safe in git. Just update the tracker files:
+  - Move sprint entry from progress.jsonl → done.jsonl (add commit hash)
+  - Move next sprint from queued.jsonl → progress.jsonl
+
+---
+
 ## Process Refinements Log
 
 ### 2026-03-08: Worktree Commit Rule Added

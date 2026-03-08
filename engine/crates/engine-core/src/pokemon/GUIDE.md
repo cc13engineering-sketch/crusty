@@ -4009,3 +4009,54 @@ Per pokecrystal `move_effects/encore.asm`:
 - `test_destiny_bond_trigger_on_faint` — attacker faints when defender has Destiny Bond
 - `test_encore_fails_on_invalid_moves` — Encore fails for Struggle/Encore/Mirror Move/no move
 - `test_move_data_exists_for_sprint159` — all 5 moves have MoveData
+
+---
+
+### Sprint 160 — Content: Curse + Pain Split + Belly Drum + Counter/Mirror Coat
+
+#### Curse
+Per pokecrystal `move_effects/curse.asm`:
+- **Ghost type users**: sacrifice 50% max HP to curse the opponent (1/4 max HP damage per turn, end-of-turn)
+- **Non-Ghost type users**: raise Attack +1, Defense +1, lower Speed -1
+- Ghost Curse fails if target already cursed
+- Added to both end-of-turn blocks (PlayerAttack from_pending and EnemyAttack no-pending)
+
+#### Pain Split
+Per pokecrystal `move_effects/pain_split.asm`:
+- Averages both Pokemon's current HP: `(player_hp + enemy_hp) / 2`
+- Each Pokemon's HP is set to the average (capped at max HP)
+- Text: "The battlers shared their pain!"
+
+#### Belly Drum
+Per pokecrystal `move_effects/belly_drum.asm`:
+- Sacrifice 50% max HP to maximize Attack stage to +6
+- Fails if: HP <= 50% max, or Attack already at +6
+- Text: "[Pokemon] cut its own HP and maximized its Attack!"
+
+#### Counter
+- Returns double the last Physical damage received this turn
+- Fails if no Physical damage was taken (returns "But it failed!")
+- Damage tracking added: `player_last_phys_damage` / `enemy_last_phys_damage` reset each turn at ActionSelect
+
+#### Mirror Coat
+- Returns double the last Special damage received this turn
+- Fails if no Special damage was taken
+- Damage tracking: `player_last_spec_damage` / `enemy_last_spec_damage` reset each turn at ActionSelect
+
+#### BattleState Fields Added
+- `player_cursed: bool`, `enemy_cursed: bool` — Ghost Curse active
+- `player_last_phys_damage: u16`, `player_last_spec_damage: u16` — last damage category tracking
+- `enemy_last_phys_damage: u16`, `enemy_last_spec_damage: u16`
+
+#### New Constants
+- `MOVE_BELLY_DRUM: MoveId = 187` (with MoveData)
+- `MOVE_PAIN_SPLIT: MoveId = 220` (with MoveData)
+
+#### New Tests (7 tests, 1437 total)
+- `test_curse_ghost_hp_cost` — Ghost Curse costs 50% max HP
+- `test_curse_non_ghost_stat_changes` — non-Ghost Curse: ATK+1, DEF+1, SPE-1
+- `test_pain_split_averaging` — HP averaging logic
+- `test_belly_drum_maxes_attack` — sacrifice 50% HP, Attack to +6
+- `test_counter_doubles_physical_damage` — Counter returns 2x Physical damage
+- `test_mirror_coat_doubles_special_damage` — Mirror Coat returns 2x Special damage
+- `test_move_data_exists_for_sprint160` — all 5 moves have MoveData

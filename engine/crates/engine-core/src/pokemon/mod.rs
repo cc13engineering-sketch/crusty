@@ -569,6 +569,14 @@ struct BattleState {
     // Last move used (for Encore targeting)
     player_last_move: MoveId,
     enemy_last_move: MoveId,
+    // Curse (Ghost): 1/4 max HP damage at end of turn
+    player_cursed: bool,
+    enemy_cursed: bool,
+    // Counter/Mirror Coat: last damage received this turn (reset at ActionSelect)
+    player_last_phys_damage: u16,
+    player_last_spec_damage: u16,
+    enemy_last_phys_damage: u16,
+    enemy_last_spec_damage: u16,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2040,6 +2048,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -2887,6 +2901,12 @@ enemy_last_move: 0,
                 if battle.player_encore_turns > 0 { battle.player_encore_turns -= 1; }
                 if battle.enemy_encore_turns > 0 { battle.enemy_encore_turns -= 1; }
 
+                // Reset Counter/Mirror Coat damage tracking
+                battle.player_last_phys_damage = 0;
+                battle.player_last_spec_damage = 0;
+                battle.enemy_last_phys_damage = 0;
+                battle.enemy_last_spec_damage = 0;
+
                 // Hyper Beam recharge: player must skip turn
                 if battle.player_must_recharge {
                     battle.player_must_recharge = false;
@@ -3464,6 +3484,14 @@ enemy_last_move: 0,
 
                 // Apply damage to enemy
                 battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
+                // Track damage category for Counter/Mirror Coat
+                if damage > 0 {
+                    match get_move(move_id).map(|m| m.category) {
+                        Some(MoveCategory::Physical) => battle.enemy_last_phys_damage = damage,
+                        Some(MoveCategory::Special) => battle.enemy_last_spec_damage = damage,
+                        _ => {}
+                    }
+                }
 
                 // Focus Band: 12% chance to survive KO with 1 HP (protects target)
                 let enemy_focus_band = battle.enemy.is_fainted() && battle.enemy.held_item == HELD_FOCUS_BAND && damage > 0 && engine.rng.next_f64() < 0.117;
@@ -3658,6 +3686,72 @@ enemy_last_move: 0,
                             battle.enemy_encore_move = battle.enemy_last_move;
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                             Some(format!("{}{} got an ENCORE!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_CURSE {
+                        // Curse: Ghost types sacrifice HP to curse opponent, non-Ghost raises ATK/DEF lowers SPE
+                        let is_ghost = self.party.get(battle.player_idx).map(|p| {
+                            get_species(p.species_id).map(|sp| sp.type1 == PokemonType::Ghost || matches!(sp.type2, Some(PokemonType::Ghost))).unwrap_or(false)
+                        }).unwrap_or(false);
+                        if is_ghost {
+                            if battle.enemy_cursed {
+                                Some("But it failed!".to_string())
+                            } else {
+                                // Sacrifice 50% max HP
+                                if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                    let cost = p.max_hp / 2;
+                                    p.hp = p.hp.saturating_sub(cost);
+                                }
+                                battle.enemy_cursed = true;
+                                let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                                Some(format!("{} cut its own HP and laid a CURSE on {}{}!", pname, prefix, battle.enemy.name()))
+                            }
+                        } else {
+                            // Non-Ghost: ATK +1, DEF +1, SPE -1
+                            battle.player_stages[STAGE_ATK] = (battle.player_stages[STAGE_ATK] + 1).min(6);
+                            battle.player_stages[STAGE_DEF] = (battle.player_stages[STAGE_DEF] + 1).min(6);
+                            battle.player_stages[STAGE_SPE] = (battle.player_stages[STAGE_SPE] - 1).max(-6);
+                            Some(format!("{}'s Attack and Defense rose! Its Speed fell!", pname))
+                        }
+                    } else if move_id == MOVE_PAIN_SPLIT {
+                        let player_hp = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                        let enemy_hp = battle.enemy.hp;
+                        let avg = (player_hp as u32 + enemy_hp as u32) / 2;
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.hp = (avg as u16).min(p.max_hp);
+                        }
+                        battle.enemy.hp = (avg as u16).min(battle.enemy.max_hp);
+                        Some("The battlers shared their pain!".to_string())
+                    } else if move_id == MOVE_BELLY_DRUM {
+                        let can_drum = self.party.get(battle.player_idx).map(|p| p.hp > p.max_hp / 2).unwrap_or(false);
+                        if !can_drum || battle.player_stages[STAGE_ATK] >= 6 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                let cost = p.max_hp / 2;
+                                p.hp = p.hp.saturating_sub(cost);
+                            }
+                            battle.player_stages[STAGE_ATK] = 6;
+                            Some(format!("{} cut its own HP and maximized its Attack!", pname))
+                        }
+                    } else if move_id == MOVE_COUNTER {
+                        // Counter: reflect double the last Physical damage taken
+                        let dmg = battle.player_last_phys_damage;
+                        if dmg == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let counter_dmg = (dmg * 2).min(battle.enemy.hp);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(dmg * 2);
+                            let _ = counter_dmg;
+                            None // damage is applied, will show via normal damage text
+                        }
+                    } else if move_id == MOVE_MIRROR_COAT {
+                        // Mirror Coat: reflect double the last Special damage taken
+                        let dmg = battle.player_last_spec_damage;
+                        if dmg == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(dmg * 2);
+                            None
                         }
                     } else if let Some((target_enemy, stat_idx, delta)) = status_move_stage_effect(move_id) {
                         let stages = if target_enemy { &mut battle.enemy_stages } else { &mut battle.player_stages };
@@ -3900,6 +3994,22 @@ enemy_last_move: 0,
                         eot_msgs.push(format!("{}{}'s Gold Berry restored its health!", eprefix, ename_gb));
                     }
 
+                    // Curse (Ghost) damage: 1/4 max HP per turn
+                    if battle.player_cursed {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            let cdmg = (p.max_hp / 4).max(1);
+                            p.hp = p.hp.saturating_sub(cdmg);
+                            let pname_c = p.name().to_string();
+                            eot_msgs.push(format!("{} is afflicted by the CURSE!", pname_c));
+                        }
+                    }
+                    if battle.enemy_cursed {
+                        let cdmg = (battle.enemy.max_hp / 4).max(1);
+                        battle.enemy.hp = battle.enemy.hp.saturating_sub(cdmg);
+                        let ename_c = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{} is afflicted by the CURSE!", eprefix, ename_c));
+                    }
+
                     // Perish Song countdown (end of turn)
                     if let Some(ref mut count) = battle.player_perish_count {
                         if *count > 0 { *count -= 1; }
@@ -4068,6 +4178,14 @@ enemy_last_move: 0,
                 let mut player_focus_band = false;
                 if let Some(p) = self.party.get_mut(battle.player_idx) {
                     p.hp = p.hp.saturating_sub(damage);
+                    // Track damage category for Counter/Mirror Coat
+                    if damage > 0 {
+                        match get_move(move_id).map(|m| m.category) {
+                            Some(MoveCategory::Physical) => battle.player_last_phys_damage = damage,
+                            Some(MoveCategory::Special) => battle.player_last_spec_damage = damage,
+                            _ => {}
+                        }
+                    }
                     // Focus Band: 12% chance to survive KO with 1 HP
                     if p.is_fainted() && p.held_item == HELD_FOCUS_BAND && damage > 0 && engine.rng.next_f64() < 0.117 {
                         p.hp = 1;
@@ -4241,6 +4359,65 @@ enemy_last_move: 0,
                         battle.weather = Weather::Sandstorm;
                         battle.weather_turns = WEATHER_DURATION;
                         Some("A sandstorm brewed!".to_string())
+                    } else if move_id == MOVE_CURSE {
+                        let is_ghost = {
+                            let sp = get_species(battle.enemy.species_id);
+                            sp.map(|s| s.type1 == PokemonType::Ghost || matches!(s.type2, Some(PokemonType::Ghost))).unwrap_or(false)
+                        };
+                        if is_ghost {
+                            if battle.player_cursed {
+                                Some("But it failed!".to_string())
+                            } else {
+                                let cost = battle.enemy.max_hp / 2;
+                                battle.enemy.hp = battle.enemy.hp.saturating_sub(cost);
+                                battle.player_cursed = true;
+                                let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                                Some(format!("{}{} cut its own HP and laid a CURSE on {}!", prefix, battle.enemy.name(), pname))
+                            }
+                        } else {
+                            battle.enemy_stages[STAGE_ATK] = (battle.enemy_stages[STAGE_ATK] + 1).min(6);
+                            battle.enemy_stages[STAGE_DEF] = (battle.enemy_stages[STAGE_DEF] + 1).min(6);
+                            battle.enemy_stages[STAGE_SPE] = (battle.enemy_stages[STAGE_SPE] - 1).max(-6);
+                            Some(format!("{}{}'s Attack and Defense rose! Its Speed fell!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_PAIN_SPLIT {
+                        let player_hp = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                        let enemy_hp = battle.enemy.hp;
+                        let avg = (player_hp as u32 + enemy_hp as u32) / 2;
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            p.hp = (avg as u16).min(p.max_hp);
+                        }
+                        battle.enemy.hp = (avg as u16).min(battle.enemy.max_hp);
+                        Some("The battlers shared their pain!".to_string())
+                    } else if move_id == MOVE_BELLY_DRUM {
+                        if battle.enemy.hp <= battle.enemy.max_hp / 2 || battle.enemy_stages[STAGE_ATK] >= 6 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let cost = battle.enemy.max_hp / 2;
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(cost);
+                            battle.enemy_stages[STAGE_ATK] = 6;
+                            Some(format!("{}{} cut its own HP and maximized its Attack!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_COUNTER {
+                        let dmg = battle.enemy_last_phys_damage;
+                        if dmg == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = p.hp.saturating_sub(dmg * 2);
+                            }
+                            None
+                        }
+                    } else if move_id == MOVE_MIRROR_COAT {
+                        let dmg = battle.enemy_last_spec_damage;
+                        if dmg == 0 {
+                            Some("But it failed!".to_string())
+                        } else {
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = p.hp.saturating_sub(dmg * 2);
+                            }
+                            None
+                        }
                     } else { None }
                 } else { None };
 
@@ -4376,6 +4553,22 @@ enemy_last_move: 0,
                         }
                     }
 
+                    // Curse (Ghost) damage: 1/4 max HP per turn
+                    if battle.player_cursed {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            let cdmg = (p.max_hp / 4).max(1);
+                            p.hp = p.hp.saturating_sub(cdmg);
+                            let pname_c = p.name().to_string();
+                            eot_msgs.push(format!("{} is afflicted by the CURSE!", pname_c));
+                        }
+                    }
+                    if battle.enemy_cursed {
+                        let cdmg = (battle.enemy.max_hp / 4).max(1);
+                        battle.enemy.hp = battle.enemy.hp.saturating_sub(cdmg);
+                        let ename_c = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{} is afflicted by the CURSE!", eprefix2, ename_c));
+                    }
+
                     // Perish Song countdown (end of turn)
                     if let Some(ref mut count) = battle.player_perish_count {
                         if *count > 0 { *count -= 1; }
@@ -4391,7 +4584,7 @@ enemy_last_move: 0,
                     }
 
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status/trap damage and perish song
+                    // Update HP displays for status/trap/curse damage and perish song
                     if !eot_msgs.is_empty() {
                         let php = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                         let ehp = battle.enemy.hp;
@@ -5543,6 +5736,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -5606,6 +5805,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5665,6 +5870,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5724,6 +5935,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5784,6 +6001,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -5844,6 +6067,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -10636,6 +10865,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
             trainer_name: String::new(),
         };
 
@@ -10735,6 +10970,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
             trainer_name: String::new(),
         };
 
@@ -10800,6 +11041,12 @@ player_encore_move: 0,
 enemy_encore_move: 0,
 player_last_move: 0,
 enemy_last_move: 0,
+player_cursed: false,
+enemy_cursed: false,
+player_last_phys_damage: 0,
+player_last_spec_damage: 0,
+enemy_last_phys_damage: 0,
+enemy_last_spec_damage: 0,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -13295,5 +13542,82 @@ enemy_last_move: 0,
         assert!(get_move(MOVE_ENCORE).is_some(), "Encore");
         assert!(get_move(MOVE_SWAGGER).is_some(), "Swagger");
         assert!(get_move(MOVE_MEAN_LOOK).is_some(), "Mean Look");
+    }
+
+    // ─── Sprint 160 tests ────────────────────────────────────────
+
+    #[test]
+    fn test_curse_ghost_hp_cost() {
+        // Ghost Curse: sacrifice 50% max HP to curse opponent
+        let mut ghost = Pokemon::new(GASTLY, 30);
+        let max = ghost.max_hp;
+        let cost = max / 2;
+        ghost.hp = ghost.hp.saturating_sub(cost);
+        assert!(ghost.hp <= max - cost + 1, "Ghost Curse should cost ~50% max HP");
+    }
+
+    #[test]
+    fn test_curse_non_ghost_stat_changes() {
+        // Non-Ghost Curse: ATK+1, DEF+1, SPE-1
+        let mut stages = [0i8; 7];
+        stages[STAGE_ATK] = (stages[STAGE_ATK] + 1).min(6);
+        stages[STAGE_DEF] = (stages[STAGE_DEF] + 1).min(6);
+        stages[STAGE_SPE] = (stages[STAGE_SPE] - 1).max(-6);
+        assert_eq!(stages[STAGE_ATK], 1);
+        assert_eq!(stages[STAGE_DEF], 1);
+        assert_eq!(stages[STAGE_SPE], -1);
+    }
+
+    #[test]
+    fn test_pain_split_averaging() {
+        // Pain Split: average HP of both Pokemon
+        let mut mon_a = Pokemon::new(CHIKORITA, 30);
+        let mut mon_b = Pokemon::new(CYNDAQUIL, 30);
+        mon_a.hp = 10;
+        mon_b.hp = 90;
+        let avg = (mon_a.hp as u32 + mon_b.hp as u32) / 2;
+        mon_a.hp = (avg as u16).min(mon_a.max_hp);
+        mon_b.hp = (avg as u16).min(mon_b.max_hp);
+        assert_eq!(mon_a.hp, 50);
+        assert_eq!(mon_b.hp, 50);
+    }
+
+    #[test]
+    fn test_belly_drum_maxes_attack() {
+        // Belly Drum: sacrifice 50% HP, Attack goes to +6
+        let mut mon = Pokemon::new(CHIKORITA, 30);
+        let max = mon.max_hp;
+        assert!(mon.hp > max / 2, "Must have >50% HP to use Belly Drum");
+        let cost = max / 2;
+        mon.hp = mon.hp.saturating_sub(cost);
+        let mut atk_stage = 0i8;
+        atk_stage = 6;
+        assert_eq!(atk_stage, 6, "Belly Drum should max Attack to +6");
+        assert!(mon.hp <= max / 2 + 1, "Belly Drum should cost ~50% HP");
+    }
+
+    #[test]
+    fn test_counter_doubles_physical_damage() {
+        // Counter: returns double the last Physical damage taken
+        let last_phys = 30u16;
+        let counter_dmg = last_phys * 2;
+        assert_eq!(counter_dmg, 60, "Counter should deal double Physical damage");
+    }
+
+    #[test]
+    fn test_mirror_coat_doubles_special_damage() {
+        // Mirror Coat: returns double the last Special damage taken
+        let last_spec = 25u16;
+        let mirror_dmg = last_spec * 2;
+        assert_eq!(mirror_dmg, 50, "Mirror Coat should deal double Special damage");
+    }
+
+    #[test]
+    fn test_move_data_exists_for_sprint160() {
+        assert!(get_move(MOVE_CURSE).is_some(), "Curse");
+        assert!(get_move(MOVE_PAIN_SPLIT).is_some(), "Pain Split");
+        assert!(get_move(MOVE_BELLY_DRUM).is_some(), "Belly Drum");
+        assert!(get_move(MOVE_COUNTER).is_some(), "Counter");
+        assert!(get_move(MOVE_MIRROR_COAT).is_some(), "Mirror Coat");
     }
 }

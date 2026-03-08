@@ -1,15 +1,18 @@
 // AI-INSTRUCTIONS: pokemonv2/events.rs — Event system. Imports data.rs and maps.rs (MapId only).
-// ScriptStep enum, ScriptState, step_script(), EventFlags, SceneState, script registry.
+// Sprint 2: ScriptResult enum, loaded_wild_species on ScriptState, new ScriptStep variants,
+//           15+ new event flags, ~20 new scripts, SceneState expanded to 32 entries.
 // Import graph: events.rs <- data.rs, maps.rs(MapId only)
 
 use super::data::{
-    Direction, Emote, NpcState, PlayerState, Pokemon, SpeciesId,
-    ITEM_BERRY, CYNDAQUIL, TOTODILE, CHIKORITA,
+    BattleType, Direction, Emote, NpcState, PlayerState, Pokemon, SpeciesId,
+    ITEM_BERRY, ITEM_MYSTIC_WATER, ITEM_POTION,
+    CYNDAQUIL, TOTODILE, CHIKORITA,
+    MUSIC_SHOW_ME_AROUND, MUSIC_RIVAL_ENCOUNTER, MUSIC_RIVAL_AFTER,
+    HOPPIP,
 };
 use super::maps::MapId;
 
 // ── Event Flag Constants ──────────────────────────────────────────────────────
-// Maps to pokecrystal's wEventFlags byte array constants.
 
 pub const EVENT_ENGINE_POKEGEAR: u16 = 0;
 pub const EVENT_ENGINE_PHONE_CARD: u16 = 1;
@@ -28,6 +31,22 @@ pub const EVENT_CYNDAQUIL_POKEBALL_IN_ELMS_LAB: u16 = 13;
 pub const EVENT_TOTODILE_POKEBALL_IN_ELMS_LAB: u16 = 14;
 pub const EVENT_CHIKORITA_POKEBALL_IN_ELMS_LAB: u16 = 15;
 pub const EVENT_PLAYERS_HOUSE_1F_NEIGHBOR: u16 = 16;
+// Sprint 2 additions
+pub const EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE: u16 = 17;
+pub const EVENT_GUIDE_GENT_IN_HIS_HOUSE: u16 = 18;
+pub const EVENT_RIVAL_CHERRYGROVE_CITY: u16 = 19;
+pub const EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE: u16 = 20;
+pub const EVENT_ENGINE_MAP_CARD: u16 = 21;
+pub const EVENT_ENGINE_FLYPOINT_CHERRYGROVE: u16 = 22;
+pub const EVENT_DUDE_TALKED_TO_YOU: u16 = 23;
+pub const EVENT_LEARNED_TO_CATCH_POKEMON: u16 = 24;
+pub const EVENT_ROUTE_29_TUSCANY_OF_TUESDAY: u16 = 25;
+pub const EVENT_ROUTE_29_POTION: u16 = 26;
+pub const EVENT_MET_TUSCANY_OF_TUESDAY: u16 = 27;
+pub const EVENT_GOT_PINK_BOW_FROM_TUSCANY: u16 = 28;
+pub const EVENT_GAVE_MYSTERY_EGG_TO_ELM: u16 = 29;
+pub const EVENT_ENGINE_POKEDEX: u16 = 30;
+pub const EVENT_ENGINE_ZEPHYRBADGE: u16 = 31;
 
 // ── Scene Constants ───────────────────────────────────────────────────────────
 
@@ -45,8 +64,16 @@ pub const SCENE_NEWBARKTOWN_NOOP: u8 = 1;
 pub const SCENE_PLAYERSHOUSE1F_MEET_MOM: u8 = 0;
 pub const SCENE_PLAYERSHOUSE1F_NOOP: u8 = 1;
 
+// Sprint 2 scenes
+pub const SCENE_ROUTE29_NOOP: u8 = 0;
+pub const SCENE_ROUTE29_CATCH_TUTORIAL: u8 = 1;
+
+pub const SCENE_CHERRYGROVECITY_NOOP: u8 = 0;
+pub const SCENE_CHERRYGROVECITY_MEET_RIVAL: u8 = 1;
+
 // ── Script ID Constants ───────────────────────────────────────────────────────
 
+// Sprint 1 scripts
 pub const SCRIPT_MEET_MOM: u16 = 1;
 pub const SCRIPT_TEACHER_STOPS_1: u16 = 2;
 pub const SCRIPT_TEACHER_STOPS_2: u16 = 3;
@@ -72,15 +99,66 @@ pub const SCRIPT_LAB_BOOKSHELF: u16 = 22;
 pub const SCRIPT_LAB_TRASHCAN: u16 = 23;
 pub const SCRIPT_LAB_WINDOW: u16 = 24;
 pub const SCRIPT_LAB_PC: u16 = 25;
-// Future stubs
 pub const SCRIPT_MEET_OFFICER: u16 = 100;
 pub const SCRIPT_AIDE_GIVES_POTION: u16 = 101;
 pub const SCRIPT_AIDE_GIVES_BALLS: u16 = 102;
 
+// Sprint 2: Route 29 scripts
+pub const SCRIPT_ROUTE29_SIGN1: u16 = 200;
+pub const SCRIPT_ROUTE29_SIGN2: u16 = 201;
+pub const SCRIPT_CATCHING_TUTORIAL_DUDE: u16 = 202;
+pub const SCRIPT_CATCHING_TUTORIAL_1: u16 = 203;
+pub const SCRIPT_CATCHING_TUTORIAL_2: u16 = 204;
+pub const SCRIPT_ROUTE29_YOUNGSTER: u16 = 205;
+pub const SCRIPT_ROUTE29_TEACHER: u16 = 206;
+pub const SCRIPT_ROUTE29_FISHER: u16 = 207;
+pub const SCRIPT_ROUTE29_COOLTRAINER_M: u16 = 208;
+pub const SCRIPT_ROUTE29_FRUIT_TREE: u16 = 209;
+pub const SCRIPT_ROUTE29_POTION: u16 = 210;
+pub const SCRIPT_TUSCANY: u16 = 211;
+
+// Sprint 2: Route29Route46Gate scripts
+pub const SCRIPT_GATE_OFFICER: u16 = 220;
+pub const SCRIPT_GATE_YOUNGSTER: u16 = 221;
+
+// Sprint 2: CherrygroveCity scripts
+pub const SCRIPT_GUIDE_GENT_CITY: u16 = 230;
+pub const SCRIPT_CHERRYGROVE_RIVAL: u16 = 231;
+pub const SCRIPT_CHERRYGROVE_TEACHER: u16 = 232;
+pub const SCRIPT_CHERRYGROVE_YOUNGSTER: u16 = 233;
+pub const SCRIPT_MYSTIC_WATER_GUY: u16 = 234;
+pub const SCRIPT_CHERRYGROVE_SIGN: u16 = 240;
+pub const SCRIPT_GUIDE_GENT_HOUSE_SIGN: u16 = 241;
+pub const SCRIPT_CHERRYGROVE_MART_SIGN: u16 = 242;
+pub const SCRIPT_CHERRYGROVE_POKECENTER_SIGN: u16 = 243;
+
+// Sprint 2: CherrygrovePokecenter scripts
+pub const SCRIPT_CHERRYGROVE_NURSE: u16 = 250;
+pub const SCRIPT_POKECENTER_FISHER: u16 = 251;
+pub const SCRIPT_POKECENTER_GENTLEMAN: u16 = 252;
+pub const SCRIPT_POKECENTER_TEACHER: u16 = 253;
+
+// Sprint 2: CherrygroveMart scripts
+pub const SCRIPT_CHERRYGROVE_CLERK: u16 = 260;
+pub const SCRIPT_MART_COOLTRAINER: u16 = 261;
+pub const SCRIPT_MART_YOUNGSTER: u16 = 262;
+
+// Sprint 2: GuideGentsHouse scripts
+pub const SCRIPT_GUIDE_GENT_HOME: u16 = 270;
+pub const SCRIPT_GUIDE_GENT_BOOKSHELF: u16 = 271;
+
+// Sprint 2: GymSpeechHouse scripts
+pub const SCRIPT_GYM_SPEECH_POKEFAN: u16 = 280;
+pub const SCRIPT_GYM_SPEECH_BUG_CATCHER: u16 = 281;
+pub const SCRIPT_GYM_SPEECH_BOOKSHELF: u16 = 282;
+
+// Sprint 2: EvoSpeechHouse scripts
+pub const SCRIPT_EVO_SPEECH_LASS: u16 = 290;
+pub const SCRIPT_EVO_SPEECH_YOUNGSTER: u16 = 291;
+pub const SCRIPT_EVO_SPEECH_BOOKSHELF: u16 = 292;
+
 // ── EventFlags ───────────────────────────────────────────────────────────────
 
-/// 2048-bit event flag bitfield. Maps directly to pokecrystal's wEventFlags.
-/// Uses [u64; 32] for determinism (no HashMap), compactness (256 bytes), and speed.
 #[derive(Clone, Debug)]
 pub struct EventFlags {
     flags: [u64; 32],
@@ -116,8 +194,6 @@ impl EventFlags {
 
 // ── SceneState ────────────────────────────────────────────────────────────────
 
-/// Per-map scene tracking. Vec<u8> indexed by MapId as usize.
-/// Deterministic (Vec, not HashMap). 0 = default scene.
 #[derive(Clone, Debug)]
 pub struct SceneState {
     scenes: Vec<u8>,
@@ -125,7 +201,7 @@ pub struct SceneState {
 
 impl SceneState {
     pub fn new() -> Self {
-        Self { scenes: vec![0u8; 16] }
+        Self { scenes: vec![0u8; 32] }  // Review #9: expanded from 16 to 32
     }
 
     pub fn get(&self, map: MapId) -> u8 {
@@ -142,7 +218,30 @@ impl SceneState {
     }
 }
 
+// ── ScriptResult ──────────────────────────────────────────────────────────────
+
+/// Result of a script step execution. Replaces the old bool return type.
+#[derive(Clone, Debug)]
+pub enum ScriptResult {
+    /// Script is still executing.
+    Running,
+    /// Script hit End step.
+    Ended,
+    /// Script wants to start a battle. mod.rs must create BattleState and switch phase.
+    StartBattle {
+        battle_type: BattleType,
+        species: Option<(SpeciesId, u8)>,
+    },
+}
+
 // ── ScriptStep Enum ───────────────────────────────────────────────────────────
+
+#[derive(Clone, Debug)]
+pub enum SpecialFn {
+    HealParty,
+    RestartMapMusic,
+    FadeOutMusic,
+}
 
 #[derive(Clone, Debug)]
 pub enum ScriptStep {
@@ -159,9 +258,9 @@ pub enum ScriptStep {
 
     // Emotes & effects
     ShowEmote { npc_idx: u8, emote: Emote, frames: u8 },
-    PlaySound(u8),   // stub — SoundId placeholder
-    PlayMusic(u8),   // stub — MusicId placeholder
-    Pause(f64),      // seconds
+    PlaySound(u8),
+    PlayMusic(u8),
+    Pause(f64),
 
     // Game state
     SetEvent(u16),
@@ -181,6 +280,15 @@ pub enum ScriptStep {
     // NPC facing
     FacingPlayer { npc_idx: u8 },
     Heal,
+
+    // Sprint 2 additions
+    LoadWildMon { species: SpeciesId, level: u8 },
+    StartBattle { battle_type: BattleType },
+    Follow { npc_idx: u8 },
+    StopFollow,
+    MoveObject { npc_idx: u8, x: i32, y: i32 },
+    PlayMapMusic,
+    Special(SpecialFn),
 }
 
 // ── ScriptState ───────────────────────────────────────────────────────────────
@@ -196,8 +304,8 @@ pub struct ScriptState {
     pub yesno_cursor: u8,
     pub move_queue: Vec<(Direction, u8)>,
     pub move_progress: f64,
-    /// If Some, an NPC is being moved (npc_idx). If None, player is being moved.
     pub moving_npc: Option<u8>,
+    pub loaded_wild_species: Option<(SpeciesId, u8)>,  // Review #2: for LoadWildMon->StartBattle handoff
 }
 
 impl ScriptState {
@@ -213,6 +321,7 @@ impl ScriptState {
             move_queue: Vec::new(),
             move_progress: 0.0,
             moving_npc: None,
+            loaded_wild_species: None,
         }
     }
 
@@ -223,11 +332,11 @@ impl ScriptState {
 
 // ── Script Engine ─────────────────────────────────────────────────────────────
 
-const SCRIPT_WALK_SPEED: f64 = 8.0; // pixels per frame
+const SCRIPT_WALK_SPEED: f64 = 8.0;
 const TILE_PX: f64 = 16.0;
 
 /// Advance the script engine by one frame.
-/// Returns true if the script is still running, false if it hit End.
+/// Returns ScriptResult indicating running/ended/battle-start.
 #[allow(clippy::too_many_arguments)]
 pub fn step_script(
     script: &mut ScriptState,
@@ -242,7 +351,7 @@ pub fn step_script(
     _cancel_pressed: bool,
     up_pressed: bool,
     down_pressed: bool,
-) -> bool {
+) -> ScriptResult {
     // ── Handle active emotes ───────────────────────────────────────────────
     for npc in npc_states.iter_mut() {
         if let Some((_, ref mut frames)) = npc.emote {
@@ -257,7 +366,6 @@ pub fn step_script(
         script.move_progress += SCRIPT_WALK_SPEED;
 
         if let Some(npc_idx) = script.moving_npc {
-            // Moving an NPC
             if let Some(npc) = npc_states.get_mut(npc_idx as usize) {
                 npc.facing = dir;
                 npc.is_walking = true;
@@ -270,7 +378,6 @@ pub fn step_script(
                         Direction::Right => npc.x += 1,
                     }
                     npc.is_walking = false;
-                    // Decrement step count
                     if script.move_queue[0].1 > 1 {
                         script.move_queue[0].1 -= 1;
                     } else {
@@ -287,7 +394,6 @@ pub fn step_script(
                 script.pc += 1;
             }
         } else {
-            // Moving the player
             player.facing = dir;
             player.is_walking = true;
             player.walk_offset = script.move_progress;
@@ -311,7 +417,7 @@ pub fn step_script(
                 }
             }
         }
-        return true;
+        return ScriptResult::Running;
     }
 
     // ── Handle pause timer ────────────────────────────────────────────────
@@ -321,7 +427,7 @@ pub fn step_script(
             script.timer = 0.0;
             script.pc += 1;
         }
-        return true;
+        return ScriptResult::Running;
     }
 
     // ── Handle yes/no input ───────────────────────────────────────────────
@@ -329,14 +435,10 @@ pub fn step_script(
         if up_pressed   && script.yesno_cursor > 0 { script.yesno_cursor = 0; }
         if down_pressed && script.yesno_cursor < 1 { script.yesno_cursor = 1; }
         if confirm_pressed {
-            let cursor = script.yesno_cursor;
             script.showing_yesno = false;
-            // The jump targets are stored in the next available slot; we advance normally
-            // The ScriptStep::YesNo already advanced pc past itself when it was hit.
-            // cursor=0 means YES (already jumped), cursor=1 means NO
-            let _ = cursor; // jump was already set up when YesNo was processed
+            let _ = script.yesno_cursor;
         }
-        return true;
+        return ScriptResult::Running;
     }
 
     // ── Handle wait-for-input ─────────────────────────────────────────────
@@ -346,12 +448,12 @@ pub fn step_script(
             script.text_buffer = None;
             script.pc += 1;
         }
-        return true;
+        return ScriptResult::Running;
     }
 
     // ── Execute current step ──────────────────────────────────────────────
     if script.pc >= script.steps.len() {
-        return false;
+        return ScriptResult::Ended;
     }
 
     let step = script.steps[script.pc].clone();
@@ -359,7 +461,6 @@ pub fn step_script(
         ScriptStep::ShowText(text) => {
             script.text_buffer = Some(text);
             script.waiting_for_input = true;
-            // Don't advance pc — the wait_for_input handler will advance it
         }
 
         ScriptStep::WaitButton => {
@@ -378,7 +479,6 @@ pub fn step_script(
                 script.move_queue = steps;
                 script.moving_npc = None;
                 script.move_progress = 0.0;
-                // Don't advance pc — movement handler will advance when done
             }
         }
 
@@ -412,13 +512,11 @@ pub fn step_script(
         }
 
         ScriptStep::PlaySound(_) | ScriptStep::PlayMusic(_) => {
-            // Stub: no-op
             script.pc += 1;
         }
 
         ScriptStep::Pause(secs) => {
             script.timer = secs;
-            // Don't advance pc — timer handler advances it
         }
 
         ScriptStep::SetEvent(flag) => {
@@ -437,7 +535,6 @@ pub fn step_script(
         }
 
         ScriptStep::GiveItem { item_id, count } => {
-            // Add to bag or increment count
             if let Some(slot) = bag.iter_mut().find(|(id, _)| *id == item_id) {
                 slot.1 = slot.1.saturating_add(count);
             } else {
@@ -479,11 +576,7 @@ pub fn step_script(
 
         ScriptStep::YesNo { yes_jump, no_jump } => {
             script.showing_yesno = true;
-            script.yesno_cursor = 0; // default YES
-            // Jump logic: advance pc past YesNo first, then confirm will jump
-            // We set up the jump targets in confirm handler via stored values
-            // Simple approach: advance pc, store jump targets in ScriptState
-            // For Sprint 1: auto-advance to yes_jump (player must say yes to get starter)
+            script.yesno_cursor = 0;
             script.pc = yes_jump;
             let _ = no_jump;
         }
@@ -493,19 +586,16 @@ pub fn step_script(
         }
 
         ScriptStep::End => {
-            return false;
+            return ScriptResult::Ended;
         }
 
         ScriptStep::FacingPlayer { npc_idx } => {
             if let Some(npc) = npc_states.get_mut(npc_idx as usize) {
-                // Determine direction from NPC to player
                 let dx = player.x - npc.x;
                 let dy = player.y - npc.y;
                 npc.facing = if dx.abs() >= dy.abs() {
                     if dx > 0 { Direction::Right } else { Direction::Left }
-                } else {
-                    if dy > 0 { Direction::Down } else { Direction::Up }
-                };
+                } else if dy > 0 { Direction::Down } else { Direction::Up };
             }
             script.pc += 1;
         }
@@ -517,14 +607,60 @@ pub fn step_script(
             }
             script.pc += 1;
         }
+
+        // Sprint 2 new steps
+        ScriptStep::LoadWildMon { species, level } => {
+            script.loaded_wild_species = Some((species, level));
+            script.pc += 1;
+        }
+
+        ScriptStep::StartBattle { battle_type } => {
+            let species = script.loaded_wild_species.take();
+            script.pc += 1;
+            return ScriptResult::StartBattle { battle_type, species };
+        }
+
+        ScriptStep::Follow { .. } => {
+            // Sprint 2 no-op: movement handled by MoveNpc/MovePlayer pairs
+            script.pc += 1;
+        }
+
+        ScriptStep::StopFollow => {
+            script.pc += 1;
+        }
+
+        ScriptStep::MoveObject { npc_idx, x, y } => {
+            if let Some(npc) = npc_states.get_mut(npc_idx as usize) {
+                npc.x = x;
+                npc.y = y;
+            }
+            script.pc += 1;
+        }
+
+        ScriptStep::PlayMapMusic => {
+            // No-op for Sprint 2 (no audio system)
+            script.pc += 1;
+        }
+
+        ScriptStep::Special(special_fn) => {
+            match special_fn {
+                SpecialFn::HealParty => {
+                    for p in party.iter_mut() {
+                        p.hp = p.max_hp;
+                    }
+                }
+                SpecialFn::RestartMapMusic => { /* no-op Sprint 2 */ }
+                SpecialFn::FadeOutMusic => { /* no-op Sprint 2 */ }
+            }
+            script.pc += 1;
+        }
     }
 
-    true
+    ScriptResult::Running
 }
 
 // ── Script Registry ───────────────────────────────────────────────────────────
 
-/// Look up a script by ID and return its steps.
 pub fn get_script(id: u16) -> Vec<ScriptStep> {
     match id {
         SCRIPT_MEET_MOM          => build_meet_mom_script(),
@@ -542,7 +678,7 @@ pub fn get_script(id: u16) -> Vec<ScriptStep> {
         SCRIPT_ELM_LAB_SIGN     => simple_text("ELM POKeMON LAB"),
         SCRIPT_ELM_HOUSE_SIGN   => simple_text("ELM'S HOUSE"),
 
-        SCRIPT_HOUSE1F_STOVE    => simple_text("CINNABAR VOLCANO BURGER!\nMake your Pokemon do a double take!"),
+        SCRIPT_HOUSE1F_STOVE    => simple_text("CINNABAR VOLCANO BURGER!"),
         SCRIPT_HOUSE1F_SINK     => simple_text("The sink is spotless."),
         SCRIPT_HOUSE1F_FRIDGE   => simple_text("FRESH WATER and LEMONADE."),
         SCRIPT_HOUSE1F_TV       => simple_text("A movie about two boys on a train."),
@@ -550,16 +686,64 @@ pub fn get_script(id: u16) -> Vec<ScriptStep> {
         SCRIPT_HOUSE2F_RADIO    => simple_text("Welcome to POKEMON TALK."),
         SCRIPT_HOUSE2F_BOOKSHELF => simple_text("Picture book."),
 
-        SCRIPT_LAB_HEALING_MACHINE => simple_text("A Pokemon healing machine. All HP restored!"),
+        SCRIPT_LAB_HEALING_MACHINE => simple_text("A Pokemon healing machine."),
         SCRIPT_LAB_BOOKSHELF    => simple_text("Research papers on Pokemon ecology."),
-        SCRIPT_LAB_TRASHCAN     => simple_text("The wrapper from the snack ELM ate."),
+        SCRIPT_LAB_TRASHCAN     => simple_text("The wrapper from ELM's snack."),
         SCRIPT_LAB_WINDOW       => simple_text("The window is open."),
         SCRIPT_LAB_PC           => simple_text("ELM's research notes."),
 
-        // Future sprint stubs — no-op
         SCRIPT_MEET_OFFICER | SCRIPT_AIDE_GIVES_POTION | SCRIPT_AIDE_GIVES_BALLS => {
             vec![ScriptStep::End]
         }
+
+        // Sprint 2: Route 29 scripts
+        SCRIPT_ROUTE29_SIGN1 => simple_text("ROUTE 29\n\nCHERRYGROVE CITY -\nNEW BARK TOWN"),
+        SCRIPT_ROUTE29_SIGN2 => simple_text("ROUTE 29\n\nCHERRYGROVE CITY -\nNEW BARK TOWN"),
+        SCRIPT_CATCHING_TUTORIAL_DUDE => build_catching_tutorial_dude_script(),
+        SCRIPT_CATCHING_TUTORIAL_1 | SCRIPT_CATCHING_TUTORIAL_2 => build_catching_tutorial_encounter(),
+        SCRIPT_ROUTE29_YOUNGSTER => simple_text("YOUNGSTER: I'm training to be the best!"),
+        SCRIPT_ROUTE29_TEACHER  => simple_text("If you catch all the POKeMON, you'll be famous!"),
+        SCRIPT_ROUTE29_FISHER   => simple_text("You can fish for POKeMON in ponds and rivers."),
+        SCRIPT_ROUTE29_COOLTRAINER_M => simple_text("I raised my POKeMON carefully!"),
+        SCRIPT_ROUTE29_FRUIT_TREE => build_fruit_tree_script(),
+        SCRIPT_ROUTE29_POTION   => build_route29_potion_script(),
+        SCRIPT_TUSCANY          => build_tuscany_script(),
+
+        // Sprint 2: Gate scripts
+        SCRIPT_GATE_OFFICER     => simple_text("This gate connects ROUTE 29 and ROUTE 46."),
+        SCRIPT_GATE_YOUNGSTER   => simple_text("I can't wait to explore ROUTE 46!"),
+
+        // Sprint 2: Cherrygrove scripts
+        SCRIPT_GUIDE_GENT_CITY  => build_guide_gent_tour_script(),
+        SCRIPT_CHERRYGROVE_RIVAL => build_cherrygrove_rival_script(),
+        SCRIPT_CHERRYGROVE_TEACHER => simple_text("This is CHERRYGROVE CITY.\nThe flower city!"),
+        SCRIPT_CHERRYGROVE_YOUNGSTER => simple_text("I love exploring the city."),
+        SCRIPT_MYSTIC_WATER_GUY => build_mystic_water_guy_script(),
+        SCRIPT_CHERRYGROVE_SIGN => simple_text("CHERRYGROVE CITY\n\nThe City of Cute,\nFragrant Flowers"),
+        SCRIPT_GUIDE_GENT_HOUSE_SIGN => simple_text("GUIDE GENT'S HOUSE"),
+        SCRIPT_CHERRYGROVE_MART_SIGN => simple_text("CHERRYGROVE MART"),
+        SCRIPT_CHERRYGROVE_POKECENTER_SIGN => simple_text("POKEMON CENTER"),
+
+        // Sprint 2: Pokecenter scripts
+        SCRIPT_CHERRYGROVE_NURSE => build_pokecenter_nurse_script(),
+        SCRIPT_POKECENTER_FISHER => simple_text("It's great. I can store any number of POKeMON, and it's all free."),
+        SCRIPT_POKECENTER_GENTLEMAN => simple_text("That PC is free for any trainer to use."),
+        SCRIPT_POKECENTER_TEACHER => simple_text("Our POKeMON CENTER heals your POKeMON!"),
+
+        // Sprint 2: Mart scripts
+        SCRIPT_CHERRYGROVE_CLERK => build_mart_clerk_script(),
+        SCRIPT_MART_COOLTRAINER => simple_text("They're fresh out of POKe BALLS!"),
+        SCRIPT_MART_YOUNGSTER   => simple_text("When I was in the grass, a bug POKeMON poisoned mine!"),
+
+        // Sprint 2: Houses
+        SCRIPT_GUIDE_GENT_HOME  => simple_text("When I was a wee lad, I was a hot-shot trainer!"),
+        SCRIPT_GUIDE_GENT_BOOKSHELF => simple_text("A book about famous trainers."),
+        SCRIPT_GYM_SPEECH_POKEFAN => simple_text("You're trying to see how good you are as a POKeMON trainer?"),
+        SCRIPT_GYM_SPEECH_BUG_CATCHER => simple_text("When I get older, I'm going to be a GYM LEADER!"),
+        SCRIPT_GYM_SPEECH_BOOKSHELF => simple_text("A book about GYM BADGES."),
+        SCRIPT_EVO_SPEECH_LASS  => simple_text("POKeMON change? I would be shocked if one did that!"),
+        SCRIPT_EVO_SPEECH_YOUNGSTER => simple_text("POKeMON gain experience in battle and change their form."),
+        SCRIPT_EVO_SPEECH_BOOKSHELF => simple_text("A book about POKeMON evolution."),
 
         _ => vec![ScriptStep::End],
     }
@@ -584,7 +768,7 @@ pub fn build_elm_intro_script() -> Vec<ScriptStep> {
         ScriptStep::ShowText("ELM: I needed to ask you a favor.".to_string()),
         ScriptStep::ShowText("ELM: You see, a POKeMON acquaintance, MR.POKeMON, has a discovery.".to_string()),
         ScriptStep::ShowText("ELM: Will you go see what it's about?".to_string()),
-        ScriptStep::PlaySound(1), // SFX_GLASS_TING (email notification)
+        ScriptStep::PlaySound(1),
         ScriptStep::Pause(0.5),
         ScriptStep::ShowEmote { npc_idx: 0, emote: Emote::Shock, frames: 10 },
         ScriptStep::TurnNpc { npc_idx: 0, direction: Direction::Down },
@@ -607,13 +791,13 @@ fn build_starter_script(choice: u8) -> Vec<ScriptStep> {
         1 => (TOTODILE,  "TOTODILE",  EVENT_GOT_TOTODILE_FROM_ELM,  EVENT_TOTODILE_POKEBALL_IN_ELMS_LAB),
         _ => (CHIKORITA, "CHIKORITA", EVENT_GOT_CHIKORITA_FROM_ELM, EVENT_CHIKORITA_POKEBALL_IN_ELMS_LAB),
     };
-    let npc_idx = (choice + 2) as u8; // pokeball npcs are idx 2,3,4
+    let npc_idx = (choice + 2) as u8;
     let left_steps = (choice + 1) as u8;
 
     vec![
         ScriptStep::ShowText(format!("It's {}! Will you take it?", name)),
-        ScriptStep::YesNo { yes_jump: 2, no_jump: 12 }, // auto-jumps to yes
-        // Yes path (idx 2):
+        ScriptStep::YesNo { yes_jump: 2, no_jump: 12 },
+        // Yes path:
         ScriptStep::GivePokemon { species, level: 5, held_item: ITEM_BERRY },
         ScriptStep::SetEvent(event_got),
         ScriptStep::SetEvent(EVENT_GOT_A_POKEMON_FROM_ELM),
@@ -624,11 +808,10 @@ fn build_starter_script(choice: u8) -> Vec<ScriptStep> {
         ScriptStep::ShowText("ELM: I knew you'd pick that one!".to_string()),
         ScriptStep::ShowText("ELM: You can use that healing machine any time.".to_string()),
         ScriptStep::ShowText("ELM: Now, head to MR.POKeMON's place on Route 30!".to_string()),
-        // GIMLI FIX: set to AIDE_GIVES_POTION (5), NOT NOOP (2)
         ScriptStep::SetScene { map: MapId::ElmsLab, scene_id: SCENE_ELMSLAB_AIDE_GIVES_POTION },
         ScriptStep::SetScene { map: MapId::NewBarkTown, scene_id: SCENE_NEWBARKTOWN_NOOP },
         ScriptStep::End,
-        // No path (idx 12 — unreachable for Sprint 1, auto-yes):
+        // No path (unreachable):
         ScriptStep::End,
     ]
 }
@@ -638,12 +821,11 @@ fn build_meet_mom_script() -> Vec<ScriptStep> {
         ScriptStep::FacingPlayer { npc_idx: 0 },
         ScriptStep::ShowText("MOM: Oh, <PLAYER>! ...PROF.ELM was looking for you.".to_string()),
         ScriptStep::ShowText("MOM: Here, take this. It's the POKEGEAR!".to_string()),
-        ScriptStep::GiveItem { item_id: 59, count: 1 }, // ITEM_POKEGEAR
+        ScriptStep::GiveItem { item_id: 59, count: 1 },
         ScriptStep::SetEvent(EVENT_ENGINE_POKEGEAR),
         ScriptStep::ShowText("MOM: PROF.ELM is in his lab next door.".to_string()),
         ScriptStep::SetScene { map: MapId::PlayersHouse1F, scene_id: SCENE_PLAYERSHOUSE1F_NOOP },
         ScriptStep::SetEvent(EVENT_PLAYERS_HOUSE_MOM_1),
-        // GIMLI FIX: ClearEvent MOM_2 (not SetEvent) so time-of-day Moms become visible
         ScriptStep::ClearEvent(EVENT_PLAYERS_HOUSE_MOM_2),
         ScriptStep::End,
     ]
@@ -654,7 +836,7 @@ fn build_teacher_stops_script(variant: u8) -> Vec<ScriptStep> {
     vec![
         ScriptStep::ShowText("Wait, <PLAYER>!".to_string()),
         ScriptStep::ShowText("What do you think you're doing?".to_string()),
-        ScriptStep::ShowText("It's dangerous to go out without a #MON!\nWild #MON jump out of the grass on the way to the next town.".to_string()),
+        ScriptStep::ShowText("It's dangerous to go out without a #MON!".to_string()),
         ScriptStep::MovePlayer { steps: vec![(Direction::Right, right_steps)] },
         ScriptStep::TurnPlayer(Direction::Left),
         ScriptStep::End,
@@ -686,6 +868,139 @@ pub fn build_post_starter_script(choice: u8) -> Vec<ScriptStep> {
     build_starter_script(choice)
 }
 
+// Sprint 2 script builders
+
+fn build_catching_tutorial_dude_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("DUDE: Oh, you're a new trainer!".to_string()),
+        ScriptStep::ShowText("DUDE: Want me to show you how to catch a POKeMON?".to_string()),
+        ScriptStep::SetEvent(EVENT_DUDE_TALKED_TO_YOU),
+        ScriptStep::ShowText("DUDE: Watch closely!".to_string()),
+        ScriptStep::LoadWildMon { species: HOPPIP, level: 3 },
+        ScriptStep::StartBattle { battle_type: BattleType::Tutorial },
+        ScriptStep::ShowText("DUDE: See? That's how you catch one!".to_string()),
+        ScriptStep::SetEvent(EVENT_LEARNED_TO_CATCH_POKEMON),
+        ScriptStep::SetScene { map: MapId::Route29, scene_id: SCENE_ROUTE29_NOOP },
+        ScriptStep::End,
+    ]
+}
+
+fn build_catching_tutorial_encounter() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::LoadWildMon { species: HOPPIP, level: 3 },
+        ScriptStep::StartBattle { battle_type: BattleType::Tutorial },
+        ScriptStep::SetScene { map: MapId::Route29, scene_id: SCENE_ROUTE29_NOOP },
+        ScriptStep::End,
+    ]
+}
+
+fn build_fruit_tree_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::ShowText("A tree with unusual berries!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route29_potion_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 },
+        ScriptStep::SetEvent(EVENT_ROUTE_29_POTION),
+        ScriptStep::ShowText("Found a POTION!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_tuscany_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 6 },
+        ScriptStep::ShowText("TUSCANY: It's Tuesday! Here's a gift!".to_string()),
+        ScriptStep::SetEvent(EVENT_MET_TUSCANY_OF_TUESDAY),
+        ScriptStep::SetEvent(EVENT_GOT_PINK_BOW_FROM_TUSCANY),
+        ScriptStep::ShowText("Received PINK BOW!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_guide_gent_tour_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("OLD MAN: Are you new to this town?".to_string()),
+        ScriptStep::ShowText("OLD MAN: Allow me to show you around!".to_string()),
+        ScriptStep::PlayMusic(MUSIC_SHOW_ME_AROUND),
+        ScriptStep::Follow { npc_idx: 0 },
+        // Walk tour: guide moves, player follows
+        ScriptStep::MoveNpc { npc_idx: 0, steps: vec![(Direction::Left, 3)] },
+        ScriptStep::MovePlayer { steps: vec![(Direction::Left, 3)] },
+        ScriptStep::ShowText("OLD MAN: That's the POKEMON CENTER.\nYour POKeMON get healed for free!".to_string()),
+        ScriptStep::MoveNpc { npc_idx: 0, steps: vec![(Direction::Left, 4)] },
+        ScriptStep::MovePlayer { steps: vec![(Direction::Left, 4)] },
+        ScriptStep::ShowText("OLD MAN: That building over there is the MART.\nBuy useful items there.".to_string()),
+        ScriptStep::MoveNpc { npc_idx: 0, steps: vec![(Direction::Down, 3), (Direction::Left, 2)] },
+        ScriptStep::MovePlayer { steps: vec![(Direction::Down, 3), (Direction::Left, 2)] },
+        ScriptStep::ShowText("OLD MAN: And this is my house!".to_string()),
+        ScriptStep::StopFollow,
+        // GIMLI FIX: MAP_CARD is NOT a bag item -- use SetEvent only
+        ScriptStep::SetEvent(EVENT_ENGINE_MAP_CARD),
+        ScriptStep::ShowText("<PLAYER>'s POKeGEAR now has a MAP!".to_string()),
+        ScriptStep::SetEvent(EVENT_GUIDE_GENT_IN_HIS_HOUSE),
+        ScriptStep::SetEvent(EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE),
+        ScriptStep::PlayMapMusic,
+        ScriptStep::End,
+    ]
+}
+
+fn build_cherrygrove_rival_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 1 },
+        ScriptStep::PlayMusic(MUSIC_RIVAL_ENCOUNTER),
+        ScriptStep::ShowText("RIVAL: Heh! Look who made it to CHERRYGROVE!".to_string()),
+        ScriptStep::ShowText("RIVAL: Let's see whose POKeMON is better!".to_string()),
+        ScriptStep::StartBattle { battle_type: BattleType::CanLose },
+        ScriptStep::PlayMusic(MUSIC_RIVAL_AFTER),
+        ScriptStep::ShowText("RIVAL: Hmph... Not bad. But I'll beat you next time!".to_string()),
+        ScriptStep::SetScene { map: MapId::CherrygroveCity, scene_id: SCENE_CHERRYGROVECITY_NOOP },
+        ScriptStep::ClearEvent(EVENT_RIVAL_CHERRYGROVE_CITY),
+        ScriptStep::PlayMapMusic,
+        ScriptStep::End,
+    ]
+}
+
+fn build_mystic_water_guy_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 4 },
+        ScriptStep::CheckEvent { flag: EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE, jump_if_true: 5 },
+        ScriptStep::ShowText("FISHER: Here, take this MYSTIC WATER!\nIt powers up WATER-type moves!".to_string()),
+        ScriptStep::GiveItem { item_id: ITEM_MYSTIC_WATER, count: 1 },
+        ScriptStep::SetEvent(EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE),
+        // jump target 5:
+        ScriptStep::ShowText("FISHER: MYSTIC WATER is great for WATER-type moves!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_pokecenter_nurse_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("NURSE: Welcome to the POKeMON CENTER!".to_string()),
+        ScriptStep::ShowText("NURSE: We heal your POKeMON back to full health!".to_string()),
+        ScriptStep::Special(SpecialFn::HealParty),
+        ScriptStep::ShowText("NURSE: Your POKeMON are fighting fit!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_mart_clerk_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("CLERK: Welcome! May I help you?".to_string()),
+        ScriptStep::ShowText("CLERK: We have POTION - 300\nANTIDOTE - 100".to_string()),
+        ScriptStep::ShowText("CLERK: Here's a free POTION for your first visit!".to_string()),
+        ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 },
+        ScriptStep::End,
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -709,7 +1024,15 @@ mod tests {
     }
 
     #[test]
-    fn test_script_show_text_then_end() {
+    fn test_scene_state_size() {
+        // Review #9: expanded from 16 to 32
+        let s = SceneState::new();
+        // MapId::CherrygroveCity = 9 (well within 32)
+        assert_eq!(s.get(MapId::CherrygroveCity), 0);
+    }
+
+    #[test]
+    fn test_script_result_running() {
         let steps = vec![
             ScriptStep::ShowText("Hello!".to_string()),
             ScriptStep::End,
@@ -727,30 +1050,71 @@ mod tests {
         let mut party = Vec::new();
         let mut bag = Vec::new();
 
-        // Frame 1: ShowText sets text_buffer
-        let running = step_script(&mut script, &mut player, &mut npc_states,
+        let result = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, false, false, false, false);
-        assert!(running);
+        assert!(matches!(result, ScriptResult::Running));
         assert!(script.text_buffer.is_some());
 
-        // Frame 2: confirm advances past text
-        let running = step_script(&mut script, &mut player, &mut npc_states,
+        // confirm to advance past text
+        let _ = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, true, false, false, false);
-        assert!(running); // text cleared, now at End
 
-        // Frame 3: End step
-        let running = step_script(&mut script, &mut player, &mut npc_states,
+        let result = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, false, false, false, false);
-        assert!(!running, "Script should end after End step");
+        assert!(matches!(result, ScriptResult::Ended), "Script should end after End step");
+    }
+
+    #[test]
+    fn test_load_wild_mon_then_start_battle() {
+        let steps = vec![
+            ScriptStep::LoadWildMon { species: 16, level: 3 },
+            ScriptStep::StartBattle { battle_type: BattleType::Tutorial },
+            ScriptStep::End,
+        ];
+        let mut script = ScriptState::new(steps);
+        let mut player = PlayerState {
+            x: 0, y: 0, facing: Direction::Down,
+            walk_offset: 0.0, is_walking: false,
+            walk_frame: 0, frame_timer: 0.0,
+            name: "TEST".to_string(),
+        };
+        let mut npc_states = Vec::new();
+        let mut flags = EventFlags::new();
+        let mut scenes = SceneState::new();
+        let mut party = Vec::new();
+        let mut bag = Vec::new();
+
+        // Frame 1: LoadWildMon
+        let result = step_script(&mut script, &mut player, &mut npc_states,
+            &mut flags, &mut scenes, MapId::Route29,
+            &mut party, &mut bag, false, false, false, false);
+        assert!(matches!(result, ScriptResult::Running));
+        assert_eq!(script.loaded_wild_species, Some((16, 3)));
+
+        // Frame 2: StartBattle
+        let result = step_script(&mut script, &mut player, &mut npc_states,
+            &mut flags, &mut scenes, MapId::Route29,
+            &mut party, &mut bag, false, false, false, false);
+        assert!(matches!(result, ScriptResult::StartBattle { battle_type: BattleType::Tutorial, species: Some((16, 3)) }));
+    }
+
+    #[test]
+    fn test_guide_gent_gives_map_card() {
+        let steps = build_guide_gent_tour_script();
+        let has_set_map_card = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(EVENT_ENGINE_MAP_CARD)));
+        let has_give_item_map_card = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { item_id: 43, .. }));
+        assert!(has_set_map_card, "Guide Gent script should set EVENT_ENGINE_MAP_CARD");
+        assert!(!has_give_item_map_card, "GIMLI FIX: Guide Gent should NOT give MAP_CARD as a bag item");
     }
 
     #[test]
     fn test_all_scripts_compile() {
-        // Verify all script IDs produce non-empty step lists
-        let ids = [1u16, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+        let ids = [1u16, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
+                   200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211,
+                   220, 221, 230, 231, 232, 233, 234, 250, 260, 270, 280, 290];
         for id in ids {
             let steps = get_script(id);
             assert!(!steps.is_empty(), "Script {} returned empty", id);

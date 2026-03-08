@@ -1,8 +1,10 @@
 // AI-INSTRUCTIONS: pokemonv2/render.rs — All rendering. Reads state, never mutates it.
-// Tile rendering, sprites, text boxes, menus.
-// Import graph: render.rs <- data.rs, maps.rs, overworld.rs(constants), events.rs, sprites.rs
+// Tile rendering, sprites, text boxes, menus, battle screen.
+// Sprint 2: battle render, grass/ledge tile colors, updated dispatch.
+// Import graph: render.rs <- data.rs, maps.rs, overworld.rs(constants), events.rs, sprites.rs, battle.rs
 
-use super::data::Direction;
+use super::data::{self as data, Direction};
+use super::maps::{C_GRASS, C_LEDGE_D};
 use super::sprites::{draw_sprite, draw_emote, tile_color};
 use super::overworld::{TILE_PX, VIEW_TILES_X, VIEW_TILES_Y};
 use super::{GamePhase, PokemonV2Sim};
@@ -27,7 +29,8 @@ pub fn render_game(sim: &PokemonV2Sim, engine: &mut Engine) {
         GamePhase::Dialogue => render_dialogue_phase(sim, engine),
         GamePhase::StarterSelect { cursor } => render_starter_select(sim, cursor, engine),
         GamePhase::MapTransition { timer } => render_transition(sim, timer, engine),
-        GamePhase::Battle | GamePhase::Menu => render_overworld(sim, engine), // stubs
+        GamePhase::Battle => render_battle(sim, engine),
+        GamePhase::Menu => render_overworld(sim, engine), // stub
     }
 }
 
@@ -75,6 +78,22 @@ fn render_overworld(sim: &PokemonV2Sim, engine: &mut Engine) {
                     200,
                 );
                 fill_rect(engine, sx + 2, sy + 2, TILE_PX - 4, TILE_PX - 4, overlay);
+            }
+
+            // Grass tile overlay (green tint)
+            if map.collision[idx] == C_GRASS {
+                let grass = Color::from_rgba(40, 120, 40, 160);
+                fill_rect(engine, sx, sy, TILE_PX, TILE_PX, grass);
+                // Draw grass blades: two vertical lines
+                let blade = Color::from_rgba(50, 160, 50, 200);
+                fill_rect(engine, sx + 4, sy + 4, 2, 6, blade);
+                fill_rect(engine, sx + 10, sy + 4, 2, 6, blade);
+            }
+
+            // Ledge tile overlay (brown stripe at bottom)
+            if map.collision[idx] == C_LEDGE_D {
+                let ledge = Color::from_rgba(100, 60, 20, 200);
+                fill_rect(engine, sx, sy + TILE_PX - 4, TILE_PX, 4, ledge);
             }
         }
     }
@@ -315,6 +334,69 @@ fn render_dialogue_phase(sim: &PokemonV2Sim, engine: &mut Engine) {
     }
 }
 
+// ── Battle Screen ─────────────────────────────────────────────────────────────
+
+fn render_battle(sim: &PokemonV2Sim, engine: &mut Engine) {
+    fill_rect_full(engine, Color::from_rgba(248, 248, 248, 255));
+
+    if let Some(ref battle) = sim.battle {
+        if let Some(ref player_mon) = sim.party.first() {
+            let player_sdata = data::species_data(player_mon.species);
+            let enemy_sdata = data::species_data(battle.enemy.species);
+
+            // Enemy info top-left (Review #12: draw_text arg order: engine, text, x, y, color)
+            draw_text(engine, enemy_sdata.name, 8, 8, Color::from_rgba(0, 0, 0, 255));
+            draw_text(engine, &format!("Lv{}", battle.enemy.level), 8, 18, Color::from_rgba(0, 0, 0, 255));
+            let enemy_hp_pct = if battle.enemy.max_hp > 0 {
+                battle.enemy.hp as f64 / battle.enemy.max_hp as f64
+            } else { 0.0 };
+            draw_hp_bar(engine, 8, 28, enemy_hp_pct);
+
+            // Player info bottom-right
+            let py = SCREEN_H - 50;
+            draw_text(engine, player_sdata.name, 80, py, Color::from_rgba(0, 0, 0, 255));
+            draw_text(engine, &format!("Lv{}", player_mon.level), 80, py + 10, Color::from_rgba(0, 0, 0, 255));
+            draw_text(engine, &format!("HP {}/{}", player_mon.hp, player_mon.max_hp),
+                80, py + 20, Color::from_rgba(0, 0, 0, 255));
+            let player_hp_pct = if player_mon.max_hp > 0 {
+                player_mon.hp as f64 / player_mon.max_hp as f64
+            } else { 0.0 };
+            draw_hp_bar(engine, 80, py + 30, player_hp_pct);
+        }
+
+        if let Some(ref msg) = battle.message {
+            draw_text_box(engine, msg);
+        }
+    }
+}
+
+fn draw_hp_bar(engine: &mut Engine, x: i32, y: i32, pct: f64) {
+    let bar_w = 60i32;
+    let bar_h = 4i32;
+    fill_rect(engine, x, y, bar_w, bar_h, Color::from_rgba(64, 64, 64, 255));
+    let fill_w = (pct * bar_w as f64) as i32;
+    let hp_color = if pct > 0.5 {
+        Color::from_rgba(0, 200, 0, 255)
+    } else if pct > 0.2 {
+        Color::from_rgba(200, 200, 0, 255)
+    } else {
+        Color::from_rgba(200, 0, 0, 255)
+    };
+    if fill_w > 0 {
+        fill_rect(engine, x, y, fill_w, bar_h, hp_color);
+    }
+}
+
+fn fill_rect_full(engine: &mut Engine, color: Color) {
+    let fw = engine.framebuffer.width as i32;
+    let fh = engine.framebuffer.height as i32;
+    for y in 0..fh {
+        for x in 0..fw {
+            engine.framebuffer.set_pixel(x, y, color);
+        }
+    }
+}
+
 // ── Primitive Helpers ─────────────────────────────────────────────────────────
 
 fn fill_rect(engine: &mut Engine, x: i32, y: i32, w: i32, h: i32, color: Color) {
@@ -469,3 +551,4 @@ fn draw_char(engine: &mut Engine, ch: char, px: i32, py: i32, color: Color) {
         }
     }
 }
+

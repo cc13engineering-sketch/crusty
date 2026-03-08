@@ -296,12 +296,129 @@ static TOTODILE_DATA: SpeciesData = SpeciesData {
     learnset: TOTODILE_LEARNSET,
 };
 
+static PIDGEY_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE),
+    (5, MOVE_SAND_ATTACK),
+];
+
+static RATTATA_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE),
+    (1, MOVE_TAIL_WHIP),
+];
+
+static SENTRET_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE),
+    (5, MOVE_DEFENSE_CURL),
+];
+
+static HOOTHOOT_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_TACKLE),
+    (1, MOVE_GROWL),
+];
+
+static HOPPIP_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_SPLASH),
+    (5, MOVE_SYNTHESIS),
+    (5, MOVE_TAIL_WHIP),
+    (10, MOVE_TACKLE),
+];
+
+static PIDGEY_DATA: SpeciesData = SpeciesData {
+    id: PIDGEY,
+    name: "PIDGEY",
+    type1: PokemonType::Normal,
+    type2: PokemonType::Flying,
+    base_hp: 40,
+    base_attack: 45,
+    base_defense: 40,
+    base_speed: 56,
+    base_sp_attack: 35,
+    base_sp_defense: 35,
+    catch_rate: 255,
+    base_exp: 55,
+    growth_rate: GrowthRate::MediumSlow,
+    learnset: PIDGEY_LEARNSET,
+};
+
+static RATTATA_DATA: SpeciesData = SpeciesData {
+    id: RATTATA,
+    name: "RATTATA",
+    type1: PokemonType::Normal,
+    type2: PokemonType::Normal,
+    base_hp: 30,
+    base_attack: 56,
+    base_defense: 35,
+    base_speed: 72,
+    base_sp_attack: 25,
+    base_sp_defense: 35,
+    catch_rate: 255,
+    base_exp: 57,
+    growth_rate: GrowthRate::MediumFast,
+    learnset: RATTATA_LEARNSET,
+};
+
+static SENTRET_DATA: SpeciesData = SpeciesData {
+    id: SENTRET,
+    name: "SENTRET",
+    type1: PokemonType::Normal,
+    type2: PokemonType::Normal,
+    base_hp: 35,
+    base_attack: 46,
+    base_defense: 34,
+    base_speed: 20,
+    base_sp_attack: 35,
+    base_sp_defense: 45,
+    catch_rate: 255,
+    base_exp: 57,
+    growth_rate: GrowthRate::MediumFast,
+    learnset: SENTRET_LEARNSET,
+};
+
+static HOOTHOOT_DATA: SpeciesData = SpeciesData {
+    id: HOOTHOOT,
+    name: "HOOTHOOT",
+    type1: PokemonType::Normal,
+    type2: PokemonType::Flying,
+    base_hp: 60,
+    base_attack: 30,
+    base_defense: 30,
+    base_speed: 50,
+    base_sp_attack: 36,
+    base_sp_defense: 56,
+    catch_rate: 255,
+    base_exp: 58,
+    growth_rate: GrowthRate::MediumFast,
+    learnset: HOOTHOOT_LEARNSET,
+};
+
+static HOPPIP_DATA: SpeciesData = SpeciesData {
+    id: HOPPIP,
+    name: "HOPPIP",
+    type1: PokemonType::Grass,
+    type2: PokemonType::Flying,
+    base_hp: 35,
+    base_attack: 35,
+    base_defense: 40,
+    base_speed: 50,
+    base_sp_attack: 35,
+    base_sp_defense: 55,
+    catch_rate: 255,
+    base_exp: 74,
+    growth_rate: GrowthRate::MediumSlow,
+    learnset: HOPPIP_LEARNSET,
+};
+
 /// Return species data for the given id. Returns Chikorita data for unknown species.
 pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
     match id {
         CHIKORITA => &CHIKORITA_DATA,
         CYNDAQUIL => &CYNDAQUIL_DATA,
         TOTODILE => &TOTODILE_DATA,
+        PIDGEY => &PIDGEY_DATA,
+        RATTATA => &RATTATA_DATA,
+        SENTRET => &SENTRET_DATA,
+        HOOTHOOT => &HOOTHOOT_DATA,
+        HOPPIP => &HOPPIP_DATA,
         _ => &CHIKORITA_DATA, // fallback
     }
 }
@@ -360,6 +477,66 @@ static SCRATCH_DATA: MoveData = MoveData {
     is_special: false,
 };
 
+static TAIL_WHIP_DATA: MoveData = MoveData {
+    id: MOVE_TAIL_WHIP,
+    name: "TAIL WHIP",
+    move_type: PokemonType::Normal,
+    power: 0,
+    accuracy: 100,
+    pp: 30,
+    is_special: false,
+};
+
+static SAND_ATTACK_DATA: MoveData = MoveData {
+    id: MOVE_SAND_ATTACK,
+    name: "SAND ATTACK",
+    move_type: PokemonType::Ground, // GIMLI FIX: Ground, not Normal
+    power: 0,
+    accuracy: 100,
+    pp: 15,
+    is_special: false,
+};
+
+static DEFENSE_CURL_DATA: MoveData = MoveData {
+    id: MOVE_DEFENSE_CURL,
+    name: "DEFENSE CURL",
+    move_type: PokemonType::Normal,
+    power: 0,
+    accuracy: 100,
+    pp: 40,
+    is_special: false,
+};
+
+static SPLASH_DATA: MoveData = MoveData {
+    id: MOVE_SPLASH,
+    name: "SPLASH",
+    move_type: PokemonType::Normal,
+    power: 0,
+    accuracy: 100,
+    pp: 40,
+    is_special: false,
+};
+
+static STRUGGLE_DATA: MoveData = MoveData {
+    id: MOVE_STRUGGLE,
+    name: "STRUGGLE",
+    move_type: PokemonType::Normal,
+    power: 50,
+    accuracy: 100,
+    pp: 1,
+    is_special: false,
+};
+
+static SYNTHESIS_DATA: MoveData = MoveData {
+    id: MOVE_SYNTHESIS,
+    name: "SYNTHESIS",
+    move_type: PokemonType::Grass,
+    power: 0,
+    accuracy: 100,
+    pp: 5,
+    is_special: true,
+};
+
 /// Return move data for the given id. Returns Tackle data for unknown moves.
 pub fn move_data(id: MoveId) -> &'static MoveData {
     match id {
@@ -367,6 +544,12 @@ pub fn move_data(id: MoveId) -> &'static MoveData {
         MOVE_GROWL => &GROWL_DATA,
         MOVE_LEER => &LEER_DATA,
         MOVE_SCRATCH => &SCRATCH_DATA,
+        MOVE_TAIL_WHIP => &TAIL_WHIP_DATA,
+        MOVE_SAND_ATTACK => &SAND_ATTACK_DATA,
+        MOVE_DEFENSE_CURL => &DEFENSE_CURL_DATA,
+        MOVE_SPLASH => &SPLASH_DATA,
+        MOVE_STRUGGLE => &STRUGGLE_DATA,
+        MOVE_SYNTHESIS => &SYNTHESIS_DATA,
         _ => &TACKLE_DATA, // fallback
     }
 }
@@ -453,5 +636,71 @@ pub const MOVE_SCRATCH: MoveId = 10;
 
 // --- Item ID Constants ---
 pub const ITEM_BERRY: u8 = 3;
+pub const ITEM_POKE_BALL: u8 = 5;
+pub const ITEM_ANTIDOTE: u8 = 9;
+pub const ITEM_AWAKENING: u8 = 12;
+pub const ITEM_PARLYZ_HEAL: u8 = 13;
 pub const ITEM_POTION: u8 = 17;
 pub const ITEM_POKEGEAR: u8 = 59;
+pub const ITEM_MYSTIC_WATER: u8 = 95;
+pub const ITEM_PINK_BOW: u8 = 104;
+// NOTE: MAP_CARD is NOT a bag item. It is tracked via EVENT_ENGINE_MAP_CARD flag only.
+
+// --- Move ID Constants (Sprint 2 additions) ---
+pub const MOVE_TAIL_WHIP: MoveId = 39;
+pub const MOVE_SAND_ATTACK: MoveId = 28;
+pub const MOVE_DEFENSE_CURL: MoveId = 111;
+pub const MOVE_SPLASH: MoveId = 150;
+pub const MOVE_STRUGGLE: MoveId = 165;
+pub const MOVE_SYNTHESIS: MoveId = 235;
+
+// --- Species ID Constants (Sprint 2 additions) ---
+pub const PIDGEY: SpeciesId = 16;
+pub const RATTATA: SpeciesId = 19;
+pub const SENTRET: SpeciesId = 161;
+pub const HOOTHOOT: SpeciesId = 163;
+pub const HOPPIP: SpeciesId = 187;
+
+// --- Battle Enums ---
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum BattleType {
+    Wild,      // standard wild encounter
+    Tutorial,  // BATTLETYPE_TUTORIAL -- catching demo, auto-catch
+    CanLose,   // BATTLETYPE_CANLOSE -- rival, no game-over on loss
+    Normal,    // standard trainer battle
+}
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum BattleResult {
+    Won,
+    Lost,
+    Fled,
+    Caught,
+}
+
+// --- Time Of Day ---
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum TimeOfDay {
+    Morning, // 04:00 - 09:59
+    Day,     // 10:00 - 17:59
+    Night,   // 18:00 - 03:59
+}
+
+/// Derive time of day from total elapsed game time.
+/// 1 real second = 1 game minute (accelerated clock).
+pub fn get_time_of_day(total_time: f64) -> TimeOfDay {
+    let game_minutes = (total_time * 60.0) as u32 % (24 * 60);
+    let hour = game_minutes / 60;
+    match hour {
+        4..=9 => TimeOfDay::Morning,
+        10..=17 => TimeOfDay::Day,
+        _ => TimeOfDay::Night,
+    }
+}
+
+// --- Music Constants ---
+pub const MUSIC_SHOW_ME_AROUND: u8 = 10;
+pub const MUSIC_RIVAL_ENCOUNTER: u8 = 11;
+pub const MUSIC_RIVAL_AFTER: u8 = 12;

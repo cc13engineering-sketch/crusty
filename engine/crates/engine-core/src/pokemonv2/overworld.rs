@@ -1,9 +1,17 @@
 // AI-INSTRUCTIONS: pokemonv2/overworld.rs — Player movement, collision, warps, camera, NPC wandering.
+// Sprint 2: Ledge movement, wild encounter checks, map connection transitions, new step_overworld signature.
+// Review #3: step_overworld takes time_of_day, rng_enc, rng_slot as parameters (caller extracts).
+// Review #7: is_walkable_with_direction imported from maps.rs, not defined here.
 // Import graph: overworld.rs <- data.rs, maps.rs, events.rs(EventFlags, SceneState)
 
-use super::data::{CameraState, Direction, NpcState, PlayerState};
+use super::data::{CameraState, Direction, NpcState, PlayerState, SpeciesId, TimeOfDay};
 use super::events::{EventFlags, SceneState};
-use super::maps::{find_bg_event, find_coord_event, find_warp, is_walkable, MapData, MapId, NpcMoveType};
+use super::maps::{
+    find_bg_event, find_coord_event, find_warp,
+    is_walkable, is_walkable_with_direction,
+    MapData, MapId, NpcMoveType,
+    C_GRASS,
+};
 use crate::engine::Engine;
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -11,9 +19,9 @@ use crate::engine::Engine;
 pub const TILE_PX: i32 = 16;
 pub const VIEW_TILES_X: i32 = 10;
 pub const VIEW_TILES_Y: i32 = 9;
-pub const WALK_SPEED: f64 = 8.0;      // pixels per frame at 60fps
+pub const WALK_SPEED: f64 = 8.0;
 pub const CAMERA_LERP: f64 = 0.2;
-pub const NPC_WANDER_INTERVAL: f64 = 2.0; // seconds between random NPC wander steps
+pub const NPC_WANDER_INTERVAL: f64 = 2.0;
 
 // ── Result Type ───────────────────────────────────────────────────────────────
 
@@ -23,11 +31,13 @@ pub enum OverworldResult {
     WarpTo { dest_map: MapId, dest_warp_id: u8 },
     TriggerScript { script_id: u16, npc_idx: Option<u8> },
     TriggerCoordEvent { script_id: u16 },
+    WildEncounter { species: SpeciesId, level: u8 },
+    MapConnection { direction: Direction, dest_map: MapId, offset: i8 },
 }
 
 // ── Main Step ─────────────────────────────────────────────────────────────────
 
-/// Main overworld update — called each frame when GamePhase == Overworld.
+/// Main overworld update. Review #3: caller extracts time_of_day, rng_enc, rng_slot.
 pub fn step_overworld(
     player: &mut PlayerState,
     camera: &mut CameraState,
@@ -36,6 +46,9 @@ pub fn step_overworld(
     _flags: &EventFlags,
     scenes: &SceneState,
     engine: &Engine,
+    time_of_day: TimeOfDay,
+    rng_enc: u8,
+    rng_slot: u8,
 ) -> OverworldResult {
     // ── 1. Advance player walk ────────────────────────────────────────────
     if player.is_walking {
@@ -47,7 +60,6 @@ pub fn step_overworld(
         }
 
         if player.walk_offset >= TILE_PX as f64 {
-            // Snap to destination
             player.walk_offset = 0.0;
             player.is_walking = false;
             match player.facing {
@@ -55,6 +67,12 @@ pub fn step_overworld(
                 Direction::Down  => player.y += 1,
                 Direction::Left  => player.x -= 1,
                 Direction::Right => player.x += 1,
+            }
+
+            // Check grass encounter BEFORE warps
+            if let Some((species, level)) = check_wild_encounter(map, player.x, player.y, time_of_day, rng_enc, rng_slot) {
+                update_camera(camera, player);
+                return OverworldResult::WildEncounter { species, level };
             }
 
             // Check warp at new position
@@ -67,7 +85,7 @@ pub fn step_overworld(
                 return result;
             }
 
-            // Check coord events at new position
+            // Check coord events
             let scene_id = scenes.get(map.id);
             if let Some(evt) = find_coord_event(map, player.x, player.y, scene_id) {
                 let script_id = evt.script_id;
@@ -100,9 +118,25 @@ pub fn step_overworld(
         player.facing = dir;
         let (tx, ty) = target_tile(player.x, player.y, dir);
 
-        if is_walkable(map, tx, ty) && npc_at(npc_states, tx, ty).is_none() {
+        // Review #7: use direction-aware walkability for ledge support
+        if is_walkable_with_direction(map, tx, ty, dir) && npc_at(npc_states, tx, ty).is_none() {
             player.is_walking = true;
             player.walk_offset = 0.0;
+        } else if tx < 0 || ty < 0 || tx >= map.width || ty >= map.height {
+            // Check for map connection at edge
+            let conn = match dir {
+                Direction::Left  => &map.connections.west,
+                Direction::Right => &map.connections.east,
+                Direction::Up    => &map.connections.north,
+                Direction::Down  => &map.connections.south,
+            };
+            if let Some(connection) = conn {
+                return OverworldResult::MapConnection {
+                    direction: dir,
+                    dest_map: connection.dest_map,
+                    offset: connection.offset,
+                };
+            }
         }
     }
 
@@ -114,7 +148,6 @@ pub fn step_overworld(
     if confirm {
         let (fx, fy) = target_tile(player.x, player.y, player.facing);
 
-        // Check for interactable NPC
         if let Some(npc_idx) = npc_at(npc_states, fx, fy) {
             let script_id = map.npcs[npc_idx].script_id;
             if script_id != 0 {
@@ -125,7 +158,6 @@ pub fn step_overworld(
             }
         }
 
-        // Check for bg_event
         if let Some(evt) = find_bg_event(map, fx, fy, player.facing) {
             let script_id = evt.script_id;
             if script_id != 0 {
@@ -142,6 +174,61 @@ pub fn step_overworld(
 
     update_camera(camera, player);
     OverworldResult::Nothing
+}
+
+// ── Wild Encounter Check ──────────────────────────────────────────────────────
+
+/// Check for a wild encounter after stepping onto a grass tile.
+/// Uses pokecrystal probability distribution: slot selected by rng_slot,
+/// encounter triggered if rng_encounter < encounter_rate.
+pub fn check_wild_encounter(
+    map: &MapData,
+    x: i32,
+    y: i32,
+    time_of_day: TimeOfDay,
+    rng_encounter: u8,
+    rng_slot: u8,
+) -> Option<(SpeciesId, u8)> {
+    if x < 0 || y < 0 || x >= map.width || y >= map.height {
+        return None;
+    }
+    let idx = (y * map.width + x) as usize;
+    if map.collision[idx] != C_GRASS {
+        return None;
+    }
+
+    if let Some(ref table) = map.wild_encounters {
+        if rng_encounter >= table.encounter_rate {
+            return None;
+        }
+
+        let slots = match time_of_day {
+            TimeOfDay::Morning => &table.morning,
+            TimeOfDay::Day => &table.day,
+            TimeOfDay::Night => &table.night,
+        };
+
+        if slots.is_empty() {
+            return None;
+        }
+
+        // Pokecrystal probability: slots 0-1=30%, 2=20%, 3=10%, 4=5%, 5-6=2.5%
+        let slot_idx = match rng_slot {
+            0..=76  => 0,
+            77..=153 => 1,
+            154..=204 => 2,
+            205..=229 => 3,
+            230..=242 => 4,
+            243..=248 => 5,
+            _ => 6,
+        };
+
+        let slot_idx = slot_idx.min(slots.len() - 1);
+        let slot = &slots[slot_idx];
+        Some((slot.species, slot.level))
+    } else {
+        None
+    }
 }
 
 // ── Camera ────────────────────────────────────────────────────────────────────
@@ -165,7 +252,6 @@ pub fn update_camera(camera: &mut CameraState, player: &PlayerState) {
     camera.y += (target_y - camera.y) * CAMERA_LERP;
 }
 
-/// Snap camera to player — used on map transitions.
 pub fn snap_camera(camera: &mut CameraState, player: &PlayerState) {
     camera.x = (player.x * TILE_PX) as f64;
     camera.y = (player.y * TILE_PX) as f64;
@@ -173,7 +259,6 @@ pub fn snap_camera(camera: &mut CameraState, player: &PlayerState) {
 
 // ── NPC Helpers ───────────────────────────────────────────────────────────────
 
-/// Return the NPC index at tile (x, y) if any visible NPC occupies it.
 pub fn npc_at(npc_states: &[NpcState], x: i32, y: i32) -> Option<usize> {
     npc_states.iter().enumerate().find_map(|(i, npc)| {
         if npc.visible && npc.x == x && npc.y == y { Some(i) } else { None }
@@ -191,7 +276,7 @@ fn target_tile(x: i32, y: i32, dir: Direction) -> (i32, i32) {
 
 fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engine) {
     let dt = 1.0 / 60.0;
-    let rng_val = engine.rng.state; // use engine RNG state for determinism
+    let rng_val = engine.rng.state;
 
     for (i, npc_def) in map.npcs.iter().enumerate() {
         let state = match npc_states.get_mut(i) {
@@ -205,7 +290,6 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 state.wander_timer += dt;
                 if state.wander_timer >= NPC_WANDER_INTERVAL {
                     state.wander_timer = 0.0;
-                    // Deterministic spin using rng state mixed with NPC index
                     let mixed = rng_val.wrapping_add(i as u64 * 0x9e3779b97f4a7c15);
                     state.facing = match (mixed >> 32) % 4 {
                         0 => Direction::Up,
@@ -243,7 +327,34 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 }
             }
 
-            _ => {} // Still, Standing: no movement
+            NpcMoveType::WalkLeftRight => {
+                state.wander_timer += dt;
+                if state.wander_timer >= NPC_WANDER_INTERVAL {
+                    state.wander_timer = 0.0;
+                    let mixed = rng_val.wrapping_add(i as u64 * 0xd1b54a32d192ed03);
+                    let try_dir = if (mixed >> 32) % 2 == 0 { Direction::Left } else { Direction::Right };
+                    let (tx, ty) = target_tile(state.x, state.y, try_dir);
+                    if is_walkable(map, tx, ty) {
+                        state.facing = try_dir;
+                        state.is_walking = true;
+                        state.walk_offset = 0.0;
+                    }
+                }
+                if state.is_walking {
+                    state.walk_offset += WALK_SPEED;
+                    if state.walk_offset >= TILE_PX as f64 {
+                        state.walk_offset = 0.0;
+                        state.is_walking = false;
+                        match state.facing {
+                            Direction::Left  => state.x -= 1,
+                            Direction::Right => state.x += 1,
+                            _ => {}
+                        }
+                    }
+                }
+            }
+
+            _ => {}
         }
     }
 }
@@ -251,8 +362,8 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::maps::load_map;
-    use super::super::data::PlayerState;
+    use super::super::maps::{load_map, is_walkable_with_direction, C_LEDGE_D};
+    use super::super::data::{PlayerState, TimeOfDay};
 
     #[test]
     fn test_snap_camera() {
@@ -272,7 +383,6 @@ mod tests {
     fn test_npc_at_finds_npc() {
         let map = load_map(MapId::NewBarkTown);
         let npc_states = super::super::maps::init_npc_states(&map);
-        // Teacher is at (6, 8)
         let found = npc_at(&npc_states, 6, 8);
         assert!(found.is_some(), "Teacher should be at (6,8)");
     }
@@ -294,5 +404,36 @@ mod tests {
         let map = load_map(MapId::PlayersHouse2F);
         assert!(!is_walkable(&map, -1, 0));
         assert!(!is_walkable(&map, map.width, 0));
+    }
+
+    #[test]
+    fn test_ledge_only_walkable_facing_down() {
+        let map = load_map(MapId::Route29);
+        // Find a C_LEDGE_D tile
+        let ledge_pos = map.collision.iter().enumerate().find(|(_, &c)| c == C_LEDGE_D);
+        if let Some((idx, _)) = ledge_pos {
+            let x = (idx as i32) % map.width;
+            let y = (idx as i32) / map.width;
+            assert!(is_walkable_with_direction(&map, x, y, Direction::Down), "Ledge should be walkable going Down");
+            assert!(!is_walkable_with_direction(&map, x, y, Direction::Up),   "Ledge should NOT be walkable going Up");
+            assert!(!is_walkable_with_direction(&map, x, y, Direction::Left),  "Ledge should NOT be walkable going Left");
+            assert!(!is_walkable_with_direction(&map, x, y, Direction::Right), "Ledge should NOT be walkable going Right");
+        }
+    }
+
+    #[test]
+    fn test_wild_encounter_on_grass() {
+        let map = load_map(MapId::Route29);
+        let grass_pos = map.collision.iter().enumerate().find(|(_, &c)| c == super::super::maps::C_GRASS);
+        if let Some((idx, _)) = grass_pos {
+            let x = (idx as i32) % map.width;
+            let y = (idx as i32) / map.width;
+            // rng_encounter=0 (< encounter_rate=10): should trigger
+            let result = check_wild_encounter(&map, x, y, TimeOfDay::Day, 0, 0);
+            assert!(result.is_some(), "Should encounter on grass with rng=0");
+            // rng_encounter=255 (>= encounter_rate=10): should not trigger
+            let result = check_wild_encounter(&map, x, y, TimeOfDay::Day, 255, 0);
+            assert!(result.is_none(), "Should not encounter with rng=255");
+        }
     }
 }

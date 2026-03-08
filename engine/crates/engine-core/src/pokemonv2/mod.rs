@@ -15,6 +15,7 @@ pub mod overworld;
 pub mod render;
 pub mod dialogue;
 pub mod sprites;
+pub mod battle;
 
 use crate::engine::Engine;
 use crate::simulation::Simulation;
@@ -65,6 +66,7 @@ pub struct PokemonV2Sim {
     pub day_night_tint: f64,
     pub time_of_day: f64,
     pub pending_warp: Option<(MapId, u8)>,
+    pub battle: Option<battle::BattleState>,  // Sprint 2: battle system
 }
 
 impl PokemonV2Sim {
@@ -107,6 +109,7 @@ impl PokemonV2Sim {
             day_night_tint: 0.0,
             time_of_day: 0.0,
             pending_warp: None,
+            battle: None,  // Sprint 2: initialized in constructor
         };
         sim.refresh_npc_visibility();
         sim
@@ -130,7 +133,8 @@ impl Simulation for PokemonV2Sim {
             GamePhase::Script                => self.step_script_phase(engine),
             GamePhase::StarterSelect { cursor } => self.step_starter_select(cursor, engine),
             GamePhase::MapTransition { timer }  => self.step_map_transition(timer, engine),
-            GamePhase::Battle | GamePhase::Menu => {} // stubs
+            GamePhase::Battle => self.step_battle_phase(engine),
+            GamePhase::Menu   => {} // stub
         }
     }
 
@@ -150,6 +154,11 @@ impl PokemonV2Sim {
     }
 
     fn step_overworld_phase(&mut self, engine: &Engine) {
+        // Review #3: caller extracts RNG bytes and TimeOfDay before calling step_overworld
+        let time_of_day = data::get_time_of_day(self.total_time);
+        let rng_enc = (engine.rng.state & 0xFF) as u8;
+        let rng_slot = ((engine.rng.state >> 8) & 0xFF) as u8;
+
         let result = step_overworld(
             &mut self.player,
             &mut self.camera,
@@ -158,6 +167,9 @@ impl PokemonV2Sim {
             &self.event_flags,
             &self.scene_state,
             engine,
+            time_of_day,
+            rng_enc,
+            rng_slot,
         );
         match result {
             OverworldResult::Nothing => {}
@@ -171,12 +183,18 @@ impl PokemonV2Sim {
                 self.script = Some(ScriptState::new(steps));
                 self.phase = GamePhase::Script;
             }
+            OverworldResult::WildEncounter { species, level } => {
+                self.start_wild_battle(species, level);
+            }
+            OverworldResult::MapConnection { direction, dest_map, offset } => {
+                self.handle_map_connection(direction, dest_map, offset);
+            }
         }
     }
 
     fn step_script_phase(&mut self, engine: &Engine) {
         if let Some(ref mut script) = self.script {
-            let still_running = step_script(
+            let result = step_script(
                 script,
                 &mut self.player,
                 &mut self.npc_states,
@@ -190,11 +208,32 @@ impl PokemonV2Sim {
                 is_up(engine),
                 is_down(engine),
             );
-            if !still_running {
-                self.script = None;
-                self.phase = GamePhase::Overworld;
-                // Refresh NPC visibility after script changes flags
-                self.refresh_npc_visibility();
+            // Review #2: match ScriptResult instead of bool
+            match result {
+                ScriptResult::Running => {}
+                ScriptResult::Ended => {
+                    self.script = None;
+                    self.phase = GamePhase::Overworld;
+                    self.refresh_npc_visibility();
+                }
+                ScriptResult::StartBattle { battle_type, species } => {
+                    match battle_type {
+                        BattleType::Tutorial | BattleType::Wild => {
+                            if let Some((sp, lv)) = species {
+                                let battle_state = battle::BattleState::new_wild(sp, lv, battle_type);
+                                self.battle = Some(battle_state);
+                                self.phase = GamePhase::Battle;
+                            }
+                        }
+                        BattleType::CanLose | BattleType::Normal => {
+                            // Rival battle: determine counter-starter
+                            let rival_species = self.get_rival_species();
+                            let battle_state = battle::BattleState::new_trainer(rival_species, 5, battle_type);
+                            self.battle = Some(battle_state);
+                            self.phase = GamePhase::Battle;
+                        }
+                    }
+                }
             }
         } else {
             self.phase = GamePhase::Overworld;
@@ -279,6 +318,121 @@ impl PokemonV2Sim {
         // Bilbo Rev 3 fix: use matches!() not { .. } in ==
         if matches!(self.phase, GamePhase::StarterSelect { .. }) {
             self.phase = GamePhase::StarterSelect { cursor: c };
+        }
+    }
+
+    fn step_battle_phase(&mut self, engine: &Engine) {
+        let rng_byte = (engine.rng.state & 0xFF) as u8;
+
+        // Collect result before ending borrow on self.battle
+        let outcome = if let Some(ref mut battle_state) = self.battle {
+            if let Some(player_mon) = self.party.first_mut() {
+                let still_running = battle::step_battle(battle_state, player_mon, 1.0 / 60.0, rng_byte);
+                if !still_running {
+                    Some((battle_state.result, battle_state.battle_type))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            self.phase = GamePhase::Overworld;
+            return;
+        };
+
+        if let Some((result, battle_type)) = outcome {
+            self.battle = None;
+            match result {
+                Some(BattleResult::Lost) if battle_type != BattleType::CanLose => {
+                    self.heal_party();
+                    self.warp_to_last_pokecenter();
+                }
+                _ => {
+                    self.phase = if self.script.is_some() {
+                        GamePhase::Script
+                    } else {
+                        GamePhase::Overworld
+                    };
+                }
+            }
+        }
+    }
+
+    fn start_wild_battle(&mut self, species: SpeciesId, level: u8) {
+        let battle_state = battle::BattleState::new_wild(species, level, BattleType::Wild);
+        self.battle = Some(battle_state);
+        self.phase = GamePhase::Battle;
+    }
+
+    fn handle_map_connection(&mut self, direction: Direction, dest_map: MapId, offset: i8) {
+        self.current_map_id = dest_map;
+        self.current_map = load_map(dest_map);
+        self.npc_states = init_npc_states(&self.current_map);
+        self.temp_flags = 0;
+
+        match direction {
+            Direction::Left => {
+                self.player.x = self.current_map.width - 1;
+                self.player.y += offset as i32;
+            }
+            Direction::Right => {
+                self.player.x = 0;
+                self.player.y += offset as i32;
+            }
+            Direction::Up => {
+                self.player.y = self.current_map.height - 1;
+                self.player.x += offset as i32;
+            }
+            Direction::Down => {
+                self.player.y = 0;
+                self.player.x += offset as i32;
+            }
+        }
+        snap_camera(&mut self.camera, &self.player);
+        self.refresh_npc_visibility();
+        self.check_map_callbacks();
+    }
+
+    fn get_rival_species(&self) -> SpeciesId {
+        if self.event_flags.has(EVENT_GOT_CYNDAQUIL_FROM_ELM) { TOTODILE }
+        else if self.event_flags.has(EVENT_GOT_TOTODILE_FROM_ELM) { CHIKORITA }
+        else { CYNDAQUIL }
+    }
+
+    fn heal_party(&mut self) {
+        for p in self.party.iter_mut() {
+            p.hp = p.max_hp;
+            p.status = data::StatusCondition::None;
+        }
+    }
+
+    fn warp_to_last_pokecenter(&mut self) {
+        let dest = if self.event_flags.has(EVENT_ENGINE_FLYPOINT_CHERRYGROVE) {
+            MapId::CherrygrovePokecenter1F
+        } else {
+            MapId::ElmsLab
+        };
+        self.change_map(dest, 0);
+        self.phase = GamePhase::Overworld;
+    }
+
+    fn check_map_callbacks(&mut self) {
+        match self.current_map_id {
+            MapId::CherrygroveCity => {
+                self.event_flags.set(EVENT_ENGINE_FLYPOINT_CHERRYGROVE);
+            }
+            MapId::Route29 => {
+                // Review #19: inline loop instead of undefined find_npc_by_event_flag method
+                for i in 0..self.current_map.npcs.len() {
+                    if self.current_map.npcs[i].event_flag == Some(EVENT_ROUTE_29_TUSCANY_OF_TUESDAY) {
+                        if let Some(state) = self.npc_states.get_mut(i) {
+                            state.visible = false;
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
     }
 
@@ -514,20 +668,20 @@ mod tests {
         let mut party = Vec::new();
         let mut bag = Vec::new();
 
-        let running = step_script(&mut script, &mut player, &mut npc_states,
+        let result = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, false, false, false, false);
-        assert!(running);
+        assert!(matches!(result, ScriptResult::Running));
         assert!(script.text_buffer.is_some());
 
-        let _running = step_script(&mut script, &mut player, &mut npc_states,
+        let _ = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, true, false, false, false);
 
-        let running = step_script(&mut script, &mut player, &mut npc_states,
+        let result = step_script(&mut script, &mut player, &mut npc_states,
             &mut flags, &mut scenes, MapId::NewBarkTown,
             &mut party, &mut bag, false, false, false, false);
-        assert!(!running, "Script should end after End step");
+        assert!(matches!(result, ScriptResult::Ended), "Script should end after End step");
     }
 
     #[test]

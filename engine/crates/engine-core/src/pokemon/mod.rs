@@ -3729,7 +3729,9 @@ enemy_disable_turns: 0,
                         Some("All stat changes were reset!".to_string())
                     } else if move_id == MOVE_CONFUSE_RAY {
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                        if battle.enemy_confused == 0 {
+                        if battle.enemy_safeguard > 0 {
+                            Some(format!("{}{} is protected by Safeguard!", prefix, battle.enemy.name()))
+                        } else if battle.enemy_confused == 0 {
                             battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
                             Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
                         } else {
@@ -3739,7 +3741,10 @@ enemy_disable_turns: 0,
                         let old = battle.enemy_stages[STAGE_ATK];
                         battle.enemy_stages[STAGE_ATK] = (old + 2).min(6);
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                        if battle.enemy_confused == 0 {
+                        // Safeguard blocks confusion from Swagger (per pokecrystal confusetarget)
+                        if battle.enemy_safeguard > 0 {
+                            Some(format!("{}{}'s Attack sharply rose!", prefix, battle.enemy.name()))
+                        } else if battle.enemy_confused == 0 {
                             battle.enemy_confused = 2 + (engine.rng.next_f64() * 4.0) as u8;
                             Some(format!("{}{} became confused!", prefix, battle.enemy.name()))
                         } else {
@@ -3912,20 +3917,20 @@ enemy_disable_turns: 0,
                         if battle.enemy_last_move == 0 || battle.enemy_last_move == MOVE_STRUGGLE || battle.enemy_disable_turns > 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            let turns = 1 + (engine.rng.next_u64() % 8) as u8;
+                            let turns = 2 + (engine.rng.next_u64() % 7) as u8; // Gen 2: (random & 7, re-roll 0) + 1 = 2-8
                             battle.enemy_disabled_move = battle.enemy_last_move;
                             battle.enemy_disable_turns = turns;
                             let mname = get_move(battle.enemy_last_move).map(|m| m.name).unwrap_or("???");
                             Some(format!("{}{}'s {} was disabled!", prefix, battle.enemy.name(), mname))
                         }
                     } else if move_id == MOVE_SPITE {
-                        // Spite: reduce PP of enemy's last move by 2-5
+                        // Spite: reduce PP of enemy's last move by 2-5. Fails on no move, Struggle.
                         let prefix = if battle.is_wild { "Wild " } else { "Foe " };
-                        if battle.enemy_last_move == 0 {
+                        if battle.enemy_last_move == 0 || battle.enemy_last_move == MOVE_STRUGGLE {
                             Some("But it failed!".to_string())
                         } else {
                             let pp_cut = 2 + (engine.rng.next_u64() % 4) as u8;
-                            // Find the move slot and reduce PP (enemy PP not tracked, just show message)
+                            // Enemy PP not tracked in our system, just show message
                             let mname = get_move(battle.enemy_last_move).map(|m| m.name).unwrap_or("???");
                             Some(format!("{}{}'s {} lost {} PP!", prefix, battle.enemy.name(), mname, pp_cut))
                         }
@@ -3938,10 +3943,13 @@ enemy_disable_turns: 0,
                         if !is_asleep {
                             Some("But it failed!".to_string())
                         } else {
-                            // Pick a random move (excluding Sleep Talk itself)
+                            // Pick a random move (excluding Sleep Talk, two-turn moves, disabled move)
+                            let p_disabled = if battle.player_disable_turns > 0 { battle.player_disabled_move } else { 0 };
                             let available: Vec<MoveId> = self.party.get(battle.player_idx)
                                 .map(|p| p.moves.iter().filter_map(|m| *m)
-                                    .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG)
+                                    .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG
+                                        && m != MOVE_SKULL_BASH && m != MOVE_RAZOR_WIND && m != MOVE_SKY_ATTACK && m != MOVE_SOLAR_BEAM
+                                        && m != p_disabled)
                                     .collect::<Vec<_>>())
                                 .unwrap_or_default();
                             if available.is_empty() {
@@ -4585,12 +4593,16 @@ enemy_disable_turns: 0,
                         Some("All stat changes were reset!".to_string())
                     } else if move_id == MOVE_CONFUSE_RAY {
                         let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
+                        if battle.player_safeguard > 0 { Some(format!("{} is protected by Safeguard!", pname)) }
+                        else if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
                         else { Some(format!("{} is already confused!", pname)) }
                     } else if move_id == MOVE_SWAGGER {
                         let old = battle.player_stages[STAGE_ATK]; battle.player_stages[STAGE_ATK] = (old + 2).min(6);
                         let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
+                        // Safeguard blocks confusion from Swagger
+                        if battle.player_safeguard > 0 {
+                            Some(format!("{}'s Attack sharply rose!", pname))
+                        } else if battle.player_confused == 0 { battle.player_confused = 2 + (engine.rng.next_f64() * 4.0) as u8; Some(format!("{} became confused!", pname)) }
                         else { Some(format!("{} is already confused!", pname)) }
                     } else if move_id == MOVE_MEAN_LOOK {
                         battle.player_trapped = true;
@@ -4754,16 +4766,20 @@ enemy_disable_turns: 0,
                         if battle.player_last_move == 0 || battle.player_last_move == MOVE_STRUGGLE || battle.player_disable_turns > 0 {
                             Some("But it failed!".to_string())
                         } else {
-                            let turns = 1 + (engine.rng.next_u64() % 8) as u8;
+                            let turns = 2 + (engine.rng.next_u64() % 7) as u8; // Gen 2: (random & 7, re-roll 0) + 1 = 2-8
                             battle.player_disabled_move = battle.player_last_move;
                             battle.player_disable_turns = turns;
                             let mname = get_move(battle.player_last_move).map(|m| m.name).unwrap_or("???");
                             Some(format!("{}'s {} was disabled!", pname, mname))
                         }
                     } else if move_id == MOVE_SPITE {
-                        // Spite: reduce PP of player's last move by 2-5
+                        // Spite: reduce PP of player's last move by 2-5. Fails on no move, Struggle, or PP=0.
                         let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
-                        if battle.player_last_move == 0 {
+                        let target_pp = self.party.get(battle.player_idx)
+                            .and_then(|p| p.moves.iter().position(|m| *m == Some(battle.player_last_move))
+                                .map(|slot| p.move_pp[slot]))
+                            .unwrap_or(0);
+                        if battle.player_last_move == 0 || battle.player_last_move == MOVE_STRUGGLE || target_pp == 0 {
                             Some("But it failed!".to_string())
                         } else {
                             let pp_cut = 2 + (engine.rng.next_u64() % 4) as u8;
@@ -4782,8 +4798,11 @@ enemy_disable_turns: 0,
                         if !is_asleep {
                             Some("But it failed!".to_string())
                         } else {
+                            let e_disabled = if battle.enemy_disable_turns > 0 { battle.enemy_disabled_move } else { 0 };
                             let available: Vec<MoveId> = battle.enemy.moves.iter().filter_map(|m| *m)
-                                .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG)
+                                .filter(|&m| m != MOVE_SLEEP_TALK && m != MOVE_FLY && m != MOVE_DIG
+                                    && m != MOVE_SKULL_BASH && m != MOVE_RAZOR_WIND && m != MOVE_SKY_ATTACK && m != MOVE_SOLAR_BEAM
+                                    && m != e_disabled)
                                 .collect();
                             if available.is_empty() {
                                 Some("But it failed!".to_string())
@@ -14404,9 +14423,9 @@ enemy_disable_turns: 0,
     }
 
     #[test]
-    fn test_disable_duration_1_to_8_turns() {
-        // Disable lasts (random & 7) + 1 = 1-8 turns per pokecrystal
-        for duration in 1..=8 {
+    fn test_disable_duration_2_to_8_turns() {
+        // Disable lasts (random & 7, re-roll 0) + 1 = 2-8 turns per pokecrystal
+        for duration in 2..=8u8 {
             let mut turns = duration;
             while turns > 0 { turns -= 1; }
             assert_eq!(turns, 0, "Disable counter must reach 0");
@@ -14430,5 +14449,31 @@ enemy_disable_turns: 0,
         let awake = StatusCondition::None;
         assert!(matches!(asleep, StatusCondition::Sleep { .. }), "Should detect sleep");
         assert!(!matches!(awake, StatusCondition::Sleep { .. }), "Should detect not asleep");
+    }
+
+    // ─── Sprint 164: QA Tests ────────────────────────────────
+
+    #[test]
+    fn test_sleep_talk_excludes_two_turn_moves() {
+        // Sleep Talk should exclude Fly, Dig, Skull Bash, Razor Wind, Sky Attack, SolarBeam per pokecrystal
+        let excluded = [MOVE_SLEEP_TALK, MOVE_FLY, MOVE_DIG, MOVE_SKULL_BASH, MOVE_RAZOR_WIND, MOVE_SKY_ATTACK, MOVE_SOLAR_BEAM];
+        for &m in &excluded {
+            assert!(get_move(m).is_some(), "Excluded move {} must have MoveData", m);
+        }
+    }
+
+    #[test]
+    fn test_spite_fails_on_struggle() {
+        // Spite should fail if target's last move was Struggle
+        assert_eq!(MOVE_STRUGGLE, 165, "Struggle move ID must be 165");
+        assert!(get_move(MOVE_STRUGGLE).is_some(), "Struggle MoveData must exist");
+    }
+
+    #[test]
+    fn test_disable_accuracy_matches_pokecrystal() {
+        // Disable: accuracy 55, pp 20 per pokecrystal
+        let d = get_move(MOVE_DISABLE).unwrap();
+        assert_eq!(d.accuracy, 55, "Disable accuracy must be 55");
+        assert_eq!(d.pp, 20, "Disable PP must be 20");
     }
 }

@@ -4157,6 +4157,47 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_sleep_talk_move_data_exists` — Sleep Talk MoveData, ID=214
 - `test_snore_move_data_exists` — Snore MoveData, power=40, Physical
 - `test_spite_move_data_exists` — Spite MoveData, Ghost/Status
-- `test_disable_duration_1_to_8_turns` — counter reaches 0 for all durations
+- `test_disable_duration_2_to_8_turns` — counter reaches 0 for all durations (fixed from 1-8 to 2-8)
 - `test_spite_pp_reduction_2_to_5` — PP reduced correctly for all values
 - `test_snore_sleep_talk_bypass_sleep_check` — sleep detection works for bypass
+
+### Sprint 164: QA Audit — Sprints 162-163
+
+#### Bugs Found & Fixed
+
+**P1: Disable duration was 1-8, should be 2-8**
+- pokecrystal: `BattleRandom`, `and 7`, re-roll on 0 (giving 1-7), then `inc a` (giving 2-8)
+- Fixed: `2 + (engine.rng.next_u64() % 7)` in both PlayerAttack and EnemyAttack Disable handlers
+
+**P2: Safeguard doesn't block Swagger/Confuse Ray confusion**
+- pokecrystal: Swagger calls `confusetarget` which calls `SafeCheckSafeguard`
+- pokecrystal: Confuse Ray uses `BattleCommand_ConfuseTarget` which calls `SafeCheckSafeguard`
+- Fixed: Both Swagger and Confuse Ray now check `safeguard > 0` before inflicting confusion in both attack phases
+
+**P2: Sleep Talk missing exclusions**
+- pokecrystal: Sleep Talk excludes Skull Bash, Razor Wind, Sky Attack, SolarBeam, Fly, Bide (two-turn moves) AND the disabled move
+- Fixed: Added `MOVE_SKULL_BASH`, `MOVE_RAZOR_WIND`, `MOVE_SKY_ATTACK`, `MOVE_SOLAR_BEAM` to exclusion filter in both PlayerAttack and EnemyAttack Sleep Talk handlers. Also excludes the disabled move.
+
+**P3: Spite doesn't fail on Struggle**
+- pokecrystal: Spite fails if last move was Struggle
+- Fixed: Added `battle.*last_move == MOVE_STRUGGLE` check in both Spite handlers
+
+**P3: Spite (enemy-side) doesn't check PP > 0**
+- pokecrystal: Spite fails if target's last move has 0 PP
+- Fixed: EnemyAttack Spite now checks `target_pp == 0` before proceeding
+
+#### Verification (all correct, no fixes needed)
+- Disable accuracy: 55 (matches pokecrystal)
+- Snore: power 40, Normal, accuracy 100, pp 15, 30% flinch (all match)
+- Sleep Talk: accuracy 100, pp 10 (matches)
+- Spite: Ghost/Status, accuracy 100, pp 10 (matches)
+- Light Screen: Psychic/Status, pp 30 (matches)
+- Reflect: Psychic/Status, pp 20 (matches)
+- Safeguard: Normal/Status, pp 25 (matches)
+- Heal Bell: Normal/Status, pp 5 (matches)
+- Thief: Dark/Special, power 40, pp 10 (matches)
+
+#### New Tests (3 tests, 1457 total)
+- `test_sleep_talk_excludes_two_turn_moves` — all excluded moves have MoveData
+- `test_spite_fails_on_struggle` — Struggle move ID and MoveData exist
+- `test_disable_accuracy_matches_pokecrystal` — accuracy 55, pp 20

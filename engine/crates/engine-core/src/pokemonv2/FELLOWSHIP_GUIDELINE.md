@@ -4,6 +4,24 @@
 
 ---
 
+## Continuous Operation — Autonomy Level 10
+
+**Sprints run continuously without human intervention.** The user is AFK. Do not pause between sprints to ask for confirmation, approval, or feedback. When one sprint completes (commit + push + tracker update), immediately pick up the next sprint from the queue and start the pipeline.
+
+The team lead is responsible for:
+- Automatically advancing through all pipeline stages
+- Spawning agents as needed without waiting for human input
+- Handling all decisions autonomously (architecture, review verdicts, implementation choices)
+- Committing, pushing, and updating the tracker between every sprint
+- Continuing until all sprints in `queued.jsonl` are exhausted
+
+**The only reasons to stop are:**
+1. A compilation error that no agent can resolve after 3 attempts
+2. All sprints are complete (queued.jsonl is empty, progress.jsonl is empty)
+3. The session is forcibly terminated
+
+---
+
 ## Sprint Pipeline
 
 Each sprint follows this pipeline in order:
@@ -221,6 +239,11 @@ Once you've determined the actual state, update `progress.jsonl` with the correc
 ---
 
 ## Process Refinements Log
+
+### 2026-03-08: Continuous Operation Rule Added
+**Problem**: Team lead was pausing between sprints to ask for user confirmation, wasting time when user is AFK.
+**Fix**: Added "Continuous Operation — Autonomy Level 10" section. Sprints run back-to-back without human input. Team lead auto-advances the pipeline, spawns agents, commits/pushes, and picks up the next sprint immediately.
+**Impact**: Full AFK operation. User can walk away and sprints keep running.
 
 ### 2026-03-08: Worktree Commit Rule Added
 **Problem**: Mary/Pippin/Sam's worktree changes were lost because they never committed. Branches existed but had zero new commits. Bilbo had to re-implement from scratch instead of reviewing three implementations.

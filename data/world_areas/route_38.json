@@ -1,0 +1,306 @@
+{
+  "area_id": "route_38",
+  "area_name": "Route 38",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_38",
+  "width_blocks": 20,
+  "height_blocks": 9,
+  "width_tiles": 40,
+  "height_tiles": 18,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_39",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "ecruteak_city",
+      "offset": -5,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 35, "y": 8,
+      "target_area_id": "route_38_ecruteak_gate",
+      "target_warp_id": 1,
+      "notes": "North door of Ecruteak gate building"
+    },
+    {
+      "x": 35, "y": 9,
+      "target_area_id": "route_38_ecruteak_gate",
+      "target_warp_id": 2,
+      "notes": "South door of Ecruteak gate building"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "G": "tall_grass",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "H": "house_footprint",
+      "D": "door",
+      "!": "item_ball",
+      "N": "npc_position",
+      "t": "fruit_tree"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "GG..GGGGGGGGGG..GG..GGGGGGG..........##",
+      "GG..GGGGGGGGGG..GG..GGGGGGG..........##",
+      "....GGGGGGGGGG..GG..GGGGGGG..........##",
+      "....GGGGGGGGGG......GGGGGGG...HHHHHHHH",
+      "..FF..............t.........PPHHHHHHHHH",
+      "..FF..GGGGGG........GGGGGGG.PPDDDDDHHH",
+      "..FF..GGGGGG........GGGGGGG.PPDDDDDHHH",
+      "..FF..GGGGGG........GGGGGGG.PPHHHHHHHHH",
+      "..FF....t...........GGGGGGG..........##",
+      "..FF.GGGGGG.GGGGGG..GGGGGGG..........##",
+      "..SS.GGGGGG.GGGGGG..GGGGGGG..........##",
+      ".PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP..##",
+      "GGGGG.GGGG..GGGGGGGG..GGGGGGG........##",
+      "GGGGG.GGGG..GGGGGGGG..GGGGGGG........##",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Route runs east-west. The main path (P) cuts through the center. Tall grass patches flank the path north and south. The Ecruteak gate building (H) sits at the east end (tiles 35-39). A fruit tree (t) is present west-center. Two signs (S) are in the middle section: one is a route sign, one is a Trainer Tips board. Fence (F) lines the southwest corridor near the path entrance from Route 39."
+  },
+  "signs": [
+    {
+      "x": 33, "y": 7,
+      "script": "Route38Sign",
+      "text": "ROUTE 38 — OLIVINE CITY - ECRUTEAK CITY"
+    },
+    {
+      "x": 5, "y": 13,
+      "script": "Route38TrainerTips",
+      "text": "TRAINER TIPS: If a Pokemon is trying to evolve, you can stop it. Press B during evolution."
+    }
+  ],
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Schoolboy",
+      "name": "Chad",
+      "trainer_id": "SCHOOLBOY_CHAD1",
+      "event_flag": "EVENT_BEAT_SCHOOLBOY_CHAD",
+      "x": 4, "y": 1,
+      "facing": "right",
+      "sprite": "SPRITE_STANDING_YOUNGSTER",
+      "movement": "spin_random_fast",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Mr. Mime", "level": 19}
+      ],
+      "prize_money": 608,
+      "rematch": true,
+      "rematch_phone_contact": "PHONE_SCHOOLBOY_CHAD",
+      "rematch_teams": [
+        {"trigger": "ENGINE_FLYPOINT_MAHOGANY", "team": [{"species": "Mr. Mime", "level": 19}, {"species": "Magnemite", "level": 19}]},
+        {"trigger": "EVENT_CLEARED_RADIO_TOWER", "team": [{"species": "Mr. Mime", "level": 27}, {"species": "Magneton", "level": 31}]},
+        {"trigger": "EVENT_BEAT_ELITE_FOUR", "team": [{"species": "Mr. Mime", "level": 30}, {"species": "Magneton", "level": 34}]},
+        {"trigger": "EVENT_RESTORED_POWER_TO_KANTO", "team": [{"species": "Mr. Mime", "level": 34, "moves": ["Psychic", "Light Screen", "Reflect", "Encore"]}, {"species": "Magneton", "level": 38, "moves": ["Zap Cannon", "Thunder Wave", "Lock-On", "Swift"]}]}
+      ],
+      "dialogue": {
+        "seen": "Let me try something I learned today.",
+        "beaten": "I didn't study enough, I guess.",
+        "intro": "I have to take so many tests, I don't have much time for Pokemon. So when I do get to play, I really concentrate."
+      }
+    },
+    {
+      "class": "Lass",
+      "name": "Dana",
+      "trainer_id": "LASS_DANA1",
+      "event_flag": "EVENT_BEAT_LASS_DANA",
+      "x": 15, "y": 3,
+      "facing": "random",
+      "sprite": "SPRITE_LASS",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Flaaffy", "level": 18, "moves": ["Tackle", "Growl", "Thundershock", "Thunder Wave"]},
+        {"species": "Psyduck", "level": 18, "moves": ["Scratch", "Tail Whip", "Disable", "Confusion"]}
+      ],
+      "prize_money": 432,
+      "rematch": true,
+      "rematch_phone_contact": "PHONE_LASS_DANA",
+      "post_rematch_gift": "Thunderstone",
+      "post_rematch_gift_flag": "ENGINE_DANA_HAS_THUNDERSTONE",
+      "dialogue": {
+        "seen": "You seem to be good at Pokemon. If you are, how about giving me some advice?",
+        "beaten": "I see. So you can battle that way.",
+        "intro": "I know something good! MOOMOO FARM's milk is famous for its flavor."
+      }
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Toby",
+      "trainer_id": "BIRD_KEEPER_TOBY",
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_TOBY",
+      "x": 12, "y": 15,
+      "facing": "random",
+      "sprite": "SPRITE_STANDING_YOUNGSTER",
+      "movement": "spin_random_fast",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Doduo", "level": 15},
+        {"species": "Doduo", "level": 16},
+        {"species": "Doduo", "level": 17}
+      ],
+      "prize_money": 408,
+      "rematch": false,
+      "dialogue": {
+        "seen": "Fly high into the sky, my beloved bird Pokemon!",
+        "beaten": "I feel like just flying away now.",
+        "after": "I plan to train in CIANWOOD CITY to teach my Pokemon how to FLY."
+      }
+    },
+    {
+      "class": "Beauty",
+      "name": "Valerie",
+      "trainer_id": "BEAUTY_VALERIE",
+      "event_flag": "EVENT_BEAT_BEAUTY_VALERIE",
+      "x": 19, "y": 9,
+      "facing": "down",
+      "sprite": "SPRITE_BEAUTY",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Hoppip", "level": 17, "moves": ["Synthesis", "Tail Whip", "Tackle", "PoisonPowder"]},
+        {"species": "Skiploom", "level": 17, "moves": ["Synthesis", "Tail Whip", "Tackle", "Stun Spore"]}
+      ],
+      "prize_money": 1496,
+      "rematch": false,
+      "dialogue": {
+        "seen": "Hi! Aren't you a cute trainer! May I see your Pokemon?",
+        "beaten": "I'm glad I got to see your Pokemon!",
+        "after": "When I see Pokemon, it seems to soothe my nerves."
+      }
+    },
+    {
+      "class": "Sailor",
+      "name": "Harry",
+      "trainer_id": "SAILOR_HARRY",
+      "event_flag": "EVENT_BEAT_SAILOR_HARRY",
+      "x": 24, "y": 5,
+      "facing": "random",
+      "sprite": "SPRITE_SAILOR",
+      "movement": "spin_counterclockwise",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Wooper", "level": 19}
+      ],
+      "prize_money": 760,
+      "rematch": false,
+      "dialogue": {
+        "seen": "I've been overseas, so I know about all sorts of Pokemon!",
+        "beaten": "Your skill is world class!",
+        "after": "All kinds of people around the world live happily with Pokemon."
+      }
+    },
+    {
+      "class": "Beauty",
+      "name": "Olivia",
+      "trainer_id": "BEAUTY_OLIVIA",
+      "event_flag": "EVENT_BEAT_BEAUTY_OLIVIA",
+      "x": 5, "y": 8,
+      "facing": "random",
+      "sprite": "SPRITE_BEAUTY",
+      "movement": "spin_random_fast",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Corsola", "level": 19}
+      ],
+      "prize_money": 1520,
+      "rematch": false,
+      "dialogue": {
+        "seen": "Don't you think my Pokemon and I are beautiful?",
+        "beaten": "We drink MOOMOO MILK every day.",
+        "after": "MOOMOO MILK is good for beauty and health, but inconveniently, they only sell a bottle at a time."
+      }
+    }
+  ],
+  "items": [
+    {
+      "name": "Berry",
+      "x": 5, "y": 10,
+      "hidden": false,
+      "daily": true,
+      "source": "fruit_tree",
+      "script": "Route38FruitTree",
+      "fruittree_id": "FRUITTREE_ROUTE_38",
+      "notes": "Fruit tree object at tile (12, 10) in block coords; yields a Berry daily"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Raticate",  "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Farfetch'd","level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Miltank",   "level_min": 13, "level_max": 13, "rate": 5},
+        {"species": "Tauros",    "level_min": 13, "level_max": 13, "rate": 4},
+        {"species": "Snubbull",  "level_min": 13, "level_max": 13, "rate": 1}
+      ],
+      "day": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Raticate",  "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Farfetch'd","level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Miltank",   "level_min": 13, "level_max": 13, "rate": 5},
+        {"species": "Tauros",    "level_min": 13, "level_max": 13, "rate": 4},
+        {"species": "Snubbull",  "level_min": 13, "level_max": 13, "rate": 1}
+      ],
+      "night": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 40},
+        {"species": "Raticate",  "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Miltank",   "level_min": 13, "level_max": 13, "rate": 5},
+        {"species": "Tauros",    "level_min": 13, "level_max": 13, "rate": 4},
+        {"species": "Snubbull",  "level_min": 13, "level_max": 13, "rate": 1}
+      ],
+      "notes": "Farfetch'd does not appear at night. Grass occupies north and south strips flanking the central path."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on Route 38."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "lass_dana_phone_exchange",
+      "description": "After defeating Dana, she asks for the player's phone number. If registered, she calls for rematches as the player progresses (flags: ENGINE_FLYPOINT_CIANWOOD, EVENT_CLEARED_RADIO_TOWER, EVENT_BEAT_ELITE_FOUR, EVENT_RESTORED_POWER_TO_KANTO). After the post-Kanto rematch she gives a Thunderstone (ENGINE_DANA_HAS_THUNDERSTONE)."
+    },
+    {
+      "trigger": "schoolboy_chad_phone_exchange",
+      "description": "After defeating Chad, he asks for the player's phone number. If registered, he calls for rematches scaling with game progress (flags: ENGINE_FLYPOINT_MAHOGANY, EVENT_CLEARED_RADIO_TOWER, EVENT_BEAT_ELITE_FOUR, EVENT_RESTORED_POWER_TO_KANTO)."
+    }
+  ],
+  "object_event_constants": {
+    "ROUTE38_STANDING_YOUNGSTER1": 0,
+    "ROUTE38_LASS": 1,
+    "ROUTE38_STANDING_YOUNGSTER2": 2,
+    "ROUTE38_BEAUTY1": 3,
+    "ROUTE38_SAILOR": 4,
+    "ROUTE38_FRUIT_TREE": 5,
+    "ROUTE38_BEAUTY2": 6
+  },
+  "notes": "Route 38 is a short east-west route connecting Route 39 (west) to Ecruteak City (east). The main feature is the Ecruteak Gate building at the eastern end, which leads into Ecruteak City. The route has significant tall grass patches north and south of the central path. Six trainers are present: Schoolboy Chad and Lass Dana both offer phone rematches with scaling difficulty. A fruit tree yields a daily Berry. The route sign confirms the OLIVINE CITY - ECRUTEAK CITY corridor. Beauty Olivia references Moomoo Milk, tying flavor text to Route 39. The trainer Toby (Bird Keeper) heads to Cianwood to train his birds to Fly."
+}

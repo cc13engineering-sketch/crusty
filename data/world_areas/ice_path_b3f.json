@@ -1,0 +1,119 @@
+{
+  "area_id": "ice_path_b3f",
+  "area_name": "Ice Path B3F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "ICE_PATH_B3F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "ice_path",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 5,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 2,
+      "notes": "Stairs up to B2F Mahogany Side (west staircase)"
+    },
+    {
+      "warp_id": 2,
+      "x": 15, "y": 5,
+      "target_area_id": "ice_path_b2f_blackthorn",
+      "target_warp_id": 2,
+      "notes": "Stairs up to B2F Blackthorn Side (east staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "I": "ice",
+      "R": "smashable_rock",
+      "^": "stairs_up",
+      "!": "item_ball"
+    },
+    "notes": "20 wide x 18 tall tiles. B3F is the deepest floor of Ice Path and the final ice puzzle. Two staircases lead back up: west to B2F Mahogany (3,5) and east to B2F Blackthorn (15,5). The floor has a NeverMeltIce item ball at (5,7) and a smashable Rock Smash rock at (6,6). The Rock Smash rock (SPRITE_ROCK, SMASHABLE_ROCK) can be removed with HM06 Rock Smash but is not required to complete the puzzle. The floor is dominated by ice-sliding sections. B3F is a dead-end — the player must go back up via either staircase.",
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###^###########^####",
+      "IIIIIIIIIRIIIIIIIII#",
+      "IIIIIIIII!IIIIIIIII#",
+      "IIIIIIIIIIIIIIIIIII#",
+      "IIIIIIIIIIIIIIIIIII#",
+      "IIIIIIIIIIIIIIIIIII#",
+      "IIIIIIIIIIIIIIIIIII#",
+      "IIIIIIIIIIIIIIIIIII#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "NeverMeltIce",
+      "x": 5, "y": 7,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B3F_NEVERMELTICE",
+      "notes": "Pokeball sprite on the ice floor. NeverMeltIce is a held item that boosts Ice-type move power by 10%. Particularly valuable for Jynx or future Ice-type team members."
+    }
+  ],
+  "puzzle": {
+    "type": "ice_sliding",
+    "description": "B3F is entirely open ice. The player slides from the two staircases across the wide ice expanse. A Rock Smash boulder at (6,6) is adjacent to the NeverMeltIce item ball at (5,7). Rock Smash is optional — the rock does not block the path to either staircase. The floor is a dead-end; the player must use one of the two upward staircases to exit. The west staircase (3,5) leads to B2F Mahogany Side and the east staircase (15,5) leads to B2F Blackthorn Side."
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 2,
+      "notes": "Cave encounters, 2% per step. Highest-level Ice Path encounters.",
+      "morning": [
+        {"species": "Swinub",   "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Zubat",    "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Swinub",   "level_min": 26, "level_max": 26, "rate": 20},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Jynx",     "level_min": 26, "level_max": 26, "rate": 10}
+      ],
+      "day": [
+        {"species": "Swinub",   "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Zubat",    "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Swinub",   "level_min": 26, "level_max": 26, "rate": 20},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Jynx",     "level_min": 26, "level_max": 26, "rate": 10}
+      ],
+      "night": [
+        {"species": "Delibird", "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Zubat",    "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Delibird", "level_min": 26, "level_max": 26, "rate": 20},
+        {"species": "Sneasel",  "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Sneasel",  "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Sneasel",  "level_min": 26, "level_max": 26, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on B3F."
+    },
+    "fishing": {
+      "group": "FISHGROUP_DRATINI",
+      "notes": "Fishing data defined but no accessible water on this floor."
+    }
+  },
+  "events": [],
+  "notes": "Ice Path B3F (10x9 blocks, 20x18 tiles) is the deepest floor of the Ice Path dungeon. Tileset: TILESET_ICE_PATH. Music: MUSIC_DARK_CAVE. B3F is a dead-end — no exits lead further down. Two staircases connect back up: warp 1 at (3,5) ascends to B2F Mahogany Side and warp 2 at (15,5) ascends to B2F Blackthorn Side. The floor is entirely covered in ice tiles. The NeverMeltIce item (Pokeball at 5,7) is the sole treasure here — a held item boosting Ice-type moves. A smashable Rock at (6,6) can be removed with HM06 Rock Smash but does not block progress. Wild encounters reach their highest levels in Ice Path here: Swinub lv24-26, Jynx lv22/24/26 during morning/day; Delibird lv24-26, Sneasel lv22/24/26 at night. Three Sneasel/Jynx slots (instead of two on B2F) make B3F the best floor for encountering those species. No trainers anywhere in Ice Path."
+}

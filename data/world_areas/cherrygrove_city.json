@@ -1,0 +1,748 @@
+{
+  "area_id": "cherrygrove_city",
+  "area_name": "Cherrygrove City",
+  "area_type": "town",
+  "pokecrystal_map_id": "CHERRYGROVE_CITY",
+  "slogan": "The City of Cute, Fragrant Flowers",
+  "population": 22,
+  "width_blocks": 20,
+  "height_blocks": 9,
+  "width_tiles": 40,
+  "height_tiles": 18,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_CHERRYGROVE_CITY",
+  "environment": "TOWN",
+  "palette": "PALETTE_AUTO",
+  "fish_group": "FISHGROUP_SHORE",
+  "flypoint": "ENGINE_FLYPOINT_CHERRYGROVE",
+
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_30",
+      "pokecrystal_target": "ROUTE_30",
+      "offset": 5,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_29",
+      "pokecrystal_target": "ROUTE_29",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_index": 1,
+      "x": 23, "y": 3,
+      "target_area_id": "cherrygrove_mart",
+      "target_pokecrystal_map": "CHERRYGROVE_MART",
+      "target_warp_id": 2,
+      "notes": "Mart left door tile"
+    },
+    {
+      "warp_index": 2,
+      "x": 29, "y": 3,
+      "target_area_id": "cherrygrove_pokecenter_1f",
+      "target_pokecrystal_map": "CHERRYGROVE_POKECENTER_1F",
+      "target_warp_id": 1,
+      "notes": "Pokemon Center door tile"
+    },
+    {
+      "warp_index": 3,
+      "x": 17, "y": 7,
+      "target_area_id": "cherrygrove_gym_speech_house",
+      "target_pokecrystal_map": "CHERRYGROVE_GYM_SPEECH_HOUSE",
+      "target_warp_id": 1,
+      "notes": "Gym Speech House door tile"
+    },
+    {
+      "warp_index": 4,
+      "x": 25, "y": 9,
+      "target_area_id": "guide_gents_house",
+      "target_pokecrystal_map": "GUIDE_GENTS_HOUSE",
+      "target_warp_id": 1,
+      "notes": "Guide Gent's House door tile"
+    },
+    {
+      "warp_index": 5,
+      "x": 31, "y": 11,
+      "target_area_id": "cherrygrove_evolution_speech_house",
+      "target_pokecrystal_map": "CHERRYGROVE_EVOLUTION_SPEECH_HOUSE",
+      "target_warp_id": 1,
+      "notes": "Evolution Speech House door tile"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "P": "path",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "K": "pokecenter_footprint",
+      "M": "mart_footprint",
+      "L": "ledge_south",
+      "E": "exit_mat",
+      "@": "player_start_region"
+    },
+    "notes": [
+      "Map is 40 tiles wide x 18 tiles tall (20 blocks x 9 blocks).",
+      "Tile coordinates match pokecrystal object_event (x, y) directly.",
+      "West edge (x=0..1) is Route 29 border. North edge (y=0..1) is Route 30 border.",
+      "Water runs along south and southeast coast (y=14..17, x=0..39).",
+      "Houses occupy approximate block positions derived from warp tile coords.",
+      "Row index 0 is northernmost row (y=0 in pokecrystal tile space)."
+    ],
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPTT",
+      "..PPHMHMDPPPPPKKKDPPPPPPPPPPPPPPPPPPPPTT",
+      "..PPHMHMPPPPPKKKPPPPPPPPPPPPPPPPPPPPPNTT",
+      "..PPHHHPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPNTT",
+      "..PPPPSPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+      "..PPHHHD.PPPPPPPPPPPPPPPPSPPPPPPPPPPPPPP",
+      "..PPHHHHPPPPSPPPPPHHHDPPPPPPPPPPPPPPPPPP",
+      "..PPPPPPPPPPPPPPPPHHHDPPPPHHHDPPPPPPPPP.",
+      "..PPPPPPPPPPPPPPPPPPPPPPPPHHHDPPPPPPPPP.",
+      "..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+      "..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+      "..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+      "..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pppp",
+      "..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~pppp",
+      "..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~....",
+      "..~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~."
+    ],
+    "layout_key_positions": {
+      "mart_door": {"x": 23, "y": 3},
+      "pokecenter_door": {"x": 29, "y": 3},
+      "gym_speech_house_door": {"x": 17, "y": 7},
+      "guide_gents_house_door": {"x": 25, "y": 9},
+      "evolution_speech_house_door": {"x": 31, "y": 11},
+      "city_sign": {"x": 30, "y": 8},
+      "guide_gents_house_sign": {"x": 23, "y": 9},
+      "mart_sign": {"x": 24, "y": 3},
+      "pokecenter_sign": {"x": 30, "y": 3},
+      "rival_trigger_north": {"x": 33, "y": 6},
+      "rival_trigger_south": {"x": 33, "y": 7},
+      "rival_spawn_x": 39,
+      "rival_spawn_y": 6
+    }
+  },
+
+  "signs": [
+    {
+      "id": "sign_city",
+      "x": 30, "y": 8,
+      "script": "CherrygroveCitySign",
+      "text_summary": "CHERRYGROVE CITY / The City of Cute, Fragrant Flowers"
+    },
+    {
+      "id": "sign_guide_gents_house",
+      "x": 23, "y": 9,
+      "script": "GuideGentsHouseSign",
+      "text_summary": "GUIDE GENT'S HOUSE"
+    },
+    {
+      "id": "sign_mart",
+      "x": 24, "y": 3,
+      "script": "CherrygroveCityMartSign",
+      "text_summary": "Standard Mart sign (MartSignScript)"
+    },
+    {
+      "id": "sign_pokecenter",
+      "x": 30, "y": 3,
+      "script": "CherrygroveCityPokecenterSign",
+      "text_summary": "Standard Pokemon Center sign (PokecenterSignScript)"
+    }
+  ],
+
+  "npcs": [
+    {
+      "id": "guide_gent",
+      "pokecrystal_const": "CHERRYGROVECITY_GRAMPS",
+      "name": "Guide Gent (Gramps)",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 32, "y": 6,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "movement_radius": 0,
+      "palette": "default",
+      "script_type": "dialogue_conditional",
+      "script": "CherrygroveCityGuideGent",
+      "visibility_flag": "EVENT_GUIDE_GENT_IN_HIS_HOUSE",
+      "dialogue_summary": "Offers city tour if player is a rookie. If yes: leads player to PokemonCenter, Mart, Route 30 exit, and the sea; gives Map Card for Pokegear at tour end. If no: invites player to return later.",
+      "gives_item": {
+        "name": "Map Card",
+        "flag": "ENGINE_MAP_CARD",
+        "condition": "tour_completed"
+      },
+      "notes": "Disappears from overworld after tour (clearevent EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE). Present only on first visit before tour is completed. Reappears inside his house."
+    },
+    {
+      "id": "rival_silver",
+      "pokecrystal_const": "CHERRYGROVECITY_RIVAL",
+      "name": "Rival (Silver / ???)",
+      "sprite": "SPRITE_RIVAL",
+      "x": 39, "y": 6,
+      "facing": "spin_random_slow",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "movement_radius": 0,
+      "palette": "default",
+      "script_type": "battle_conditional",
+      "script": "ObjectEvent",
+      "visibility_flag": "EVENT_RIVAL_CHERRYGROVE_CITY",
+      "dialogue_summary": "Ambushes player returning from Mr. Pokemon's house. Mocks player for getting a Pokemon from Elm's lab. Battles with starter that counters the player's choice.",
+      "trigger_coords": [
+        {"x": 33, "y": 6, "scene": "SCENE_CHERRYGROVECITY_MEET_RIVAL", "handler": "CherrygroveRivalSceneNorth"},
+        {"x": 33, "y": 7, "scene": "SCENE_CHERRYGROVECITY_MEET_RIVAL", "handler": "CherrygroveRivalSceneSouth"}
+      ],
+      "notes": "Only appears on return trip from Mr. Pokemon. Walks to player from x=39 to x=34. After battle pushes player south and exits west. Sets SCENE_CHERRYGROVECITY_NOOP and heals party."
+    },
+    {
+      "id": "teacher_overworld",
+      "pokecrystal_const": "CHERRYGROVECITY_TEACHER",
+      "name": "Teacher",
+      "sprite": "SPRITE_TEACHER",
+      "x": 27, "y": 12,
+      "facing": "walk_left_right",
+      "movement": "SPRITEMOVEDATA_WALK_LEFT_RIGHT",
+      "movement_radius": 1,
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue_conditional",
+      "script": "CherrygroveTeacherScript",
+      "visibility_flag": -1,
+      "dialogue_summary": "Before Map Card: directs player to talk to the old man by the Pokemon Center to get a map of Johto on the Pokegear. After Map Card: says going anywhere is fun when with Pokemon."
+    },
+    {
+      "id": "youngster_overworld",
+      "pokecrystal_const": "CHERRYGROVECITY_YOUNGSTER",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 23, "y": 7,
+      "facing": "walk_left_right",
+      "movement": "SPRITEMOVEDATA_WALK_LEFT_RIGHT",
+      "movement_radius": 1,
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue_conditional",
+      "script": "CherrygroveYoungsterScript",
+      "visibility_flag": -1,
+      "dialogue_summary": "Before Pokedex: tells player Mr. Pokemon's house is farther up ahead. After Pokedex: says his Pokemon lost to route trainers and he needs to visit a Pokemon Center."
+    },
+    {
+      "id": "fisher_mystic_water",
+      "pokecrystal_const": "CHERRYGROVECITY_FISHER",
+      "name": "Fisher (Mystic Water Man)",
+      "sprite": "SPRITE_FISHER",
+      "x": 7, "y": 12,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "movement_radius": 0,
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "give_item",
+      "script": "MysticWaterGuy",
+      "visibility_flag": -1,
+      "dialogue_summary": "Before item given: says a Pokemon he caught was holding Mystic Water and offers it to the player. After: says he is back to fishing.",
+      "gives_item": {
+        "name": "Mystic Water",
+        "flag": "EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE",
+        "condition": "first_interaction",
+        "requires": null,
+        "notes": "No Surf required in Crystal; NPC is accessible on foot on the south shore path."
+      }
+    }
+  ],
+
+  "trainers": [],
+
+  "coord_events": [
+    {
+      "x": 33, "y": 6,
+      "scene_required": "SCENE_CHERRYGROVECITY_MEET_RIVAL",
+      "handler": "CherrygroveRivalSceneNorth",
+      "description": "Triggers rival encounter when player walks into x=33,y=6 approaching from the south"
+    },
+    {
+      "x": 33, "y": 7,
+      "scene_required": "SCENE_CHERRYGROVECITY_MEET_RIVAL",
+      "handler": "CherrygroveRivalSceneSouth",
+      "description": "Triggers rival encounter when player walks into x=33,y=7; first moves rival to x=39,y=7 before scene plays"
+    }
+  ],
+
+  "scenes": [
+    {
+      "const": "SCENE_CHERRYGROVECITY_NOOP",
+      "handler": "CherrygroveCityNoop1Scene",
+      "description": "Default idle scene; no action taken"
+    },
+    {
+      "const": "SCENE_CHERRYGROVECITY_MEET_RIVAL",
+      "handler": "CherrygroveCityNoop2Scene",
+      "description": "Active during the rival encounter window; coord events in this scene trigger the Silver battle"
+    }
+  ],
+
+  "callbacks": [
+    {
+      "trigger": "MAPCALLBACK_NEWMAP",
+      "handler": "CherrygroveCityFlypointCallback",
+      "effect": "setflag ENGINE_FLYPOINT_CHERRYGROVE — unlocks Cherrygrove as a Fly destination on first entry"
+    }
+  ],
+
+  "items": [
+    {
+      "id": "map_card",
+      "name": "Map Card",
+      "x": null, "y": null,
+      "hidden": false,
+      "source": "npc_gift",
+      "source_npc": "guide_gent",
+      "requires": "complete_guide_gent_tour",
+      "story_phase": "first_visit",
+      "notes": "Adds a Johto map to the player's Pokegear. Sets ENGINE_MAP_CARD flag."
+    },
+    {
+      "id": "mystic_water",
+      "name": "Mystic Water",
+      "x": 7, "y": 12,
+      "hidden": false,
+      "source": "npc_gift",
+      "source_npc": "fisher_mystic_water",
+      "requires": null,
+      "story_phase": "any",
+      "notes": "Boosts Water-type moves by 10%. One-time gift from the Fisher NPC on the south shore."
+    }
+  ],
+
+  "buildings": [
+    {
+      "area_id": "cherrygrove_pokecenter_1f",
+      "pokecrystal_map_id": "CHERRYGROVE_POKECENTER_1F",
+      "area_name": "Cherrygrove City Pokemon Center (1F)",
+      "area_type": "building",
+      "tileset": "TILESET_POKECENTER",
+      "music": "MUSIC_POKEMON_CENTER",
+      "width_blocks": 5, "height_blocks": 4,
+      "width_tiles": 10, "height_tiles": 8,
+      "template": "shared_pokecenter_1f",
+      "exterior_warp": {"x": 29, "y": 3, "warp_index": 2},
+      "interior_warps": [
+        {"warp_index": 1, "x": 3, "y": 7, "target": "cherrygrove_city", "target_warp_id": 2, "notes": "Left exit door tile"},
+        {"warp_index": 2, "x": 4, "y": 7, "target": "cherrygrove_city", "target_warp_id": 2, "notes": "Right exit door tile"},
+        {"warp_index": 3, "x": 0, "y": 7, "target": "pokecenter_2f", "target_warp_id": 1, "notes": "Stairs to Communication Center 2F"}
+      ],
+      "npcs": [
+        {
+          "id": "nurse_joy",
+          "pokecrystal_const": "CHERRYGROVEPOKECENTER1F_NURSE",
+          "name": "Nurse Joy",
+          "sprite": "SPRITE_NURSE",
+          "x": 3, "y": 1,
+          "facing": "down",
+          "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+          "script": "CherrygrovePokecenter1FNurseScript",
+          "script_type": "healer",
+          "dialogue_summary": "Standard Pokemon Center healing (jumpstd PokecenterNurseScript)."
+        },
+        {
+          "id": "fisher_pc",
+          "pokecrystal_const": "CHERRYGROVEPOKECENTER1F_FISHER",
+          "name": "Fisher",
+          "sprite": "SPRITE_FISHER",
+          "x": 2, "y": 3,
+          "facing": "up",
+          "movement": "SPRITEMOVEDATA_STANDING_UP",
+          "script": "CherrygrovePokecenter1FFisherScript",
+          "palette": "PAL_NPC_RED",
+          "dialogue_summary": "Says you can store any number of Pokemon in the PC for free."
+        },
+        {
+          "id": "gentleman_pc",
+          "pokecrystal_const": "CHERRYGROVEPOKECENTER1F_GENTLEMAN",
+          "name": "Gentleman",
+          "sprite": "SPRITE_GENTLEMAN",
+          "x": 8, "y": 6,
+          "facing": "up",
+          "movement": "SPRITEMOVEDATA_STANDING_UP",
+          "script": "CherrygrovePokecenter1FGentlemanScript",
+          "dialogue_summary": "Says the PC is free for any trainer to use."
+        },
+        {
+          "id": "teacher_pc",
+          "pokecrystal_const": "CHERRYGROVEPOKECENTER1F_TEACHER",
+          "name": "Teacher",
+          "sprite": "SPRITE_TEACHER",
+          "x": 1, "y": 6,
+          "facing": "right",
+          "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+          "palette": "PAL_NPC_GREEN",
+          "script": "CherrygrovePokecenter1FTeacherScript",
+          "script_type": "dialogue_conditional",
+          "dialogue_summary": "Before Elm errand complete: Communication Center upstairs was just built but still being finished. After: says she already traded Pokemon there."
+        }
+      ],
+      "notes": "Standard 1F Pokemon Center layout. Communication Center (2F) is accessible via stairs at x=0,y=7 but locked until after Mystery Egg is delivered to Elm (EVENT_GAVE_MYSTERY_EGG_TO_ELM)."
+    },
+    {
+      "area_id": "cherrygrove_mart",
+      "pokecrystal_map_id": "CHERRYGROVE_MART",
+      "area_name": "Cherrygrove City Poke Mart",
+      "area_type": "building",
+      "tileset": "TILESET_MART",
+      "music": "MUSIC_CHERRYGROVE_CITY",
+      "width_blocks": 6, "height_blocks": 4,
+      "width_tiles": 12, "height_tiles": 8,
+      "template": "shared_mart",
+      "exterior_warp": {"x": 23, "y": 3, "warp_index": 1},
+      "interior_warps": [
+        {"warp_index": 1, "x": 2, "y": 7, "target": "cherrygrove_city", "target_warp_id": 1, "notes": "Left exit door tile"},
+        {"warp_index": 2, "x": 3, "y": 7, "target": "cherrygrove_city", "target_warp_id": 1, "notes": "Right exit door tile"}
+      ],
+      "inventory": {
+        "phase_1": {
+          "condition": "before_EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+          "mart_const": "MART_CHERRYGROVE",
+          "items": [
+            {"name": "Potion", "price": 300},
+            {"name": "Antidote", "price": 100},
+            {"name": "Paralyze Heal", "price": 200},
+            {"name": "Awakening", "price": 250}
+          ],
+          "notes": "Poke Balls are out of stock before Pokedex obtained."
+        },
+        "phase_2": {
+          "condition": "after_EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+          "mart_const": "MART_CHERRYGROVE_DEX",
+          "items": [
+            {"name": "Poke Ball", "price": 200},
+            {"name": "Potion", "price": 300},
+            {"name": "Antidote", "price": 100},
+            {"name": "Paralyze Heal", "price": 200},
+            {"name": "Awakening", "price": 250}
+          ],
+          "notes": "Poke Balls become available after delivering Mystery Egg to Elm and obtaining the Pokedex."
+        }
+      },
+      "npcs": [
+        {
+          "id": "mart_clerk",
+          "pokecrystal_const": "CHERRYGROVEMART_CLERK",
+          "name": "Clerk",
+          "sprite": "SPRITE_CLERK",
+          "x": 1, "y": 3,
+          "facing": "right",
+          "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+          "script": "CherrygroveMartClerkScript",
+          "script_type": "shopkeeper",
+          "dialogue_summary": "Opens mart menu. Shows MART_CHERRYGROVE before Elm errand, MART_CHERRYGROVE_DEX after."
+        },
+        {
+          "id": "mart_cooltrainer",
+          "pokecrystal_const": "CHERRYGROVEMART_COOLTRAINER_M",
+          "name": "Cool Trainer (M)",
+          "sprite": "SPRITE_COOLTRAINER_M",
+          "x": 7, "y": 6,
+          "facing": "walk_left_right",
+          "movement": "SPRITEMOVEDATA_WALK_LEFT_RIGHT",
+          "movement_radius": 2,
+          "script": "CherrygroveMartCooltrainerMScript",
+          "script_type": "dialogue_conditional",
+          "dialogue_summary": "Before Pokedex: complains they are fresh out of Poke Balls. After: excited that Poke Balls are back in stock."
+        },
+        {
+          "id": "mart_youngster",
+          "pokecrystal_const": "CHERRYGROVEMART_YOUNGSTER",
+          "name": "Youngster",
+          "sprite": "SPRITE_YOUNGSTER",
+          "x": 2, "y": 5,
+          "facing": "down",
+          "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+          "palette": "PAL_NPC_RED",
+          "script": "CherrygroveMartYoungsterScript",
+          "dialogue_summary": "Warns player to always carry an Antidote because a bug Pokemon poisoned his Pokemon in the grass and it eventually fainted."
+        }
+      ]
+    },
+    {
+      "area_id": "guide_gents_house",
+      "pokecrystal_map_id": "GUIDE_GENTS_HOUSE",
+      "area_name": "Guide Gent's House",
+      "area_type": "building",
+      "tileset": "TILESET_HOUSE",
+      "music": "MUSIC_CHERRYGROVE_CITY",
+      "width_blocks": 4, "height_blocks": 4,
+      "width_tiles": 8, "height_tiles": 8,
+      "exterior_warp": {"x": 25, "y": 9, "warp_index": 4},
+      "interior_warps": [
+        {"warp_index": 1, "x": 2, "y": 7, "target": "cherrygrove_city", "target_warp_id": 4, "notes": "Left exit door tile"},
+        {"warp_index": 2, "x": 3, "y": 7, "target": "cherrygrove_city", "target_warp_id": 4, "notes": "Right exit door tile"}
+      ],
+      "bg_events": [
+        {"x": 0, "y": 1, "type": "BGEVENT_READ", "script": "GuideGentsHouseBookshelf", "text_summary": "Magazine bookshelf (MagazineBookshelfScript)"},
+        {"x": 1, "y": 1, "type": "BGEVENT_READ", "script": "GuideGentsHouseBookshelf", "text_summary": "Magazine bookshelf (MagazineBookshelfScript)"}
+      ],
+      "npcs": [
+        {
+          "id": "guide_gent_house",
+          "pokecrystal_const": "GUIDEGENTSHOUSE_GRAMPS",
+          "name": "Guide Gent (Gramps)",
+          "sprite": "SPRITE_GRAMPS",
+          "x": 2, "y": 3,
+          "facing": "right",
+          "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+          "visibility_flag": "EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE",
+          "script": "GuideGentsHouseGuideGent",
+          "script_type": "dialogue",
+          "dialogue_summary": "When I was a wee lad, I was a hotshot trainer! Advice: catch lots of Pokemon and treat them with kindness.",
+          "notes": "Visible here only before the overworld tour is triggered (same flag that hides him on the city map during tour). After tour completes he is permanently in house."
+        }
+      ]
+    },
+    {
+      "area_id": "cherrygrove_gym_speech_house",
+      "pokecrystal_map_id": "CHERRYGROVE_GYM_SPEECH_HOUSE",
+      "area_name": "Cherrygrove Gym Speech House",
+      "area_type": "building",
+      "tileset": "TILESET_HOUSE",
+      "music": "MUSIC_CHERRYGROVE_CITY",
+      "width_blocks": 4, "height_blocks": 4,
+      "width_tiles": 8, "height_tiles": 8,
+      "exterior_warp": {"x": 17, "y": 7, "warp_index": 3},
+      "interior_warps": [
+        {"warp_index": 1, "x": 2, "y": 7, "target": "cherrygrove_city", "target_warp_id": 3, "notes": "Left exit door tile"},
+        {"warp_index": 2, "x": 3, "y": 7, "target": "cherrygrove_city", "target_warp_id": 3, "notes": "Right exit door tile"}
+      ],
+      "bg_events": [
+        {"x": 0, "y": 1, "type": "BGEVENT_READ", "script": "CherrygroveGymSpeechHouseBookshelf", "text_summary": "Picture bookshelf (PictureBookshelfScript)"},
+        {"x": 1, "y": 1, "type": "BGEVENT_READ", "script": "CherrygroveGymSpeechHouseBookshelf", "text_summary": "Picture bookshelf (PictureBookshelfScript)"}
+      ],
+      "npcs": [
+        {
+          "id": "pokefan_m",
+          "pokecrystal_const": "CHERRYGROVEGYMSPEECHHOUSE_POKEFAN_M",
+          "name": "Pokefan (M)",
+          "sprite": "SPRITE_POKEFAN_M",
+          "x": 2, "y": 3,
+          "facing": "down",
+          "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+          "script": "CherrygroveGymSpeechHousePokefanMScript",
+          "dialogue_summary": "Explains that to test your skill as a Pokemon trainer you must visit Pokemon Gyms all over Johto and collect badges."
+        },
+        {
+          "id": "bug_catcher_house",
+          "pokecrystal_const": "CHERRYGROVEGYMSPEECHHOUSE_BUG_CATCHER",
+          "name": "Bug Catcher",
+          "sprite": "SPRITE_BUG_CATCHER",
+          "x": 5, "y": 5,
+          "facing": "walk_left_right",
+          "movement": "SPRITEMOVEDATA_WALK_LEFT_RIGHT",
+          "movement_radius": 1,
+          "palette": "PAL_NPC_RED",
+          "script": "CherrygroveGymSpeechHouseBugCatcherScript",
+          "dialogue_summary": "Wants to be a Gym Leader when older. Makes his Pokemon battle his friend's Pokemon to make them tougher."
+        }
+      ]
+    },
+    {
+      "area_id": "cherrygrove_evolution_speech_house",
+      "pokecrystal_map_id": "CHERRYGROVE_EVOLUTION_SPEECH_HOUSE",
+      "area_name": "Cherrygrove Evolution Speech House",
+      "area_type": "building",
+      "tileset": "TILESET_HOUSE",
+      "music": "MUSIC_CHERRYGROVE_CITY",
+      "width_blocks": 4, "height_blocks": 4,
+      "width_tiles": 8, "height_tiles": 8,
+      "exterior_warp": {"x": 31, "y": 11, "warp_index": 5},
+      "interior_warps": [
+        {"warp_index": 1, "x": 2, "y": 7, "target": "cherrygrove_city", "target_warp_id": 5, "notes": "Left exit door tile"},
+        {"warp_index": 2, "x": 3, "y": 7, "target": "cherrygrove_city", "target_warp_id": 5, "notes": "Right exit door tile"}
+      ],
+      "bg_events": [
+        {"x": 0, "y": 1, "type": "BGEVENT_READ", "script": "CherrygroveEvolutionSpeechHouseBookshelf", "text_summary": "Magazine bookshelf (MagazineBookshelfScript)"},
+        {"x": 1, "y": 1, "type": "BGEVENT_READ", "script": "CherrygroveEvolutionSpeechHouseBookshelf", "text_summary": "Magazine bookshelf (MagazineBookshelfScript)"}
+      ],
+      "npcs": [
+        {
+          "id": "lass_evolution",
+          "pokecrystal_const": "CHERRYGROVEEVOLUTIONSPEECHHOUSE_LASS",
+          "name": "Lass",
+          "sprite": "SPRITE_LASS",
+          "x": 3, "y": 5,
+          "facing": "left",
+          "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+          "palette": "PAL_NPC_GREEN",
+          "script": "CherrygroveEvolutionSpeechHouseLassScript",
+          "dialogue_summary": "Shocked that Pokemon can change form (evolve)."
+        },
+        {
+          "id": "youngster_evolution",
+          "pokecrystal_const": "CHERRYGROVEEVOLUTIONSPEECHHOUSE_YOUNGSTER",
+          "name": "Youngster",
+          "sprite": "SPRITE_YOUNGSTER",
+          "x": 2, "y": 5,
+          "facing": "right",
+          "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+          "palette": "PAL_NPC_RED",
+          "script": "CherrygroveEvolutionSpeechHouseYoungsterScript",
+          "dialogue_summary": "Explains that Pokemon gain experience in battle and change their form (evolution tutorial)."
+        }
+      ]
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": [],
+      "notes": "No tall grass in Cherrygrove City. TREEMON_SET_NONE — no headbutt trees either."
+    },
+    "water": {
+      "encounter_rate": 6,
+      "encounter_rate_note": "6 percent per step (same as New Bark Town coastal waters)",
+      "pokecrystal_source": "data/wild/johto_water.asm — def_water_wildmons CHERRYGROVE_CITY",
+      "mons": [
+        {"species": "Tentacool", "level": 20, "rate_threshold": 20, "rate_pct": 40, "note": "first entry"},
+        {"species": "Tentacool", "level": 15, "rate_threshold": 15, "rate_pct": 40, "note": "second entry (level band 15)"},
+        {"species": "Tentacruel", "level": 20, "rate_threshold": 20, "rate_pct": 20, "note": "third entry"}
+      ]
+    },
+    "fishing": {
+      "fish_group": "FISHGROUP_SHORE",
+      "pokecrystal_source": "data/wild/fish.asm — Shore group; data/maps/maps.asm line 529",
+      "base_hook_chance": "50 percent + 1",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate_threshold": 70, "rate_pct": 70, "note": "85% cumulative threshold — first two entries both Magikarp"},
+        {"species": "Magikarp", "level": 10, "rate_threshold": 85, "rate_pct": 15},
+        {"species": "Krabby", "level": 10, "rate_threshold": 100, "rate_pct": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate_pct": 35},
+        {"species": "Krabby", "level": 20, "rate_pct": 35},
+        {"species": "Krabby", "level": 20, "rate_pct": 20, "note": "second Krabby entry"},
+        {"species": "Corsola", "level": 20, "rate_pct": 10, "time": "day", "note": "time_group 0 day=Corsola"},
+        {"species": "Staryu", "level": 20, "rate_pct": 10, "time": "night", "note": "time_group 0 night=Staryu"}
+      ],
+      "super_rod": [
+        {"species": "Krabby", "level": 40, "rate_pct": 40},
+        {"species": "Corsola", "level": 40, "rate_pct": 30, "time": "day", "note": "time_group 1 day=Corsola"},
+        {"species": "Staryu", "level": 40, "rate_pct": 30, "time": "night", "note": "time_group 1 night=Staryu"},
+        {"species": "Krabby", "level": 40, "rate_pct": 20, "note": "third entry"},
+        {"species": "Kingler", "level": 40, "rate_pct": 10}
+      ]
+    }
+  },
+
+  "events": [
+    {
+      "id": "evt_flypoint",
+      "trigger": "MAPCALLBACK_NEWMAP",
+      "story_phase": "any",
+      "description": "On first map load, sets ENGINE_FLYPOINT_CHERRYGROVE so Cherrygrove appears as a Fly destination."
+    },
+    {
+      "id": "evt_guide_gent_tour",
+      "trigger": "talk_to_guide_gent_overworld",
+      "story_phase": "first_visit",
+      "scene_before": "SCENE_CHERRYGROVECITY_NOOP",
+      "description": "Guide Gent offers city tour. If accepted: plays MUSIC_SHOW_ME_AROUND, Guide Gent follows player through 5 movement sequences showing PokemonCenter, Mart, Route 30 exit, and the sea. Upon returning to his house he gives the Map Card (sets ENGINE_MAP_CARD flag), then disappears from the overworld (clearevent EVENT_GUIDE_GENT_VISIBLE_IN_CHERRYGROVE). Party music restarts."
+    },
+    {
+      "id": "evt_rival_ambush",
+      "trigger": "coord_event_x33_y6_or_y7",
+      "story_phase": "return_from_mr_pokemon",
+      "scene_required": "SCENE_CHERRYGROVECITY_MEET_RIVAL",
+      "description": "Silver appears and battles the player. His starter counters the player's choice: if player has Chikorita he uses Totodile; if Cyndaquil he uses Chikorita; if Totodile he uses Cyndaquil. BATTLETYPE_CANLOSE so losing does not black out. After battle: Silver shoves player south (big_step DOWN) and exits west/north; sets SCENE_CHERRYGROVECITY_NOOP; heals player's party (special HealParty); plays MUSIC_RIVAL_AFTER then resumes map music."
+    },
+    {
+      "id": "evt_rival_team_logic",
+      "trigger": "derived_from_evt_rival_ambush",
+      "description": "Rival starter selection: checkevent EVENT_GOT_TOTODILE_FROM_ELM -> loads RIVAL1_1_CHIKORITA. checkevent EVENT_GOT_CHIKORITA_FROM_ELM -> loads RIVAL1_1_CYNDAQUIL. Default (Cyndaquil chosen) -> loads RIVAL1_1_TOTODILE."
+    },
+    {
+      "id": "evt_mystic_water_gift",
+      "trigger": "talk_to_fisher_npc",
+      "story_phase": "any",
+      "flag": "EVENT_GOT_MYSTIC_WATER_IN_CHERRYGROVE",
+      "description": "Fisher gives Mystic Water on first interaction (verbosegiveitem MYSTIC_WATER). After flag is set he says he is back to fishing."
+    },
+    {
+      "id": "evt_commcenter_unlock",
+      "trigger": "EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+      "story_phase": "post_elm_errand",
+      "description": "Communication Center on 2F of the Pokemon Center unlocks after Mystery Egg is delivered to Elm. Teacher NPC in the Center changes dialogue to confirm she already traded Pokemon there."
+    },
+    {
+      "id": "evt_pokeballs_in_stock",
+      "trigger": "EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+      "story_phase": "post_elm_errand",
+      "description": "Mart switches from MART_CHERRYGROVE (no Poke Balls) to MART_CHERRYGROVE_DEX (Poke Balls added) after Mystery Egg delivered to Elm and Pokedex obtained."
+    }
+  ],
+
+  "story_progression": {
+    "phase_1_first_visit": {
+      "sequence": [
+        "Player arrives from Route 29 (east connection).",
+        "Guide Gent (Gramps) is visible on overworld at x=32,y=6.",
+        "Talking to him triggers optional city tour with MUSIC_SHOW_ME_AROUND.",
+        "Tour stops: Pokemon Center, Mart, Route 30 north exit, the southern sea.",
+        "Tour ends at his house (x=25,y=9 area); he gives Map Card for Pokegear.",
+        "Guide Gent disappears from overworld; now found only inside his house.",
+        "Player heals at Pokemon Center, continues north to Route 30.",
+        "Communication Center on 2F is locked (still under construction dialogue).",
+        "Mart sells only: Potion, Antidote, Paralyze Heal, Awakening (no Poke Balls yet)."
+      ]
+    },
+    "phase_2_return_trip": {
+      "trigger": "SCENE_CHERRYGROVECITY_MEET_RIVAL active (return from Mr. Pokemon)",
+      "sequence": [
+        "Player enters from Route 30 (north connection).",
+        "Walking to x=33 triggers coord event; Silver appears from east.",
+        "Shock emote on player; MUSIC_RIVAL_ENCOUNTER plays.",
+        "Silver taunts player about getting a Pokemon from the lab.",
+        "Battle begins: Silver uses starter countering player's choice (BATTLETYPE_CANLOSE).",
+        "Win dialogue: Silver grudgingly acknowledges and reveals his name is ???.",
+        "Loss dialogue: Silver declares himself future greatest Pokemon trainer.",
+        "After battle: Silver shoves player south, exits northwest off screen.",
+        "SCENE_CHERRYGROVECITY_NOOP set; party healed; map music resumes.",
+        "Player continues east to Route 29 back to New Bark Town."
+      ]
+    },
+    "phase_3_post_elm_errand": {
+      "trigger": "EVENT_GAVE_MYSTERY_EGG_TO_ELM set",
+      "changes": [
+        "Mart adds Poke Balls to inventory (MART_CHERRYGROVE_DEX).",
+        "Pokemon Center 2F Communication Center fully unlocked.",
+        "Teacher NPC in Center changes dialogue to post-unlock text.",
+        "Mart Cool Trainer M changes dialogue to celebrate Poke Balls being in stock."
+      ]
+    }
+  },
+
+  "notes": [
+    "All warp coordinates are in pokecrystal tile space (1 block = 2 tiles). Warp x/y match def_warp_events entries directly from CherrygroveCity.asm.",
+    "Rival battle location is at tile x=33, y=6/y=7, near the northwest path leading to Route 30. Rival spawns from x=39,y=6 and walks left 5 steps to meet the player.",
+    "No tall grass or headbutt trees present (TREEMON_SET_NONE). All wild encounters are water-only.",
+    "Water encounters confirmed from data/wild/johto_water.asm. Fishing group FISHGROUP_SHORE confirmed from data/maps/maps.asm line 529.",
+    "The time_group macro in fish.asm resolves to index 0 (day/night) — Corsola appears by day, Staryu by night on Good Rod/Super Rod.",
+    "Tile layout rows are representative spatial approximations. Exact block map data is in CherrygroveCity.blk and requires the TILESET_JOHTO block decoder to render precisely.",
+    "Population 22 from official Pokemon Gold/Silver/Crystal city data.",
+    "Flypoint is set on MAPCALLBACK_NEWMAP — first entry to the city permanently enables Cherrygrove as a Fly destination.",
+    "Guide Gent movement sequence (GuideGentMovement1-6) totals approximately 30 tile steps traversing west across the city then south to the shore before returning to his house."
+  ]
+}

@@ -1,0 +1,312 @@
+{
+  "area_id": "union_cave_1f",
+  "area_name": "Union Cave (1F)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "UNION_CAVE_1F",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "cave",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_32",
+      "offset": 0,
+      "requires": null,
+      "notes": "Northern exit leads back to Route 32 (toward Violet City)."
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_33",
+      "offset": 0,
+      "requires": null,
+      "notes": "Southern exit leads to Route 33 (toward Azalea Town)."
+    }
+  ],
+  "warps": [
+    {
+      "x": 17,
+      "y": 3,
+      "target_area_id": "route_32",
+      "target_warp_id": 4,
+      "notes": "North exit door — warp_event 17,3 ROUTE_32 4. Leads to Route 32 southern entrance."
+    },
+    {
+      "x": 17,
+      "y": 31,
+      "target_area_id": "route_33",
+      "target_warp_id": 1,
+      "notes": "South exit door — warp_event 17,31 ROUTE_33 1. Leads to Route 33 northern entrance."
+    },
+    {
+      "x": 5,
+      "y": 19,
+      "target_area_id": "union_cave_b1f",
+      "target_warp_id": 3,
+      "notes": "Staircase down to B1F — warp_event 5,19 UNION_CAVE_B1F 3."
+    },
+    {
+      "x": 3,
+      "y": 33,
+      "target_area_id": "union_cave_b1f",
+      "target_warp_id": 4,
+      "notes": "Second staircase down to B1F — warp_event 3,33 UNION_CAVE_B1F 4."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "R": "rock",
+      "v": "stairs_down",
+      "E": "exit_north",
+      "X": "exit_south",
+      "N": "npc_trainer_position",
+      "!": "item_ball",
+      "S": "sign"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "##EEEEE..............",
+      "####################",
+      "####################",
+      "###N.................",
+      "####################",
+      "####################",
+      "###########N.........",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###!.................",
+      "####################",
+      "####v...............~",
+      "####################",
+      "###########!~~~~~~~..",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#####N........N......",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####v....!...........",
+      "####################",
+      "##XXXXX..............",
+      "####################"
+    ],
+    "notes": "Schematic approximation from warp coordinates and object_event positions in pokecrystal UnionCave1F.asm. Cave is 20x36 tiles with a western water pool (surfable) on the lower half. Two staircases descend to B1F at (5,19) and (3,33). North exit at (17,3), south exit at (17,31). Actual block layout in UnionCave1F.blk."
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Hiker",
+      "name": "Daniel",
+      "trainer_id": "DANIEL",
+      "pokecrystal_trainer": "HIKER, DANIEL",
+      "x": 3,
+      "y": 6,
+      "facing": "right",
+      "movement": "standing_right",
+      "line_of_sight": 2,
+      "sprite": "SPRITE_POKEFAN_M",
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Onix", "level": 11}
+      ],
+      "prize_money": 352,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_HIKER_DANIEL",
+      "after_battle_dialogue": "I was conned into buying a SLOWPOKETAIL. I feel sorry for the poor #MON."
+    },
+    {
+      "class": "Hiker",
+      "name": "Russell",
+      "trainer_id": "RUSSELL",
+      "pokecrystal_trainer": "HIKER, RUSSELL",
+      "x": 11,
+      "y": 8,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 1,
+      "sprite": "SPRITE_POKEFAN_M",
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Geodude", "level": 4},
+        {"species": "Geodude", "level": 6},
+        {"species": "Geodude", "level": 8}
+      ],
+      "prize_money": 256,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_HIKER_RUSSELL",
+      "after_battle_dialogue": "All right, then! I've decided. I'm not leaving until my #MON get tougher!"
+    },
+    {
+      "class": "Pokemaniac",
+      "name": "Larry",
+      "trainer_id": "LARRY",
+      "pokecrystal_trainer": "POKEMANIAC, LARRY",
+      "x": 4,
+      "y": 21,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_SUPER_NERD",
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Slowpoke", "level": 10}
+      ],
+      "prize_money": 800,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_POKEMANIAC_LARRY",
+      "after_battle_dialogue": "Every Friday, you can hear #MON roars from deep inside the cave.",
+      "notes": "Hints at the Friday Lapras event in B2F."
+    },
+    {
+      "class": "Firebreather",
+      "name": "Bill",
+      "trainer_id": "BILL",
+      "pokecrystal_trainer": "FIREBREATHER, BILL",
+      "x": 14,
+      "y": 19,
+      "facing": "up",
+      "movement": "standing_up",
+      "line_of_sight": 4,
+      "sprite": "SPRITE_FISHER",
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Koffing", "level": 6},
+        {"species": "Koffing", "level": 6}
+      ],
+      "prize_money": 192,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_FIREBREATHER_BILL",
+      "after_battle_dialogue": "On weekends, you can hear strange roars from deep in the cave."
+    },
+    {
+      "class": "Firebreather",
+      "name": "Ray",
+      "trainer_id": "RAY",
+      "pokecrystal_trainer": "FIREBREATHER, RAY",
+      "x": 15,
+      "y": 27,
+      "facing": "left",
+      "movement": "standing_left",
+      "line_of_sight": 4,
+      "sprite": "SPRITE_FISHER",
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Vulpix", "level": 9}
+      ],
+      "prize_money": 288,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_FIREBREATHER_RAY",
+      "after_battle_dialogue": "It's my #MON's fire that lights up this cave."
+    }
+  ],
+  "items": [
+    {
+      "name": "X Attack",
+      "x": 4,
+      "y": 2,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_1F_X_ATTACK",
+      "pokecrystal_label": "UnionCave1FXAttack"
+    },
+    {
+      "name": "Potion",
+      "x": 4,
+      "y": 17,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_1F_POTION",
+      "pokecrystal_label": "UnionCave1FPotion"
+    },
+    {
+      "name": "Great Ball",
+      "x": 17,
+      "y": 21,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_1F_GREAT_BALL",
+      "pokecrystal_label": "UnionCave1FGreatBall"
+    },
+    {
+      "name": "Awakening",
+      "x": 12,
+      "y": 33,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_1F_AWAKENING",
+      "pokecrystal_label": "UnionCave1FAwakening"
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Cave encounters use the standard 7-slot table: slots 1-2 ~30% each, slot 3 ~20%, slot 4 ~10%, slot 5 ~5%, slot 6 ~4%, slot 7 ~1%. Source: johto_grass.asm def_grass_wildmons UNION_CAVE_1F.",
+      "morning": [
+        {"species": "Geodude",   "level": 6, "rate": 30},
+        {"species": "Sandshrew", "level": 6, "rate": 30},
+        {"species": "Zubat",     "level": 5, "rate": 20},
+        {"species": "Rattata",   "level": 4, "rate": 10},
+        {"species": "Zubat",     "level": 7, "rate": 5},
+        {"species": "Onix",      "level": 6, "rate": 4},
+        {"species": "Onix",      "level": 6, "rate": 1}
+      ],
+      "day": [
+        {"species": "Geodude",   "level": 6, "rate": 30},
+        {"species": "Sandshrew", "level": 6, "rate": 30},
+        {"species": "Zubat",     "level": 5, "rate": 20},
+        {"species": "Rattata",   "level": 4, "rate": 10},
+        {"species": "Zubat",     "level": 7, "rate": 5},
+        {"species": "Onix",      "level": 6, "rate": 4},
+        {"species": "Onix",      "level": 6, "rate": 1}
+      ],
+      "night": [
+        {"species": "Geodude",   "level": 6, "rate": 30},
+        {"species": "Rattata",   "level": 6, "rate": 30},
+        {"species": "Wooper",    "level": 5, "rate": 20},
+        {"species": "Rattata",   "level": 4, "rate": 10},
+        {"species": "Zubat",     "level": 7, "rate": 5},
+        {"species": "Onix",      "level": 6, "rate": 4},
+        {"species": "Onix",      "level": 6, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "notes": "Surfable pool in the lower-western portion of the cave. Source: johto_water.asm def_water_wildmons UNION_CAVE_1F.",
+      "mons": [
+        {"species": "Wooper",   "level": 15, "rate": 60},
+        {"species": "Quagsire", "level": 20, "rate": 30},
+        {"species": "Quagsire", "level": 15, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "notes": "No fishing data defined for Union Cave 1F in pokecrystal fish.asm. The cave pool is a Surf-only encounter area.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "first_visit",
+      "description": "No scripted entry events on 1F. Cave is freely accessible once the player reaches Route 32."
+    }
+  ],
+  "signs": [],
+  "notes": "Union Cave 1F connects Route 32 (north) to Route 33 (south), making it a mandatory transit dungeon early in the game. The cave is accessible without any HMs or badges. Two staircases at (5,19) and (3,33) descend to B1F. Five trainers are present: Hiker Daniel (x3,y6), Hiker Russell (x11,y8), Pokemaniac Larry (x4,y21), Firebreather Bill (x14,y19), Firebreather Ray (x15,y27). Four item balls: X Attack (x4,y2), Potion (x4,y17), Great Ball (x17,y21), Awakening (x12,y33). Sandshrew appears in morning/day but NOT at night (replaced by Wooper). Pokemaniac Larry's post-battle dialogue hints at the Friday Lapras event in B2F. Tileset $09 confirmed in attributes.asm. Source: maps/UnionCave1F.asm."
+}

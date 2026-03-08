@@ -1,0 +1,158 @@
+{
+  "area_id": "karens_room",
+  "area_name": "Karen's Room",
+  "area_type": "special",
+  "pokecrystal_map_id": "KARENS_ROOM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 17,
+      "target_area_id": "brunos_room",
+      "target_warp_id": 3,
+      "notes": "South entrance left tile — leads back to Bruno's Room"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 17,
+      "target_area_id": "brunos_room",
+      "target_warp_id": 4,
+      "notes": "South entrance right tile — leads back to Bruno's Room"
+    },
+    {
+      "warp_id": 3,
+      "x": 4, "y": 2,
+      "target_area_id": "lances_room",
+      "target_warp_id": 1,
+      "notes": "North exit left tile — leads to Lance's Room. Locked until Karen is defeated."
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 2,
+      "target_area_id": "lances_room",
+      "target_warp_id": 2,
+      "notes": "North exit right tile — leads to Lance's Room. Locked until Karen is defeated."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door_open",
+      "W": "wall_door_closed",
+      "N": "npc_position",
+      "E": "entrance_mat",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Karen stands at (5,7) facing down — center of the room.",
+      "The north door at y=2 (tiles 4,2 and 5,2) starts as wall ($2a block). Changes to open door ($16) after Karen is defeated.",
+      "The south entrance at y=14 (tile 4,14) is changed to wall ($2a) immediately upon player entry.",
+      "KarensRoom_EnterMovement walks the player UP 4 steps after entering.",
+      "Karen is the only Elite Four member who speaks philosophically about bonding with Pokemon over power-meta optimization.",
+      "Karen's palette is PAL_NPC_RED."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "####DD####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#####N####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####W#####",
+      "##########",
+      "##########",
+      "####EE####"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Karen",
+      "name": "Karen",
+      "x": 5, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_KAREN",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 0,
+      "trigger": "talk",
+      "trainer_id": "KAREN1",
+      "specialization": "Dark-type",
+      "ai_items": ["Full Heal", "Max Potion"],
+      "prize_money": 4700,
+      "rematch": false,
+      "one_time_flag": "EVENT_BEAT_ELITE_4_KAREN",
+      "intro_dialogue": "I am KAREN of the ELITE FOUR. You're <PLAYER>? How amusing. I love dark-type Pokemon. I find their wild, tough image to be so appealing. And they're so strong. Think you can take them? Just try to entertain me. Let's go.",
+      "beaten_dialogue": "Well, aren't you good. I like that in a trainer.",
+      "post_defeat_dialogue": "Strong Pokemon. Weak Pokemon. That is only the selfish perception of people. Truly skilled trainers should try to win with their favorites. I like your style. You understand what's important. Go on--the CHAMPION is waiting.",
+      "team": [
+        {
+          "species": "Umbreon",
+          "level": 42,
+          "moves": ["Sand-Attack", "Confuse Ray", "Faint Attack", "Mean Look"]
+        },
+        {
+          "species": "Vileplume",
+          "level": 42,
+          "moves": ["Stun Spore", "Acid", "Moonlight", "Petal Dance"]
+        },
+        {
+          "species": "Gengar",
+          "level": 45,
+          "moves": ["Lick", "Spite", "Curse", "Destiny Bond"]
+        },
+        {
+          "species": "Murkrow",
+          "level": 44,
+          "moves": ["Quick Attack", "Whirlwind", "Pursuit", "Faint Attack"]
+        },
+        {
+          "species": "Houndoom",
+          "level": 47,
+          "moves": ["Roar", "Pursuit", "Flamethrower", "Crunch"]
+        }
+      ]
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "LockDoorBehindPlayer",
+      "description": "SCENE_KARENSROOM_LOCK_DOOR fires sdefer KarensRoomDoorLocksBehindYouScript. Player is walked UP 4 steps automatically, earthquake sound plays, and the south entrance door tile at (4,14) is changed to wall ($2a block). EVENT_KARENS_ROOM_ENTRANCE_CLOSED is set. Scene changes to SCENE_KARENSROOM_NOOP."
+    },
+    {
+      "trigger": "on_defeat_karen",
+      "name": "OpenExitDoor",
+      "description": "After Karen is beaten, EVENT_BEAT_ELITE_4_KAREN is set. The north door tiles at (4,2) and (5,2) change to open ($16 block). EVENT_KARENS_ROOM_EXIT_OPEN is set. Player can then proceed to Lance's Room."
+    },
+    {
+      "trigger": "mapcallback_tiles",
+      "name": "KarensRoomDoorsCallback",
+      "description": "On every map tile refresh: if EVENT_KARENS_ROOM_ENTRANCE_CLOSED is set, applies wall at (4,14). If EVENT_KARENS_ROOM_EXIT_OPEN is set, applies open door at (4,2)."
+    }
+  ],
+  "notes": "Karen is Elite Four member #4, specializing in Dark-type Pokemon — a new type introduced in Gen 2 specifically to counter the Psychic type. Her team is the most diverse of the four, mixing Dark (Umbreon, Murkrow, Houndoom), Ghost (Gengar), and Grass/Poison (Vileplume) types. Umbreon (Lv.42) uses trapping moves (Mean Look) and confusion tactics. Gengar (Lv.45) is the most dangerous with Destiny Bond — if the player faints it, they also lose a Pokemon. Houndoom (Lv.47) is her ace. Her post-battle speech about using your favorites is one of the most-quoted lines in Pokemon history. Karen carries Full Heal and Max Potion. Prize money: $4700 (base 25 × highest level 47 × 4)."
+}

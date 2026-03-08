@@ -1,0 +1,215 @@
+{
+  "area_id": "mt_mortar_1f_outside",
+  "area_name": "Mt. Mortar 1F (Outside)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "MOUNT_MORTAR_1F_OUTSIDE",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "dark_cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3,  "y": 33,
+      "target_area_id": "route_42",
+      "target_warp_id": 3,
+      "notes": "West entrance — warp 3 on Route 42 (tile x=3, y=33). South edge of map."
+    },
+    {
+      "x": 17, "y": 33,
+      "target_area_id": "route_42",
+      "target_warp_id": 4,
+      "notes": "Center entrance — warp 4 on Route 42 (tile x=17, y=33). South edge of map."
+    },
+    {
+      "x": 37, "y": 33,
+      "target_area_id": "route_42",
+      "target_warp_id": 5,
+      "notes": "East entrance — warp 5 on Route 42 (tile x=37, y=33). South edge of map."
+    },
+    {
+      "x": 17, "y": 5,
+      "target_area_id": "mt_mortar_2f",
+      "target_warp_id": 1,
+      "notes": "North path leads up to Mt. Mortar 2F Inside. Requires climbing through cave interior."
+    },
+    {
+      "x": 11, "y": 21,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 1,
+      "notes": "West cave interior entrance — warp 1 on 1F Inside."
+    },
+    {
+      "x": 29, "y": 21,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 2,
+      "notes": "East cave interior entrance — warp 2 on 1F Inside."
+    },
+    {
+      "x": 17, "y": 29,
+      "target_area_id": "mt_mortar_b1f",
+      "target_warp_id": 2,
+      "notes": "Downward passage to B1F basement. Center of map, leads deep underground."
+    },
+    {
+      "x": 7,  "y": 13,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 3,
+      "notes": "Northwest cave interior entrance — warp 3 on 1F Inside."
+    },
+    {
+      "x": 33, "y": 13,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 4,
+      "notes": "Northeast cave interior entrance — warp 4 on 1F Inside."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "R": "rock",
+      "C": "cave_entrance",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": "40 wide x 36 tall. The Outside section is an open rocky mountain pass — the exterior face of Mt. Mortar. Three entrances from Route 42 line the south edge. Multiple cave entrances open into 1F Inside, one passage goes up to 2F, and one descends to B1F. A small water channel runs through the center of the map (Surf required). Items: Ether (x=13,y=15), Revive (x=31,y=18), hidden Hyper Potion (x=25,y=22).",
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "################C#######################",
+      "###############...######################",
+      "###############...######################",
+      "##############.....#####################",
+      "##############.....#####################",
+      "##############.....#####################",
+      "##############.....#####################",
+      "##############.....#####################",
+      "######C.......~~~~~......C##############",
+      "######.........~~~~.......##############",
+      "#####!.........~~~~.......##############",
+      "######.........~~~~.......##############",
+      "######.........~~~~.......##############",
+      "#######........~~~~....!..##############",
+      "#######........~~~~........#############",
+      "#######........~~~~........#############",
+      "########...C...~~~~...C....#############",
+      "###########....~~~~...?....#############",
+      "###########....~~~~........#############",
+      "###########....~~~~........#############",
+      "###########....~~~~........#############",
+      "###########....~~~~........#############",
+      "###########....~~~~........#############",
+      "###########....~~~~........#############",
+      "#############..C...........#############",
+      "###############............#############",
+      "###############............#############",
+      "###############............#############",
+      "EE.E..........EEEEEE........EEEEEEEE.EEE",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Ether",
+      "x": 13, "y": 15,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_OUTSIDE_ETHER",
+      "notes": "Pokeball sprite on the rocky western path"
+    },
+    {
+      "name": "Revive",
+      "x": 31, "y": 18,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_OUTSIDE_REVIVE",
+      "notes": "Pokeball sprite on the eastern rocky shelf"
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 25, "y": 22,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_OUTSIDE_HIDDEN_HYPER_POTION",
+      "notes": "Hidden item on the ground near the cave entrance area"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "notes": "Cave wild encounters use the grass encounter slot system. All slots same morning/day; Machop swapped for Marill at night.",
+      "morning": [
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Zubat",    "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Machop",   "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Golbat",   "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Geodude",  "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10}
+      ],
+      "day": [
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Zubat",    "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Machop",   "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Golbat",   "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Geodude",  "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10}
+      ],
+      "night": [
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Zubat",    "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Marill",   "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Golbat",   "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Geodude",  "level_min": 14, "level_max": 14, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 16, "level_max": 16, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 4,
+      "requires": "Surf",
+      "mons": [
+        {"species": "Goldeen", "level_min": 15, "level_max": 15, "rate": 60},
+        {"species": "Marill",  "level_min": 20, "level_max": 20, "rate": 30},
+        {"species": "Seaking", "level_min": 20, "level_max": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "FISHGROUP_LAKE",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 70},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Goldeen",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Poliwag",  "level_min": 20, "level_max": 20, "rate": 10,
+         "notes": "time_group 4 slot — Poliwag in morning/day, Poliwag at night per time_group"}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Poliwag",  "level_min": 40, "level_max": 40, "rate": 30,
+         "notes": "time_group 5 slot"},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Seaking",  "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [],
+  "notes": "Mt. Mortar 1F Outside (20x18 blocks, 40x36 tiles, confirmed: MountMortar1FOutside.blk = 360 bytes). The exterior face of Mt. Mortar, a large mountain between Ecruteak and Mahogany. Three entrances from Route 42 line the south edge (warps 3/4/5 on Route 42). The outside area has open rocky terrain with a water channel running through it — Surf is required to access the water. Connections: nine warps total — three to Route 42 (south exits), four into 1F Inside, one up to 2F Inside, one down to B1F. Items: Ether, Revive (both visible pokeball sprites), one hidden Hyper Potion. Tileset: TILESET_DARK_CAVE. Music: MUSIC_UNION_CAVE. No trainers in the outside section — trainers are found inside the cave. The cave is reached from Route 42 which runs east from Ecruteak City between the two entrances of Mt. Mortar."
+}

@@ -1,0 +1,214 @@
+{
+  "area_id": "lances_room",
+  "area_name": "Lance's Room",
+  "area_type": "special",
+  "pokecrystal_map_id": "LANCES_ROOM",
+  "width_blocks": 5,
+  "height_blocks": 12,
+  "width_tiles": 10,
+  "height_tiles": 24,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_BEAUTY_ENCOUNTER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 23,
+      "target_area_id": "karens_room",
+      "target_warp_id": 3,
+      "notes": "South entrance left tile — leads back to Karen's Room"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 23,
+      "target_area_id": "karens_room",
+      "target_warp_id": 4,
+      "notes": "South entrance right tile — leads back to Karen's Room"
+    },
+    {
+      "warp_id": 3,
+      "x": 4, "y": 1,
+      "target_area_id": "hall_of_fame",
+      "target_warp_id": 1,
+      "notes": "North exit left tile — leads to Hall of Fame. Opens after Lance is defeated."
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 1,
+      "target_area_id": "hall_of_fame",
+      "target_warp_id": 2,
+      "notes": "North exit right tile — leads to Hall of Fame. Opens after Lance is defeated."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door_open",
+      "W": "wall_door_closed",
+      "N": "npc_position",
+      "E": "entrance_mat",
+      "X": "blocked",
+      "C": "coord_trigger"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 24 tiles tall (5x12 blocks) — Lance's room is taller than the other E4 rooms.",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Lance stands at (5,3) facing down — he is positioned higher up (closer to the exit) than the other E4 members.",
+      "MARY (Teacher sprite, PAL_NPC_GREEN) and OAK (Oak sprite) both start at (4,7) facing up — hidden behind EVENT_LANCES_ROOM_OAK_AND_MARY. They appear only during the post-battle victory cutscene.",
+      "The north door at y=0 (tiles 4,1 and 5,1) starts as a wall ($34 block). Changes to open door ($0b) after Lance is defeated.",
+      "The south entrance at y=22 (tile 4,22) is changed to wall ($34) upon player entry.",
+      "LancesRoom_EnterMovement walks the player UP 4 steps after entering.",
+      "Coord triggers at (4,5) and (5,5) fire Script_ApproachLanceFromLeft and Script_ApproachLanceFromRight respectively — these are the battle approach scripted walking sequences. Music fades out before Lance speaks.",
+      "After defeating Lance, a full cutscene plays: Mary rushes in, Oak walks in slowly, Oak congratulates the player, Mary attempts interview, Lance leads player to Hall of Fame. FadeOutToWhite and warpfacing to HALL_OF_FAME (4,13).",
+      "Lance's room uses MUSIC_BEAUTY_ENCOUNTER which fades out at battle start and plays the champion battle music."
+    ],
+    "rows": [
+      "##########",
+      "####DD####",
+      "##########",
+      "#####N####",
+      "##########",
+      "####CC####",
+      "##########",
+      "####NN####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####W#####",
+      "####EE####"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "mary",
+      "name": "Mary",
+      "x": 4, "y": 7,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_TEACHER",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "cutscene_only",
+      "event_flag": "EVENT_LANCES_ROOM_OAK_AND_MARY",
+      "dialogue_summary": "Appears only during post-victory cutscene. Rushes in after Lance's defeat, attempts to interview the new Champion, gets left behind when Lance leads player to Hall of Fame."
+    },
+    {
+      "id": "oak",
+      "name": "Prof. Oak",
+      "x": 4, "y": 7,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_OAK",
+      "palette": "default",
+      "script_type": "cutscene_only",
+      "event_flag": "EVENT_LANCES_ROOM_OAK_AND_MARY",
+      "dialogue_summary": "Appears only during post-victory cutscene. Walks in after Mary, congratulates the player on their conquest of the League, praises their bond with their Pokemon."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Champion",
+      "name": "Lance",
+      "x": 5, "y": 3,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_LANCE",
+      "palette": "default",
+      "line_of_sight": 0,
+      "trigger": "coord_event",
+      "trigger_coords": [{"x": 4, "y": 5}, {"x": 5, "y": 5}],
+      "trainer_id": "LANCE (ChampionGroup)",
+      "specialization": "Dragon-type specialist",
+      "ai_items": ["Full Heal", "Full Restore"],
+      "prize_money": 5000,
+      "rematch": false,
+      "one_time_flag": "EVENT_BEAT_CHAMPION_LANCE",
+      "intro_dialogue": "LANCE: I've been waiting for you. <PLAYER>! I knew that you, with your skills, would eventually reach me here. There's no need for words now. We will battle to determine who is the stronger of the two of us. As the most powerful trainer and as the Pokemon League CHAMPION... I, LANCE the dragon master, accept your challenge!",
+      "beaten_dialogue": "...It's over. But it's an odd feeling. I'm not angry that I lost. In fact, I feel happy. Happy that I witnessed the rise of a great new CHAMPION!",
+      "post_defeat_dialogue": "...Whew. You have become truly powerful, <PLAYER>. Your Pokemon have responded to your strong and upstanding nature. As a trainer, you will continue to grow strong with your Pokemon.",
+      "team": [
+        {
+          "species": "Gyarados",
+          "level": 44,
+          "moves": ["Flail", "Rain Dance", "Surf", "Hyper Beam"],
+          "notes": "Water/Flying type — Rain Dance boosts Surf"
+        },
+        {
+          "species": "Dragonite",
+          "level": 47,
+          "moves": ["Thunder Wave", "Twister", "Thunder", "Hyper Beam"],
+          "notes": "Dragon/Flying — underleveled (Dragonite evolves at Lv.55). Thunder in Rain Dance."
+        },
+        {
+          "species": "Dragonite",
+          "level": 47,
+          "moves": ["Thunder Wave", "Twister", "Blizzard", "Hyper Beam"],
+          "notes": "Dragon/Flying — Blizzard variant for Ice coverage"
+        },
+        {
+          "species": "Aerodactyl",
+          "level": 46,
+          "moves": ["Wing Attack", "AncientPower", "Rock Slide", "Hyper Beam"],
+          "notes": "Rock/Flying type — fossil Pokemon resurrected"
+        },
+        {
+          "species": "Charizard",
+          "level": 46,
+          "moves": ["Flamethrower", "Wing Attack", "Slash", "Hyper Beam"],
+          "notes": "Fire/Flying — not a Dragon type despite appearance"
+        },
+        {
+          "species": "Dragonite",
+          "level": 50,
+          "moves": ["Fire Blast", "Safeguard", "Outrage", "Hyper Beam"],
+          "notes": "Ace Dragon — highest level, Outrage is the signature Dragon move. Safeguard prevents status."
+        }
+      ]
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "LockDoorBehindPlayer",
+      "description": "SCENE_LANCESROOM_LOCK_DOOR fires sdefer LancesRoomDoorLocksBehindYouScript. Player is walked UP 4 steps automatically, earthquake sound plays, and the south entrance door tile at (4,22) is changed to wall ($34 block). EVENT_LANCES_ROOM_ENTRANCE_CLOSED is set. Scene changes to SCENE_LANCESROOM_APPROACH_LANCE."
+    },
+    {
+      "trigger": "coord_event",
+      "name": "ApproachLanceFromLeft",
+      "description": "Stepping on (4,5) with SCENE_LANCESROOM_APPROACH_LANCE active: fades out music, player walks UP+UP then turns RIGHT, then the battle intro script fires."
+    },
+    {
+      "trigger": "coord_event",
+      "name": "ApproachLanceFromRight",
+      "description": "Stepping on (5,5) with SCENE_LANCESROOM_APPROACH_LANCE active: fades out music, player walks UP+LEFT+UP then turns RIGHT, then the battle intro script fires."
+    },
+    {
+      "trigger": "on_defeat_lance",
+      "name": "ChampionVictoryCutscene",
+      "description": "Full multi-stage cutscene: EVENT_BEAT_CHAMPION_LANCE is set. North door opens (changeblock 4,0 to $0b). Lance speaks post-battle text. Music fades to MUSIC_BEAUTY_ENCOUNTER. Lance shows shock emote. Mary rushes in (SPRITE_TEACHER) speaking about the interview. Oak slowly walks in and congratulates the player with a long speech. Mary steps aside for Oak. Oak congratulates. Mary attempts interview. Lance decides it is too noisy and leads player to Hall of Fame. FadeOutToWhite. warpfacing UP to HALL_OF_FAME at (4,13). Mary panics that she missed the interview."
+    },
+    {
+      "trigger": "mapcallback_tiles",
+      "name": "LancesRoomDoorsCallback",
+      "description": "On every map tile refresh: if EVENT_LANCES_ROOM_ENTRANCE_CLOSED is set, applies wall at (4,22) using block $34. If EVENT_LANCES_ROOM_EXIT_OPEN is set, applies open door at (4,0) using block $0b."
+    }
+  ],
+  "notes": "Lance is the Pokemon League Champion, the final boss of the main Johto story. His room is taller than the E4 rooms (5x12 blocks vs 5x9). He uses six Pokemon — more than any E4 member — with three Dragonite (all technically underleveled; Dragonair evolves into Dragonite at Lv.55). All three Dragonite have different move sets: Thunder, Blizzard, and Outrage variants. Lance's strategy revolves around Hyper Beam spam and Rain Dance boosted attacks. Gyarados leads to set up Rain Dance for Thunder accuracy. After victory, a scripted cutscene with Professor Oak and radio DJ Mary plays before the player is escorted to the Hall of Fame. Lance carries Full Heal and Full Restore. Prize money: $5000 (base 25 × highest level 50 × 4)."
+}

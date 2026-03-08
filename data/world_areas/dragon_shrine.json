@@ -1,0 +1,253 @@
+{
+  "area_id": "dragon_shrine",
+  "area_name": "Dragon Shrine",
+  "area_type": "building",
+  "pokecrystal_map_id": "DRAGON_SHRINE",
+  "width_blocks": 5,
+  "height_blocks": 5,
+  "width_tiles": 10,
+  "height_tiles": 10,
+  "tileset": "TILESET_LAB",
+  "music": "MUSIC_DRAGONS_DEN",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_SHORE",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 9,
+      "target_area_id": "dragons_den_b1f",
+      "target_warp_id": 2,
+      "notes": "Exit south — left door tile, returns to B1F at warp_id 2"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 9,
+      "target_area_id": "dragons_den_b1f",
+      "target_warp_id": 2,
+      "notes": "Exit south — right door tile, also returns to B1F at warp_id 2 (both tiles share target)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "D": "door",
+      "E": "exit_mat",
+      "@": "player_start_scene"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 10 tiles tall (5x5 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Uses TILESET_LAB — the lab/research building interior style.",
+      "Elder 1 (the Dragon Master, Clair's grandfather) stands at (5,1) facing down.",
+      "Elder 2 stands at (2,4) facing right — flanking Elder 1 during the test.",
+      "Elder 3 stands at (7,4) facing left — flanking Elder 1 during the test.",
+      "Clair appears at (4,8) facing up only during the quiz-complete cutscene (EVENT_DRAGON_SHRINE_CLAIR).",
+      "Both exit tiles at (4,9) and (5,9) warp to Dragon's Den B1F warp_id 2.",
+      "The scene SCENE_DRAGONSHRINE_TAKE_TEST fires on entry when player is sent by Clair post-gym-battle.",
+      "After quiz completion, scene changes to SCENE_DRAGONSHRINE_NOOP permanently."
+    ],
+    "rows": [
+      "##########",
+      "#####N####",
+      "##########",
+      "##########",
+      "##N#####N#",
+      "##........",
+      "##........",
+      "##........",
+      "####N#####",
+      "####EE####"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "elder_1",
+      "name": "Elder (Dragon Master / Clair's Grandfather)",
+      "x": 5, "y": 1,
+      "facing": "down",
+      "sprite": "SPRITE_ELDER",
+      "palette": "default",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "script_type": "script_driven",
+      "event_flag": "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1",
+      "notes": "Visible unless EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 is set (which occurs after the quiz+cutscene is complete for the current map load).",
+      "dialogue_summary_pre_quiz": "Administers the 5-question Dragon Master quiz. After passing: gives player the Rising Badge (on Clair's behalf after confronting her). After quiz, if EVENT_GOT_DRATINI is not set, offers Dratini. Post-Dratini: gives 'Dragon Pokemon are symbolic of our clan' speech. After badge+rival: notes the rival is in training; mentions Clair has learned something. Clair's grandfather — last approved trainer was Lance.",
+      "gives_dratini": {
+        "species": "Dratini",
+        "level": 15,
+        "condition": "EVENT_GOT_DRATINI not set AND EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 not set (quiz scene just finished)",
+        "event_flag": "EVENT_GOT_DRATINI",
+        "notes": "Dratini's moveset varies based on whether the player answered any question wrong (EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG). If wrong answers given, special GiveDratini procedure applies — the Dratini may have ExtremeSpeed (a special version only obtainable here). Level 15."
+      }
+    },
+    {
+      "id": "elder_2",
+      "name": "Elder (attendant)",
+      "x": 2, "y": 4,
+      "facing": "right",
+      "sprite": "SPRITE_ELDER",
+      "palette": "default",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1",
+      "dialogue_summary": "It's been quite some time since a trainer has gained our MASTER's rare approval. In fact, not since Master LANCE."
+    },
+    {
+      "id": "elder_3",
+      "name": "Elder (attendant)",
+      "x": 7, "y": 4,
+      "facing": "left",
+      "sprite": "SPRITE_ELDER",
+      "palette": "default",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1",
+      "dialogue_summary": "You know young Master LANCE? He looks so much like our MASTER did in his youth. It's in their blood."
+    },
+    {
+      "id": "clair_shrine",
+      "name": "Clair",
+      "x": 4, "y": 8,
+      "facing": "up",
+      "sprite": "SPRITE_CLAIR",
+      "palette": "PAL_NPC_BLUE",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "script_type": "scene_driven",
+      "event_flag": "EVENT_DRAGON_SHRINE_CLAIR",
+      "appearance": "Only appears during the quiz-passed cutscene (DragonShrineTakeTestScript -> .PassedTheTest). Disappears after the scene using the disappear command.",
+      "dialogue_summary": "Enters the shrine after player passes the quiz. Shocked that player passed. Denies it ('That can't be!', 'You're lying!'). Elder confronts her, threatens to inform Lance. Clair relents and gives the Rising Badge with 'Here, this is the RISINGBADGE... Hurry up! Take it!' Then is scolded by Elder. Exits in silence."
+    }
+  ],
+  "quiz": {
+    "script": "DragonShrineTakeTestScript",
+    "trigger": "SCENE_DRAGONSHRINE_TAKE_TEST",
+    "description": "Fires on map entry via sdefer when scene is active. Player walks automatically up seven tiles to the Elder. The Elder steps down one tile, greets the player, then presents 5 questions sequentially. Any wrong answer sets EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG (Elder pretends not to hear but continues). Passing all 5 correctly triggers the Elder's approval and the Clair cutscene.",
+    "wrong_answer_handling": "The Elder says 'Hah? I didn't quite catch that...' / 'What was it you said?' and continues to the next question — the quiz cannot be failed outright. EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG is set if any wrong answer is given. This flag affects the Dratini gift (triggers the special GiveDratini procedure for the ExtremeSpeed Dratini).",
+    "questions": [
+      {
+        "number": 1,
+        "text": "What are Pokemon to you?",
+        "options": ["Pal", "Underling", "Friend"],
+        "correct_options": [1, 3],
+        "wrong_options": [2],
+        "notes": "Options 'Pal' (1) and 'Friend' (3) are correct. 'Underling' (2) is wrong."
+      },
+      {
+        "number": 2,
+        "text": "What helps you to win battles?",
+        "options": ["Strategy", "Raising", "Cheating"],
+        "correct_options": [1, 2],
+        "wrong_options": [3],
+        "notes": "Options 'Strategy' (1) and 'Raising' (2) are correct. 'Cheating' (3) is wrong."
+      },
+      {
+        "number": 3,
+        "text": "What kind of trainer do you wish to battle?",
+        "options": ["Weak person", "Tough person", "Anybody"],
+        "correct_options": [2, 3],
+        "wrong_options": [1],
+        "notes": "Options 'Tough person' (2) and 'Anybody' (3) are correct. 'Weak person' (1) is wrong."
+      },
+      {
+        "number": 4,
+        "text": "What is most important for raising Pokemon?",
+        "options": ["Love", "Violence", "Knowledge"],
+        "correct_options": [1, 3],
+        "wrong_options": [2],
+        "notes": "Options 'Love' (1) and 'Knowledge' (3) are correct. 'Violence' (2) is wrong."
+      },
+      {
+        "number": 5,
+        "text": "Strong Pokemon. Weak Pokemon. Which is more important?",
+        "options": ["Tough", "Both", "Weak"],
+        "correct_options": [2],
+        "wrong_options": [1, 3],
+        "notes": "Only 'Both' (2) is correct. 'Tough' (1) and 'Weak' (3) are wrong."
+      }
+    ]
+  },
+  "cutscene_post_quiz": {
+    "name": "DragonShrineTakeTestScript .PassedTheTest",
+    "description": "After all five questions are answered (regardless of right/wrong), .PassedTheTest fires. Elder gives approval speech. Sound SFX_ENTER_DOOR plays. Clair appears (DRAGONSHRINE_CLAIR) walking in from south. Clair is shocked player passed. Elder confronts Clair, threatens to tell Lance. Clair gives the Rising Badge (setflag ENGINE_RISINGBADGE, SFX_GET_BADGE). SPECIALCALL_MASTERBALL phone call is queued. Scene on Dragon's Den B1F is set to SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM (so Clair gives TM24 on exit). Elder scolds Clair. Clair exits silently. EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 is set to hide Elders on this map load.",
+    "badge_granted": {
+      "name": "Rising Badge",
+      "flag": "ENGINE_RISINGBADGE",
+      "sfx": "SFX_GET_BADGE",
+      "effect": "Enables HM07 Waterfall outside battle. All Pokemon obey regardless of level. Raises Speed stat of player's own Pokemon."
+    },
+    "sets_scene": {
+      "map": "DRAGONS_DEN_B1F",
+      "scene": "SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM",
+      "effect": "Triggers Clair's TM24 DragonBreath delivery when player steps on coord_event at (19,30) in B1F."
+    }
+  },
+  "dratini_gift": {
+    "description": "After the quiz scene concludes (EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 cleared on map reload), interacting with Elder 1 gives the player a Dratini at level 15 if EVENT_GOT_DRATINI has not been set.",
+    "species": "Dratini",
+    "level": 15,
+    "one_time": true,
+    "event_flag": "EVENT_GOT_DRATINI",
+    "moveset_notes": "If the player answered any question incorrectly (EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG is set), the special GiveDratini procedure is called. This gives a Dratini that knows ExtremeSpeed — a move unobtainable by any other means in Generation 2. If all answers were correct, a standard Dratini is given with normal level-up moves.",
+    "extremespeed_dratini": {
+      "trigger": "EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG",
+      "move": "ExtremeSpeed",
+      "notes": "ExtremeSpeed Dratini is the only in-game source of ExtremeSpeed in Pokemon Crystal. It is counterintuitively rewarded for wrong quiz answers."
+    },
+    "party_full_dialogue": "Hm? Your Pokemon party is full."
+  },
+  "items": [],
+  "trainers": [],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": []
+    },
+    "fishing": {
+      "fish_group": "FISHGROUP_SHORE",
+      "notes": "FISHGROUP_SHORE assigned in maps.asm but no water tiles exist in the shrine — fishing is not possible here.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "scene_scripts": [
+    {
+      "id": "SCENE_DRAGONSHRINE_TAKE_TEST",
+      "description": "Active when Clair sends player here from the gym. Fires DragonShrineTakeTestScript via sdefer on map entry. Runs the 5-question quiz, the Clair confrontation, badge grant, and Dratini eligibility flag setup."
+    },
+    {
+      "id": "SCENE_DRAGONSHRINE_NOOP",
+      "description": "Set after quiz completion. No scripted events trigger. Elder 1 gives Dratini gift on interaction if EVENT_GOT_DRATINI not set. Elders give post-quiz dialogue about Lance and the clan's history."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "entry_after_clair_sends_player",
+      "scene": "SCENE_DRAGONSHRINE_TAKE_TEST",
+      "description": "Clair sets this scene (via the gym post-battle script). On entering the shrine, the quiz walk-in cutscene fires automatically via sdefer."
+    },
+    {
+      "trigger": "post_quiz_elder_interaction",
+      "scene": "SCENE_DRAGONSHRINE_NOOP",
+      "description": "After quiz is complete and map reloaded, interacting with Elder 1 gives Dratini (if not already obtained). Elder's dialogue varies based on EVENT_GOT_DRATINI, EVENT_BEAT_RIVAL_IN_MT_MOON, and whether the quiz wrong-answer flag is set."
+    }
+  ],
+  "geography_notes": [
+    "The Dragon Shrine is a small indoor building located at the southern center of Dragon's Den B1F.",
+    "It is the sacred home of the Dragon Clan elder — Clair's grandfather — and the heart of the Dragon Master tradition in Johto.",
+    "Access requires navigating all of B1F using Surf and Whirlpool (HM03 + HM06).",
+    "The shrine uses TILESET_LAB giving it a formal, institutional interior feel distinct from the cave surroundings.",
+    "This is one of only two locations in the game where the Rising Badge event can occur (here) and where TM24 DragonBreath is received (B1F coord event).",
+    "The Dratini with ExtremeSpeed is among the most notable optional Pokemon gifts in Generation 2, hidden behind deliberately wrong quiz answers."
+  ],
+  "notes": "The Dragon Shrine is the narrative climax of the Blackthorn City storyline. After Clair refuses to give the Rising Badge in the gym, she sends the player here. The Dragon Master (Elder 1) administers a 5-question philosophical quiz about Pokemon training. All questions have at least one 'correct' answer but wrong answers are tolerated with the Elder pretending not to hear — setting EVENT_ANSWERED_DRAGON_MASTER_QUIZ_WRONG which uniquely unlocks an ExtremeSpeed Dratini as the gift. After the quiz, the full Clair cutscene plays: she walks in, denies the player passed, is confronted by the Elder threatening to inform Lance, and finally relents — giving the Rising Badge. The Elder then sets the B1F scene flag so Clair delivers TM24 DragonBreath when the player exits. Three Elder NPCs occupy the shrine; two of them reference Lance as the last trainer approved before the player."
+}

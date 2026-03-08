@@ -1,0 +1,349 @@
+{
+  "area_id": "route_27",
+  "area_name": "Route 27",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_27",
+  "width_blocks": 40,
+  "height_blocks": 9,
+  "width_tiles": 80,
+  "height_tiles": 18,
+  "tileset": "kanto",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "new_bark_town",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_26",
+      "offset": -45,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 33, "y": 7,
+      "target_area_id": "route_27_sandstorm_house",
+      "target_warp_id": 1,
+      "notes": "Sandstorm House door, east-center section"
+    },
+    {
+      "x": 26, "y": 5,
+      "target_area_id": "tohjo_falls",
+      "target_warp_id": 1,
+      "notes": "West entrance into Tohjo Falls cave"
+    },
+    {
+      "x": 36, "y": 5,
+      "target_area_id": "tohjo_falls",
+      "target_warp_id": 2,
+      "notes": "East exit from Tohjo Falls cave"
+    }
+  ],
+  "signs": [
+    {
+      "x": 25, "y": 7,
+      "text": "TOHJO FALLS - THE LINK BETWEEN KANTO AND JOHTO"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "80 wide x 18 tall. Very wide east-west route. Player enters from New Bark Town on the west and travels east toward Route 26. Center has Tohjo Falls cave (requires Surf to reach west entrance; Waterfall to ascend inside). Sandstorm House on east side. Tall grass in eastern half. Ledge running along the south edge for shortcuts. Coord event at tiles 18-19,10 triggers 'first step into Kanto' Fisher cutscene.",
+    "rows": [
+      "################################################################################",
+      "##...........GGG................GGG...GGG...GGG..GGG.GGG.GGG.GGG....GGG..GGG.#",
+      "##...........GGG................GGG...GGG...GGG..GGG.GGG.GGG.GGG....GGG..GGG.#",
+      "##.P.P.P.P.P.GGG..P.P.P.P.P.P..GGG...GGG...GGG..GGG.GGG.GGG.GGG....GGG..GGG.#",
+      "##.P.P.P.P.P.GGG..P.P.P.P.P.P..GGG...GGG...GGG..GGG.GGG.GGG.GGG....GGG..GGG.#",
+      "##.........P.GGG..P.P........P..~~~C..~~~C...GGG..GGG.GGG.GGG.GGG.N..GGG..GGG.#",
+      "##.........P.GGG..P.P........P..~~~~~~..~~~~~~GGG.GGG.GGG.GGG.GGG....GGG..GGG.#",
+      "##.........P.....S.P.P.....P.P.....HHHH.......GGG.GGG.N..GGG..HHHH..GGG..GGG.#",
+      "##.........P.P.P.P.P.P.P.P.P.P.....HHHH.......GGG.GGG....GGG..HHHH..GGG..GGG.#",
+      "##.......N.P.P.P.P.P.P.P.P.P.P.....H..H.......GGG.GGG....GGG..H..H..GGG..GGG.#",
+      "@#...N...@.P.P.P.P.P.P.P.P.P.P.....DHHE.......GGG.GGG..N.GGG..DHHE..GGG..GGG.#",
+      "##..........GGG..P.P.P.P.P.P.P.........GGG.GGG.GGG.GGG....GGG.!.......!....GGG#",
+      "##..........GGG..P.P.P.P.P.P.P.........GGG.GGG.GGG.N......GGG...........GGG..#",
+      "LLLLLLLLLLLL.LLLLLLLLLLLLLLL.LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+      "################################################################################",
+      "################################################################################",
+      "################################################################################",
+      "################################################################################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_fisher_intro",
+      "name": "Fisher (Kanto border NPC)",
+      "x": 21, "y": 10,
+      "facing": "spin_random_slow",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Congratulates player on first step into Kanto. Cutscene triggers at coord 18-19,10. Says to check the Pokegear map.",
+      "notes": "Not a battle trainer; scene trigger at tiles (18,10) and (19,10)"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Blake",
+      "trainer_id": "COOLTRAINERM_BLAKE",
+      "x": 48, "y": 7,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Magneton",  "level": 33, "moves": ["Thunderbolt", "Supersonic", "Swift", "Screech"]},
+        {"species": "Quagsire",  "level": 31, "moves": ["Water Gun", "Slam", "Amnesia", "Earthquake"]},
+        {"species": "Exeggcute", "level": 31, "moves": ["Leech Seed", "Confusion", "Sleep Powder", "Solarbeam"]}
+      ],
+      "prize_money": 1984,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "East section, facing up; post-battle says something dramatic then laughs it off"
+    },
+    {
+      "class": "Cool Trainer M",
+      "name": "Brian",
+      "trainer_id": "COOLTRAINERM_BRIAN",
+      "x": 58, "y": 6,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Sandslash", "level": 35, "moves": ["Sand Attack", "Poison Sting", "Slash", "Swift"]}
+      ],
+      "prize_money": 1120,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Single Pokemon; good trainers recognize other good trainers"
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Reena",
+      "trainer_id": "COOLTRAINERF_REENA1",
+      "x": 72, "y": 10,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Starmie",   "level": 31},
+        {"species": "Nidoqueen", "level": 33},
+        {"species": "Starmie",   "level": 31}
+      ],
+      "prize_money": 2112,
+      "rematch": true,
+      "phone_number": true,
+      "rematch_teams": [
+        {
+          "condition": "after_elite_four",
+          "team": [
+            {"species": "Starmie",   "level": 34},
+            {"species": "Nidoqueen", "level": 36},
+            {"species": "Starmie",   "level": 34}
+          ]
+        },
+        {
+          "condition": "after_kanto_power_restored",
+          "team": [
+            {"species": "Starmie",   "level": 38, "moves": ["Double Team", "Psychic", "Waterfall", "Confuse Ray"]},
+            {"species": "Nidoqueen", "level": 40, "item": "Pink Bow", "moves": ["Earthquake", "Double Kick", "Toxic", "Body Slam"]},
+            {"species": "Starmie",   "level": 38, "moves": ["Blizzard", "Psychic", "Waterfall", "Recover"]}
+          ]
+        }
+      ],
+      "notes": "Far east, near Route 26 border; warns not to underestimate wild Pokemon in the area"
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Megan",
+      "trainer_id": "COOLTRAINERF_MEGAN",
+      "x": 37, "y": 6,
+      "facing": "spin_clockwise",
+      "movement": "spin_clockwise",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Bulbasaur", "level": 32, "moves": ["Growl", "Leech Seed", "Poisonpowder", "Razor Leaf"]},
+        {"species": "Ivysaur",   "level": 32, "moves": ["Growl", "Leech Seed", "Poisonpowder", "Razor Leaf"]},
+        {"species": "Venusaur",  "level": 32, "moves": ["Body Slam", "Sleep Powder", "Razor Leaf", "Sweet Scent"]}
+      ],
+      "prize_money": 2048,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Near Sandstorm House; discusses pre- and post-evolution Pokemon differences"
+    },
+    {
+      "class": "Psychic",
+      "name": "Gilbert",
+      "trainer_id": "PSYCHIC_GILBERT",
+      "x": 65, "y": 7,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Starmie",   "level": 30},
+        {"species": "Exeggcute", "level": 30},
+        {"species": "Girafarig", "level": 34}
+      ],
+      "prize_money": 1088,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Uses Youngster sprite; pretends to read player's mind (they're doing the League challenge)"
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Jose",
+      "trainer_id": "BIRDKEEPER_JOSE2",
+      "x": 58, "y": 13,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Farfetch'd", "level": 36}
+      ],
+      "prize_money": 1152,
+      "rematch": true,
+      "phone_number": true,
+      "rematch_teams": [
+        {
+          "condition": "after_elite_four",
+          "team": [
+            {"species": "Farfetch'd", "level": 34}
+          ]
+        },
+        {
+          "condition": "after_kanto_power_restored",
+          "team": [
+            {"species": "Farfetch'd", "level": 40, "moves": ["Fury Attack", "Detect", "Fly", "Slash"]}
+          ]
+        }
+      ],
+      "phone_gift": "Star Piece",
+      "notes": "Uses Youngster sprite; gives Star Piece as phone reward; Bird Keepers mimic bird whistles to command Pokemon"
+    }
+  ],
+  "items": [
+    {
+      "name": "TM37 Sandstorm",
+      "x": 60, "y": 12,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_27_TM_SOLARBEAM",
+      "notes": "Pokeball sprite. Note: the constant is EVENT_ROUTE_27_TM_SOLARBEAM but the item is TM_SANDSTORM per the script"
+    },
+    {
+      "name": "Rare Candy",
+      "x": 53, "y": 12,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_27_RARE_CANDY"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 18, "y": 10,
+      "scene": "SCENE_ROUTE27_FIRST_STEP_INTO_KANTO",
+      "script": "FirstStepIntoKantoLeftScene",
+      "description": "First tile into Kanto from west: Fisher turns left twice, approaches player, delivers 'first step into Kanto' speech"
+    },
+    {
+      "x": 19, "y": 10,
+      "scene": "SCENE_ROUTE27_FIRST_STEP_INTO_KANTO",
+      "script": "FirstStepIntoKantoRightScene",
+      "description": "Second tile into Kanto from west: Fisher turns left once, same speech"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "morning": [
+        {"species": "Doduo",   "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Arbok",   "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Raticate","level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Doduo",   "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Ponyta",  "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Dodrio",  "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Dodrio",  "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "day": [
+        {"species": "Doduo",   "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Arbok",   "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Raticate","level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Doduo",   "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Ponyta",  "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Dodrio",  "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Dodrio",  "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "night": [
+        {"species": "Quagsire","level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Noctowl", "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Raticate","level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Quagsire","level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Noctowl", "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Noctowl", "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Noctowl", "level_min": 32, "level_max": 32, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 6,
+      "mons": [
+        {"species": "Tentacool",  "level_min": 20, "level_max": 20, "rate": 60},
+        {"species": "Tentacool",  "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Tentacruel", "level_min": 20, "level_max": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "OCEAN",
+      "old_rod": [
+        {"species": "Magikarp",  "level": 10, "rate": 70},
+        {"species": "Magikarp",  "level": 10, "rate": 15},
+        {"species": "Tentacool", "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp",  "level": 20, "rate": 35},
+        {"species": "Tentacool", "level": 20, "rate": 35},
+        {"species": "Chinchou",  "level": 20, "rate": 21}
+      ],
+      "super_rod": [
+        {"species": "Chinchou",  "level": 40, "rate": 40},
+        {"species": "Tentacruel","level": 40, "rate": 21},
+        {"species": "Lanturn",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "coord_18_10_or_19_10",
+      "description": "First step into Kanto triggers Fisher cutscene (one-time, cleared via SCENE_ROUTE27_NOOP afterward)"
+    }
+  ],
+  "notes": "Very wide east-west route (40x9 blocks, 80x18 tiles). Connects New Bark Town (west) to Route 26 (east). The western half is accessible without HMs; the center-east area requires Surf to cross the water and enter Tohjo Falls. The Sandstorm House at tile 33,7 grants TM37 Sandstorm if the player's lead Pokemon has happiness over 150. Bird Keeper Jose offers a Star Piece via phone. Six trainers patrol the route, including Cool Trainer Reena and Bird Keeper Jose with phone rematches. Rare Candy and TM37 Sandstorm (item ball) both sit in the south-center area accessible on foot. Tohjo Falls has two entrances (warps at tiles 26,5 and 36,5)."
+}

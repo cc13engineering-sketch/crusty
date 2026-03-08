@@ -1,0 +1,209 @@
+{
+  "area_id": "olivine_lighthouse_5f",
+  "area_name": "Olivine Lighthouse 5F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_5F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_LIGHTHOUSE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9, "y": 15,
+      "target_area_id": "olivine_lighthouse_6f",
+      "target_warp_id": 1,
+      "note": "Center staircase up to 6F"
+    },
+    {
+      "x": 3, "y": 5,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 2,
+      "note": "West staircase down to 4F"
+    },
+    {
+      "x": 9, "y": 7,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 3,
+      "note": "Center staircase down to 4F"
+    },
+    {
+      "x": 16, "y": 7,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 9,
+      "note": "East staircase down to 4F (left tile)"
+    },
+    {
+      "x": 17, "y": 7,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 10,
+      "note": "East staircase down to 4F (right tile)"
+    },
+    {
+      "x": 16, "y": 5,
+      "target_area_id": "olivine_lighthouse_6f",
+      "target_warp_id": 2,
+      "note": "East staircase up to 6F (left tile)"
+    },
+    {
+      "x": 17, "y": 5,
+      "target_area_id": "olivine_lighthouse_6f",
+      "target_warp_id": 3,
+      "note": "East staircase up to 6F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "T": "trainer_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "P": "pillar",
+      "H": "hole/gap"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "#..................#",
+      "#...T...^^.........#",
+      "#..................#",
+      "#..^.............^^.#",
+      "#..................#",
+      "#.........^.....vv.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#...T..............#",
+      "#...............!..#",
+      "#..?...............#",
+      "#..................#",
+      "#.....!.....^......#",
+      "#..................#",
+      "####################"
+    ],
+    "notes": [
+      "Sailor Ernest (trainer) at tile(8,11) — SPRITEMOVEDATA_SPINRANDOM_FAST, line of sight 3",
+      "Bird Keeper Denis (trainer) at tile(8,3) facing left, uses SPRITE_YOUNGSTER per ASM, line of sight 4",
+      "Rare Candy item ball at tile(15,12) — EVENT_OLIVINE_LIGHTHOUSE_5F_RARE_CANDY",
+      "Super Repel item ball at tile(6,15) — EVENT_OLIVINE_LIGHTHOUSE_5F_SUPER_REPEL",
+      "TM Swagger item ball at tile(2,13) — EVENT_OLIVINE_LIGHTHOUSE_5F_TM_SWAGGER",
+      "Hidden Hyper Potion at bg_event tile(3,13) — EVENT_OLIVINE_LIGHTHOUSE_5F_HIDDEN_HYPER_POTION",
+      "Center staircase at (9,15) leads up to 6F warp 1",
+      "West staircase at (3,5) leads down to 4F warp 2",
+      "Center staircase at (9,7) leads down to 4F warp 3",
+      "East stairs at (16,5)/(17,5) lead up to 6F warps 2-3",
+      "East stairs at (16,7)/(17,7) lead down to 4F warps 9-10"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Sailor",
+      "name": "Ernest",
+      "trainer_const": "SAILOR_ERNEST",
+      "event_flag": "EVENT_BEAT_SAILOR_ERNEST",
+      "sprite": "SPRITE_SAILOR",
+      "x": 8, "y": 11,
+      "facing": "varies",
+      "movement": "spinrandom_fast",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Machop", "level": 18},
+        {"species": "Machop", "level": 18},
+        {"species": "Poliwhirl", "level": 18}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 576,
+      "rematch": false,
+      "seen_text": "I wanted to battle JASMINE, but she's not up to it now. So, how about you?",
+      "beaten_text": "Whoa, whoa. You're overwhelming!",
+      "after_text": "A GYM LEADER isn't just about being strong. A LEADER also needs to be compassionate."
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Denis",
+      "trainer_const": "BIRD_KEEPER_DENIS",
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_DENIS",
+      "sprite": "SPRITE_YOUNGSTER",
+      "sprite_note": "Sprite is SPRITE_YOUNGSTER in ASM despite class being BIRD_KEEPER — same quirk as Theo on 3F",
+      "x": 8, "y": 3,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Spearow", "level": 18},
+        {"species": "Fearow", "level": 20},
+        {"species": "Spearow", "level": 18}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 640,
+      "rematch": false,
+      "seen_text": "We're pretty high up here. My bird Pokemon are in prime form.",
+      "beaten_text": "Oops…They crashed…",
+      "after_text": "My Pokemon learned how to use FLY in CIANWOOD. Well, since I'm a loser, I'll FLY across the sea…"
+    }
+  ],
+  "items": [
+    {
+      "name": "Rare Candy",
+      "x": 15, "y": 12,
+      "hidden": false,
+      "item_ball": true,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_5F_RARE_CANDY",
+      "script": "OlivineLighthouse5FRareCandy",
+      "requires": null
+    },
+    {
+      "name": "Super Repel",
+      "x": 6, "y": 15,
+      "hidden": false,
+      "item_ball": true,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_5F_SUPER_REPEL",
+      "script": "OlivineLighthouse5FSuperRepel",
+      "requires": null
+    },
+    {
+      "name": "TM Swagger",
+      "x": 2, "y": 13,
+      "hidden": false,
+      "item_ball": true,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_5F_TM_SWAGGER",
+      "script": "OlivineLighthouse5FTMSwagger",
+      "requires": null,
+      "note": "TM Swagger (TM46 in Gen 2) teaches Swagger"
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 3, "y": 13,
+      "hidden": true,
+      "item_ball": false,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_5F_HIDDEN_HYPER_POTION",
+      "script": "OlivineLighthouse5FHiddenHyperPotion",
+      "bg_event_type": "BGEVENT_ITEM",
+      "requires": null
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 13,
+      "type": "BGEVENT_ITEM",
+      "script": "OlivineLighthouse5FHiddenHyperPotion",
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_5F_HIDDEN_HYPER_POTION",
+      "note": "Hidden Hyper Potion, check tile — no visual indicator"
+    }
+  ],
+  "events": [],
+  "notes": "Fifth floor of the Olivine Lighthouse. The most item-rich floor: three visible item balls (Rare Candy, Super Repel, TM Swagger) and one hidden item (Hyper Potion via bg_event). Has two trainers: Sailor Ernest (3 Pokemon including 2 Machop and a Poliwhirl, spins randomly fast) and Bird Keeper Denis (Spearow/Fearow/Spearow, uses SPRITE_YOUNGSTER sprite). Denis's after-text and Ernest's seen-text both reference Cianwood, reinforcing the quest direction. The floor has 7 warp events: one staircase going up to 6F at (9,15), east stairs at (16-17,5) also going to 6F, and multiple paths going down to 4F. TM Swagger note: this is TM46 in the Japanese/international Gen 2 numbering."
+}

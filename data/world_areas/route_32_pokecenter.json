@@ -1,0 +1,122 @@
+{
+  "area_id": "route_32_pokecenter",
+  "area_name": "Route 32 Pokemon Center",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_32_POKECENTER_1F",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "pokecenter_interior",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3,
+      "y": 7,
+      "target_area_id": "route_32",
+      "target_warp_id": 1,
+      "notes": "Main exit — returns to Route 32 exterior (x11,y73)"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "target_area_id": "route_32",
+      "target_warp_id": 1,
+      "notes": "Main exit (second tile) — returns to Route 32 exterior"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "target_area_id": "pokecenter_2f",
+      "target_warp_id": 1,
+      "notes": "Stairs to Pokecenter 2F (Cable Club / Link area)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "D": "door_exit",
+      "N": "npc_position",
+      "K": "healing_counter",
+      "C": "counter",
+      "^": "stairs_up",
+      "F": "floor_tile",
+      "T": "table"
+    },
+    "rows": [
+      "##########",
+      "#.KN......#",
+      "#.........#",
+      "#.........#",
+      "#N.......N#",
+      "#.........#",
+      "#^........#",
+      "###DDD####"
+    ],
+    "notes": "Standard Pokemon Center interior layout. Nurse at counter (x3,y1), Fishing Guru at x1,y4, Cool Trainer F at x6,y2. Stairs to 2F at x0,y6. Three exit tiles at the south wall."
+  },
+  "npcs": [
+    {
+      "id": "pokecenter_nurse",
+      "name": "Nurse Joy",
+      "x": 3,
+      "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "healer",
+      "dialogue_summary": "Standard Pokemon Center nurse. Heals all party Pokemon for free.",
+      "pokecrystal_script": "jumpstd PokecenterNurseScript"
+    },
+    {
+      "id": "fishing_guru",
+      "name": "Fishing Guru",
+      "x": 1,
+      "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "quest",
+      "dialogue_summary": "Asks the player if they want to try fishing. If yes, gives the Old Rod for free. After receiving it, he encourages the player to fish wherever there is water.",
+      "gives_item": "Old Rod",
+      "requires": null,
+      "pokecrystal_event": "EVENT_GOT_OLD_ROD",
+      "notes": "This is the first and only freely-given rod in the early game. Key item for accessing Water-type Pokemon from Route 32 onward."
+    },
+    {
+      "id": "cooltrainer_f",
+      "name": "Cool Trainer (female)",
+      "x": 6,
+      "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Wonders what held item to give her Pokemon — maybe something that raises Attack power."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Old Rod",
+      "x": 1,
+      "y": 4,
+      "hidden": false,
+      "requires": null,
+      "item_type": "npc_gift",
+      "pokecrystal_event": "EVENT_GOT_OLD_ROD",
+      "notes": "Given by the Fishing Guru. Allows fishing for Magikarp and Tentacool at Old Rod spots."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "first_visit_after_zephyr_badge",
+      "description": "Elm's aide waits here to give the player the Togepi Egg (Miracle Egg). This is triggered by Cool Trainer M's dialogue outside on Route 32 pointing the player here.",
+      "notes": "The aide and the Egg handoff happen elsewhere in the script chain (flagged as EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE) but the Pokemon Center is the location referenced by Cool Trainer M."
+    }
+  ],
+  "notes": "Mid-route Pokemon Center located at approximately y73 on Route 32. This is one of only two route-based Pokemon Centers in Johto (the other is on Route 40). Key purpose: healing point partway through the long Route 32 traverse. Also where the Fishing Guru gives out the Old Rod. Pokecrystal source: maps/Route32Pokecenter1F.asm. Exact interior dimensions not specified in pokecrystal; using standard Pokecenter footprint (5x4 blocks / 10x8 tiles)."
+}

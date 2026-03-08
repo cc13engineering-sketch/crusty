@@ -1,0 +1,199 @@
+{
+  "area_id": "dark_cave_blackthorn_entrance",
+  "area_name": "Dark Cave (Blackthorn Entrance)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "DARK_CAVE_BLACKTHORN_ENTRANCE",
+  "width_blocks": 15,
+  "height_blocks": 18,
+  "width_tiles": 30,
+  "height_tiles": 36,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 23, "y": 3,
+      "target_area_id": "route_45",
+      "target_warp_id": 1,
+      "notes": "Eastern exit to Route 45 — the main exit to the Blackthorn area"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 25,
+      "target_area_id": "dark_cave_violet_entrance",
+      "target_warp_id": 2,
+      "notes": "Western passage back to Violet Entrance — requires Surf + Waterfall to access from Violet side"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "C": "cave_entrance",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": [
+      "Map is 30 tiles wide x 36 tiles tall (15x18 blocks).",
+      "Tile coordinates are (col=x, row=y) with (0,0) at top-left.",
+      "Like the Violet side, this area is dark without Flash.",
+      "Significantly fewer item balls than the Violet Entrance — only Revive and TM Snore.",
+      "The Pharmacist NPC stands near the northern exit at (7,3), spinning randomly.",
+      "He gives Blackglasses on first meeting (one-time event). Subsequent visits show short reminder text.",
+      "Route 45 exit is at the far northeast corner (23,3), the main exit toward Blackthorn City.",
+      "The Violet Entrance passage at (3,25) is the southwest connection.",
+      "Item positions: Revive at (21,24), TM Snore at (7,22)."
+    ],
+    "rows": [
+      "##############################",
+      "##############################",
+      "##############################",
+      "#N......................CCCCCC#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.!...........................#",
+      "#.............................#",
+      "#.............................#",
+      "C......................!.......#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "#.............................#",
+      "##############################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "pharmacist",
+      "name": "Pharmacist",
+      "x": 7, "y": 3,
+      "facing": "random",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOT_BLACKGLASSES_IN_DARK_CAVE",
+      "dialogue_summary": "First meeting: startled by the player, gives Blackglasses and asks player to forget they saw him. Subsequent visits: reminds that Blackglasses powers up Dark-type moves.",
+      "gives_item": {
+        "name": "Blackglasses",
+        "event_flag": "EVENT_GOT_BLACKGLASSES_IN_DARK_CAVE",
+        "one_time": true
+      },
+      "full_dialogue": {
+        "first_meeting": "Whoa! You startled me there! I had my BLACKGLASSES on, so I didn't notice you at all. What am I doing here? Hey, don't you worry about it. I'll give you a pair of BLACKGLASSES, so forget you saw me, OK?",
+        "subsequent_visits": "BLACKGLASSES ups the power of dark-type moves."
+      }
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Revive",
+      "x": 21, "y": 24,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_BLACKTHORN_ENTRANCE_REVIVE"
+    },
+    {
+      "name": "TM Snore",
+      "x": 7, "y": 22,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_BLACKTHORN_ENTRANCE_TM_SNORE",
+      "notes": "TM13 — Snore: Normal-type, 40 power, only usable while asleep"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 4,
+      "notes": "Higher-level Pokemon than the Violet side — appropriate for post-Clair exploration",
+      "morning": [
+        {"species": "Geodude",  "level_min": 23, "level_max": 23, "slot": 1},
+        {"species": "Zubat",    "level_min": 23, "level_max": 23, "slot": 2},
+        {"species": "Graveler", "level_min": 25, "level_max": 25, "slot": 3},
+        {"species": "Ursaring", "level_min": 25, "level_max": 25, "slot": 4},
+        {"species": "Teddiursa","level_min": 20, "level_max": 20, "slot": 5, "notes": "Morning-only"},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "slot": 6},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "slot": 7}
+      ],
+      "day": [
+        {"species": "Geodude",  "level_min": 23, "level_max": 23, "slot": 1},
+        {"species": "Zubat",    "level_min": 23, "level_max": 23, "slot": 2},
+        {"species": "Graveler", "level_min": 25, "level_max": 25, "slot": 3},
+        {"species": "Ursaring", "level_min": 25, "level_max": 25, "slot": 4},
+        {"species": "Ursaring", "level_min": 30, "level_max": 30, "slot": 5, "notes": "Rarer high-level Ursaring"},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "slot": 6},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "slot": 7}
+      ],
+      "night": [
+        {"species": "Geodude",   "level_min": 23, "level_max": 23, "slot": 1},
+        {"species": "Zubat",     "level_min": 23, "level_max": 23, "slot": 2},
+        {"species": "Graveler",  "level_min": 25, "level_max": 25, "slot": 3},
+        {"species": "Wobbuffet", "level_min": 20, "level_max": 20, "slot": 4, "notes": "Night-only; replaces Ursaring"},
+        {"species": "Wobbuffet", "level_min": 25, "level_max": 25, "slot": 5, "notes": "Night-only"},
+        {"species": "Golbat",    "level_min": 23, "level_max": 23, "slot": 6},
+        {"species": "Golbat",    "level_min": 23, "level_max": 23, "slot": 7}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "notes": "Surf encounters — only Magikarp, same as Violet Entrance",
+      "mons": [
+        {"species": "Magikarp", "level_min": 15, "level_max": 15, "slot": 1},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "slot": 2},
+        {"species": "Magikarp", "level_min": 5,  "level_max": 5,  "slot": 3}
+      ]
+    },
+    "fishing": {
+      "notes": "No fishing data defined for Dark Cave in pokecrystal wild data files",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "mechanic",
+      "description": "Dark Cave is pitch-black without Flash. Identical mechanic to the Violet Entrance. Flash clears visibility for the current visit."
+    },
+    {
+      "trigger": "first_meeting_pharmacist",
+      "flag": "EVENT_GOT_BLACKGLASSES_IN_DARK_CAVE",
+      "description": "On first interaction with the Pharmacist NPC, the game checks this event flag. If not set, the full startled dialogue plays and Blackglasses is given via verbosegiveitem. The event flag is set immediately after. Subsequent visits show only the item description line."
+    }
+  ],
+  "geography_notes": [
+    "The Blackthorn Entrance is the second half of Dark Cave, accessible from Blackthorn City via Route 45.",
+    "Pokemon here are level 20-30, appropriate for late-game Johto (post-Clair badge).",
+    "Wobbuffet is a notable encounter exclusive to night-time — one of few wild Wobbuffet locations in the game.",
+    "Teddiursa appears only in the morning, replacing the second Ursaring slot.",
+    "The Pharmacist is the only NPC in either section of Dark Cave.",
+    "The Blackglasses hold item — boosting Dark-type moves by 10% — is given freely by the Pharmacist.",
+    "Connecting back to the Violet Entrance requires Surf and Waterfall, making this effectively a one-way shortcut unless the player has those HMs.",
+    "The Route 45 exit leads directly south toward Blackthorn City."
+  ],
+  "notes": "Dark Cave Blackthorn Entrance is reached from Route 45 east of Blackthorn City. It contains higher-level wild encounters than the Violet side. The standout feature is the Pharmacist NPC who gives the Blackglasses item and provides some comic relief. Wobbuffet is only findable at night. TM13 (Snore) is a one-of-a-kind pickup here. The two cave sections are connected internally but the connection requires Surf and Waterfall to traverse."
+}

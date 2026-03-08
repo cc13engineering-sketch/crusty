@@ -1,0 +1,422 @@
+{
+  "area_id": "ecruteak_gym",
+  "area_name": "Ecruteak Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "ECRUTEAK_GYM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 17,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 10,
+      "note": "left exit tile to city"
+    },
+    {
+      "x": 5, "y": 17,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 10,
+      "note": "right exit tile to city"
+    },
+    {
+      "x": 4, "y": 14,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 4,
+      "note": "internal warp platform step (top of invisible floor section)"
+    },
+    {
+      "x": 2, "y": 4,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit — falls back to entry platform"
+    },
+    {
+      "x": 3, "y": 4,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 4,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 5,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 6, "y": 7,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 4,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 6,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 3, "y": 6,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 6,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 5, "y": 6,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 6,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 7,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 8,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 5, "y": 8,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 6, "y": 8,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 8,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 8,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 9,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 10,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 11,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 10,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 5, "y": 10,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 2, "y": 12,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 3, "y": 12,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 4, "y": 12,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 5, "y": 12,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 10,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 11,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 12,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    },
+    {
+      "x": 7, "y": 13,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 3,
+      "note": "invisible floor pit"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_solid_floor",
+      "O": "invisible_floor_void (warp pit — looks like floor but sends player back)",
+      "#": "wall/obstacle",
+      "D": "door",
+      "N": "npc_position",
+      "S": "statue",
+      "E": "exit_mat",
+      "^": "platform_step_up"
+    },
+    "notes": [
+      "Width=10 tiles, Height=18 tiles.",
+      "The invisible floor puzzle: large sections of the gym floor appear normal but are actually void tiles (warp pits).",
+      "Stepping on any 'O' tile sends the player back to warp_id 3 (the re-entry platform at the bottom of the puzzle).",
+      "The single safe path winds from the south entry platform northward to Morty.",
+      "Warp_id 4 at (4,14) is the platform that catches players falling from the puzzle — it re-deposits them via warp_id 3.",
+      "The correct path through the invisible floor (based on warp event data): stay mostly to column 3 working north, then jog right at specific rows.",
+      "Trainers are positioned on solid floor islands within the void zone.",
+      "Two gym statues flank the entry area at (3,15) and (6,15)."
+    ],
+    "rows": [
+      "##########",
+      "##.N....##",
+      "##......##",
+      "##......##",
+      "##OOOO.O##",
+      "##..OOOO##",
+      "##OOOOO.##",
+      "##...OOO##",
+      "##OOOOOO##",
+      "##O.....##",
+      "##O..OO.##",
+      "##O.....##",
+      "##OOOOO.##",
+      "##......N#",
+      "##^.....##",
+      "##S....S##",
+      "##N.....##",
+      "##EEDDEE##"
+    ]
+  },
+  "invisible_floor_puzzle": {
+    "description": "The Ecruteak Gym is famous for its invisible floor puzzle. The entire main chamber appears to have a solid floor, but most tiles are actually void warps that drop the player back to the entry platform. The player must find the single correct winding path to reach Morty at the north end.",
+    "pit_tile_count": 33,
+    "pit_warp_target": "warp_id 3 (re-entry to puzzle base at y=14)",
+    "correct_path_hint": "Medium Grace reveals after defeat: 'The path is right before our eyes!' — the safe tiles form a narrow S-curve visible only by careful observation of the tile graphics.",
+    "safe_path_columns": "Broadly: enter from center, move north along col 3, cross to col 5 at mid-level, then proceed north through cols 3-5 to reach Morty.",
+    "trainer_islands": [
+      {"trainer": "Sage Jeffrey", "pos": {"x": 2, "y": 7}, "on_solid_island": true},
+      {"trainer": "Sage Ping", "pos": {"x": 3, "y": 13}, "on_solid_island": true},
+      {"trainer": "Medium Martha", "pos": {"x": 7, "y": 5}, "on_solid_island": true},
+      {"trainer": "Medium Grace", "pos": {"x": 7, "y": 9}, "on_solid_island": true}
+    ]
+  },
+  "npcs": [
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "x": 7, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Before Morty beaten: 'The trainers here have secret motives. If you win, they may tell you some deep secrets about ECRUTEAK.' After beaten: cowering in the corner out of pure terror."
+    },
+    {
+      "id": "gramps_guard",
+      "name": "Gramps (gym guard)",
+      "x": 4, "y": 14,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ECRUTEAK_GYM_GRAMPS",
+      "dialogue_summary": "Blocks gym when Morty is absent. Walks player out and warps them back to city via EcruteakGymClosed script.",
+      "note": "Only present when gym is closed (SCENE_ECRUTEAKGYM_FORCED_TO_LEAVE). Plays a slow exit sequence then warps player to city."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Sage",
+      "name": "Jeffrey",
+      "trainer_id": "SAGE_JEFFREY",
+      "x": 2, "y": 7,
+      "facing": "right",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Haunter", "level": 22, "trainer_type": "normal"}
+      ],
+      "prize_money": 880,
+      "event_flag": "EVENT_BEAT_SAGE_JEFFREY",
+      "after_battle_text": "Where did Pokemon come from?",
+      "note": "Auto-beaten by Morty's post-battle script once Morty is defeated."
+    },
+    {
+      "class": "Sage",
+      "name": "Ping",
+      "trainer_id": "SAGE_PING",
+      "x": 3, "y": 13,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Gastly", "level": 16, "trainer_type": "normal"},
+        {"species": "Gastly", "level": 16, "trainer_type": "normal"},
+        {"species": "Gastly", "level": 16, "trainer_type": "normal"},
+        {"species": "Gastly", "level": 16, "trainer_type": "normal"},
+        {"species": "Gastly", "level": 16, "trainer_type": "normal"}
+      ],
+      "prize_money": 640,
+      "event_flag": "EVENT_BEAT_SAGE_PING",
+      "after_battle_text": "We use only Ghost-type Pokemon. No Normal-type attack can harm them!",
+      "note": "Auto-beaten by Morty's post-battle script once Morty is defeated."
+    },
+    {
+      "class": "Medium",
+      "name": "Martha",
+      "trainer_id": "MEDIUM_MARTHA",
+      "x": 7, "y": 5,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Gastly", "level": 18, "trainer_type": "normal"},
+        {"species": "Haunter", "level": 20, "trainer_type": "normal"},
+        {"species": "Gastly", "level": 20, "trainer_type": "normal"}
+      ],
+      "prize_money": 800,
+      "event_flag": "EVENT_BEAT_MEDIUM_MARTHA",
+      "after_battle_text": "The one who wants to win most -- will!",
+      "note": "Auto-beaten by Morty's post-battle script once Morty is defeated."
+    },
+    {
+      "class": "Medium",
+      "name": "Grace",
+      "trainer_id": "MEDIUM_GRACE",
+      "x": 7, "y": 9,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Haunter", "level": 20, "trainer_type": "normal"},
+        {"species": "Haunter", "level": 20, "trainer_type": "normal"}
+      ],
+      "prize_money": 800,
+      "event_flag": "EVENT_BEAT_MEDIUM_GRACE",
+      "seen_text": "Stumped by our invisible floor? Defeat me if you want a hint!",
+      "after_battle_text": "Fine. I shall tell you the secret of the invisible floor. The path is right before our eyes!",
+      "note": "Gives the puzzle hint. Auto-beaten by Morty's post-battle script once Morty is defeated."
+    },
+    {
+      "class": "Gym Leader",
+      "name": "Morty",
+      "trainer_id": "MORTY1",
+      "x": 5, "y": 1,
+      "facing": "down",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Gastly",  "level": 21, "moves": ["Lick", "Spite", "Mean Look", "Curse"]},
+        {"species": "Haunter", "level": 21, "moves": ["Hypnosis", "Mimic", "Curse", "Night Shade"]},
+        {"species": "Gengar",  "level": 25, "moves": ["Hypnosis", "Shadow Ball", "Mean Look", "Dream Eater"]},
+        {"species": "Haunter", "level": 23, "moves": ["Spite", "Mean Look", "Mimic", "Night Shade"]}
+      ],
+      "prize_money": 3000,
+      "badge": "Fog Badge",
+      "badge_flag": "ENGINE_FOGBADGE",
+      "tm_reward": "TM30 Shadow Ball",
+      "tm_event_flag": "EVENT_GOT_TM30_SHADOW_BALL",
+      "event_flag": "EVENT_BEAT_MORTY",
+      "intro_text": "Good of you to have come. Here in ECRUTEAK, Pokemon have been revered. It's said that a rainbow-colored Pokemon will come down to appear before a truly powerful trainer. I believed that tale, so I have secretly trained here all my life. As a result, I can now see what others cannot. Just a bit more... With a little more, I could see a future in which I meet the Pokemon of rainbow colors. You're going to help me reach that level!",
+      "loss_text": "I'm not good enough yet... All right. This BADGE is yours.",
+      "badge_speech": "By having FOG BADGE, Pokemon up to L50 will obey you. Also, Pokemon that know SURF will be able to use that move anytime.",
+      "tm_speech": "It's SHADOW BALL. It causes damage and may reduce SPCL.DEF. Use it if it appeals to you.",
+      "post_battle_effects": [
+        "Sets EVENT_BEAT_MORTY",
+        "Sets ENGINE_FOGBADGE",
+        "Auto-sets EVENT_BEAT_SAGE_JEFFREY, EVENT_BEAT_SAGE_PING, EVENT_BEAT_MEDIUM_MARTHA, EVENT_BEAT_MEDIUM_GRACE",
+        "Sets SCENE_ECRUTEAKTINTOWERENTRANCE_NOOP on Tin Tower Entrance (allows passage with Fog Badge)",
+        "Sets EVENT_RANG_CLEAR_BELL_1 and EVENT_RANG_CLEAR_BELL_2",
+        "Triggers Rocket takeover events depending on VAR_BADGES count (Goldenrod or Radio Tower)"
+      ]
+    }
+  ],
+  "statues": [
+    {
+      "x": 3, "y": 15,
+      "script": "EcruteakGymStatue",
+      "dialogue_before_badge": "Standard gym statue script (GymStatue1Script)",
+      "dialogue_after_badge": "Identifies statue as belonging to Morty (GymStatue2Script)"
+    },
+    {
+      "x": 6, "y": 15,
+      "script": "EcruteakGymStatue",
+      "dialogue_before_badge": "Standard gym statue script (GymStatue1Script)",
+      "dialogue_after_badge": "Identifies statue as belonging to Morty (GymStatue2Script)"
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "enter_when_morty_absent",
+      "description": "SCENE_ECRUTEAKGYM_FORCED_TO_LEAVE fires. Gramps (EVENT_ECRUTEAK_GYM_GRAMPS) walks player out and warps them back to city."
+    },
+    {
+      "trigger": "beat_morty",
+      "description": "Fog Badge awarded. TM30 Shadow Ball given. Tin Tower Entrance access granted. Rocket storyline may advance depending on badge count."
+    }
+  ],
+  "notes": "The Ecruteak Gym's defining mechanic is its invisible floor puzzle. The map is 5x9 blocks (10x18 tiles). The floor appears visually identical throughout, but 33 tiles are warp pits that return the player to the puzzle entry platform (warp_id 3 at y=14). Trainers stand on small safe islands within the void field. Morty is positioned at the far north center (x=5, y=1). The gym tileset is the standard indoor gym tileset. Type specialty: Ghost. Morty's team order in pokecrystal: Gastly L21, Haunter L21, Gengar L25, Haunter L23 (TRAINERTYPE_MOVES — all have custom movesets)."
+}

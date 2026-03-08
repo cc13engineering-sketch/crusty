@@ -1,0 +1,225 @@
+{
+  "area_id": "ruins_of_alph_inner_chamber",
+  "area_name": "Ruins of Alph — Inner Chamber",
+  "area_type": "special",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_INNER_CHAMBER",
+  "width_blocks": 10,
+  "height_blocks": 14,
+  "width_tiles": 20,
+  "height_tiles": 28,
+  "tileset": "ruins",
+  "connections": [],
+  "warps": [
+    {
+      "x": 10, "y": 13,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 5,
+      "note": "Central north exit — back to Outside"
+    },
+    {
+      "x": 3, "y": 15,
+      "target_area_id": "ruins_of_alph_ho_oh_chamber",
+      "target_warp_id": 3,
+      "note": "Ho-Oh chamber hole entry left (skyfall from above)"
+    },
+    {
+      "x": 4, "y": 15,
+      "target_area_id": "ruins_of_alph_ho_oh_chamber",
+      "target_warp_id": 4,
+      "note": "Ho-Oh chamber hole entry right (skyfall from above)"
+    },
+    {
+      "x": 15, "y": 3,
+      "target_area_id": "ruins_of_alph_kabuto_chamber",
+      "target_warp_id": 3,
+      "note": "Kabuto chamber hole entry left (skyfall from above)"
+    },
+    {
+      "x": 16, "y": 3,
+      "target_area_id": "ruins_of_alph_kabuto_chamber",
+      "target_warp_id": 4,
+      "note": "Kabuto chamber hole entry right (skyfall from above)"
+    },
+    {
+      "x": 3, "y": 21,
+      "target_area_id": "ruins_of_alph_omanyte_chamber",
+      "target_warp_id": 3,
+      "note": "Omanyte chamber hole entry left (skyfall from above)"
+    },
+    {
+      "x": 4, "y": 21,
+      "target_area_id": "ruins_of_alph_omanyte_chamber",
+      "target_warp_id": 4,
+      "note": "Omanyte chamber hole entry right (skyfall from above)"
+    },
+    {
+      "x": 15, "y": 24,
+      "target_area_id": "ruins_of_alph_aerodactyl_chamber",
+      "target_warp_id": 3,
+      "note": "Aerodactyl chamber hole entry left (skyfall from above)"
+    },
+    {
+      "x": 16, "y": 24,
+      "target_area_id": "ruins_of_alph_aerodactyl_chamber",
+      "target_warp_id": 4,
+      "note": "Aerodactyl chamber hole entry right (skyfall from above)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "R": "ruins_statue_ancient_replica",
+      "N": "npc_position",
+      "^": "hole_from_above_kabuto",
+      "v": "hole_from_above_aerodactyl",
+      "H": "hole_from_above_ho_oh",
+      "O": "hole_from_above_omanyte",
+      "E": "exit_to_outside"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "##R..R..R..R..R..R##",
+      "##........^^......##",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##R..R..R..R..R..R##",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##........E.......##",
+      "##..................",
+      "##HH............##",
+      "##..................",
+      "##..................",
+      "##R..R..R..R..R..R##",
+      "##..................",
+      "##..................",
+      "##OO............##",
+      "##..................",
+      "##..................",
+      "##R..R..R..R..R..R##",
+      "##......vv........##",
+      "##..................",
+      "####################"
+    ],
+    "notes": "Schematic for 10x14 block map (20x28 tiles). Six rows of ancient Pokemon statues line the chamber walls at regular intervals. The exit to Outside is at (10,13). Warp holes for each chamber appear at the corners. Statues appear at y=3, y=8, y=13 (sides only), y=18, y=24 rows."
+  },
+  "npcs": [
+    {
+      "id": "npc_fisher",
+      "name": "Fisher",
+      "x": 3, "y": 7,
+      "facing": "spin_random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "'This is a big room, but there's nothing here.'",
+      "event_flag": "EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS",
+      "note": "Only appears after at least one puzzle is completed (flag set by any puzzle completion)"
+    },
+    {
+      "id": "npc_teacher",
+      "name": "Teacher",
+      "x": 14, "y": 13,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "'This place has a mystical quality to it. It feels sort of ethereal even.'",
+      "event_flag": "EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS"
+    },
+    {
+      "id": "npc_gramps",
+      "name": "Gramps",
+      "x": 11, "y": 19,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "'Ancient buildings are often tombs of kings. Like the pyramids, for instance.'",
+      "event_flag": "EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "signs": [
+    {"x": 2, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 5, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 8, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 11, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 14, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 17, "y": 3, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 2, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 5, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 8, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 11, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 14, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 17, "y": 8, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 2, "y": 13, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON.", "note": "West wall only"},
+    {"x": 17, "y": 13, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON.", "note": "East wall only"},
+    {"x": 2, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 5, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 8, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 11, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 14, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 17, "y": 18, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 2, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 5, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 8, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 11, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 14, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."},
+    {"x": 17, "y": 24, "type": "ancient_replica", "text": "It's a replica of an ancient POKEMON."}
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "morning": [
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100, "note": "All 7 slots are Unown lv5; specific form determined by unlocked flags and catch order"},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100}
+      ],
+      "day": [
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100}
+      ],
+      "night": [
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100},
+        {"species": "Unown", "level_min": 5, "level_max": 5, "rate": 100}
+      ]
+    },
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "unown_unlock_progression": {
+    "note": "Which Unown forms appear is controlled by ENGINE_UNLOCKED_UNOWNS_* flags. Unown only appear at all after EVENT_MADE_UNOWN_APPEAR_IN_RUINS is set (triggered by any puzzle completion + scene script).",
+    "kabuto_puzzle": "Unlocks Unown A, B, C, D, E, F, G, H, I, J, K (ENGINE_UNLOCKED_UNOWNS_A_TO_K)",
+    "omanyte_puzzle": "Unlocks Unown L, M, N, O, P, Q, R (ENGINE_UNLOCKED_UNOWNS_L_TO_R)",
+    "aerodactyl_puzzle": "Unlocks Unown S, T, U, V, W (ENGINE_UNLOCKED_UNOWNS_S_TO_W)",
+    "ho_oh_puzzle": "Unlocks Unown X, Y, Z (ENGINE_UNLOCKED_UNOWNS_X_TO_Z)",
+    "total_forms": 26,
+    "all_level": 5
+  },
+  "events": [
+    {
+      "trigger": "scene_strange_presence",
+      "description": "SCENE_RUINSOFALPHINNERCHAMBER_STRANGE_PRESENCE: triggered when any puzzle is first completed. Displays 'There is a strange presence here…', then sets EVENT_MADE_UNOWN_APPEAR_IN_RUINS and clears EVENT_RUINS_OF_ALPH_OUTSIDE_TOURIST_FISHER (the fisher outside flees). This event is what allows Unown to actually appear and the Scientist to appear outside."
+    }
+  ],
+  "notes": "The Inner Chamber is the heart of the Ruins of Alph. It is a large 10x14 block room (20x28 tiles) filled with ancient Pokemon statues — 26 total, arranged in 5 horizontal rows along the walls. There are no random encounters until at least one puzzle is completed and EVENT_MADE_UNOWN_APPEAR_IN_RUINS is set. The chamber connects back to all four puzzle chambers via skyfall holes (puzzle chambers are directly above). The only walking exit is north at (10,13) back to the Outside. Three NPCs appear here only after EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS is set. The grass encounter rate is 6% — encounters use the floor tiles, not literal grass."
+}

@@ -1,0 +1,330 @@
+{
+  "area_id": "national_park_bug_contest",
+  "area_name": "National Park (Bug-Catching Contest)",
+  "area_type": "special",
+  "pokecrystal_map_id": "NATIONAL_PARK_BUG_CONTEST",
+  "width_blocks": 20,
+  "height_blocks": 27,
+  "width_tiles": 40,
+  "height_tiles": 54,
+  "tileset": "park",
+  "music": "MUSIC_BUG_CATCHING_CONTEST",
+  "palette": "auto",
+  "fishgroup": "FISHGROUP_SHORE",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_36_national_park_gate",
+      "offset": 0,
+      "requires": null,
+      "notes": "During the contest, both north warp tiles go to ROUTE_36_NATIONAL_PARK_GATE warp 1 (both target the same warp, unlike the regular map)."
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_35_national_park_gate",
+      "offset": 0,
+      "requires": null,
+      "notes": "During the contest, both south warp tiles go to ROUTE_35_NATIONAL_PARK_GATE warp 1 (both target the same warp)."
+    }
+  ],
+  "warps": [
+    {
+      "x": 33, "y": 18,
+      "target_area_id": "route_36_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "North gate, left tile — both north warps target warp_id 1 during the contest"
+    },
+    {
+      "x": 33, "y": 19,
+      "target_area_id": "route_36_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "North gate, right tile — both north warps target warp_id 1 during the contest"
+    },
+    {
+      "x": 10, "y": 47,
+      "target_area_id": "route_35_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "South gate, left tile — both south warps target warp_id 1 during the contest"
+    },
+    {
+      "x": 11, "y": 47,
+      "target_area_id": "route_35_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "South gate, right tile — both south warps target warp_id 1 during the contest"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "G": "tall_grass",
+      "P": "paved_path",
+      "F": "fence",
+      "~": "fountain/water_feature",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "D": "gate_door",
+      "H": "gate_building"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "##TTTTTTTTTTTTTSTTTTTTTTTTTTTTTTTTTTTT##",
+      "##T...................................T##",
+      "##T..NNPP..........................PP.T##",
+      "##T..PPPP.................PPPP.....PP.T##",
+      "##T..PP.......N...........PPPP........T##",
+      "##T..PP.N...TTTTTTT.......PP.........T##",
+      "##T..PP.....TTTTTTT.......PP.........T##",
+      "##T..PPPP...TTTTTTT.......PPPP.......T##",
+      "##T..PPPP...TTTTTTT......PPPPP.......T##",
+      "##T..PP.N...TTTTTTT......PPPPP.......T##",
+      "##T..PP...........................N..T##",
+      "##T..PP..........................PP..T##",
+      "##T..PPPPPPPPPPPPPPPPPPPPPPPPPP..PP..T##",
+      "##T..P~~~~~~~~~~~~~~~~~~~~~~~~~~P....T##",
+      "##T..P~~~~~~~~~~~~~~~~~~~~~~~~~~P....T##",
+      "##T..PPPPPPPPPPPPPPPPPPPPPPPPPP......T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP...GGG.N..........GGG..PP.N...T##",
+      "##T..PP...GGG............GGG..PP.....T##",
+      "##T..N....GGG............GGG.........T##",
+      "##T.......GGG............GGG.........T##",
+      "##T.......GGG.N.........GGGG.........T##",
+      "##T..PP...GGG..........GGGGG..PP.N...T##",
+      "##T..PP...GGG..........GGGGG..PP.....T##",
+      "##T..PPPP.GGG...S.......GGG..PPPP....T##",
+      "##T..PPPP.GGG...........GGG..PPPP....T##",
+      "##T..PP...GGG...N.......GGG..PP......T##",
+      "##T..PP...GGG...........GGG..PP......T##",
+      "##T..PP...GGG.N.........GGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG...S...GGGGG..PP......T##",
+      "##T..PP...GGG.........GGG....PP......T##",
+      "##T..PP...GGG.N.......GGG....PP......T##",
+      "##T..PPNPP.GGG.......GGG..PPPPP......T##",
+      "##T..PPPPP.GGG.......GGG..PPPPP......T##",
+      "##T..PPPPP.GGG.......GGG..PPPPP.S....T##",
+      "##T..S.PPP.GGG...?...GGG..PPP........T##",
+      "##T..PP....GGG.......GGG..PP.........T##",
+      "##T..PP....GGG.......GGG..PP.........T##",
+      "##T...!..TTTTT.......TTTTT...........T##",
+      "##TTTTTT.TTTTT...S...TTTTT...TTTTTTTT##",
+      "########.........D.........##########",
+      "########.........D.........##########",
+      "########################################",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Same physical map layout as NATIONAL_PARK. The terrain, signs, items, and grass patches are identical. The difference is the NPCs: regular trainers and the Teacher/NPCs are replaced by 10 Bug Catching Contest participants who wander the park. The Relaxation Square fountain and all paths are identical. The items (Parlyz Heal, TM28 Dig, hidden Full Heal) are still present on this map version."
+  },
+  "signs": [
+    {
+      "x": 14, "y": 44,
+      "text": "RELAXATION SQUARE — NATIONAL PARK"
+    },
+    {
+      "x": 27, "y": 31,
+      "text": "Please battle only in the grass. — NATIONAL PARK WARDEN'S OFFICE"
+    },
+    {
+      "x": 12, "y": 4,
+      "text": "TRAINER TIPS — Print out MAIL by opening it then pressing START."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "contestant_don",
+      "name": "Don (Contestant 1)",
+      "x": 19, "y": 29,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER1",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_1A",
+      "dialogue_summary": "DON: I'm going to win! Don't bother me."
+    },
+    {
+      "id": "contestant_ed",
+      "name": "Ed (Contestant 2)",
+      "x": 28, "y": 22,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER2",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_2A",
+      "dialogue_summary": "ED: My Parasect puts Pokemon to sleep with Spore."
+    },
+    {
+      "id": "contestant_nick",
+      "name": "Nick (Contestant 3)",
+      "x": 9, "y": 18,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_ROCKER",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_3A",
+      "dialogue_summary": "NICK: I'm raising fast Pokemon for battles."
+    },
+    {
+      "id": "contestant_william",
+      "name": "William (Contestant 4)",
+      "x": 7, "y": 13,
+      "facing": "random",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_POKEFAN_M",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_4A",
+      "dialogue_summary": "WILLIAM: I'm not concerned about winning. I'm just looking for rare Pokemon."
+    },
+    {
+      "id": "contestant_benny",
+      "name": "Benny (Contestant 5)",
+      "x": 23, "y": 9,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER3",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_5A",
+      "dialogue_summary": "BENNY: Ssh! You'll scare off Scyther. I'll talk to you later."
+    },
+    {
+      "id": "contestant_barry",
+      "name": "Barry (Contestant 6)",
+      "x": 27, "y": 13,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER4",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_6A",
+      "dialogue_summary": "BARRY: You should weaken bug Pokemon first, then throw a Ball."
+    },
+    {
+      "id": "contestant_cindy",
+      "name": "Cindy (Contestant 7)",
+      "x": 7, "y": 23,
+      "facing": "random",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_LASS",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_7A",
+      "dialogue_summary": "CINDY: I love bug Pokemon. I guess you must like them too."
+    },
+    {
+      "id": "contestant_josh",
+      "name": "Josh (Contestant 8)",
+      "x": 11, "y": 27,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER5",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_8A",
+      "dialogue_summary": "JOSH: I've been collecting bug Pokemon since I was just a baby. There's no way I'm going to lose!"
+    },
+    {
+      "id": "contestant_samuel",
+      "name": "Samuel (Contestant 9)",
+      "x": 16, "y": 8,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER6",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_9A",
+      "dialogue_summary": "SAMUEL: If you've got the time to chat, go find some bug Pokemon."
+    },
+    {
+      "id": "contestant_kipp",
+      "name": "Kipp (Contestant 10)",
+      "x": 17, "y": 34,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_YOUNGSTER7",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_10A",
+      "dialogue_summary": "KIPP: I've studied about bug Pokemon a lot. I'm going to win for sure."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Parlyz Heal",
+      "x": 35, "y": 12,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_NATIONAL_PARK_PARLYZ_HEAL",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_POKE_BALL1",
+      "notes": "Same item and event flag as the regular National Park map. Shared event flag means it persists between both map versions."
+    },
+    {
+      "name": "TM28 (Dig)",
+      "x": 1, "y": 43,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_NATIONAL_PARK_TM_DIG",
+      "pokecrystal_const": "NATIONALPARKBUGCONTEST_POKE_BALL2",
+      "notes": "Same item and event flag as the regular National Park map."
+    },
+    {
+      "name": "Full Heal",
+      "x": 6, "y": 47,
+      "hidden": true,
+      "requires": "itemfinder",
+      "event_flag": "EVENT_NATIONAL_PARK_HIDDEN_FULL_HEAL",
+      "notes": "Same hidden item and event flag as the regular National Park map."
+    }
+  ],
+  "contest_encounters": {
+    "notes": "During the Bug-Catching Contest the player is given 20 Park Balls. Wild encounters in the grass produce only the ContestMons table below. The player may catch one Pokemon per contest. After the time limit expires (contest ends when player talks to the judge), entries are ranked by species rarity and level. Prizes: 1st = Sun Stone, 2nd = Everstone, 3rd = Gold Berry.",
+    "mons": [
+      {"species": "Caterpie",  "level_min": 7,  "level_max": 18, "rate": 20, "notes": "Common. Low value contestant."},
+      {"species": "Weedle",    "level_min": 7,  "level_max": 18, "rate": 20, "notes": "Common. Low value contestant."},
+      {"species": "Metapod",   "level_min": 9,  "level_max": 18, "rate": 10, "notes": "Medium rarity."},
+      {"species": "Kakuna",    "level_min": 9,  "level_max": 18, "rate": 10, "notes": "Medium rarity."},
+      {"species": "Butterfree","level_min": 12, "level_max": 15, "rate": 5,  "notes": "Rare. Good contestant."},
+      {"species": "Beedrill",  "level_min": 12, "level_max": 15, "rate": 5,  "notes": "Rare. Good contestant."},
+      {"species": "Venonat",   "level_min": 10, "level_max": 16, "rate": 10, "notes": "Medium rarity."},
+      {"species": "Paras",     "level_min": 10, "level_max": 17, "rate": 10, "notes": "Medium rarity."},
+      {"species": "Scyther",   "level_min": 13, "level_max": 14, "rate": 5,  "notes": "Rare and highly valued for the contest. Best entry possible."},
+      {"species": "Pinsir",    "level_min": 13, "level_max": 14, "rate": 5,  "notes": "Rare and highly valued for the contest. Best entry possible."},
+      {"species": "Venomoth",  "level_min": 30, "level_max": 40, "rate": -1, "notes": "Rate -1 = unused/catch-all fallback in original data. Very high level if encountered."}
+    ]
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "notes": "During the Bug-Catching Contest, the grass still uses the base National Park encounter rates but wild encounters produce ContestMons table entries instead of the normal johto_grass table. The contest_encounters block above is the canonical source for actual catchable Pokemon during the contest.",
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": []
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "contest_days",
+      "description": "This map is active on Tuesdays, Thursdays, and Saturdays. The player enters from either gate and receives 20 Park Balls. The player searches the tall grass patches for bug Pokemon, catches one to enter, and then returns to the judge (man at the south gate area) to submit their entry. Contest scoring weights species and level: Scyther and Pinsir at high levels score best. The player who scores highest wins a Sun Stone; second place gets an Everstone; third place gets a Gold Berry."
+    },
+    {
+      "trigger": "contest_end",
+      "description": "When the player talks to the judge or the time limit expires, the contest concludes. The judge announces the winner. The player keeps all Park Balls they did not use but cannot keep the entry Pokemon unless they win or it is theirs by default. After the contest, the map reverts to NATIONAL_PARK on the next non-contest day."
+    }
+  ],
+  "notes": "NATIONAL_PARK_BUG_CONTEST is an alternate version of the National Park map active on Tuesdays, Thursdays, and Saturdays. It uses MUSIC_BUG_CATCHING_CONTEST. The map geometry is identical to NATIONAL_PARK — same warps, same grass patches, same signs, same items (sharing event flags with the normal map). The difference is that regular trainer NPCs are replaced by 10 wandering contestants (Don, Ed, Nick, William, Benny, Barry, Cindy, Josh, Samuel, Kipp) who provide flavor dialogue. Wild encounters in the grass produce ContestMons: Caterpie and Weedle are most common (20% each), Scyther and Pinsir are the rarest (5% each) and most prized. A Venomoth entry at rate -1 exists as a high-level fallback. The contest scoring system rewards both rarity of species and level of the caught Pokemon."
+}

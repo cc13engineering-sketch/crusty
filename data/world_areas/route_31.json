@@ -1,0 +1,300 @@
+{
+  "area_id": "route_31",
+  "area_name": "Route 31",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_31",
+  "width_blocks": 20,
+  "height_blocks": 9,
+  "width_tiles": 40,
+  "height_tiles": 18,
+  "tileset": "johto_overworld",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_30",
+      "offset": 10,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "violet_city",
+      "offset": -9,
+      "requires": null,
+      "via_gate": "route_31_violet_gate"
+    }
+  ],
+  "warps": [
+    {
+      "x": 4,
+      "y": 6,
+      "target_area_id": "route_31_violet_gate",
+      "target_warp_id": 3,
+      "notes": "Gate bottom-left tile"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "target_area_id": "route_31_violet_gate",
+      "target_warp_id": 4,
+      "notes": "Gate bottom-right tile"
+    },
+    {
+      "x": 34,
+      "y": 5,
+      "target_area_id": "dark_cave_violet_entrance",
+      "target_warp_id": 1,
+      "notes": "Dark Cave western mouth — requires Flash/HM05 to navigate interior"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "D": "door_gate",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "C": "cave_entrance",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "H": "gate_building"
+    },
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTT....TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTT..GGGGGGGGGG..TTT...TTT.TTTTTTTTTTTT",
+      "TTTT..GGGGGGGGGG..TTT...TTT.TTTTTTTTTTTT",
+      "TTHHD.GGGGGGGGGG..PSSPN.!..TSTTCTTTTTTTT",
+      "TTHHD.GGGGGGGGGG......N.....TTTTTTTTTTTT",
+      "TTTT..GGGGGGGGGG..T.!N......TTTTTTTTTTTT",
+      "TTTT.LLLLLLLLLLL..T..GGGGGGGTTTTTTTTTTTT",
+      "TTTT.............LLLLLLLLLLL.TTTTTTTTTTTT",
+      "TTTTTTTTTTTTTT...............TTTTTTTTTTTT",
+      "TTTTTTTTTTTTTT...............TTTTTTTTTTTT",
+      "TTTTTTTTTTTTTT.GGGGGGGGG....NTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTT.GGGGGGGGG....NTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTLGGGGGGGGG!...TTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+    ],
+    "notes": "Row 0,1 = northern tree border. Gate building (HH+D) sits at x4-5,y5-6. Dark Cave entrance at x34,y5. Fruit tree at x16,y7. Items: Potion x29,y5 / Poke Ball x19,y15. Bug Catcher Wade patrols around x21,y13. Layout is a schematic approximation derived from pokecrystal object_event coordinates and .blk block dimensions."
+  },
+  "npcs": [
+    {
+      "id": "sleepy_fisher",
+      "name": "Sleepy Fisher (Kenya quest recipient)",
+      "x": 17,
+      "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "quest",
+      "dialogue_summary": "Exhausted from walking. Will accept Kenya the Spearow holding Elm's mail, and reward the player with TM50 (Nightmare) upon delivery."
+    },
+    {
+      "id": "youngster_route31",
+      "name": "Youngster",
+      "x": 9,
+      "y": 5,
+      "facing": "random",
+      "movement": "walk_around",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions finding a Pokemon in Dark Cave to use against Falkner, the Violet City Gym Leader."
+    },
+    {
+      "id": "cooltrainer_m",
+      "name": "Cool Trainer (male)",
+      "x": 33,
+      "y": 8,
+      "facing": "random",
+      "movement": "walk_around",
+      "script_type": "dialogue",
+      "dialogue_summary": "Wants to explore Dark Cave but needs a Pokemon that can light it up (Flash)."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Bug Catcher",
+      "name": "Wade",
+      "trainer_id": "WADE1",
+      "x": 21,
+      "y": 13,
+      "facing": "left",
+      "line_of_sight": 5,
+      "team": [
+        {"species": "Caterpie", "level": 2},
+        {"species": "Caterpie", "level": 2},
+        {"species": "Weedle",   "level": 3},
+        {"species": "Caterpie", "level": 2}
+      ],
+      "prize_money": 32,
+      "rematch": true,
+      "rematch_notes": "Pokegear phone rematch. Up to 5 fight levels keyed to game progress (badges/events). Later teams use Metapod/Kakuna and eventually Butterfree/Beedrill with moves.",
+      "rematch_teams": [
+        {
+          "fight": 2,
+          "unlock_condition": "ENGINE_FLYPOINT_GOLDENROD",
+          "team": [
+            {"species": "Metapod",  "level": 9},
+            {"species": "Metapod",  "level": 9},
+            {"species": "Kakuna",   "level": 10},
+            {"species": "Metapod",  "level": 9}
+          ]
+        },
+        {
+          "fight": 3,
+          "unlock_condition": "ENGINE_FLYPOINT_MAHOGANY",
+          "team": [
+            {"species": "Butterfree", "level": 14},
+            {"species": "Butterfree", "level": 14},
+            {"species": "Beedrill",   "level": 15},
+            {"species": "Butterfree", "level": 14}
+          ]
+        },
+        {
+          "fight": 4,
+          "unlock_condition": "EVENT_CLEARED_RADIO_TOWER",
+          "team": [
+            {"species": "Butterfree", "level": 24, "moves": ["Confusion", "PoisonPowder", "Supersonic", "Whirlwind"]},
+            {"species": "Butterfree", "level": 24, "moves": ["Confusion", "Stun Spore", "Supersonic", "Whirlwind"]},
+            {"species": "Beedrill",   "level": 25, "moves": ["Fury Attack", "Focus Energy", "Twineedle", "Rage"]}
+          ]
+        },
+        {
+          "fight": 5,
+          "unlock_condition": "EVENT_BEAT_ELITE_FOUR",
+          "team": [
+            {"species": "Butterfree", "level": 30, "moves": ["Confusion", "PoisonPowder", "Supersonic", "Gust"]},
+            {"species": "Butterfree", "level": 30, "moves": ["Confusion", "Stun Spore", "Supersonic", "Gust"]},
+            {"species": "Beedrill",   "level": 32, "moves": ["Fury Attack", "Pursuit", "Twineedle", "Double Team"]}
+          ]
+        }
+      ]
+    }
+  ],
+  "items": [
+    {
+      "name": "Potion",
+      "x": 29,
+      "y": 5,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_31_POTION"
+    },
+    {
+      "name": "Poke Ball",
+      "x": 19,
+      "y": 15,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_31_POKE_BALL"
+    },
+    {
+      "name": "Fruit Tree",
+      "x": 16,
+      "y": 7,
+      "hidden": false,
+      "requires": null,
+      "item_type": "fruit_tree",
+      "pokecrystal_event": "FRUITTREE_ROUTE_31",
+      "notes": "Headbutt-able fruit tree; yields Berry or similar fruit item on interaction."
+    },
+    {
+      "name": "TM50 (Nightmare)",
+      "x": 17,
+      "y": 7,
+      "hidden": false,
+      "requires": "deliver_kenya_spearow_with_mail",
+      "item_type": "quest_reward",
+      "pokecrystal_event": "EVENT_GOT_TM50_NIGHTMARE",
+      "notes": "Reward from Sleepy Fisher after delivering Kenya holding Elm's Spearow Mail. TM50 = Nightmare — steadily cuts HP of sleeping foe."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Caterpie",   "level_min": 4, "level_max": 5, "rate": 35},
+        {"species": "Ledyba",     "level_min": 5, "level_max": 5, "rate": 30},
+        {"species": "Pidgey",     "level_min": 4, "level_max": 6, "rate": 30},
+        {"species": "Kakuna",     "level_min": 5, "level_max": 5, "rate": 10},
+        {"species": "Bellsprout", "level_min": 5, "level_max": 6, "rate": 20},
+        {"species": "Hoppip",     "level_min": 5, "level_max": 6, "rate": 5}
+      ],
+      "day": [
+        {"species": "Caterpie",   "level_min": 4, "level_max": 5, "rate": 35},
+        {"species": "Pidgey",     "level_min": 4, "level_max": 6, "rate": 30},
+        {"species": "Metapod",    "level_min": 5, "level_max": 5, "rate": 15},
+        {"species": "Kakuna",     "level_min": 5, "level_max": 5, "rate": 15},
+        {"species": "Bellsprout", "level_min": 5, "level_max": 6, "rate": 20},
+        {"species": "Hoppip",     "level_min": 5, "level_max": 6, "rate": 5}
+      ],
+      "night": [
+        {"species": "Rattata",    "level_min": 5, "level_max": 6, "rate": 40},
+        {"species": "Hoothoot",   "level_min": 5, "level_max": 6, "rate": 40},
+        {"species": "Poliwag",    "level_min": 5, "level_max": 5, "rate": 30},
+        {"species": "Spinarak",   "level_min": 5, "level_max": 5, "rate": 30},
+        {"species": "Gastly",     "level_min": 6, "level_max": 6, "rate": 5},
+        {"species": "Zubat",      "level_min": 5, "level_max": 5, "rate": 5},
+        {"species": "Weedle",     "level_min": 4, "level_max": 5, "rate": 5}
+      ],
+      "version_notes": "Gold version has Caterpie/Metapod; Silver version has Weedle/Kakuna in those slots."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on Route 31."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": [],
+      "notes": "No fishing spots on Route 31."
+    },
+    "headbutt_trees": [
+      {"species": "Spearow",   "level_min": 10, "level_max": 10, "rate": 50, "time": "all"},
+      {"species": "Exeggcute", "level_min": 10, "level_max": 10, "rate": 15, "time": "day"},
+      {"species": "Aipom",     "level_min": 10, "level_max": 10, "rate": 20, "time": "all"},
+      {"species": "Hoothoot",  "level_min": 10, "level_max": 10, "rate": 30, "time": "night"},
+      {"species": "Ledyba",    "level_min": 10, "level_max": 10, "rate": 15, "time": "all"},
+      {"species": "Spinarak",  "level_min": 10, "level_max": 10, "rate": 15, "time": "all"}
+    ]
+  },
+  "events": [
+    {
+      "trigger": "first_enter_from_route_30",
+      "description": "Mom calls player on the Pokegear (SPECIALCALL_WORRIED) if the player has not yet spoken to Mom after the Mystery Egg quest.",
+      "pokecrystal_callback": "Route31CheckMomCallCallback"
+    },
+    {
+      "trigger": "interact_sleepy_fisher_with_kenya",
+      "description": "Player delivers Kenya the Spearow (holding Elm's Spearow Mail). Fisher reads the mail (Dark Cave leads to another road), thanks the player, and rewards TM50 Nightmare.",
+      "pokecrystal_event": "EVENT_GAVE_KENYA / EVENT_GOT_TM50_NIGHTMARE"
+    },
+    {
+      "trigger": "dark_cave_entrance",
+      "description": "Player can enter Dark Cave without Flash but the interior is almost entirely dark. Flash (HM05 or TM70) is needed to illuminate the cave fully.",
+      "notes": "Dark Cave connects Route 31 (west entrance) to Route 45 (east entrance near Blackthorn). Mid-game shortcut."
+    }
+  ],
+  "signs": [
+    {
+      "x": 7,
+      "y": 5,
+      "text": "ROUTE 31 / VIOLET CITY - CHERRYGROVE CITY"
+    },
+    {
+      "x": 31,
+      "y": 5,
+      "text": "DARK CAVE"
+    }
+  ],
+  "notes": "Route 31 is a short east-west route bridging Route 30 (west) and Violet City (east) via the Violet Gate. The route is notable for the Kenya mail delivery sidequest (Elm's errand payoff), TM50 Nightmare reward, and the western entrance to Dark Cave. Bug Catcher Wade is the sole trainer with Pokegear rematch support across five fight tiers. Pokecrystal source: maps/Route31.asm. Dimensions: 20x9 blocks (40x18 tiles)."
+}

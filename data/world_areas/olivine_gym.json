@@ -1,0 +1,171 @@
+{
+  "area_id": "olivine_gym",
+  "area_name": "Olivine Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_GYM",
+  "width_blocks": 5,
+  "height_blocks": 8,
+  "width_tiles": 10,
+  "height_tiles": 16,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 15,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 2,
+      "notes": "Left exit tile back to Olivine City"
+    },
+    {
+      "x": 5, "y": 15,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 2,
+      "notes": "Right exit tile back to Olivine City"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall",
+      "S": "statue",
+      "J": "jasmine_position",
+      "G": "gym_guide_position",
+      "E": "exit_mat",
+      "P": "path",
+      "R": "railing/barrier",
+      "D": "door"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "####J#####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##S....S##",
+      "#G......##",
+      "####EE####"
+    ],
+    "notes": "Straightforward open-floor gym with no puzzles or trainers. Jasmine stands at top center (x=5, y=3). Gym guide stands near the entrance left (x=7, y=13). Two statues flank the approach path at y=13. Exit mats at y=15 positions x=4 and x=5."
+  },
+  "signs": [
+    {
+      "x": 3, "y": 13,
+      "script": "OlivineGymStatue",
+      "text_before_badge": "OLIVINE CITY GYM — Leader: JASMINE",
+      "text_after_badge": "Defeated by [PLAYER]: JASMINE"
+    },
+    {
+      "x": 6, "y": 13,
+      "script": "OlivineGymStatue",
+      "text_before_badge": "OLIVINE CITY GYM — Leader: JASMINE",
+      "text_after_badge": "Defeated by [PLAYER]: JASMINE"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "olivinegym_gym_guide",
+      "name": "Gym Guide",
+      "x": 7, "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_states": [
+        {
+          "condition": "EVENT_JASMINE_RETURNED_TO_GYM not set",
+          "text": "JASMINE, the GYM LEADER, is at the LIGHTHOUSE. She's been tending to a sick POKEMON. A strong trainer has to be compassionate."
+        },
+        {
+          "condition": "EVENT_JASMINE_RETURNED_TO_GYM set, EVENT_BEAT_JASMINE not set",
+          "text": "JASMINE uses the newly discovered steel-type. I don't know very much about it."
+        },
+        {
+          "condition": "EVENT_BEAT_JASMINE set",
+          "text": "That was awesome. The steel-type, huh? That was a close encounter of an unknown kind!"
+        }
+      ]
+    }
+  ],
+  "boss": {
+    "id": "olivinegym_jasmine",
+    "name": "Jasmine",
+    "title": "The Steel-Clad Defense Girl",
+    "sprite": "SPRITE_JASMINE",
+    "x": 5, "y": 3,
+    "facing": "down",
+    "movement": "standing",
+    "event_flag": "EVENT_OLIVINE_GYM_JASMINE",
+    "availability_requires": "EVENT_JASMINE_RETURNED_TO_GYM",
+    "notes": "Jasmine is only present after the player delivers SecretPotion to Amphy at the top of Glitter Lighthouse, curing the sick Ampharos. Before that event she is absent from the gym entirely.",
+    "pre_battle_text": "...Thank you for your help at the LIGHTHOUSE... But this is different. Please allow me to introduce myself. I am JASMINE, a GYM LEADER. I use the steel-type. ...Do you know about the steel-type? It's a type that was only recently discovered. ...Um... May I begin?",
+    "victory_text": "...You are a better trainer than me, in both skill and kindness. In accordance with LEAGUE rules, I confer upon you this BADGE.",
+    "post_battle_badge_text": "MINERALBADGE raises POKEMON's DEFENSE. ...Um... Please take this too...",
+    "post_battle_tm_text": "...You could use that TM to teach IRON TAIL.",
+    "repeat_visit_text": "Um... I don't know how to say this, but good luck...",
+    "trainer_class": "JASMINE",
+    "trainer_id": "JASMINE1",
+    "team": [
+      {
+        "species": "Magnemite",
+        "level": 30,
+        "moves": ["Thunder Wave", "Supersonic", "SonicBoom", "ThunderShock"],
+        "held_item": null
+      },
+      {
+        "species": "Magnemite",
+        "level": 30,
+        "moves": ["Thunder Wave", "Supersonic", "SonicBoom", "ThunderShock"],
+        "held_item": null
+      },
+      {
+        "species": "Steelix",
+        "level": 35,
+        "moves": ["Iron Tail", "Screech", "Rock Throw", "Sandstorm"],
+        "held_item": null
+      }
+    ],
+    "prize_money": 3500,
+    "badge": {
+      "name": "Mineral Badge",
+      "flag": "ENGINE_MINERALBADGE",
+      "effect": "Raises all Pokemon's Defense stat. Allows use of Strength outside of battle.",
+      "badge_number": 6,
+      "event_flag": "EVENT_BEAT_JASMINE"
+    },
+    "tm_reward": {
+      "name": "TM23",
+      "move": "Iron Tail",
+      "event_flag": "EVENT_GOT_TM23_IRON_TAIL"
+    },
+    "post_badge_side_effect": "OlivineGymActivateRockets — after winning the Mineral Badge (6th badge), if the player has exactly 6 or 7 badges, a Rocket takeover event activates in either Goldenrod City or the Radio Tower respectively."
+  },
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "enter_gym_before_lighthouse_quest",
+      "description": "Gym guide informs player that Jasmine is absent — she is tending to a sick Pokemon at the lighthouse. The Jasmine object_event uses EVENT_OLIVINE_GYM_JASMINE which is gated behind EVENT_JASMINE_RETURNED_TO_GYM. She cannot be interacted with or battled until the SecretPotion is delivered."
+    },
+    {
+      "trigger": "beat_jasmine",
+      "description": "Sets EVENT_BEAT_JASMINE. Awards Mineral Badge (flag ENGINE_MINERALBADGE) and TM23 Iron Tail (flag EVENT_GOT_TM23_IRON_TAIL). Triggers OlivineGymActivateRockets subroutine which may activate the Team Rocket Goldenrod or Radio Tower arc depending on current badge count."
+    }
+  ],
+  "gym_type": "Steel",
+  "badge_number": 6,
+  "puzzle": "None — completely open floor plan, no trainers or obstacles between entrance and Jasmine.",
+  "notes": "Olivine Gym is notable for its simplicity: no sub-trainers, no puzzles, straight path to the leader. The challenge is the access gate (the lighthouse sidequest) rather than the gym layout itself. Gym statues at (3,13) and (6,13) use the OlivineGymStatue script which checks ENGINE_MINERALBADGE to show pre/post-battle text. Map constants: OLIVINEGYM_JASMINE=0, OLIVINEGYM_GYM_GUIDE=1."
+}

@@ -1,0 +1,202 @@
+{
+  "area_id": "slowpoke_well_b2f",
+  "area_name": "Slowpoke Well B2F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "SLOWPOKE_WELL_B2F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_CAVE",
+  "music": "MUSIC_DARK_CAVE",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_LAKE",
+  "access_requirement": "Surf",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9, "y": 11,
+      "target_area_id": "slowpoke_well_b1f",
+      "target_warp_id": 2,
+      "note": "Water warp ascending to B1F tile(7,11). Requires Surf to reach this warp from open water."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "^": "stairs_up/water_ascent",
+      "N": "npc_position",
+      "!": "item_ball",
+      "X": "blocked"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~.N..............",
+      "~~..............!...",
+      "~~~~................",
+      "~~~~................",
+      "~~~~................",
+      "~~~~................",
+      "~~~~................",
+      "~~~~~~~~~~^~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~"
+    ],
+    "notes": [
+      "Coordinate system: tile(x,y) directly from pokecrystal object_event and warp_event data.",
+      "B2F is almost entirely underwater — most of the map is accessible only by Surfing.",
+      "A small dry ledge area exists in the northeast where the Gym Guide NPC wanders (approx tiles 4-18, rows 4-10).",
+      "Gym Guide at tile(5,4) wanders in a 1x2 block area (movement_range [1,2]).",
+      "TM Rain Dance item ball at tile(15,5).",
+      "Warp ascent at tile(9,11) — player Surfs over this tile to ascend to B1F.",
+      "Row 4 (y=4): approximate dry ground begins, Gym Guide visible here.",
+      "Row 11 (y=11): warp point back to B1F tile(7,11).",
+      "The entire perimeter and most of the floor is submerged cave water.",
+      "Slowbro can be caught by Surfing on B2F waters — only floor in Slowpoke Well where Slowbro appears."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide (Researcher)",
+      "sprite": "SPRITE_GYM_GUIDE",
+      "object_const": "SLOWPOKEWELLB2F_GYM_GUIDE",
+      "x": 5, "y": 4,
+      "facing": "varies",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "movement_range": [1, 2],
+      "script_type": "dialogue_give_item",
+      "event_flag": null,
+      "visibility": "always_visible",
+      "dialogue_summary": "A researcher waiting to witness a Slowpoke evolving into Slowbro. Claims to have discovered that a Slowpoke holding a King's Rock gets bitten by a Shellder, triggering evolution. Offers the player a King's Rock. After giving it once, gives a different follow-up message.",
+      "gives_item": {
+        "item": "King's Rock",
+        "event_flag": "EVENT_GOT_KINGS_ROCK_IN_SLOWPOKE_WELL",
+        "note": "Verbosegiveitem — only given once. If bag is full (iffalse .NoRoom) item is not given but event is still set."
+      },
+      "dialogue_key": "SlowpokeWellB2FGymGuideScript",
+      "initial_dialogue_key": "SlowpokeWellB2FGymGuideText",
+      "initial_dialogue_summary": "Explains King's Rock + Shellder bite = Slowbro evolution. Shares a King's Rock with the player.",
+      "repeat_dialogue_key": "SlowpokeWellB2FGymGuideText_GotKingsRock",
+      "repeat_dialogue_summary": "Says he will wait patiently like a Slowpoke to see one evolve."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM Rain Dance",
+      "item_const": "TM_RAIN_DANCE",
+      "x": 15, "y": 5,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "object_const": "SLOWPOKEWELLB2F_POKE_BALL",
+      "event_flag": "EVENT_SLOWPOKE_WELL_B2F_TM_RAIN_DANCE",
+      "requires": "Surf (to reach B2F)",
+      "script": "SlowpokeWellB2FTMRainDance",
+      "note": "Item ball on the dry ledge area of B2F. TM18 — Rain Dance. Teaches the move that sets up permanent rain for 5 turns. Useful for Surf/Water-type strategies."
+    },
+    {
+      "name": "King's Rock",
+      "x": null, "y": null,
+      "hidden": false,
+      "given_by": "Gym Guide NPC at tile(5,4)",
+      "event_flag": "EVENT_GOT_KINGS_ROCK_IN_SLOWPOKE_WELL",
+      "requires": "Surf (to reach B2F), talking to Gym Guide",
+      "note": "Held item that gives moves a 10% flinch chance. Key item for evolving Slowpoke into Slowking via trade while holding it. Gym Guide gives it once via verbosegiveitem."
+    }
+  ],
+  "wild_encounters": {
+    "cave_walking": {
+      "encounter_rate": 2,
+      "note": "2% encounter rate on dry walkable tiles in B2F. Same table morning/day/night. Higher-level Zubat, Golbat, and Slowpoke compared to B1F.",
+      "morning": [
+        {"species": "Zubat",    "level": 21, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 23, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 19, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 21, "rate": "slot_4"},
+        {"species": "Golbat",   "level": 23, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_7"}
+      ],
+      "day": [
+        {"species": "Zubat",    "level": 21, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 23, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 19, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 21, "rate": "slot_4"},
+        {"species": "Golbat",   "level": 23, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_7"}
+      ],
+      "night": [
+        {"species": "Zubat",    "level": 21, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 23, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 19, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 21, "rate": "slot_4"},
+        {"species": "Golbat",   "level": 23, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 23, "rate": "slot_7"}
+      ],
+      "slot_rates_note": "7 slots, same Gen 2 encounter weighting as B1F. Golbat appears at slot_5 (B1F has only Zubat), reflecting deeper cave progression."
+    },
+    "water": {
+      "encounter_rate": 2,
+      "note": "Surfing on the extensive cave water on B2F. Only floor in Slowpoke Well where Slowbro can be caught in the wild.",
+      "mons": [
+        {"species": "Slowpoke", "level_min": 15, "level_max": 15, "rate": "slot_1"},
+        {"species": "Slowpoke", "level_min": 20, "level_max": 20, "rate": "slot_2"},
+        {"species": "Slowbro",  "level_min": 20, "level_max": 20, "rate": "slot_3"}
+      ]
+    },
+    "fishing": {
+      "note": "Fish group: FISHGROUP_LAKE. Same group as B1F. Rod fishing available from water tiles on B2F.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": "70%+1"},
+        {"species": "Magikarp", "level": 10, "rate": "85%+1"},
+        {"species": "Goldeen",  "level": 10, "rate": "100%"}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": "35%"},
+        {"species": "Goldeen",  "level": 20, "rate": "70%"},
+        {"species": "Goldeen",  "level": 20, "rate": "90%+1"},
+        {"species": "Goldeen (day) / Goldeen (night)", "level": 20, "rate": "100%", "note": "Time group 4: day=Goldeen lv20, night=Goldeen lv20"}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level": 40, "rate": "40%"},
+        {"species": "Goldeen (day) / Goldeen (night)", "level": 40, "rate": "70%", "note": "Time group 5: day=Goldeen lv40, night=Goldeen lv40"},
+        {"species": "Magikarp", "level": 40, "rate": "90%+1"},
+        {"species": "Seaking",  "level": 40, "rate": "100%"}
+      ]
+    },
+    "rock_smash": {
+      "note": "B2F is NOT in RockMonMaps (only B1F is listed under TREEMON_SET_ROCK). No Rock Smash encounters on B2F."
+    }
+  },
+  "events": [
+    {
+      "id": "kings_rock_gift",
+      "trigger": "talk_to_gym_guide",
+      "event_flag": "EVENT_GOT_KINGS_ROCK_IN_SLOWPOKE_WELL",
+      "description": "First time talking to Gym Guide: he explains the Slowpoke-Shellder-King's Rock evolution mechanic and gives the player a King's Rock. Subsequent conversations: he patiently waits to see a Slowpoke evolve. King's Rock held item allows Slowpoke to evolve into Slowking when traded."
+    },
+    {
+      "id": "b2f_surf_only_access",
+      "trigger": "player_arrives_from_b1f",
+      "description": "B2F is only reachable by Surfing on the B1F water pool and descending via warp at tile(7,11) on B1F, which brings the player to tile(9,11) on B2F. No other access. The warp at tile(9,11) on B2F ascends back to B1F."
+    },
+    {
+      "id": "slowbro_encounter",
+      "trigger": "surf_on_b2f_water",
+      "description": "Slowbro (level 20) appears as a Surf encounter on B2F water. This is the only location in Slowpoke Well where wild Slowbro can be encountered. Along with Slowpoke (lv15, lv20) in the water, this floor is the best location for finding Slowpoke family Pokemon."
+    }
+  ],
+  "notes": "Slowpoke Well B2F is the deepest and most water-filled floor of the well. It is entirely inaccessible without Surf (HM03). The floor is mostly submerged cave water with a small dry peninsula/ledge in the northeast quadrant where the Gym Guide researcher lives. He gives the King's Rock evolution item — essential for evolving Slowpoke into Slowking via trade. TM18 Rain Dance is the primary item reward, found on the dry ledge at tile(15,5). Wild encounters on the water include Slowbro (only appearance in Slowpoke Well), making this floor noteworthy for collectors. Walking encounters feature higher-level Zubat, Golbat, and Slowpoke than B1F. There are no trainer battles on B2F. The only warp returns to B1F. B2F has no Rock Smash boulders (only B1F is in RockMonMaps). Fish group FISHGROUP_LAKE applies to both floors."
+}

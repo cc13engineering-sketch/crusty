@@ -1,0 +1,313 @@
+{
+  "area_id": "rocket_hideout_b1f",
+  "area_name": "Team Rocket Base B1F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TEAM_ROCKET_BASE_B1F",
+  "width_blocks": 15,
+  "height_blocks": 9,
+  "width_tiles": 30,
+  "height_tiles": 18,
+  "tileset": "rocket_base",
+  "music": "MUSIC_ROCKET_HIDEOUT",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 27, "y": 2,
+      "target_area_id": "mahogany_mart_1f",
+      "target_warp_id": 3,
+      "label": "Exit to Mahogany Mart 1F (main entrance from surface)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 14,
+      "target_area_id": "rocket_hideout_b2f",
+      "target_warp_id": 1,
+      "label": "Stairs down to B2F (west staircase)"
+    },
+    {
+      "warp_id": 3,
+      "x": 25, "y": 2,
+      "target_area_id": "rocket_hideout_b1f",
+      "target_warp_id": 4,
+      "label": "Warp panel (teleports to warp 4 - sends player back to entrance area)"
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 15,
+      "target_area_id": "rocket_hideout_b1f",
+      "target_warp_id": 3,
+      "label": "Warp panel destination (landing tile when returning from warp 3)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door/warp_entry",
+      "W": "warp_panel",
+      "N": "npc/trainer_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "C": "security_camera_statue",
+      "T": "trap_tile",
+      "S": "secret_switch",
+      "B": "bookshelf",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "##############################",
+      "######D....C.........C.......#",
+      "#....D....C.........C.....W..#",
+      "#.....................................",
+      "#..N..........N..............#",
+      "#.............................................",
+      "#......C....................................#",
+      "#..TTTTTTT..N.......................!....#",
+      "#.TTTTTTTTT...............................#",
+      "#.TTTTTTTTTT..................................#",
+      "#.TTTTTTTTT..............................#",
+      "#.TTT...SBB.!.............................#",
+      "#.TTT...............?....................#",
+      "#.TTTTT.......N.......................#",
+      "##v............................................#",
+      "###.W..C.......C.......................#",
+      "##############################",
+      "##############################"
+    ],
+    "notes": "Layout is approximate. Security camera statues (C) at tile positions (24,1), (6,1), (8,15), (22,15), (24,5) - interacted with from BGEVENT_UP. Secret switch at (19,11), bookshelf at (20,11)+(21,11). Warp panel at (25,2) sends player to (5,15). Trap zone spans roughly tiles (1-5, 7-13). Hidden Revive at (3,11). Item balls at (27,6)=Hyper Potion, (14,15)=Nugget, (21,12)=Guard Spec."
+  },
+  "security_cameras": {
+    "description": "Five Persian statues act as security cameras. Walking into the trigger coord_event in front of a statue alerts two sequential Rocket Grunts (GRUNTM_20 then GRUNTM_21) who appear at the camera position and approach the player. All cameras can be disabled by pressing the secret switch at (19,11), which sets EVENT_TURNED_OFF_SECURITY_CAMERAS and all five camera events.",
+    "cameras": [
+      {
+        "statue_x": 24, "statue_y": 1,
+        "trigger_coords": [{"x": 24, "y": 2}, {"x": 24, "y": 3}],
+        "event": "EVENT_SECURITY_CAMERA_1"
+      },
+      {
+        "statue_x": 6, "statue_y": 1,
+        "trigger_coords": [{"x": 6, "y": 2}, {"x": 6, "y": 3}],
+        "event": "EVENT_SECURITY_CAMERA_2"
+      },
+      {
+        "statue_x": 24, "statue_y": 5,
+        "trigger_coords": [{"x": 24, "y": 6}, {"x": 24, "y": 7}],
+        "event": "EVENT_SECURITY_CAMERA_3"
+      },
+      {
+        "statue_x": 22, "statue_y": 15,
+        "trigger_coords": [{"x": 22, "y": 16}],
+        "event": "EVENT_SECURITY_CAMERA_4"
+      },
+      {
+        "statue_x": 8, "statue_y": 15,
+        "trigger_coords": [{"x": 8, "y": 16}],
+        "event": "EVENT_SECURITY_CAMERA_5"
+      }
+    ],
+    "grunt_sequences": {
+      "camera_grunt_1": {
+        "trainer_id": "GRUNTM_20",
+        "team": [{"species": "Drowzee", "level": 17}, {"species": "Zubat", "level": 19}],
+        "prize_money": 608,
+        "seen_text": "Hey! Intruder alert!"
+      },
+      "camera_grunt_2": {
+        "trainer_id": "GRUNTM_21",
+        "team": [{"species": "Zubat", "level": 16}, {"species": "Grimer", "level": 17}, {"species": "Rattata", "level": 18}],
+        "prize_money": 576,
+        "beaten_text": "Surveillance cams are in the PERSIAN statues. We'll keep appearing until you trip a secret switch."
+      }
+    }
+  },
+  "exploding_traps": {
+    "description": "22 trap tiles on the floor trigger surprise wild Pokemon battles (BATTLETYPE_TRAP). Each trapped Pokemon knows Selfdestruct. Traps are one-time events that do not respawn. The floor area (roughly tiles 1-5, y=7-13) is the main trap zone.",
+    "species": [
+      {"species": "Voltorb", "level": 23, "note": "Knows Selfdestruct"},
+      {"species": "Geodude", "level": 21, "note": "Knows Selfdestruct"},
+      {"species": "Koffing", "level": 21, "note": "Knows Selfdestruct"}
+    ],
+    "trap_coords": [
+      {"x": 2, "y": 7, "trap_id": 1, "species": "Koffing"},
+      {"x": 3, "y": 7, "trap_id": 2, "species": "Voltorb"},
+      {"x": 4, "y": 7, "trap_id": 3, "species": "Geodude"},
+      {"x": 1, "y": 8, "trap_id": 4, "species": "Voltorb"},
+      {"x": 3, "y": 8, "trap_id": 5, "species": "Geodude"},
+      {"x": 5, "y": 8, "trap_id": 6, "species": "Koffing"},
+      {"x": 3, "y": 9, "trap_id": 7, "species": "Voltorb"},
+      {"x": 4, "y": 9, "trap_id": 8, "species": "Koffing"},
+      {"x": 1, "y": 10, "trap_id": 9, "species": "Koffing"},
+      {"x": 2, "y": 10, "trap_id": 10, "species": "Voltorb"},
+      {"x": 3, "y": 10, "trap_id": 11, "species": "Geodude"},
+      {"x": 5, "y": 10, "trap_id": 12, "species": "Geodude"},
+      {"x": 2, "y": 11, "trap_id": 13, "species": "Geodude"},
+      {"x": 4, "y": 11, "trap_id": 14, "species": "Koffing"},
+      {"x": 1, "y": 12, "trap_id": 15, "species": "Voltorb"},
+      {"x": 2, "y": 12, "trap_id": 16, "species": "Koffing"},
+      {"x": 4, "y": 12, "trap_id": 17, "species": "Voltorb"},
+      {"x": 5, "y": 12, "trap_id": 18, "species": "Geodude"},
+      {"x": 1, "y": 13, "trap_id": 19, "species": "Geodude"},
+      {"x": 3, "y": 13, "trap_id": 20, "species": "Voltorb"},
+      {"x": 4, "y": 13, "trap_id": 21, "species": "Koffing"},
+      {"x": 5, "y": 13, "trap_id": 22, "species": "Voltorb"}
+    ],
+    "hint_text": "Scientist Jed (after battle): 'That thing on the floor up ahead is a warp panel. If you step on it, you'll be warped back to the entrance.'"
+  },
+  "npcs": [
+    {
+      "id": "security_grunt_hidden",
+      "name": "Security Grunt (camera patrol)",
+      "sprite": "SPRITE_ROCKET",
+      "movement": "hidden (appears at camera position when triggered)",
+      "facing": "down",
+      "script_type": "camera_trigger",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_SECURITY_GRUNTS",
+      "dialogue_summary": "Hidden by callback. Appears and moves toward player when a security camera coord event is triggered. Battles as GRUNTM_20 or GRUNTM_21 depending on sequence."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_16",
+      "name": "Grunt",
+      "x": 2, "y": 4,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Rattata", "level": 16},
+        {"species": "Rattata", "level": 16},
+        {"species": "Rattata", "level": 16},
+        {"species": "Rattata", "level": 16}
+      ],
+      "prize_money": 512,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_16",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "Heheh. Feeling lucky, punk? Go ahead, take another step. We've got traps set in the floor!",
+      "beaten_text": "Kaboom!",
+      "after_battle_text": "I don't even know where the traps are planted. You'll just have to collect your courage and walk.",
+      "rematch": false
+    },
+    {
+      "class": "Scientist",
+      "trainer_id": "SCIENTIST_JED",
+      "name": "Jed",
+      "x": 18, "y": 12,
+      "facing": "left",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Magnemite", "level": 20},
+        {"species": "Magnemite", "level": 20},
+        {"species": "Magnemite", "level": 20}
+      ],
+      "prize_money": 960,
+      "event_flag": "EVENT_BEAT_SCIENTIST_JED",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "This was once a ninja hideout. There are traps to confound intruders like you.",
+      "beaten_text": "I get it...",
+      "after_battle_text": "All right. I'll divulge a secret about our hideout. That thing on the floor up ahead is a warp panel. If you step on it, you'll be warped back to the entrance.",
+      "rematch": false
+    }
+  ],
+  "items": [
+    {
+      "name": "Hyper Potion",
+      "x": 27, "y": 6,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B1F_HYPER_POTION"
+    },
+    {
+      "name": "Nugget",
+      "x": 14, "y": 15,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B1F_NUGGET"
+    },
+    {
+      "name": "Guard Spec.",
+      "x": 21, "y": 12,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B1F_GUARD_SPEC"
+    }
+  ],
+  "hidden_items": [
+    {
+      "name": "Revive",
+      "x": 3, "y": 11,
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B1F_HIDDEN_REVIVE"
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 19, "y": 11,
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB1FSecretSwitch",
+      "description": "Secret switch. If EVENT_TURNED_OFF_SECURITY_CAMERAS is not set, pressing it plays SFX_TALLY and sets all five camera events plus EVENT_TURNED_OFF_SECURITY_CAMERAS, disabling all Persian statue traps."
+    },
+    {
+      "x": 20, "y": 11,
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB1FBookshelf",
+      "description": "Bookshelf containing Team Rocket Oath text."
+    },
+    {
+      "x": 21, "y": 11,
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB1FBookshelf",
+      "description": "Bookshelf containing Team Rocket Oath text."
+    },
+    {
+      "x": 24, "y": 1,
+      "type": "BGEVENT_UP",
+      "script": "TeamRocketBaseB1FSecurityCamera",
+      "description": "Persian statue. Text: 'It's a PERSIAN statue... Its eyes are oddly shiny.'"
+    },
+    {
+      "x": 6, "y": 1,
+      "type": "BGEVENT_UP",
+      "script": "TeamRocketBaseB1FSecurityCamera",
+      "description": "Persian statue."
+    },
+    {
+      "x": 8, "y": 15,
+      "type": "BGEVENT_UP",
+      "script": "TeamRocketBaseB1FSecurityCamera",
+      "description": "Persian statue."
+    },
+    {
+      "x": 22, "y": 15,
+      "type": "BGEVENT_UP",
+      "script": "TeamRocketBaseB1FSecurityCamera",
+      "description": "Persian statue."
+    },
+    {
+      "x": 24, "y": 5,
+      "type": "BGEVENT_UP",
+      "script": "TeamRocketBaseB1FSecurityCamera",
+      "description": "Persian statue."
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "map_load_callback",
+      "script": "TeamRocketBaseB1FHideSecurityGruntCallback",
+      "description": "On object load, TEAMROCKETBASEB1F_ROCKET1 (the roving security grunt) is set to disappear. It only appears when triggered by a camera coord event."
+    },
+    {
+      "trigger": "scene_script",
+      "scene": "SCENE_TEAMROCKETBASEB1F_TRAPS",
+      "script": "TeamRocketBaseB1FNoopScene",
+      "description": "Scene script. All camera and trap coord events check SCENE_TEAMROCKETBASEB1F_TRAPS. Setting EVENT_TURNED_OFF_SECURITY_CAMERAS (via the secret switch) disables the scene check, preventing all future camera triggers."
+    }
+  ],
+  "notes": "B1F is the entry floor of the Mahogany Town Rocket Hideout, accessed through a hidden door in the Mahogany Mart. It is primarily a trap-and-surveillance floor. Persian statues function as security cameras - crossing their line of sight triggers two sequential Rocket Grunt battles. The west floor section is filled with 22 exploding trap tiles that force surprise battles with Voltorb (lv.23), Geodude (lv.21), or Koffing (lv.21) using BATTLETYPE_TRAP - these Pokemon know Selfdestruct. A secret switch on the east wall (19,11) disables all cameras. A warp panel at (25,2) sends players back toward the entrance area. The floor connects down to B2F via stairs at (3,14). The entire trainer population (Grunt, Scientist) disappears after clearing the hideout (EVENT_TEAM_ROCKET_BASE_POPULATION)."
+}

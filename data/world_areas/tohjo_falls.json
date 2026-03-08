@@ -1,0 +1,136 @@
+{
+  "area_id": "tohjo_falls",
+  "area_name": "Tohjo Falls",
+  "area_type": "cave",
+  "pokecrystal_map_id": "TOHJO_FALLS",
+  "width_blocks": 15,
+  "height_blocks": 9,
+  "width_tiles": 30,
+  "height_tiles": 18,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 13, "y": 15,
+      "target_area_id": "route_27",
+      "target_warp_id": 2,
+      "notes": "West exit back to Route 27 (warp index 2 = tile 26,5 on Route 27)"
+    },
+    {
+      "x": 25, "y": 15,
+      "target_area_id": "route_27",
+      "target_warp_id": 3,
+      "notes": "East exit to Route 27 (warp index 3 = tile 36,5 on Route 27)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "30 wide x 18 tall. Interior cave linking Johto and Kanto. A waterfall dominates the center; Waterfall HM is required to ascend. Surf required to navigate the pool. Moon Stone item on west side. Two exits at the south bottom row lead back to Route 27.",
+    "rows": [
+      "##############################",
+      "##############################",
+      "##############################",
+      "###...########################",
+      "###...#####.....##############",
+      "###...#####.....##############",
+      "###!..#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~.....~~~~~~~~~~~~~~",
+      "###...#~~~~^....~~~~~~~~~~~~~~",
+      "###...#~~~~.....##############",
+      "###...#####.....##############",
+      "##EEEE######EEEEEEEEEEEEEEEE##",
+      "##############################",
+      "##############################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Moon Stone",
+      "x": 2, "y": 6,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_TOHJO_FALLS_MOON_STONE",
+      "notes": "Pokeball sprite on the western alcove ledge"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "morning": [
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Raticate", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Slowpoke", "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Rattata",  "level_min": 20, "level_max": 20, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10}
+      ],
+      "day": [
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Raticate", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Slowpoke", "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Rattata",  "level_min": 20, "level_max": 20, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10}
+      ],
+      "night": [
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Raticate", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Slowpoke", "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Rattata",  "level_min": 20, "level_max": 20, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Slowpoke", "level_min": 23, "level_max": 23, "rate": 10}
+      ],
+      "notes": "Same encounter table for all time periods. Cave encounters use the grass encounter slot system."
+    },
+    "water": {
+      "encounter_rate": 4,
+      "mons": [
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 60},
+        {"species": "Slowpoke", "level_min": 20, "level_max": 20, "rate": 30},
+        {"species": "Seaking",  "level_min": 20, "level_max": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "none",
+      "notes": "No fishing encounter data defined for Tohjo Falls in pokecrystal"
+    }
+  },
+  "events": [],
+  "notes": "Interior cave (15x9 blocks, 30x18 tiles) connecting Route 27's two warp points. Confirmed size: TohjoFalls.blk = 135 bytes = 15x9 blocks. Requires Surf to enter the central pool. A Waterfall is present inside (HM07 required to ascend). The Moon Stone sits in the western alcove (event flag EVENT_TOHJO_FALLS_MOON_STONE). Wild encounters include Zubat, Golbat, Rattata, Raticate, and Slowpoke. The sign outside on Route 27 reads: 'TOHJO FALLS - THE LINK BETWEEN KANTO AND JOHTO'. No trainers inside. The cave serves as the sole HM-gated passage between Johto and Kanto regions."
+}

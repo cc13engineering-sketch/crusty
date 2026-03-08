@@ -1,0 +1,348 @@
+{
+  "area_id": "burned_tower_1f",
+  "area_name": "Burned Tower 1F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "BURNED_TOWER_1F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_RUIN",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9,  "y": 15,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 13,
+      "note": "Left exit tile at south door to Ecruteak City"
+    },
+    {
+      "x": 10, "y": 15,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 13,
+      "note": "Right exit tile at south door to Ecruteak City"
+    },
+    {
+      "x": 10, "y": 9,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 1,
+      "note": "Active ladder down to B1F — center of the upper chamber. Present before beasts released; replaced by hole tile post-rival-battle if EVENT_HOLE_IN_BURNED_TOWER is set. Also used as fall-destination when player drops through the hole."
+    },
+    {
+      "x": 5,  "y": 5,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 1,
+      "note": "Inaccessible leftover from Gold/Silver — blocked by terrain"
+    },
+    {
+      "x": 5,  "y": 6,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 1,
+      "note": "Inaccessible leftover from Gold/Silver"
+    },
+    {
+      "x": 4,  "y": 6,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 1,
+      "note": "Inaccessible leftover from Gold/Silver"
+    },
+    {
+      "x": 15, "y": 4,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 2,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 7 on B1F side"
+    },
+    {
+      "x": 15, "y": 5,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 2,
+      "note": "Inaccessible leftover from Gold/Silver"
+    },
+    {
+      "x": 10, "y": 7,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 3,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 9 on B1F side"
+    },
+    {
+      "x": 5,  "y": 14,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 4,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 10 on B1F side"
+    },
+    {
+      "x": 4,  "y": 14,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 4,
+      "note": "Inaccessible leftover from Gold/Silver"
+    },
+    {
+      "x": 14, "y": 14,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 5,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 12 on B1F side"
+    },
+    {
+      "x": 15, "y": 14,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 5,
+      "note": "Inaccessible leftover from Gold/Silver"
+    },
+    {
+      "x": 7,  "y": 15,
+      "target_area_id": "burned_tower_b1f",
+      "target_warp_id": 6,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 14 on B1F side"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_charred_floor",
+      "#": "wall/burned_ruin_wall",
+      "^": "ladder_down_to_b1f",
+      "O": "hole_in_floor (created by rival battle earthquake; falls to B1F on walk)",
+      "E": "exit_mat",
+      "R": "smashable_rock",
+      "N": "npc_position",
+      "T": "trainer_position (rival battle coord trigger)",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "##...........!......",
+      "##..................",
+      "##.......R..........",
+      "##..................",
+      "##..................",
+      "##...?..............",
+      "##.........^........",
+      "##.......T..........",
+      "##..................",
+      "##.....N.....?......",
+      "##..................",
+      "##..................",
+      "##.......N..N.......",
+      "##..................",
+      "#####EE#############",
+      "####################"
+    ],
+    "notes": [
+      "Map is 10x9 blocks = 20x18 tiles.",
+      "The south entrance (y=15) uses exit mat tiles at x=9 and x=10 leading to Ecruteak City.",
+      "Ladder down (^) at tile (10,9) — active before EVENT_RELEASED_THE_BEASTS; the callback BurnedTower1FHoleAndLadderCallback manages whether ladder tile ($09) or hole tile ($25) or solid floor ($32) is shown at tile (10,8).",
+      "After the rival battle, an earthquake opens a hole at block (10,8) = tile vicinity (10,8). The player falls through via skyfall animation. The hole then stays open (EVENT_HOLE_IN_BURNED_TOWER set).",
+      "After EVENT_RELEASED_THE_BEASTS, the ladder at (6,14) is hidden (changeblock to floor $32 on B1F side) and the second ladder reference on 1F is also removed.",
+      "HP Up item ball at object_event tile (14,2) — top right area of the map.",
+      "Hidden Ether at bg_event tile (8,7).",
+      "Hidden Ultra Ball at bg_event tile (13,11).",
+      "Smashable Rock (SPRITE_ROCK) at object_event tile (15,4) — requires HM Strength/Rock Smash to break.",
+      "Rival coord trigger at tile (11,9) with SCENE_BURNEDTOWER1F_RIVAL_BATTLE check.",
+      "Eusine (SPRITE_SUPER_NERD) object_event at tile (12,12); Morty (SPRITE_MORTY) object_event at tile (14,14) — both removed by events after beasts release.",
+      "Rival (SPRITE_RIVAL) object_event at tile (8,9) — standing left, removed after EVENT_RIVAL_BURNED_TOWER.",
+      "Layout is reconstructed from object_event, warp_event, and bg_event coordinates in BurnedTower1F.asm."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "eusine",
+      "name": "Eusine",
+      "sprite": "SPRITE_SUPER_NERD",
+      "object_const": "BURNEDTOWER1F_EUSINE",
+      "x": 12, "y": 12,
+      "facing": "varies",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BURNED_TOWER_1F_EUSINE",
+      "scene_intro": "SCENE_BURNEDTOWER1F_MEET_EUSINE",
+      "dialogue_intro_summary": "EUSINE: My name's EUSINE. I'm on the trail of a #MON named SUICUNE. I heard rumors that SUICUNE is in this BURNED TOWER, so I came to look. But where exactly could it be?",
+      "dialogue_repeat_summary": "EUSINE: I heard that SUICUNE is in this BURNED TOWER, so I came to look. But where exactly could it be?",
+      "note": "Intro scene fires on SCENE_BURNEDTOWER1F_MEET_EUSINE (first visit). Eusine moves DOWN x1, LEFT x3, DOWN x1 then repositions to tile (9,14) via moveobject. Removed after EVENT_RELEASED_THE_BEASTS (EVENT_BURNED_TOWER_1F_EUSINE set by ReleaseTheBeasts script on B1F)."
+    },
+    {
+      "id": "morty",
+      "name": "Morty",
+      "sprite": "SPRITE_MORTY",
+      "object_const": "BURNEDTOWER1F_MORTY",
+      "x": 14, "y": 14,
+      "facing": "varies",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "wander_range": "1x1",
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BURNED_TOWER_MORTY",
+      "dialogue_summary": "MORTY: ECRUTEAK's GYM LEADER has to study what are said to be the legendary #MON -- SUICUNE, ENTEI and RAIKOU. EUSINE is here, so I've decided to investigate the TOWER with him.",
+      "note": "Morty is here before the beasts are released, accompanying Eusine in the investigation. He wanders the lower chamber. Removed after EVENT_RELEASED_THE_BEASTS (EVENT_BURNED_TOWER_MORTY set by ReleaseTheBeasts). This is before his gym can be accessed — the gym is gated until Morty returns."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rival",
+      "name": "Silver (rival)",
+      "sprite": "SPRITE_RIVAL",
+      "object_const": "BURNEDTOWER1F_RIVAL",
+      "trainer_class_id": "RIVAL1",
+      "trainer_variant": "RIVAL1_3_CHIKORITA / RIVAL1_3_CYNDAQUIL / RIVAL1_3_TOTODILE",
+      "x": 8, "y": 9,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "line_of_sight": 3,
+      "trigger": "coord_event at tile (11,9) — SCENE_BURNEDTOWER1F_RIVAL_BATTLE",
+      "event_flag": "EVENT_RIVAL_BURNED_TOWER",
+      "teams": {
+        "if_player_chose_totodile": {
+          "trainer_const": "RIVAL1_3_CHIKORITA",
+          "note": "Rival has Chikorita-line starter when player chose Totodile",
+          "team": [
+            {"species": "Haunter",  "level": 20, "moves": ["Lick", "Spite", "Mean Look", "Curse"],      "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Magnemite","level": 18, "moves": ["Tackle", "ThunderShock", "Supersonic", "SonicBoom"], "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Zubat",   "level": 20, "moves": ["Leech Life", "Supersonic", "Bite", "Confuse Ray"],   "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Bayleef", "level": 22, "moves": ["Growl", "Reflect", "Razor Leaf", "PoisonPowder"],    "trainer_type": "TRAINERTYPE_MOVES"}
+          ]
+        },
+        "if_player_chose_chikorita": {
+          "trainer_const": "RIVAL1_3_CYNDAQUIL",
+          "note": "Rival has Cyndaquil-line starter when player chose Chikorita",
+          "team": [
+            {"species": "Haunter",  "level": 20, "moves": ["Lick", "Spite", "Mean Look", "Curse"],         "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Magnemite","level": 18, "moves": ["Tackle", "ThunderShock", "Supersonic", "SonicBoom"], "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Zubat",   "level": 20, "moves": ["Leech Life", "Supersonic", "Bite", "Confuse Ray"],   "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Quilava", "level": 22, "moves": ["Leer", "Smokescreen", "Ember", "Quick Attack"],       "trainer_type": "TRAINERTYPE_MOVES"}
+          ]
+        },
+        "if_player_chose_cyndaquil": {
+          "trainer_const": "RIVAL1_3_TOTODILE",
+          "note": "Rival has Totodile-line starter when player chose Cyndaquil",
+          "team": [
+            {"species": "Haunter",  "level": 20, "moves": ["Lick", "Spite", "Mean Look", "Curse"],         "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Magnemite","level": 18, "moves": ["Tackle", "ThunderShock", "Supersonic", "SonicBoom"], "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Zubat",   "level": 20, "moves": ["Leech Life", "Supersonic", "Bite", "Confuse Ray"],   "trainer_type": "TRAINERTYPE_MOVES"},
+            {"species": "Croconaw","level": 22, "moves": ["Leer", "Rage", "Water Gun", "Bite"],              "trainer_type": "TRAINERTYPE_MOVES"}
+          ]
+        }
+      },
+      "prize_money": 1320,
+      "rematch": false,
+      "seen_text": "<...> <...> <...> ...Oh, it's you. I came looking for some legendary #MON that they say roosts here. But there's nothing here! Nothing after all the trouble of coming to this dump? No way! It's all your fault!",
+      "win_text": "...Humph! This is why I hate battling wimps. There's no challenge in it.",
+      "loss_text": "...Humph! This is why I hate battling wimps. It's just a waste of my time.",
+      "post_battle_sequence": "After battle, Rival delivers AfterText1 then earthquake opens hole at (10,8), player falls to B1F via skyfall animation. EVENT_HOLE_IN_BURNED_TOWER and EVENT_RIVAL_BURNED_TOWER both set. Scene advances to SCENE_BURNEDTOWER1F_NOOP."
+    }
+  ],
+  "items": [
+    {
+      "name": "HP Up",
+      "x": 14, "y": 2,
+      "hidden": false,
+      "event_flag": "EVENT_BURNED_TOWER_1F_HP_UP",
+      "script": "BurnedTower1FHPUp",
+      "sprite": "SPRITE_POKE_BALL",
+      "requires": null,
+      "note": "Item ball in the upper-right open area of the tower — accessible from the start"
+    },
+    {
+      "name": "Ether",
+      "x": 8, "y": 7,
+      "hidden": true,
+      "event_flag": "EVENT_BURNED_TOWER_1F_HIDDEN_ETHER",
+      "script": "BurnedTower1FHiddenEther",
+      "type": "BGEVENT_ITEM",
+      "requires": null,
+      "note": "Hidden item — must use item finder or examine tile manually"
+    },
+    {
+      "name": "Ultra Ball",
+      "x": 13, "y": 11,
+      "hidden": true,
+      "event_flag": "EVENT_BURNED_TOWER_1F_HIDDEN_ULTRA_BALL",
+      "script": "BurnedTower1FHiddenUltraBall",
+      "type": "BGEVENT_ITEM",
+      "requires": null,
+      "note": "Hidden item in the lower-central area"
+    }
+  ],
+  "special_objects": [
+    {
+      "id": "rock",
+      "type": "smashable_rock",
+      "sprite": "SPRITE_ROCK",
+      "object_const": "BURNEDTOWER1F_ROCK",
+      "x": 15, "y": 4,
+      "script": "BurnedTower1FRock",
+      "uses": "SmashRockScript (HM Rock Smash required)",
+      "note": "Blocks passage in the upper-right section of the tower. Permanently removed once smashed."
+    }
+  ],
+  "special_mechanics": {
+    "hole_in_floor": {
+      "description": "A hole is opened in the floor at tile (10,8) after the Rival battle. The earthquake scripted sequence uses changeblock to switch tile $32 (floor) to $25 (hole). Walking onto the hole tile triggers a skyfall warp, dropping the player to B1F.",
+      "tile_position": {"x": 10, "y": 8},
+      "event_flag": "EVENT_HOLE_IN_BURNED_TOWER",
+      "target": "burned_tower_b1f",
+      "warp_target_id": 1,
+      "visual": "Hole tile ($25) — charred gap in the wooden floor"
+    },
+    "ladder_down": {
+      "description": "A ladder at tile (10,9) leads down to B1F normally (before beasts released). The callback BurnedTower1FHoleAndLadderCallback runs each time the map loads: if EVENT_HOLE_IN_BURNED_TOWER is not set, restores floor tile at (10,8); if EVENT_RELEASED_THE_BEASTS is set, removes the ladder tile at (6,14) by changing it to floor. The ladder at (10,9) itself is a permanent warp_event.",
+      "ladder_tile_position": {"x": 10, "y": 9},
+      "secondary_ladder_position": {"x": 6, "y": 14},
+      "secondary_ladder_note": "Second ladder at (6,14) exists only before EVENT_RELEASED_THE_BEASTS; removed by callback after that event"
+    }
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate_percent": 4,
+      "note": "4% encounter rate for morning, day, and night — identical table across all time periods",
+      "morning": [
+        {"slot": 1, "species": "Rattata",  "level": 13, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing",  "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Rattata",  "level": 15, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",    "level": 14, "rate_percent": 10},
+        {"slot": 5, "species": "Rattata",  "level": 15, "rate_percent":  5},
+        {"slot": 6, "species": "Raticate", "level": 15, "rate_percent":  4},
+        {"slot": 7, "species": "Raticate", "level": 15, "rate_percent":  1}
+      ],
+      "day": [
+        {"slot": 1, "species": "Rattata",  "level": 13, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing",  "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Rattata",  "level": 15, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",    "level": 14, "rate_percent": 10},
+        {"slot": 5, "species": "Rattata",  "level": 15, "rate_percent":  5},
+        {"slot": 6, "species": "Raticate", "level": 15, "rate_percent":  4},
+        {"slot": 7, "species": "Raticate", "level": 15, "rate_percent":  1}
+      ],
+      "night": [
+        {"slot": 1, "species": "Rattata",  "level": 13, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing",  "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Rattata",  "level": 15, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",    "level": 14, "rate_percent": 10},
+        {"slot": 5, "species": "Rattata",  "level": 15, "rate_percent":  5},
+        {"slot": 6, "species": "Raticate", "level": 15, "rate_percent":  4},
+        {"slot": 7, "species": "Raticate", "level": 15, "rate_percent":  1}
+      ]
+    },
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "meet_eusine_scene",
+      "trigger": "first_visit (SCENE_BURNEDTOWER1F_MEET_EUSINE)",
+      "description": "Eusine turns DOWN, shows shock emote, walks toward player, introduces himself and explains he is hunting Suicune. Scene advances to SCENE_BURNEDTOWER1F_RIVAL_BATTLE. Eusine repositions to tile (9,14) after the movement."
+    },
+    {
+      "id": "rival_battle",
+      "trigger": "coord_event at tile (11,9) with SCENE_BURNEDTOWER1F_RIVAL_BATTLE active",
+      "description": "Rival emerges with shock emote, music fades, encounter music plays. Battle uses RIVAL1_3 variant matching player's starter choice (opposite starter). After win: rivalry dialogue, earthquake sequence, hole opens at (10,8), player falls to B1F via skyfall animation. EVENT_RIVAL_BURNED_TOWER and EVENT_HOLE_IN_BURNED_TOWER set. Scene advances to SCENE_BURNEDTOWER1F_NOOP."
+    },
+    {
+      "id": "hole_and_ladder_callback",
+      "trigger": "MAPCALLBACK_TILES — fires each time map loads",
+      "description": "BurnedTower1FHoleAndLadderCallback: if EVENT_HOLE_IN_BURNED_TOWER not set, restores floor tile at (10,8); if EVENT_RELEASED_THE_BEASTS set, removes ladder at (6,14) by replacing with floor tile ($32 changeblock)."
+    }
+  ],
+  "music": "MUSIC_BURNED_TOWER",
+  "notes": "Burned Tower 1F is the ground floor of the ruined tower in northwest Ecruteak City. The tower burned down 150 years prior to the game's events, trapping three Pokemon (Raikou, Entei, Suicune) below in the basement. The defining scripted events here are: (1) meeting Eusine on the first visit, (2) the Rival battle that triggers an earthquake opening a hole in the floor and dropping the player to B1F. Wild encounters occur in the open charred floor areas (4% rate). Three items are collectible: HP Up (visible ball, top-right), hidden Ether and hidden Ultra Ball. Morty is present as an NPC before the beasts are released, acting as a lore-giver. All warp_event, object_event, bg_event, and coord_event data sourced directly from BurnedTower1F.asm. Wild encounter rates and slot data sourced from johto_grass.asm. Rival team data sourced from data/trainers/parties.asm entries 7-9 (RIVAL1_3_CHIKORITA, RIVAL1_3_CYNDAQUIL, RIVAL1_3_TOTODILE). Map dimensions: 10x9 blocks = 20x18 tiles."
+}

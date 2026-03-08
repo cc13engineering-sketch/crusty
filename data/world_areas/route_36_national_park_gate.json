@@ -1,0 +1,382 @@
+{
+  "area_id": "route_36_national_park_gate",
+  "area_name": "Route 36 National Park Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_36_NATIONAL_PARK_GATE",
+  "width_blocks": 5,
+  "height_blocks": 5,
+  "width_tiles": 10,
+  "height_tiles": 10,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ROUTE_36",
+  "palette": "PALETTE_AUTO",
+  "fish_group": null,
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 0,
+      "y": 4,
+      "target_area_id": "national_park",
+      "pokecrystal_target": "NATIONAL_PARK",
+      "target_warp_id": 1,
+      "notes": "Left tile of western exit into National Park"
+    },
+    {
+      "warp_id": 1,
+      "x": 0,
+      "y": 5,
+      "target_area_id": "national_park",
+      "pokecrystal_target": "NATIONAL_PARK",
+      "target_warp_id": 2,
+      "notes": "Right tile of western exit into National Park"
+    },
+    {
+      "warp_id": 2,
+      "x": 9,
+      "y": 4,
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "target_warp_id": 1,
+      "notes": "Left tile of eastern exit back to Route 36 (warp_id 1 in Route 36 = x=18,y=8)"
+    },
+    {
+      "warp_id": 3,
+      "x": 9,
+      "y": 5,
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "target_warp_id": 2,
+      "notes": "Right tile of eastern exit back to Route 36 (warp_id 2 in Route 36 = x=18,y=9)"
+    }
+  ],
+
+  "signs": [
+    {
+      "bg_event_id": 0,
+      "x": 6,
+      "y": 0,
+      "script": "BugCatchingContestExplanationSign",
+      "text": "The Bug-Catching Contest is held on Tuesday, Thursday and Saturday. Not only do you earn a prize just for participating, you also get to keep the bug Pokemon you may have at the end of the contest."
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "10 columns x 10 rows. Interior gate building between Route 36 (east) and National Park (west). Western doors (x=0, y=4-5) lead to National Park. Eastern doors (x=9, y=4-5) lead back to Route 36. The contest Officer stands at (0,3) or (3,2) depending on contest day. When Bug Catching Contest results are being announced, up to 10 contestant NPCs appear in the waiting area (rows y=5-7). Contest sign at (6,0).",
+    "rows": [
+      "######S###",
+      "##########",
+      "###N######",
+      "N#########",
+      "E........E",
+      "E.NNNNNN.E",
+      "##NNNNNN##",
+      "##NNNNNN##",
+      "##########",
+      "##########"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_officer_contest_day",
+      "object_const": "ROUTE36NATIONALPARKGATE_OFFICER1",
+      "name": "Officer (Contest Day)",
+      "sprite": "SPRITE_OFFICER",
+      "x": 0,
+      "y": 3,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_ROUTE_36_NATIONAL_PARK_GATE_OFFICER_CONTEST_DAY",
+      "script_type": "special_contest",
+      "dialogue_summary": "Present on contest days (Tuesday, Thursday, Saturday). Manages Bug Catching Contest entry: asks if the player wants to participate, checks party, hands out Park Balls (20), explains rules (you have 20 minutes, catch the strongest bug Pokemon), warps player to National Park Bug Contest zone. Also distributes post-contest prizes (Sun Stone, Everstone, Gold Berry, or Berry depending on rank).",
+      "schedule": "TUESDAY, THURSDAY, SATURDAY",
+      "items_given": [
+        {"name": "Park Ball x20", "condition": "join contest"},
+        {"name": "Sun Stone",     "condition": "1st place — best possible contest result"},
+        {"name": "Everstone",     "condition": "2nd place or strong runner-up"},
+        {"name": "Gold Berry",    "condition": "3rd place"},
+        {"name": "Berry",         "condition": "participation prize"}
+      ],
+      "script": "Route36OfficerScriptContest"
+    },
+    {
+      "id": "npc_officer_non_contest",
+      "object_const": "ROUTE36NATIONALPARKGATE_OFFICER2",
+      "name": "Officer (Non-Contest Day)",
+      "sprite": "SPRITE_OFFICER",
+      "x": 3,
+      "y": 2,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_ROUTE_36_NATIONAL_PARK_GATE_OFFICER_NOT_CONTEST_DAY",
+      "script_type": "dialogue",
+      "dialogue_summary": "Present on non-contest days (Sunday, Monday, Wednesday, Friday). Says 'Some Pokemon can only be seen in the Park.'",
+      "schedule": "SUNDAY, MONDAY, WEDNESDAY, FRIDAY",
+      "script": "Route36NationalParkGateOfficerScript"
+    },
+    {
+      "id": "npc_contestant_1",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER1",
+      "name": "Don (Bug Catching Contestant 1)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 2,
+      "y": 5,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_RED",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_1B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: if still competing says luck plays a big part. After results: congratulates winner or concedes.",
+      "notes": "Only appears after contest ends (results scene). One of up to 10 contestants shown in the waiting area.",
+      "script": "BugCatchingContestant1BScript"
+    },
+    {
+      "id": "npc_contestant_2",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER2",
+      "name": "Ed (Bug Catching Contestant 2)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 4,
+      "y": 5,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_2B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: says maybe bigger Pokemon win. After results: concedes loss.",
+      "script": "BugCatchingContestant2BScript"
+    },
+    {
+      "id": "npc_contestant_3",
+      "object_const": "ROUTE36NATIONALPARKGATE_ROCKER",
+      "name": "Nick (Bug Catching Contestant 3)",
+      "sprite": "SPRITE_ROCKER",
+      "x": 2,
+      "y": 6,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_3B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: mentions that unusual-colored (shiny) Pokemon might score higher.",
+      "script": "BugCatchingContestant3BScript"
+    },
+    {
+      "id": "npc_contestant_4",
+      "object_const": "ROUTE36NATIONALPARKGATE_POKEFAN_M",
+      "name": "William (Bug Catching Contestant 4)",
+      "sprite": "SPRITE_POKEFAN_M",
+      "x": 6,
+      "y": 5,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BROWN",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_4B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: says he's satisfied because he caught a Pokemon he wanted.",
+      "script": "BugCatchingContestant4BScript"
+    },
+    {
+      "id": "npc_contestant_5",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER3",
+      "name": "Benny (Bug Catching Contestant 5)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 2,
+      "y": 7,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_RED",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_5B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: caught a Scyther before but still didn't win.",
+      "script": "BugCatchingContestant5BScript"
+    },
+    {
+      "id": "npc_contestant_6",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER4",
+      "name": "Barry (Bug Catching Contestant 6)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 5,
+      "y": 6,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_6B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: explains scoring also considers factors beyond just level — hints at catch quality.",
+      "script": "BugCatchingContestant6BScript"
+    },
+    {
+      "id": "npc_contestant_7",
+      "object_const": "ROUTE36NATIONALPARKGATE_LASS",
+      "name": "Cindy (Bug Catching Contestant 7)",
+      "sprite": "SPRITE_LASS",
+      "x": 3,
+      "y": 6,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_7B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: loves bug Pokemon, invites winner to look for more.",
+      "script": "BugCatchingContestant7BScript"
+    },
+    {
+      "id": "npc_contestant_8",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER5",
+      "name": "Josh (Bug Catching Contestant 8)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 4,
+      "y": 7,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_RED",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_8B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: says someone won with just a Caterpie, can't believe he lost at bug-catching.",
+      "script": "BugCatchingContestant8BScript"
+    },
+    {
+      "id": "npc_contestant_9",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER6",
+      "name": "Samuel (Bug Catching Contestant 9)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 6,
+      "y": 7,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_9B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: thought he would score higher.",
+      "script": "BugCatchingContestant9BScript"
+    },
+    {
+      "id": "npc_contestant_10",
+      "object_const": "ROUTE36NATIONALPARKGATE_YOUNGSTER7",
+      "name": "Kipp (Bug Catching Contestant 10)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 6,
+      "y": 6,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "event_flag": "EVENT_BUG_CATCHING_CONTESTANT_10B",
+      "script_type": "dialogue_conditional",
+      "dialogue_summary": "Post-contest: says studying isn't good enough to win, asks for tips.",
+      "script": "BugCatchingContestant10BScript"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [
+    {
+      "name": "Park Ball x20",
+      "hidden": false,
+      "source": "npc_gift",
+      "giver": "Officer (contest day)",
+      "event_flag": "ENGINE_BUG_CONTEST_TIMER",
+      "requires": "Contest day (Tue/Thu/Sat) and choosing to participate",
+      "notes": "Special Park Balls only usable during the Bug Catching Contest in National Park. Cannot be used outside the contest zone."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "notes": "Interior building. No wild encounters."},
+    "water": {"encounter_rate": 0, "notes": "Interior building. No water."},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "bug_catching_contest": {
+    "schedule": ["TUESDAY", "THURSDAY", "SATURDAY"],
+    "duration_minutes": 20,
+    "park_balls_given": 20,
+    "warp_destination": "NATIONAL_PARK_BUG_CONTEST",
+    "scoring_system": "Scored by species rarity, level, and catch quality. Higher-level rare bug Pokemon score better.",
+    "prizes": [
+      {"rank": 1, "prize": "Sun Stone",  "event": "EVENT_CONTEST_OFFICER_HAS_SUN_STONE"},
+      {"rank": 2, "prize": "Everstone", "event": "EVENT_CONTEST_OFFICER_HAS_EVERSTONE"},
+      {"rank": 3, "prize": "Gold Berry", "event": "EVENT_CONTEST_OFFICER_HAS_GOLD_BERRY"},
+      {"rank": 4, "prize": "Berry",      "event": "EVENT_CONTEST_OFFICER_HAS_BERRY"}
+    ],
+    "contestants": 10,
+    "contestant_names": ["Don", "Ed", "Nick", "William", "Benny", "Barry", "Cindy", "Josh", "Samuel", "Kipp"],
+    "target_pokemon": "Bug-type Pokemon catchable in National Park (Caterpie, Metapod, Weedle, Kakuna, Paras, Scyther, Pinsir)",
+    "early_exit": "Player can exit through this gate mid-contest. Officer asks if they want to forfeit remaining time and trigger results immediately.",
+    "flags": {
+      "daily_lock": "ENGINE_DAILY_BUG_CONTEST",
+      "timer_active": "ENGINE_BUG_CONTEST_TIMER"
+    },
+    "notes": "This building serves double duty as the contest registration point (east side from Route 36) and results waiting room. Contestant NPCs only appear in the waiting area after the contest ends. The Officer NPC toggles between two event-flagged instances depending on contest day vs. non-contest day."
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_NEWMAP",
+      "script": "Route36NationalParkGateCheckIfContestRunningCallback",
+      "notes": "On entering: checks ENGINE_BUG_CONTEST_TIMER. If contest is running, sets SCENE_LEAVE_CONTEST_EARLY so the leaving-early script fires. If not, sets NOOP scene."
+    },
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route36NationalParkGateCheckIfContestAvailableCallback",
+      "notes": "On object load: checks if today is a contest day (Tue/Thu/Sat) or if contest timer is active. Shows Contest Officer (OFFICER1) on contest days, non-contest Officer (OFFICER2) otherwise. Also checks EVENT_WARPED_FROM_ROUTE_35_NATIONAL_PARK_GATE to avoid re-triggering."
+    }
+  ],
+
+  "scene_scripts": [
+    {
+      "scene": "SCENE_ROUTE36NATIONALPARKGATE_NOOP",
+      "script": "Route36NationalParkGateNoop1Scene",
+      "notes": "Default scene — no action on map entry."
+    },
+    {
+      "scene": "SCENE_ROUTE36NATIONALPARKGATE_UNUSED",
+      "script": "Route36NationalParkGateNoop2Scene",
+      "notes": "Unused scene slot."
+    },
+    {
+      "scene": "SCENE_ROUTE36NATIONALPARKGATE_LEAVE_CONTEST_EARLY",
+      "script": "Route36NationalParkGateLeaveContestEarlyScene",
+      "notes": "Active when Bug Catching Contest timer is running. Fires early-exit script: shows remaining minutes, asks if player wants to finish now. If yes: fades out, loads contestant NPCs, announces results. If no: warps player back to NATIONAL_PARK_BUG_CONTEST at (33,18) facing left."
+    }
+  ],
+
+  "notes": "Route 36 National Park Gate is a gate building connecting Route 36 (east) to National Park (west). Its primary gameplay function is managing the Bug Catching Contest — a repeating timed event held every Tuesday, Thursday, and Saturday. The player enters from Route 36 (x=18,y=8-9), passes through the building, and exits into National Park. On contest days, the Officer NPC at the western entrance registers the player, takes their party Pokemon (leaving only one contestant), gives 20 Park Balls, explains the 20-minute timer, and warps them to the NATIONAL_PARK_BUG_CONTEST map zone. Prizes are awarded after judging: Sun Stone (1st), Everstone (2nd), Gold Berry (3rd), Berry (participation). After the contest concludes, up to 10 contestant NPCs appear in the waiting area (rows 5-7). The building uses two separate Officer NPC objects with different event flags to handle the contest/non-contest day toggle. An early-exit mechanism allows the player to leave mid-contest by re-entering this gate, triggering the results scene early."
+}

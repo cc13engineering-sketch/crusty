@@ -1,0 +1,230 @@
+{
+  "area_id": "tin_tower_1f",
+  "area_name": "Tin Tower 1F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_1F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 9, "y": 15,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 12,
+      "notes": "Left exit door tile — returns to Ecruteak City"
+    },
+    {
+      "warp_id": 2,
+      "x": 10, "y": 15,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 12,
+      "notes": "Right exit door tile — returns to Ecruteak City"
+    },
+    {
+      "warp_id": 3,
+      "x": 10, "y": 2,
+      "target_area_id": "tin_tower_2f",
+      "target_warp_id": 2,
+      "notes": "Staircase up to 2F. Hidden behind changeblock until EVENT_GOT_RAINBOW_WING is set — tile is floor ($09) without Rainbow Wing, stairs ($20) with it."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door/exit",
+      "^": "stairs_up (conditional: requires Rainbow Wing)",
+      "N": "npc_position",
+      "E": "exit_mat"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "The staircase at (10,2) is initially hidden — tile changed to floor block by TinTower1FStairsCallback when EVENT_GOT_RAINBOW_WING is NOT set.",
+      "Sage5 at (9,1) stands in front of (below) the hidden stair tile; he gives the Rainbow Wing, which triggers an earthquake and reveals the stairs.",
+      "Three beasts appear at (9,9) [Suicune], (7,9) [Raikou], (12,9) [Entei] before EVENT_FOUGHT_SUICUNE.",
+      "Eusine appears at (8,3) after EVENT_FOUGHT_HO_OH is set.",
+      "Sage1/2/3 (wise-trio group 1) scatter around the floor; Sage4/5/6 (wise-trio group 2) are near the northern stairs.",
+      "After Suicune battle: Eusine and three sages enter from south door for post-battle cutscene."
+    ],
+    "rows": [
+      "####################",
+      "####N....^....N#####",
+      "##..................",
+      "##....N.............",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##...N..N..N.N.....#",
+      "##........N.........",
+      "##..................",
+      "##.......N..........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "###########EE#######",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "suicune",
+      "name": "Suicune",
+      "x": 9, "y": 9,
+      "facing": "down",
+      "movement": "still",
+      "script_type": "battle_trigger",
+      "event_flag": "EVENT_TIN_TOWER_1F_SUICUNE",
+      "conditional": true,
+      "notes": "Appears when EVENT_FOUGHT_SUICUNE is NOT set and EVENT_GOT_RAINBOW_WING is NOT set. Triggers SCENE_TINTOWER1F_SUICUNE_BATTLE cutscene on map entry."
+    },
+    {
+      "id": "raikou",
+      "name": "Raikou",
+      "x": 7, "y": 9,
+      "facing": "down",
+      "movement": "still",
+      "script_type": "cutscene_participant",
+      "event_flag": "EVENT_TIN_TOWER_1F_RAIKOU",
+      "conditional": true,
+      "notes": "Appears alongside Suicune in the beast introduction scene, unless player already caught Raikou (MonCheck). Flees after cry."
+    },
+    {
+      "id": "entei",
+      "name": "Entei",
+      "x": 12, "y": 9,
+      "facing": "down",
+      "movement": "still",
+      "script_type": "cutscene_participant",
+      "event_flag": "EVENT_TIN_TOWER_1F_ENTEI",
+      "conditional": true,
+      "notes": "Appears alongside Suicune in the beast introduction scene, unless player already caught Entei (MonCheck). Flees after cry."
+    },
+    {
+      "id": "eusine",
+      "name": "Eusine",
+      "x": 8, "y": 3,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_EUSINE",
+      "conditional": true,
+      "notes": "Appears after EVENT_FOUGHT_HO_OH is set. Uses SPRITE_SUPER_NERD. Post-battle dialogue: congratulates player on Suicune encounter, mentions Ho-Oh legend.",
+      "dialogue_summary": "EUSINE: Awesome! Too awesome, even! I've never seen a battle that great... I heard SUICUNE's mystic power summons a rainbow-colored #MON. Later, <PLAYER>!"
+    },
+    {
+      "id": "sage_1",
+      "name": "Sage (Wise Trio 1)",
+      "x": 5, "y": 9,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_1",
+      "conditional": true,
+      "notes": "First group sage. Visible when EVENT_TIN_TOWER_1F_WISE_TRIO_1 is set. Part of the pre-Rainbow Wing period.",
+      "dialogue_summary": "When the souls of #MON and humans commune, from the heavens descends a #MON of rainbow colors... Could it mean the legendary #MON are testing us humans?"
+    },
+    {
+      "id": "sage_2",
+      "name": "Sage (Wise Trio 1)",
+      "x": 11, "y": 11,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_1",
+      "conditional": true,
+      "notes": "Second group sage (wise trio 1). Tells the legend of the three beasts rising from the Brass Tower fire.",
+      "dialogue_summary": "When the BRASS TOWER burned down, three nameless #MON perished. HO-OH descended and gave new life to them — SUICUNE, ENTEI, and RAIKOU."
+    },
+    {
+      "id": "sage_3",
+      "name": "Sage (Wise Trio 1)",
+      "x": 14, "y": 6,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_1",
+      "conditional": true,
+      "notes": "Third group sage (wise trio 1). Speaks about the two towers built 700 years ago.",
+      "dialogue_summary": "The two TOWERS were built to foster friendship and hope between #MON and people. That was 700 years ago."
+    },
+    {
+      "id": "sage_4",
+      "name": "Sage (Wise Trio 2)",
+      "x": 4, "y": 2,
+      "facing": "up",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_2",
+      "conditional": true,
+      "notes": "Post-Suicune-battle sage group. Paces up/down with 1-step range.",
+      "dialogue_summary": "HO-OH appears to have descended upon this, the TIN TOWER! (pre-Ho-Oh) / The legendary #MON embody lightning, fire, and rain — the three forces that struck the BRASS TOWER. (post-Ho-Oh)"
+    },
+    {
+      "id": "sage_5",
+      "name": "Sage (Wise Trio 2 — Rainbow Wing Giver)",
+      "x": 9, "y": 1,
+      "facing": "down",
+      "movement": "standing_down",
+      "script_type": "item_giver",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_2",
+      "conditional": true,
+      "notes": "Key sage. When approached without EVENT_GOT_RAINBOW_WING: gives RAINBOW_WING, triggers earthquake, reveals staircase via changeblock (10,2) to $20. After wing given: 'Now, go.' After EVENT_FOUGHT_HO_OH: tells legend of beasts fleeing from frightened people.",
+      "dialogue_summary": "Pre-wing: 'This will protect you. Take it.' [gives Rainbow Wing, earthquakes, stairs revealed] Post-wing: 'Now, go.' Post-Ho-Oh: legends about the beasts ignoring frightened people."
+    },
+    {
+      "id": "sage_6",
+      "name": "Sage (Wise Trio 2)",
+      "x": 14, "y": 2,
+      "facing": "right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TIN_TOWER_1F_WISE_TRIO_2",
+      "conditional": true,
+      "notes": "Paces left/right with 1-step range.",
+      "dialogue_summary": "Free your mind from uncertainty, and advance. (pre-Ho-Oh) / SUICUNE is said to be the closest to HO-OH, and may share a bond with UNOWN. (post-Ho-Oh)"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "map_enter_before_suicune_battle",
+      "scene": "SCENE_TINTOWER1F_SUICUNE_BATTLE",
+      "description": "If EVENT_GOT_RAINBOW_WING NOT set and EVENT_BEAT_ELITE_FOUR set and BeastsCheck passes: Raikou and Entei approach player and flee crying, then Suicune approaches for level-40 battle (BATTLETYPE_SUICUNE). After battle: Eusine + 3 sages enter from south door for cutscene. Sets EVENT_FOUGHT_SUICUNE and clears beasts from all prior encounter routes."
+    },
+    {
+      "trigger": "stairs_hidden_callback",
+      "description": "TinTower1FStairsCallback: on every map load, if EVENT_GOT_RAINBOW_WING is NOT set, tile at (10,2) is changed to floor block $09, hiding the staircase. With Rainbow Wing, tile becomes $20 (stairs)."
+    },
+    {
+      "trigger": "rainbow_wing_given",
+      "description": "Sage5 script: gives RAINBOW_WING item, triggers earthquake (72 frames), plays STRENGTH SFX, changes block (10,2) to $20, refreshes map, sets EVENT_GOT_RAINBOW_WING. Switches wise-trio group from group-1 NPCs to group-2 NPCs."
+    },
+    {
+      "trigger": "npc_callback_group_switch",
+      "description": "TinTower1FNPCsCallback: if EVENT_GOT_RAINBOW_WING set and EVENT_FOUGHT_HO_OH set, Eusine appears. If not got Rainbow Wing: check Elite Four beaten + BeastsCheck — if passed, clears WISE_TRIO_1, sets WISE_TRIO_2. If beasts NOT ready: Suicune/Raikou/Entei appear/disappear based on MonCheck."
+    },
+    {
+      "trigger": "post_suicune_eusine_cutscene",
+      "description": "After Suicune battle: Eusine moves in from x=10,y=15; sages 1-3 enter and position around player. Eusine delivers long dialogue praising the battle and prophesying Ho-Oh's appearance. Sets scene to NOOP afterward."
+    }
+  ],
+  "access_requirements": {
+    "to_enter": "Must pass the Ecruteak Tin Tower Entrance gatekeepers (requires Fog Badge at minimum, Clear Bell during Radio Tower crisis).",
+    "to_ascend": "Rainbow Wing required. Sage5 on 1F gives it after Suicune battle pre-conditions. Stairs are hidden until Rainbow Wing is obtained.",
+    "note": "In Pokemon Crystal, Suicune must be encountered here (Tin Tower 1F) as part of its roaming chain before Ho-Oh can be challenged on the roof."
+  },
+  "notes": "Tin Tower 1F is the ground floor of the nine-story Bell Tower (called Tin Tower in Crystal). It is 10x9 blocks (20x18 tiles). The floor hosts the famous Suicune encounter cutscene — Raikou and Entei appear briefly and flee, then Suicune faces the player in battle at level 40 with the unique BATTLETYPE_SUICUNE. The three legendary beasts (Suicune at 9,9; Raikou at 7,9; Entei at 12,9) are conditional objects managed by TinTower1FNPCsCallback. After the Suicune battle, Eusine and three sages enter for a cutscene. Sage5 at (9,1) is the key NPC who gives the Rainbow Wing and reveals the hidden staircase to 2F. The two wise-trio groups (group-1: sages 1-3 scattered around the floor before Suicune battle; group-2: sages 4-6 near north after the battle) are mutually exclusive. The exit south at (9-10, 15) returns to Ecruteak City (warp 12)."
+}

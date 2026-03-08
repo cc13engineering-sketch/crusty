@@ -1,0 +1,336 @@
+{
+  "area_id": "route_46",
+  "area_name": "Route 46",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_46",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "johto_mountain",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_45",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_29",
+      "offset": 0,
+      "requires": null,
+      "notes": "One-way ledges prevent northward travel back from Route 29"
+    }
+  ],
+  "warps": [
+    {
+      "x": 7,
+      "y": 33,
+      "target_area_id": "route_29_route_46_gate",
+      "target_warp_id": 1,
+      "notes": "Left door of the south gate building connecting to Route 29"
+    },
+    {
+      "x": 8,
+      "y": 33,
+      "target_area_id": "route_29_route_46_gate",
+      "target_warp_id": 2,
+      "notes": "Right door of the south gate building connecting to Route 29"
+    },
+    {
+      "x": 14,
+      "y": 5,
+      "target_area_id": "dark_cave_violet_entrance",
+      "target_warp_id": 3,
+      "notes": "Dark Cave entrance on the east side \u2014 leads to the Violet City/Route 31 section of Dark Cave"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "C": "cave_entrance",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "N": "npc_position",
+      "t": "fruit_tree",
+      "H": "gate_building"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##GGGGG...ttCC......",
+      "##GGGGG...tt........",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##LLLLLL.N.N........",
+      "##LLLLLL............",
+      "##LLLLLL.....!......",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL.....S......",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##HHHHHHHHHHHHHHHHHH",
+      "##HHHHHHHHHHHHHHHHHH",
+      "####################"
+    ],
+    "notes": "Route 46 is a compact (20x36 tile) connector route between Route 45 (north) and Route 29 (south via gate). The upper section has tall grass patches and the Dark Cave entrance on the east side (14,5). Two fruit trees are adjacent to the cave entrance. A long ledge section dominates the middle and south \u2014 these one-way ledges allow travel south but not north back to Route 45. Three trainers patrol the middle section. Sign at (9,27). Gate building occupies the bottom two rows with doors at (7,33) and (8,33). Item ball (X Speed) at (1,15). Layout is schematic \u2014 actual map has narrower rock corridors."
+  },
+  "signs": [
+    {
+      "x": 9,
+      "y": 27,
+      "text": "ROUTE 46 \u2014 MOUNTAIN RD. AHEAD"
+    }
+  ],
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Hiker",
+      "name": "Bailey",
+      "trainer_id": "HIKER_BAILEY",
+      "x": 12,
+      "y": 19,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Geodude",
+          "level": 13
+        },
+        {
+          "species": "Geodude",
+          "level": 13
+        },
+        {
+          "species": "Geodude",
+          "level": 13
+        },
+        {
+          "species": "Geodude",
+          "level": 13
+        },
+        {
+          "species": "Geodude",
+          "level": 13
+        }
+      ],
+      "prize_money": 416,
+      "rematch": false
+    },
+    {
+      "class": "Camper",
+      "name": "Ted",
+      "trainer_id": "CAMPER_TED",
+      "x": 4,
+      "y": 14,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Mankey",
+          "level": 17
+        }
+      ],
+      "prize_money": 340,
+      "rematch": false
+    },
+    {
+      "class": "Picnicker",
+      "name": "Erin",
+      "trainer_id": "PICNICKER_ERIN1",
+      "x": 2,
+      "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Ponyta",
+          "level": 16
+        },
+        {
+          "species": "Ponyta",
+          "level": 16
+        }
+      ],
+      "prize_money": 320,
+      "rematch": true,
+      "rematch_note": "Pokegear rematch. Rewards Calcium on final rematch (ERIN3 team: Ponyta Lv16x2 base, higher levels on rematch). Full rematch: ERIN2 and ERIN3."
+    }
+  ],
+  "items": [
+    {
+      "name": "X Speed",
+      "x": 1,
+      "y": 15,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_46_X_SPEED",
+      "notes": "Item ball on the west edge, below the tall grass"
+    },
+    {
+      "name": "PRZCureBerry",
+      "x": 7,
+      "y": 5,
+      "hidden": false,
+      "requires": null,
+      "notes": "Fruit tree #1 adjacent to Dark Cave entrance \u2014 daily respawn (FRUITTREE_ROUTE_46_1)"
+    },
+    {
+      "name": "Berry",
+      "x": 8,
+      "y": 6,
+      "hidden": false,
+      "requires": null,
+      "notes": "Fruit tree #2 adjacent to Dark Cave entrance \u2014 daily respawn (FRUITTREE_ROUTE_46_2)"
+    },
+    {
+      "name": "Dire Hit",
+      "x": 1,
+      "y": 13,
+      "hidden": false,
+      "requires": null,
+      "notes": "West of Camper Ted \u2014 collectible item ball"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {
+          "species": "Geodude",
+          "level_min": 2,
+          "level_max": 3,
+          "rate": 40
+        },
+        {
+          "species": "Spearow",
+          "level_min": 2,
+          "level_max": 3,
+          "rate": 35
+        },
+        {
+          "species": "Rattata",
+          "level_min": 2,
+          "level_max": 2,
+          "rate": 20
+        },
+        {
+          "species": "Jigglypuff",
+          "level_min": 3,
+          "level_max": 5,
+          "rate": 5
+        }
+      ],
+      "day": [
+        {
+          "species": "Geodude",
+          "level_min": 2,
+          "level_max": 3,
+          "rate": 40
+        },
+        {
+          "species": "Spearow",
+          "level_min": 2,
+          "level_max": 3,
+          "rate": 35
+        },
+        {
+          "species": "Rattata",
+          "level_min": 2,
+          "level_max": 2,
+          "rate": 20
+        },
+        {
+          "species": "Jigglypuff",
+          "level_min": 3,
+          "level_max": 5,
+          "rate": 5
+        }
+      ],
+      "night": [
+        {
+          "species": "Geodude",
+          "level_min": 2,
+          "level_max": 3,
+          "rate": 45
+        },
+        {
+          "species": "Rattata",
+          "level_min": 2,
+          "level_max": 2,
+          "rate": 50
+        },
+        {
+          "species": "Jigglypuff",
+          "level_min": 3,
+          "level_max": 5,
+          "rate": 5
+        }
+      ],
+      "notes": "Spearow is absent at night. Rattata rate increases to 50% at night. Some of the lowest-level encounters in the game (Lv2-5), shared with early-game Route 29 Pokemon. Jigglypuff is the rarest encounter at 5% all times."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on Route 46."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": [],
+      "notes": "No fishing on Route 46."
+    }
+  },
+  "events": [
+    {
+      "trigger": "south_gate_transition",
+      "description": "Two gate doors at the south end (7,33) and (8,33) lead to ROUTE_29_ROUTE_46_GATE, the connector building between Route 46 and Route 29. Functionally this is a one-way junction \u2014 ledges prevent re-entry from Route 29 to Route 46."
+    },
+    {
+      "trigger": "dark_cave_violet_entrance_warp",
+      "description": "The Dark Cave entrance at (14,5) leads to DARK_CAVE_VIOLET_ENTRANCE (warp 3) \u2014 the eastern section of Dark Cave connecting to Route 31 near Violet City. This section has Lv2-4 encounters (Geodude 60%, Zubat 39%, Dunsparce 1%) and requires Flash to navigate."
+    },
+    {
+      "trigger": "talk_picnicker_erin_post_battle",
+      "description": "Picnicker Erin asks for the player's phone number after first battle. Pokegear rematch contact. Rewards Calcium on final rematch (ERIN3). Post-battle dialogue mentions Goldenrod Gym's flowers."
+    },
+    {
+      "trigger": "one_way_ledge_system",
+      "description": "The ledge tiles spanning the middle and lower sections of Route 46 only allow southbound travel. Players who descend from Route 45 cannot backtrack north through Route 46. Must use Fly to Blackthorn City to re-access Route 45."
+    }
+  ],
+  "notes": "Route 46 is a small transitional mountain route connecting the bottom of Route 45 to the early-game Route 29. It is unique in that it spans two different 'eras' of game progression \u2014 accessible as a dead end from Route 29 early in the game (before the player has the ability to proceed north past the ledges), and passable in full only once descending from Route 45 and Blackthorn City late in the game. Wild Pokemon are all very low level (Lv2-5), matching the early-game Route 29 region. The Dark Cave (Violet City side) entrance here lets late-game players access early-area Dark Cave content. Two fruit trees grow near the cave entrance. Hiker Bailey's team of five Geodude Lv13 is notably underleveled relative to the late-game context in which most players encounter him while descending from Route 45. pokecrystal object constants: ROUTE46_POKEFAN_M=HikerBailey, ROUTE46_YOUNGSTER=CamperTed, ROUTE46_LASS=PicnickerErin, ROUTE46_FRUIT_TREE1=FruitTree1, ROUTE46_FRUIT_TREE2=FruitTree2, ROUTE46_POKE_BALL=XSpeed."
+}

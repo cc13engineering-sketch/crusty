@@ -1,0 +1,156 @@
+{
+  "area_id": "route_36_ruins_of_alph_gate",
+  "area_name": "Route 36 Ruins of Alph Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_36_RUINS_OF_ALPH_GATE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 16,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_RUINS_OF_ALPH",
+  "palette": "PALETTE_AUTO",
+  "fish_group": null,
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 4,
+      "y": 0,
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "target_warp_id": 3,
+      "notes": "Left tile of northern exit back to Route 36 (warp_id 3 in Route 36 = x=47,y=13)"
+    },
+    {
+      "warp_id": 1,
+      "x": 5,
+      "y": 0,
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "target_warp_id": 4,
+      "notes": "Right tile of northern exit back to Route 36 (warp_id 4 in Route 36 = x=48,y=13)"
+    },
+    {
+      "warp_id": 2,
+      "x": 4,
+      "y": 7,
+      "target_area_id": "ruins_of_alph_outside",
+      "pokecrystal_target": "RUINS_OF_ALPH_OUTSIDE",
+      "target_warp_id": 9,
+      "notes": "Left tile of southern exit into Ruins of Alph exterior"
+    },
+    {
+      "warp_id": 3,
+      "x": 5,
+      "y": 7,
+      "target_area_id": "ruins_of_alph_outside",
+      "pokecrystal_target": "RUINS_OF_ALPH_OUTSIDE",
+      "target_warp_id": 9,
+      "notes": "Right tile of southern exit into Ruins of Alph exterior (both tiles share warp target 9)"
+    }
+  ],
+
+  "signs": [],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "8 columns x 16 rows. Small gate building connecting Route 36 (north, x=47-48,y=13) to Ruins of Alph exterior (south). Northern doorway at y=0 (tiles 4-5). Southern doorway at y=7 (tiles 4-5). Officer NPC stands on the left at (0,4) facing right. Gramps NPC wanders in a 1x2 radius around (7,5). No signs in this building. Very minimal interior — purely a transit gate with two NPCs adding lore flavor about the Ruins.",
+    "rows": [
+      "####EE##",
+      "########",
+      "########",
+      "########",
+      "N.......",
+      "......N.",
+      "........",
+      "####EE##",
+      "########",
+      "########",
+      "########",
+      "########",
+      "########",
+      "########",
+      "########",
+      "########"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_officer",
+      "object_const": "ROUTE36RUINSOFALPHGATE_OFFICER",
+      "name": "Officer",
+      "sprite": "SPRITE_OFFICER",
+      "x": 0,
+      "y": 4,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Says 'Don't you wonder who'd make something like this? And why?' — musing about the mysterious origins of the Ruins of Alph. Provides atmospheric flavor for the ancient puzzle ruins to the south.",
+      "script": "Route36RuinsOfAlphGateOfficerScript"
+    },
+    {
+      "id": "npc_gramps",
+      "object_const": "ROUTE36RUINSOFALPHGATE_GRAMPS",
+      "name": "Gramps",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 7,
+      "y": 5,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "radius_x": 1,
+      "radius_y": 2,
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions seeing the strange tree (Sudowoodo) in the road and speculates that it may explain why fewer people are visiting the Ruins of Alph. Ties the Sudowoodo blockage on Route 36 to reduced Ruins tourism — narrative world-building.",
+      "script": "Route36RuinsOfAlphGateGrampsScript"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "notes": "Interior building. No wild encounters."},
+    "water": {"encounter_rate": 0, "notes": "Interior building. No water."},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "notes": "Route 36 Ruins of Alph Gate is a small transit gate building on the eastern spur of Route 36, serving as the northern entrance to the Ruins of Alph exterior. It is entered from Route 36 at tile coordinates (47,13) and (48,13), and exits south into RUINS_OF_ALPH_OUTSIDE (warp target 9). The building has no signs and no puzzles — purely a two-NPC atmospheric location. The Officer's dialogue questions who built the ruins and why, while Gramps connects the Sudowoodo blockage on Route 36 to reduced visitor traffic at the ruins. The building dimensions are 4 blocks wide and 4 blocks tall (8x16 tiles in the layout, though the actual navigable interior is smaller). The sign on Route 36 at (45,11) reading 'RUINS OF ALPH — NORTH ENTRANCE' directs players to this gate. This is distinct from the main Ruins of Alph entrance accessible via Union Cave or from Violet City to the south."
+}

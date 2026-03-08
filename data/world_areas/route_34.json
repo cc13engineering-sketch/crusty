@@ -1,0 +1,602 @@
+{
+  "area_id": "route_34",
+  "area_name": "Route 34",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_34",
+  "width_blocks": 10,
+  "height_blocks": 27,
+  "width_tiles": 20,
+  "height_tiles": 54,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_ROUTE_34",
+  "environment_type": "ROUTE",
+  "landmark": "LANDMARK_ROUTE_34",
+  "palette": "PALETTE_AUTO",
+  "fish_group": "FISHGROUP_RIVER",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "goldenrod_city",
+      "pokecrystal_target": "GOLDENROD_CITY",
+      "offset": -5,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "ilex_forest",
+      "pokecrystal_target": "ILEX_FOREST",
+      "offset": 0,
+      "requires": null,
+      "notes": "South end leads to Route 34/Ilex Forest gate building"
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 13,
+      "y": 37,
+      "target_area_id": "route_34_ilex_forest_gate",
+      "pokecrystal_target": "ROUTE_34_ILEX_FOREST_GATE",
+      "target_warp_id": 1,
+      "notes": "Left entrance tile to Ilex Forest gate"
+    },
+    {
+      "warp_id": 1,
+      "x": 14,
+      "y": 37,
+      "target_area_id": "route_34_ilex_forest_gate",
+      "pokecrystal_target": "ROUTE_34_ILEX_FOREST_GATE",
+      "target_warp_id": 2,
+      "notes": "Right entrance tile to Ilex Forest gate"
+    },
+    {
+      "warp_id": 2,
+      "x": 11,
+      "y": 14,
+      "target_area_id": "day_care",
+      "pokecrystal_target": "DAY_CARE",
+      "target_warp_id": 1,
+      "notes": "Day Care left door tile"
+    },
+    {
+      "warp_id": 3,
+      "x": 11,
+      "y": 15,
+      "target_area_id": "day_care",
+      "pokecrystal_target": "DAY_CARE",
+      "target_warp_id": 2,
+      "notes": "Day Care center-left door tile"
+    },
+    {
+      "warp_id": 4,
+      "x": 13,
+      "y": 15,
+      "target_area_id": "day_care",
+      "pokecrystal_target": "DAY_CARE",
+      "target_warp_id": 3,
+      "notes": "Day Care right door tile"
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 12,
+      "y": 6,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "ROUTE 34 — GOLDENROD CITY - AZALEA TOWN — ILEX FOREST SOMEWHERE BETWEEN"
+    },
+    {
+      "x": 13,
+      "y": 33,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "TRAINER TIPS: BERRY trees grow new BERRIES every day. Make a note of which trees bear which BERRIES."
+    },
+    {
+      "x": 10,
+      "y": 13,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "DAY-CARE — LET US RAISE YOUR #MON FOR YOU!"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 54 rows. X=0,Y=0 is top-left (north edge connecting to Goldenrod City at offset -5). Day Care building sits around x=9-15, y=12-17. Fenced water area with Nugget/hidden item at far south-west (x=0-8, y=46-53). Three Cooltrainer F trainers require Surf to reach the water area south of y=44. Officer Keith at y=11 is night-only. Day Care Man (Gramps) appears on route exterior (x=15,y=16) when no egg pending. Hidden Super Potion at x=17,y=19. Hidden Rare Candy at x=8,y=32 (fenced area west, requires Surf).",
+    "rows": [
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "TTTTPPPPPPPPPPPPTTTT",
+      "TTTTPPPPPPPPPPPPTTTT",
+      "TTTTPPSPPPPPPPPPTTTT",
+      "TTTTNPPPPPPPPPPPTTTT",
+      "TTTTGPPPPPPPPPPPTTTT",
+      "TTTTGPPPPPPPPPPPTTTT",
+      "TTTTGPPPPPPPPPPPTTTT",
+      "TTTTNPPPPPPPPPPPTTTT",
+      "TTTTTPPPPPPPPPPPTTTTT",
+      "TTTTTSPPHHHHHHPPTTTT",
+      "TTTTTPPHHDDDHH.PTTTT",
+      "TTTTTPPHHDHHHH.PTTTT",
+      "TTTTTPPHHHHHHPPTTTT",
+      "TTTTTPPPPPPPPPPTTTT",
+      "TTTTTPP?PPPPPPNPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTPPPSPPPPPPTTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTNPPPPPPPPPTTTT",
+      "TTTTTTTPPPPPPPPPTTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTTGPPPPPPPPPTTTT",
+      "TTTTTPPPPPPPPPPPTTTTT",
+      "TTTTFP?PPPPPPPPPTTTT",
+      "FFFTFPPPPPPNPPPPTTTT",
+      "FFFTFPPPPPPPPPPFTTTTT",
+      "FFFFPPPPPPPPPPPPTTTTT",
+      "FFFPPPPPPPPPPPPTTTTTT",
+      "FFFFPPPPPSPPPPPTTTTT",
+      "TTTTTPPPPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPPTTTT",
+      "TTTTTTPPPPPPPPPTTTTTT",
+      "FF~~~~PPPPPPPPPPTTTT",
+      "FF~~~~PPPPPPPPPPTTTT",
+      "FF~~~~PPPPPPPPPPTTTTT",
+      "FF~~~~PPPPPPPPNPTTTT",
+      "FF~~~~PPPPPPNPPTTTTTT",
+      "FF~~~~PPPPPPPPPPTTTT",
+      "FF~~~~PPPPPPPPPTTTTTT",
+      "FF~~~~PPPPPPPPPPTTTT",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPEEEEEEPEEEEP"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_daycare_man_outside",
+      "object_const": "ROUTE34_GRAMPS",
+      "name": "Day-Care Man (Gramps)",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 15,
+      "y": 16,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_DAY_CARE_MAN_ON_ROUTE_34",
+      "dialogue_summary": "Runs outside to give player the Egg when ENGINE_DAY_CARE_MAN_HAS_EGG is set. Uses special DayCareManOutside to handle the egg handoff dialog, then walks back inside if player accepts or is facing away."
+    },
+    {
+      "id": "npc_daycare_mon_1",
+      "object_const": "ROUTE34_DAY_CARE_MON_1",
+      "name": "Day Care Pokemon 1 (exterior pen)",
+      "sprite": "SPRITE_DAY_CARE_MON_1",
+      "x": 14,
+      "y": 18,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_POKEMON",
+      "event_flag": "EVENT_DAY_CARE_MON_1",
+      "script_type": "dialogue",
+      "dialogue_summary": "Shows the first Pokemon left in Day Care via special DayCareMon1. Hidden when no mon is left with the man."
+    },
+    {
+      "id": "npc_daycare_mon_2",
+      "object_const": "ROUTE34_DAY_CARE_MON_2",
+      "name": "Day Care Pokemon 2 (exterior pen)",
+      "sprite": "SPRITE_DAY_CARE_MON_2",
+      "x": 17,
+      "y": 19,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_POKEMON",
+      "event_flag": "EVENT_DAY_CARE_MON_2",
+      "script_type": "dialogue",
+      "dialogue_summary": "Shows the second Pokemon left in Day Care via special DayCareMon2. Hidden when no mon is left with the lady."
+    }
+  ],
+
+  "trainers": [
+    {
+      "id": "trainer_camper_todd",
+      "class": "Camper",
+      "name": "Todd",
+      "object_const": "ROUTE34_YOUNGSTER1",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 13,
+      "y": 7,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "line_of_sight": 5,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Psyduck", "level": 14}
+      ],
+      "prize_money": 280,
+      "rematch": true,
+      "phone_rematch": true,
+      "phone_id": "PHONE_CAMPER_TODD",
+      "event_flag": "EVENT_BEAT_CAMPER_TODD",
+      "rematch_progression": ["CAMPER_TODD1", "CAMPER_TODD2", "CAMPER_TODD3", "CAMPER_TODD4", "CAMPER_TODD5"],
+      "notes": "Pokegear rematch available. Rematch escalates through 5 teams based on game progress checkpoints (flypoints / event flags)."
+    },
+    {
+      "id": "trainer_youngster_samuel",
+      "class": "Youngster",
+      "name": "Samuel",
+      "object_const": "ROUTE34_YOUNGSTER2",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 15,
+      "y": 32,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Rattata", "level": 7},
+        {"species": "Sandshrew", "level": 10},
+        {"species": "Spearow", "level": 8},
+        {"species": "Spearow", "level": 8}
+      ],
+      "prize_money": 160,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_YOUNGSTER_SAMUEL"
+    },
+    {
+      "id": "trainer_youngster_ian",
+      "class": "Youngster",
+      "name": "Ian",
+      "object_const": "ROUTE34_YOUNGSTER3",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 11,
+      "y": 20,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Mankey", "level": 10},
+        {"species": "Diglett", "level": 12}
+      ],
+      "prize_money": 192,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_YOUNGSTER_IAN"
+    },
+    {
+      "id": "trainer_picnicker_gina",
+      "class": "Picnicker",
+      "name": "Gina",
+      "object_const": "ROUTE34_LASS",
+      "sprite": "SPRITE_LASS",
+      "x": 10,
+      "y": 26,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Hoppip", "level": 9},
+        {"species": "Hoppip", "level": 9},
+        {"species": "Bulbasaur", "level": 12}
+      ],
+      "prize_money": 240,
+      "rematch": true,
+      "phone_rematch": true,
+      "phone_id": "PHONE_PICNICKER_GINA",
+      "event_flag": "EVENT_BEAT_PICNICKER_GINA",
+      "rematch_progression": ["PICNICKER_GINA1", "PICNICKER_GINA2", "PICNICKER_GINA3", "PICNICKER_GINA4", "PICNICKER_GINA5"],
+      "special_callback": "Gina gives a Leaf Stone when ENGINE_GINA_HAS_LEAF_STONE is set (phone call reward)."
+    },
+    {
+      "id": "trainer_officer_keith",
+      "class": "Officer",
+      "name": "Keith",
+      "object_const": "ROUTE34_OFFICER",
+      "sprite": "SPRITE_OFFICER",
+      "x": 9,
+      "y": 11,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 0,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Growlithe", "level": 17}
+      ],
+      "prize_money": 680,
+      "rematch": false,
+      "time_restriction": "night_only",
+      "event_flag": "EVENT_BEAT_OFFICER_KEITH",
+      "notes": "Night-only trainer. Uses checktime NITE. During daytime gives patrol dialogue without battling. Plays MUSIC_OFFICER_ENCOUNTER on sight."
+    },
+    {
+      "id": "trainer_pokefan_brandon",
+      "class": "Pokefan",
+      "name": "Brandon",
+      "object_const": "ROUTE34_POKEFAN_M",
+      "sprite": "SPRITE_POKEFAN_M",
+      "x": 18,
+      "y": 28,
+      "facing": "spin_counterclockwise",
+      "movement": "SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Snubbull", "level": 13}
+      ],
+      "prize_money": 1040,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEFANM_BRANDON"
+    },
+    {
+      "id": "trainer_cooltrainer_irene",
+      "class": "Cooltrainer F",
+      "name": "Irene",
+      "object_const": "ROUTE34_COOLTRAINER_F1",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 11,
+      "y": 48,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "line_of_sight": 5,
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Goldeen", "level": 22},
+        {"species": "Seaking", "level": 24}
+      ],
+      "prize_money": 1152,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_COOLTRAINERF_IRENE",
+      "requires": "Surf",
+      "notes": "Located in fenced water area at south end of route. Post-battle: offers Soft Sand once Kate is beaten."
+    },
+    {
+      "id": "trainer_cooltrainer_jenn",
+      "class": "Cooltrainer F",
+      "name": "Jenn",
+      "object_const": "ROUTE34_COOLTRAINER_F2",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 3,
+      "y": 48,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Staryu", "level": 24},
+        {"species": "Starmie", "level": 26}
+      ],
+      "prize_money": 1248,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_COOLTRAINERF_JENN",
+      "requires": "Surf",
+      "notes": "Located in fenced water area. Sisters trio: Irene, Jenn, Kate. Post-battle dialogue changes after EVENT_GOT_SOFT_SAND_FROM_KATE."
+    },
+    {
+      "id": "trainer_cooltrainer_kate",
+      "class": "Cooltrainer F",
+      "name": "Kate",
+      "object_const": "ROUTE34_COOLTRAINER_F3",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 6,
+      "y": 51,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "line_of_sight": 2,
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Shellder", "level": 26},
+        {"species": "Cloyster", "level": 28}
+      ],
+      "prize_money": 1344,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_COOLTRAINERF_KATE",
+      "requires": "Surf",
+      "notes": "After defeat, gives Soft Sand (verbosegiveitem SOFT_SAND, sets EVENT_GOT_SOFT_SAND_FROM_KATE). Sisters trio boss."
+    }
+  ],
+
+  "items": [
+    {
+      "name": "TM12 (Sweet Scent)",
+      "x": 9,
+      "y": 3,
+      "source": "npc_gift",
+      "giver": "Teacher NPC (Route 34/Ilex Forest Gate)",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_GOT_TM12_SWEET_SCENT",
+      "notes": "Given by Teacher inside Route34IlexForestGate building, not on the route itself."
+    },
+    {
+      "name": "Nugget",
+      "x": 7,
+      "y": 30,
+      "source": "item_ball",
+      "object_const": "ROUTE34_POKE_BALL",
+      "hidden": false,
+      "requires": "Surf",
+      "event_flag": "EVENT_ROUTE_34_NUGGET",
+      "notes": "Located in fenced area on west side of route, accessible only via Surf."
+    },
+    {
+      "name": "Rare Candy",
+      "x": 8,
+      "y": 32,
+      "source": "hidden",
+      "hidden": true,
+      "requires": "Surf",
+      "event_flag": "EVENT_ROUTE_34_HIDDEN_RARE_CANDY",
+      "notes": "Hidden item in fenced water area, requires Surf to reach."
+    },
+    {
+      "name": "Super Potion",
+      "x": 17,
+      "y": 19,
+      "source": "hidden",
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_34_HIDDEN_SUPER_POTION",
+      "notes": "Hidden Super Potion in the grass near the Day Care exterior pen."
+    },
+    {
+      "name": "Soft Sand",
+      "x": 6,
+      "y": 51,
+      "source": "npc_gift",
+      "giver": "Cooltrainer Kate",
+      "hidden": false,
+      "requires": "Surf + beat Kate",
+      "event_flag": "EVENT_GOT_SOFT_SAND_FROM_KATE"
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Drowzee", "level_min": 10, "level_max": 12, "rate": 50},
+        {"species": "Rattata", "level_min": 11, "level_max": 13, "rate": 35},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 5}
+      ],
+      "day": [
+        {"species": "Drowzee", "level_min": 10, "level_max": 12, "rate": 50},
+        {"species": "Rattata", "level_min": 11, "level_max": 13, "rate": 35},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 5}
+      ],
+      "night": [
+        {"species": "Drowzee", "level_min": 10, "level_max": 12, "rate": 50},
+        {"species": "Rattata", "level_min": 11, "level_max": 13, "rate": 35},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 5}
+      ],
+      "crystal_notes": "Crystal replaces Drowzee morning/day with Snubbull 30%, Pidgey 20%, Jigglypuff 5%. Night adds Hoothoot 20%."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Tentacool", "level_min": 15, "level_max": 24, "rate": 90},
+        {"species": "Tentacruel", "level_min": 15, "level_max": 24, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 85},
+        {"species": "Krabby", "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Krabby", "level": 20, "rate": 55},
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Corsola", "level": 20, "rate": 5, "notes": "Gold version"},
+        {"species": "Staryu", "level": 20, "rate": 5, "notes": "Silver version"}
+      ],
+      "super_rod": [
+        {"species": "Krabby", "level": 40, "rate": 60},
+        {"species": "Corsola", "level": 40, "rate": 15, "notes": "Gold version"},
+        {"species": "Staryu", "level": 40, "rate": 15, "notes": "Silver version"},
+        {"species": "Kingler", "level": 40, "rate": 10}
+      ]
+    }
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route34EggCheckCallback",
+      "notes": "On every map load, checks ENGINE_DAY_CARE_MAN_HAS_EGG flag. If true, moves Day Care Man outside (sets EVENT_DAY_CARE_MAN_ON_ROUTE_34, clears EVENT_DAY_CARE_MAN_IN_DAY_CARE). Also checks ENGINE_DAY_CARE_MAN_HAS_MON and ENGINE_DAY_CARE_LADY_HAS_MON to show/hide the exterior Pokemon sprites."
+    }
+  ],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_pass_through",
+      "description": "Player passes through Route 34 on the way from Ilex Forest (south) to Goldenrod City (north). No gate blocking on initial pass.",
+      "notes": "Route is accessible after completing the Farfetch'd quest in Ilex Forest."
+    },
+    {
+      "order": 2,
+      "trigger": "visit_day_care",
+      "description": "Player can deposit up to 2 Pokemon at the Day Care. Pokemon gain 1 EXP per step. Two compatible species may produce an Egg (Odd Egg given on first visit to Day Care interior in Crystal).",
+      "notes": "Day Care Man comes outside and chases the player when an Egg is ready."
+    },
+    {
+      "order": 3,
+      "trigger": "egg_ready",
+      "description": "Day Care Man runs outside with the Egg. Player must accept it (requires empty party slot). Man walks back inside after handoff.",
+      "flags_set": ["EVENT_GOT_ODD_EGG (Crystal first visit to Day Care interior)"],
+      "items_given": ["Egg (species determined by parent pair)"]
+    },
+    {
+      "order": 4,
+      "trigger": "post_hm_surf",
+      "description": "After obtaining Surf (HM03), player can access the fenced water area at the route's south-west. Contains Nugget item ball, hidden Rare Candy, and three Cooltrainer F sister trainers (Irene, Jenn, Kate). Kate gives Soft Sand after defeat.",
+      "requires": "Surf",
+      "items_given": ["Nugget", "Rare Candy (hidden)", "Soft Sand (from Kate)"]
+    }
+  ],
+
+  "buildings": [
+    {
+      "name": "Day-Care Center",
+      "area_id": "day_care",
+      "pokecrystal_map": "DAY_CARE",
+      "warp_tile_x": 11,
+      "warp_tile_y": 14,
+      "sign_tile_x": 10,
+      "sign_tile_y": 13,
+      "sign_text": "DAY-CARE — LET US RAISE YOUR #MON FOR YOU!",
+      "width_blocks": 5,
+      "height_blocks": 4
+    },
+    {
+      "name": "Route 34/Ilex Forest Gate",
+      "area_id": "route_34_ilex_forest_gate",
+      "pokecrystal_map": "ROUTE_34_ILEX_FOREST_GATE",
+      "warp_tile_x": 13,
+      "warp_tile_y": 37,
+      "width_blocks": 10,
+      "height_blocks": 4
+    }
+  ],
+
+  "notes": "Route 34 is a long north-south route (10x27 blocks) connecting Goldenrod City to the north and Ilex Forest to the south via a gate building. The Day-Care Center is the primary feature, situated on the east side of the route around the midpoint. Officer Keith is a night-only trainer — he will not battle during daytime. Three Cooltrainer F sisters (Irene, Jenn, Kate) are located in a fenced water enclave at the far south-west and can only be reached via Surf. Kate gives Soft Sand after defeat, which changes dialogue for her sisters. The Day Care Man comes outside and intercepts the player when an Egg is ready; this is driven by ENGINE_DAY_CARE_MAN_HAS_EGG via the MAPCALLBACK_OBJECTS callback. Camper Todd and Picnicker Gina both have Pokegear rematch phones."
+}

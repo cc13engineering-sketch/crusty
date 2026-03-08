@@ -1,0 +1,614 @@
+{
+  "area_id": "ilex_forest",
+  "area_name": "Ilex Forest",
+  "area_type": "forest",
+  "pokecrystal_map_id": "ILEX_FOREST",
+  "width_blocks": 15,
+  "height_blocks": 27,
+  "width_tiles": 30,
+  "height_tiles": 54,
+  "tileset": "TILESET_FOREST",
+  "music": "MUSIC_UNION_CAVE",
+  "environment_type": "CAVE",
+  "landmark": "LANDMARK_ILEX_FOREST",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_POND",
+  "border_block": "$05",
+  "map_connections_flag": 0,
+  "notes_connections": "No scroll-edge map connections. Both exits are via warp gates (Route34IlexForestGate to the north, IlexForestAzaleaGate to the south). The forest is a sealed indoor-style cave environment navigated via warp buildings.",
+
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_34_ilex_forest_gate",
+      "pokecrystal_target": "ROUTE_34_ILEX_FOREST_GATE",
+      "offset": 0,
+      "requires": null,
+      "notes": "Warp at (1,5) leads to Route 34/Ilex Forest Gate warp 3. Gate is accessible freely; forest side blocked during EVENT_FOREST_IS_RESTLESS by Teacher NPC in gate."
+    },
+    {
+      "direction": "south",
+      "target_area_id": "ilex_forest_azalea_gate",
+      "pokecrystal_target": "ILEX_FOREST_AZALEA_GATE",
+      "offset": 0,
+      "requires": null,
+      "notes": "Two warp tiles at (3,42) and (3,43) lead to IlexForestAzaleaGate warps 1 and 2 respectively. Gate connects south to Azalea Town."
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 1,
+      "y": 5,
+      "target_area_id": "route_34_ilex_forest_gate",
+      "pokecrystal_target": "ROUTE_34_ILEX_FOREST_GATE",
+      "target_warp_id": 3,
+      "notes": "North gate exit. Single tile leads back into the gate building."
+    },
+    {
+      "warp_id": 1,
+      "x": 3,
+      "y": 42,
+      "target_area_id": "ilex_forest_azalea_gate",
+      "pokecrystal_target": "ILEX_FOREST_AZALEA_GATE",
+      "target_warp_id": 1,
+      "notes": "South gate entrance, left tile."
+    },
+    {
+      "warp_id": 2,
+      "x": 3,
+      "y": 43,
+      "target_area_id": "ilex_forest_azalea_gate",
+      "pokecrystal_target": "ILEX_FOREST_AZALEA_GATE",
+      "target_warp_id": 2,
+      "notes": "South gate entrance, right tile."
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "30 columns x 54 rows. X=0,Y=0 is top-left (north edge; gate warp at x=1-2,y=5). The forest is densely packed with trees forming a maze. One main winding path runs from north gate to south gate. The Farfetch'd wanders 10 positions spread across the middle of the map. Headbutt trees line interior clearings. The Ilex Forest Shrine is at x=8,y=22 facing up. Charcoal maker (Black Belt sprite) and apprentice (Youngster) are in the western corridor around y=28. Bug Catcher Wayne is near the north at x=12,y=1. Item balls are scattered throughout. The map uses CAVE environment flag (no outdoor lighting), hence the dark tone despite being outdoors.",
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTE.TTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTT..TTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTT..TTTTTT!TTTTT!TTTTTTTTTTT",
+      "TTT..TTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTT..TTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTT...TTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTT.TTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTT..TTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTT..TTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTEEETTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+    ],
+    "layout_accuracy_note": "Tile rows above are approximate. Ilex Forest is a dense tree maze with no source .blk decomposition available in this context. The accurate NPC/item coordinates are from IlexForest.asm object_event and bg_event data and are canonical. See object coordinates below for exact positions of all interactable elements. The winding path runs roughly: enter north gate at (1-2,5), path threads east and south through the interior, Farfetch'd positions mark key branch points, Shrine at (8,22) is mid-forest west side, exit south at (3,42-43). Trees fill all non-path cells."
+  },
+
+  "npcs": [
+    {
+      "id": "npc_charcoal_apprentice",
+      "object_const": "ILEXFOREST_YOUNGSTER1",
+      "name": "Charcoal Maker's Apprentice",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 7,
+      "y": 28,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ILEX_FOREST_APPRENTICE",
+      "dialogue_summary": "Before Farfetch'd is herded: 'Oh man, my boss is going to be steaming. The Farfetch'd that cuts trees for charcoal took off on me. I can't go looking for it here — it's too big, dark, and scary for me.' After herded: 'Wow! Thanks a whole bunch! My boss's Pokemon won't obey me because I don't have a badge.'"
+    },
+    {
+      "id": "npc_charcoal_master",
+      "object_const": "ILEXFOREST_BLACK_BELT",
+      "name": "Charcoal Maker",
+      "sprite": "SPRITE_BLACK_BELT",
+      "x": 5,
+      "y": 28,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "0",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ILEX_FOREST_CHARCOAL_MASTER",
+      "dialogue_summary": "Before Cut is obtained: Thanks the player for finding Farfetch'd and gives HM01 Cut. 'That's the CUT HM. Teach it to a Pokemon to clear small trees. You need the Gym Badge from Azalea to use it.' After: 'Do you want to apprentice as a charcoal maker with me? You'll be first-rate in ten years!' Also sets EVENT_CHARCOAL_KILN_BOSS on Farfetch'd completion.",
+      "gives_item": "HM01 (Cut)",
+      "event_flag_set": ["EVENT_GOT_HM01_CUT", "EVENT_ILEX_FOREST_FARFETCHD", "EVENT_ILEX_FOREST_APPRENTICE", "EVENT_ILEX_FOREST_CHARCOAL_MASTER"],
+      "event_flag_clear": ["EVENT_CHARCOAL_KILN_FARFETCH_D", "EVENT_CHARCOAL_KILN_APPRENTICE", "EVENT_CHARCOAL_KILN_BOSS"]
+    },
+    {
+      "id": "npc_headbutt_teacher",
+      "object_const": "ILEXFOREST_ROCKER",
+      "name": "Headbutt Guy",
+      "sprite": "SPRITE_ROCKER",
+      "x": 15,
+      "y": 14,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "0",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "gives_item": "TM02 (Headbutt)",
+      "event_flag_set": ["EVENT_GOT_TM02_HEADBUTT"],
+      "dialogue_summary": "Before TM given: 'What am I doing? I'm shaking trees using Headbutt. It's fun. Here, you try it too!' Gives TM02 Headbutt. After: 'Rattle trees with Headbutt. Sometimes sleeping Pokemon fall out.'"
+    },
+    {
+      "id": "npc_lass",
+      "object_const": "ILEXFOREST_LASS",
+      "name": "Lass",
+      "sprite": "SPRITE_LASS",
+      "x": 3,
+      "y": 24,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ILEX_FOREST_LASS",
+      "dialogue_summary": "'Did something happen to the forest's guardian?' Disappears during the Celebi event (CelebiEvent script calls 'disappear ILEXFOREST_LASS' and clears EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS)."
+    },
+    {
+      "id": "npc_kurt",
+      "object_const": "ILEXFOREST_KURT",
+      "name": "Kurt",
+      "sprite": "SPRITE_KURT",
+      "x": 8,
+      "y": 29,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "0",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ILEX_FOREST_KURT",
+      "dialogue_summary": "Appears only during the Celebi shrine event after the player successfully catches or encounters Celebi. Walks up to the shrine then back down. Post-Celebi dialogue: 'Whew, wasn't that something! The legends about that shrine were real after all. It motivates me to make better Balls! I'm going!' Disappears after leaving."
+    },
+    {
+      "id": "npc_farfetchd",
+      "object_const": "ILEXFOREST_FARFETCHD",
+      "name": "Farfetch'd (wandering)",
+      "sprite": "SPRITE_BIRD",
+      "x": 14,
+      "y": 31,
+      "facing": "spin_random",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "farfetchd_puzzle",
+      "event_flag": "EVENT_ILEX_FOREST_FARFETCHD",
+      "dialogue_summary": "The Charcoal Maker's Farfetch'd has escaped and wanders the forest at 10 scripted positions. Player must interact with it repeatedly (herding it by approaching from different directions) until it reaches position 10 at (6,28), at which point EVENT_HERDED_FARFETCHD is set and the Charcoal Master appears. Each interaction plays FARFETCH_D cry. wFarfetchdPosition tracks progress 1-10.",
+      "farfetchd_positions": [
+        {"position": 1, "x": 14, "y": 31, "notes": "Starting position"},
+        {"position": 2, "x": 15, "y": 25},
+        {"position": 3, "x": 20, "y": 24},
+        {"position": 4, "x": 29, "y": 22},
+        {"position": 5, "x": 28, "y": 31},
+        {"position": 6, "x": 24, "y": 35},
+        {"position": 7, "x": 22, "y": 31},
+        {"position": 8, "x": 15, "y": 29},
+        {"position": 9, "x": 10, "y": 35},
+        {"position": 10, "x": 6, "y": 28, "notes": "Final position; triggers EVENT_CHARCOAL_KILN_BOSS and EVENT_HERDED_FARFETCHD"}
+      ]
+    }
+  ],
+
+  "trainers": [
+    {
+      "id": "trainer_bug_catcher_wayne",
+      "class": "Bug Catcher",
+      "name": "Wayne",
+      "object_const": "ILEXFOREST_YOUNGSTER2",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 12,
+      "y": 1,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_GREEN",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Ledyba", "level": 8},
+        {"species": "Paras", "level": 10}
+      ],
+      "prize_money": 160,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_WAYNE",
+      "seen_text": "Don't sneak up on me like that! You frightened a Pokemon away!",
+      "beaten_text": "I hadn't seen that Pokemon before...",
+      "after_text": "A Pokemon I've never seen before fell out of the tree when I used Headbutt. I ought to use Headbutt in other places too.",
+      "notes": "Bug Catcher who teaches the player indirectly about Headbutt tree encounters. Located near the north exit, uses Headbutt in the forest."
+    }
+  ],
+
+  "items": [
+    {
+      "id": "item_revive",
+      "name": "Revive",
+      "x": 20,
+      "y": 32,
+      "source": "item_ball",
+      "object_const": "ILEXFOREST_POKE_BALL1",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_REVIVE",
+      "notes": "Visible Poke Ball on the ground in the eastern section of the forest."
+    },
+    {
+      "id": "item_x_attack",
+      "name": "X Attack",
+      "x": 9,
+      "y": 17,
+      "source": "item_ball",
+      "object_const": "ILEXFOREST_POKE_BALL2",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_X_ATTACK",
+      "notes": "Visible Poke Ball in the central-west area of the forest."
+    },
+    {
+      "id": "item_antidote",
+      "name": "Antidote",
+      "x": 17,
+      "y": 7,
+      "source": "item_ball",
+      "object_const": "ILEXFOREST_POKE_BALL3",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_ANTIDOTE",
+      "notes": "Visible Poke Ball in the north-eastern section of the forest."
+    },
+    {
+      "id": "item_ether",
+      "name": "Ether",
+      "x": 27,
+      "y": 1,
+      "source": "item_ball",
+      "object_const": "ILEXFOREST_POKE_BALL4",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_ETHER",
+      "notes": "Visible Poke Ball in the far north-east corner of the forest."
+    },
+    {
+      "id": "item_hidden_ether",
+      "name": "Ether",
+      "x": 11,
+      "y": 7,
+      "source": "hidden",
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_HIDDEN_ETHER",
+      "notes": "Hidden item on the ground near the north section. Sign text hints: 'Please watch out for items that may have been dropped.'"
+    },
+    {
+      "id": "item_hidden_super_potion",
+      "name": "Super Potion",
+      "x": 22,
+      "y": 14,
+      "source": "hidden",
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_HIDDEN_SUPER_POTION",
+      "notes": "Hidden item in the central-eastern section of the forest floor."
+    },
+    {
+      "id": "item_hidden_full_heal",
+      "name": "Full Heal",
+      "x": 1,
+      "y": 17,
+      "source": "hidden",
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ILEX_FOREST_HIDDEN_FULL_HEAL",
+      "notes": "Hidden item near the western path in the middle section."
+    },
+    {
+      "id": "item_hm01_cut",
+      "name": "HM01 (Cut)",
+      "x": 5,
+      "y": 28,
+      "source": "npc_gift",
+      "giver": "Charcoal Maker (Black Belt NPC)",
+      "hidden": false,
+      "requires": "Complete Farfetch'd herding puzzle (EVENT_HERDED_FARFETCHD)",
+      "event_flag": "EVENT_GOT_HM01_CUT",
+      "notes": "Rewarded by Charcoal Maker after the player herds his Farfetch'd back to position 10. Key progression item — required to use Cut and clear small trees. Needs Hive Badge from Azalea Gym to use in field."
+    },
+    {
+      "id": "item_tm02_headbutt",
+      "name": "TM02 (Headbutt)",
+      "x": 15,
+      "y": 14,
+      "source": "npc_gift",
+      "giver": "Headbutt Guy (Rocker NPC)",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_GOT_TM02_HEADBUTT",
+      "notes": "Given freely by the Rocker NPC demonstrating Headbutt on trees. Key move for tree encounter exploration throughout Johto."
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 3,
+      "y": 17,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "ILEX FOREST is so overgrown with trees that you can't see the sky. Please watch out for items that may have been dropped."
+    }
+  ],
+
+  "bg_events": [
+    {
+      "x": 3,
+      "y": 17,
+      "type": "BGEVENT_READ",
+      "script": "IlexForestSignpost"
+    },
+    {
+      "x": 11,
+      "y": 7,
+      "type": "BGEVENT_ITEM",
+      "script": "IlexForestHiddenEther",
+      "notes": "Hidden Ether item pickup."
+    },
+    {
+      "x": 22,
+      "y": 14,
+      "type": "BGEVENT_ITEM",
+      "script": "IlexForestHiddenSuperPotion",
+      "notes": "Hidden Super Potion item pickup."
+    },
+    {
+      "x": 1,
+      "y": 17,
+      "type": "BGEVENT_ITEM",
+      "script": "IlexForestHiddenFullHeal",
+      "notes": "Hidden Full Heal item pickup."
+    },
+    {
+      "x": 8,
+      "y": 22,
+      "type": "BGEVENT_UP",
+      "script": "IlexForestShrineScript",
+      "notes": "Ilex Forest Shrine interaction tile. Facing upward triggers shrine dialogue or the Celebi event if conditions met."
+    }
+  ],
+
+  "landmarks": [
+    {
+      "name": "Ilex Forest Shrine",
+      "x": 8,
+      "y": 21,
+      "type": "shrine",
+      "interaction_tile_x": 8,
+      "interaction_tile_y": 22,
+      "interaction_type": "BGEVENT_UP",
+      "description": "A small stone shrine honoring the forest's protector. Normally reads: 'ILEX FOREST SHRINE... It's in honor of the forest's protector...' Becomes the trigger for the Celebi event when EVENT_FOREST_IS_RESTLESS is set and the player holds the GS Ball.",
+      "celebi_event": {
+        "trigger_item": "GS_BALL",
+        "trigger_event": "EVENT_FOREST_IS_RESTLESS",
+        "wild_pokemon": {"species": "Celebi", "level": 30},
+        "sequence": "Player places GS Ball in shrine → EMOTE_SHOCK plays → music fades → player steps down → CelebiShrineEvent special → battle Celebi Lv.30 → if caught, Kurt appears and walks to shrine, gives congratulatory dialogue, then disappears.",
+        "event_flag_clear": ["EVENT_FOREST_IS_RESTLESS"],
+        "event_flag_set": ["EVENT_AZALEA_TOWN_KURT"],
+        "notes": "This event was cut from international releases and requires a Mystery Gift GS Ball via the Japan Pokemon Communication Center. The Celebi encounter is the only way to obtain Celebi in Crystal."
+      }
+    },
+    {
+      "name": "Headbutt Trees",
+      "type": "headbutt_trees",
+      "description": "Multiple trees throughout the forest interior can be struck with Headbutt to find sleeping Pokemon. Uses TREEMON_SET_FOREST encounter table. Commonly yields Hoothoot, Pineco, Noctowl, Butterfree, Beedrill; rarely Caterpie, Weedle, Metapod, Kakuna.",
+      "notes": "The Rocker NPC (Headbutt Guy) at (15,14) demonstrates this mechanic and gives TM02 Headbutt."
+    },
+    {
+      "name": "Charcoal Kiln Area",
+      "type": "poi",
+      "x_approx": 5,
+      "y_approx": 28,
+      "description": "The Charcoal Maker and his apprentice are found here in the western corridor of the forest. The master (SPRITE_BLACK_BELT) and apprentice (SPRITE_YOUNGSTER) both reference their charcoal-making operation. After the Farfetch'd quest is complete, these NPCs also appear in the Charcoal Kiln building in Azalea Town."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate_morning": 4,
+      "encounter_rate_day": 4,
+      "encounter_rate_night": 4,
+      "rate_unit": "percent",
+      "notes": "Low 4% encounter rate in all time slots. The forest uses CAVE environment so random encounters occur on all walkable floor tiles, not just tall grass tiles.",
+      "morning": [
+        {"species": "Caterpie",  "level_min": 5, "level_max": 5, "slot": 1},
+        {"species": "Weedle",    "level_min": 5, "level_max": 5, "slot": 2},
+        {"species": "Metapod",   "level_min": 7, "level_max": 7, "slot": 3},
+        {"species": "Kakuna",    "level_min": 7, "level_max": 7, "slot": 4},
+        {"species": "Pidgey",    "level_min": 7, "level_max": 7, "slot": 5},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 6},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 7}
+      ],
+      "day": [
+        {"species": "Caterpie",  "level_min": 5, "level_max": 5, "slot": 1},
+        {"species": "Weedle",    "level_min": 5, "level_max": 5, "slot": 2},
+        {"species": "Metapod",   "level_min": 7, "level_max": 7, "slot": 3},
+        {"species": "Kakuna",    "level_min": 7, "level_max": 7, "slot": 4},
+        {"species": "Pidgey",    "level_min": 7, "level_max": 7, "slot": 5},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 6},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 7}
+      ],
+      "night": [
+        {"species": "Oddish",    "level_min": 5, "level_max": 5, "slot": 1},
+        {"species": "Venonat",   "level_min": 5, "level_max": 5, "slot": 2},
+        {"species": "Oddish",    "level_min": 7, "level_max": 7, "slot": 3},
+        {"species": "Psyduck",   "level_min": 7, "level_max": 7, "slot": 4},
+        {"species": "Hoothoot",  "level_min": 7, "level_max": 7, "slot": 5},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 6},
+        {"species": "Paras",     "level_min": 6, "level_max": 6, "slot": 7}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No water tiles in Ilex Forest. FISHGROUP_POND is assigned in the map definition but there are no surfable water areas and no fishing locations within the forest."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": [],
+      "notes": "No fishing available in Ilex Forest."
+    },
+    "headbutt_trees": {
+      "treemon_set": "TREEMON_SET_FOREST",
+      "common": [
+        {"species": "Hoothoot",   "level": 10, "rate": 50},
+        {"species": "Pineco",     "level": 10, "rate": 15},
+        {"species": "Pineco",     "level": 10, "rate": 15},
+        {"species": "Noctowl",    "level": 10, "rate": 10},
+        {"species": "Butterfree", "level": 10, "rate": 5},
+        {"species": "Beedrill",   "level": 10, "rate": 5}
+      ],
+      "rare": [
+        {"species": "Hoothoot",   "level": 10, "rate": 50},
+        {"species": "Caterpie",   "level": 10, "rate": 15},
+        {"species": "Weedle",     "level": 10, "rate": 15},
+        {"species": "Hoothoot",   "level": 10, "rate": 10},
+        {"species": "Metapod",    "level": 10, "rate": 5},
+        {"species": "Kakuna",     "level": 10, "rate": 5}
+      ],
+      "notes": "Headbutt is needed for Pineco and is the primary source of Pineco in the game. Bug Catcher Wayne's post-battle dialogue specifically references finding new Pokemon via Headbutt."
+    }
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "IlexForestFarfetchdCallback",
+      "notes": "On every map load, reads wFarfetchdPosition (1-10). If EVENT_GOT_HM01_CUT is set, Farfetch'd is placed at its final static position and hidden (endcallback). Otherwise, moveobject places ILEXFOREST_FARFETCHD at the correct tile coordinates for its current position and calls appear to make it visible."
+    }
+  ],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_entry",
+      "description": "Player enters Ilex Forest from the Route 34/Ilex Forest Gate (north end). The gate Teacher gives TM12 Sweet Scent on first pass. The forest is dark and maze-like. Encounters begin immediately.",
+      "notes": "The forest is mandatory traversal between Goldenrod and Azalea. The CAVE environment tag means encounters trigger on all walkable floor tiles."
+    },
+    {
+      "order": 2,
+      "trigger": "headbutt_tm",
+      "description": "Player finds the Rocker NPC at (15,14) who demonstrates Headbutt and gives TM02. This is the earliest Headbutt acquisition point in the game.",
+      "items_given": ["TM02 (Headbutt)"],
+      "event_flag_set": ["EVENT_GOT_TM02_HEADBUTT"]
+    },
+    {
+      "order": 3,
+      "trigger": "farfetchd_puzzle",
+      "description": "The Charcoal Maker's apprentice at (7,28) explains that Farfetch'd has escaped. The player must chase and interact with Farfetch'd across its 10 wandering positions by approaching from specific directions (tracked by VAR_FACING). Each interaction causes Farfetch'd to move to the next position.",
+      "notes": "This is a movement/herding puzzle. Position 10 is at (6,28) next to the Charcoal Maker. wFarfetchdPosition RAM variable tracks progress."
+    },
+    {
+      "order": 4,
+      "trigger": "farfetchd_herded",
+      "description": "Once Farfetch'd reaches position 10, EVENT_HERDED_FARFETCHD and EVENT_CHARCOAL_KILN_BOSS are set. The Charcoal Master (Black Belt) appears and rewards the player with HM01 Cut. He explains Cut requires the Hive Badge (Azalea Gym) to use.",
+      "items_given": ["HM01 (Cut)"],
+      "event_flag_set": ["EVENT_GOT_HM01_CUT", "EVENT_ILEX_FOREST_FARFETCHD", "EVENT_ILEX_FOREST_CHARCOAL_MASTER"],
+      "event_flag_clear": ["EVENT_CHARCOAL_KILN_FARFETCH_D", "EVENT_CHARCOAL_KILN_APPRENTICE", "EVENT_CHARCOAL_KILN_BOSS"],
+      "notes": "HM01 Cut is the key item for this chapter. It enables clearing small trees throughout Johto."
+    },
+    {
+      "order": 5,
+      "trigger": "south_exit",
+      "description": "Player reaches the south warp tiles at (3,42-43) and exits into IlexForestAzaleaGate, then into Azalea Town. Azalea is where the Slowpoke Well event and Hive Gym are located.",
+      "notes": "Once Cut is obtained, the player returns through the forest repeatedly. Cut trees near the entrance of Azalea Gym provide optional shortcuts."
+    },
+    {
+      "order": 6,
+      "trigger": "celebi_event",
+      "description": "Post-game or special event: When EVENT_FOREST_IS_RESTLESS is set (via Japan Pokemon Communication Center GS Ball Mystery Gift distribution) and the player carries the GS Ball, interacting with the shrine at (8,22) triggers the Celebi encounter. Kurt accompanies the player for this scene.",
+      "requires": ["GS Ball (EVENT_FOREST_IS_RESTLESS set)", "Japan-exclusive Mystery Gift distribution"],
+      "wild_encounter": {"species": "Celebi", "level": 30},
+      "event_flag_set": ["EVENT_AZALEA_TOWN_KURT"],
+      "event_flag_clear": ["EVENT_FOREST_IS_RESTLESS"],
+      "notes": "This event was cut from all non-Japan releases. Celebi is unobtainable in non-Japan Crystal without cheating. The shrine interaction flag is BGEVENT_UP (player must face upward into the shrine to trigger it)."
+    }
+  ],
+
+  "progression_requirements": {
+    "to_enter": "Access Route 34 from Goldenrod (after receiving Pokegear and leaving New Bark → Cherrygrove → Violet → Azalea path, OR from Goldenrod south). No HM required to enter.",
+    "to_traverse_fully": "None for basic north-south passage. HM01 Cut (obtained here) allows clearing small trees on return visits and in Azalea Town. Hive Badge required to use Cut.",
+    "to_catch_celebi": "GS Ball (Japan-exclusive Mystery Gift item) + EVENT_FOREST_IS_RESTLESS flag set.",
+    "to_access_headbutt_trees": "TM02 or HM Headbutt taught to a party member."
+  },
+
+  "atmosphere": {
+    "description": "Ilex Forest is a claustrophobic, ancient woodland. The CAVE environment flag means no natural outdoor light — the palette is permanently set to PALETTE_NITE (night tones), creating a dim, shadowy atmosphere at all times of day. Dense tree cover prevents seeing the sky. The music (MUSIC_UNION_CAVE) shares its theme with the dark, echoing cave to the south, reinforcing the sense of being enclosed and lost. The shrine at the forest's heart hints at a guardian spirit — later revealed to be Celebi, the time-traveling Mythical Pokemon.",
+    "design_notes": "The forest serves as a transitional dungeon between Route 34 (Goldenrod south) and Azalea Town. Its primary puzzle — the Farfetch'd herding minigame — teaches the player about NPC interaction and branching dialogue while rewarding exploration. The Headbutt TM given here seeds the mechanic used throughout Johto for hidden tree encounters."
+  },
+
+  "notes": "Ilex Forest is a 15x27 block (30x54 tile) forest area using TILESET_FOREST with CAVE environment type. It has no open map-edge scroll connections — all travel is via two gate warp buildings (Route34IlexForestGate to the north, IlexForestAzaleaGate to the south). The permanent night-tone palette (PALETTE_NITE) and MUSIC_UNION_CAVE create an enclosed, dungeon-like atmosphere despite being an outdoor forest. The Farfetch'd herding puzzle across 10 positions is the main story quest here, rewarding HM01 Cut. TM02 Headbutt is freely given by a Rocker NPC, making this the primary Headbutt acquisition point. The Ilex Forest Shrine in the center-west is the trigger for the Japan-exclusive Celebi event (level 30 encounter, requires GS Ball from Mystery Gift). Three hidden items are on the forest floor. Bug Catcher Wayne near the north entrance uses a Ledyba and Paras team. Night encounters change to Oddish/Venonat/Psyduck/Hoothoot replacing the daytime Bug-type lineup. Headbutt trees (TREEMON_SET_FOREST) are the best source of Pineco in the game."
+}

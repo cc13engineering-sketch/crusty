@@ -1,0 +1,411 @@
+{
+  "area_id": "dragons_den_b1f",
+  "area_name": "Dragon's Den B1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "DRAGONS_DEN_B1F",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_DRAGONS_DEN",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_DRATINI",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 20, "y": 3,
+      "target_area_id": "dragons_den_1f",
+      "target_warp_id": 3,
+      "notes": "Ascend to 1F — staircase / cave exit in the northern section"
+    },
+    {
+      "warp_id": 2,
+      "x": 19, "y": 29,
+      "target_area_id": "dragon_shrine",
+      "target_warp_id": 1,
+      "notes": "Enter Dragon Shrine — the interior shrine building at the center-south of the den"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water/surfable",
+      "W": "whirlpool",
+      "T": "tree",
+      "^": "stairs_up",
+      "D": "door/shrine_entrance",
+      "S": "sign",
+      "H": "shrine_footprint",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": [
+      "Map is 40 tiles wide x 36 tiles tall (20x18 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "The entire B1F interior is a large underground lake requiring Surf to navigate.",
+      "The northern exit staircase back to 1F is at tile (20,3).",
+      "A Whirlpool obstacle blocks the path to the Dragon Shrine sign and the shrine entrance — requires HM06 Whirlpool to clear.",
+      "The Dragon Shrine entrance is at tile (19,29) — bottom-center of the map.",
+      "A sign (DragonShrineSignpost) at (18,24) reads 'DRAGON SHRINE — A shrine honoring the dragon Pokemon said to have lived in DRAGON'S DEN.'",
+      "Dragon Fang item ball is at tile (35,16), left over from an old GS event; uses a bespoke script rather than the standard itemball macro.",
+      "Calcium item ball is at tile (30,4).",
+      "Max Elixer item ball is at tile (5,20).",
+      "Hidden Revive is at tile (33,29) — inspectable ground tile.",
+      "Hidden Max Potion is at tile (21,17) — inspectable ground tile.",
+      "Hidden Max Elixer is at tile (31,15) — inspectable ground tile.",
+      "Clair coord_event fires at (19,30) — one tile south of the shrine door, triggers SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM after quiz complete.",
+      "Clair NPC object spawns at (14,30) — walks rightward to give TM24 DragonBreath (BUG: can be given twice, see docs/bugs_and_glitches.md).",
+      "Rival spawns at (20,23) if EVENT_BEAT_RIVAL_IN_MT_MOON is set and today is Tuesday or Thursday.",
+      "CooltrainerM Darin is at (20,8) facing up — guards upper area, trainer sight 4.",
+      "CooltrainerF Cara is at (8,8) facing down — guards upper-west area, trainer sight 3.",
+      "Twins Lea & Pia are at (4,17) and (4,18) both facing right — trainer sight 1 each, share battle event.",
+      "All trainers require Surf to reach; they are positioned on land islands within the cave lake."
+    ],
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "####################^###################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########N#########N#######################",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~?~~W~~~~~",
+      "~~~~~.............................!~~~~~~",
+      "~~~~~N...............?..........~~~~~~~~",
+      "~~~~~.............................~~~~~~~",
+      "~~~~~.............................~~~~~~~",
+      "~~~~!.............................~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~S~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~D~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~E~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~?~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "access_requirements": [
+    {
+      "hm": "HM03",
+      "move": "Surf",
+      "description": "Required to traverse the entire B1F underground lake. Without Surf the player cannot leave the staircase landing."
+    },
+    {
+      "hm": "HM06",
+      "move": "Whirlpool",
+      "description": "A Whirlpool tile blocks the route to the Dragon Shrine sign and shrine entrance. Must be cleared with HM06 Whirlpool (requires Glacier Badge from Pryce)."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "clair_b1f",
+      "name": "Clair",
+      "x": 14, "y": 30,
+      "facing": "up",
+      "sprite": "SPRITE_CLAIR",
+      "palette": "PAL_NPC_BLUE",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "script_type": "scene_driven",
+      "event_flag": "EVENT_DRAGONS_DEN_CLAIR",
+      "scene_flag": "SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM",
+      "appearance": "Only appears after Dragon Shrine quiz is complete and SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM is set.",
+      "dialogue_summary": "Walks right four tiles to player and gives TM24 DragonBreath as an apology. Describes DragonBreath. Gives directions to Pokemon League via New Bark Town. NOTE: BUG in source — can give TM24 twice if scene flag not properly cleared.",
+      "gives_item": {
+        "name": "TM24",
+        "move": "DragonBreath",
+        "event_flag": "EVENT_GOT_TM24_DRAGONBREATH"
+      }
+    },
+    {
+      "id": "rival_b1f",
+      "name": "Rival (Silver)",
+      "x": 20, "y": 23,
+      "facing": "wander",
+      "sprite": "SPRITE_RIVAL",
+      "palette": "default",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "movement_range": 2,
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RIVAL_DRAGONS_DEN",
+      "appearance_condition": "Appears only if EVENT_BEAT_RIVAL_IN_MT_MOON is set AND current day is Tuesday or Thursday (DragonsDenB1FCheckRivalCallback reads VAR_WEEKDAY).",
+      "dialogue_summary": "Refuses to battle — says his Pokemon are not ready and he must be disciplined to become the greatest trainer. On second interaction says only '...Whew... Learn to stay out of my way...'",
+      "plays_music": "MUSIC_RIVAL_ENCOUNTER"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Darin",
+      "x": 20, "y": 8,
+      "facing": "up",
+      "sprite": "SPRITE_COOLTRAINER_M",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 4,
+      "battle_event": "EVENT_BEAT_COOLTRAINERM_DARIN",
+      "team": [
+        {
+          "species": "Dragonair",
+          "level": 37,
+          "moves": ["Wrap", "Surf", "Dragon Rage", "Slam"]
+        }
+      ],
+      "prize_money": 1480,
+      "seen_dialogue": "You! How dare you enter uninvited!",
+      "beaten_dialogue": "S-strong!",
+      "after_battle_dialogue": "The SHRINE ahead is home to the MASTER of our dragon-user clan. You're not allowed to just go in!",
+      "notes": "Stationed on a land island in the upper-center of the cave. Guards the path toward the interior of B1F."
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Cara",
+      "x": 8, "y": 8,
+      "facing": "down",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 3,
+      "battle_event": "EVENT_BEAT_COOLTRAINERF_CARA",
+      "team": [
+        {
+          "species": "Horsea",
+          "level": 33,
+          "moves": ["Smokescreen", "Leer", "Whirlpool", "Twister"]
+        },
+        {
+          "species": "Horsea",
+          "level": 33,
+          "moves": ["Smokescreen", "Leer", "Whirlpool", "Twister"]
+        },
+        {
+          "species": "Seadra",
+          "level": 35,
+          "moves": ["Swift", "Leer", "Waterfall", "Twister"]
+        }
+      ],
+      "prize_money": 1400,
+      "seen_dialogue": "You shouldn't be in here!",
+      "beaten_dialogue": "Oh yikes, I lost!",
+      "after_battle_dialogue": "Soon I'm going to get permission from our MASTER to use dragons. When I do, I'm going to become an admirable dragon trainer and gain our MASTER's approval.",
+      "notes": "Stationed on a land island in the upper-west area."
+    },
+    {
+      "class": "Twins",
+      "name": "Lea & Pia",
+      "x_1": 4, "y_1": 17,
+      "x_2": 4, "y_2": 18,
+      "facing": "right",
+      "sprite": "SPRITE_TWIN",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 1,
+      "battle_event": "EVENT_BEAT_TWINS_LEA_AND_PIA",
+      "notes": "Two NPC objects share one battle event — battling either twin triggers the same EVENT_BEAT_TWINS_LEA_AND_PIA. The match is a double-trainer battle using LEAANDPIA1 trainer data.",
+      "team": [
+        {
+          "species": "Dratini",
+          "level": 35,
+          "moves": ["Thunder Wave", "Twister", "Flamethrower", "Headbutt"]
+        },
+        {
+          "species": "Dratini",
+          "level": 35,
+          "moves": ["Thunder Wave", "Twister", "Ice Beam", "Headbutt"]
+        }
+      ],
+      "prize_money": 560,
+      "seen_dialogue_1": "It's a stranger we don't know.",
+      "beaten_dialogue_1": "Ouchies.",
+      "after_battle_dialogue_1": "It was like having to battle LANCE.",
+      "seen_dialogue_2": "Who are you?",
+      "beaten_dialogue_2": "Meanie.",
+      "after_battle_dialogue_2": "We'll tell on you. MASTER will be angry with you."
+    }
+  ],
+  "items": [
+    {
+      "id": "dragon_fang",
+      "name": "Dragon Fang",
+      "x": 35, "y": 16,
+      "hidden": false,
+      "requires": null,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_DRAGON_FANG",
+      "notes": "Uses a custom script (DragonsDenB1FDragonFangScript) written out in full rather than the standard itemball macro — a leftover from the original Gold/Silver event system. Found on a land island in the east section of the cave."
+    },
+    {
+      "id": "calcium",
+      "name": "Calcium",
+      "x": 30, "y": 4,
+      "hidden": false,
+      "requires": "Surf",
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_CALCIUM",
+      "notes": "Item ball on a northern island, reachable only by Surf."
+    },
+    {
+      "id": "max_elixer",
+      "name": "Max Elixer",
+      "x": 5, "y": 20,
+      "hidden": false,
+      "requires": "Surf",
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_MAX_ELIXER",
+      "notes": "Item ball on a western land island, reachable only by Surf."
+    },
+    {
+      "id": "hidden_revive",
+      "name": "Revive",
+      "x": 33, "y": 29,
+      "hidden": true,
+      "requires": "Surf, Whirlpool",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_HIDDEN_REVIVE",
+      "notes": "Hidden item on ground south of the whirlpool, near the shrine entrance area."
+    },
+    {
+      "id": "hidden_max_potion",
+      "name": "Max Potion",
+      "x": 21, "y": 17,
+      "hidden": true,
+      "requires": "Surf",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_HIDDEN_MAX_POTION",
+      "notes": "Hidden item on a central land area."
+    },
+    {
+      "id": "hidden_max_elixer_2",
+      "name": "Max Elixer",
+      "x": 31, "y": 15,
+      "hidden": true,
+      "requires": "Surf",
+      "event_flag": "EVENT_DRAGONS_DEN_B1F_HIDDEN_MAX_ELIXER",
+      "notes": "Hidden item on an eastern land area near the Dragon Fang island."
+    }
+  ],
+  "bg_events": [
+    {
+      "id": "dragon_shrine_signpost",
+      "x": 18, "y": 24,
+      "type": "BGEVENT_READ",
+      "text": "DRAGON SHRINE — A shrine honoring the dragon Pokemon said to have lived in DRAGON'S DEN."
+    }
+  ],
+  "coord_events": [
+    {
+      "id": "clair_gives_tm_trigger",
+      "x": 19, "y": 30,
+      "scene_required": "SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM",
+      "script": "DragonsDenB1F_ClairScene",
+      "description": "When player steps on tile (19,30) — one tile south of the shrine entrance — and the scene flag SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM is active, Clair appears and gives TM24 DragonBreath. Scene resets to SCENE_DRAGONSDENB1F_NOOP after completion."
+    }
+  ],
+  "scene_scripts": [
+    {
+      "id": "SCENE_DRAGONSDENB1F_NOOP",
+      "description": "Default no-op scene. No scripted events trigger."
+    },
+    {
+      "id": "SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM",
+      "description": "Set by Dragon Shrine after quiz + badge grant (via setmapscene DRAGONS_DEN_B1F). Triggers Clair's coord event at (19,30) to give TM24 DragonBreath. NOTE: Source comment documents a bug — Clair can give TM24 twice if the player exits and re-enters before the event flag fully clears."
+    }
+  ],
+  "map_callbacks": [
+    {
+      "trigger": "MAPCALLBACK_NEWMAP",
+      "name": "DragonsDenB1FCheckRivalCallback",
+      "description": "On map load, checks EVENT_BEAT_RIVAL_IN_MT_MOON. If not set, Rival disappears. If set, reads VAR_WEEKDAY — Rival only appears on Tuesday or Thursday. All other days he disappears."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 4,
+      "notes": "4 percent encounter rate (from def_water_wildmons DRAGONS_DEN_B1F in johto_water.asm). All surfing encounters are Magikarp or Dratini. Dragonair does NOT appear in surfing encounters — only via fishing (Super Rod).",
+      "mons": [
+        {
+          "species": "Magikarp",
+          "level": 15,
+          "rate": "slot 1",
+          "notes": "Common — level 15 Magikarp"
+        },
+        {
+          "species": "Magikarp",
+          "level": 10,
+          "rate": "slot 2",
+          "notes": "Common — level 10 Magikarp"
+        },
+        {
+          "species": "Dratini",
+          "level": 10,
+          "rate": "slot 3",
+          "notes": "Rare — level 10 Dratini. The primary reason players Surf Dragon's Den water."
+        }
+      ]
+    },
+    "fishing": {
+      "fish_group": "FISHGROUP_DRATINI",
+      "notes": "Dragon's Den B1F uses FISHGROUP_DRATINI (maps.asm line 159). Old Rod yields only Magikarp. Good Rod yields Magikarp (day/night) plus Dratini (time_group 8 = day: Dratini lv20, night: Dratini lv20). Super Rod yields Magikarp, Dratini (time_group 9 = day: Dratini lv40, night: Dratini lv40), and Dragonair lv40 as the rarest catch.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": "70%"},
+        {"species": "Magikarp", "level": 10, "rate": "15%"},
+        {"species": "Magikarp", "level": 10, "rate": "15%"}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": "35%"},
+        {"species": "Magikarp", "level": 20, "rate": "35%"},
+        {"species": "Magikarp", "level": 20, "rate": "20%+1"},
+        {"species": "Dratini",  "level": 20, "rate": "last ~10%", "notes": "time_group 8 — both day and night yield Dratini lv20"}
+      ],
+      "super_rod": [
+        {"species": "Magikarp", "level": 40, "rate": "40%"},
+        {"species": "Dratini",  "level": 40, "rate": "30%", "notes": "time_group 9 — both day and night yield Dratini lv40"},
+        {"species": "Magikarp", "level": 40, "rate": "20%+1"},
+        {"species": "Dragonair","level": 40, "rate": "last ~10%", "notes": "Rarest catch — final slot in Dratini_Super table"}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "post_quiz_badge_granted",
+      "flag": "SCENE_DRAGONSDENB1F_CLAIR_GIVES_TM",
+      "description": "After the Dragon Shrine sets this scene flag (via setmapscene DRAGONS_DEN_B1F in the shrine script), Clair appears at (14,30) in B1F. Stepping on coord_event at (19,30) triggers her TM24 DragonBreath gift sequence."
+    },
+    {
+      "trigger": "rival_weekly_appearance",
+      "flag": "EVENT_RIVAL_DRAGONS_DEN",
+      "description": "Silver appears in the cave on Tuesdays and Thursdays after the player has beaten him at Mt. Moon. He is training in the den and refuses to battle. MAPCALLBACK_NEWMAP checks the weekday and shows or hides him accordingly."
+    }
+  ],
+  "geography_notes": [
+    "Dragon's Den B1F is an underground lake cave beneath Blackthorn City — one of the most atmospheric maps in the game.",
+    "The entire interior is flooded; land areas are raised islands and shorelines. Surf is mandatory to navigate.",
+    "A Whirlpool obstacle must be cleared (HM06, requires Glacier Badge from Pryce) to reach the Dragon Shrine sign and shrine door in the south.",
+    "The Dragon Shrine sits at the map's southern center, accessible via warp at (19,29).",
+    "The tileset is TILESET_JOHTO despite being underground — giving the cave a natural outdoor-feel with grass and water textures inside the cave walls.",
+    "Three trainers occupy the cave: Darin (upper center), Cara (upper west), and the Twins Lea & Pia (mid-west). All require Surf to reach.",
+    "Clair's TM delivery and Rival's training visits make this one of the few caves with story-driven NPC revisit content."
+  ],
+  "notes": "Dragon's Den B1F is the largest and most content-rich floor of the den. It requires both Surf (to navigate) and Whirlpool (to reach the shrine). Three trainers specializing in dragon-type Pokemon guard the cave. Six items are hidden or visible in the cave (Dragon Fang, Calcium, Max Elixer, and three hidden items). After the Dragon Shrine quiz, Clair visits B1F to give TM24 DragonBreath as an apology for her earlier behavior. Silver can be found training here on Tuesdays and Thursdays post-Mt. Moon rival battle. The Dragon Fang item script is explicitly noted in source as a GS event leftover — written fully by hand rather than using the standard itemball macro."
+}

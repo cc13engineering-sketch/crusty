@@ -1,0 +1,157 @@
+{
+  "area_id": "kogas_room",
+  "area_name": "Koga's Room",
+  "area_type": "special",
+  "pokecrystal_map_id": "KOGAS_ROOM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 17,
+      "target_area_id": "wills_room",
+      "target_warp_id": 2,
+      "notes": "South entrance left tile — leads back to Will's Room"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 17,
+      "target_area_id": "wills_room",
+      "target_warp_id": 3,
+      "notes": "South entrance right tile — leads back to Will's Room"
+    },
+    {
+      "warp_id": 3,
+      "x": 4, "y": 2,
+      "target_area_id": "brunos_room",
+      "target_warp_id": 1,
+      "notes": "North exit left tile — leads to Bruno's Room. Locked until Koga is defeated."
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 2,
+      "target_area_id": "brunos_room",
+      "target_warp_id": 2,
+      "notes": "North exit right tile — leads to Bruno's Room. Locked until Koga is defeated."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door_open",
+      "W": "wall_door_closed",
+      "N": "npc_position",
+      "E": "entrance_mat",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Koga stands at (5,7) facing down — center of the room.",
+      "The north door at y=2 (tiles 4,2 and 5,2) starts as a wall ($2a block). Changes to open door ($16) after Koga is defeated.",
+      "The south entrance at y=14 (tile 4,14) is changed to wall ($2a) immediately upon player entry.",
+      "KogasRoom_EnterMovement walks the player UP 4 steps after entering.",
+      "Koga was a former Gym Leader of Fuchsia City (Gen 1). His daughter Janine now leads Fuchsia Gym."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "####DD####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#####N####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####W#####",
+      "##########",
+      "##########",
+      "####EE####"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Koga",
+      "name": "Koga",
+      "x": 5, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_KOGA",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 0,
+      "trigger": "talk",
+      "trainer_id": "KOGA1",
+      "specialization": "Poison-type (ninja tactics)",
+      "ai_items": ["Full Heal", "Full Restore"],
+      "prize_money": 4400,
+      "rematch": false,
+      "one_time_flag": "EVENT_BEAT_ELITE_4_KOGA",
+      "intro_dialogue": "Fwahahahaha! I am KOGA of the ELITE FOUR. I live in shadows, a ninja! My intricate style will confound and destroy you! Confusion, sleep, poison... Prepare to be the victim of my sinister technique! Fwahahahaha! Pokemon is not merely about brute force--you shall see soon enough!",
+      "beaten_dialogue": "Ah! You have proven your worth!",
+      "post_defeat_dialogue": "I subjected you to everything I could muster. But my efforts failed. I must hone my skills. Go on to the next room, and put your abilities to test!",
+      "team": [
+        {
+          "species": "Ariados",
+          "level": 40,
+          "moves": ["Double Team", "Spider Web", "Baton Pass", "Giga Drain"]
+        },
+        {
+          "species": "Venomoth",
+          "level": 41,
+          "moves": ["Supersonic", "Gust", "Psychic", "Toxic"]
+        },
+        {
+          "species": "Forretress",
+          "level": 43,
+          "moves": ["Protect", "Swift", "Explosion", "Spikes"]
+        },
+        {
+          "species": "Muk",
+          "level": 42,
+          "moves": ["Minimize", "Acid Armor", "Sludge Bomb", "Toxic"]
+        },
+        {
+          "species": "Crobat",
+          "level": 44,
+          "moves": ["Double Team", "Quick Attack", "Wing Attack", "Toxic"]
+        }
+      ]
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "LockDoorBehindPlayer",
+      "description": "SCENE_KOGASROOM_LOCK_DOOR fires sdefer KogasRoomDoorLocksBehindYouScript. Player is walked UP 4 steps automatically, earthquake sound plays, and the south entrance door tile at (4,14) is changed to wall ($2a block). EVENT_KOGAS_ROOM_ENTRANCE_CLOSED is set. Scene changes to SCENE_KOGASROOM_NOOP."
+    },
+    {
+      "trigger": "on_defeat_koga",
+      "name": "OpenExitDoor",
+      "description": "After Koga is beaten, EVENT_BEAT_ELITE_4_KOGA is set. The north door tiles at (4,2) and (5,2) change to open ($16 block). EVENT_KOGAS_ROOM_EXIT_OPEN is set. Player can then proceed to Bruno's Room."
+    },
+    {
+      "trigger": "mapcallback_tiles",
+      "name": "KogasRoomDoorsCallback",
+      "description": "On every map tile refresh: if EVENT_KOGAS_ROOM_ENTRANCE_CLOSED is set, applies wall at (4,14). If EVENT_KOGAS_ROOM_EXIT_OPEN is set, applies open door at (4,2)."
+    }
+  ],
+  "notes": "Koga is Elite Four member #2, specializing in Poison-type with ninja-style status tactics. He is a former Gym Leader from Fuchsia City (Kanto), promoted to the Elite Four in Gen 2 — his daughter Janine replaced him as Fuchsia Gym Leader. His team emphasizes status moves: Toxic, Double Team, Minimize, Spider Web (trapping), and Baton Pass (Ariados can pass Double Team boosts). Forretress is the wild card with Explosion. Crobat (his ace at Lv.44) is the fastest threat. Koga carries both Full Heal and Full Restore as battle items. Prize money: $4400 (base 25 × highest level 44 × 4)."
+}

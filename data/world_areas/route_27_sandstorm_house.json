@@ -1,0 +1,132 @@
+{
+  "area_id": "route_27_sandstorm_house",
+  "area_name": "Route 27 Sandstorm House",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_27_SANDSTORM_HOUSE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "route_27",
+      "target_warp_id": 1,
+      "notes": "Left door tile back to Route 27 (tile 33,7)"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "route_27",
+      "target_warp_id": 1,
+      "notes": "Right door tile back to Route 27 (tile 33,7)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "Standard 4x4 block house interior (House1.blk = 16 bytes). Bookshelf on top row. Granny NPC gives TM37 Sandstorm if lead Pokemon happiness > 150.",
+    "rows": [
+      "########",
+      "BB......",
+      "........",
+      "........",
+      "....N...",
+      "........",
+      "........",
+      "..EE...."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_granny",
+      "name": "Granny (TM giver)",
+      "x": 2, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "sprite": "SPRITE_GRANNY",
+      "dialogue_summary": "Checks if player is heading to the Pokemon League. Checks lead Pokemon happiness. If happiness > 150: gives TM37 Sandstorm and describes it as a move for advanced trainers only. If happiness <= 150: warns that the Pokemon doesn't trust the player enough yet. After receiving TM: describes TM37 Sandstorm (damages both battlers, advanced trainers only).",
+      "gives_item": {
+        "item": "TM37 Sandstorm",
+        "condition": "lead_pokemon_happiness_greater_than_150",
+        "event_flag": "EVENT_GOT_TM37_SANDSTORM",
+        "one_time": true
+      },
+      "notes": "Uses special GetFirstPokemonHappiness. Happiness threshold: ifgreater 149 (> 150 means >= 151 in game logic). No palette override (uses default)."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM37 Sandstorm",
+      "x": 2, "y": 4,
+      "hidden": false,
+      "requires": "lead_pokemon_happiness_greater_than_150",
+      "event_flag": "EVENT_GOT_TM37_SANDSTORM",
+      "source": "npc_gift",
+      "notes": "Given by Granny NPC, not a standalone item ball. One-time gift."
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 0, "y": 1,
+      "type": "bookshelf",
+      "script": "SandstormHouseBookshelf",
+      "notes": "MagazineBookshelfScript — standard magazine bookshelf text"
+    },
+    {
+      "x": 1, "y": 1,
+      "type": "bookshelf",
+      "script": "SandstormHouseBookshelf",
+      "notes": "Second bookshelf tile, same script"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "talk_to_granny_with_high_happiness",
+      "description": "If lead Pokemon has happiness >= 151: granny gives TM37 Sandstorm (one-time). Event flag EVENT_GOT_TM37_SANDSTORM prevents re-triggering."
+    },
+    {
+      "trigger": "talk_to_granny_with_low_happiness",
+      "description": "If lead Pokemon has happiness <= 150: granny tells player the Pokemon doesn't trust them enough, and emphasizes trust between trainer and Pokemon."
+    },
+    {
+      "trigger": "talk_to_granny_after_receiving_tm",
+      "description": "Granny describes TM37 Sandstorm: inflicts damage on both battlers, for advanced trainers only."
+    }
+  ],
+  "notes": "Small 4x4 block interior (8x8 tiles) on Route 27 at tile (33, 7). A Granny NPC gives TM37 Sandstorm as a happiness-gated gift. The happiness check uses GetFirstPokemonHappiness and requires the lead Pokemon to have happiness strictly greater than 150 (>= 151 in game terms). This is one of very few happiness-gated TM rewards in the game. Two bookshelf bg_events on the top row use MagazineBookshelfScript. The house is thematically appropriate as a waypoint between Johto and Kanto — the Sandstorm TM's aggressive theme contrasts with the trust-based requirement to receive it."
+}

@@ -1,0 +1,416 @@
+{
+  "area_id": "route_26",
+  "area_name": "Route 26",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_26",
+  "width_blocks": 10,
+  "height_blocks": 54,
+  "width_tiles": 20,
+  "height_tiles": 108,
+  "tileset": "kanto",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_27",
+      "offset": 45,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 7, "y": 5,
+      "target_area_id": "victory_road_gate",
+      "target_warp_id": 3,
+      "notes": "North end warp into Victory Road Gate (Pokemon League Reception Gate)"
+    },
+    {
+      "x": 15, "y": 57,
+      "target_area_id": "route_26_heal_house",
+      "target_warp_id": 1,
+      "notes": "Heal house on east side, mid-route"
+    },
+    {
+      "x": 5, "y": 71,
+      "target_area_id": "day_of_week_siblings_house",
+      "target_warp_id": 1,
+      "notes": "Day-of-Week Siblings house, lower section"
+    }
+  ],
+  "signs": [
+    {
+      "x": 8, "y": 6,
+      "text": "ROUTE 26 / POKEMON LEAGUE / RECEPTION GATE"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 wide x 108 tall. Route runs north-south; player enters from south (Route 27 connection) and exits north into Victory Road Gate. Tall grass spans mid-sections. Water accessible on west flank via Surf. Heal house on east side. Day-of-Week Siblings house lower section. Ledges allow one-way southward shortcuts.",
+    "rows": [
+      "####################",
+      "####################",
+      "####HHHHHHH#########",
+      "####HHHHHHH#########",
+      "####H.....H#########",
+      "###EH..S..HE########",
+      "####H.....H#########",
+      "####HHHHHHH#########",
+      "####################",
+      "~~......P...........#",
+      "~~......P.P.........#",
+      "~~.....PP.PP........#",
+      "~~.....G.GGG........#",
+      "~~.....G.GGG........#",
+      "~~.....GGGGG.......##",
+      "~~...N..GGG........##",
+      "~~......GGG..N.....##",
+      "~~.......GG.........#",
+      "~~........P.........#",
+      "~~.........P........#",
+      "~~........PP.....L..#",
+      "~~.......PP......L..#",
+      "~~......PP..........#",
+      "~~......P...........#",
+      "~~...N..P...........#",
+      "~~......P..........##",
+      "~~.....PP..........##",
+      "~~.....G...........##",
+      "~~.....G....GG.....##",
+      "~~.....G....GG.....##",
+      "~~.....G...GGG.....##",
+      "~~.....G...GGG.....##",
+      "~~.....G...GGG.....##",
+      "~~......P..GG......##",
+      "~~......P...........#",
+      "~~.......P..........#",
+      "~~......PP.......L..#",
+      "~~......P........L..#",
+      "~~...N..P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P.P.........#",
+      "~~.....PP.PP........#",
+      "~~.....G.GGG........#",
+      "~~.....G.GGG........#",
+      "~~.....GGGGG........#",
+      "~~.....GGGGG........#",
+      "~~.....GGGGG........#",
+      "~~....N.GGG.........#",
+      "~~......G...........#",
+      "~~......P...........#",
+      "~~........P.........#",
+      "~~.......PP.........#",
+      "~~.......P..........#",
+      "~~.......P.......HHHH",
+      "~~.......P.......HHHH",
+      "~~.......P....N..H..H",
+      "~~.......P.......DHHE",
+      "~~.......P..........#",
+      "~~.......P..........#",
+      "~~......PP..........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P..GG.......#",
+      "~~......P..GG.......#",
+      "~~......P..GGG......#",
+      "~~..N...P..GGG......#",
+      "~~......P..GGG......#",
+      "~~......P..GGG......#",
+      "~~......P...........#",
+      "~~......P.......HHHH",
+      "~~......P.......HHHH",
+      "~~......P....N..H..H",
+      "~~......P.......DHHE",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~..!...P...........#",
+      "~~......P...........#",
+      "~~......P..GG.......#",
+      "~~......P..GG.......#",
+      "~~..N...P..GGG......#",
+      "~~......P..GGG......#",
+      "~~......P..GGG......#",
+      "~~..T...P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~..N...P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "~~......P...........#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_1",
+      "name": "Route 26 Fisher (fishing NPC)",
+      "x": 10, "y": 92,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "trainer",
+      "dialogue_summary": "Fisher Scott: feels great today, challenges player"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Jake",
+      "trainer_id": "COOLTRAINERM_JAKE",
+      "x": 14, "y": 24,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Parasect", "level": 33, "moves": ["Leech Life", "Spore", "Slash", "Swords Dance"]},
+        {"species": "Golduck", "level": 35, "moves": ["Confusion", "Screech", "Psych Up", "Fury Swipes"]}
+      ],
+      "prize_money": 2240,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "First trainer encountered descending from north"
+    },
+    {
+      "class": "Cool Trainer M",
+      "name": "Gaven",
+      "trainer_id": "COOLTRAINERM_GAVEN3",
+      "x": 9, "y": 38,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Victreebel", "level": 35, "moves": ["Wrap", "Toxic", "Acid", "Razor Leaf"]},
+        {"species": "Kingler", "level": 35, "moves": ["Bubblebeam", "Stomp", "Guillotine", "Protect"]},
+        {"species": "Flareon", "level": 35, "moves": ["Sand Attack", "Quick Attack", "Bite", "Fire Spin"]}
+      ],
+      "prize_money": 2240,
+      "rematch": true,
+      "phone_number": true,
+      "rematch_teams": [
+        {
+          "condition": "after_elite_four",
+          "team": [
+            {"species": "Victreebel", "level": 39, "moves": ["Giga Drain", "Toxic", "Sludge Bomb", "Razor Leaf"]},
+            {"species": "Kingler", "level": 39, "item": "Kings Rock", "moves": ["Surf", "Stomp", "Guillotine", "Blizzard"]},
+            {"species": "Flareon", "level": 39, "moves": ["Flamethrower", "Quick Attack", "Bite", "Fire Spin"]}
+          ]
+        },
+        {
+          "condition": "after_kanto_power_restored",
+          "team": [
+            {"species": "Victreebel", "level": 32, "moves": ["Wrap", "Toxic", "Acid", "Razor Leaf"]},
+            {"species": "Kingler", "level": 32, "moves": ["Bubblebeam", "Stomp", "Guillotine", "Protect"]},
+            {"species": "Flareon", "level": 32, "moves": ["Sand Attack", "Quick Attack", "Bite", "Fire Spin"]}
+          ]
+        }
+      ],
+      "notes": "Offers phone number after battle; talks about Victory Road difficulty"
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Joyce",
+      "trainer_id": "COOLTRAINERF_JOYCE",
+      "x": 10, "y": 56,
+      "facing": "spin_random_fast",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Pikachu", "level": 36, "moves": ["Quick Attack", "Double Team", "Thunderbolt", "Thunder"]},
+        {"species": "Blastoise", "level": 32, "moves": ["Bite", "Curse", "Surf", "Rain Dance"]}
+      ],
+      "prize_money": 2048,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Defeated eight Gym Leaders; admits needing more effort"
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Beth",
+      "trainer_id": "COOLTRAINERF_BETH1",
+      "x": 5, "y": 8,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Rapidash", "level": 36, "moves": ["Stomp", "Fire Spin", "Fury Attack", "Agility"]}
+      ],
+      "prize_money": 1152,
+      "rematch": true,
+      "phone_number": true,
+      "rematch_teams": [
+        {
+          "condition": "after_elite_four",
+          "team": [
+            {"species": "Rapidash", "level": 39, "moves": ["Stomp", "Fire Spin", "Fury Attack", "Agility"]}
+          ]
+        },
+        {
+          "condition": "after_kanto_power_restored",
+          "team": [
+            {"species": "Rapidash", "level": 43, "item": "Focus Band", "moves": ["Stomp", "Fire Spin", "Fury Attack", "Fire Blast"]}
+          ]
+        }
+      ],
+      "notes": "Near north end; dialogue references rival beating her and treating Pokemon as tools of war"
+    },
+    {
+      "class": "Psychic",
+      "name": "Richard",
+      "trainer_id": "PSYCHIC_RICHARD",
+      "x": 13, "y": 79,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Espeon", "level": 36}
+      ],
+      "prize_money": 1152,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Uses Youngster sprite; impressed by badges; philosophical post-battle dialogue"
+    },
+    {
+      "class": "Fisher",
+      "name": "Scott",
+      "trainer_id": "FISHER_SCOTT",
+      "x": 10, "y": 92,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Qwilfish", "level": 30},
+        {"species": "Qwilfish", "level": 30},
+        {"species": "Seaking", "level": 34}
+      ],
+      "prize_money": 1088,
+      "rematch": false,
+      "phone_number": false,
+      "notes": "Southernmost trainer; references fishing-league parallel"
+    }
+  ],
+  "items": [
+    {
+      "name": "Max Elixir",
+      "x": 9, "y": 15,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_26_MAX_ELIXER",
+      "notes": "Pokeball sprite, mid-route on west path"
+    }
+  ],
+  "fruit_trees": [
+    {
+      "id": "FRUITTREE_ROUTE_26",
+      "x": 14, "y": 54,
+      "notes": "Gives a random berry; refills after a set number of steps"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "morning": [
+        {"species": "Doduo",    "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Sandslash","level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Ponyta",   "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Doduo",    "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Arbok",    "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Arbok",    "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "day": [
+        {"species": "Doduo",    "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Sandslash","level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Ponyta",   "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Doduo",    "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Arbok",    "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Arbok",    "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "night": [
+        {"species": "Noctowl",  "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Raticate", "level_min": 28, "level_max": 28, "rate": 20},
+        {"species": "Noctowl",  "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Quagsire", "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Quagsire", "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Quagsire", "level_min": 30, "level_max": 30, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 6,
+      "mons": [
+        {"species": "Tentacool",  "level_min": 30, "level_max": 30, "rate": 60},
+        {"species": "Tentacool",  "level_min": 25, "level_max": 25, "rate": 30},
+        {"species": "Tentacruel", "level_min": 30, "level_max": 30, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "OCEAN",
+      "old_rod": [
+        {"species": "Magikarp",  "level": 10, "rate": 70},
+        {"species": "Magikarp",  "level": 10, "rate": 15},
+        {"species": "Tentacool", "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp",  "level": 20, "rate": 35},
+        {"species": "Tentacool", "level": 20, "rate": 35},
+        {"species": "Chinchou",  "level": 20, "rate": 21}
+      ],
+      "super_rod": [
+        {"species": "Chinchou",  "level": 40, "rate": 40},
+        {"species": "Tentacruel","level": 40, "rate": 21},
+        {"species": "Lanturn",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "any_visit",
+      "description": "Final approach to the Pokemon League. Rival (Silver) was seen here, referenced by Cool Trainer F Beth."
+    }
+  ],
+  "notes": "Extremely tall north-south route (10x54 blocks, 20x108 tiles). Player arrives from Route 27 to the south and travels north to the Victory Road Gate / Pokemon League Reception Gate. The west flank has water (Surf required). A Heal House sits mid-route on the east side (warp at tile 15,57). Day-of-Week Siblings house is in the lower section (warp at tile 5,71). Six trainers cover the full length including Cool Trainers Gaven and Beth who offer phone rematches. A Max Elixir item ball and a Fruit Tree are present. Tall grass features Doduo, Sandslash, Ponyta, Raticate, and Arbok (morning/day) or Noctowl and Quagsire (night). Surf water holds Tentacool and Tentacruel."
+}

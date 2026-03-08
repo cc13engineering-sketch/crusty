@@ -1,0 +1,127 @@
+{
+  "area_id": "cianwood_pharmacy",
+  "area_name": "Cianwood City Pharmacy",
+  "area_type": "building",
+  "pokecrystal_map_id": "CIANWOOD_PHARMACY",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 2, "y": 7,
+      "target_area_id": "cianwood_city",
+      "target_warp_id": 4,
+      "notes": "Left exit tile back to Cianwood City"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 7,
+      "target_area_id": "cianwood_city",
+      "target_warp_id": 4,
+      "notes": "Right exit tile back to Cianwood City"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "H": "house_footprint",
+      "D": "door",
+      "P": "path",
+      "N": "npc_position",
+      "C": "counter",
+      "K": "bookshelf",
+      "E": "exit_mat"
+    },
+    "notes": "Small 8x8 tile interior. Pharmacist NPC stands behind counter at center (x=2, y=3). Two bookshelves on north wall (x=0,1 y=1). Exit mat at south (y=7). Counter separates pharmacist from player.",
+    "rows": [
+      "########",
+      "KK######",
+      "########",
+      "..NCCCC.",
+      "........",
+      "........",
+      "........",
+      "..EE...."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_pharmacist",
+      "name": "Pharmacist",
+      "x": 2, "y": 3,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "dialogue_summary": "Gives SecretPotion if Jasmine has explained Amphy's illness and player hasn't received it yet. Otherwise runs standard pharmacy mart selling medicines.",
+      "mart_type": "MARTTYPE_PHARMACY",
+      "mart_id": "MART_CIANWOOD"
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "SecretPotion",
+      "x": 2, "y": 3,
+      "hidden": false,
+      "source": "Pharmacist NPC gift",
+      "requires": "EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS",
+      "event_flag": "EVENT_GOT_SECRETPOTION_FROM_PHARMACY",
+      "key_item": true,
+      "notes": "Story-critical item. Required to cure Amphy the Ampharos in Olivine Lighthouse so Jasmine returns to the gym. Pharmacist says his SecretPotion is 'a tad too strong' and only offers it in emergencies. Player must first speak to Jasmine in the Lighthouse to trigger the precondition event."
+    }
+  ],
+  "mart_inventory": {
+    "mart_type": "MARTTYPE_PHARMACY",
+    "mart_id": "MART_CIANWOOD",
+    "notes": "Pharmacy sells standard healing items. No Poke Balls — pharmacy type only.",
+    "items": [
+      {"name": "Potion", "price": 300},
+      {"name": "Super Potion", "price": 700},
+      {"name": "Hyper Potion", "price": 1200},
+      {"name": "Full Heal", "price": 600},
+      {"name": "Revive", "price": 1500}
+    ]
+  },
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "bg_events": [
+    {
+      "x": 0, "y": 1,
+      "type": "bookshelf",
+      "script": "CianwoodPharmacyBookshelf",
+      "std_script": "DifficultBookshelfScript",
+      "notes": "Left bookshelf — reads as a difficult medical book"
+    },
+    {
+      "x": 1, "y": 1,
+      "type": "bookshelf",
+      "script": "CianwoodPharmacyBookshelf",
+      "std_script": "DifficultBookshelfScript",
+      "notes": "Right bookshelf — same difficult book text"
+    }
+  ],
+  "events": [
+    {
+      "trigger": "talk_to_pharmacist_pre_jasmine",
+      "description": "If Jasmine has not yet explained Amphy's illness (EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS not set), the pharmacist simply opens the pharmacy mart."
+    },
+    {
+      "trigger": "talk_to_pharmacist_with_jasmine_event",
+      "description": "If EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS is set and player has not yet received the SecretPotion, the pharmacist gives the SecretPotion as a key item (SFX_KEY_ITEM). Sets EVENT_GOT_SECRETPOTION_FROM_PHARMACY."
+    },
+    {
+      "trigger": "talk_to_pharmacist_after_secretpotion",
+      "description": "After SecretPotion already received, pharmacist just opens the normal mart."
+    }
+  ],
+  "sign_text": "500 Years of Tradition — CIANWOOD CITY PHARMACY — We Await Your Medicinal Queries",
+  "notes": "The Cianwood Pharmacy is a story-critical building in the main quest. Before the player can challenge Jasmine (the 6th gym leader in Olivine City), they must: (1) visit Olivine Lighthouse and speak to Jasmine, triggering the event that Amphy the Ampharos is sick; (2) Surf west to Cianwood, enter this pharmacy; (3) receive the SecretPotion from the pharmacist; (4) return to Olivine Lighthouse and give the SecretPotion to Amphy. Only then does Jasmine return to her gym. The pharmacy also sells standard healing items as a shop. The building is 4x4 blocks (8x8 tiles) and is located in the south-center of Cianwood City."
+}

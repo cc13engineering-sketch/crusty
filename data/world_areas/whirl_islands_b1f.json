@@ -1,0 +1,297 @@
+{
+  "area_id": "whirl_islands_b1f",
+  "area_name": "Whirl Islands (B1F)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_B1F",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "pokecrystal_attr_tileset_id": "$09",
+  "connections": [],
+  "warps": [
+    {
+      "x": 5,
+      "y": 5,
+      "target_area_id": "whirl_islands_nw",
+      "target_warp_id": 2,
+      "notes": "Staircase up to NW entrance cave. warp_event 5,5 WHIRL_ISLAND_NW 2."
+    },
+    {
+      "x": 35,
+      "y": 3,
+      "target_area_id": "whirl_islands_ne",
+      "target_warp_id": 2,
+      "notes": "Staircase up to NE entrance cave (northeast shaft). warp_event 35,3 WHIRL_ISLAND_NE 2."
+    },
+    {
+      "x": 29,
+      "y": 9,
+      "target_area_id": "whirl_islands_ne",
+      "target_warp_id": 3,
+      "notes": "Second staircase to NE entrance cave (east-central shaft). warp_event 29,9 WHIRL_ISLAND_NE 3."
+    },
+    {
+      "x": 9,
+      "y": 31,
+      "target_area_id": "whirl_islands_sw",
+      "target_warp_id": 3,
+      "notes": "Staircase up to SW entrance cave (west shaft). warp_event 9,31 WHIRL_ISLAND_SW 3."
+    },
+    {
+      "x": 23,
+      "y": 31,
+      "target_area_id": "whirl_islands_sw",
+      "target_warp_id": 2,
+      "notes": "Second staircase up to SW entrance cave (east shaft). warp_event 23,31 WHIRL_ISLAND_SW 2."
+    },
+    {
+      "x": 31,
+      "y": 29,
+      "target_area_id": "whirl_islands_se",
+      "target_warp_id": 2,
+      "notes": "Staircase up to SE entrance cave. warp_event 31,29 WHIRL_ISLAND_SE 2."
+    },
+    {
+      "x": 25,
+      "y": 21,
+      "target_area_id": "whirl_islands_b2f",
+      "target_warp_id": 1,
+      "notes": "Staircase descending to B2F (main descent, east path). warp_event 25,21 WHIRL_ISLAND_B2F 1."
+    },
+    {
+      "x": 13,
+      "y": 27,
+      "target_area_id": "whirl_islands_b2f",
+      "target_warp_id": 2,
+      "notes": "Second staircase to B2F (west path). warp_event 13,27 WHIRL_ISLAND_B2F 2."
+    },
+    {
+      "x": 17,
+      "y": 21,
+      "target_area_id": "whirl_islands_cave",
+      "target_warp_id": 1,
+      "notes": "Passage to WhirlIslandCave interior junction. warp_event 17,21 WHIRL_ISLAND_CAVE 1."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "R": "strength_boulder",
+      "^": "stairs_up_to_entrance",
+      "v": "stairs_down_to_b2f",
+      "P": "passage_to_cave_junction",
+      "!": "item_ball_visible",
+      "?": "item_hidden",
+      "N": "npc_position"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "#####^##################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "######################!#####^###########",
+      "########################################",
+      "########################################",
+      "########################################",
+      "#######!################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "##!#####################################",
+      "########################################",
+      "########################################",
+      "#################Pv####v################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "#######R#####!##########################",
+      "###########v############################",
+      "########################################",
+      "#####################!##################",
+      "#########^################^#############",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Schematic approximation based on warp and object_event coordinates from WhirlIslandB1F.asm. 40x36 tiles. The floor is a large, complex cave with multiple levels and corridors. Staircases up: NW at (5,5), NE-far at (35,3), NE-near at (29,9), SW-west at (9,31), SW-east at (23,31), SE at (31,29). Staircases down to B2F: (25,21) and (13,27). Cave junction passage at (17,21). Items: Full Restore (7,13), Carbos (2,18), Calcium (33,23), Nugget (17,8), Escape Rope (19,26). Boulder at (23,26). Hidden items: Rare Candy (30,4), Ultra Ball (36,18), Full Restore (2,23). Actual block layout in maps/WhirlIslandB1F.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Full Restore",
+      "x": 7,
+      "y": 13,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_FULL_RESTORE",
+      "pokecrystal_label": "WhirlIslandB1FFullRestore",
+      "notes": "object_event 7,13. itemball FULL_RESTORE."
+    },
+    {
+      "name": "Carbos",
+      "x": 2,
+      "y": 18,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_CARBOS",
+      "pokecrystal_label": "WhirlIslandB1FCarbos",
+      "notes": "object_event 2,18. itemball CARBOS."
+    },
+    {
+      "name": "Calcium",
+      "x": 33,
+      "y": 23,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_CALCIUM",
+      "pokecrystal_label": "WhirlIslandB1FCalcium",
+      "notes": "object_event 33,23. itemball CALCIUM."
+    },
+    {
+      "name": "Nugget",
+      "x": 17,
+      "y": 8,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_NUGGET",
+      "pokecrystal_label": "WhirlIslandB1FNugget",
+      "notes": "object_event 17,8. itemball NUGGET."
+    },
+    {
+      "name": "Escape Rope",
+      "x": 19,
+      "y": 26,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_ESCAPE_ROPE",
+      "pokecrystal_label": "WhirlIslandB1FEscapeRope",
+      "notes": "object_event 19,26. itemball ESCAPE_ROPE."
+    },
+    {
+      "name": "Rare Candy",
+      "x": 30,
+      "y": 4,
+      "hidden": true,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_HIDDEN_RARE_CANDY",
+      "pokecrystal_label": "WhirlIslandB1FHiddenRareCandy",
+      "notes": "bg_event 30,4 BGEVENT_ITEM. hiddenitem RARE_CANDY. Player must check ground to find."
+    },
+    {
+      "name": "Ultra Ball",
+      "x": 36,
+      "y": 18,
+      "hidden": true,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_HIDDEN_ULTRA_BALL",
+      "pokecrystal_label": "WhirlIslandB1FHiddenUltraBall",
+      "notes": "bg_event 36,18 BGEVENT_ITEM. hiddenitem ULTRA_BALL. Player must check ground to find."
+    },
+    {
+      "name": "Full Restore",
+      "x": 2,
+      "y": 23,
+      "hidden": true,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B1F_HIDDEN_FULL_RESTORE",
+      "pokecrystal_label": "WhirlIslandB1FHiddenFullRestore",
+      "notes": "bg_event 2,23 BGEVENT_ITEM. hiddenitem FULL_RESTORE. Player must check ground to find."
+    }
+  ],
+  "obstacles": [
+    {
+      "type": "strength_boulder",
+      "x": 23,
+      "y": 26,
+      "requires": "HM04_Strength",
+      "pokecrystal_label": "WhirlIslandB1FBoulder",
+      "notes": "SPRITE_BOULDER with SPRITEMOVEDATA_STRENGTH_BOULDER. Blocks a path in the lower section of B1F. HM04 Strength required to move it. jumpstd StrengthBoulderScript."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "B1F encounters are one level higher than the entrance caves. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_B1F lines 985-1011.",
+      "morning": [
+        {"species": "Krabby",  "level": 23, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 24, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 23, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 25, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 26, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 25, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 25, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 23, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 24, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 23, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 25, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 26, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 25, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 25, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 23, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 24, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 23, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 25, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 26, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 25, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 25, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter table defined for WHIRL_ISLAND_B1F in johto_water.asm. No surfable pools on this floor.",
+      "mons": []
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. No fishing accessible on this floor (no water pools).",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "strength_boulder",
+      "description": "A Strength Boulder blocks a path in the lower section at (23,26). HM04 Strength and the appropriate badge required to move it.",
+      "requires": "HM04_Strength"
+    }
+  ],
+  "signs": [],
+  "notes": "The main underground floor connecting all four entrance caves and giving access to B2F. B1F is the largest map in the complex at 20x18 blocks (40x36 tiles). It receives 6 staircases from the four entrance caves and has 9 total warp connections: NW (5,5), NE-far (35,3), NE-near (29,9), SW-west (9,31), SW-east (23,31), SE (31,29), two descents to B2F at (25,21) and (13,27), and a passage to WhirlIslandCave at (17,21). Items: 5 visible item balls (Full Restore, Carbos, Calcium, Nugget, Escape Rope) plus 3 hidden items (Rare Candy, Ultra Ball, Full Restore). One Strength Boulder at (23,26) blocks lower path. Wild encounters are level 23-26, one tier above entrance caves. Source: maps/WhirlIslandB1F.asm, constants/map_constants.asm line 136, data/wild/johto_grass.asm lines 985-1011."
+}

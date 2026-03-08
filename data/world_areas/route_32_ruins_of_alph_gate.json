@@ -1,0 +1,110 @@
+{
+  "area_id": "route_32_ruins_of_alph_gate",
+  "area_name": "Route 32 Ruins of Alph Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_32_RUINS_OF_ALPH_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate_interior",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0,
+      "y": 4,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 10,
+      "notes": "West exit — leads to Ruins of Alph outside area"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 11,
+      "notes": "West exit (second tile) — leads to Ruins of Alph outside area"
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "target_area_id": "route_32",
+      "target_warp_id": 2,
+      "notes": "East exit — returns to Route 32 (warp_event 4,2 on route side)"
+    },
+    {
+      "x": 9,
+      "y": 5,
+      "target_area_id": "route_32",
+      "target_warp_id": 3,
+      "notes": "East exit (second tile) — returns to Route 32 (warp_event 4,3 on route side)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "D": "door_exit",
+      "N": "npc_position",
+      "P": "path",
+      "F": "floor_tile"
+    },
+    "rows": [
+      "##########",
+      "#N.....N.#",
+      "#........#",
+      "#........#",
+      "D........D",
+      "D........D",
+      "#..N.....#",
+      "##########"
+    ],
+    "notes": "Standard east-west gate building. Officer at x5,y2 (facing down). Pokefan M at x8,y2 (walks up-down). Youngster at x1,y6 (facing up). West doors (x0,y4-5) lead to Ruins of Alph. East doors (x9,y4-5) return to Route 32."
+  },
+  "npcs": [
+    {
+      "id": "gate_officer",
+      "name": "Officer (Jenny)",
+      "x": 5,
+      "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Describes the Ruins of Alph as a Look-and-Touch Tourist Site. Mentions sliding stone panels (the Unown puzzle mechanic)."
+    },
+    {
+      "id": "pokefan_m",
+      "name": "Pokefan (male)",
+      "x": 8,
+      "y": 2,
+      "facing": "random",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "dialogue_summary": "Compliments the player for studying the Ruins, calling them a scientist in the making."
+    },
+    {
+      "id": "youngster_ruins",
+      "name": "Youngster",
+      "x": 1,
+      "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Describes seeing stone panels with drawings in the Ruins. Tried moving them and wonders what they are — a hint toward the Unown sliding puzzles."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "pass_through_gate",
+      "description": "This gate is the eastern entrance to the Ruins of Alph. It is accessible from Route 32 early in the game (no badge requirement). The Ruins themselves are accessible immediately but the Unown puzzles require Surf and Strength later.",
+      "notes": "Sign on Route 32 exterior reads 'RUINS OF ALPH — EAST ENTRANCE' (x9,y1 on route map)."
+    }
+  ],
+  "notes": "Gate building at the upper-left of Route 32 (accessed at x4,y2-3 on Route 32) providing passage to the Ruins of Alph. Three NPCs hint at the Unown puzzle mechanic inside the Ruins. The gate has no trainer battles or items. NPCs are dialogue-only and foreshadow the archaeological mystery of the Ruins. Pokecrystal source: maps/Route32RuinsOfAlphGate.asm. Interior dimensions approximate (standard gate footprint: 5x4 blocks / 10x8 tiles)."
+}

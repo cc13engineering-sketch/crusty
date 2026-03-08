@@ -1,0 +1,169 @@
+{
+  "area_id": "olivine_lighthouse_6f",
+  "area_name": "Olivine Lighthouse 6F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_6F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_VIOLET_CITY",
+  "music_note": "6F uses MUSIC_VIOLET_CITY (the melancholy variant), distinct from all lower floors which use MUSIC_LIGHTHOUSE. This creates an atmospheric shift when reaching Jasmine and Amphy.",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9, "y": 15,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 1,
+      "note": "Center staircase down to 5F"
+    },
+    {
+      "x": 16, "y": 5,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 6,
+      "note": "East staircase down to 5F (left tile)"
+    },
+    {
+      "x": 17, "y": 5,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 7,
+      "note": "East staircase down to 5F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "v": "stairs_down",
+      "J": "jasmine_position",
+      "A": "amphy_position",
+      "!": "item_ball",
+      "L": "lighthouse_lamp/beacon",
+      "P": "pillar",
+      "H": "hole/gap"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "#..................#",
+      "#..................#",
+      "#...!...........vv.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#.......JA.........#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#.........v........#",
+      "#..................#",
+      "####################"
+    ],
+    "notes": [
+      "Jasmine at tile(8,8) facing down — conditional script; disappears after SecretPotion quest",
+      "Amphy (Ampharos) at tile(9,8) facing down — sick until SecretPotion delivered",
+      "Super Potion item ball at tile(3,4) — EVENT_OLIVINE_LIGHTHOUSE_6F_SUPER_POTION",
+      "Center staircase at (9,15) leads down to 5F warp 1",
+      "East stairs at (16,5)/(17,5) lead down to 5F warps 6-7",
+      "This is the top floor — no upward warps",
+      "Music changes to MUSIC_VIOLET_CITY for melancholic atmosphere",
+      "After SecretPotion event: Jasmine disappears and returns to Olivine Gym, Amphy recovers and pulses the lighthouse beacon"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "jasmine",
+      "name": "Jasmine",
+      "sprite": "SPRITE_JASMINE",
+      "x": 8, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_RED",
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_JASMINE",
+      "event_flag_note": "This flag hides Jasmine once she returns to the Gym after SecretPotion is delivered",
+      "script_type": "key_npc",
+      "dialogue_key": "OlivineLighthouseJasmine",
+      "script_summary": "Conditional on whether player has SECRETPOTION. If not: explains Amphy's sickness, asks player to fetch medicine from Cianwood Pharmacy (sets EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS). If yes: takes SecretPotion, administers it to Amphy via full cutscene with music (MUSIC_HEAL), cry, flash effects, then thanks player and walks off-screen via movement script before disappearing.",
+      "quest_role": "Gives the primary sidequest directive: get SecretPotion from Cianwood Pharmacy to cure Amphy. Completing this unlocks the Olivine Gym (Jasmine returns) and allows the player to challenge the 6th Johto badge.",
+      "dialogue_lines": {
+        "first_visit": "JASMINE: … This Pokemon always kept the sea lit at night. …But it suddenly got sick… It's gasping for air… …I understand that there is a wonderful PHARMACY in CIANWOOD… But that's across the sea… And I can't leave AMPHY unattended…",
+        "subsequent_without_potion": "…May I ask you to get some medicine for me? Please?",
+        "has_secretpotion_prompt": "JASMINE: …Will that medicine cure AMPHY?",
+        "player_gives_potion": "<PLAYER> handed the SECRETPOTION to JASMINE.",
+        "jasmine_administers": "JASMINE: …Um, please don't be offended… …AMPHY will not take anything from anyone but me…",
+        "amphy_treated": "JASMINE: … AMPHY, how are you feeling?",
+        "thank_you": "JASMINE: …Oh, I'm so relieved… This is just so wonderful… Thank you so very, very much. …I will return to the GYM…",
+        "player_refuses_potion": "JASMINE: …I see…",
+        "jasmine_to_amphy_if_refused": "…AMPHY, hang on!"
+      },
+      "leave_movements": {
+        "OlivineLighthouseJasmineLeavesUpMovement": "UP UP RIGHT UP UP (sleep 8) (sleep 8) end",
+        "OlivineLighthouseJasmineLeavesDownMovement": "DOWN RIGHT RIGHT RIGHT UP RIGHT RIGHT RIGHT end",
+        "OlivineLighthouseJasmineLeavesRightMovement": "UP UP RIGHT UP UP UP (sleep 8) end",
+        "note": "Which movement plays depends on VAR_FACING at time of SecretPotion delivery"
+      },
+      "post_quest": "After SecretPotion delivered: EVENT_JASMINE_RETURNED_TO_GYM set, EVENT_OLIVINE_GYM_JASMINE cleared (moves Jasmine NPC to Olivine Gym), Jasmine disappears from 6F."
+    },
+    {
+      "id": "amphy",
+      "name": "Amphy",
+      "species": "Ampharos",
+      "sprite": "SPRITE_MONSTER",
+      "x": 9, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "key_npc",
+      "dialogue_key": "OlivineLighthouseAmphy",
+      "script_summary": "Conditional on EVENT_JASMINE_RETURNED_TO_GYM. If sick: cries weakly (Pa… paloo…) and displays 'Its breathing is terribly labored…' — uses PlaySlowCry special for distorted cry. If healthy: cries normally and triggers FadeOutToWhite twice.",
+      "quest_role": "Amphy (Ampharos) is the lighthouse beacon Pokemon. Its sickness is the central crisis of Olivine City's storyline. Its recovery enables the lighthouse and unlocks Jasmine as a Gym Leader.",
+      "dialogue_lines": {
+        "sick": "AMPHY: … …Pa… paloo…",
+        "sick_description": "Its breathing is terribly labored…",
+        "healthy": "AMPHY: Palu! Palulu!"
+      }
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Super Potion",
+      "x": 3, "y": 4,
+      "hidden": false,
+      "item_ball": true,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_6F_SUPER_POTION",
+      "script": "OlivineLighthouse6FSuperPotion",
+      "requires": null
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [],
+  "events": [
+    {
+      "id": "secretpotion_delivery",
+      "trigger": "player_has_SECRETPOTION and speaks_to_jasmine",
+      "description": "Full cutscene: Jasmine takes SecretPotion, turns to face Amphy, administers medicine. MUSIC_HEAL plays. Amphy cry triggers (normal pitch). Screen flashes white via FadeOutToWhite/FadeInFromWhite. Amphy then bounces between RIGHT/LEFT facing four times. Jasmine thanks player and leaves via movement script (direction depends on VAR_FACING). Sets EVENT_JASMINE_RETURNED_TO_GYM and clears EVENT_OLIVINE_GYM_JASMINE to reposition Jasmine NPC to Olivine Gym. Jasmine disappears from 6F via 'disappear' command.",
+      "item_consumed": "SECRETPOTION",
+      "item_take_command": "takeitem SECRETPOTION",
+      "flags_set": ["EVENT_JASMINE_RETURNED_TO_GYM"],
+      "flags_cleared": ["EVENT_OLIVINE_GYM_JASMINE"],
+      "special_commands": ["RestartMapMusic", "FadeOutToWhite", "FadeInFromWhite"],
+      "cry": "AMPHAROS"
+    },
+    {
+      "id": "jasmine_explained_sickness",
+      "trigger": "first_speak_to_jasmine_without_secretpotion",
+      "description": "Jasmine explains Amphy's illness in full. Sets EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS so subsequent visits show shortened text ('May I ask you to get some medicine for me?').",
+      "flags_set": ["EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS"]
+    }
+  ],
+  "notes": "Top floor of the Olivine Lighthouse. Contains Jasmine (Olivine City Gym Leader) and Amphy (her sick Ampharos), plus a single Super Potion item ball. No trainers battle on this floor. The floor is the narrative climax of the Olivine City arc: Jasmine cannot leave Amphy's side, so the player must cross the sea to Cianwood to get SecretPotion from the Pharmacy. Until the SecretPotion is delivered, Jasmine refuses to return to the Gym, blocking the 6th Johto badge. The SecretPotion delivery triggers an elaborate multi-step cutscene with healing music, screen flashes, and Amphy recovering. Music on 6F is MUSIC_VIOLET_CITY (the gentle, melancholic track), distinct from the MUSIC_LIGHTHOUSE used on all lower floors — this is confirmed in pokecrystal blocks.asm. Three warps all go down to 5F; there is no exit to the outside from this floor. Jasmine's NPC uses EVENT_OLIVINE_LIGHTHOUSE_JASMINE as its conditional flag — when that event is set (after returning to Gym), she no longer appears here."
+}

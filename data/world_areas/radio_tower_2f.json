@@ -1,0 +1,301 @@
+{
+  "area_id": "radio_tower_2f",
+  "area_name": "Goldenrod Radio Tower 2F",
+  "area_type": "building",
+  "pokecrystal_map_id": "RADIO_TOWER_2F",
+  "width_blocks": 9,
+  "height_blocks": 4,
+  "width_tiles": 18,
+  "height_tiles": 8,
+  "tileset": "radio_tower",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 0,
+      "target_area_id": "radio_tower_3f",
+      "target_warp_id": 1,
+      "note": "Stairs up to 3F (left side staircase)"
+    },
+    {
+      "x": 15, "y": 0,
+      "target_area_id": "radio_tower_1f",
+      "target_warp_id": 3,
+      "note": "Stairs down to 1F (right side staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "S": "sign/bg_event",
+      "B": "bookshelf",
+      "^": "stairs_up",
+      "v": "stairs_down"
+    },
+    "rows": [
+      "^S.S..........Sv..",
+      "##........BBB.....",
+      "##................",
+      "##................",
+      "##.N......N.......",
+      "##..........N..N..",
+      "##.N........N..N..",
+      "##................"
+    ],
+    "notes": "Stairs up at (0,0). Sales sign at (3,0). Prof.Oak's Pokemon Talk sign at (5,0). Pokemon Radio sign at (13,0). Stairs down at (15,0). Bookshelves at (9,1),(10,1),(11,1). Super Nerd at (6,6) faces left. Teacher at (17,2) walks left/right. Jigglypuff at (12,1). Black Belt 1 at (0,1) faces down (blocks stairs during Rocket event). Black Belt 2 at (1,1) faces down (visible after Rocket event cleared). Buena at (14,5) faces right. Prize Receptionist at (12,7) faces right. Rocket Grunts at (1,4),(8,4),(4,1),(10,5) during takeover."
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 0,
+      "type": "read",
+      "text": "2F SALES",
+      "label": "RadioTower2FSalesSign"
+    },
+    {
+      "x": 5, "y": 0,
+      "type": "read",
+      "text": "PROF.OAK'S Pokemon TALK — The Hottest Show on the Air!",
+      "label": "RadioTower2FOaksPKMNTalkSign"
+    },
+    {
+      "x": 9, "y": 1,
+      "type": "read",
+      "text": "Magazine bookshelf (standard MagazineBookshelfScript)",
+      "label": "RadioTower2FBookshelf"
+    },
+    {
+      "x": 10, "y": 1,
+      "type": "read",
+      "text": "Magazine bookshelf (standard MagazineBookshelfScript)",
+      "label": "RadioTower2FBookshelf"
+    },
+    {
+      "x": 11, "y": 1,
+      "type": "read",
+      "text": "Magazine bookshelf (standard MagazineBookshelfScript)",
+      "label": "RadioTower2FBookshelf"
+    },
+    {
+      "x": 13, "y": 0,
+      "type": "read",
+      "text": "Anywhere, Anytime Pokemon Radio",
+      "label": "RadioTower2FPokemonRadioSign"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "super_nerd",
+      "name": "Super Nerd",
+      "sprite": "SPRITE_SUPER_NERD",
+      "x": 6, "y": 6,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "You can listen to the radio anywhere. Tune in!"
+    },
+    {
+      "id": "teacher",
+      "name": "Teacher",
+      "sprite": "SPRITE_TEACHER",
+      "x": 17, "y": 2,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "movement_range": 1,
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary_normal": "Lullabies on the radio may make Pokemon sleep.",
+      "dialogue_summary_rockets": "Why would they want to take over the RADIO TOWER?"
+    },
+    {
+      "id": "jigglypuff",
+      "name": "Jigglypuff",
+      "sprite": "SPRITE_JIGGLYPUFF",
+      "x": 12, "y": 1,
+      "facing": "down",
+      "movement": "pokemon",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary": "JIGGLYPUFF: Jiggly... (plays Jigglypuff cry)"
+    },
+    {
+      "id": "black_belt_1",
+      "name": "Black Belt (guard)",
+      "sprite": "SPRITE_BLACK_BELT",
+      "x": 0, "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_BLACKBELT_BLOCKS_STAIRS",
+      "dialogue_summary": "Sorry. Authorized personnel only beyond this point. It wasn't that way before. There's something wrong with the DIRECTOR..."
+    },
+    {
+      "id": "black_belt_2",
+      "name": "Black Belt (open)",
+      "sprite": "SPRITE_BLACK_BELT",
+      "x": 1, "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "post_rocket",
+      "event_flag": "EVENT_RADIO_TOWER_CIVILIANS_AFTER",
+      "dialogue_summary": "Feel free to look around anywhere. The DIRECTOR is nice again, just as he was before."
+    },
+    {
+      "id": "buena",
+      "name": "Buena",
+      "sprite": "SPRITE_BEAUTY",
+      "x": 14, "y": 5,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary": "DJ Buena runs the nightly Password show (6PM–midnight). On first meeting, gives the player a BLUE CARD. Player listens to the radio show to hear the daily password, then visits Buena and says it for +1 point. Points cap at 30. During Rocket takeover, her password is always 'HELP'. Can offer phone number when Blue Card reaches 30 points.",
+      "movement_notes": "During correct password event, turns RIGHT; player walks DOWN then RIGHT to microphone."
+    },
+    {
+      "id": "prize_receptionist",
+      "name": "Buena Prize Receptionist",
+      "sprite": "SPRITE_RECEPTIONIST",
+      "x": 12, "y": 7,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "Exchanges Blue Card points for prizes. Requires Blue Card. Without card: don't forget your BLUE CARD!"
+    }
+  ],
+  "trainers": [
+    {
+      "id": "rocket_grunt_m4",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_4",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 1, "y": 4,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_4",
+      "team": [
+        {"species": "Grimer", "level": 23},
+        {"species": "Grimer", "level": 23},
+        {"species": "Muk", "level": 25}
+      ],
+      "seen_text": "Three years ago, TEAM ROCKET was forced to disband. But we're making a comeback here!",
+      "beaten_text": "Gwah! Don't get cute!",
+      "after_battle_text": "We won't let you ruin our plans for our comeback!"
+    },
+    {
+      "id": "rocket_grunt_m5",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_5",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 8, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_5",
+      "team": [
+        {"species": "Rattata", "level": 21},
+        {"species": "Rattata", "level": 21},
+        {"species": "Rattata", "level": 23},
+        {"species": "Rattata", "level": 23},
+        {"species": "Rattata", "level": 23}
+      ],
+      "seen_text": "We're TEAM ROCKET, the exploiters of Pokemon! We love being evil! Scared?",
+      "beaten_text": "You think you're a hero?",
+      "after_battle_text": "We're not always evil. We just do whatever we like."
+    },
+    {
+      "id": "rocket_grunt_m6",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_6",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 4, "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_6",
+      "team": [
+        {"species": "Zubat", "level": 26},
+        {"species": "Zubat", "level": 26}
+      ],
+      "seen_text": "Hey, hey! Keep out of our way!",
+      "beaten_text": "Arggh. I give up.",
+      "after_battle_text": "Our EXECUTIVES are trying to take this place over. They have some big plan. I wonder what that is?"
+    },
+    {
+      "id": "rocket_grunt_f2",
+      "class": "Grunt (Female)",
+      "trainer_id": "GRUNTF_2",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET_GIRL",
+      "x": 10, "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTF_2",
+      "team": [
+        {"species": "Arbok", "level": 26}
+      ],
+      "seen_text": "Hahaha! How boring. It was far too easy to take over this place! Come on, keep me amused!",
+      "beaten_text": "Wh-who are you?",
+      "after_battle_text": "You beat me, and I won't forget it!"
+    }
+  ],
+  "items": [],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "nightly_6pm_to_midnight",
+      "description": "Buena's Password show airs. Player must tune in via Pokegear radio, memorize the password, then visit Buena to say it for a Blue Card point."
+    },
+    {
+      "trigger": "engine_rockets_in_radio_tower",
+      "description": "Four Rocket trainers appear (Grunt M4 at (1,4), Grunt M5 at (8,4), Grunt M6 at (4,1), Grunt F2 at (10,5)). Black Belt 1 blocks stairs to 3F. Buena's password defaults to HELP. Normal civilians hidden."
+    },
+    {
+      "trigger": "event_radio_tower_civilians_after",
+      "description": "Post-Rocket clearing: Black Belt 2 replaces Black Belt 1 at stairs. Normal civilian NPCs return. Super Nerd visible."
+    }
+  ],
+  "special_mechanics": {
+    "buenas_password_show": {
+      "hours": "18:00 to 23:59 (NITE_HOUR check)",
+      "flag_played": "ENGINE_BUENAS_PASSWORD_2",
+      "flag_tuned_in": "ENGINE_BUENAS_PASSWORD",
+      "blue_card_item": "BLUE_CARD",
+      "blue_card_points_var": "VAR_BLUECARDBALANCE",
+      "blue_card_cap": 30,
+      "rocket_takeover_password": "HELP",
+      "phone_number": "PHONE_BUENA (offered at 30 points cap)",
+      "music": "MUSIC_BUENAS_PASSWORD"
+    },
+    "black_belt_stair_gate": {
+      "blocking_event": "EVENT_RADIO_TOWER_BLACKBELT_BLOCKS_STAIRS",
+      "cleared_event": "EVENT_RADIO_TOWER_CIVILIANS_AFTER",
+      "position": {"x": 0, "y": 1},
+      "description": "During Rocket takeover, one Black Belt guards the staircase to 3F. After Rockets are defeated, a different Black Belt NPC appears with open-door dialogue."
+    }
+  },
+  "floor_purpose": "Sales — Buena's Password show studio, Blue Card prize counter",
+  "notes": "2F is the Sales floor and home of Buena's nightly Password radio show. The floor has two distinct states. In normal conditions: Super Nerd and civilian visitors are present; Buena runs the Password show at night (6PM–midnight); the Prize Receptionist exchanges Blue Card points for prizes. During the Rocket takeover: four Rocket trainers guard the floor; a Black Belt blocks the staircase to 3F; Buena humorously reveals her 'password is HELP.' Jigglypuff wanders near the bookshelf in all states. The three bookshelves at (9-11, 1) use the standard magazine script."
+}

@@ -1,0 +1,121 @@
+{
+  "area_id": "olivine_lighthouse_1f",
+  "area_name": "Olivine Lighthouse 1F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_1F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_LIGHTHOUSE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 10, "y": 17,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 9,
+      "note": "Left door tile — exit to Olivine City"
+    },
+    {
+      "x": 11, "y": 17,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 9,
+      "note": "Right door tile — exit to Olivine City"
+    },
+    {
+      "x": 3, "y": 11,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 1,
+      "note": "West staircase up to 2F"
+    },
+    {
+      "x": 16, "y": 13,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 3,
+      "note": "East staircase to 2F (left tile)"
+    },
+    {
+      "x": 17, "y": 13,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 4,
+      "note": "East staircase to 2F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "E": "exit_mat/door",
+      "N": "npc_position",
+      "P": "pillar",
+      "S": "sign"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#.....N............#",
+      "#..................#",
+      "#..................#",
+      "#....N.............#",
+      "#..................#",
+      "#..^...............#",
+      "#..................#",
+      "#...............^^.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#########EE#########"
+    ],
+    "notes": [
+      "Sailor (NPC) at tile(8,2) facing down — does NOT initiate battle, gives lore dialogue",
+      "Pokefan F (NPC) at tile(16,9) walks up/down — gives lighthouse history dialogue",
+      "West staircase at tile(3,11) leads to 2F warp 1",
+      "East staircase at tiles(16,13) and (17,13) leads to 2F warps 3-4",
+      "Both warps at (10,17) and (11,17) exit to Olivine City warp 9",
+      "Layout is an open ground floor; no trainers battle on this floor"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "sailor_npc",
+      "name": "Sailor",
+      "sprite": "SPRITE_SAILOR",
+      "x": 8, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "dialogue",
+      "dialogue_summary": "People train at this LIGHTHOUSE. It's not easy to climb because of all the trainers.",
+      "dialogue_key": "OlivineLighthouse1FSailorScript"
+    },
+    {
+      "id": "pokefan_f",
+      "name": "Pokefan F",
+      "sprite": "SPRITE_POKEFAN_F",
+      "x": 16, "y": 9,
+      "facing": "varies",
+      "movement": "walk_up_down",
+      "movement_range": 2,
+      "palette": "default",
+      "script_type": "dialogue",
+      "dialogue_summary": "In the past, Pokemon used to light the sea around Olivine at night. The Lighthouse was made in honor of those Pokemon.",
+      "dialogue_key": "OlivineLighthouse1FPokefanFScript"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [],
+  "events": [],
+  "notes": "Ground floor of the Olivine Lighthouse. No trainers battle here — the two NPCs are non-hostile and provide lore about the lighthouse's history and warning about the trainers on upper floors. Two staircases lead to 2F: one on the west side at (3,11) and a wider one on the east side at (16-17,13). Both door tiles at (10,17) and (11,17) exit to Olivine City. Map uses TILESET_LIGHTHOUSE and MUSIC_LIGHTHOUSE. Map type is DUNGEON in pokecrystal's internal enum."
+}

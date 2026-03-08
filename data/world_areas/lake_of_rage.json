@@ -1,0 +1,371 @@
+{
+  "area_id": "lake_of_rage",
+  "area_name": "Lake of Rage",
+  "area_type": "lake",
+  "pokecrystal_map_id": "LAKE_OF_RAGE",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "music": "MUSIC_LAKE_OF_RAGE",
+  "palette": "auto",
+  "fishgroup": "FISHGROUP_GYARADOS",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_43",
+      "offset": 5,
+      "requires": null,
+      "notes": "Lake of Rage opens south into Route 43 with a horizontal offset of 5 tiles. Route 43 ends at the north edge and the lake's surfable water begins immediately. Connection flags: SOUTH only."
+    }
+  ],
+  "warps": [
+    {
+      "x": 7, "y": 3,
+      "target_area_id": "lake_of_rage_hidden_power_house",
+      "target_warp_id": 1,
+      "notes": "House on the northwest shore containing the Hidden Power move tutor (HiddenPowerHouse)."
+    },
+    {
+      "x": 27, "y": 31,
+      "target_area_id": "lake_of_rage_magikarp_house",
+      "target_warp_id": 1,
+      "notes": "Fishing Guru's House on the south shore. After clearing Rocket Hideout, the guru records Magikarp length records."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "G": "tall_grass",
+      "T": "tree",
+      "H": "house_footprint",
+      "D": "door",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "P": "path",
+      "F": "fence"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "#######H.H#############################?",
+      "#######D.D......~~~~~~~~~~~~~~~~~~~~~~~#",
+      "########.#.....~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "?#########.....~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "##########....~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "##########...~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "###########..~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "#############.~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "#############.~~~~~~~~~~~~~~~~~~~~~~~~~#",
+      "#############..~~~~~~~~~~~~~~~~~~~~~~~##",
+      "##############.....N~~~~~~~~~~~~~~~~~###",
+      "###############....~~~~~~~~~~~~~~~~~~###",
+      "################..~~~~~~~~~~~~~~~~~~####",
+      "################.N~~~~~~~~~~~~~~~~~#####",
+      "#################~~~~~~~N~~~~~~~~~~######",
+      "##################~~~~~N~~~~~~~~~~~######",
+      "##################~~~~N~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~N~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "##################~~~~~~~~~~~~~~~~~######",
+      "####..............~~~~~~~~~~~~~~~~~######",
+      "####.GGG..........N~~~~~~~~~~~~~~~~######",
+      "####.GGG..N.......~~~~~~~~~~~~~~~~~######",
+      "####.GGG..........~~~~~~~~~~~~~~~~~######",
+      "####.GGG......SHH.~~~~~~~~~~~~~~~~~######",
+      "####.GGG......DDD.~~~~~~~~~~~~~~~~~######",
+      "####.GGG......###.~~~~~~~~~~~~~~~~~######",
+      "####..............~~~~~~~~~~~~~~~~~######",
+      "########################################"
+    ],
+    "notes": "Layout is schematic. Lake of Rage is a wide lake (40x36 tiles) in northern Johto, connected south to Route 43. The lake itself (~) occupies roughly the right 60% of the map. The west shore has a narrow walkable strip with some tall grass (G) patches and a few houses. The northwest has the Hidden Power House (H at y=2-3, x=7). The south shore has the Magikarp House (H at y=31-33, x=26-28) with a sign on its exterior. The Red Gyarados (N) is positioned at approximately (18,22) in the lake — it is a fixed overworld sprite with PAL_NPC_RED. Lance stands on the south shore at (21,28). Wesley appears on the northwest shore at (4,4) on Wednesdays only. Gramps stands at (20,26) on the shore. Super Nerd is northeast at (36,13). CoolTrainer F walks left-right near (25,29). The two item balls are at (7,10) northwest shore and (35,2) far northeast near the water. Hidden items: Full Restore at (11,28), Rare Candy at (4,4) behind Wesley's spot, Max Potion at (35,5). The LAKE OF RAGE sign is at (21,27) on the south shore."
+  },
+  "signs": [
+    {
+      "x": 21, "y": 27,
+      "text": "LAKE OF RAGE, also known as GYARADOS LAKE."
+    },
+    {
+      "x": 25, "y": 31,
+      "text": "FISHING GURU'S HOUSE"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_gramps",
+      "name": "Gramps",
+      "x": 20, "y": 26,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "LAKEOFRAGE_GRAMPS",
+      "dialogue_summary": "Before clearing Rocket Hideout: 'The Gyarados are angry! It's a bad omen!' After clearing Rocket Hideout: 'Hahah! The Magikarp are biting!'"
+    },
+    {
+      "id": "npc_super_nerd",
+      "name": "Super Nerd",
+      "x": 36, "y": 13,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "LAKEOFRAGE_SUPER_NERD1",
+      "dialogue_summary": "Theorizes that the lake was made by rampaging Gyarados long ago, and wonders if there's a connection to the current mass outbreak."
+    },
+    {
+      "id": "npc_cooltrainer_f_1",
+      "name": "Cool Trainer (Female)",
+      "x": 25, "y": 29,
+      "facing": "random",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "pokecrystal_const": "LAKEOFRAGE_COOLTRAINER_F1",
+      "dialogue_summary": "Claims to have seen a red Gyarados in the lake but it's gone now. Wonders if her eyes deceived her — she knows Gyarados are usually blue."
+    },
+    {
+      "id": "npc_lance",
+      "name": "Lance",
+      "x": 21, "y": 28,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "event_trigger",
+      "pokecrystal_const": "LAKEOFRAGE_LANCE",
+      "event_flag": "EVENT_LAKE_OF_RAGE_LANCE",
+      "dialogue_summary": "Lance appears on the south shore after the Red Gyarados is interacted with (EVENT_LAKE_OF_RAGE_LANCE set). He introduces himself as Lance and explains that Magikarp are being forced to evolve by a mysterious radio signal from Mahogany. He asks the player for help. If the player agrees (EVENT_DECIDED_TO_HELP_LANCE): Lance teleports away to Mahogany Mart. If the player refuses: he waits and asks again next visit. After agreement, the Mahogany Mart scene is set to SCENE_MAHOGANYMART1F_LANCE_UNCOVERS_STAIRS.",
+      "notes": "Only appears after Red Gyarados has been encountered. Sprite: SPRITE_LANCE. Teleports via LakeOfRageLanceTeleportIntoSkyMovement when the player agrees to help."
+    },
+    {
+      "id": "npc_wesley",
+      "name": "Wesley",
+      "x": 4, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "item_gift",
+      "pokecrystal_const": "LAKEOFRAGE_WESLEY",
+      "event_flag": "EVENT_LAKE_OF_RAGE_WESLEY_OF_WEDNESDAY",
+      "dialogue_summary": "Wesley of Wednesday — one of the day-of-week siblings. Only appears on Wednesdays (map callback checks VAR_WEEKDAY == WEDNESDAY). First meeting: introduces himself as Wesley of Wednesday. Gives the player a Blackbelt (EVENT_GOT_BLACKBELT_FROM_WESLEY). Blackbelt boosts the power of Fighting-type moves. On subsequent Wednesdays after giving the gift: remarks that since the player found him, they must have met his brothers and sisters. On non-Wednesday visits: sprite does not appear (disappear event in callback).",
+      "notes": "LakeOfRageWesleyCallback runs on MAPCALLBACK_OBJECTS and calls disappear if weekday != WEDNESDAY. Sprite: SPRITE_SUPER_NERD."
+    }
+  ],
+  "trainers": [
+    {
+      "id": "fisher_andre",
+      "class": "Fisher",
+      "name": "Andre",
+      "x": 30, "y": 23,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Gyarados", "level": 27}
+      ],
+      "prize_money": 864,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_FISHER_ANDRE",
+      "pokecrystal_const": "LAKEOFRAGE_FISHER1",
+      "notes": "Visible only when EVENT_LAKE_OF_RAGE_CIVILIANS is not set (before certain story progression). Faces left. Northeast shore area. After battle: 'I won't lose as an angler! I catch Pokemon all day.' Prize based on Gyarados L27 and Fisher class base."
+    },
+    {
+      "id": "fisher_raymond",
+      "class": "Fisher",
+      "name": "Raymond",
+      "x": 24, "y": 26,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Magikarp", "level": 22},
+        {"species": "Magikarp", "level": 22},
+        {"species": "Magikarp", "level": 22},
+        {"species": "Magikarp", "level": 22}
+      ],
+      "prize_money": 704,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_FISHER_RAYMOND",
+      "pokecrystal_const": "LAKEOFRAGE_FISHER2",
+      "notes": "Visible only when EVENT_LAKE_OF_RAGE_CIVILIANS is not set. Faces up. South shore. After battle: 'Why can't I catch any good Pokemon?' Four Magikarp at level 22."
+    },
+    {
+      "id": "cooltrainerm_aaron",
+      "class": "Cool Trainer (Male)",
+      "name": "Aaron",
+      "x": 4, "y": 15,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Ivysaur",    "level": 24},
+        {"species": "Charmeleon", "level": 24},
+        {"species": "Wartortle",  "level": 24}
+      ],
+      "prize_money": 1152,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_COOLTRAINERM_AARON",
+      "pokecrystal_const": "LAKEOFRAGE_COOLTRAINER_M",
+      "notes": "Visible only when EVENT_LAKE_OF_RAGE_CIVILIANS is not set. Faces right. West shore. After battle: 'Pokemon and their trainer become powerful through constant battling.' All three first-stage starters at L24."
+    },
+    {
+      "id": "cooltrainerf_lois",
+      "class": "Cool Trainer (Female)",
+      "name": "Lois",
+      "x": 36, "y": 7,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Skiploom",  "level": 25, "moves": ["Synthesis", "PoisonPowder", "Mega Drain", "Leech Seed"]},
+        {"species": "Ninetales", "level": 25, "moves": ["Ember", "Quick Attack", "Confuse Ray", "Safeguard"]}
+      ],
+      "prize_money": 1200,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_COOLTRAINERF_LOIS",
+      "pokecrystal_const": "LAKEOFRAGE_COOLTRAINER_F2",
+      "notes": "Visible only when EVENT_LAKE_OF_RAGE_CIVILIANS is not set. Faces left. Far northeast area near top of map. Line of sight 0 means she requires approach. After battle: 'Come to think of it, I've seen a pink Butterfree.' Uses TRAINERTYPE_MOVES so custom movesets apply."
+    }
+  ],
+  "items": [
+    {
+      "name": "Elixir",
+      "x": 7, "y": 10,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_LAKE_OF_RAGE_ELIXER",
+      "pokecrystal_const": "LAKEOFRAGE_POKE_BALL1",
+      "notes": "Poke Ball sprite item on the northwest shore, north of the main path. Note: the constant is spelled ELIXER (typo in original source) but the item is Elixir."
+    },
+    {
+      "name": "TM10 (Hidden Power)",
+      "x": 35, "y": 2,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_LAKE_OF_RAGE_TM_DETECT",
+      "pokecrystal_const": "LAKEOFRAGE_POKE_BALL2",
+      "notes": "Poke Ball sprite item at the far northeast corner of the map near the water's edge. Note: the constant is EVENT_LAKE_OF_RAGE_TM_DETECT but the item is TM_DETECT per the pokecrystal source (LakeOfRageTMDetect: itemball TM_DETECT). TM10 in Crystal is Hidden Power, but the pokecrystal constant is TM_DETECT — this is the Detect TM (TM44 in some listings); verify against the TM list in the data files."
+    },
+    {
+      "name": "Red Scale",
+      "x": 18, "y": 22,
+      "hidden": false,
+      "requires": null,
+      "source": "red_gyarados_encounter",
+      "notes": "Automatically given to the player immediately after the Red Gyarados battle ends (win, lose, or flee). Script: giveitem RED_SCALE followed by item notification text. The Red Scale can be traded to Mr. Pokemon on Route 30 for an Exp. Share."
+    },
+    {
+      "name": "Full Restore",
+      "x": 11, "y": 28,
+      "hidden": true,
+      "requires": "itemfinder",
+      "event_flag": "EVENT_LAKE_OF_RAGE_HIDDEN_FULL_RESTORE",
+      "notes": "Hidden item on the south shore path west of the Magikarp House."
+    },
+    {
+      "name": "Rare Candy",
+      "x": 4, "y": 4,
+      "hidden": true,
+      "requires": "itemfinder",
+      "event_flag": "EVENT_LAKE_OF_RAGE_HIDDEN_RARE_CANDY",
+      "notes": "Hidden item in the northwest area, near the same tile where Wesley stands on Wednesdays. Accessible regardless of Wesley's presence."
+    },
+    {
+      "name": "Max Potion",
+      "x": 35, "y": 5,
+      "hidden": true,
+      "requires": "itemfinder",
+      "event_flag": "EVENT_LAKE_OF_RAGE_HIDDEN_MAX_POTION",
+      "notes": "Hidden item at the far northeast area near the water, close to the TM10 item ball."
+    },
+    {
+      "name": "Blackbelt",
+      "x": 4, "y": 4,
+      "hidden": false,
+      "requires": null,
+      "source": "npc_gift",
+      "event_flag": "EVENT_GOT_BLACKBELT_FROM_WESLEY",
+      "notes": "Given by Wesley of Wednesday on Wednesdays only. Held item that boosts the power of Fighting-type moves. One-time gift per game."
+    }
+  ],
+  "special_encounters": [
+    {
+      "id": "red_gyarados",
+      "species": "Gyarados",
+      "level": 30,
+      "shiny": true,
+      "shiny_mechanic": "BATTLETYPE_FORCESHINY",
+      "x": 18, "y": 22,
+      "event_flag": "EVENT_LAKE_OF_RAGE_RED_GYARADOS",
+      "pokecrystal_const": "LAKEOFRAGE_GYARADOS",
+      "notes": "The Red Gyarados is a fixed overworld sprite (SPRITE_GYARADOS, PAL_NPC_RED) in the lake at (18,22). It is a mandatory scripted encounter: walking into it or pressing A on it triggers RedGyarados script. The script plays Gyarados's cry, loads a wild Gyarados at level 30, and forces BATTLETYPE_FORCESHINY — guaranteeing a shiny encounter regardless of RNG. After the battle (win, lose, or run), the script gives the Red Scale item and makes Lance appear. If the player lost (LOSE result), the Gyarados sprite reappears (not disappeared). EVENT_LAKE_OF_RAGE_RED_GYARADOS is set when the encounter is initiated, preventing repeat triggers."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 5,
+      "notes": "Lake of Rage has a small patch of tall grass on the southwest shore. Based on the map tileset (JOHTO) and area position, the grass encounters are inferred as late-Johto outdoor types. No grass wildmons entry exists in johto_grass.asm for LAKE_OF_RAGE specifically — the grass present may use a fallback or these encounters may be vestigial. Consult johto_grass.asm for adjacent maps (Route 43) if encounter data is needed.",
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 6,
+      "notes": "Surfing on the lake yields Magikarp and Gyarados. Source: johto_water.asm def_water_wildmons LAKE_OF_RAGE.",
+      "mons": [
+        {"species": "Magikarp", "level_min": 15, "level_max": 15, "rate": 40, "notes": "First entry"},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 40, "notes": "Second entry — lower level variant"},
+        {"species": "Gyarados", "level_min": 15, "level_max": 15, "rate": 20, "notes": "Third entry — rare surf encounter"}
+      ],
+      "requires": "surf"
+    },
+    "fishing": {
+      "notes": "Lake of Rage uses FISHGROUP_GYARADOS. All fishing rods produce only Magikarp. The fishing group is unusual: Good Rod time_group 14 and Super Rod time_group 15 are time-of-day variants that also resolve to Magikarp in this group.",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 71},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 14}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 10, "notes": "time_group 14 resolves to Magikarp"}
+      ],
+      "super_rod": [
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 30, "notes": "time_group 15 resolves to Magikarp"},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "map_entry_callback",
+      "description": "MAPCALLBACK_NEWMAP: Sets ENGINE_FLYPOINT_LAKE_OF_RAGE, making Lake of Rage available as a Fly destination. MAPCALLBACK_OBJECTS: LakeOfRageWesleyCallback checks VAR_WEEKDAY. If it is Wednesday, Wesley's sprite appears. Otherwise, Wesley's sprite is hidden."
+    },
+    {
+      "trigger": "red_gyarados_interaction",
+      "description": "Walking to tile (18,22) or pressing A triggers RedGyarados script: plays cry, shows text 'GYARADOS: Gyashaa!', then initiates a forced-shiny wild battle (Gyarados L30, BATTLETYPE_FORCESHINY). Regardless of battle outcome, Red Scale is given immediately after. Lance then appears at (21,28) to introduce himself and ask for help. If the player declines, he sets EVENT_REFUSED_TO_HELP_LANCE_AT_LAKE_OF_RAGE and will ask again. If the player agrees, EVENT_DECIDED_TO_HELP_LANCE is set, Lance teleports away, and MAHOGANY_MART_1F scene is set to SCENE_MAHOGANYMART1F_LANCE_UNCOVERS_STAIRS."
+    },
+    {
+      "trigger": "wesley_wednesday",
+      "description": "Wesley of Wednesday appears only on Wednesdays. First meeting: Wesley introduces himself and gives Blackbelt. Subsequent Wednesdays after receiving the gift: Wesley acknowledges the player must have found his siblings. On any other day, Wesley is invisible (disappear called in MAPCALLBACK_OBJECTS)."
+    },
+    {
+      "trigger": "magikarp_house_post_rocket",
+      "description": "After EVENT_CLEARED_ROCKET_HIDEOUT is set, the Fishing Guru's House sign activates a special MagikarpHouseSign special function which records and displays the player's longest-caught Magikarp length. Before the event, the sign simply reads 'FISHING GURU'S HOUSE'."
+    },
+    {
+      "trigger": "civilian_trainers",
+      "description": "All four trainers (Fisher Andre, Fisher Raymond, Cooltrainer Aaron, Cooltrainer Lois) share the event flag EVENT_LAKE_OF_RAGE_CIVILIANS and are only present on the map before this flag is set. The exact condition for EVENT_LAKE_OF_RAGE_CIVILIANS to be cleared or set is tied to story progression — these trainers are present during the Rocket Radio Tower arc."
+    }
+  ],
+  "notes": "Lake of Rage is a large lake in northern Johto, north of Mahogany Town via Route 43. It is the setting for one of Crystal's most iconic story events: the forced-shiny Red Gyarados, the introduction of Champion Lance as an ally, and the beginning of the Mahogany Rocket Hideout arc. The map has map_attribute $05 and a single SOUTH connection to Route 43 (offset +5). TILESET_JOHTO. MUSIC_LAKE_OF_RAGE. FISHGROUP_GYARADOS — all fishing yields only Magikarp, reinforcing the story that the lake's Magikarp population is being forcefully evolved. Surfing on the lake can produce Gyarados (20%) alongside Magikarp. The Red Gyarados at (18,22) is a level 30 forced shiny with BATTLETYPE_FORCESHINY — catching or defeating it yields the Red Scale key item, which can be traded to Mr. Pokemon for an Exp. Share. Lance appears after the encounter and sets up the Mahogany Mart infiltration. Wesley of Wednesday is one of the day-of-week siblings; he gives Blackbelt and only appears on Wednesdays. Two buildings on the shore: Hidden Power House (northwest, teaches Hidden Power based on stats) and Fishing Guru's House (southeast, tracks Magikarp length records post-Rocket). Four trainers occupy the shores before the civilian event flag. Three hidden items (Full Restore, Rare Candy, Max Potion) are scattered around the shoreline. The lake also serves as the Fly destination landmark for the entire Lake of Rage map group."
+}

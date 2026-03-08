@@ -1,0 +1,354 @@
+{
+  "area_id": "slowpoke_well_b1f",
+  "area_name": "Slowpoke Well B1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "SLOWPOKE_WELL_B1F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_CAVE",
+  "music": "MUSIC_DARK_CAVE",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_LAKE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 17, "y": 15,
+      "target_area_id": "azalea_town",
+      "target_warp_id": 6,
+      "note": "Exit warp — stairs up to Azalea Town well entrance (tile 31,7 on the town map)"
+    },
+    {
+      "x": 7, "y": 11,
+      "target_area_id": "slowpoke_well_b2f",
+      "target_warp_id": 1,
+      "note": "Water passage down — requires Surf to access; leads to B2F warp 1 at tile(9,11)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "R": "rock/boulder",
+      "^": "stairs_up",
+      "v": "stairs_down/water_descent",
+      "N": "npc_position",
+      "!": "item_ball",
+      "X": "blocked"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "###.!N..############",
+      "##..........########",
+      "##....N.....N#######",
+      "##...........#######",
+      "##N..........#######",
+      "##...........####~~~",
+      "##...........####~~~",
+      "##...........####~~~",
+      "##...........####~~~",
+      "##.......v...####~~~",
+      "##...........####~~~",
+      "##...........#######",
+      "##...........#######",
+      "##..........^#######",
+      "####################",
+      "####################"
+    ],
+    "notes": [
+      "Coordinate system: tile(x,y) directly from pokecrystal object_event and warp_event data.",
+      "Row 0 (y=0): north cave wall.",
+      "Row 2 (y=2): Poke Ball item at tile(10,3) -> Super Potion; Slowpoke at tile(7,4) to right; GruntM2 at tile(5,2).",
+      "Row 4 (y=4): GruntM1 at tile(5,2) area, Rocket Girl at tile(10,4), Slowpoke1 at tile(7,4).",
+      "Row 6 (y=6): GruntM2 at tile(5,6) facing right; Boulder/Strength puzzle at tile(3,2) blocks water shortcut.",
+      "Row 7 (y=7): GruntM29 at tile(15,7) facing down.",
+      "Rows 7-12 (east side): Water pool accessible by walking or Surfing from entry. Warp at tile(7,11) leads down via water.",
+      "Row 14-15 (y=14-15): Kurt fallen at tile(16,14) facing up; staircase up at tile(17,15).",
+      "Water column on east side (tiles 17-19, rows 7-12) fills the cave pool where Slowpoke roam.",
+      "Boulder at tile(3,2) uses SPRITEMOVEDATA_STRENGTH_BOULDER — can be pushed with Strength HM."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "slowpoke_with_mail",
+      "name": "Slowpoke (with Mail)",
+      "sprite": "SPRITE_SLOWPOKE",
+      "object_const": "SLOWPOKEWELLB1F_SLOWPOKE1",
+      "x": 7, "y": 4,
+      "facing": "still",
+      "movement": "still",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_SLOWPOKE_WELL_SLOWPOKES",
+      "visibility": "visible_when_rockets_present_before_well_cleared",
+      "dialogue_summary": "Tailless Slowpoke carrying a MAIL from Dad. Player can read: 'Be good and look after the house with Grandpa and SLOWPOKE. Love, Dad.' Yes/No prompt to read mail.",
+      "dialogue_key": "SlowpokeWellB1FSlowpokeWithMailScript"
+    },
+    {
+      "id": "slowpoke_tailless",
+      "name": "Slowpoke (tailless)",
+      "sprite": "SPRITE_SLOWPOKE",
+      "object_const": "SLOWPOKEWELLB1F_SLOWPOKE2",
+      "x": 6, "y": 2,
+      "facing": "still",
+      "movement": "still",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_SLOWPOKE_WELL_SLOWPOKES",
+      "visibility": "visible_when_rockets_present_before_well_cleared",
+      "dialogue_summary": "A Slowpoke with its tail cut off. Player sees 'A SLOWPOKE with its TAIL cut off…' Slowpoke cries and dialogue ends.",
+      "dialogue_key": "SlowpokeWellB1FTaillessSlowpokeScript"
+    },
+    {
+      "id": "kurt",
+      "name": "Kurt",
+      "sprite": "SPRITE_KURT",
+      "object_const": "SLOWPOKEWELLB1F_KURT",
+      "x": 16, "y": 14,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_SLOWPOKE_WELL_KURT",
+      "visibility": "visible_while_rockets_in_well",
+      "dialogue_summary": "Kurt fell down the well chasing off the guard. His back is hurt so he cannot fight. Tells the player to show Team Rocket how gutsy they are in his place. After all Rockets beaten, Kurt walks off (KurtSlowpokeWellVictoryMovementData) and warps player to Kurt's House.",
+      "dialogue_key": "SlowpokeWellB1FKurtScript",
+      "post_event_note": "After EVENT_CLEARED_SLOWPOKE_WELL: Kurt is moved to tile(11,6) via moveobject then walks left/up and disappears. EVENT_SLOWPOKE_WELL_KURT is then set so Kurt no longer appears here."
+    },
+    {
+      "id": "strength_boulder",
+      "name": "Boulder",
+      "sprite": "SPRITE_BOULDER",
+      "object_const": "SLOWPOKEWELLB1F_BOULDER",
+      "x": 3, "y": 2,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+      "script_type": "strength_boulder",
+      "event_flag": null,
+      "visibility": "always_visible",
+      "dialogue_summary": "Pushable boulder. Uses HM Strength to move. Blocks the shortcut path through the northwest cavern section.",
+      "dialogue_key": "SlowpokeWellB1FBoulder"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_const": "GRUNTM_29",
+      "event_beat": "EVENT_BEAT_ROCKET_GRUNTM_29",
+      "event_visibility": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "object_const": "SLOWPOKEWELLB1F_ROCKET1",
+      "x": 15, "y": 7,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Rattata", "level": 9},
+        {"species": "Rattata", "level": 9}
+      ],
+      "prize_money": 288,
+      "rematch": false,
+      "seen_dialogue": "GruntM29SeenText",
+      "seen_dialogue_summary": "Was guarding upstairs but fell down when Kurt yelled at him. Plans to vent his anger on the player.",
+      "beaten_dialogue": "GruntM29BeatenText",
+      "beaten_dialogue_summary": "Arrgh! This is NOT my day!",
+      "after_battle_dialogue": "GruntM29AfterBattleText",
+      "after_battle_dialogue_summary": "Admits to hacking off Slowpoke tails and selling them. Declares Team Rocket will do anything for money."
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_const": "GRUNTM_1",
+      "event_beat": "EVENT_BEAT_ROCKET_GRUNTM_1",
+      "event_visibility": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "object_const": "SLOWPOKEWELLB1F_ROCKET2",
+      "x": 5, "y": 2,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Koffing", "level": 14}
+      ],
+      "prize_money": 448,
+      "rematch": false,
+      "seen_dialogue": "GruntM1SeenText",
+      "seen_dialogue_summary": "Warns player not to interrupt their work or expect any mercy.",
+      "beaten_dialogue": "GruntM1BeatenText",
+      "beaten_dialogue_summary": "You did OK today, but wait till next time!",
+      "after_battle_script_note": "Defeating GRUNTM_1 is the final battle. Script fades to black, despawns all four Rockets (ROCKET1–ROCKET4), fades back in, moves Kurt to new position, plays KurtSlowpokeWellVictory sequence, sets EVENT_CLEARED_SLOWPOKE_WELL and related flags, heals party, warps player to KURTS_HOUSE (3,3).",
+      "after_battle_dialogue_key": "TrainerGruntM1WhenTalkText",
+      "after_battle_dialogue_summary": "Monologues that Team Rocket went underground after being broken up three years ago and is still stirring up trouble."
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_const": "GRUNTM_2",
+      "event_beat": "EVENT_BEAT_ROCKET_GRUNTM_2",
+      "event_visibility": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "object_const": "SLOWPOKEWELLB1F_ROCKET3",
+      "x": 5, "y": 6,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Rattata", "level": 7},
+        {"species": "Zubat", "level": 9},
+        {"species": "Zubat", "level": 9}
+      ],
+      "prize_money": 288,
+      "rematch": false,
+      "seen_dialogue": "GruntM2SeenText",
+      "seen_dialogue_summary": "Scoffs at idea of stopping Slowpoke tail operations — would ruin Team Rocket's reputation.",
+      "beaten_dialogue": "GruntM2BeatenText",
+      "beaten_dialogue_summary": "Just… Too strong…",
+      "after_battle_dialogue": "GruntM2AfterBattleText",
+      "after_battle_dialogue_summary": "Complains that selling Slowpoke Tails is tough work; 'It's tough being a ROCKET GRUNT!'"
+    },
+    {
+      "class": "Rocket Grunt (Female)",
+      "trainer_const": "GRUNTF_1",
+      "event_beat": "EVENT_BEAT_ROCKET_GRUNTF_1",
+      "event_visibility": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "object_const": "SLOWPOKEWELLB1F_ROCKET_GIRL",
+      "x": 10, "y": 4,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Zubat", "level": 9},
+        {"species": "Ekans", "level": 11}
+      ],
+      "prize_money": 352,
+      "rematch": false,
+      "seen_dialogue": "GruntF1SeenText",
+      "seen_dialogue_summary": "Challenges player to try and defeat all of them.",
+      "beaten_dialogue": "GruntF1BeatenText",
+      "beaten_dialogue_summary": "You rotten brat!",
+      "after_battle_dialogue": "GruntF1AfterBattleText",
+      "after_battle_dialogue_summary": "Argues that Slowpoke tails grow back fast so there's nothing wrong with selling them."
+    }
+  ],
+  "items": [
+    {
+      "name": "Super Potion",
+      "x": 10, "y": 3,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "object_const": "SLOWPOKEWELLB1F_POKE_BALL",
+      "event_flag": "EVENT_SLOWPOKE_WELL_B1F_SUPER_POTION",
+      "requires": null,
+      "note": "Item ball on the ground in the upper cave section; script SlowpokeWellB1FSuperPotion."
+    }
+  ],
+  "wild_encounters": {
+    "cave_walking": {
+      "encounter_rate": 2,
+      "note": "2% encounter rate per step in cave walking tiles. Same table used for morning/day/night.",
+      "morning": [
+        {"species": "Zubat",    "level": 5, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 6, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 7, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 6, "rate": "slot_4"},
+        {"species": "Zubat",    "level": 8, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_7"}
+      ],
+      "day": [
+        {"species": "Zubat",    "level": 5, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 6, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 7, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 6, "rate": "slot_4"},
+        {"species": "Zubat",    "level": 8, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_7"}
+      ],
+      "night": [
+        {"species": "Zubat",    "level": 5, "rate": "slot_1"},
+        {"species": "Zubat",    "level": 6, "rate": "slot_2"},
+        {"species": "Zubat",    "level": 7, "rate": "slot_3"},
+        {"species": "Slowpoke", "level": 6, "rate": "slot_4"},
+        {"species": "Zubat",    "level": 8, "rate": "slot_5"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_6"},
+        {"species": "Slowpoke", "level": 8, "rate": "slot_7"}
+      ],
+      "slot_rates_note": "7 slots; typical Gen 2 weighting: slot 1=30%, 2=20%, 3=15%, 4+5=10% each, 6+7=5% each (exact weights governed by encounter table engine)"
+    },
+    "water": {
+      "encounter_rate": 2,
+      "note": "Surfing on the cave water pool.",
+      "mons": [
+        {"species": "Slowpoke", "level_min": 15, "level_max": 15, "rate": "slot_1"},
+        {"species": "Slowpoke", "level_min": 20, "level_max": 20, "rate": "slot_2"},
+        {"species": "Slowpoke", "level_min": 10, "level_max": 10, "rate": "slot_3"}
+      ]
+    },
+    "fishing": {
+      "note": "Fish group: FISHGROUP_LAKE",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": "70%+1"},
+        {"species": "Magikarp", "level": 10, "rate": "85%+1"},
+        {"species": "Goldeen",  "level": 10, "rate": "100%"}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": "35%"},
+        {"species": "Goldeen",  "level": 20, "rate": "70%"},
+        {"species": "Goldeen",  "level": 20, "rate": "90%+1"},
+        {"species": "Goldeen/Goldeen (day) or Goldeen (night)", "level": 20, "rate": "100%", "note": "Time group 4: day=Goldeen lv20, night=Goldeen lv20"}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level": 40, "rate": "40%"},
+        {"species": "Goldeen (day) / Goldeen (night)", "level": 40, "rate": "70%", "note": "Time group 5: day=Goldeen lv40, night=Goldeen lv40"},
+        {"species": "Magikarp", "level": 40, "rate": "90%+1"},
+        {"species": "Seaking",  "level": 40, "rate": "100%"}
+      ]
+    },
+    "rock_smash": {
+      "note": "B1F is in RockMonMaps (TREEMON_SET_ROCK). Rock Smash boulders in cave can produce encounters.",
+      "common": [
+        {"species": "Krabby", "level": 15, "rate": "90%"}
+      ],
+      "rare": [
+        {"species": "Shuckle", "level": 15, "rate": "10%"}
+      ]
+    }
+  },
+  "events": [
+    {
+      "id": "team_rocket_occupation",
+      "trigger": "on_entry_before_clearing_well",
+      "event_flag": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "description": "Four Team Rocket Grunts occupy B1F (GRUNTM_29, GRUNTM_1, GRUNTM_2, GRUNTF_1). They are cutting Slowpoke tails for profit. Kurt has fallen and cannot move. The player must defeat all four Grunts. They are controlled by EVENT_SLOWPOKE_WELL_ROCKETS — disappear when that event is cleared."
+    },
+    {
+      "id": "kurt_fallen_in_well",
+      "trigger": "on_entry_before_clearing_well",
+      "event_flag": "EVENT_SLOWPOKE_WELL_KURT",
+      "description": "Kurt appears at tile(16,14) lying injured after falling. Speaks to player, asks them to fight Rockets in his place. After all Grunts are defeated, GRUNTM_1's post-battle script triggers: all Rockets disappear, Kurt moves via KurtSlowpokeWellVictoryMovementData (left x4, up, pause, left, up x2, pause, turn left), then player is warped to KURTS_HOUSE tile(3,3) with party healed. EVENT_CLEARED_SLOWPOKE_WELL is set.",
+      "chain_events": [
+        "EVENT_CLEARED_SLOWPOKE_WELL set",
+        "SCENE_AZALEATOWN_RIVAL_BATTLE set on AZALEA_TOWN",
+        "EVENT_ILEX_FOREST_APPRENTICE cleared",
+        "EVENT_ILEX_FOREST_FARFETCHD cleared",
+        "EVENT_CHARCOAL_KILN_FARFETCH_D set",
+        "EVENT_CHARCOAL_KILN_APPRENTICE set",
+        "EVENT_SLOWPOKE_WELL_SLOWPOKES set",
+        "EVENT_SLOWPOKE_WELL_KURT set",
+        "EVENT_AZALEA_TOWN_SLOWPOKES cleared",
+        "EVENT_KURTS_HOUSE_SLOWPOKE cleared",
+        "EVENT_KURTS_HOUSE_KURT_1 cleared"
+      ]
+    },
+    {
+      "id": "slowpoke_mail_npc",
+      "trigger": "talk_to_slowpoke_with_mail",
+      "event_flag": "EVENT_SLOWPOKE_WELL_SLOWPOKES",
+      "description": "Slowpoke1 at tile(7,4) carries mail. Interacting plays Slowpoke cry, then prompts player to read mail. Message from Dad says 'Be good and look after the house with Grandpa and SLOWPOKE. Love, Dad.' This Slowpoke and the tailless Slowpoke are only visible while rockets are present."
+    },
+    {
+      "id": "b2f_surf_access",
+      "trigger": "use_surf_on_water_pool",
+      "description": "The water pool on the east side of B1F (tiles 17-19, rows 7-12) can be Surfed. The warp at tile(7,11) descends to B2F. Surf is required to reach B2F."
+    }
+  ],
+  "notes": "Slowpoke Well B1F is the first major dungeon encounter with Team Rocket in Pokemon Crystal. The floor is a single-level cave with a water pool on the east side and a narrow walkable corridor on the west/center. Four Rocket Grunts must be defeated in sequence; the final fight (GRUNTM_1, Koffing lv14) triggers a cutscene where all Grunts vanish, Kurt limps out, and the player is warped to Kurt's House with a healed party. A pushable boulder (Strength HM) at tile(3,2) can open a shortcut. The water pool leads down to B2F via Surf — the warp at tile(7,11) is the only route to B2F. Trainer battle order is not strictly enforced but GruntM_1 must be last (its post-battle script drives the story resolution). Prize money: GRUNTM_29=288, GRUNTM_2=288, GRUNTF_1=352, GRUNTM_1=448 (all at base trainer pay for their respective levels)."
+}

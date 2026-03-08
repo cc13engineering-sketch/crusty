@@ -1,0 +1,218 @@
+{
+  "area_id": "route_34_ilex_forest_gate",
+  "area_name": "Route 34 / Ilex Forest Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_34_ILEX_FOREST_GATE",
+  "width_blocks": 10,
+  "height_blocks": 4,
+  "width_tiles": 20,
+  "height_tiles": 8,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ROUTE_34",
+  "palette": "PALETTE_AUTO",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 4,
+      "y": 0,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 1,
+      "notes": "Left door tile on north side — exits to Route 34 warp 1 (x=13,y=37)"
+    },
+    {
+      "warp_id": 1,
+      "x": 5,
+      "y": 0,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 2,
+      "notes": "Right door tile on north side — exits to Route 34 warp 2 (x=14,y=37)"
+    },
+    {
+      "warp_id": 2,
+      "x": 4,
+      "y": 7,
+      "target_area_id": "ilex_forest",
+      "pokecrystal_target": "ILEX_FOREST",
+      "target_warp_id": 1,
+      "notes": "Left door tile on south side — exits to Ilex Forest warp 1"
+    },
+    {
+      "warp_id": 3,
+      "x": 5,
+      "y": 7,
+      "target_area_id": "ilex_forest",
+      "pokecrystal_target": "ILEX_FOREST",
+      "target_warp_id": 1,
+      "notes": "Right door tile on south side — also exits to Ilex Forest warp 1"
+    }
+  ],
+
+  "signs": [],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 8 rows. Gate building connecting Route 34 (north exits x=4-5,y=0) to Ilex Forest (south exits x=4-5,y=7). Teacher NPC behind counter on east side (x=9,y=3). Butterfree sprite on east side (x=9,y=4). Lass NPC walks up/down on west side (x=3,y=4). Teacher2 (Forest Is Restless variant) at x=5,y=7 only appears during EVENT_FOREST_IS_RESTLESS (blocks south exit). Coord event at x=4,y=7 triggers the Celebi event scene.",
+    "rows": [
+      "EEEEEEDDEEEEEEEEEEEEE",
+      "#####################",
+      "#####################",
+      "#.................N.#",
+      "#N..N.............N.#",
+      "#..................#",
+      "#..................#",
+      "EEEEEEDDEEEEEEEEEEEE"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_teacher_normal",
+      "object_const": "ROUTE34ILEXFORESTGATE_TEACHER1",
+      "name": "Teacher (Normal State)",
+      "sprite": "SPRITE_TEACHER",
+      "x": 9,
+      "y": 3,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_BEHIND_COUNTER",
+      "dialogue_summary": "Gives TM12 Sweet Scent on first interaction (sets EVENT_GOT_TM12_SWEET_SCENT). Explains Sweet Scent lures wild Pokemon. After giving: 'Use it wherever Pokemon appear. Pokemon will be enticed by it.' Disappears and is replaced by Teacher2 when EVENT_FOREST_IS_RESTLESS is active.",
+      "items_given": ["TM12 Sweet Scent (one-time, first visit)"]
+    },
+    {
+      "id": "npc_teacher_restless",
+      "object_const": "ROUTE34ILEXFORESTGATE_TEACHER2",
+      "name": "Teacher (Forest Is Restless State)",
+      "sprite": "SPRITE_TEACHER",
+      "x": 5,
+      "y": 7,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_34_ILEX_FOREST_GATE_TEACHER_IN_WALKWAY",
+      "dialogue_summary": "Only appears when EVENT_FOREST_IS_RESTLESS is set (Celebi event). Stands in the south doorway to block passage. Says 'Something's wrong in ILEX FOREST… You should stay away right now.' Triggers a scripted scene: chases player back, blocks them from entering forest.",
+      "notes": "Part of the Crystal-exclusive Celebi GS Ball event. Teacher2 appears in the walkway tile (x=5,y=7) blocking the south exit while Teacher1 is hidden."
+    },
+    {
+      "id": "npc_butterfree",
+      "object_const": "ROUTE34ILEXFORESTGATE_BUTTERFREE",
+      "name": "Butterfree",
+      "sprite": "SPRITE_BUTTERFREE",
+      "x": 9,
+      "y": 4,
+      "facing": "pokemon_wander",
+      "movement": "SPRITEMOVEDATA_POKEMON",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "BUTTERFREE: Freeh! (Decorative Pokemon, plays Butterfree cry on interact.)"
+    },
+    {
+      "id": "npc_lass",
+      "object_const": "ROUTE34ILEXFORESTGATE_LASS",
+      "name": "Lass",
+      "sprite": "SPRITE_LASS",
+      "x": 3,
+      "y": 4,
+      "facing": "walk_up_down",
+      "movement": "SPRITEMOVEDATA_WALK_UP_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_34_ILEX_FOREST_GATE_LASS",
+      "dialogue_summary": "Describes the shrine in the forest honoring the protector. 'It watches over the FOREST from across time. I think that it must be a grass-type Pokemon.' (Alludes to Celebi.)"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [
+    {
+      "name": "TM12 (Sweet Scent)",
+      "source": "npc_gift",
+      "giver": "Teacher (Route 34/Ilex Forest Gate)",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_GOT_TM12_SWEET_SCENT",
+      "notes": "Given by Teacher NPC on first interaction. verbosegiveitem TM_SWEET_SCENT. Only given once (flag prevents re-giving)."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route34IsForestRestlessCallback",
+      "notes": "Checks EVENT_FOREST_IS_RESTLESS flag. If true: hides Teacher1 (behind counter), shows Teacher2 (in walkway/south door). If false: shows Teacher1, hides Teacher2. This manages the Celebi event gate blockage."
+    }
+  ],
+
+  "coord_events": [
+    {
+      "x": 4,
+      "y": 7,
+      "scene": "SCENE_ROUTE34ILEXFORESTGATE_TEACHER_BLOCKS_IF_FOREST_IS_RESTLESS",
+      "script": "Route34IlexForestGateCelebiEvent",
+      "notes": "Triggered when player steps on the south exit tile during EVENT_FOREST_IS_RESTLESS. Teacher2 chases and stops the player, delivers warning dialogue, then returns to position. Player is blocked from entering the forest."
+    }
+  ],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_pass_south_into_forest",
+      "description": "Player walks south through the gate from Route 34 into Ilex Forest. Teacher gives TM12 Sweet Scent to help encounter wild Pokemon for the Pokedex.",
+      "flags_set": ["EVENT_GOT_TM12_SWEET_SCENT"],
+      "items_given": ["TM12 Sweet Scent"]
+    },
+    {
+      "order": 2,
+      "trigger": "celebi_event_active",
+      "description": "Crystal only: GS Ball placed at Ilex Forest shrine activates EVENT_FOREST_IS_RESTLESS. Teacher2 now blocks the south exit and intercepts the player with a warning. Coord event at the exit tile triggers the chase scene. Player cannot enter Ilex Forest until Celebi battle is triggered from within.",
+      "requires": "Crystal version, GS Ball event",
+      "flags_checked": ["EVENT_FOREST_IS_RESTLESS"]
+    }
+  ],
+
+  "notes": "The Route 34 / Ilex Forest Gate is a 10x4 block (20x8 tile) gate building sitting between the southern end of Route 34 and the northern entrance to Ilex Forest. It connects ROUTE_34 (north, warps 1-2) to ILEX_FOREST (south, warp 1). The Teacher behind the east counter gives TM12 Sweet Scent on the player's first interaction. A Butterfree sprite decorates the east side (cries on interact). A Lass walks up and down on the west side and alludes to Celebi. The gate has a special Celebi event state (Crystal only): when EVENT_FOREST_IS_RESTLESS is active, Teacher2 blocks the south doorway and a coord event triggers a blocking scene, preventing entry into the forest. The MAPCALLBACK_OBJECTS callback manages which Teacher variant is visible."
+}

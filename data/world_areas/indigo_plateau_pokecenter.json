@@ -1,0 +1,201 @@
+{
+  "area_id": "indigo_plateau_pokecenter",
+  "area_name": "Indigo Plateau Pokemon Center",
+  "area_type": "special",
+  "pokecrystal_map_id": "INDIGO_PLATEAU_POKECENTER_1F",
+  "width_blocks": 9,
+  "height_blocks": 7,
+  "width_tiles": 18,
+  "height_tiles": 14,
+  "tileset": "pokecenter",
+  "music": "MUSIC_POKEMON_CENTER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 5, "y": 13,
+      "target_area_id": "route_23",
+      "target_warp_id": 1,
+      "notes": "Left exit — leads back to Route 23 / Victory Road area"
+    },
+    {
+      "warp_id": 2,
+      "x": 6, "y": 13,
+      "target_area_id": "route_23",
+      "target_warp_id": 2,
+      "notes": "Right exit — leads back to Route 23 / Victory Road area"
+    },
+    {
+      "warp_id": 3,
+      "x": 0, "y": 13,
+      "target_area_id": "pokecenter_2f",
+      "target_warp_id": 1,
+      "notes": "Far-left warp — leads to Pokemon Center 2F (Cable Club / link room)"
+    },
+    {
+      "warp_id": 4,
+      "x": 14, "y": 3,
+      "target_area_id": "wills_room",
+      "target_warp_id": 1,
+      "notes": "Door to Will's Room — entrance to the Elite Four gauntlet"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/counter/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "P": "pc_machine",
+      "H": "heal_machine",
+      "S": "sign/poster",
+      "X": "blocked",
+      "K": "pokecenter_counter"
+    },
+    "notes": [
+      "Map is 18 tiles wide x 14 tiles tall (9x7 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Nurse Joy stands at counter (3,7) facing down.",
+      "Pokemart Clerk stands at counter (11,7) facing down.",
+      "CooltrainerM walks around (11,11) — talks about the Elite Four challenge.",
+      "Gramps (Teleport Guy) stands at (1,9) facing down — offers Abra Teleport home.",
+      "Abra (sprite SPRITE_JYNX with PAL_NPC_BROWN) stands at (0,9) facing down.",
+      "Rival (Silver) appears at (16,9) on Monday/Wednesday only if EVENT_BEAT_RIVAL_IN_MT_MOON is set.",
+      "Rival's coord triggers are at (16,4) and (17,4) — stepping here triggers the battle.",
+      "PC Machine is in the lower-left corner.",
+      "Heal machine is at the Nurse counter.",
+      "The POKECENTER_2F warp at (0,13) leads to the Cable Club link room."
+    ],
+    "rows": [
+      "##################",
+      "##################",
+      "##################",
+      "##############D###",
+      "##################",
+      "##################",
+      "##################",
+      "###K#######K######",
+      "##################",
+      "PN.............N..",
+      "##################",
+      "###########N......",
+      "##################",
+      "EE####EE##########"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "nurse",
+      "name": "Nurse Joy",
+      "x": 3, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_NURSE",
+      "script_type": "healer",
+      "dialogue_summary": "Heals the player's party. Uses standard PokecenterNurseScript."
+    },
+    {
+      "id": "clerk",
+      "name": "Pokemart Clerk",
+      "x": 11, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_CLERK",
+      "script_type": "shopkeeper",
+      "dialogue_summary": "Sells items from MART_INDIGO_PLATEAU stock.",
+      "mart_inventory": [
+        {"item": "Ultra Ball", "price": 1200},
+        {"item": "Max Repel", "price": 700},
+        {"item": "Hyper Potion", "price": 1200},
+        {"item": "Max Potion", "price": 2500},
+        {"item": "Full Restore", "price": 3000},
+        {"item": "Revive", "price": 1500},
+        {"item": "Full Heal", "price": 600}
+      ]
+    },
+    {
+      "id": "cooltrainer_m",
+      "name": "CooltrainerM",
+      "x": 11, "y": 11,
+      "facing": "down",
+      "movement": "walk_around",
+      "movement_radius": 2,
+      "sprite": "SPRITE_COOLTRAINER_M",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains that the Elite Four must be beaten consecutively — losing means starting over."
+    },
+    {
+      "id": "teleport_guy",
+      "name": "Gramps",
+      "x": 1, "y": 9,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_GRAMPS",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TELEPORT_GUY",
+      "dialogue_summary": "Offers to have Abra Teleport the player back home if they are not ready for the Elite Four challenge. After Hall of Fame, this NPC disappears (EVENT_TELEPORT_GUY is set permanently)."
+    },
+    {
+      "id": "abra",
+      "name": "Abra",
+      "x": 0, "y": 9,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_JYNX",
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_TELEPORT_GUY",
+      "dialogue_summary": "Says 'ABRA: Aabra...' — performs the Teleport animation when Gramps agrees."
+    },
+    {
+      "id": "rival",
+      "name": "Rival (Silver)",
+      "x": 16, "y": 9,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_RIVAL",
+      "script_type": "trainer",
+      "event_flag": "EVENT_INDIGO_PLATEAU_POKECENTER_RIVAL",
+      "appearance_condition": "Appears on Monday/Wednesday only if EVENT_BEAT_RIVAL_IN_MT_MOON is set and ENGINE_INDIGO_PLATEAU_RIVAL_FIGHT is NOT set.",
+      "dialogue_summary": "Challenges player before the Elite Four. Uses RIVAL2 party variant based on player's starter. After battle, leaves and never returns (ENGINE_INDIGO_PLATEAU_RIVAL_FIGHT flag set).",
+      "battle_trigger": "coord_event at (16,4) or (17,4)"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rival2",
+      "name": "Silver",
+      "x": 16, "y": 9,
+      "facing": "up",
+      "line_of_sight": 0,
+      "trigger": "coord_event",
+      "trigger_coords": [{"x": 16, "y": 4}, {"x": 17, "y": 4}],
+      "team_note": "Party varies by player's starter — RIVAL2_2_TOTODILE, RIVAL2_2_CHIKORITA, or RIVAL2_2_CYNDAQUIL",
+      "prize_money": 2500,
+      "rematch": false,
+      "one_time_flag": "ENGINE_INDIGO_PLATEAU_RIVAL_FIGHT",
+      "day_restriction": "Monday and Wednesday only"
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "PrepareElite4Callback",
+      "description": "IndigoPlateauPokecenter1FPrepareElite4Callback fires every time the map is entered. Resets all E4 room scene flags to LOCK_DOOR, clears all EVENT_BEAT_ELITE_4_* flags, clears all EXIT_OPEN and ENTRANCE_CLOSED events, and sets EVENT_LANCES_ROOM_OAK_AND_MARY. This ensures the entire Elite Four gauntlet resets cleanly for a new challenge run."
+    },
+    {
+      "trigger": "coord_event",
+      "name": "RivalBattle",
+      "description": "Stepping on tiles (16,4) or (17,4) with correct conditions triggers Silver's battle. Day-of-week check prevents it on Sunday, Tuesday, Thursday, Friday, Saturday. Only fires before Hall of Fame."
+    }
+  ],
+  "notes": "This is the gateway to the Pokemon League challenge. The Pokecenter resets all Elite Four room states on every visit via IndigoPlateauPokecenter1FPrepareElite4Callback, making the gauntlet always start fresh from Will's Room. The warp at (14,3) is the actual door leading to Will's Room — this is the entrance to the Elite Four sequence. The Pokemart here is one of the best-stocked in the game, selling Full Restore and Max Potion."
+}

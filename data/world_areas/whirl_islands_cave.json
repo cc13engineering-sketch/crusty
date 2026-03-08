@@ -1,0 +1,126 @@
+{
+  "area_id": "whirl_islands_cave",
+  "area_name": "Whirl Islands (Cave)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_CAVE",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "pokecrystal_attr_tileset_id": "$09",
+  "connections": [],
+  "warps": [
+    {
+      "x": 7,
+      "y": 5,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 9,
+      "notes": "Passage connecting to B1F at coord (17,21). warp_event 7,5 WHIRL_ISLAND_B1F 9."
+    },
+    {
+      "x": 3,
+      "y": 13,
+      "target_area_id": "whirl_islands_nw",
+      "target_warp_id": 4,
+      "notes": "Passage connecting to NW entrance cave at coord (7,15). warp_event 3,13 WHIRL_ISLAND_NW 4."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "P": "passage_opening"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#######P##",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "###P######",
+      "##########",
+      "##########",
+      "##########",
+      "##########"
+    ],
+    "notes": "Schematic from warp coordinates in WhirlIslandCave.asm. 10x18 tiles. Simple two-passage junction: passage to B1F at (7,5), passage back to NW cave at (3,13). Acts as an intermediate connector — a player coming from the NW entrance can reach B1F through this cave instead of the direct NW staircase. No items, trainers, or NPCs. Actual block layout in maps/WhirlIslandCave.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Standard 7-slot cave table, identical to the four entrance caves in species and level. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_CAVE lines 929-955.",
+      "morning": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 24, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 24, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter table defined for WHIRL_ISLAND_CAVE in johto_water.asm.",
+      "mons": []
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. No accessible fishing in this connector cave.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [],
+  "signs": [],
+  "notes": "An interior connector cave (listed as WHIRL_ISLAND_CAVE in map_constants.asm, map ID 69) that acts as a junction between the NW entrance cave and B1F. It is 5 blocks wide / 10 tiles, 9 blocks tall / 18 tiles — the same dimensions as NW and SE. Reached from NW cave via passage at (7,15) in NW / (3,13) in this map, and connects to B1F at warp 9 (B1F coord 17,21). No items, trainers, or NPCs. Wild encounter table matches the entrance caves at level 22-25. This map was not listed in the original task specification but exists as a distinct pokecrystal map and is part of the NW island's internal structure. Source: maps/WhirlIslandCave.asm, constants/map_constants.asm line 134, data/maps/maps.asm line 147, data/wild/johto_grass.asm lines 929-955."
+}

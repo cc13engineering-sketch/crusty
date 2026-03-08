@@ -1,0 +1,372 @@
+{
+  "area_id": "victory_road",
+  "area_name": "Victory Road",
+  "area_type": "cave",
+  "pokecrystal_map_id": "VICTORY_ROAD",
+  "width_blocks": 10,
+  "height_blocks": 36,
+  "width_tiles": 20,
+  "height_tiles": 72,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 9, "y": 67,
+      "target_area_id": "victory_road_gate",
+      "target_warp_id": 5,
+      "notes": "Southern exit to Victory Road Gate — the player enters Victory Road from here coming from Route 26"
+    },
+    {
+      "warp_id": 2,
+      "x": 1, "y": 49,
+      "target_area_id": "victory_road",
+      "target_warp_id": 3,
+      "notes": "Internal passage loop — western wall warp at y=49 connects to warp_id 3"
+    },
+    {
+      "warp_id": 3,
+      "x": 1, "y": 35,
+      "target_area_id": "victory_road",
+      "target_warp_id": 2,
+      "notes": "Internal passage loop — western wall warp at y=35 connects to warp_id 2"
+    },
+    {
+      "warp_id": 4,
+      "x": 13, "y": 31,
+      "target_area_id": "victory_road",
+      "target_warp_id": 5,
+      "notes": "Internal passage — eastern cave mouth at y=31 connects to warp_id 5"
+    },
+    {
+      "warp_id": 5,
+      "x": 13, "y": 17,
+      "target_area_id": "victory_road",
+      "target_warp_id": 4,
+      "notes": "Internal passage — eastern cave mouth at y=17 connects to warp_id 4"
+    },
+    {
+      "warp_id": 6,
+      "x": 17, "y": 33,
+      "target_area_id": "victory_road",
+      "target_warp_id": 7,
+      "notes": "Internal passage — far east side at y=33 connects to warp_id 7"
+    },
+    {
+      "warp_id": 7,
+      "x": 17, "y": 19,
+      "target_area_id": "victory_road",
+      "target_warp_id": 6,
+      "notes": "Internal passage — far east side at y=19 connects to warp_id 6"
+    },
+    {
+      "warp_id": 8,
+      "x": 0, "y": 11,
+      "target_area_id": "victory_road",
+      "target_warp_id": 9,
+      "notes": "Internal passage — far north western edge at y=11 connects to warp_id 9"
+    },
+    {
+      "warp_id": 9,
+      "x": 0, "y": 27,
+      "target_area_id": "victory_road",
+      "target_warp_id": 8,
+      "notes": "Internal passage — western mid section at y=27 connects to warp_id 8"
+    },
+    {
+      "warp_id": 10,
+      "x": 13, "y": 5,
+      "target_area_id": "route_23",
+      "target_warp_id": 3,
+      "notes": "Northern exit to Route 23 — leads to Indigo Plateau"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "C": "cave_entrance",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": [
+      "Map is 20 tiles wide x 72 tiles tall (10x36 blocks).",
+      "Tile coordinates are (col=x, row=y) with (0,0) at top-left.",
+      "The map is a single large vertical cave — the player travels bottom to top (south to north).",
+      "Entry is at the south end (row 67) from Victory Road Gate (connected to Route 26).",
+      "Exit is at the north end (row 5) to Route 23, which leads to Indigo Plateau.",
+      "The winding path contains multiple cave passage warps that loop within the same map.",
+      "These internal warps simulate branching tunnels with different elevations.",
+      "The Rival encounter triggers at coord_events (12,8) and (13,8) — two adjacent tiles near the top.",
+      "The Rival approaches from different directions depending on which tile triggers the event.",
+      "Item ball positions from object_event data:",
+      "  TM Earthquake (TM26) at (3,28)",
+      "  Max Revive at (12,48)",
+      "  Full Restore at (18,29)",
+      "  Full Heal at (15,48)",
+      "  HP Up at (7,38)",
+      "Hidden item positions from bg_event data:",
+      "  Max Potion at (3,29) — hidden, facing tile",
+      "  Full Heal at (3,65) — hidden, facing tile near the Gate entrance",
+      "Rival stands at spawn position (18,13) before the encounter triggers.",
+      "The cave has no water — no Surf or fishing encounters."
+    ],
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#############CC#####",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "C...N...............#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#############C######",
+      "####################",
+      "#################C##",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "C...................#",
+      "#!..?..............!#",
+      "#...................#",
+      "####################",
+      "#############C######",
+      "####################",
+      "#################C##",
+      "####################",
+      "C...................#",
+      "####################",
+      "####################",
+      "##!.................#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##........!..!......#",
+      "C...................#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "?###################",
+      "####################",
+      "####################",
+      "#########C##########",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Rival",
+      "name": "?",
+      "sprite": "SPRITE_RIVAL",
+      "x": 18, "y": 13,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 0,
+      "event_flag": "EVENT_RIVAL_VICTORY_ROAD",
+      "trigger": "coord_event",
+      "trigger_tiles": [
+        {"x": 12, "y": 8, "approach_direction": "Rival approaches from right (6 steps left, 2 steps up)"},
+        {"x": 13, "y": 8, "approach_direction": "Rival approaches from below (2 steps up, 5 steps left, 2 steps up)"}
+      ],
+      "team_cyndaquil_path": [
+        {"species": "Sneasel",    "level": 34},
+        {"species": "Golbat",     "level": 36},
+        {"species": "Magneton",   "level": 35},
+        {"species": "Haunter",    "level": 35},
+        {"species": "Kadabra",    "level": 35},
+        {"species": "Typhlosion", "level": 38}
+      ],
+      "team_chikorita_path": [
+        {"species": "Sneasel",   "level": 34},
+        {"species": "Golbat",    "level": 36},
+        {"species": "Magneton",  "level": 35},
+        {"species": "Haunter",   "level": 35},
+        {"species": "Kadabra",   "level": 35},
+        {"species": "Meganium",  "level": 38}
+      ],
+      "team_totodile_path": [
+        {"species": "Sneasel",    "level": 34},
+        {"species": "Golbat",     "level": 36},
+        {"species": "Magneton",   "level": 34},
+        {"species": "Haunter",    "level": 35},
+        {"species": "Kadabra",    "level": 35},
+        {"species": "Feraligatr", "level": 38}
+      ],
+      "notes": "This is the fifth and final Rival battle before the Pokemon League. The Rival's starter is determined by the player's choice at the start of the game (opposite of player's starter). loadtrainer uses RIVAL1_13 (Chikorita starter given), RIVAL1_14 (Totodile starter given), or RIVAL1_15 (Cyndaquil starter given). Starter numbering in pokecrystal is the Pokemon the RIVAL received (counter to player). After defeat, Rival gives a speech hinting at personal growth. SCENE_VICTORYROAD_RIVAL_BATTLE prevents re-triggering.",
+      "prize_money": 0,
+      "rematch": false,
+      "pre_battle_text": "Hold it. ...Are you going to take the #MON LEAGUE challenge? ...Don't make me laugh. You're so much weaker than I am. I'm not like I was before. I now have the best and strongest #MON with me. I'm invincible! <PLAYER>! I challenge you!",
+      "post_loss_text": "...I couldn't win... I gave it everything I had... What you possess, and what I lack... I'm beginning to understand what that dragon master said to me...",
+      "post_win_text": "...I haven't given up on becoming the greatest trainer... I'm going to find out why I can't win and become stronger... When I do, I will challenge you. And I'll beat you down with all my power. ...Humph! You keep at it until then."
+    }
+  ],
+  "items": [
+    {
+      "name": "TM26 (Earthquake)",
+      "x": 3, "y": 28,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_TM_EARTHQUAKE",
+      "notes": "Ground-type, 100 power, 100% accuracy — one of the most powerful TMs in the game"
+    },
+    {
+      "name": "Max Revive",
+      "x": 12, "y": 48,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_MAX_REVIVE"
+    },
+    {
+      "name": "Full Restore",
+      "x": 18, "y": 29,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_FULL_RESTORE"
+    },
+    {
+      "name": "Full Heal",
+      "x": 15, "y": 48,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_FULL_HEAL"
+    },
+    {
+      "name": "HP Up",
+      "x": 7, "y": 38,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_HP_UP"
+    },
+    {
+      "name": "Max Potion",
+      "x": 3, "y": 29,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_HIDDEN_MAX_POTION",
+      "notes": "Hidden item — bg_event facing tile adjacent to TM26 ball"
+    },
+    {
+      "name": "Full Heal",
+      "x": 3, "y": 65,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_VICTORY_ROAD_HIDDEN_FULL_HEAL",
+      "notes": "Hidden item — bg_event near the Gate entrance at the south end of the cave"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "notes": "Cave walking encounters — high-level Kanto-region Pokemon appropriate for the pre-League challenge. Night encounters shift away from Rhydon/Sandslash to all Graveler.",
+      "morning": [
+        {"species": "Graveler",  "level_min": 34, "level_max": 34, "slot": 1},
+        {"species": "Rhyhorn",   "level_min": 32, "level_max": 32, "slot": 2},
+        {"species": "Onix",      "level_min": 33, "level_max": 33, "slot": 3},
+        {"species": "Golbat",    "level_min": 34, "level_max": 34, "slot": 4},
+        {"species": "Sandslash", "level_min": 35, "level_max": 35, "slot": 5},
+        {"species": "Rhydon",    "level_min": 35, "level_max": 35, "slot": 6},
+        {"species": "Rhydon",    "level_min": 35, "level_max": 35, "slot": 7}
+      ],
+      "day": [
+        {"species": "Graveler",  "level_min": 34, "level_max": 34, "slot": 1},
+        {"species": "Rhyhorn",   "level_min": 32, "level_max": 32, "slot": 2},
+        {"species": "Onix",      "level_min": 33, "level_max": 33, "slot": 3},
+        {"species": "Golbat",    "level_min": 34, "level_max": 34, "slot": 4},
+        {"species": "Sandslash", "level_min": 35, "level_max": 35, "slot": 5},
+        {"species": "Rhydon",    "level_min": 35, "level_max": 35, "slot": 6},
+        {"species": "Rhydon",    "level_min": 35, "level_max": 35, "slot": 7}
+      ],
+      "night": [
+        {"species": "Golbat",   "level_min": 34, "level_max": 34, "slot": 1},
+        {"species": "Graveler", "level_min": 34, "level_max": 34, "slot": 2},
+        {"species": "Onix",     "level_min": 32, "level_max": 32, "slot": 3},
+        {"species": "Graveler", "level_min": 36, "level_max": 36, "slot": 4},
+        {"species": "Graveler", "level_min": 38, "level_max": 38, "slot": 5},
+        {"species": "Graveler", "level_min": 40, "level_max": 40, "slot": 6},
+        {"species": "Graveler", "level_min": 40, "level_max": 40, "slot": 7, "notes": "Night is all Graveler and Golbat — Rhydon and Sandslash absent"}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water tiles in Victory Road — no Surf encounters",
+      "mons": []
+    },
+    "fishing": {
+      "notes": "No water in Victory Road — no fishing",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "coord_event",
+      "coords": [{"x": 12, "y": 8}, {"x": 13, "y": 8}],
+      "flag": "SCENE_VICTORYROAD_RIVAL_BATTLE",
+      "description": "Stepping on either tile at (12,8) or (13,8) near the north end of Victory Road triggers the Rival battle scene if SCENE_VICTORYROAD_RIVAL_BATTLE is active. The Rival appears at (18,13) and walks toward the player. After battle, SCENE_VICTORYROAD_NOOP is set to prevent retriggering. The approach movement differs based on which tile is stepped on."
+    },
+    {
+      "trigger": "scene_script",
+      "flag": "SCENE_VICTORYROAD_NOOP",
+      "description": "A no-op scene set after the Rival battle. Both VictoryRoadNoop1Scene and VictoryRoadNoop2Scene simply end immediately, used to prevent the Rival event from firing again on subsequent visits."
+    }
+  ],
+  "geography_notes": [
+    "Victory Road is the final obstacle before the Pokemon League challenge.",
+    "The cave is a single tall vertical map (10x36 blocks = 20x72 tiles) traversed bottom-to-top.",
+    "Entry is from Victory Road Gate at the south end (row 67). The gate is between Route 26 and Victory Road.",
+    "Exit is at the north end (row 5) to Route 23, which leads directly to Indigo Plateau.",
+    "The cave layout uses multiple internal warps to simulate winding, multi-level passages within a single map.",
+    "These internal warps at the western and eastern walls create the illusion of branching cave tunnels.",
+    "The Rival encounter is a mandatory story event near the top of the cave — it fires once per game.",
+    "The Rival's team is the most powerful seen so far: six Pokemon including a level 38 fully-evolved starter.",
+    "Wild Pokemon are all level 32-40 — among the strongest wild encounters in Johto.",
+    "Rhydon (level 35) is a standout encounter, available during morning and day only.",
+    "Night encounters lose Rhydon and Sandslash, replacing them with multiple levels of Graveler.",
+    "TM26 Earthquake is the most notable item — a top-tier Ground move useful for the Elite Four.",
+    "No water exists in Victory Road — no Surf or fishing encounters.",
+    "The cave uses the tileset $1d based on map_attributes data."
+  ],
+  "notes": "Victory Road is the final dungeon before the Pokemon League. It is a single large cave map navigated bottom-to-top. The cave features a mandatory Rival battle near the top — the fifth and final Rival encounter of the main story. Wild encounters are the strongest cave Pokemon in Johto: Graveler, Rhyhorn, Onix, Golbat, Sandslash, and Rhydon. Night encounters replace the Rock/Ground types with waves of high-level Graveler. TM26 Earthquake is buried here as a final gift before the Elite Four. The internal warp system creates a maze-like feel from a single map. No trainers besides the Rival appear in this area."
+}

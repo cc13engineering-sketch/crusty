@@ -1,0 +1,157 @@
+{
+  "area_id": "route_39_barn",
+  "area_name": "Route 39 Barn (Moomoo Farm)",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_39_BARN",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "route_39",
+      "target_warp_id": 1,
+      "notes": "Exit — left door back to Route 39"
+    },
+    {
+      "x": 4, "y": 7,
+      "target_area_id": "route_39",
+      "target_warp_id": 1,
+      "notes": "Exit — right door back to Route 39 (same warp target)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "A": "animal_npc",
+      "H": "hay/stall"
+    },
+    "rows": [
+      "########",
+      "########",
+      "##N.A.N##",
+      "##......##",
+      "########",
+      "########",
+      "########",
+      "###DD###"
+    ],
+    "notes": "Small barn interior. Two Twin NPC children (N) stand at (2,2) and (4,2), flanking Moomoo the Miltank (A) at center (3,2). The Miltank sprite uses SPRITE_TAUROS. Two exit door tiles at bottom row (3,7) and (4,7) both warp back to Route 39. There is no furniture or items visible in this room — its entire purpose is the Moomoo healing interaction."
+  },
+  "npcs": [
+    {
+      "id": "route39barn_twin1",
+      "name": "Twin (left)",
+      "sprite": "SPRITE_TWIN",
+      "x": 2, "y": 3,
+      "facing": "right",
+      "movement": "standing",
+      "object_const": "ROUTE39BARN_TWIN1",
+      "script_type": "script",
+      "dialogue": {
+        "before_heal": "MOOMOO is sick… She needs lots of BERRIES.",
+        "after_heal": "We're feeding MOOMOO!"
+      },
+      "notes": "After interaction, turns to face right (turnobject RIGHT). State conditional on EVENT_HEALED_MOOMOO."
+    },
+    {
+      "id": "route39barn_twin2",
+      "name": "Twin (right)",
+      "sprite": "SPRITE_TWIN",
+      "x": 4, "y": 3,
+      "facing": "left",
+      "movement": "standing",
+      "object_const": "ROUTE39BARN_TWIN2",
+      "sprite_palette": "PAL_NPC_GREEN",
+      "script_type": "script",
+      "dialogue": {
+        "before_heal": "MOOMOO is sick… She needs lots of BERRIES.",
+        "after_heal": "We're feeding MOOMOO!"
+      },
+      "notes": "After interaction, turns to face left (turnobject LEFT). State conditional on EVENT_HEALED_MOOMOO."
+    },
+    {
+      "id": "route39barn_moomoo",
+      "name": "Moomoo (Miltank)",
+      "sprite": "SPRITE_TAUROS",
+      "x": 3, "y": 3,
+      "facing": "random",
+      "movement": "pokemon_wander",
+      "object_const": "ROUTE39BARN_MOOMOO",
+      "script_type": "interactive_quest",
+      "notes": "Central quest NPC. Plays weak Miltank cry when sick. Berry-feeding interaction tracked by wMooMooBerries counter. Milestones at 3, 5, 7 Berries. At 7 Berries: MUSIC_HEAL plays, EVENT_HEALED_MOOMOO is set, Moomoo recovers fully. After healing, gives happy Miltank cry. Full dialogue state machine below.",
+      "berry_feeding_milestones": [
+        {
+          "count": 1,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": null
+        },
+        {
+          "count": 2,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": null
+        },
+        {
+          "count": 3,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": "MILTANK became a little healthier!"
+        },
+        {
+          "count": 4,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": null
+        },
+        {
+          "count": 5,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": "MILTANK became quite healthy!"
+        },
+        {
+          "count": 6,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": null
+        },
+        {
+          "count": 7,
+          "dialogue": "PLAYER gave a BERRY to MILTANK.",
+          "reaction": "MILTANK became totally healthy!",
+          "special": "Plays MUSIC_HEAL, sets EVENT_HEALED_MOOMOO, Moomoo fully recovers"
+        }
+      ],
+      "pre_farmer_talk_dialogue": "MILTANK: …Moo… (Its cry is weak…)",
+      "post_farmer_talk_prompts": [
+        "Give a BERRY to MILTANK?",
+        "YES: takes one Berry from bag",
+        "NO: PLAYER wouldn't give a BERRY. MILTANK looks sad.",
+        "NO_BERRIES: PLAYER has no BERRIES…"
+      ],
+      "happy_dialogue": "MILTANK: Mooo! (after healing)"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "moomoo_berry_feeding",
+      "description": "Feed Moomoo Berries one at a time. Tracker wMooMooBerries counts total Berries given. EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO must be set (from Farmhouse conversation) before Berry-giving prompt appears. At 7 total Berries, EVENT_HEALED_MOOMOO fires and Moomoo is fully healed. This unlocks Moomoo Milk for sale in the Farmhouse and TM13 Snore as a gift."
+    }
+  ],
+  "object_event_constants": {
+    "ROUTE39BARN_TWIN1": 0,
+    "ROUTE39BARN_TWIN2": 1,
+    "ROUTE39BARN_MOOMOO": 2
+  },
+  "notes": "The Barn is the core location of the Moomoo Farm sidequest. It is a 4x4 block (8x8 tile) building in the northwestern corner of Route 39. Two Twin NPC children flank Moomoo, a sick Miltank. The player must first speak to the Dairy Farmer in the adjacent Farmhouse to set EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO, then return here and feed Moomoo 7 Berries across multiple visits. Memory variable wMooMooBerries tracks progress. Completing the quest sets EVENT_HEALED_MOOMOO globally, enabling Moomoo Milk purchase (500 per bottle) and TM13 Snore reward from the farmhouse wife."
+}

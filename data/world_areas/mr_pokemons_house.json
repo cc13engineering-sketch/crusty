@@ -1,0 +1,194 @@
+{
+  "area_id": "mr_pokemons_house",
+  "area_name": "Mr. Pokemon's House",
+  "area_type": "building",
+  "pokecrystal_map_id": "MR_POKEMONS_HOUSE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "TILESET_FACILITY",
+  "music": "MUSIC_CHERRYGROVE_CITY",
+  "parent_area_id": "route_30",
+  "landmark": "LANDMARK_ROUTE_30",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2,
+      "y": 7,
+      "target_area_id": "route_30",
+      "target_warp_id": 2,
+      "note": "Left door tile — exits to Route 30 tile (17,5)"
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "target_area_id": "route_30",
+      "target_warp_id": 2,
+      "note": "Right door tile — same exit warp target (17,5) on Route 30"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "table",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "shelf/bookshelf",
+      "R": "rock",
+      "B": "bookcase/magazine",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat",
+      "C": "computer",
+      "K": "coins/collectibles",
+      "M": "magazine_pile"
+    },
+    "notes": [
+      "8 tiles wide x 8 tiles tall (4 blocks x 4 blocks)",
+      "Uses TILESET_FACILITY (not standard house tileset — reflects Mr. Pokemon's collector personality).",
+      "bg_events from MrPokemonsHouse.asm:",
+      "  Foreign magazines: tiles (0,1) and (1,1) — bookshelves packed with foreign magazines",
+      "  Broken computer: tiles (6,1) and (7,1) — 'It's a big computer. Hmm. It's broken.'",
+      "  Strange coins: tile (6,4) — 'A whole pile of strange coins! Maybe they're from another country...'",
+      "NPC Mr. Pokemon (Gentleman): tile (3,5) — faces right",
+      "NPC Prof. Oak: tile (6,5) — faces up, appears only during first visit scene (EVENT_MR_POKEMONS_HOUSE_OAK)",
+      "Warp exits at tiles (2,7) and (3,7) both lead to ROUTE_30 warp_id 2 (tile 17,5 on route)"
+    ],
+    "rows": [
+      "########",
+      "MMTTTTCC",
+      "........",
+      "........",
+      "......K.",
+      "...N..N.",
+      "........",
+      "..EE...#"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "mr_pokemon",
+      "name": "Mr. Pokemon",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 3,
+      "y": 5,
+      "facing": "right",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "key_story",
+      "dialogue_summary": "On first visit: excitedly greets player, gives Mystery Egg obtained from Pokemon Day-Care couple, explains it needs examining by Prof. Elm. After delivering the egg: says 'I'm depending on you!' Later game: if player has Red Scale from Lake of Rage red Gyarados, trades it for Exp. Share (given to him by Prof. Oak).",
+      "gives_item_first_visit": "MYSTERY_EGG",
+      "trades_item": {
+        "player_gives": "RED_SCALE",
+        "player_receives": "EXP_SHARE",
+        "condition": "Player must have RED_SCALE in bag"
+      }
+    },
+    {
+      "id": "prof_oak",
+      "name": "Prof. Oak",
+      "sprite": "SPRITE_OAK",
+      "x": 6,
+      "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "key_story",
+      "event_flag": "EVENT_MR_POKEMONS_HOUSE_OAK",
+      "dialogue_summary": "Appears only during the first-visit scene. Was visiting his old friend Mr. Pokemon. Identifies player as reliable after hearing from Elm. Gives player the Pokedex. Delivers a long speech about Pokemon research, then exits the building. After Oak leaves, Mr. Pokemon heals the player's party.",
+      "gives_item": "POKEDEX",
+      "scene_behavior": "Oak walks toward player (step DOWN, LEFT, LEFT), gives Pokedex speech, sets ENGINE_POKEDEX flag, then exits the building using MrPokemonsHouse_OakExits movement (DOWN, LEFT, turn_head DOWN, sleep 2). Uses SFX_ITEM and SFX_EXIT_BUILDING. Disappears via disappear opcode after exiting."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "interactables": [
+    {
+      "id": "foreign_magazines",
+      "x": 0,
+      "y": 1,
+      "type": "bg_event",
+      "description": "Bookshelf packed with foreign magazines — 'Can't even read their titles...'"
+    },
+    {
+      "id": "foreign_magazines_2",
+      "x": 1,
+      "y": 1,
+      "type": "bg_event",
+      "description": "Second magazine shelf — same foreign magazines text"
+    },
+    {
+      "id": "broken_computer",
+      "x": 6,
+      "y": 1,
+      "type": "bg_event",
+      "description": "'It's a big computer. Hmm. It's broken.' — reflects Mr. Pokemon's eccentric collector nature"
+    },
+    {
+      "id": "broken_computer_2",
+      "x": 7,
+      "y": 1,
+      "type": "bg_event",
+      "description": "Same broken computer interaction (second tile)"
+    },
+    {
+      "id": "strange_coins",
+      "x": 6,
+      "y": 4,
+      "type": "bg_event",
+      "description": "'A whole pile of strange coins! Maybe they're from another country...' — more collectible evidence"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "mons": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "scene_scripts": [
+    {
+      "scene_id": "SCENE_MRPOKEMONSHOUSE_MEET_MR_POKEMON",
+      "name": "MrPokemonsHouseMeetMrPokemonScene",
+      "description": "The initial visit scene. Deferred via sdefer to MrPokemonsHouseMrPokemonEventScript. Sequence: Mr. Pokemon greets player with emote, gives Mystery Egg, sets blackout point to Cherrygrove City, then Oak script takes over. Oak gives Pokedex, exits building, Mr. Pokemon heals party. Sets rival events and Elms Lab scene for next chapter.",
+      "sets_events": [
+        "EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON",
+        "ENGINE_POKEDEX",
+        "EVENT_RIVAL_NEW_BARK_TOWN",
+        "EVENT_PLAYERS_HOUSE_1F_NEIGHBOR",
+        "EVENT_TOTODILE_POKEBALL_IN_ELMS_LAB (or CHIKORITA/CYNDAQUIL variant based on player starter)"
+      ],
+      "clears_events": [
+        "EVENT_PLAYERS_NEIGHBORS_HOUSE_NEIGHBOR",
+        "EVENT_COP_IN_ELMS_LAB"
+      ],
+      "sets_map_scenes": [
+        "CHERRYGROVE_CITY -> SCENE_CHERRYGROVECITY_MEET_RIVAL",
+        "ELMS_LAB -> SCENE_ELMSLAB_MEET_OFFICER"
+      ],
+      "triggers_phone_call": "SPECIALCALL_ROBBED (Silver's theft from Elm's lab)"
+    },
+    {
+      "scene_id": "SCENE_MRPOKEMONSHOUSE_NOOP",
+      "name": "MrPokemonsHouseNoopScene",
+      "description": "Active after initial story scene. No automated events on map entry."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "first_visit",
+      "description": "Player receives Mystery Egg from Mr. Pokemon (obtained from the Pokemon Day-Care couple, believed to be an unusual Pokemon egg). Prof. Oak coincidentally visits and gives the player their Pokedex. Mr. Pokemon heals the party before the player returns. Sets in motion the Rival theft subplot and the transition into the main game structure."
+    },
+    {
+      "trigger": "post_lake_of_rage",
+      "description": "After player obtains Red Scale from the Lake of Rage red Gyarados, Mr. Pokemon will trade it for an Exp. Share (said to have been given to him by Prof. Oak). This is a mid-game optional return visit."
+    }
+  ],
+  "notes": "Mr. Pokemon's House is the destination of the player's first major errand — retrieving a mysterious Pokemon egg for Prof. Elm. The house has TILESET_FACILITY rather than the standard TILESET_HOUSE, giving it a more laboratory-like feel appropriate for an eccentric collector. The room is filled with foreign collectibles: international magazines, a broken computer, and strange foreign coins. Prof. Oak appears here for a plot-mandatory sequence where he gives the player their Pokedex. The house is in the northeast corner of Route 30 at tile (17,5). The blackout point is set to Cherrygrove City during this scene, so if the player faints after this point, they respawn there."
+}

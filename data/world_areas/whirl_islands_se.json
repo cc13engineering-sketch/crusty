@@ -1,0 +1,143 @@
+{
+  "area_id": "whirl_islands_se",
+  "area_name": "Whirl Islands (SE)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_SE",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "pokecrystal_attr_tileset_id": "$0f",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_41",
+      "offset": 0,
+      "requires": "HM06_Whirlpool",
+      "notes": "Accessible from Route 41 by using Whirlpool. warp_event 5,13 ROUTE_41 4."
+    }
+  ],
+  "warps": [
+    {
+      "x": 5,
+      "y": 13,
+      "target_area_id": "route_41",
+      "target_warp_id": 4,
+      "notes": "Exit to Route 41. warp_event 5,13 ROUTE_41 4."
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 6,
+      "notes": "Staircase descending to B1F (south entrance). warp_event 5,3 WHIRL_ISLAND_B1F 6."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "W": "whirlpool",
+      "v": "stairs_down",
+      "E": "cave_exit_to_route_41"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "#####v####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#####E####",
+      "##########",
+      "##########",
+      "##########",
+      "##########"
+    ],
+    "notes": "Schematic from warp coordinates in WhirlIslandSE.asm. 10x18 tiles. Only one staircase to B1F at (5,3). Exit to Route 41 at (5,13). The SE cave is the simplest entrance — a single corridor with one staircase and no internal connections to other entrance caves. No items. Actual block layout in maps/WhirlIslandSE.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Standard 7-slot cave encounter table. Same composition as other entrance caves. Tileset attr $0f (differs from NW/NE/SW which use $09). Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_SE lines 957-983.",
+      "morning": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 24, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 24, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter table defined for WHIRL_ISLAND_SE in johto_water.asm. No surfable pools present.",
+      "mons": []
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. No accessible fishing spots in this small entrance cave.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20 day and night"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40 day and night"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "entry_from_route_41",
+      "description": "Player must use HM06 Whirlpool to access this island from Route 41. The SE entrance is the simplest — only one staircase with no secondary connections.",
+      "requires": "HM06_Whirlpool, Glacier_Badge"
+    }
+  ],
+  "signs": [],
+  "notes": "Southeast entrance to the Whirl Islands complex. The simplest of the four entrance caves: 5 blocks wide (10 tiles), 9 blocks tall (18 tiles). Only one staircase at (5,3) leads to B1F, and the exit to Route 41 is at (5,13). No items, no trainers, no internal cross-cave passages. Tileset attribute $0f (same as Lugia Chamber) rather than $09 used by the other three entrances. Wild encounter table is identical in species to NW/NE/SW but Seel are absent from night slots (replaced by Golbat). Source: maps/WhirlIslandSE.asm, constants/map_constants.asm line 135, data/maps/attributes.asm line 448, data/wild/johto_grass.asm lines 957-983."
+}

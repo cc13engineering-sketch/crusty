@@ -1,0 +1,399 @@
+{
+  "area_id": "route_37",
+  "area_name": "Route 37",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_37",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_ROUTE_36",
+  "environment_type": "OUTDOOR",
+  "landmark": "LANDMARK_ROUTE_37",
+  "palette": "PALETTE_AUTO",
+  "fish_group": null,
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "ecruteak_city",
+      "pokecrystal_target": "ECRUTEAK_CITY",
+      "offset": -5,
+      "requires": null,
+      "notes": "North exit offset -5 — connects into Ecruteak City's southern edge"
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "offset": -10,
+      "requires": null,
+      "notes": "South exit offset -10 — reconnects to the western section of Route 36"
+    }
+  ],
+
+  "warps": [],
+
+  "signs": [
+    {
+      "bg_event_id": 0,
+      "x": 5,
+      "y": 3,
+      "script": "Route37Sign",
+      "text": "ROUTE 37"
+    }
+  ],
+
+  "hidden_items": [
+    {
+      "bg_event_id": 1,
+      "x": 4,
+      "y": 2,
+      "script": "Route37HiddenEther",
+      "item": "Ether",
+      "event_flag": "EVENT_ROUTE_37_HIDDEN_ETHER",
+      "notes": "Hidden Ether northwest of the route sign, near the Red Apricorn tree cluster."
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start",
+      "A": "apricorn_tree_red",
+      "a": "apricorn_tree_blue",
+      "b": "apricorn_tree_black"
+    },
+    "notes": "20 columns x 18 rows. X=0,Y=0 is top-left. North edge connects to Ecruteak City. South edge connects to Route 36. Three Apricorn trees: Red at (13,5), Blue at (16,5), Black at (15,7). Twins Ann & Anne are at (6,12) and (7,12) facing down — they use SPRITE_WEIRD_TREE for comedic/display reasons in pokecrystal but function as trainer sprites. Psychic Greg is at (6,6). Sunny (Sunday sibling) wanders near (16,8). Route sign at (5,3), hidden Ether at (4,2). Tall grass covers the central band of the route.",
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTT?TTTTTTTTTTTTTTT",
+      "TTTTTSTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTATTATT",
+      "GGGGGGGGGGGGGGGGTGTT",
+      "GGGGGGGGGGGGGGGNABTT",
+      "GGGGGGGGGGGGGGGGGNGTT",
+      "GGGGGGGGGGGGGGGGGGTT",
+      "GGGGGGGGGGGGGGGGGGTT",
+      "GGGGGGGGGGGGGGGGGGTT",
+      "GGGGNNGGGGGGGGGGGTT",
+      "GGGGGGGGGGGGGGGGGGTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_sunny",
+      "object_const": "ROUTE37_SUNNY",
+      "name": "Sunny (of Sunday)",
+      "sprite": "SPRITE_BUG_CATCHER",
+      "x": 16,
+      "y": 8,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "radius_x": 1,
+      "radius_y": 1,
+      "event_flag": "EVENT_ROUTE_37_SUNNY_OF_SUNDAY",
+      "script_type": "dialogue_item",
+      "dialogue_summary": "One of the 7 sibling NPCs — the youngest, Sunny, who appears only on Sundays. Gives the player a Magnet (boosts Electric-type moves) as a gift from her sister Monica. After giving the Magnet: lists all 7 siblings by name (Monica, Tuscany, Wesley, Arthur, Frieda, Santos, Sunny). If it is not Sunday she says she forgot what day it is.",
+      "schedule": "SUNDAY only",
+      "items_given": [
+        {
+          "name": "Magnet",
+          "event_flag": "EVENT_GOT_MAGNET_FROM_SUNNY",
+          "condition": "SUNDAY and first meeting"
+        }
+      ],
+      "callback": "Route37SunnyCallback",
+      "script": "SunnyScript"
+    },
+    {
+      "id": "npc_fruit_tree_1",
+      "object_const": "ROUTE37_FRUIT_TREE1",
+      "name": "Red Apricorn Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 13,
+      "y": 5,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "fruittree",
+      "dialogue_summary": "Daily Red Apricorn tree. Used by Kurt (Azalea Town) to make Love Balls.",
+      "fruittree_id": "FRUITTREE_ROUTE_37_1",
+      "apricorn_color": "Red",
+      "script": "Route37FruitTree1"
+    },
+    {
+      "id": "npc_fruit_tree_2",
+      "object_const": "ROUTE37_FRUIT_TREE2",
+      "name": "Blue Apricorn Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 16,
+      "y": 5,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "fruittree",
+      "dialogue_summary": "Daily Blue Apricorn tree. Used by Kurt to make Lure Balls (good for catching fishing Pokemon).",
+      "fruittree_id": "FRUITTREE_ROUTE_37_2",
+      "apricorn_color": "Blue",
+      "script": "Route37FruitTree2"
+    },
+    {
+      "id": "npc_fruit_tree_3",
+      "object_const": "ROUTE37_FRUIT_TREE3",
+      "name": "Black Apricorn Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 15,
+      "y": 7,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "fruittree",
+      "dialogue_summary": "Daily Black Apricorn tree. Used by Kurt to make Heavy Balls (effective on heavy Pokemon).",
+      "fruittree_id": "FRUITTREE_ROUTE_37_3",
+      "apricorn_color": "Black",
+      "script": "Route37FruitTree3"
+    }
+  ],
+
+  "trainers": [
+    {
+      "id": "trainer_twins_ann",
+      "object_const": "ROUTE37_WEIRD_TREE1",
+      "class": "Twins",
+      "name": "Ann",
+      "full_trainer_name": "Ann&Anne (part 1 of 2)",
+      "sprite": "SPRITE_WEIRD_TREE",
+      "palette": "PAL_NPC_RED",
+      "x": 6,
+      "y": 12,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_TWINS_ANN_AND_ANNE",
+      "team": [
+        {"species": "Clefairy",    "level": 16},
+        {"species": "Jigglypuff",  "level": 16}
+      ],
+      "prize_money": 320,
+      "rematch": false,
+      "seen_text": "ANN: ANNE and I are in this together!",
+      "beaten_text": "ANN & ANNE: Nnn… A little too strong.",
+      "after_battle_text": "ANN: I can tell what my sister and my Pokemon are thinking.",
+      "notes": "Twins battle — Ann initiates, then Anne follows (TrainerTwinsAnnandanne2). Both share the same event flag. Uses SPRITE_WEIRD_TREE sprite (probably a sprite enum quirk in Crystal's const ordering).",
+      "script": "TrainerTwinsAnnandanne1"
+    },
+    {
+      "id": "trainer_twins_anne",
+      "object_const": "ROUTE37_WEIRD_TREE2",
+      "class": "Twins",
+      "name": "Anne",
+      "full_trainer_name": "Ann&Anne (part 2 of 2)",
+      "sprite": "SPRITE_WEIRD_TREE",
+      "palette": "PAL_NPC_RED",
+      "x": 7,
+      "y": 12,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_TWINS_ANN_AND_ANNE",
+      "team": [
+        {"species": "Clefairy",    "level": 16},
+        {"species": "Jigglypuff",  "level": 16}
+      ],
+      "prize_money": 320,
+      "rematch": false,
+      "seen_text": "ANNE: ANN and I are in this together!",
+      "beaten_text": "ANN & ANNE: Nnn… A little too strong.",
+      "after_battle_text": "ANNE: We share the same feelings as our Pokemon.",
+      "notes": "Second half of the Twins double battle. Positioned one tile right of Ann at (7,12). Both share EVENT_BEAT_TWINS_ANN_AND_ANNE.",
+      "script": "TrainerTwinsAnnandanne2"
+    },
+    {
+      "id": "trainer_psychic_greg",
+      "object_const": "ROUTE37_YOUNGSTER",
+      "class": "Psychic",
+      "name": "Greg",
+      "sprite": "SPRITE_YOUNGSTER",
+      "palette": "PAL_NPC_BLUE",
+      "x": 6,
+      "y": 6,
+      "facing": "spin_random_fast",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_FAST",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_PSYCHIC_GREG",
+      "team": [
+        {"species": "Drowzee", "level": 17}
+      ],
+      "prize_money": 544,
+      "rematch": false,
+      "seen_text": "Pokemon can't do a thing if they are asleep. I'll show you how scary that is!",
+      "beaten_text": "I lost. That's pretty sad…",
+      "after_battle_text": "Putting Pokemon to sleep or paralyzing them are good battle techniques.",
+      "notes": "Uses SPRITEMOVEDATA_SPINRANDOM_FAST — spins in place rapidly. Stands in the northern tall grass zone.",
+      "script": "TrainerPsychicGreg"
+    }
+  ],
+
+  "items": [
+    {
+      "name": "Ether",
+      "x": 4,
+      "y": 2,
+      "hidden": true,
+      "event_flag": "EVENT_ROUTE_37_HIDDEN_ETHER",
+      "requires": null,
+      "notes": "Hidden item northwest of the route sign. Examine the ground tile."
+    },
+    {
+      "name": "Red Apricorn",
+      "x": 13,
+      "y": 5,
+      "hidden": false,
+      "source": "fruit_tree",
+      "fruittree_id": "FRUITTREE_ROUTE_37_1",
+      "requires": null,
+      "notes": "Daily Red Apricorn from the northwest fruit tree. Bring to Kurt in Azalea Town."
+    },
+    {
+      "name": "Blue Apricorn",
+      "x": 16,
+      "y": 5,
+      "hidden": false,
+      "source": "fruit_tree",
+      "fruittree_id": "FRUITTREE_ROUTE_37_2",
+      "requires": null,
+      "notes": "Daily Blue Apricorn from the northeast fruit tree."
+    },
+    {
+      "name": "Black Apricorn",
+      "x": 15,
+      "y": 7,
+      "hidden": false,
+      "source": "fruit_tree",
+      "fruittree_id": "FRUITTREE_ROUTE_37_3",
+      "requires": null,
+      "notes": "Daily Black Apricorn from the south-central fruit tree."
+    },
+    {
+      "name": "Magnet",
+      "x": 16,
+      "y": 8,
+      "hidden": false,
+      "source": "npc_gift",
+      "giver": "Sunny (of Sunday)",
+      "event_flag": "EVENT_GOT_MAGNET_FROM_SUNNY",
+      "requires": "SUNDAY weekday",
+      "notes": "Given by Sunny the Sunday sibling. Boosts Electric-type moves when held."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "notes": "Crystal encounter table. Slot probabilities (7 slots): 30%, 30%, 20%, 10%, 5%, 4%, 1%. Gold/Silver differs: Pidgey 60% (morn), Stantler 30%, Growlithe 10% (morn/day/night), Hoothoot 20%/Spinarak 40% (night), Pidgeotto 5% (day). Crystal has Ledyba/Ledian morning, Spinarak/Ariados at night.",
+      "morning": [
+        {"slot": 0, "species": "Ledyba",    "level": 13, "rate": 30},
+        {"slot": 1, "species": "Growlithe",  "level": 14, "rate": 30},
+        {"slot": 2, "species": "Pidgey",     "level": 15, "rate": 20},
+        {"slot": 3, "species": "Growlithe",  "level": 16, "rate": 10},
+        {"slot": 4, "species": "Pidgeotto",  "level": 15, "rate":  5},
+        {"slot": 5, "species": "Ledian",     "level": 15, "rate":  4},
+        {"slot": 6, "species": "Ledian",     "level": 15, "rate":  1}
+      ],
+      "day": [
+        {"slot": 0, "species": "Pidgey",     "level": 13, "rate": 30},
+        {"slot": 1, "species": "Growlithe",  "level": 14, "rate": 30},
+        {"slot": 2, "species": "Pidgey",     "level": 15, "rate": 20},
+        {"slot": 3, "species": "Growlithe",  "level": 16, "rate": 10},
+        {"slot": 4, "species": "Pidgeotto",  "level": 15, "rate":  5},
+        {"slot": 5, "species": "Pidgey",     "level": 15, "rate":  4},
+        {"slot": 6, "species": "Pidgey",     "level": 15, "rate":  1}
+      ],
+      "night": [
+        {"slot": 0, "species": "Spinarak",   "level": 13, "rate": 30},
+        {"slot": 1, "species": "Stantler",   "level": 14, "rate": 30},
+        {"slot": 2, "species": "Hoothoot",   "level": 15, "rate": 20},
+        {"slot": 3, "species": "Stantler",   "level": 16, "rate": 10},
+        {"slot": 4, "species": "Noctowl",    "level": 15, "rate":  5},
+        {"slot": 5, "species": "Ariados",    "level": 15, "rate":  4},
+        {"slot": 6, "species": "Ariados",    "level": 15, "rate":  1}
+      ],
+      "gold_silver_note": "Gold/Silver: Pidgey 60% morn, 50% day; Pidgeotto 5% day; Stantler 30% all times; Growlithe 10% morn, 15% day, 10% night; Hoothoot 20% night; Spinarak 40% night. Levels 13-16. The Crystal data replaces Pidgey dominance with Ledyba/Ledian (morning) and Ariados (night)."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water tiles on Route 37. No Surf encounters."
+    },
+    "fishing": {
+      "notes": "No fishing spots on Route 37.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "transit_south_to_north",
+      "description": "Player passes through Route 37 traveling from Route 36 toward Ecruteak City. The route is short (10 blocks wide) and acts primarily as a transition zone. Twins Ann & Anne block a narrow portion of the central tall grass path.",
+      "notes": "Accessible only after Sudowoodo is cleared from Route 36."
+    },
+    {
+      "order": 2,
+      "trigger": "apricorn_collection",
+      "description": "Three Apricorn trees are clustered in the northeast: Red (13,5), Blue (16,5), Black (15,7). Each yields one Apricorn per day. Bring to Kurt in Azalea Town for special Poke Balls.",
+      "items_available": ["Red Apricorn", "Blue Apricorn", "Black Apricorn"]
+    },
+    {
+      "order": 3,
+      "trigger": "sunday_visit",
+      "description": "On Sundays, Sunny (the youngest of 7 siblings) appears at (16,8) and wanders near the apricorn trees. She gives the player a Magnet on first Sunday meeting, saying her sister Monica told her to give it to the player.",
+      "flags_set": ["EVENT_GOT_MAGNET_FROM_SUNNY", "EVENT_MET_SUNNY_OF_SUNDAY"],
+      "items_given": ["Magnet"],
+      "version": "All versions (Crystal schedule behavior)"
+    }
+  ],
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route37SunnyCallback",
+      "notes": "On map load: checks day of week. If SUNDAY, Sunny appears (ROUTE37_SUNNY). Otherwise, Sunny is hidden. Standard weekday sibling callback pattern."
+    }
+  ],
+
+  "notes": "Route 37 is a short north-south route (10 blocks / 20 tiles wide) connecting Route 36 to Ecruteak City. It is heavily forested with tall grass covering most of the central map area. The route's main features are: (1) three Apricorn trees clustered in the northeast corner — Red, Blue, and Black — each producing one fruit per day for Kurt's special Poke Balls; (2) Twins Ann & Anne positioned side-by-side at (6,12) and (7,12), a double battle using Clefairy and Jigglypuff; (3) Psychic Greg spinning at (6,6) with a Drowzee; (4) Sunny (Sunday sibling) wandering at (16,8) on Sundays who gives a Magnet; (5) a hidden Ether at (4,2) northwest of the route sign. The route's connection offsets (-5 north, -10 south) reflect the narrow width relative to the wider routes it bridges. In Gold/Silver the grass encounters are Pidgey-heavy with Stantler and Growlithe, plus Hoothoot/Spinarak at night. Crystal replaces morning Pidgey with Ledyba/Ledian and night Spinarak with Ariados."
+}

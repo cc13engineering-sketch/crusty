@@ -1,0 +1,282 @@
+{
+  "area_id": "ruins_of_alph_outside",
+  "area_name": "Ruins of Alph (Outside)",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_OUTSIDE",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "ruins",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_36",
+      "offset": 0,
+      "requires": null,
+      "note": "Via Route 36 Ruins of Alph Gate"
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_32",
+      "offset": 0,
+      "requires": null,
+      "note": "Via Route 32 Ruins of Alph Gate"
+    }
+  ],
+  "warps": [
+    {
+      "x": 2, "y": 17,
+      "target_area_id": "ruins_of_alph_ho_oh_chamber",
+      "target_warp_id": 1,
+      "note": "North-west chamber entrance — Ho-Oh puzzle"
+    },
+    {
+      "x": 14, "y": 7,
+      "target_area_id": "ruins_of_alph_kabuto_chamber",
+      "target_warp_id": 1,
+      "note": "North-east chamber entrance — Kabuto puzzle"
+    },
+    {
+      "x": 2, "y": 29,
+      "target_area_id": "ruins_of_alph_omanyte_chamber",
+      "target_warp_id": 1,
+      "note": "South-west chamber entrance — Omanyte puzzle"
+    },
+    {
+      "x": 16, "y": 33,
+      "target_area_id": "ruins_of_alph_aerodactyl_chamber",
+      "target_warp_id": 1,
+      "note": "South-east chamber entrance — Aerodactyl puzzle"
+    },
+    {
+      "x": 10, "y": 13,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 1,
+      "note": "Central cave mouth to Inner Chamber"
+    },
+    {
+      "x": 17, "y": 11,
+      "target_area_id": "ruins_of_alph_research_center",
+      "target_warp_id": 1,
+      "note": "Research Center front door"
+    },
+    {
+      "x": 6, "y": 19,
+      "target_area_id": "union_cave_b1f",
+      "target_warp_id": 1,
+      "note": "North Union Cave shortcut entrance"
+    },
+    {
+      "x": 6, "y": 27,
+      "target_area_id": "union_cave_b1f",
+      "target_warp_id": 2,
+      "note": "South Union Cave shortcut entrance"
+    },
+    {
+      "x": 7, "y": 5,
+      "target_area_id": "route_36_ruins_of_alph_gate",
+      "target_warp_id": 3,
+      "note": "Route 36 gate (north exit)"
+    },
+    {
+      "x": 13, "y": 20,
+      "target_area_id": "route_32_ruins_of_alph_gate",
+      "target_warp_id": 1,
+      "note": "Route 32 gate left door (east exit)"
+    },
+    {
+      "x": 13, "y": 21,
+      "target_area_id": "route_32_ruins_of_alph_gate",
+      "target_warp_id": 2,
+      "note": "Route 32 gate right door (east exit)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "G": "tall_grass",
+      "C": "cave_entrance",
+      "D": "door",
+      "R": "ruins_wall",
+      "S": "sign",
+      "N": "npc_position",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "##GGGGGGGGGGGGGG####",
+      "##GG............####",
+      "##GG....SSSS....####",
+      "##GG....SSSS....####",
+      "##GG....EEEE....####",
+      "##GG....RRRRCC..####",
+      "##GG....RRRRCC..####",
+      "##GG....SSSS....####",
+      "##GG....SSSS....####",
+      "##GG....DDDD....####",
+      "##GG....CCCC....####",
+      "##GG....EEEE....####",
+      "##GG............####",
+      "##GG............####",
+      "##EE............####",
+      "##CC............####",
+      "##..............####",
+      "##..............####",
+      "##GG............####",
+      "##GG............####",
+      "##GG............####",
+      "##GG............####",
+      "##GG............####",
+      "##GG....GGGG....####",
+      "##EE....GGGG....####",
+      "##CC....GGGG....####",
+      "##..............####",
+      "##..............####",
+      "##..............####",
+      "##..............####",
+      "##......CCCC....####",
+      "##......EEEE....####",
+      "####################"
+    ],
+    "notes": "Schematic approximation. Tile layout represents the 10x18 block map (20x36 tiles). Water patches (~) exist in the interior near Union Cave entrances. Tall grass strips border the west and south areas."
+  },
+  "npcs": [
+    {
+      "id": "npc_psychic_nathan",
+      "name": "Psychic Nathan",
+      "x": 4, "y": 20,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "trainer",
+      "dialogue_summary": "Trainer battle. Seen: 'Hmmm… This is a strange place.' After: 'I like thinking here.'"
+    },
+    {
+      "id": "npc_scientist",
+      "name": "Scientist",
+      "x": 11, "y": 15,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Appears only after EVENT_MADE_UNOWN_APPEAR_IN_RUINS and player has 3+ Unown caught. Leads player to Research Center and upgrades Pokedex with Unown Dex."
+    },
+    {
+      "id": "npc_fisher",
+      "name": "Fisher",
+      "x": 13, "y": 17,
+      "facing": "spin_random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "First time: 'While exploring the RUINS, we suddenly noticed an odd presence. We all got scared and ran away. You should be careful too.' Repeat: 'The RUINS hide a huge secret!'"
+    },
+    {
+      "id": "npc_youngster1",
+      "name": "Youngster",
+      "x": 14, "y": 11,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "'There are many kinds of UNOWN, so we use them for our secret codes.'"
+    },
+    {
+      "id": "npc_youngster2",
+      "name": "Youngster",
+      "x": 12, "y": 8,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "'A… H… E… A… D… Hmm… What? I'm decoding this message!' (Turns Youngster3 north when spoken to.)"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Psychic",
+      "name": "Nathan",
+      "x": 4, "y": 20,
+      "facing": "down",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Haunter", "level": 22},
+        {"species": "Jynx", "level": 24}
+      ],
+      "prize_money": 768,
+      "rematch": false,
+      "note": "Actual team sourced from pokecrystal trainers data. Nathan is a Psychic trainer."
+    }
+  ],
+  "items": [],
+  "signs": [
+    {
+      "x": 16, "y": 8,
+      "text": "MYSTERY STONE PANEL CHAMBER"
+    },
+    {
+      "x": 12, "y": 16,
+      "text": "RUINS OF ALPH VISITORS WELCOME"
+    },
+    {
+      "x": 18, "y": 12,
+      "text": "RUINS OF ALPH RESEARCH CENTER — THE AUTHORITY ON THE RUINS OF ALPH"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 4,
+      "morning": [
+        {"species": "Natu", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Natu", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Natu", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Natu", "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Smeargle", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Smeargle", "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Smeargle", "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "day": [
+        {"species": "Natu", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Natu", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Natu", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Natu", "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Smeargle", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Smeargle", "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Smeargle", "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "night": [
+        {"species": "Natu", "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Natu", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Natu", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Natu", "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Wooper", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Quagsire", "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Quagsire", "level_min": 22, "level_max": 22, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "mons": [
+        {"species": "Wooper", "level_min": 15, "level_max": 15},
+        {"species": "Quagsire", "level_min": 20, "level_max": 20},
+        {"species": "Quagsire", "level_min": 15, "level_max": 15}
+      ]
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "scene_get_unown_dex",
+      "description": "After the player has caught 3+ Unown (EVENT_MADE_UNOWN_APPEAR_IN_RUINS set), a Scientist appears at (11,15). When the player steps on coord (11,14) or (10,15), the scientist walks to the Research Center and the player is automatically warped in to receive the Unown Dex upgrade."
+    },
+    {
+      "trigger": "coord_event_scientist_approach",
+      "description": "Two coord events at (11,14) and (10,15) trigger the scientist walk sequence only during SCENE_RUINSOFALPHOUTSIDE_GET_UNOWN_DEX."
+    }
+  ],
+  "notes": "The Ruins of Alph Outside serves as the hub for all Ruins sub-areas. It connects to four puzzle chambers (Ho-Oh NW, Kabuto NE, Omanyte SW, Aerodactyl SE), the Inner Chamber via a central cave, the Research Center, two Union Cave B1F shortcuts, and gates to Route 32 (east) and Route 36 (north). Water patches near the Union Cave entrances (center-west) support Surf encounters. Grass encounter rate is only 4% — among the lowest outdoor rates. The Ruins are approximately 1500 years old; no one knows who built them or why."
+}

@@ -1,0 +1,105 @@
+{
+  "area_id": "olivine_cafe",
+  "area_name": "Olivine Cafe",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_CAFE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 7,
+      "notes": "Left exit tile back to Olivine City"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "olivine_city",
+      "target_warp_id": 7,
+      "notes": "Right exit tile back to Olivine City"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall",
+      "T": "table",
+      "C": "counter",
+      "N": "npc_position",
+      "E": "exit_mat",
+      "D": "door"
+    },
+    "rows": [
+      "########",
+      "##N..N##",
+      "##TTTT##",
+      "##N.N.##",
+      "##TTTT##",
+      "##....##",
+      "##....N#",
+      "###EE###"
+    ],
+    "notes": "Small diner interior. Three NPCs: Strength Sailor at table left (x=4, y=3), Fishing Guru walking along right column (x=7, y=3 walk_up_down), Sailor at table near exit (x=6, y=6). Tables occupy y=2 and y=4 rows. Exit mats at y=7 x=2 and x=3."
+  },
+  "npcs": [
+    {
+      "id": "olivinecafe_strength_sailor",
+      "name": "Sailor",
+      "x": 4, "y": 3,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "item_giver",
+      "gives_item": "HM04 Strength",
+      "event_flag": "EVENT_GOT_HM04_STRENGTH",
+      "dialogue_before": "Hah! Your POKEMON sure look like lightweights! They don't have the power to move boulders aside. Here, use this and teach them STRENGTH!",
+      "dialogue_after": "On the sea, the only thing you can count on is your own good self! I'm so proud of my buff bod!",
+      "notes": "Gives HM04 Strength on first interaction. Checks EVENT_GOT_HM04_STRENGTH to prevent duplicate. After giving it, always shows the post-give dialogue on subsequent visits."
+    },
+    {
+      "id": "olivinecafe_fishing_guru",
+      "name": "Fishing Guru",
+      "x": 7, "y": 3,
+      "facing": "down",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "dialogue_summary": "OLIVINE CAFE's menu is chock full of hearty fare for beefy SAILORS!"
+    },
+    {
+      "id": "olivinecafe_sailor",
+      "name": "Sailor",
+      "x": 6, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Whenever I roll into this town, I always visit the OLIVINE CAFE. Everything on the menu makes me feel stronger. I can't stop eating!"
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "HM04 Strength",
+      "x": 4, "y": 3,
+      "hidden": false,
+      "source": "npc_gift",
+      "requires": null,
+      "event_flag": "EVENT_GOT_HM04_STRENGTH",
+      "notes": "Obtained from the Strength Sailor NPC. No battle or puzzle required — simply talk to him."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "first_visit",
+      "description": "Strength Sailor gives the player HM04 Strength immediately upon talking to him. No prerequisite event flags required — available from the moment the player enters Olivine City."
+    }
+  ],
+  "notes": "Olivine Cafe is a small four-by-four block diner located at city warp index 7 (x=7, y=21 in Olivine City). It is notable as the only location to obtain HM04 Strength in Johto, given freely by a sailor inside. The Fishing Guru NPC is flavor-only. Map constants: OLIVINECAFE_SAILOR1=0 (Strength Sailor), OLIVINECAFE_FISHING_GURU=1, OLIVINECAFE_SAILOR2=2."
+}

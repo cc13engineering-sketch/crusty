@@ -1,0 +1,235 @@
+{
+  "area_id": "radio_tower_4f",
+  "area_name": "Goldenrod Radio Tower 4F",
+  "area_type": "building",
+  "pokecrystal_map_id": "RADIO_TOWER_4F",
+  "width_blocks": 9,
+  "height_blocks": 4,
+  "width_tiles": 18,
+  "height_tiles": 8,
+  "tileset": "radio_tower",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 0,
+      "target_area_id": "radio_tower_5f",
+      "target_warp_id": 1,
+      "note": "Stairs up to 5F (left side staircase)"
+    },
+    {
+      "x": 9, "y": 0,
+      "target_area_id": "radio_tower_3f",
+      "target_warp_id": 2,
+      "note": "Stairs down to 3F (center-left staircase)"
+    },
+    {
+      "x": 12, "y": 0,
+      "target_area_id": "radio_tower_5f",
+      "target_warp_id": 2,
+      "note": "Stairs up to 5F (center-right staircase)"
+    },
+    {
+      "x": 17, "y": 0,
+      "target_area_id": "radio_tower_3f",
+      "target_warp_id": 3,
+      "note": "Stairs down to 3F (right side staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "S": "sign/bg_event",
+      "^": "stairs_up",
+      "v": "stairs_down"
+    },
+    "rows": [
+      "^....S...^..^...Sv.",
+      "##.................",
+      "##...N.............",
+      "##.................",
+      "##..N.........N....",
+      "##.................",
+      "##.....N.......N...",
+      "##...........N....."
+    ],
+    "notes": "Stairs up to 5F at (0,0) and (12,0). Stairs down to 3F at (9,0) and (17,0). Production sign at (7,0). Studio 2 sign at (15,0). Fisher at (6,4) faces up (post-Rocket). DJ Mary at (14,6) spins random slow. Meowth at (12,7). Executive Proton at (14,1) faces left (Rocket takeover). Grunt M10 at (5,6) spins clockwise (Rocket takeover). Grunt F4 at (12,4) faces right (Rocket takeover). Scientist Rich at (4,2) faces left (Rocket takeover)."
+  },
+  "bg_events": [
+    {
+      "x": 7, "y": 0,
+      "type": "read",
+      "text": "4F PRODUCTION",
+      "label": "RadioTower4FProductionSign"
+    },
+    {
+      "x": 15, "y": 0,
+      "type": "read",
+      "text": "4F STUDIO 2",
+      "label": "RadioTower4FStudio2Sign"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "fisher",
+      "name": "Fisher",
+      "sprite": "SPRITE_FISHER",
+      "x": 6, "y": 4,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "post_rocket",
+      "event_flag": "EVENT_RADIO_TOWER_CIVILIANS_AFTER",
+      "dialogue_summary": "I listened to the radio while I was at the RUINS. I heard a strange broadcast there."
+    },
+    {
+      "id": "dj_mary",
+      "name": "DJ Mary",
+      "sprite": "SPRITE_TEACHER",
+      "x": 14, "y": 6,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary_during_rockets": "MARY: Why? Why do I have to suffer through this? MEOWTH, help me!",
+      "dialogue_summary_just_cleared": "MARY: Oh! You're my little savior! Will you take this as my thanks? (gives PINK BOW)",
+      "dialogue_summary_got_pink_bow": "MARY: It's just right for Pokemon that know Normal-type moves.",
+      "dialogue_summary_after": "MARY: Please tune into me on PROF. OAK'S Pokemon TALK show.",
+      "reward": "Pink Bow",
+      "reward_flag": "EVENT_GOT_PINK_BOW_FROM_MARY",
+      "reward_trigger": "EVENT_CLEARED_RADIO_TOWER"
+    },
+    {
+      "id": "meowth",
+      "name": "Meowth",
+      "sprite": "SPRITE_GROWLITHE",
+      "x": 12, "y": 7,
+      "facing": "down",
+      "movement": "pokemon",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary": "MEOWTH: Meowth... (plays Meowth cry)",
+      "note": "Sprite is SPRITE_GROWLITHE in the source but represents DJ Mary's Meowth companion"
+    }
+  ],
+  "trainers": [
+    {
+      "id": "rocket_grunt_m10",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_10",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 5, "y": 6,
+      "facing": "down",
+      "movement": "spin_clockwise",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_10",
+      "team": [
+        {"species": "Zubat", "level": 22},
+        {"species": "Golbat", "level": 24},
+        {"species": "Grimer", "level": 22}
+      ],
+      "seen_text": "You plan to rescue the DIRECTOR? That won't be possible because I'm going to beat you!",
+      "beaten_text": "No! Unbelievable!",
+      "after_battle_text": "I don't believe it! I was beaten!"
+    },
+    {
+      "id": "executive_proton",
+      "class": "Executive (Male)",
+      "trainer_id": "EXECUTIVEM_2",
+      "name": "Executive Proton",
+      "sprite": "SPRITE_ROCKET",
+      "x": 14, "y": 1,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_EXECUTIVEM_2",
+      "team": [
+        {"species": "Golbat", "level": 36, "moves": ["Leech Life", "Bite", "Confuse Ray", "Wing Attack"]}
+      ],
+      "seen_text": "Stop! I'm known as the TEAM ROCKET fortress! You're not taking another step!",
+      "beaten_text": "The fortress came down!",
+      "after_battle_text": "You've earned my respect, so here's some advice. It's not too late. You can still turn back.",
+      "note": "Executive Proton is the second Rocket Executive encountered. Guards the route to 5F."
+    },
+    {
+      "id": "rocket_grunt_f4",
+      "class": "Grunt (Female)",
+      "trainer_id": "GRUNTF_4",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET_GIRL",
+      "x": 12, "y": 4,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTF_4",
+      "team": [
+        {"species": "Ekans", "level": 21},
+        {"species": "Oddish", "level": 23},
+        {"species": "Ekans", "level": 21},
+        {"species": "Gloom", "level": 24}
+      ],
+      "seen_text": "Don't I think Pokemon are cute? I'll think my Pokemon are cute -- after they beat yours!",
+      "beaten_text": "Oh, no! They're so useless!",
+      "after_battle_text": "I love my beautiful self! Who cares about Pokemon?"
+    },
+    {
+      "id": "scientist_rich",
+      "class": "Scientist",
+      "trainer_id": "SCIENTIST_RICH",
+      "name": "Rich",
+      "sprite": "SPRITE_SCIENTIST",
+      "x": 4, "y": 2,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_SCIENTIST_RICH",
+      "team": [
+        {"species": "Porygon", "level": 30, "moves": ["Conversion", "Conversion 2", "Recover", "Tri Attack"]}
+      ],
+      "seen_text": "Most excellent. This RADIO TOWER will fulfill our grand design.",
+      "beaten_text": "Hmmm... All grand plans come with snags.",
+      "after_battle_text": "Do you honestly believe you can stop TEAM ROCKET?"
+    }
+  ],
+  "items": [],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "engine_rockets_in_radio_tower",
+      "description": "Executive Proton appears at (14,1) guarding the left staircase to 5F. Grunt M10, Grunt F4, and Scientist Rich fill the floor. DJ Mary is trapped and distressed. Fisher civilian is hidden."
+    },
+    {
+      "trigger": "event_cleared_radio_tower",
+      "description": "All Rockets gone. DJ Mary rewards player with Pink Bow on first post-clear visit (EVENT_GOT_PINK_BOW_FROM_MARY). Fisher civilian returns."
+    }
+  ],
+  "special_mechanics": {
+    "dj_mary_pink_bow": {
+      "item": "Pink Bow",
+      "giver": "DJ Mary",
+      "trigger": "EVENT_CLEARED_RADIO_TOWER",
+      "flag": "EVENT_GOT_PINK_BOW_FROM_MARY",
+      "description": "After Rockets are cleared, DJ Mary gives the Pink Bow as thanks. Item boosts Normal-type moves when held by a Pokemon."
+    },
+    "executive_proton": {
+      "role": "Team Rocket Executive (2nd encountered in Radio Tower arc)",
+      "position": "Guards left staircase to 5F at (14,1)",
+      "post_battle": "Gives grudging respect, warns player they can still turn back",
+      "team_note": "Single Golbat at level 36 with offensive moves — Leech Life, Bite, Confuse Ray, Wing Attack"
+    }
+  },
+  "floor_purpose": "Production — DJ Mary's studio, Executive Proton boss fight",
+  "notes": "4F is the Production floor with two broadcast studios. It has four staircases: two going up to 5F (at x=0 and x=12) and two going down to 3F (at x=9 and x=17). DJ Mary is always present; during the Rocket takeover she is distressed and trapped, but after the tower is cleared she rewards the player with the Pink Bow held item. A Meowth (DJ Mary's companion) wanders near her studio area. During the Rocket takeover, four enemy trainers are stationed across the floor including Executive Proton (the named Rocket Executive) who blocks the left staircase with a level 36 Golbat. Scientist Rich near the right side has a Porygon with special moves."
+}

@@ -1,0 +1,209 @@
+{
+  "area_id": "tin_tower_entrance",
+  "area_name": "Ecruteak Tin Tower Entrance",
+  "area_type": "building",
+  "pokecrystal_map_id": "ECRUTEAK_TIN_TOWER_ENTRANCE",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "pokecenter",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 17,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 3,
+      "note": "south exit left tile to Ecruteak City"
+    },
+    {
+      "x": 5, "y": 17,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 3,
+      "note": "south exit right tile to Ecruteak City"
+    },
+    {
+      "x": 5, "y": 3,
+      "target_area_id": "ecruteak_tin_tower_entrance",
+      "target_warp_id": 4,
+      "note": "internal staircase up (warp_id 3 landing point)"
+    },
+    {
+      "x": 17, "y": 15,
+      "target_area_id": "ecruteak_tin_tower_entrance",
+      "target_warp_id": 3,
+      "note": "internal staircase down (warp_id 4 landing point)"
+    },
+    {
+      "x": 17, "y": 3,
+      "target_area_id": "wise_trios_room",
+      "target_warp_id": 3,
+      "note": "Upper floor north door leads to Wise Trio's Room"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "N": "npc_position",
+      "X": "blocked_by_sage (conditional)",
+      "S": "sage_blocking_position (conditional)"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles.",
+      "The building has two levels connected by interior stairs.",
+      "Lower level (south): entry from city at (4-5, 17). NPCs and intro area.",
+      "Upper level (north): access to Tin Tower exterior and Wise Trio's Room.",
+      "The two sage gatekeepers stand at (4,6) and (5,6) blocking the north path.",
+      "They are conditional: visible when EVENT_RANG_CLEAR_BELL_1 or EVENT_RANG_CLEAR_BELL_2 is NOT set.",
+      "Coord events at (4,7) and (5,7) trigger the sage-blocks-passage animations.",
+      "A wandering sage (6,9) and wandering gramps (3,11) appear when EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE is set.",
+      "Warp_id 3 at (5,3) is the lower stairs — deposits player at warp_id 4 landing at (17,15).",
+      "Warp_id 5 at (17,3) leads to Wise Trio's Room.",
+      "After Fog Badge: sages allow passage with dialogue. After Radio Tower cleared: require Clear Bell."
+    ],
+    "rows": [
+      "####################",
+      "##..................",
+      "##..................",
+      "##....^.............",
+      "##..................",
+      "##..................",
+      "####SS..............",
+      "####..N.............",
+      "##..................",
+      "##......N...........",
+      "##..................",
+      "##..N...............",
+      "##..................",
+      "##..................",
+      "##..................",
+      "#################v..",
+      "##..................",
+      "####EE##############"
+    ]
+  },
+  "sage_gate_mechanics": {
+    "description": "Two sages guard the north passage to the Tin Tower. Their behavior changes based on story progression.",
+    "states": [
+      {
+        "condition": "No Fog Badge",
+        "sage_behavior": "Blocks passage. 'TIN TOWER is off limits to anyone without ECRUTEAK GYM's BADGE. Sorry, but you'll have to leave.'"
+      },
+      {
+        "condition": "Has Fog Badge, Radio Tower NOT cleared",
+        "sage_behavior": "Allows passage. 'TIN TOWER is off limits... Ah! ECRUTEAK's GYM BADGE! Please, go right through.'"
+      },
+      {
+        "condition": "Radio Tower cleared, no Clear Bell",
+        "sage_behavior": "SCENE_ECRUTEAKTINTOWERENTRANCE_SAGE_BLOCKS triggers. Sages physically move to block path via coord events at (4,7) and (5,7). Sage dialogue: 'A momentous event has occurred. I beg your pardon, but I must ask you to leave. ...What soothes the soul...'"
+      },
+      {
+        "condition": "Radio Tower cleared, has Clear Bell",
+        "sage_behavior": "Player rings Clear Bell. Sage is moved by the sound: 'The sound of that CLEAR BELL! It... It's sublime! That bell's chime is indicative of the bearer's soul. You may be able to make it through TIN TOWER. Please, do go on.' EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 set."
+      },
+      {
+        "condition": "EVENT_KOJI_ALLOWS_YOU_PASSAGE set OR EVENT_FOUGHT_SUICUNE set",
+        "sage_behavior": "EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE cleared — sages disappear from gate. Free passage to Tin Tower."
+      }
+    ],
+    "coord_events": [
+      {
+        "x": 4, "y": 7,
+        "scene": "SCENE_ECRUTEAKTINTOWERENTRANCE_SAGE_BLOCKS",
+        "script": "EcruteakTinTowerEntranceSageBlocksLeft",
+        "description": "Sage 2 does big_step LEFT, Sage 1 moves to (4,6) and appears, Sage 2 disappears."
+      },
+      {
+        "x": 5, "y": 7,
+        "scene": "SCENE_ECRUTEAKTINTOWERENTRANCE_SAGE_BLOCKS",
+        "script": "EcruteakTinTowerEntranceSageBlocksRight",
+        "description": "Sage 1 does big_step RIGHT, Sage 2 moves to (5,6) and appears, Sage 1 disappears."
+      }
+    ]
+  },
+  "npcs": [
+    {
+      "id": "sage_1",
+      "name": "Sage Gatekeeper 1",
+      "x": 4, "y": 6,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RANG_CLEAR_BELL_1",
+      "conditional": true,
+      "note": "Visible when EVENT_RANG_CLEAR_BELL_1 is NOT set (i.e., gate not yet rung or cleared). Shares script EcruteakTinTowerEntranceSageScript.",
+      "dialogue_summary": "Guards left side of north gate. Dialogue varies by story state: no badge, has badge, Radio Tower cleared / no Clear Bell, has Clear Bell."
+    },
+    {
+      "id": "sage_2",
+      "name": "Sage Gatekeeper 2",
+      "x": 5, "y": 6,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RANG_CLEAR_BELL_2",
+      "conditional": true,
+      "note": "Visible when EVENT_RANG_CLEAR_BELL_2 is NOT set. Shares script EcruteakTinTowerEntranceSageScript.",
+      "dialogue_summary": "Guards right side of north gate. Same conditional dialogue as Sage 1."
+    },
+    {
+      "id": "wandering_sage",
+      "name": "Wandering Sage",
+      "x": 6, "y": 9,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE",
+      "conditional": true,
+      "note": "Appears only when EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE is set (during Radio Tower crisis). Disappears once passage is granted.",
+      "dialogue_summary": "Before Clear Bell: 'The TIN TOWER ahead is a nine-tier tower of divine beauty. It soothes the soul of all who see it.' After player has Clear Bell: 'The TIN TOWER shook! A Pokemon must have returned to the top!'"
+    },
+    {
+      "id": "gramps",
+      "name": "Gramps",
+      "x": 3, "y": 11,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE",
+      "conditional": true,
+      "note": "Appears alongside wandering sage. Disappears once passage is granted.",
+      "dialogue_summary": "Two towers... Two Pokemon... But when one burned down, both Pokemon flew away, never to return."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "enter_with_fog_badge_no_radio_tower",
+      "description": "Sages at (4,6) and (5,6) allow passage north to Tin Tower exterior."
+    },
+    {
+      "trigger": "radio_tower_cleared_no_clear_bell",
+      "description": "SCENE_ECRUTEAKTINTOWERENTRANCE_SAGE_BLOCKS active. Sages physically block gate via coord event animation. Player is directed to find what soothes the soul (Clear Bell)."
+    },
+    {
+      "trigger": "show_clear_bell",
+      "description": "Sage hears Clear Bell chime, grants passage. Sets EVENT_RANG_CLEAR_BELL_2, clears EVENT_RANG_CLEAR_BELL_1, sets EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1. Scene switches to SCENE_ECRUTEAKTINTOWERENTRANCE_NOOP."
+    },
+    {
+      "trigger": "koji_allows_passage_or_fought_suicune",
+      "description": "EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE is cleared. All conditional NPCs disappear. Gate is permanently open."
+    }
+  ],
+  "wise_trios_room_connection": {
+    "description": "The upper level of this building connects to the Wise Trio's Room via warp at (17,3). The Wise Trio's Room is the antechamber where Sages Gaku, Masa, and Koji guard the final approach to Tin Tower exterior after the beasts have been released.",
+    "wise_trios_room_area_id": "wise_trios_room"
+  },
+  "notes": "The Ecruteak Tin Tower Entrance is 10x9 blocks (20x18 tiles). It functions as the gatehouse between Ecruteak City and the nine-tier Bell Tower (Tin Tower). The building has a complex conditional NPC system driven by multiple event flags. The two sage gatekeepers at (4,6) and (5,6) are the primary gate mechanism. The map initialization callback (MAPCALLBACK_OBJECTS) runs EcruteakTinTowerEntranceInitializeSagesCallback on every map load to set the correct scene and sage visibility. Accessing the Wise Trio's Room requires reaching the upper north door at (17,3). The stairs at (5,3) and (17,15) connect the building's two floors internally. The Fog Badge from Morty is the first unlock; the Clear Bell is required during the post-Radio-Tower period; Koji's approval or defeating Suicune opens the gate permanently."
+}

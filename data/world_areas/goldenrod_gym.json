@@ -1,0 +1,232 @@
+{
+  "area_id": "goldenrod_gym",
+  "area_name": "Goldenrod City Pokemon Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "GOLDENROD_GYM",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 2, "y": 17,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 1,
+      "label": "Gym exit (left door)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 17,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 1,
+      "label": "Gym exit (right door)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "P": "path",
+      "F": "flower/maze_divider",
+      "N": "npc_position",
+      "D": "door",
+      "S": "statue",
+      "E": "exit_mat",
+      "W": "whitney_position"
+    },
+    "rows": [
+      "####################",
+      "##SS..WWWW..NNNN##",
+      "####FFFFFFFF########",
+      "####FFFFFFFF########",
+      "####FFFFFFFF########",
+      "##NNFFFFFFFFFFFF####",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##FFFFFFFFFFFFFFFF##",
+      "##..FFFFFFFFFFF..##",
+      "SS..FFFFFFFF..SS##",
+      "##..PPPPPPPP..##",
+      "##..EEEEDDDD..##"
+    ],
+    "notes": "Flower maze fills most of the gym floor. Trainers are positioned within maze corridors. Whitney stands at the north center. Two gym statues flank the north wall. Gym Guide stands near the south entrance."
+  },
+  "gym_info": {
+    "type": "Normal",
+    "leader": {
+      "name": "Whitney",
+      "title": "The Incredibly Pretty Girl!",
+      "sprite": "SPRITE_WHITNEY",
+      "position": {"x": 8, "y": 3},
+      "facing": "down",
+      "pre_battle_text": "Hi! I'm WHITNEY! Everyone was into Pokemon, so I got into it too! Pokemon are super-cute! You want to battle? I'm warning you--I'm good!",
+      "loss_text": "Sob... ...Waaaaaaah! You're mean! You shouldn't be so serious! You... you child, you!",
+      "post_cry_text": "...Sniff... What? What do you want? A BADGE? Oh, right. I forgot. Here's PLAINBADGE.",
+      "badge_text": "PLAINBADGE lets your Pokemon use STRENGTH outside of battle. It also boosts your Pokemon's SPEED.",
+      "attract_text": "It's ATTRACT! It makes full use of a Pokemon's charm. Isn't it just perfect for a cutie like me?",
+      "team": [
+        {
+          "species": "Clefairy",
+          "level": 18,
+          "moves": ["Encore", "DoubleSlap", "Mimic", "Metronome"]
+        },
+        {
+          "species": "Miltank",
+          "level": 20,
+          "moves": ["Stomp", "Attract", "Milk Drink", "Rollout"]
+        }
+      ],
+      "prize_money": 2000,
+      "badge": "Plain Badge",
+      "badge_effects": ["Speed stat boosted", "Strength usable outside battle"],
+      "tm_reward": "TM45 Attract",
+      "notes": "Whitney cries after losing. Must talk to her again to receive the Plain Badge. Bridget explains that Whitney always cries when she loses. Lass Bridget walks left with a shocked emote when Whitney cries, then walks back."
+    },
+    "gym_guide": {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "x": 5, "y": 15,
+      "facing": "down",
+      "script_type": "dialogue",
+      "dialogue_summary": "Before Whitney defeated: recommends using Fighting-type Pokemon. After Whitney defeated: says he was busy admiring the ladies."
+    },
+    "battle_mechanics_notes": [
+      "Miltank's Rollout doubles in power each consecutive turn (base 30, then 60, 120, 240, 480). Very dangerous if not stopped early.",
+      "Miltank's Milk Drink restores 50% HP, making it very hard to whittle down.",
+      "Miltank's Attract prevents male Pokemon from attacking 50% of the time.",
+      "Clefairy's Metronome can call any move randomly.",
+      "Counter: Fighting-type Pokemon. Mike at Dept Store 5F trades Machop for Drowzee."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "x": 5, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Recommends Fighting-types against Normal-type gym. After beating Whitney: was admiring the ladies."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Beauty",
+      "name": "Victoria",
+      "x": 0, "y": 2,
+      "facing": "down",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Sentret", "level": 9},
+        {"species": "Sentret", "level": 13},
+        {"species": "Sentret", "level": 17}
+      ],
+      "seen_text": "Oh, you are a cute little trainer! I like you, but I won't hold back!",
+      "beaten_text": "Let's see... Oops, it's over?",
+      "prize_money": 1360,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BEAUTY_VICTORIA"
+    },
+    {
+      "class": "Beauty",
+      "name": "Samantha",
+      "x": 19, "y": 5,
+      "facing": "down",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Meowth", "level": 16},
+        {"species": "Meowth", "level": 16}
+      ],
+      "seen_text": "Give it your best shot, or I'll take you down!",
+      "beaten_text": "No! Oh, MEOWTH, I'm so sorry!",
+      "prize_money": 1280,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BEAUTY_SAMANTHA"
+    },
+    {
+      "class": "Lass",
+      "name": "Carrie",
+      "x": 9, "y": 13,
+      "facing": "right",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Snubbull", "level": 18}
+      ],
+      "seen_text": "Don't let my Pokemon's cute looks fool you. They can whip you!",
+      "beaten_text": "Darn... I thought you were weak...",
+      "prize_money": 288,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_LASS_CARRIE"
+    },
+    {
+      "class": "Lass",
+      "name": "Bridget",
+      "x": 9, "y": 6,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Jigglypuff", "level": 15},
+        {"species": "Jigglypuff", "level": 15},
+        {"species": "Jigglypuff", "level": 15}
+      ],
+      "seen_text": "I like cute Pokemon better than strong Pokemon. But I have strong and cute Pokemon!",
+      "beaten_text": "Oh, no, no, no!",
+      "after_battle_text": "I'm trying to beat WHITNEY, but... It's depressing. I'm okay! If I lose, I'll just try harder next time!",
+      "prize_money": 240,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_LASS_BRIDGET",
+      "special_role": "Walks left with shock emote when Whitney cries after defeat. Explains Whitney always cries when she loses."
+    }
+  ],
+  "items": [],
+  "bg_events": [
+    {
+      "x": 1, "y": 15,
+      "type": "statue",
+      "script": "GoldenrodGymStatue",
+      "note": "Shows gym challenge status. Before badge: standard challenge text. After badge: names Whitney."
+    },
+    {
+      "x": 4, "y": 15,
+      "type": "statue",
+      "script": "GoldenrodGymStatue"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 8, "y": 5,
+      "scene": "SCENE_GOLDENRODGYM_WHITNEY_STOPS_CRYING",
+      "script": "WhitneyCriesScript",
+      "description": "Triggers the crying cutscene when player steps on this tile after defeating Whitney. Bridget walks over, explains Whitney always cries when she loses, then walks back. Scene resets to noop afterward."
+    }
+  ],
+  "scene_scripts": [
+    {
+      "scene_id": "SCENE_GOLDENRODGYM_NOOP",
+      "description": "Default/no-op scene"
+    },
+    {
+      "scene_id": "SCENE_GOLDENRODGYM_WHITNEY_STOPS_CRYING",
+      "description": "Active immediately after Whitney is defeated. Triggers the cry cutscene when player steps into the gym at a certain tile."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "defeat_whitney",
+      "description": "Sets EVENT_BEAT_WHITNEY, EVENT_MADE_WHITNEY_CRY. Sets scene to SCENE_GOLDENRODGYM_WHITNEY_STOPS_CRYING. Also sets all gym trainer defeat flags."
+    },
+    {
+      "trigger": "badge_awarded",
+      "description": "When player talks to Whitney after she stops crying (EVENT_MADE_WHITNEY_CRY cleared), she awards the Plain Badge, then TM45 Attract. Badge also triggers GoldenrodGymActivateRockets which checks badge count to activate Team Rocket events in city."
+    }
+  ],
+  "notes": "The gym features a flower maze layout that trainers are positioned within. Whitney at position (8,3) in tile coords, facing down. The infamous post-battle crying sequence: after defeat, player must walk to coord_event tile to trigger Bridget's cutscene, then talk to Whitney again to receive the badge. Whitney will remain in crying state (EVENT_MADE_WHITNEY_CRY) until the cutscene plays."
+}

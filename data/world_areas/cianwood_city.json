@@ -1,0 +1,364 @@
+{
+  "area_id": "cianwood_city",
+  "area_name": "Cianwood City",
+  "area_type": "town",
+  "pokecrystal_map_id": "CIANWOOD_CITY",
+  "width_blocks": 15,
+  "height_blocks": 27,
+  "width_tiles": 30,
+  "height_tiles": 54,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "east",
+      "target_area_id": "route_41",
+      "offset": 0,
+      "requires": "surf"
+    }
+  ],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 17, "y": 41,
+      "target_area_id": "manias_house",
+      "target_warp_id": 1,
+      "notes": "Mania's House entrance"
+    },
+    {
+      "warp_id": 2,
+      "x": 8, "y": 43,
+      "target_area_id": "cianwood_gym",
+      "target_warp_id": 1,
+      "notes": "Cianwood Gym entrance"
+    },
+    {
+      "warp_id": 3,
+      "x": 23, "y": 43,
+      "target_area_id": "cianwood_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokecenter entrance"
+    },
+    {
+      "warp_id": 4,
+      "x": 15, "y": 47,
+      "target_area_id": "cianwood_pharmacy",
+      "target_warp_id": 1,
+      "notes": "Pharmacy entrance"
+    },
+    {
+      "warp_id": 5,
+      "x": 9, "y": 31,
+      "target_area_id": "cianwood_photo_studio",
+      "target_warp_id": 1,
+      "notes": "Photo Studio entrance"
+    },
+    {
+      "warp_id": 6,
+      "x": 15, "y": 37,
+      "target_area_id": "cianwood_lugia_speech_house",
+      "target_warp_id": 1,
+      "notes": "Lugia Speech House entrance"
+    },
+    {
+      "warp_id": 7,
+      "x": 5, "y": 17,
+      "target_area_id": "poke_seers_house",
+      "target_warp_id": 1,
+      "notes": "Poke Seer's House entrance"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "notes": "Tile coordinates are (col, row) = (x, y). Map is 30 tiles wide x 54 tiles tall. Water borders entire west and south edges (Route 41). Rock Smash boulders cluster in northwest corner (tiles ~8-10, rows 16-29). Buildings occupy center-east. Pokecenter is northeast. Gym is center. Pharmacy and Photo Studio are west-center.",
+    "rows": [
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~.......HHHHH................",
+      "~~..R....HDDDH.....HHHH.......",
+      "~~..R....HHHHH.....HDDH.......",
+      "?..R.....S.........HHHH.......",
+      "~~.......P.....R...P..........",
+      "~~.......P.....N...P..........",
+      "~~.......P.........P..........",
+      "~~.......P.....R...P..........",
+      "~~.......P.........P..........",
+      "~~...R...P.........P..........",
+      "~~.......P.........P..........",
+      "~~.......P.........P..........",
+      "~~...R...P.........P..........",
+      "~~.......P.....R...P..........",
+      "~~.......P.........P..........",
+      "~~...HHHH.....SHHHHP..........",
+      "~~...HDDH.....HHHHHP..........",
+      "~~...HHHH.....HHHHHP....N...N.",
+      "~~...P........P...............S",
+      "~~...P........P...............",
+      "~~...P....HHHH.P..............",
+      "~~...P....HDDDP.P.............",
+      "~~...P....HHHHPP..............",
+      "~~...P............P...........",
+      "~~...P............P...........",
+      "~~...P..HHHHH.....P...........",
+      "~~...P..HDDDDH....P...........",
+      "~~...P..HHHHHHP...HHHHH.......",
+      "~~..N...P.........HKKKH.......",
+      "~~......P.........HKKKH.......",
+      "~~......P.........HDDDHP......",
+      "~~......HHHHH.....HHHHHP......",
+      "~~......HPPDH.....P............",
+      "~~......HHHHH.....P............",
+      "~~.......P........P............",
+      "~~.......P........P............",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_standing_youngster",
+      "name": "Youngster",
+      "x": 21, "y": 37,
+      "facing": "random_spin_slow",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Tells player that FLY can return to Olivine instantly after getting the badge"
+    },
+    {
+      "id": "npc_pokefan_m",
+      "name": "Pokefan M",
+      "x": 17, "y": 33,
+      "facing": "left_right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions Rock Smash boulders north of town may hide items"
+    },
+    {
+      "id": "npc_lass",
+      "name": "Lass",
+      "x": 14, "y": 42,
+      "facing": "up_down",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "dialogue_summary": "Tells player about Chuck the gym leader who spars with his Fighting Pokemon"
+    },
+    {
+      "id": "npc_chucks_wife",
+      "name": "Chuck's Wife",
+      "x": 10, "y": 46,
+      "facing": "left_right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Gives HM02 Fly after player beats Chuck. Remarks her husband was getting chubby and needs more training.",
+      "gives_item": "HM02_FLY",
+      "condition": "EVENT_BEAT_CHUCK and not EVENT_GOT_HM02_FLY"
+    },
+    {
+      "id": "npc_eusine",
+      "name": "Eusine",
+      "x": 11, "y": 21,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Appears after Suicune scene. Challenges player to a battle to earn Suicune's respect.",
+      "condition": "EVENT_CIANWOOD_CITY_EUSINE flag set, disappears after EVENT_FOUGHT_EUSINE",
+      "trainer_battle": true
+    },
+    {
+      "id": "npc_suicune",
+      "name": "Suicune",
+      "x": 10, "y": 14,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "scene_trigger",
+      "dialogue_summary": "Suicune appears briefly at the shore. Triggers the Eusine encounter scene.",
+      "condition": "EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY"
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Revive",
+      "x": 4, "y": 19,
+      "hidden": true,
+      "requires": "rock_smash",
+      "event_flag": "EVENT_CIANWOOD_CITY_HIDDEN_REVIVE",
+      "notes": "Hidden under or near Rock Smash boulder area northwest"
+    },
+    {
+      "name": "Max Ether",
+      "x": 5, "y": 29,
+      "hidden": true,
+      "requires": "rock_smash",
+      "event_flag": "EVENT_CIANWOOD_CITY_HIDDEN_MAX_ETHER",
+      "notes": "Hidden near smashable rock cluster"
+    },
+    {
+      "name": "HM02 Fly",
+      "x": 10, "y": 46,
+      "hidden": false,
+      "requires": "beat_chuck",
+      "source": "Chuck's Wife NPC gift",
+      "notes": "Obtained from Chuck's Wife after defeating Chuck. Enables Fly HM outside of battle."
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "Cianwood City itself has no wild encounters. Surfing to/from the city traverses Route 41 which has wild encounters."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "signs": [
+    {
+      "x": 20, "y": 34,
+      "text": "CIANWOOD CITY — A Port Surrounded by Rough Seas"
+    },
+    {
+      "x": 7, "y": 45,
+      "text": "CIANWOOD CITY POKEMON GYM — LEADER: CHUCK — His Roaring Fists Do the Talking"
+    },
+    {
+      "x": 24, "y": 43,
+      "text": "POKEMON CENTER"
+    },
+    {
+      "x": 19, "y": 47,
+      "text": "500 Years of Tradition — CIANWOOD CITY PHARMACY — We Await Your Medicinal Queries"
+    },
+    {
+      "x": 8, "y": 32,
+      "text": "CIANWOOD CITY PHOTO STUDIO — Take a Snapshot as a Keepsake!"
+    },
+    {
+      "x": 8, "y": 24,
+      "text": "THE POKEMON SEER AHEAD"
+    }
+  ],
+  "smashable_rocks": [
+    {"x": 8, "y": 16, "notes": "Rock Smash boulder, northwest cluster"},
+    {"x": 9, "y": 17, "notes": "Rock Smash boulder, northwest cluster"},
+    {"x": 4, "y": 25, "notes": "Rock Smash boulder, west side"},
+    {"x": 5, "y": 29, "notes": "Rock Smash boulder, hides hidden Max Ether"},
+    {"x": 10, "y": 27, "notes": "Rock Smash boulder, west-center"},
+    {"x": 4, "y": 19, "notes": "Rock Smash boulder, hides hidden Revive"}
+  ],
+  "events": [
+    {
+      "trigger": "coord_event",
+      "x": 11, "y": 16,
+      "scene": "SCENE_CIANWOODCITY_SUICUNE_AND_EUSINE",
+      "description": "Stepping on this tile triggers the Suicune sighting cutscene if not yet seen. Suicune approaches from the water, then leaps away. Eusine appears and challenges the player to a battle."
+    },
+    {
+      "trigger": "map_callback_newmap",
+      "description": "On entering Cianwood City, sets ENGINE_FLYPOINT_CIANWOOD (unlocking Cianwood as a Fly destination) and setevent EVENT_EUSINE_IN_BURNED_TOWER."
+    },
+    {
+      "trigger": "after_beat_chuck",
+      "description": "Chuck's Wife gives HM02 Fly. Storm Badge also enables FLY HM outside battle and obedience up to Lv70."
+    },
+    {
+      "trigger": "pharmacy_condition",
+      "description": "Pharmacist gives SecretPotion only if EVENT_JASMINE_EXPLAINED_AMPHYS_SICKNESS is set and player hasn't already received it. Required to cure Amphy the Ampharos in Olivine Lighthouse."
+    }
+  ],
+  "access_notes": "Cianwood City is only reachable by Surfing west from Olivine City across Route 41. No land connection exists. The eastern connection to Route 41 is water (requires Surf). Once Chuck is defeated, HM02 Fly is obtained and the city becomes a Fly destination.",
+  "buildings": [
+    {
+      "name": "Cianwood Gym",
+      "area_id": "cianwood_gym",
+      "entrance_tile": {"x": 8, "y": 43},
+      "footprint_tiles": "8x18 tiles (4x9 blocks), center-west of town",
+      "notes": "Chuck's Fighting-type gym. Strength boulder puzzle guards the leader. See cianwood_gym.json."
+    },
+    {
+      "name": "Cianwood Pharmacy",
+      "area_id": "cianwood_pharmacy",
+      "entrance_tile": {"x": 15, "y": 47},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), south-center",
+      "notes": "Key location for SecretPotion. Also sells standard medicines. See cianwood_pharmacy.json."
+    },
+    {
+      "name": "Cianwood Photo Studio",
+      "area_id": "cianwood_photo_studio",
+      "entrance_tile": {"x": 9, "y": 31},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), northwest-center",
+      "notes": "Fishing Guru NPC offers to take a photo with your Pokemon party as a keepsake."
+    },
+    {
+      "name": "Cianwood Pokecenter",
+      "area_id": "cianwood_pokecenter_1f",
+      "entrance_tile": {"x": 23, "y": 43},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), northeast",
+      "notes": "Standard Pokemon Center. No shared building — standalone."
+    },
+    {
+      "name": "Lugia Speech House",
+      "area_id": "cianwood_lugia_speech_house",
+      "entrance_tile": {"x": 15, "y": 37},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), center",
+      "notes": "NPC inside discusses Lugia and the Whirl Islands."
+    },
+    {
+      "name": "Poke Seer's House",
+      "area_id": "poke_seers_house",
+      "entrance_tile": {"x": 5, "y": 17},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), far northwest",
+      "notes": "The Pokemon Seer NPC can tell you details about your Pokemon's original trainer and meeting place."
+    },
+    {
+      "name": "Mania's House",
+      "area_id": "manias_house",
+      "entrance_tile": {"x": 17, "y": 41},
+      "footprint_tiles": "8x8 tiles (4x4 blocks), center-east",
+      "notes": "Mania is a collector NPC. Trades or gives items related to Shuckle."
+    }
+  ],
+  "notes": "Cianwood City is the 5th gym city in Johto. It is entirely surrounded by water to the west and south (Route 41). The city is small but packed with unique locations: a pharmacy with a story-critical SecretPotion for Jasmine's Amphy, a photo studio, a Pokemon Seer, and Mania's house (Shuckle). The Suicune/Eusine story event triggers on a specific coordinate tile near the north shore. Six Rock Smash boulders in the northwest area guard two hidden items (Revive and Max Ether). Chuck, the Fighting-type gym leader, performs a dramatic boulder-throwing intro before battle. His wife stands outside the gym and gives HM02 Fly once Chuck is defeated."
+}

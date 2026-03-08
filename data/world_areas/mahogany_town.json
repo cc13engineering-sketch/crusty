@@ -1,0 +1,265 @@
+{
+  "area_id": "mahogany_town",
+  "area_name": "Mahogany Town",
+  "area_type": "town",
+  "pokecrystal_map_id": "MAHOGANY_TOWN",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_43",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "west",
+      "target_area_id": "route_42",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_44",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 11, "y": 7,
+      "target_area_id": "mahogany_mart_1f",
+      "target_warp_id": 1,
+      "notes": "Souvenir Shop / Mahogany Mart entrance — conceals Rocket Hideout below"
+    },
+    {
+      "x": 17, "y": 7,
+      "target_area_id": "mahogany_red_gyarados_speech_house",
+      "target_warp_id": 1,
+      "notes": "House east of mart — NPCs discuss Red Gyarados sighting at Lake of Rage"
+    },
+    {
+      "x": 6, "y": 13,
+      "target_area_id": "mahogany_gym",
+      "target_warp_id": 1,
+      "notes": "Mahogany Gym — Pryce, Ice type. Locked until player helps Lance clear Rocket Hideout"
+    },
+    {
+      "x": 15, "y": 13,
+      "target_area_id": "mahogany_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokemon Center"
+    },
+    {
+      "x": 9, "y": 1,
+      "target_area_id": "route_43_mahogany_gate",
+      "target_warp_id": 3,
+      "notes": "North gate to Route 43 / Lake of Rage"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": [
+      "Town is 10 blocks (20 tiles) wide x 9 blocks (18 tiles) tall.",
+      "Block data sourced from MahoganyTown.blk. Tileset is 'johto' (map_attr $71).",
+      "Warp coordinates from MahoganyTown_MapEvents in MahoganyTown.asm (tile-space x,y).",
+      "Row 0 = northernmost row. The north edge connects to Route 43 gate at tile column 9.",
+      "The RageCandyBar merchant stands at tile (19,8)-(19,9) on the east side, blocking entry until post-Rocket Hideout.",
+      "Gym entrance is locked by EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM until Rocket Hideout is cleared.",
+      "coord_events at (19,8) and (19,9) trigger the RageCandyBar merchant blocking scene."
+    ],
+    "rows": [
+      "####################",
+      "####TTTTTTTT..######",
+      "##TTPPPPPPPPPPTT####",
+      "PPHH..HHHH..HH..PPPP",
+      "PPDD..HHHHDD....PPPP",
+      "PP...........SPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPDDSN....PPPPPPPP",
+      "PPHHHH......HHHHHHHP",
+      "PPDD....PPPPDDDDDDDP",
+      "PP......PPPPKKKKKKKP",
+      "PPSSPPPPPPPPPPPPPPPP",
+      "PP......PPPP........",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPDDDDSPPPPDDDDPPPPP",
+      "PP......PPPP......PP",
+      "PPTTTTTTPPPPTTTTTTPP",
+      "####################"
+    ],
+    "layout_description": "North edge: mountain/tree border with narrow passage to Route 43 gate. Central corridor runs east-west through town. Gym sits in the southwest quadrant; Pokecenter in the southeast. The Souvenir Shop (Mart/Rocket Hideout entrance) is in the north-center. The Red Gyarados Speech House is northeast. A path along the east wall is where the RageCandyBar merchant blocks passage before the Rocket Hideout is cleared."
+  },
+  "npcs": [
+    {
+      "id": "npc_pokefan_m_ragecandybar",
+      "name": "PokeFan (RageCandyBar Merchant)",
+      "x": 19, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "sprite": "SPRITE_POKEFAN_M",
+      "event_flag": "EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_EAST",
+      "dialogue_summary": "Tries to sell player a RageCandyBar for 300 yen. Blocks the east path. After Rocket Hideout cleared: sold out, tells player to leave him alone.",
+      "coord_trigger_tiles": [[19, 8], [19, 9]],
+      "movement_notes": "Blocks right movement then returns north when triggered by SCENE_MAHOGANYTOWN_TRY_RAGECANDYBAR"
+    },
+    {
+      "id": "npc_gramps",
+      "name": "Gramps",
+      "x": 6, "y": 9,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "movement_range": 1,
+      "script_type": "dialogue",
+      "sprite": "SPRITE_GRAMPS",
+      "event_flag": null,
+      "dialogue_summary": "Before Rocket Hideout cleared: asks if player is off to see the Gyarados rampage at the Lake. After cleared: says Magikarp have returned to Lake of Rage."
+    },
+    {
+      "id": "npc_fisher",
+      "name": "Fisher",
+      "x": 6, "y": 14,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "sprite": "SPRITE_FISHER",
+      "palette": "PAL_NPC_GREEN",
+      "event_flag": "EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM",
+      "dialogue_summary": "Recommends heading north to Lake of Rage for sightseeing. Stands near gym entrance."
+    },
+    {
+      "id": "npc_lass",
+      "name": "Lass",
+      "x": 12, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "sprite": "SPRITE_LASS",
+      "event_flag": "EVENT_MAHOGANY_MART_OWNERS",
+      "dialogue_summary": "Tells player to visit Grandma's shop — she sells stuff nobody else has (the Souvenir Shop / Mart). Hidden after Mart owners scene completes."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "signs": [
+    {
+      "id": "sign_mahogany_town",
+      "x": 1, "y": 5,
+      "text": "MAHOGANY TOWN — Welcome to the Home of the Ninja"
+    },
+    {
+      "id": "sign_ragecandybar",
+      "x": 9, "y": 7,
+      "text": "While visiting MAHOGANY TOWN, try a RAGECANDYBAR!"
+    },
+    {
+      "id": "sign_mahogany_gym",
+      "x": 3, "y": 13,
+      "text": "MAHOGANY TOWN #MON GYM — LEADER: PRYCE — The Teacher of Winter's Harshness"
+    },
+    {
+      "id": "sign_pokecenter",
+      "x": 16, "y": 13,
+      "text": "POKEMON CENTER — standard pokecenter sign",
+      "script": "jumpstd PokecenterSignScript"
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null,
+    "notes": "No wild encounters in town. Surf is not accessible within town boundaries."
+  },
+  "events": [
+    {
+      "id": "flypoint_mahogany",
+      "trigger": "on_map_enter",
+      "description": "Sets ENGINE_FLYPOINT_MAHOGANY flag — unlocks Mahogany Town as a Fly destination.",
+      "script": "MahoganyTownFlypointCallback"
+    },
+    {
+      "id": "ragecandybar_block",
+      "trigger": "coord_event",
+      "tiles": [[19, 8], [19, 9]],
+      "scene_flag": "SCENE_MAHOGANYTOWN_TRY_RAGECANDYBAR",
+      "description": "PokeFan merchant intercepts player moving east on the main path, forces RageCandyBar sales pitch. Only fires once (scene flag prevents repeat).",
+      "script": "MahoganyTownTryARageCandyBarScript"
+    },
+    {
+      "id": "rocket_hideout_gate",
+      "trigger": "story_progression",
+      "description": "After meeting Lance at Lake of Rage and deciding to help, the Souvenir Shop warp to TEAM_ROCKET_BASE_B1F becomes accessible via the hidden staircase uncovered by Lance's Dragonite Hyper Beam. EVENT_UNCOVERED_STAIRCASE_IN_MAHOGANY_MART controls staircase visibility."
+    },
+    {
+      "id": "gym_unlock",
+      "trigger": "story_progression",
+      "description": "Mahogany Gym door is accessible only after EVENT_CLEARED_ROCKET_HIDEOUT. Fisher NPC (PAL_NPC_GREEN) uses EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM to disappear once gym is accessible."
+    }
+  ],
+  "buildings": [
+    {
+      "id": "mahogany_mart",
+      "name": "Mahogany Town Souvenir Shop",
+      "interior_area_id": "mahogany_mart_1f",
+      "footprint_tiles": [[10, 6], [11, 6], [12, 6], [10, 7], [11, 7], [12, 7]],
+      "warp_tile": [11, 7],
+      "notes": "Doubles as the entrance to Team Rocket's Hideout. Pre-Lance: sells limited souvenir items. During Rocket subplot: Lance's Dragonite blasts away the counter, revealing hidden stairs to TEAM_ROCKET_BASE_B1F."
+    },
+    {
+      "id": "red_gyarados_speech_house",
+      "name": "Red Gyarados Speech House",
+      "interior_area_id": "mahogany_red_gyarados_speech_house",
+      "footprint_tiles": [[16, 6], [17, 6], [18, 6], [16, 7], [17, 7], [18, 7]],
+      "warp_tile": [17, 7],
+      "notes": "House with Black Belt and Teacher NPCs discussing the Red Gyarados at Lake of Rage."
+    },
+    {
+      "id": "mahogany_gym",
+      "name": "Mahogany Gym",
+      "interior_area_id": "mahogany_gym",
+      "footprint_tiles": [[4, 12], [5, 12], [6, 12], [7, 12], [4, 13], [5, 13], [6, 13], [7, 13]],
+      "warp_tile": [6, 13],
+      "notes": "Gym Leader Pryce. Ice type. Ice floor sliding puzzle. Locked until Rocket Hideout cleared."
+    },
+    {
+      "id": "mahogany_pokecenter",
+      "name": "Mahogany Pokemon Center",
+      "interior_area_id": "mahogany_pokecenter_1f",
+      "footprint_tiles": [[14, 12], [15, 12], [16, 12], [14, 13], [15, 13], [16, 13]],
+      "warp_tile": [15, 13],
+      "notes": "Standard Pokemon Center. NPCs discuss Team Rocket return and Pokemon evolution timing."
+    }
+  ],
+  "notes": "Mahogany Town is the seventh Johto gym town and home to Pryce. It is geographically hemmed in — west leads to Route 42 (Ecruteak), north to Route 43 and Lake of Rage, east to Route 44 (Blackthorn). The town is dominated by the Team Rocket Hideout subplot: before Lance arrives the Souvenir Shop is blocked and the Gym is inaccessible. The RageCandyBar merchant blocks the east path on first visit. Town motto is 'Home of the Ninja'. Pryce meditates under a waterfall daily — referenced by Boarder Douglas post-battle. The flypoint flag is set on every map entry."
+}

@@ -1,0 +1,254 @@
+{
+  "area_id": "azalea_gym",
+  "area_name": "Azalea Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "AZALEA_GYM",
+  "width_blocks": 5,
+  "height_blocks": 8,
+  "width_tiles": 10,
+  "height_tiles": 16,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 15,
+      "target_area_id": "azalea_town",
+      "target_warp_id": 5,
+      "note": "Left exit tile back to Azalea Town"
+    },
+    {
+      "x": 5, "y": 15,
+      "target_area_id": "azalea_town",
+      "target_warp_id": 5,
+      "note": "Right exit tile back to Azalea Town"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "W": "spider_web_floor",
+      "D": "door",
+      "E": "exit_mat",
+      "S": "statue",
+      "N": "npc_position",
+      "G": "gym_guide_position",
+      "B": "bugsy_position",
+      "T": "trainer_position",
+      "P": "path_tile"
+    },
+    "rows": [
+      "##########",
+      "#.NNWWWW.#",
+      "#.TWWWWWW#",
+      "#.WWWWWWW#",
+      "#.WWWWWWW#",
+      "#.WWWWWWW#",
+      "#.WWWWWWT#",
+      "#.WWWWWWW#",
+      "#.WWWWWWW#",
+      "#.WWWWWWW#",
+      "#NN.WWWWW#",
+      "#.WWWWWWW#",
+      "#.WWWWWWW#",
+      "#SS.....G#",
+      "#.......W#",
+      "#EEEEDDEE#"
+    ],
+    "notes": [
+      "Web floor tiles (W) cover most of the gym interior — characteristic Bug-type gym aesthetic",
+      "Statues (S) at tile(3,13) and tile(6,13) flank the path to Bugsy",
+      "Gym Guide (G) stands at tile(7,13) near south entrance",
+      "Bugsy (B) stands at tile(5,7) in center-north area, spins randomly slow",
+      "Bug Catcher Benny at tile(5,3) — north center, spins randomly fast",
+      "Bug Catcher Al at tile(8,8) — right side, standing down, line of sight 3",
+      "Bug Catcher Josh at tile(0,2) — left side, standing down, line of sight 3",
+      "Twins Amy and May at tile(4,10) and tile(5,10) — pair trainers, line of sight 1",
+      "Exit mats at y=15 using warp_events at (4,15) and (5,15)"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "sprite": "SPRITE_GYM_GUIDE",
+      "x": 7, "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Pre-battle: warns challenger about Bugsy's Bug-type expertise; recommends Fire and Flying moves. Post-battle: praises the clash of talented young trainers.",
+      "dialogue_key": "AzaleaGymGuideScript"
+    },
+    {
+      "id": "bugsy",
+      "name": "Bugsy",
+      "sprite": "SPRITE_BUGSY",
+      "x": 5, "y": 7,
+      "facing": "varies",
+      "movement": "spinrandom_slow",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "gym_leader",
+      "dialogue_summary": "Pre-battle: boasts his Bug-type research will make him the authority on Bug Pokemon. Post-battle: awards Hive Badge, explains its benefits, gives TM49 Fury Cutter. After badge: talks about mysteries of Bug Pokemon.",
+      "dialogue_key": "AzaleaGymBugsyScript"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Bug Catcher",
+      "name": "Benny",
+      "trainer_const": "BUG_CATCHER_BENNY",
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_BENNY",
+      "x": 5, "y": 3,
+      "facing": "varies",
+      "movement": "spinrandom_fast",
+      "palette": "PAL_NPC_BROWN",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Weedle", "level": 7},
+        {"species": "Kakuna", "level": 9},
+        {"species": "Beedrill", "level": 12}
+      ],
+      "prize_money": 192,
+      "rematch": false,
+      "seen_text": "Bug Pokemon evolve young. So they get stronger that much faster.",
+      "beaten_text": "Just evolving isn't enough!",
+      "after_text": "Pokemon become stronger if they evolve. Really!"
+    },
+    {
+      "class": "Bug Catcher",
+      "name": "Al",
+      "trainer_const": "BUG_CATCHER_AL",
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_AL",
+      "x": 8, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BROWN",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Caterpie", "level": 12},
+        {"species": "Weedle", "level": 12}
+      ],
+      "prize_money": 192,
+      "rematch": false,
+      "seen_text": "Bug Pokemon are cool and tough! I'll prove it to you!",
+      "beaten_text": "You proved how tough you are...",
+      "after_text": "They're so cool, but most girls don't like Bug Pokemon. I don't know why..."
+    },
+    {
+      "class": "Bug Catcher",
+      "name": "Josh",
+      "trainer_const": "BUG_CATCHER_JOSH",
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_JOSH",
+      "x": 0, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BROWN",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Paras", "level": 13}
+      ],
+      "prize_money": 208,
+      "rematch": false,
+      "seen_text": "You saved all the SLOWPOKE? Whew, you're mighty! But my grown-up Pokemon are pretty tough too!",
+      "beaten_text": "Urrgggh!",
+      "after_text": "I guess I should teach them better moves..."
+    },
+    {
+      "class": "Twins",
+      "name": "Amy and May",
+      "trainer_const": "AMYANDMAY",
+      "event_flag": "EVENT_BEAT_TWINS_AMY_AND_MAY",
+      "npc_1": {"sprite": "SPRITE_TWIN", "x": 4, "y": 10, "palette": "PAL_NPC_RED"},
+      "npc_2": {"sprite": "SPRITE_TWIN", "x": 5, "y": 10, "palette": "PAL_NPC_RED"},
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Caterpie", "level": 10},
+        {"species": "Metapod", "level": 10}
+      ],
+      "note": "Double trainer battle; both NPCs share same event flag. Team data from pokecrystal parties.asm BUG_CATCHER group entry for Caterpie/Weedle/Caterpie pattern — Twins use separate trainer IDs AMYANDMAY1 and AMYANDMAY2.",
+      "prize_money": 200,
+      "rematch": false,
+      "amy_seen_text": "AMY: Hi! Are you challenging the LEADER? No way!",
+      "amy_beaten_text": "AMY & MAY: Oh, double goodness!",
+      "amy_after_text": "AMY: You're really strong!",
+      "may_seen_text": "MAY: You want to see the LEADER? We come first!",
+      "may_beaten_text": "AMY & MAY: Oh, double goodness!",
+      "may_after_text": "MAY: Our Bug Pokemon lost! Oh, what a shame."
+    },
+    {
+      "class": "Gym Leader",
+      "name": "Bugsy",
+      "trainer_const": "BUGSY1",
+      "event_flag": "EVENT_BEAT_BUGSY",
+      "x": 5, "y": 7,
+      "facing": "varies",
+      "movement": "spinrandom_slow",
+      "team": [
+        {
+          "species": "Metapod",
+          "level": 14,
+          "moves": ["Tackle", "String Shot", "Harden"]
+        },
+        {
+          "species": "Kakuna",
+          "level": 14,
+          "moves": ["Poison Sting", "String Shot", "Harden"]
+        },
+        {
+          "species": "Scyther",
+          "level": 16,
+          "moves": ["Quick Attack", "Leer", "Fury Cutter"]
+        }
+      ],
+      "trainer_type": "TRAINERTYPE_MOVES",
+      "prize_money": 1920,
+      "badge": "Hive Badge",
+      "badge_flag": "ENGINE_HIVEBADGE",
+      "badge_effect": "Pokemon up to Lv.30 obey; Cut usable outside battle",
+      "tm_reward": "TM49 Fury Cutter",
+      "tm_event": "EVENT_GOT_TM49_FURY_CUTTER",
+      "rematch": false,
+      "seen_text": "I'm BUGSY! I never lose when it comes to Bug Pokemon. My research is going to make me the authority on Bug Pokemon! Let me demonstrate what I've learned from my studies.",
+      "loss_text": "Whoa, amazing! You're an expert on Pokemon! My research isn't complete yet. OK, you win. Take this BADGE.",
+      "badge_speech": "Do you know the benefits of HIVEBADGE? If you have it, Pokemon up to L30 will obey you, even traded ones. Pokemon that know CUT will be able to use it outside of battle too.",
+      "tm_speech": "TM49 contains FURY CUTTER. If you don't miss, it gets stronger every turn. The longer your battle goes, the better it gets.",
+      "post_badge_text": "Bug Pokemon are deep. There are many mysteries to be explored. Study your favorites thoroughly."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 13,
+      "type": "BGEVENT_READ",
+      "script": "AzaleaGymStatue",
+      "note": "Left gym statue; reads different text depending on whether Bugsy is defeated"
+    },
+    {
+      "x": 6, "y": 13,
+      "type": "BGEVENT_READ",
+      "script": "AzaleaGymStatue",
+      "note": "Right gym statue; same conditional as left"
+    }
+  ],
+  "events": [
+    {
+      "id": "bugsy_reward_sequence",
+      "trigger": "after_defeating_bugsy",
+      "description": "After winning, Bugsy gives the Hive Badge, sets ENGINE_HIVEBADGE flag, reads badge count (VAR_BADGES) to potentially trigger Goldenrod or Radio Tower Rocket events at count 6 or 7. Then offers TM49 Fury Cutter. Event EVENT_GOT_TM49_FURY_CUTTER prevents duplicate TM giving."
+    },
+    {
+      "id": "gym_guide_hint",
+      "trigger": "on_entry_pre_bugsy",
+      "description": "Gym Guide warns challenger that Bugsy is young but his Bug-type knowledge is real. Recommends Fire and Flying type moves."
+    }
+  ],
+  "notes": "Azalea Gym is the second gym in Johto. Led by Bugsy, the Bug-type specialist researcher. The floor is covered in spider web tiles, a visual signature of the Bug theme. Layout is a single open room; trainers spread across the width guard the path to Bugsy in the north-center. The Twins Amy and May are a double-battle positioned together. The gym activates Team Rocket subplots: after defeating Bugsy at 6 or 7 total badges, the Goldenrod or Radio Tower Rocket arcs are triggered via the AzaleaGymActivateRockets subroutine. Dimensions confirmed from prompt: 5x8 blocks (10x16 tiles). Warp destinations confirmed from pokecrystal: both exits return to AZALEA_TOWN warp 5."
+}

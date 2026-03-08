@@ -1,0 +1,114 @@
+{
+  "area_id": "route_29_route_46_gate",
+  "area_name": "Route 29-46 Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_29_ROUTE_46_GATE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_ROUTE_29",
+  "landmark": "LANDMARK_ROUTE_29",
+  "parent_area_id": "route_29",
+  "note_on_dimensions": "Gate buildings in pokecrystal use the shared NorthSouthGate.blk file. Standard North-South gate is 4 blocks wide x 4 blocks tall (8x8 tiles). Warp positions confirm 8-tile width: warps at x=4 and x=5 with y=0 (north) and y=7 (south).",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4,
+      "y": 0,
+      "target_area_id": "route_46",
+      "target_warp_id": 1,
+      "note": "North exit to Route 46 (left door tile)"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "target_area_id": "route_46",
+      "target_warp_id": 2,
+      "note": "North exit to Route 46 (right door tile)"
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "target_area_id": "route_29",
+      "target_warp_id": 1,
+      "note": "South exit back to Route 29 (left door tile)"
+    },
+    {
+      "x": 5,
+      "y": 7,
+      "target_area_id": "route_29",
+      "target_warp_id": 1,
+      "note": "South exit back to Route 29 (right door tile) — same warp_id 1 as left"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "table",
+      "D": "door",
+      "F": "fence",
+      "P": "path",
+      "N": "npc_position",
+      "E": "exit_mat",
+      "W": "window"
+    },
+    "notes": [
+      "8 tiles wide x 8 tiles tall (4 blocks x 4 blocks).",
+      "Standard NorthSouthGate.blk layout shared with Route2Gate, Route5SaffronGate, Route6SaffronGate, Route40BattleTowerGate.",
+      "North exit (to Route 46) at tiles (4,0) and (5,0).",
+      "South exit (to Route 29) at tiles (4,7) and (5,7).",
+      "Officer NPC at tile (0,4) — stands on western wall side, faces right.",
+      "Youngster NPC at tile (6,4) — walks up and down on eastern side.",
+      "Gate interior has counters/desks along the walls with open walkable center aisle."
+    ],
+    "rows": [
+      "####EE##",
+      "########",
+      "WWWWWWWW",
+      "........",
+      "N.......N",
+      "........",
+      "WWWWWWWW",
+      "####EE##"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "officer",
+      "name": "Officer",
+      "sprite": "SPRITE_OFFICER",
+      "x": 0,
+      "y": 4,
+      "facing": "right",
+      "movement": "standing",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains the ledge mechanic: 'You can't climb ledges. But you can jump down from them to take a shortcut.' This is the game's tutorial on one-way ledge traversal."
+    },
+    {
+      "id": "youngster",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 6,
+      "y": 4,
+      "facing": "up",
+      "movement": "walk_up_down",
+      "movement_range": 1,
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Tells player that different kinds of Pokemon appear past here (on Route 46), encouraging exploration to catch them all."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "mons": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [],
+  "notes": "The Route 29/Route 46 Gate is a standard north-south indoor gate building on the northern edge of Route 29. It uses the shared NorthSouthGate.blk block layout. The gate serves as the only connection point from Route 29 to Route 46. Route 46 is accessible from the start of the game but has very little of interest early on — it connects north to Dark Cave and Route 45. The Officer NPC inside the gate provides the game's canonical tutorial on one-way ledges, which are a core traversal mechanic throughout Johto. The gate is tagged to LANDMARK_ROUTE_29 and plays MUSIC_ROUTE_29. No encounters or items are found here. The gate is located at tile (27,1) on Route 29 (warp_event 27,1 -> ROUTE_29_ROUTE_46_GATE warp 3 in Route29_MapEvents)."
+}

@@ -1,0 +1,258 @@
+{
+  "area_id": "mt_mortar_b1f",
+  "area_name": "Mt. Mortar B1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "MOUNT_MORTAR_B1F",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "dark_cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3,  "y": 3,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 5,
+      "notes": "Exit up to 1F Inside (warp 5 on 1F Inside = tile x=3, y=19). Returns to the western section of 1F Inside."
+    },
+    {
+      "x": 19, "y": 29,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 7,
+      "notes": "Exit up to 1F Outside (warp 7 on 1F Outside = tile x=17, y=29). Emerges at the central downward passage of the Outside map."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "B": "strength_boulder",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": "40 wide x 36 tall. The basement floor of Mt. Mortar — the deepest level, dark and remote. This is where the Karate King (Black Belt Kiyo) trains alone in the dark. Defeating Kiyo rewards the player with a Tyrogue — the only way to obtain Tyrogue in the game without trading. A Strength boulder at (9,10) must be pushed with HM04 Strength to access Kiyo and the deeper items. Water accessible by Surf. Two entrances: one from 1F Inside (northwest), one that exits back to 1F Outside (south-center). Five visible pokeball items plus one hidden Max Revive.",
+    "rows": [
+      "########################################",
+      "########################################",
+      "##^.....################################",
+      "##......################################",
+      "##......################################",
+      "##......##....?....#####################",
+      "##......##.........#####################",
+      "##......##.........#####################",
+      "##......##.........#####################",
+      "##......##.B.......#####################",
+      "##......##.........#####################",
+      "##......##.........#####################",
+      "##......##....!....#####################",
+      "##......##.........#####################",
+      "##......##.........#####################",
+      "##......##.........#####################",
+      "##......####!......#####################",
+      "##......####.......#####################",
+      "##......####.......#####################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##...N..####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~##...!..########",
+      "##......####...~~~~~~~~~##......########",
+      "##......####...~~~~~~~~~##......########",
+      "##......####...~~~~~~~~~##.!....########",
+      "#####..E####...~~~~~~~~~################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "kiyo",
+      "name": "Kiyo (Karate King)",
+      "x": 16, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "trainer_special",
+      "sprite": "BLACK_BELT",
+      "notes": "The Karate King — a legendary Black Belt who trains alone in the deepest part of Mt. Mortar. After being defeated, he gives the player Tyrogue (Lv10). Once Tyrogue has been received, Kiyo delivers encouragement dialogue and the event ends. If the player's party is full, Kiyo cannot give Tyrogue until there is space."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Black Belt",
+      "name": "Kiyo",
+      "x": 16, "y": 4,
+      "facing": "down",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Hitmonlee",  "level": 34},
+        {"species": "Hitmonchan", "level": 34}
+      ],
+      "prize_money": 0,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BLACKBELT_KIYO",
+      "reward_event": "EVENT_GOT_TYROGUE_FROM_KIYO",
+      "reward": {
+        "species": "Tyrogue",
+        "level": 10,
+        "notes": "Given as a gift after defeating Kiyo. Only obtainable Tyrogue in the base game. Tyrogue evolves into Hitmonlee (Attack > Defense), Hitmonchan (Defense > Attack), or Hitmontop (Attack = Defense) at Lv20."
+      },
+      "notes": "Kiyo is not a standard roaming trainer — he stands still and must be interacted with directly (line_of_sight: 0, OBJECTTYPE_SCRIPT not OBJECTTYPE_TRAINER). His team of Hitmonlee Lv34 and Hitmonchan Lv34 matches what he researches: the two evolutions Tyrogue can become. After beating him, the winloss text triggers then the gift script runs. Dialogue: 'I am the KARATE KING! I train alone here in the dark! You! Battle with me! Hwaaarggh!' Post-battle: offers Tyrogue as proof of the player's victory."
+    }
+  ],
+  "items": [
+    {
+      "name": "Hyper Potion",
+      "x": 29, "y": 12,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_HYPER_POTION",
+      "notes": "Pokeball sprite on the upper-right path"
+    },
+    {
+      "name": "Carbos",
+      "x": 4,  "y": 16,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_CARBOS",
+      "notes": "Pokeball sprite on the western walkway near Strength boulder area"
+    },
+    {
+      "name": "Full Restore",
+      "x": 34, "y": 24,
+      "hidden": false,
+      "requires": "Surf",
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_FULL_RESTORE",
+      "notes": "Pokeball sprite on the eastern side of the water pool — requires Surf to reach"
+    },
+    {
+      "name": "Max Ether",
+      "x": 32, "y": 3,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_MAX_ETHER",
+      "notes": "Pokeball sprite near the upper-right section"
+    },
+    {
+      "name": "PP Up",
+      "x": 21, "y": 26,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_PP_UP",
+      "notes": "Pokeball sprite near the water pool on the lower section"
+    },
+    {
+      "name": "Max Revive",
+      "x": 4,  "y": 6,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_B1F_HIDDEN_MAX_REVIVE",
+      "notes": "Hidden item on the ground near the northwest entrance passage"
+    }
+  ],
+  "obstacles": [
+    {
+      "type": "strength_boulder",
+      "x": 9, "y": 10,
+      "requires": "Strength",
+      "notes": "Strength boulder (HM04) blocks the path deeper into B1F toward Kiyo and the water pool items. Must be pushed to proceed."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "notes": "Slightly higher levels than 1F Outside. Marill replaces Machop at night. Zubat-heavy floor.",
+      "morning": [
+        {"species": "Zubat",    "level_min": 15, "level_max": 15, "rate": 20},
+        {"species": "Zubat",    "level_min": 17, "level_max": 17, "rate": 20},
+        {"species": "Golbat",   "level_min": 17, "level_max": 17, "rate": 10},
+        {"species": "Machop",   "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Geodude",  "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10}
+      ],
+      "day": [
+        {"species": "Zubat",    "level_min": 15, "level_max": 15, "rate": 20},
+        {"species": "Zubat",    "level_min": 17, "level_max": 17, "rate": 20},
+        {"species": "Golbat",   "level_min": 17, "level_max": 17, "rate": 10},
+        {"species": "Machop",   "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Geodude",  "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10}
+      ],
+      "night": [
+        {"species": "Zubat",    "level_min": 15, "level_max": 15, "rate": 20},
+        {"species": "Zubat",    "level_min": 17, "level_max": 17, "rate": 20},
+        {"species": "Golbat",   "level_min": 17, "level_max": 17, "rate": 10},
+        {"species": "Marill",   "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Geodude",  "level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10},
+        {"species": "Raticate", "level_min": 18, "level_max": 18, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "requires": "Surf",
+      "mons": [
+        {"species": "Goldeen", "level_min": 15, "level_max": 15, "rate": 60},
+        {"species": "Marill",  "level_min": 20, "level_max": 20, "rate": 30},
+        {"species": "Seaking", "level_min": 20, "level_max": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "FISHGROUP_LAKE",
+      "notes": "Same Lake fishing group as all Mt. Mortar floors.",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 70},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Goldeen",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Poliwag",  "level_min": 20, "level_max": 20, "rate": 10}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Poliwag",  "level_min": 40, "level_max": 40, "rate": 30},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Seaking",  "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "interact_kiyo_first_visit",
+      "description": "Kiyo introduces himself as the Karate King training alone in the dark, then initiates battle. Win condition: player must defeat Hitmonlee Lv34 and Hitmonchan Lv34.",
+      "event_flag": "EVENT_BEAT_BLACKBELT_KIYO"
+    },
+    {
+      "trigger": "after_beat_kiyo_party_has_room",
+      "description": "Kiyo admits defeat and offers Tyrogue (Lv10) as proof of the player's victory. Player receives Tyrogue. EVENT_GOT_TYROGUE_FROM_KIYO is set.",
+      "event_flag": "EVENT_GOT_TYROGUE_FROM_KIYO"
+    },
+    {
+      "trigger": "after_beat_kiyo_party_full",
+      "description": "Kiyo tries to give Tyrogue but player's party is full. Player must make room and interact again.",
+      "condition": "PARTY_LENGTH == 6"
+    },
+    {
+      "trigger": "revisit_after_tyrogue_received",
+      "description": "Kiyo gives encouragement: 'TYROGUE is a fighting-type. It evolves into a tougher MON. Keep up the hard work. I'll keep training too. Farewell!'",
+      "event_flag": "EVENT_GOT_TYROGUE_FROM_KIYO"
+    }
+  ],
+  "notes": "Mt. Mortar B1F (20x18 blocks, 40x36 tiles, confirmed: MountMortarB1F.blk = 360 bytes). The deepest basement floor of Mt. Mortar and the most significant area in the dungeon. The Karate King (Black Belt Kiyo) trains here alone, accessible only after navigating 1F Inside and pushing past a Strength boulder. Defeating his Hitmonlee Lv34 and Hitmonchan Lv34 rewards the player with Tyrogue Lv10 — the only way to obtain Tyrogue in Pokemon Crystal without trading. Tyrogue evolves at Lv20 into Hitmonlee (if Atk>Def), Hitmonchan (if Def>Atk), or Hitmontop (if Atk=Def). Two entrance/exits: northwest stairs to 1F Inside, south-center exit to 1F Outside. Strength required to reach Kiyo and the deeper items. Water pool requires Surf. Five visible pokeball items: Hyper Potion, Carbos, Full Restore (Surf-gated), Max Ether, PP Up. One hidden Max Revive near the entrance. Wild encounters skew toward Zubat/Golbat with Machop (daytime) or Marill (night). Tileset: TILESET_DARK_CAVE. Music: MUSIC_UNION_CAVE."
+}

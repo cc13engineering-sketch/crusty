@@ -1,0 +1,134 @@
+{
+  "area_id": "tin_tower_9f",
+  "area_name": "Tin Tower 9F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_9F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 12, "y": 3,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 2,
+      "notes": "Return warp to 8F — east-north area"
+    },
+    {
+      "warp_id": 2,
+      "x": 2, "y": 5,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 3,
+      "notes": "Return warp to 8F — west area"
+    },
+    {
+      "warp_id": 3,
+      "x": 12, "y": 7,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 4,
+      "notes": "Return warp to 8F — east-center area"
+    },
+    {
+      "warp_id": 4,
+      "x": 7, "y": 9,
+      "target_area_id": "tin_tower_roof",
+      "target_warp_id": 1,
+      "notes": "THE KEY WARP — ascent to the roof where Ho-Oh awaits. Center-west area of 9F."
+    },
+    {
+      "warp_id": 5,
+      "x": 16, "y": 7,
+      "target_area_id": "tin_tower_7f",
+      "target_warp_id": 5,
+      "notes": "Return warp down to 7F — east side. Arrival point for players who used 7F's secret warp."
+    },
+    {
+      "warp_id": 6,
+      "x": 6, "y": 13,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 5,
+      "notes": "Return warp to 8F — south-center-left area"
+    },
+    {
+      "warp_id": 7,
+      "x": 8, "y": 13,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 6,
+      "notes": "Return warp to 8F — south-center-right area"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "^": "stair/warp_up (to Roof)",
+      "v": "warp_down (to 8F or 7F)",
+      "!": "item_ball"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "9F is the final floor before the roof. It has seven warp events.",
+      "The critical warp to the Roof is at (7,9) — warp_id 4 → TIN_TOWER_ROOF warp_id 1.",
+      "Five warps return to 8F (warp_ids 1,2,3,6,7), one drops to 7F (warp_id 5).",
+      "One item ball: HP Up at (9,1) — located at the very top of the floor near the north wall.",
+      "The warp at (16,7) connects back to 7F — arrival point for the 7F secret warp shortcut.",
+      "Navigating to warp_id 4 at (7,9) is the puzzle solution for the entire 8F/9F section.",
+      "Unused text strings for HO-OH and LUGIA exist in the ASM (TinTower9FUnusedHoOhText, TinTower9FUnusedLugiaText) but are unreferenced."
+    ],
+    "rows": [
+      "####################",
+      "##........!.........",
+      "##..................",
+      "##............v.....",
+      "##..................",
+      "##.v................",
+      "##..................",
+      "##............v..v..",
+      "##...^..............",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##.....v.v..........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "HP Up",
+      "x": 9, "y": 1,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_9F_HP_UP",
+      "requires": null,
+      "notes": "Item ball (SPRITE_POKE_BALL). Script: TinTower9FHPUp — itemball HP_UP. Located near north wall."
+    }
+  ],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [],
+  "access_requirements": {
+    "to_enter": "Multiple entry points from 8F (five warps) and from 7F's secret warp at (6,9) → arrives at (16,7).",
+    "to_reach_roof": "Must locate warp_id 4 at tile (7,9) — stepping on this tile leads to the Roof and Ho-Oh. No additional items required beyond Rainbow Wing (already obtained on 1F).",
+    "note": "The HP Up at (9,1) is a meaningful pre-boss reward directly before the Ho-Oh encounter."
+  },
+  "developer_notes": {
+    "unused_text": [
+      "TinTower9FUnusedHoOhText: 'HO-OH: Shaoooh!' — unreferenced in any script",
+      "TinTower9FUnusedLugiaText: 'LUGIA: Gyaaan!' — unreferenced in any script",
+      "These strings suggest Ho-Oh and Lugia were considered for encounter scripting on 9F at some point during development."
+    ]
+  },
+  "notes": "Tin Tower 9F is 10x9 blocks (20x18 tiles). It is the final floor before the roof and the culmination of the tower's warp puzzle. Seven warp events are defined: five return to 8F at different positions, one drops to 7F (serving as the landing point for 7F's secret warp), and one critical warp at (7,9) leads to the Roof where Ho-Oh waits. One item ball (HP Up) is at (9,1). The ASM also contains two unused text entries referencing Ho-Oh and Lugia crying out — these appear to be development leftovers and are marked as unreferenced. The layout rewards players who systematically explore 8F/9F by eventually stepping on the correct tile at (7,9)."
+}

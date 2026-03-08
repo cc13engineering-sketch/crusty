@@ -1,0 +1,446 @@
+{
+  "area_id": "violet_city",
+  "area_name": "Violet City",
+  "area_type": "town",
+  "pokecrystal_map_id": "VIOLET_CITY",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "slogan": "The City of Nostalgic Scents",
+  "description": "This old village is still surrounded by trees and other scenery.",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_32",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "west",
+      "target_area_id": "route_36",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_31",
+      "offset": 9,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "id": 1,
+      "x": 9,  "y": 17,
+      "target_area_id": "violet_mart",
+      "target_warp_id": 2,
+      "notes": "Poke Mart entrance"
+    },
+    {
+      "id": 2,
+      "x": 18, "y": 17,
+      "target_area_id": "violet_gym",
+      "target_warp_id": 1,
+      "notes": "Violet Gym entrance (left door)"
+    },
+    {
+      "id": 3,
+      "x": 30, "y": 17,
+      "target_area_id": "earls_pokemon_academy",
+      "target_warp_id": 1,
+      "notes": "Earl's Pokemon Academy entrance (left door)"
+    },
+    {
+      "id": 4,
+      "x": 3,  "y": 15,
+      "target_area_id": "violet_nickname_speech_house",
+      "target_warp_id": 1,
+      "notes": "Nickname Speech House"
+    },
+    {
+      "id": 5,
+      "x": 31, "y": 25,
+      "target_area_id": "violet_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokemon Center entrance"
+    },
+    {
+      "id": 6,
+      "x": 21, "y": 29,
+      "target_area_id": "violet_kyles_house",
+      "target_warp_id": 1,
+      "notes": "Kyle's House (in-game trade) entrance"
+    },
+    {
+      "id": 7,
+      "x": 23, "y": 5,
+      "target_area_id": "sprout_tower_1f",
+      "target_warp_id": 1,
+      "notes": "Sprout Tower entrance"
+    },
+    {
+      "id": 8,
+      "x": 39, "y": 24,
+      "target_area_id": "route_31_violet_gate",
+      "target_warp_id": 1,
+      "notes": "East gate to Route 31 (upper door)"
+    },
+    {
+      "id": 9,
+      "x": 39, "y": 25,
+      "target_area_id": "route_31_violet_gate",
+      "target_warp_id": 2,
+      "notes": "East gate to Route 31 (lower door)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "W": "whirlpool",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start",
+      "O": "tower/pagoda_footprint"
+    },
+    "notes": [
+      "Coordinates are tile-based (x=col, y=row, 0-indexed from top-left).",
+      "Sprout Tower occupies col 22-25, row 0-9 (north side).",
+      "Violet Gym occupies col 14-19, row 13-17 (northwest mid).",
+      "Earl's Pokemon Academy occupies col 28-33, row 13-17 (northeast mid).",
+      "Pokemon Center occupies col 30-33, row 22-25 (east side).",
+      "Kyle's House occupies col 20-23, row 27-30 (southeast).",
+      "Poke Mart occupies col 8-11, row 14-17 (west mid).",
+      "Nickname Speech House occupies col 2-5, row 12-15 (far west).",
+      "Western pond/water: col 0-5, row 0-11.",
+      "Eastern pond/water: col 34-39, row 10-19.",
+      "PP Up item ball: x=4, y=1 (requires Surf; northwest water area).",
+      "Rare Candy item ball: x=35, y=5 (requires Surf; northeast water area).",
+      "Hidden Hyper Potion: x=37, y=14 (east side, requires Cut).",
+      "Fruit Tree: x=14, y=29 (southwest area, daily PRZCureBerry).",
+      "City Sign: x=24, y=20.",
+      "Violet Gym Sign: x=15, y=17.",
+      "Sprout Tower Sign: x=24, y=8.",
+      "Earl's Academy Sign: x=27, y=17."
+    ],
+    "rows": [
+      "~~~~~~~~TTTTTTTTOOOOOOOO~~~~~~~~TTTTTTTT",
+      "~!~TTTTTTTTTTTTOOOOOOOOTTTTTTTT~~~~!~~~",
+      "~~~~TTTTTTTTTTTTOOOOOOOOTTTTTTTTTTT~~~~~",
+      "~~~~~TTTTTTTTTTOOOOOOOOTTTTTTTTTTT~~~~~~",
+      "~~~~~~TTTTTTTTTTOOOOOOOOTTTTTTTTT~~~~~~~",
+      "~~~~~~TTTTTTTTTOOOOOOOOTTTTTTTTT~~~~~~~~",
+      "~~~~~~TTTTTTTT..........TTTTTTTTT~~~~~~~",
+      "~~~~~~TTTTTTTTT........TTTTTTTTTTT~~~~~~",
+      "~~~~~~~~TTTTTTS.P.P.P.STTTTTTTTT~~~~~~~~",
+      "~~~~~~~~~TTTTTPP.....PPTTTTTTTTT~~~~~~~~~",
+      "~~~~~~~~~~TTTTT.......TTTTTT~~~~~~~~~~~~~",
+      "~~~~~~~~~~~TTTT.......TTTT~~~~~~~~~~~~~~~",
+      "FF..HHHHHH.TTTT.......TTTT.HHHHHHHH.....~",
+      "FF.DHHHHHHD.TT.........TT.DHHHHHHHHDSS..~",
+      "FF..HHHHHH.MM.....P....GG.EEEEEEEEEE....~",
+      "FF.NHHHHHHN.DD...P.P...DD.NNNNNNNNNN....~",
+      "FF.EHHHHHHE..P.........P..EEEEEEEEEE....~",
+      "FFEPPPPPPPEPPPPPPPPPPPPPPPPPPPPPPPPPPPE..~",
+      "FF..........P....................P.......~",
+      "FF.....N....P....S...........N...P......~",
+      "FF..........P................S...P......~",
+      "FF..........P....................P......~~",
+      "FFFFF.......P........KKKK........P.....~~",
+      "FFFFF.......P.......DKKKD........P.....~~",
+      "FFFFF.......P.......EKKKEP.......EEEEE~~~",
+      "FFFFF.......P.......NKKKN.P.P.P.PEEEE~~~~",
+      "FF..........P................P..........~",
+      "FF..........P..HHHH..........P...N......~",
+      "FF.....N....P.DHHHD..........P..........~",
+      "FF..........P.EHHHE..........P..........~",
+      "FF.........NP..HHHH..........P..N.......~",
+      "FF..........P................P..........~",
+      "FFLLLLL.....P.................P..LLLLLLL~",
+      "FFLLLLL.....P.................P..LLLLLLL~",
+      "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+      "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_earl",
+      "name": "Earl",
+      "sprite": "SPRITE_FISHER",
+      "x": 13, "y": 16,
+      "facing": "down",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_VIOLET_CITY_EARL",
+      "dialogue_summary": "Earl asks if you beat Falkner. If yes, leads player to his Academy. If no, says 'Very indeed nice!'. After delivering player to academy, disappears (EVENT_EARLS_ACADEMY_EARL cleared).",
+      "notes": "Wanders outdoors near Gym until after gym is beaten. Introduced in VioletCityEarlScript."
+    },
+    {
+      "id": "npc_lass",
+      "name": "Lass",
+      "sprite": "SPRITE_LASS",
+      "x": 28, "y": 28,
+      "facing": "varies",
+      "movement": "wander",
+      "wander_range_x": 2, "wander_range_y": 2,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Ghosts rumored in Sprout Tower. Normal-type moves have no effect on ghosts."
+    },
+    {
+      "id": "npc_super_nerd",
+      "name": "Super Nerd",
+      "sprite": "SPRITE_SUPER_NERD",
+      "x": 24, "y": 14,
+      "facing": "varies",
+      "movement": "wander",
+      "wander_range_x": 1, "wander_range_y": 2,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "If you beat the Gym Leader here, you'll be ready for prime time!"
+    },
+    {
+      "id": "npc_gramps",
+      "name": "Gramps",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 17, "y": 20,
+      "facing": "varies",
+      "movement": "walk_left_right",
+      "wander_range_x": 1, "wander_range_y": 0,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Falkner inherited his father's gym and has done a great job with it."
+    },
+    {
+      "id": "npc_youngster",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 5, "y": 18,
+      "facing": "down",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Saw a wiggly tree (Headbutt tree) up ahead that squirms and dances."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "id": "item_pp_up",
+      "name": "PP Up",
+      "x": 4, "y": 1,
+      "hidden": false,
+      "requires": "Surf",
+      "event_flag": "EVENT_VIOLET_CITY_PP_UP",
+      "notes": "Item ball on northwest water island; requires Surf to reach."
+    },
+    {
+      "id": "item_rare_candy",
+      "name": "Rare Candy",
+      "x": 35, "y": 5,
+      "hidden": false,
+      "requires": "Surf",
+      "event_flag": "EVENT_VIOLET_CITY_RARE_CANDY",
+      "notes": "Item ball on northeast water island; requires Surf to reach."
+    },
+    {
+      "id": "item_hyper_potion_hidden",
+      "name": "Hyper Potion",
+      "x": 37, "y": 14,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_VIOLET_CITY_HIDDEN_HYPER_POTION",
+      "notes": "Hidden item between Pokemon Center area and Academy. BG event in pokecrystal."
+    },
+    {
+      "id": "item_przecure_berry",
+      "name": "PRZCureBerry",
+      "x": 14, "y": 29,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "FRUITTREE_VIOLET_CITY",
+      "notes": "Fruit tree in southwest area. Regrows daily."
+    }
+  ],
+  "signs": [
+    {
+      "x": 24, "y": 20,
+      "text": "VIOLET CITY — The City of Nostalgic Scents"
+    },
+    {
+      "x": 15, "y": 17,
+      "text": "VIOLET CITY POKEMON GYM — LEADER: FALKNER — The Elegant Master of Flying Pokemon"
+    },
+    {
+      "x": 24, "y": 8,
+      "text": "SPROUT TOWER — Experience the Way of Pokemon"
+    },
+    {
+      "x": 27, "y": 17,
+      "text": "EARL'S POKEMON ACADEMY"
+    },
+    {
+      "x": 32, "y": 25,
+      "text": "POKEMON CENTER — standard pokecenter sign"
+    },
+    {
+      "x": 10, "y": 17,
+      "text": "POKE MART — standard mart sign"
+    }
+  ],
+  "buildings": [
+    {
+      "id": "violet_gym",
+      "name": "Violet Gym",
+      "footprint_tiles": {"x1": 14, "y1": 13, "x2": 19, "y2": 17},
+      "warp_tile": {"x": 18, "y": 17},
+      "area_file": "violet_gym.json"
+    },
+    {
+      "id": "earls_pokemon_academy",
+      "name": "Earl's Pokemon Academy",
+      "footprint_tiles": {"x1": 28, "y1": 13, "x2": 33, "y2": 17},
+      "warp_tile": {"x": 30, "y": 17},
+      "area_file": "earls_pokemon_academy.json"
+    },
+    {
+      "id": "violet_pokecenter_1f",
+      "name": "Pokemon Center",
+      "footprint_tiles": {"x1": 30, "y1": 22, "x2": 33, "y2": 25},
+      "warp_tile": {"x": 31, "y": 25},
+      "area_file": "shared_pokecenter_template"
+    },
+    {
+      "id": "violet_mart",
+      "name": "Poke Mart",
+      "footprint_tiles": {"x1": 8, "y1": 14, "x2": 11, "y2": 17},
+      "warp_tile": {"x": 9, "y": 17},
+      "area_file": "shared_mart_template"
+    },
+    {
+      "id": "violet_kyles_house",
+      "name": "Kyle's House (In-Game Trade)",
+      "footprint_tiles": {"x1": 20, "y1": 27, "x2": 23, "y2": 30},
+      "warp_tile": {"x": 21, "y": 29},
+      "area_file": null,
+      "notes": "Trade house — NPC Kyle trades Onix (nicknamed Rocky, Lv.10, holds Bitter Berry) for Bellsprout."
+    },
+    {
+      "id": "violet_nickname_speech_house",
+      "name": "Nickname Speech House",
+      "footprint_tiles": {"x1": 2, "y1": 12, "x2": 5, "y2": 15},
+      "warp_tile": {"x": 3, "y": 15},
+      "area_file": null,
+      "notes": "House with NPC who talks about nicknaming Pokemon."
+    },
+    {
+      "id": "sprout_tower_1f",
+      "name": "Sprout Tower",
+      "footprint_tiles": {"x1": 22, "y1": 0, "x2": 25, "y2": 9},
+      "warp_tile": {"x": 23, "y": 5},
+      "area_file": "sprout_tower_1f.json",
+      "notes": "3-floor pagoda north of city. Flexible central pillar. Sages train Bellsprout and Hoothoot."
+    },
+    {
+      "id": "route_31_violet_gate",
+      "name": "Route 31 East Gate",
+      "footprint_tiles": {"x1": 38, "y1": 22, "x2": 39, "y2": 27},
+      "warp_tile": {"x": 39, "y": 24},
+      "area_file": null,
+      "notes": "Gate building at east edge connecting to Route 31."
+    }
+  ],
+  "mart_inventory": [
+    {"name": "Poke Ball",     "price": 200},
+    {"name": "Potion",        "price": 300},
+    {"name": "Escape Rope",   "price": 550},
+    {"name": "Antidote",      "price": 100},
+    {"name": "Paralyze Heal", "price": 200},
+    {"name": "Awakening",     "price": 250},
+    {"name": "X Defend",      "price": 550},
+    {"name": "X Attack",      "price": 500},
+    {"name": "X Speed",       "price": 350},
+    {"name": "Flower Mail",   "price": 50}
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "notes": "No grass encounters in city."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Poliwag",   "level_min": 15, "level_max": 24, "rate": 90, "method": "surf"},
+        {"species": "Poliwhirl", "level_min": 20, "level_max": 24, "rate": 10, "method": "surf"}
+      ]
+    },
+    "fishing": {
+      "old_rod":   [
+        {"species": "Magikarp", "level": 10, "rate": 85},
+        {"species": "Poliwag",  "level": 10, "rate": 15}
+      ],
+      "good_rod":  [
+        {"species": "Poliwag",  "level": 20, "rate": 65},
+        {"species": "Magikarp", "level": 20, "rate": 35}
+      ],
+      "super_rod": [
+        {"species": "Poliwag",  "level": 40, "rate": 80},
+        {"species": "Magikarp", "level": 40, "rate": 20}
+      ]
+    },
+    "notes": "Water access requires Surf (post-Fog Badge). Water tiles are the two ponds: northwest and northeast."
+  },
+  "events": [
+    {
+      "id": "earl_tour",
+      "trigger": "after_beat_falkner",
+      "event_flag": "EVENT_VIOLET_CITY_EARL",
+      "description": "Earl (outdoors, spinning NPC) checks if player beat Falkner. If yes: Earl leads player to Academy via scripted movement path, plays MUSIC_SHOW_ME_AROUND, then enters Academy and clears EVENT_EARLS_ACADEMY_EARL (Earl appears inside). If no: Earl responds 'Very indeed nice!' and stays outside.",
+      "script_ref": "VioletCityEarlScript"
+    },
+    {
+      "id": "flypoint_unlock",
+      "trigger": "on_map_enter",
+      "event_flag": "ENGINE_FLYPOINT_VIOLET",
+      "description": "Violet City is registered as a Fly destination when first entered.",
+      "script_ref": "VioletCityFlypointCallback"
+    },
+    {
+      "id": "mystery_egg_gift",
+      "trigger": "after_beat_falkner",
+      "description": "After defeating Falkner, Elm calls via Pokegear. Elm's aide waits in Pokemon Center and gives the Mystery Egg (hatches into Togepi Lv.1).",
+      "script_ref": "external — Elm aide script in VIOLET_POKECENTER_1F"
+    }
+  ],
+  "story_sequence": [
+    "1. Arrive from Route 31 (east).",
+    "2. Explore Earl's Pokemon Academy (optional, educational content).",
+    "3. Challenge Sprout Tower north of city (optional but recommended — Sage Li awards HM05 Flash).",
+    "4. Challenge Violet Gym: defeat Bird Keepers Rod and Abe, then Falkner.",
+    "5. Receive Zephyr Badge + TM31 Mud-Slap.",
+    "6. Elm calls via Pokegear after victory.",
+    "7. Visit Pokemon Center — Elm's aide gives Mystery Egg.",
+    "8. Continue south on Route 32."
+  ],
+  "notes": "Violet City is the first gym city. The only mandatory progression gate here is the gym itself. Sprout Tower is optional but gives HM05 Flash needed for Dark Cave. The in-game trade (Kyle: Bellsprout for Onix 'Rocky') is available from first visit. Item balls behind water require Surf (post-Fog Badge). Warp coordinate system uses pokecrystal tile coords (origin top-left). East connection offset=9 from attributes.asm. Sprout Tower entrance warp at x=23,y=5 leads to SPROUT_TOWER_1F."
+}

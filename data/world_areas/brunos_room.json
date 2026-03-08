@@ -1,0 +1,158 @@
+{
+  "area_id": "brunos_room",
+  "area_name": "Bruno's Room",
+  "area_type": "special",
+  "pokecrystal_map_id": "BRUNOS_ROOM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 17,
+      "target_area_id": "kogas_room",
+      "target_warp_id": 3,
+      "notes": "South entrance left tile — leads back to Koga's Room"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 17,
+      "target_area_id": "kogas_room",
+      "target_warp_id": 4,
+      "notes": "South entrance right tile — leads back to Koga's Room"
+    },
+    {
+      "warp_id": 3,
+      "x": 4, "y": 2,
+      "target_area_id": "karens_room",
+      "target_warp_id": 1,
+      "notes": "North exit left tile — leads to Karen's Room. Locked until Bruno is defeated."
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 2,
+      "target_area_id": "karens_room",
+      "target_warp_id": 2,
+      "notes": "North exit right tile — leads to Karen's Room. Locked until Bruno is defeated."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door_open",
+      "W": "wall_door_closed",
+      "N": "npc_position",
+      "E": "entrance_mat",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Bruno stands at (5,7) facing down — center of the room.",
+      "The north door at y=2 (tiles 4,2 and 5,2) starts as wall ($2a block). Changes to open door ($16) after Bruno is defeated.",
+      "The south entrance at y=14 (tile 4,14) is changed to wall ($2a) immediately upon player entry.",
+      "BrunosRoom_EnterMovement walks the player UP 4 steps after entering.",
+      "Bruno's palette is PAL_NPC_BROWN — the brown-skinned fighter aesthetic.",
+      "Bruno was also an Elite Four member in Gen 1. He has been in the Elite Four the longest of the current members."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "####DD####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#####N####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####W#####",
+      "##########",
+      "##########",
+      "####EE####"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Bruno",
+      "name": "Bruno",
+      "x": 5, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_BRUNO",
+      "palette": "PAL_NPC_BROWN",
+      "line_of_sight": 0,
+      "trigger": "talk",
+      "trainer_id": "BRUNO1",
+      "specialization": "Fighting-type",
+      "ai_items": ["Max Potion"],
+      "prize_money": 4600,
+      "rematch": false,
+      "one_time_flag": "EVENT_BEAT_ELITE_4_BRUNO",
+      "intro_dialogue": "I am BRUNO of the ELITE FOUR. I always train to the extreme because I believe in our potential. That is how we became strong. Can you withstand our power? Hm? I see no fear in you. You look determined. Perfect for battle! Ready, <PLAYER>? You will bow down to our overwhelming power! Hoo hah!",
+      "beaten_dialogue": "Why? How could we lose?",
+      "post_defeat_dialogue": "Having lost, I have no right to say anything... Go face your next challenge!",
+      "team": [
+        {
+          "species": "Hitmontop",
+          "level": 42,
+          "moves": ["Pursuit", "Quick Attack", "Dig", "Detect"]
+        },
+        {
+          "species": "Hitmonlee",
+          "level": 42,
+          "moves": ["Swagger", "Double Kick", "Hi Jump Kick", "Foresight"]
+        },
+        {
+          "species": "Hitmonchan",
+          "level": 42,
+          "moves": ["ThunderPunch", "Ice Punch", "Fire Punch", "Mach Punch"]
+        },
+        {
+          "species": "Onix",
+          "level": 43,
+          "moves": ["Bind", "Earthquake", "Sandstorm", "Rock Slide"]
+        },
+        {
+          "species": "Machamp",
+          "level": 46,
+          "moves": ["Rock Slide", "Foresight", "Vital Throw", "Cross Chop"]
+        }
+      ]
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "LockDoorBehindPlayer",
+      "description": "SCENE_BRUNOSROOM_LOCK_DOOR fires sdefer BrunosRoomDoorLocksBehindYouScript. Player is walked UP 4 steps automatically, earthquake sound plays, and the south entrance door tile at (4,14) is changed to wall ($2a block). EVENT_BRUNOS_ROOM_ENTRANCE_CLOSED is set. Scene changes to SCENE_BRUNOSROOM_NOOP."
+    },
+    {
+      "trigger": "on_defeat_bruno",
+      "name": "OpenExitDoor",
+      "description": "After Bruno is beaten, EVENT_BEAT_ELITE_4_BRUNO is set. The north door tiles at (4,2) and (5,2) change to open ($16 block). EVENT_BRUNOS_ROOM_EXIT_OPEN is set. Player can then proceed to Karen's Room."
+    },
+    {
+      "trigger": "mapcallback_tiles",
+      "name": "BrunosRoomDoorsCallback",
+      "description": "On every map tile refresh: if EVENT_BRUNOS_ROOM_ENTRANCE_CLOSED is set, applies wall at (4,14). If EVENT_BRUNOS_ROOM_EXIT_OPEN is set, applies open door at (4,2)."
+    }
+  ],
+  "notes": "Bruno is Elite Four member #3, specializing in Fighting-type Pokemon. He is a returning Elite Four member from Gen 1 (Pokemon Red/Blue). His team is the most physically powerful of the four, featuring all three Hitmon variants plus a surprise Onix (Rock/Ground) and his ace Machamp (Lv.46) with Cross Chop. Hitmonchan's elemental punches (Thunder/Ice/Fire) cover a wide range of types. Bruno carries Max Potion as his battle item. Prize money: $4600 (base 25 × highest level 46 × 4)."
+}

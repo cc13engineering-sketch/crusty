@@ -1,0 +1,345 @@
+{
+  "area_id": "rocket_hideout_b3f",
+  "area_name": "Team Rocket Base B3F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TEAM_ROCKET_BASE_B3F",
+  "width_blocks": 15,
+  "height_blocks": 9,
+  "width_tiles": 30,
+  "height_tiles": 18,
+  "tileset": "rocket_base",
+  "music": "MUSIC_ROCKET_HIDEOUT",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 2,
+      "target_area_id": "rocket_hideout_b2f",
+      "target_warp_id": 2,
+      "label": "Stairs up to B2F (north-west staircase)"
+    },
+    {
+      "warp_id": 2,
+      "x": 27, "y": 2,
+      "target_area_id": "rocket_hideout_b2f",
+      "target_warp_id": 3,
+      "label": "Stairs up to B2F (north-east staircase)"
+    },
+    {
+      "warp_id": 3,
+      "x": 3, "y": 6,
+      "target_area_id": "rocket_hideout_b2f",
+      "target_warp_id": 4,
+      "label": "Stairs up to B2F (west-center staircase)"
+    },
+    {
+      "warp_id": 4,
+      "x": 27, "y": 14,
+      "target_area_id": "rocket_hideout_b2f",
+      "target_warp_id": 5,
+      "label": "Stairs up to B2F (south-east staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "N": "npc_position",
+      "T": "trainer_position",
+      "!": "item_ball",
+      "B": "bookshelf_oath",
+      "D": "locked_door_giovanni",
+      "K": "murkrow_perch",
+      "L": "lance_position",
+      "R": "rival_spawn",
+      "E": "executive_position"
+    },
+    "rows": [
+      "##############################",
+      "##^...BBBB....K.......!.....^##",
+      "##....................................##",
+      "##....................................##",
+      "##..R.....N...................##",
+      "##....................................##",
+      "##^...........................##",
+      "##......T.....................##",
+      "##.........DD.................##",
+      "##..........DD................##",
+      "##..............!.............##",
+      "##....................................##",
+      "##..!.!.......................##",
+      "##....BBB.............N.....##",
+      "##..T......................!.L.##",
+      "##....................................##",
+      "##############################",
+      "##############################"
+    ],
+    "notes": "Approximate layout. Bookshelf/Oath tiles at (10,1)-(13,1) and (4,13)-(7,13). Murkrow at (7,2). Lance at (25,14). Rival spawn at (4,5). Executive (Petrel) appears near Giovanni's office door. Locked door to Giovanni's office at (10,9)/(11,9). Items: Protein at (1,12), X Special at (3,12), Full Heal at (28,9), Ice Heal at (17,2), Ultra Ball at (14,10)."
+  },
+  "murkrow_password": {
+    "description": "A Murkrow is perched on the floor at (7,2) and chirps the password to Giovanni's quarters to anyone who interacts with it. The password is 'HAIL GIOVANNI'. This sets EVENT_LEARNED_HAIL_GIOVANNI, which allows the player to open the locked door on B2F leading to the transmitter room.",
+    "murkrow_object": {
+      "sprite": "SPRITE_MOLTRES",
+      "note": "The Murkrow uses SPRITE_MOLTRES in the pokecrystal code - a deliberate graphical quirk",
+      "x": 7, "y": 2,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_POKEMON",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION"
+    },
+    "password_text": "MURKROW: The password is... HAIL GIOVANNI.",
+    "sets_event": "EVENT_LEARNED_HAIL_GIOVANNI"
+  },
+  "giovanni_office_door": {
+    "description": "A locked door at (10,8)/(11,8) in bg_events (interacted from below at y=9) leads to Giovanni's office/inner sanctum. Requires TWO passwords: EVENT_LEARNED_SLOWPOKETAIL (from GruntF_5) and EVENT_LEARNED_RATICATE_TAIL (from GruntM_28). Once both passwords are known, the door opens and EVENT_OPENED_DOOR_TO_GIOVANNIS_OFFICE is set.",
+    "bg_events": [
+      {"x": 10, "y": 9, "type": "BGEVENT_IFNOTSET"},
+      {"x": 11, "y": 9, "type": "BGEVENT_IFNOTSET"}
+    ],
+    "coord_events_trigger": [
+      {"x": 10, "y": 8, "scene": "SCENE_TEAMROCKETBASEB3F_ROCKET_BOSS", "script": "RocketBaseBossLeft"},
+      {"x": 11, "y": 8, "scene": "SCENE_TEAMROCKETBASEB3F_ROCKET_BOSS", "script": "RocketBaseBossRight"}
+    ],
+    "door_text_locked": "The door's closed... It needs two passwords to open.",
+    "door_text_open": "The door's closed... [Player] entered the two passwords. The door opened!",
+    "sound": "SFX_ENTER_DOOR",
+    "block_change": "Block at (10,8) changes to floor tile ($07)"
+  },
+  "rival_encounter": {
+    "description": "Silver (the rival) appears in a cutscene at B3F. He was already here attempting to dismantle Team Rocket on his own, and had his Pokemon thrashed by Lance. He shoves the player aside and storms off. This triggers SCENE_TEAMROCKETBASEB3F_RIVAL_ENCOUNTER.",
+    "trigger_coord": {"x": 8, "y": 10, "scene": "SCENE_TEAMROCKETBASEB3F_RIVAL_ENCOUNTER"},
+    "rival_sprite": "SPRITE_RIVAL",
+    "enter_movement": "Enters from north, moves down and right to player position",
+    "rival_text": "... Didn't I tell you that I was going to destroy TEAM ROCKET? ...Tell me, who was the guy in the cape who used dragon Pokemon? My Pokemon were no match at all. I don't care that I lost. I can beat him by getting stronger Pokemon. It's what he said that bothers me... He told me that I don't love and trust my Pokemon enough. I'm furious that I lost to a bleeding heart like him. ...Humph! I don't have the time for the likes of you!",
+    "shove_script": "RocketBaseRivalShovesPlayerMovement - player big_step RIGHT",
+    "sets_event": "EVENT_RIVAL_TEAM_ROCKET_BASE cleared (rival object hidden after encounter)",
+    "next_scene": "SCENE_TEAMROCKETBASEB3F_ROCKET_BOSS"
+  },
+  "lance_arrival": {
+    "description": "Lance arrives at B3F at the start (SCENE_TEAMROCKETBASEB3F_LANCE_GETS_PASSWORD). He waits at (25,14), then after the LanceGetPasswordScript cutscene, reveals information about the passwords before departing.",
+    "lance_object": {
+      "x": 25, "y": 14,
+      "facing": "down",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_LANCE_PASSWORDS"
+    },
+    "lance_text": "LANCE: It takes two passwords to get into the boss's quarters. Those passwords are known only to a few ROCKETS. That ROCKET there very graciously told me so. [Player], let's go get the passwords.",
+    "deferred_script": "LanceGetPasswordScript (sdefer - runs on map entry during correct scene)"
+  },
+  "executive_battle": {
+    "description": "Executive M (Petrel) guards Giovanni's office door. The player must approach the door area during SCENE_TEAMROCKETBASEB3F_ROCKET_BOSS to trigger the battle.",
+    "executive": {
+      "class": "Executive M",
+      "trainer_id": "EXECUTIVEM_4",
+      "name": "Executive (Petrel)",
+      "x": 8, "y": 3,
+      "sprite": "SPRITE_ROCKET",
+      "event_flag": "EVENT_BEAT_ROCKET_EXECUTIVEM_4",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_B3F_EXECUTIVE",
+      "team": [
+        {"species": "Zubat", "level": 22},
+        {"species": "Raticate", "level": 24},
+        {"species": "Koffing", "level": 22}
+      ],
+      "prize_money": 2400,
+      "before_text": "What? Who are you? This is the office of our leader, GIOVANNI. Since disbanding TEAM ROCKET three years ago, he has been in training. But we're certain he will be back some day to assume command again. That's why we're standing guard. I won't let anyone disturb this place!",
+      "beaten_text": "I... I couldn't do a thing... GIOVANNI, please forgive me...",
+      "after_text": "No, I can't let this affect me. I have to inform the others...",
+      "rematch": false,
+      "post_battle_scene": "SCENE_TEAMROCKETBASEB3F_NOOP"
+    }
+  },
+  "npcs": [
+    {
+      "id": "defeated_grunt_near_door",
+      "name": "Rocket Grunt (defeated by Lance)",
+      "sprite": "SPRITE_ROCKET",
+      "x": 24, "y": 14,
+      "facing": "down",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "dialogue_summary": "Urrggh... The guy in the cape is incredibly tough..."
+    },
+    {
+      "id": "lance",
+      "name": "Lance",
+      "sprite": "SPRITE_LANCE",
+      "x": 25, "y": 14,
+      "facing": "down",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_LANCE_PASSWORDS",
+      "script_type": "ally_npc",
+      "dialogue_summary": "Explains the two-password system to reach Giovanni's quarters. Departs after telling the player to find the passwords."
+    },
+    {
+      "id": "rival_silver",
+      "name": "Silver (Rival)",
+      "sprite": "SPRITE_RIVAL",
+      "x": 4, "y": 5,
+      "facing": "down",
+      "event_flag": "EVENT_RIVAL_TEAM_ROCKET_BASE",
+      "script_type": "cutscene_trigger",
+      "dialogue_summary": "Object placeholder (hidden until cutscene). Appears during RocketBaseRival coord event at (8,10)."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rocket Grunt (Female)",
+      "trainer_id": "GRUNTF_5",
+      "name": "Grunt (SlowpokeTail)",
+      "x": 21, "y": 7,
+      "facing": "up",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Ekans", "level": 18, "moves": ["Wrap", "Leer", "Poison Sting", "Bite"]},
+        {"species": "Gloom", "level": 18, "moves": ["Absorb", "Sweet Scent", "Stun Spore", "Sleep Powder"]}
+      ],
+      "prize_money": 576,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTF_5",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "Do I know the password? Maybe. But no weakling's going to get it!",
+      "beaten_text": "All right. Stop. I'll tell you.",
+      "after_battle_text": "The password to the boss's room is SLOWPOKETAIL. But it's useless unless you have two passwords.",
+      "sets_event_on_post_battle": "EVENT_LEARNED_SLOWPOKETAIL",
+      "rematch": false
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_28",
+      "name": "Grunt (RaticateTail)",
+      "x": 5, "y": 14,
+      "facing": "down",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Raticate", "level": 19}
+      ],
+      "prize_money": 608,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_28",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "Hyuck-hyuck-hyuck! You're challenging me to a battle? Hah! You're nuts, but you have guts! I like that! If you can beat me, I'll tell you a password to the boss's room!",
+      "beaten_text": "Hyuck-hyuck-hyuck! You're good!",
+      "after_battle_text": "Hyuck-hyuck-hyuck! The password to the boss's room... Uh..., I think it is RATICATE TAIL.",
+      "sets_event_on_post_battle": "EVENT_LEARNED_RATICATE_TAIL",
+      "rematch": false
+    },
+    {
+      "class": "Scientist",
+      "trainer_id": "SCIENTIST_ROSS",
+      "name": "Ross",
+      "x": 23, "y": 11,
+      "facing": "up",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Koffing", "level": 22},
+        {"species": "Koffing", "level": 22}
+      ],
+      "prize_money": 1056,
+      "event_flag": "EVENT_BEAT_SCIENTIST_ROSS",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "I used to work for SILPH, but now I run research for TEAM ROCKET. A meddlesome child like you needs to be punished.",
+      "beaten_text": "A mere tactical error cost me...",
+      "after_battle_text": "A radio signal that drives Pokemon mad... My experiment is a complete success. My promotion is assured. This loss means absolutely nothing.",
+      "rematch": false
+    },
+    {
+      "class": "Scientist",
+      "trainer_id": "SCIENTIST_MITCH",
+      "name": "Mitch",
+      "x": 11, "y": 15,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Ditto", "level": 24}
+      ],
+      "prize_money": 1152,
+      "event_flag": "EVENT_BEAT_SCIENTIST_MITCH",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "I don't care that Pokemon are hurt by our experiment.",
+      "beaten_text": "Thinking is my strong suit, not battling.",
+      "after_battle_text": "If we turn up the power of our radio signal for broadcast nationwide... The very thought excites me!",
+      "rematch": false
+    }
+  ],
+  "items": [
+    {
+      "name": "Protein",
+      "x": 1, "y": 12,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_PROTEIN"
+    },
+    {
+      "name": "X Special",
+      "x": 3, "y": 12,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_X_SPECIAL"
+    },
+    {
+      "name": "Full Heal",
+      "x": 28, "y": 9,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_FULL_HEAL"
+    },
+    {
+      "name": "Ice Heal",
+      "x": 17, "y": 2,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_ICE_HEAL"
+    },
+    {
+      "name": "Ultra Ball",
+      "x": 14, "y": 10,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B3F_ULTRA_BALL"
+    }
+  ],
+  "hidden_items": [],
+  "bg_events": [
+    {
+      "x_range": [10, 13], "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB3FOathScript",
+      "description": "Bookshelf tiles containing the Team Rocket Oath."
+    },
+    {
+      "x_range": [4, 7], "y": 13,
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB3FOathScript",
+      "description": "Bookshelf tiles containing the Team Rocket Oath."
+    },
+    {
+      "x_range": [10, 11], "y": 9,
+      "type": "BGEVENT_IFNOTSET",
+      "script": "TeamRocketBaseB3FLockedDoor",
+      "description": "Door to Giovanni's inner sanctum. Requires both EVENT_LEARNED_SLOWPOKETAIL and EVENT_LEARNED_RATICATE_TAIL. Once opened, sets EVENT_OPENED_DOOR_TO_GIOVANNIS_OFFICE."
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "tile_load_callback",
+      "script": "TeamRocketBaseB3FCheckGiovanniDoorCallback",
+      "description": "Checks EVENT_OPENED_DOOR_TO_GIOVANNIS_OFFICE. If set, changes block at (10,8) to floor tile to keep door visually open."
+    },
+    {
+      "trigger": "scene_deferred",
+      "scene": "SCENE_TEAMROCKETBASEB3F_LANCE_GETS_PASSWORD",
+      "script": "LanceGetPasswordScript",
+      "description": "Deferred scene script that plays on map entry during this scene. Lance approaches player, explains the password system, then departs."
+    },
+    {
+      "trigger": "coord_event",
+      "x": 8, "y": 10,
+      "scene": "SCENE_TEAMROCKETBASEB3F_RIVAL_ENCOUNTER",
+      "script": "RocketBaseRival",
+      "description": "Triggers Silver/Rival cutscene on B3F. Silver enters, monologues about being beaten by Lance, shoves player, and exits."
+    }
+  ],
+  "notes": "B3F is the deepest and most narrative-dense floor of the Rocket Hideout. Key features: (1) The Murkrow at (7,2) - notably rendered with SPRITE_MOLTRES in pokecrystal code - whispers the password 'HAIL GIOVANNI' which unlocks B2F's transmitter room door. (2) Two password grunts: GruntF_5 (Slowpoke Tail) and GruntM_28 (Raticate Tail) - both passwords must be obtained to open Giovanni's office door. (3) Executive M (Petrel) guards the door and battles the player with Zubat Lv22 / Raticate Lv24 / Koffing Lv22. (4) Silver (the rival) appears in a cutscene, having tried to take down Team Rocket himself - Lance's Dragonite humbled him and Lance told him he doesn't love his Pokemon. (5) Lance arrives early on this floor to inform the player about the password system. All four warps lead back up to B2F. Trainers (all population-flagged) include two Rocket Grunts holding passwords, and two Scientists who reveal research details about the radio signal experiment. Five item balls are scattered across the floor."
+}

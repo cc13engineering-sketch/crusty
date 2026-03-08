@@ -1,0 +1,104 @@
+{
+  "area_id": "route_26_heal_house",
+  "area_name": "Route 26 Heal House",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_26_HEAL_HOUSE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "route_26",
+      "target_warp_id": 2,
+      "notes": "Left door tile back to Route 26 (tile 15,57)"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "route_26",
+      "target_warp_id": 2,
+      "notes": "Right door tile back to Route 26 (tile 15,57)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "Standard 4x4 block house interior (House1.blk = 16 bytes). Bookshelf on top row. Teacher NPC heals party when spoken to.",
+    "rows": [
+      "########",
+      "BB......",
+      "........",
+      "....N...",
+      "........",
+      "........",
+      "........",
+      "..EE...."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_teacher",
+      "name": "Teacher (healer)",
+      "x": 2, "y": 3,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "healer",
+      "dialogue_summary": "Your Pokemon look a little tired. Rest them a while. [Heals party, fades to black, plays heal jingle.] There! Your Pokemon are looking good! Keep at it!",
+      "sprite": "SPRITE_TEACHER",
+      "palette": "PAL_NPC_BLUE",
+      "notes": "Full party heal. Uses FadeOutToBlack, ReloadSprites, HealParty, FadeInFromBlack sequence. No cost."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "bg_events": [
+    {
+      "x": 0, "y": 1,
+      "type": "bookshelf",
+      "script": "Route26HealHouseBookshelf",
+      "notes": "PictureBookshelfScript — standard picture bookshelf text"
+    },
+    {
+      "x": 1, "y": 1,
+      "type": "bookshelf",
+      "script": "Route26HealHouseBookshelf",
+      "notes": "Second bookshelf tile, same script"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [],
+  "notes": "Small 4x4 block interior (8x8 tiles) on the east side of Route 26 at tile (15, 57). A Teacher NPC provides a full free party heal identical in function to a Pokemon Center, including the heal music. Two bookshelf bg_events on the top row use the standard PictureBookshelfScript. The house serves as a rest stop for players making the long trek up Route 26 toward the Pokemon League."
+}

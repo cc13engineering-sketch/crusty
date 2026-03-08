@@ -1,0 +1,206 @@
+{
+  "area_id": "ice_path_1f",
+  "area_name": "Ice Path 1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "ICE_PATH_1F",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "ice_path",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_44",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "blackthorn_city",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 19,
+      "target_area_id": "route_44",
+      "target_warp_id": 1,
+      "notes": "West exit — cave mouth leading back to Route 44"
+    },
+    {
+      "warp_id": 2,
+      "x": 36, "y": 27,
+      "target_area_id": "blackthorn_city",
+      "target_warp_id": 7,
+      "notes": "East exit — cave mouth leading into Blackthorn City; requires passing B1F ice puzzles"
+    },
+    {
+      "warp_id": 3,
+      "x": 37, "y": 5,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 1,
+      "notes": "North hole/stairs down to B1F (Mahogany-side upper entrance)"
+    },
+    {
+      "warp_id": 4,
+      "x": 37, "y": 13,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 7,
+      "notes": "Second hole/stairs down to B1F (lower entrance)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "I": "ice",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "E": "exit_mat",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "40 wide x 36 tall tiles. Ice Path 1F is the large entrance floor. The western cave mouth (warp 1) is at the far west-center. Two large ice-sliding floors dominate the northern and southern interior. A narrow walkable corridor on the east leads to a waterfall (HM07 required to traverse) and the Blackthorn exit. Two holes/stairs lead down to B1F at the northeast. Items: HM07 Waterfall at (31,7), PP Up at (32,23), Protein at (35,9). No trainers. The layout is schematic — actual block map has more irregular cave walls and ice patches.",
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "#####################################vvv",
+      "####IIIIIIIIIIIIIII..................vvv#",
+      "####IIIIIIIIIIIIIII..................###",
+      "####IIIIIIIIIIIIIII.......!..........###",
+      "####IIIIIIIIIIIIIII......###.........###",
+      "####IIIIIIIIIIIIIII.......!..........###",
+      "####IIIIIIIIIIIIIII..................###",
+      "####IIIIIIIIIIIIIII..................###",
+      "####IIIIIIIIIIIIIII..................###",
+      "#########################################",
+      "#####################################vvv",
+      "#########################################",
+      "#########################################",
+      "#########################################",
+      "####@........................................",
+      "#########################################",
+      "#########################################",
+      "#########################################",
+      "####IIIIIIIIIIIIIIIII................####",
+      "####IIIIIIIIIIIIIIIII...!............####",
+      "####IIIIIIIIIIIIIIIII................####",
+      "####IIIIIIIIIIIIIIIII................####",
+      "####IIIIIIIIIIIIIIIII................####",
+      "####IIIIIIIIIIIIIIIII................EEE#",
+      "####IIIIIIIIIIIIIIIII................EEE#",
+      "####IIIIIIIIIIIIIIIII................####",
+      "####IIIIIIIIIIIIIIIII................####",
+      "#########################################",
+      "#########################################",
+      "#########################################",
+      "#########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "HM07 Waterfall",
+      "x": 31, "y": 7,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_GOT_HM07_WATERFALL",
+      "notes": "Pokeball sprite in northeast area of the upper ice section. The most critical item in Ice Path — needed to traverse the waterfall and reach Blackthorn City."
+    },
+    {
+      "name": "PP Up",
+      "x": 32, "y": 23,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_1F_PP_UP",
+      "notes": "Pokeball sprite on the lower ice floor, south section."
+    },
+    {
+      "name": "Protein",
+      "x": 35, "y": 9,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_1F_PROTEIN",
+      "notes": "Pokeball sprite in the upper-east walkable corridor area."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 2,
+      "notes": "Cave encounters use the grass slot system despite no tall grass. 2% encounter rate per step.",
+      "morning": [
+        {"species": "Swinub",   "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "day": [
+        {"species": "Swinub",   "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "night": [
+        {"species": "Delibird", "level_min": 21, "level_max": 21, "rate": 20},
+        {"species": "Zubat",    "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Delibird", "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Golbat",   "level_min": 22, "level_max": 22, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on 1F."
+    },
+    "fishing": {
+      "group": "FISHGROUP_DRATINI",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 70},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 21},
+        {"species": "Dratini",  "level_min": 20, "level_max": 20, "rate": 9, "notes": "Day and night both give Dratini via time_group 8"}
+      ],
+      "super_rod": [
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Dratini",  "level_min": 40, "level_max": 40, "rate": 30, "notes": "time_group 9"},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Dragonair","level_min": 40, "level_max": 40, "rate": 10}
+      ],
+      "notes": "Fishing group DRATINI. No water tiles on 1F — fish data is defined but inaccessible on this floor."
+    }
+  },
+  "events": [
+    {
+      "trigger": "item_pickup",
+      "description": "Picking up HM07 Waterfall sets EVENT_GOT_HM07_WATERFALL. This HM is required to ascend the waterfall at the Blackthorn exit and is essential for post-game Kanto access."
+    }
+  ],
+  "puzzle": {
+    "type": "ice_sliding",
+    "description": "Two large ice floors on 1F. The player slides uncontrollably on ice tiles until hitting a wall or solid ground. Navigating both ice floors is required to reach the stairs to B1F and ultimately the Blackthorn exit. No Strength boulders on 1F."
+  },
+  "notes": "Ice Path 1F (20x18 blocks, 40x36 tiles) is the entrance floor of the Ice Path cave connecting Route 44 (west) to Blackthorn City (east). Tileset: TILESET_ICE_PATH. Music: MUSIC_DARK_CAVE. The cave landmark is LANDMARK_ICE_PATH. The floor has two large ice-sliding puzzle areas and a narrow eastern corridor. HM07 Waterfall is the key item found here — required for the final passage to Blackthorn. No trainers are present in the Ice Path at all. Three item balls: HM07 at (31,7), Protein at (35,9), PP Up at (32,23). Two holes lead down to B1F at (37,5) and (37,13). Wild encounters include Swinub (Ice/Ground type, exclusive to Ice Path), Zubat, and Golbat during day/morning; Delibird replaces Swinub at night. Fishing group DRATINI gives access to Dratini and Dragonair but there is no water on 1F."
+}

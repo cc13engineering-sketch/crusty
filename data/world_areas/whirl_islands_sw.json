@@ -1,0 +1,181 @@
+{
+  "area_id": "whirl_islands_sw",
+  "area_name": "Whirl Islands (SW)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_SW",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_41",
+      "offset": 0,
+      "requires": "HM06_Whirlpool",
+      "notes": "Accessible from Route 41 by using Whirlpool to clear surrounding whirlpool. warp_event 5,7 ROUTE_41 3."
+    }
+  ],
+  "warps": [
+    {
+      "x": 5,
+      "y": 7,
+      "target_area_id": "route_41",
+      "target_warp_id": 3,
+      "notes": "Exit to Route 41. warp_event 5,7 ROUTE_41 3."
+    },
+    {
+      "x": 17,
+      "y": 3,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 5,
+      "notes": "Northeast staircase down to B1F. warp_event 17,3 WHIRL_ISLAND_B1F 5."
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 4,
+      "notes": "Northwest staircase down to B1F. warp_event 3,3 WHIRL_ISLAND_B1F 4."
+    },
+    {
+      "x": 3,
+      "y": 15,
+      "target_area_id": "whirl_islands_nw",
+      "target_warp_id": 3,
+      "notes": "Floor passage connecting to NW entrance cave. warp_event 3,15 WHIRL_ISLAND_NW 3."
+    },
+    {
+      "x": 17,
+      "y": 15,
+      "target_area_id": "whirl_islands_b2f",
+      "target_warp_id": 4,
+      "notes": "Passage descending to B2F — the path toward Lugia. warp_event 17,15 WHIRL_ISLAND_B2F 4. Critical route for reaching Lugia."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "W": "whirlpool",
+      "v": "stairs_down",
+      "E": "cave_exit_to_route_41",
+      "P": "passage_to_adjacent_cave",
+      "!": "item_ball"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "###v#############v##",
+      "####################",
+      "####################",
+      "####################",
+      "#####E##############",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###P#############P##",
+      "####################",
+      "###############!####"
+    ],
+    "notes": "Schematic from warp and object_event coordinates in WhirlIslandSW.asm. 20x18 tiles. Two upper staircases to B1F: (3,3) and (17,3). Exit to Route 41 at (5,7). Two lower passages: west to NW cave (3,15), east to B2F (17,15) — the critical path to Lugia. Ultra Ball item at (15,2) [approximated to floor row near top-right]. Actual block layout in maps/WhirlIslandSW.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 15,
+      "y": 2,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_SW_ULTRA_BALL",
+      "pokecrystal_label": "WhirlIslandSWUltraBall",
+      "pokecrystal_sprite": "SPRITE_POKE_BALL",
+      "notes": "object_event 15,2 SPRITE_POKE_BALL SPRITEMOVEDATA_STILL. itemball ULTRA_BALL."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Standard 7-slot cave encounter table, identical to NW and NE at the same base levels. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_SW lines 901-927.",
+      "morning": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 24, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 24, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 4,
+      "notes": "WHIRL_ISLAND_SW has a surfable water pool. Source: data/wild/johto_water.asm def_water_wildmons WHIRL_ISLAND_SW lines 75-80.",
+      "mons": [
+        {"species": "Tentacool",  "level": 20, "rate": 60},
+        {"species": "Horsea",     "level": 15, "rate": 30},
+        {"species": "Tentacruel", "level": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. SW has a surfable water pool making fishing accessible.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20 day and night"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40 day and night"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "entry_from_route_41",
+      "description": "Player must use HM06 Whirlpool to access this island from Route 41. One of four Whirl Islands entrance caves.",
+      "requires": "HM06_Whirlpool, Glacier_Badge"
+    }
+  ],
+  "signs": [],
+  "notes": "Southwest entrance to the Whirl Islands complex. The SW cave is the most interconnected entrance cave: it connects to the NW cave via a lower passage, has two staircases to B1F, AND has a direct passage to B2F — which is the only way to reach the Lugia Chamber short of going through the full B1F. It also has an actual surfable water pool (Tentacool/Horsea/Tentacruel at 4% rate) unlike the NW entrance. Contains one Ultra Ball at (15,2). Width 10 blocks / 20 tiles, height 9 blocks / 18 tiles. Source: maps/WhirlIslandSW.asm, constants/map_constants.asm line 133, data/maps/maps.asm line 146, data/wild/johto_grass.asm lines 901-927, data/wild/johto_water.asm lines 75-80."
+}

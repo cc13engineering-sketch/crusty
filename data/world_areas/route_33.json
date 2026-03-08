@@ -1,0 +1,222 @@
+{
+  "area_id": "route_33",
+  "area_name": "Route 33",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_33",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "johto_overworld",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "union_cave_1f",
+      "offset": 0,
+      "requires": null,
+      "notes": "Route 33 is south of Union Cave; Route 32 is north of Union Cave — these routes are not directly adjacent."
+    },
+    {
+      "direction": "west",
+      "target_area_id": "azalea_town",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 11,
+      "y": 9,
+      "target_area_id": "union_cave_1f",
+      "target_warp_id": 3,
+      "notes": "Union Cave south exit / Route 33 north entrance"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "C": "cave_entrance",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "rows": [
+      "TTTTTTTTTTCTTTTTTTTTT",
+      "TTTTTTTTTT.TTTTTTTTTT",
+      "TTTTTTTTTT.TTTTTTTTTT",
+      "TTTTTTTTT..TTTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTT",
+      "TTTTGGGGG..TTNTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTT",
+      "TTTTN......TTNTTTTTTT",
+      "TTTT.......TTTTTTTTTTT",
+      "TTTT.......TTTTTTTTTTT",
+      "TTTTS......TTTTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTTT",
+      "TTTTGGGGG.!TTTTTTTTTTT",
+      "TTTTGGGGG..TTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT"
+    ],
+    "notes": "Route 33 is a short 20x18 tile route connecting Union Cave (north) and Azalea Town (west). The route commonly has rain or overcast weather scripted. Hiker Anthony patrols around x6,y13 (tile row 13 in the lower grass section). The Lass wanders around x13,y16. Fruit tree at x14,y16. Sign at x11,y11. Layout is a schematic approximation; actual block arrangement comes from Route33.blk."
+  },
+  "npcs": [
+    {
+      "id": "lass_exhausted",
+      "name": "Lass (exhausted from cave)",
+      "x": 13,
+      "y": 16,
+      "facing": "random",
+      "movement": "walk_around",
+      "script_type": "dialogue",
+      "dialogue_summary": "Just emerged from Union Cave, exhausted. The cave was much bigger than expected and she got too tired to explore it all."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Hiker",
+      "name": "Anthony",
+      "trainer_id": "ANTHONY2",
+      "x": 6,
+      "y": 13,
+      "facing": "random",
+      "line_of_sight": 2,
+      "sprite": "SPRITE_POKEFAN_M",
+      "team": [
+        {"species": "Geodude", "level": 11},
+        {"species": "Machop",  "level": 11}
+      ],
+      "prize_money": 352,
+      "rematch": true,
+      "rematch_notes": "Pokegear phone rematch. Up to 5 fight tiers keyed to game progress. Announces Dunsparce swarm when ENGINE_DUNSPARCE_SWARM is active.",
+      "rematch_teams": [
+        {
+          "fight": 2,
+          "unlock_condition": "ENGINE_FLYPOINT_OLIVINE",
+          "team": [
+            {"species": "Geodude",  "level": 16},
+            {"species": "Machamp",  "level": 18}
+          ]
+        },
+        {
+          "fight": 3,
+          "unlock_condition": "EVENT_CLEARED_RADIO_TOWER",
+          "team": [
+            {"species": "Graveler", "level": 25},
+            {"species": "Graveler", "level": 27},
+            {"species": "Machoke",  "level": 29}
+          ]
+        },
+        {
+          "fight": 4,
+          "unlock_condition": "EVENT_BEAT_ELITE_FOUR",
+          "team": [
+            {"species": "Graveler", "level": 30},
+            {"species": "Graveler", "level": 30},
+            {"species": "Machoke",  "level": 32}
+          ]
+        },
+        {
+          "fight": 5,
+          "unlock_condition": "EVENT_RESTORED_POWER_TO_KANTO",
+          "team": [
+            {"species": "Graveler", "level": 34, "moves": ["Magnitude", "Self-Destruct", "Defense Curl", "Rollout"]},
+            {"species": "Golem",    "level": 36, "moves": ["Magnitude", "Self-Destruct", "Defense Curl", "Rollout"]},
+            {"species": "Machoke",  "level": 34, "moves": ["Karate Chop", "Vital Throw", "Headbutt", "Dig"]}
+          ]
+        }
+      ],
+      "pokecrystal_trainer": "HIKER, ANTHONY2",
+      "sprite_note": "Uses SPRITE_POKEFAN_M despite being a Hiker class — likely a pokecrystal quirk or Crystal-specific sprite."
+    }
+  ],
+  "items": [
+    {
+      "name": "Fruit Tree",
+      "x": 14,
+      "y": 16,
+      "hidden": false,
+      "requires": null,
+      "item_type": "fruit_tree",
+      "pokecrystal_event": "FRUITTREE_ROUTE_33",
+      "notes": "Headbutt-able fruit tree. Yields Berry or similar on interaction."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Rattata", "level_min": 6, "level_max": 7, "rate": 40},
+        {"species": "Hoppip",  "level_min": 6, "level_max": 8, "rate": 35},
+        {"species": "Ekans",   "level_min": 7, "level_max": 7, "rate": 30},
+        {"species": "Spearow", "level_min": 6, "level_max": 6, "rate": 20},
+        {"species": "Geodude", "level_min": 6, "level_max": 6, "rate": 20},
+        {"species": "Zubat",   "level_min": 4, "level_max": 4, "rate": 5}
+      ],
+      "day": [
+        {"species": "Rattata", "level_min": 6, "level_max": 8, "rate": 45},
+        {"species": "Hoppip",  "level_min": 6, "level_max": 8, "rate": 35},
+        {"species": "Spearow", "level_min": 6, "level_max": 6, "rate": 20}
+      ],
+      "night": [
+        {"species": "Rattata", "level_min": 6, "level_max": 7, "rate": 60},
+        {"species": "Zubat",   "level_min": 6, "level_max": 8, "rate": 40}
+      ],
+      "version_notes": "Ekans is Gold-exclusive. Geodude and Ekans appear in morning only. Zubat is rare in morning/day but common at night."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on Route 33."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": [],
+      "notes": "No fishing spots on Route 33."
+    },
+    "headbutt_trees": [
+      {"species": "Spearow",   "level_min": 10, "level_max": 10, "rate": 30, "time": "all"},
+      {"species": "Ekans",     "level_min": 10, "level_max": 10, "rate": 25, "time": "all"},
+      {"species": "Aipom",     "level_min": 10, "level_max": 10, "rate": 25, "time": "all"},
+      {"species": "Heracross", "level_min": 10, "level_max": 10, "rate": 20, "time": "all"}
+    ]
+  },
+  "events": [
+    {
+      "trigger": "enter_from_union_cave",
+      "description": "Player emerges from Union Cave's south exit onto Route 33, heading toward Azalea Town.",
+      "notes": "No scripted scene on entry, but the route commonly has rain weather in the game's atmosphere system."
+    },
+    {
+      "trigger": "weather",
+      "description": "Route 33 is one of the few outdoor routes that frequently has rain weather active, matching its gloomy atmosphere between cave exit and Azalea Town.",
+      "notes": "Weather is atmospheric; does not affect gameplay in Gen 2."
+    },
+    {
+      "trigger": "anthony_swarm_call",
+      "description": "If Hiker Anthony has the player's phone number and the Dunsparce swarm is active (ENGINE_DUNSPARCE_SWARM), he calls to announce Dunsparce can be found on the route.",
+      "pokecrystal_flag": "ENGINE_DUNSPARCE_SWARM"
+    }
+  ],
+  "signs": [
+    {
+      "x": 11,
+      "y": 11,
+      "text": "ROUTE 33"
+    }
+  ],
+  "notes": "Route 33 is a short 10x9 block (20x18 tile) route connecting Union Cave's south exit to Azalea Town. It is the last outdoor stretch before the second Gym. The route is associated with rain weather and has a single trainer — Hiker Anthony — with Pokegear rematch support across five tiers. Headbutt trees here can yield Heracross, making it notable for Heracross hunting later in the game (level 10 headbutt). Ekans is Gold-exclusive in grass. No items on the ground. Pokecrystal source: maps/Route33.asm. Note: sprite is SPRITE_POKEFAN_M for Anthony despite class being HIKER."
+}

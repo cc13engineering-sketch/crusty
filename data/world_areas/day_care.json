@@ -1,0 +1,202 @@
+{
+  "area_id": "day_care",
+  "area_name": "Day-Care Center",
+  "area_type": "building",
+  "pokecrystal_map_id": "DAY_CARE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "TILESET_HOUSE",
+  "music": "MUSIC_DAY_CARE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ROUTE_34",
+  "palette": "PALETTE_AUTO",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 0,
+      "y": 5,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 3,
+      "notes": "Left exit door tile — returns to Route 34 warp 3 (x=11,y=14)"
+    },
+    {
+      "warp_id": 1,
+      "x": 0,
+      "y": 6,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 4,
+      "notes": "Left-center exit door tile — returns to Route 34 warp 4 (x=11,y=15)"
+    },
+    {
+      "warp_id": 2,
+      "x": 2,
+      "y": 7,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 5,
+      "notes": "Right exit tile — returns to Route 34 warp 5 (x=13,y=15)"
+    },
+    {
+      "warp_id": 3,
+      "x": 3,
+      "y": 7,
+      "target_area_id": "route_34",
+      "pokecrystal_target": "ROUTE_34",
+      "target_warp_id": 5,
+      "notes": "Far-right exit tile — also returns to Route 34 warp 5 (x=13,y=15)"
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 0,
+      "y": 1,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "Bookshelf (difficult book, standard jumpstd DifficultBookshelfScript)"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "Bookshelf (difficult book, standard jumpstd DifficultBookshelfScript)"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "10 columns x 8 rows. Standard single-floor house interior. Bookshelf on north wall (x=0-1,y=1). Day Care Man stands at x=2,y=3 (only visible when EVENT_DAY_CARE_MAN_IN_DAY_CARE is set). Day Care Lady at x=5,y=3. Exit doors on south wall.",
+    "rows": [
+      "##########",
+      "#BB######.",
+      "#.........",
+      "#N....N...",
+      "#.........",
+      "#.........",
+      "D.........",
+      "EE.EE....."
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_daycare_man_inside",
+      "object_const": "DAYCARE_GRAMPS",
+      "name": "Day-Care Man (Gramps)",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 2,
+      "y": 3,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_DAY_CARE_MAN_IN_DAY_CARE",
+      "dialogue_summary": "On first Crystal visit: explains about Eggs, offers the Odd Egg (gives it to player). On subsequent visits: uses special DayCareMan to handle the deposit/withdrawal of Pokemon and status report. If ENGINE_DAY_CARE_MAN_HAS_EGG is set, he is outside on Route 34 instead.",
+      "special_functions": [
+        "GiveOddEgg (Crystal only, first visit)",
+        "DayCareMan (regular service: deposit/withdraw, check cost)"
+      ]
+    },
+    {
+      "id": "npc_daycare_lady",
+      "object_const": "DAYCARE_GRANNY",
+      "name": "Day-Care Lady (Granny)",
+      "sprite": "SPRITE_GRANNY",
+      "x": 5,
+      "y": 3,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Uses special DayCareLady to handle Pokemon deposit/withdrawal for the second slot. If an Egg is ready (ENGINE_DAY_CARE_MAN_HAS_EGG), she says 'Gramps was looking for you.' instead of normal service.",
+      "special_functions": [
+        "DayCareLady (regular service: deposit/withdraw for second slot)"
+      ]
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [
+    {
+      "name": "Odd Egg",
+      "source": "npc_gift",
+      "giver": "Day-Care Man",
+      "hidden": false,
+      "requires": "Crystal version only, first visit",
+      "event_flag": "EVENT_GOT_ODD_EGG",
+      "notes": "Crystal exclusive. Day-Care Man offers the Odd Egg on first visit. Egg hatches into one of: Pichu, Cleffa, Igglybuff, Tyrogue, Smoochum, Elekid, or Magby. Has a 50% chance of being Shiny."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "DayCareEggCheckCallback",
+      "notes": "Mirrors the Route 34 callback. Checks ENGINE_DAY_CARE_MAN_HAS_EGG to determine whether Gramps is inside (EVENT_DAY_CARE_MAN_IN_DAY_CARE) or outside on Route 34 (EVENT_DAY_CARE_MAN_ON_ROUTE_34)."
+    }
+  ],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_visit_crystal",
+      "description": "In Crystal, Day-Care Man tells the player about Eggs and gives them the Odd Egg (one of seven possible baby Pokemon, 50% Shiny chance). Requires empty party slot.",
+      "flags_set": ["EVENT_GOT_ODD_EGG"],
+      "items_given": ["Odd Egg (Crystal only)"]
+    },
+    {
+      "order": 2,
+      "trigger": "deposit_pokemon",
+      "description": "Player can deposit up to 2 Pokemon (one with Man, one with Lady). Pokemon gain 1 EXP per step taken outdoors. If two compatible species are left, they may produce an Egg.",
+      "notes": "EXP formula: levels_gained = floor((steps_walked + deposited_level * 100) / 100). Pokemon may learn new moves while leveling up at Day Care."
+    },
+    {
+      "order": 3,
+      "trigger": "egg_produced",
+      "description": "When compatible pair produces an Egg, ENGINE_DAY_CARE_MAN_HAS_EGG is set. Day-Care Man comes outside on Route 34. Player must accept the Egg (requires empty party slot).",
+      "flags_set": ["ENGINE_DAY_CARE_MAN_HAS_EGG (cleared after handoff)"]
+    }
+  ],
+
+  "notes": "The Day-Care Center is a 5x4 block (10x8 tile) single-floor interior building located on Route 34. It is the only breeding facility in Johto. The Day-Care Man handles depositing/withdrawing the first Pokemon; the Day-Care Lady handles the second slot. When an Egg is ready, the Day-Care Man appears on Route 34 outside and chases the player. The MAPCALLBACK_OBJECTS callback on both DAY_CARE and ROUTE_34 synchronizes the EVENT_DAY_CARE_MAN_IN_DAY_CARE and EVENT_DAY_CARE_MAN_ON_ROUTE_34 event flags. The bookshelf on the north wall uses the standard DifficultBookshelfScript."
+}

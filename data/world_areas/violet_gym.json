@@ -1,0 +1,236 @@
+{
+  "area_id": "violet_gym",
+  "area_name": "Violet Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "VIOLET_GYM",
+  "width_blocks": 5,
+  "height_blocks": 8,
+  "width_tiles": 10,
+  "height_tiles": 16,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "id": 1,
+      "x": 4, "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 2,
+      "notes": "Exit (left tile of exit mat)"
+    },
+    {
+      "id": 2,
+      "x": 5, "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 2,
+      "notes": "Exit (right tile of exit mat)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "P": "elevated_platform",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "S": "statue/sign",
+      "F": "fence/railing",
+      "G": "gym_guide_mat"
+    },
+    "layout_description": [
+      "The Violet Gym has an S-shaped elevated platform structure.",
+      "The gym floor is otherwise flat/walkable.",
+      "Two statues flank the entrance area at the south.",
+      "The path winds from the south entrance up and around to reach Falkner at the north.",
+      "Bird Keeper Rod stands on the upper-right platform section (x=7, y=6).",
+      "Bird Keeper Abe stands on the lower-left platform section (x=2, y=10).",
+      "Gym Guide stands near entrance at south (x=7, y=13).",
+      "Two gym statues (bg_events) at x=3,y=13 and x=6,y=13.",
+      "Falkner stands at the top center of the map (x=5, y=1)."
+    ],
+    "rows": [
+      "##########",
+      "####NP####",
+      "####PP####",
+      "###PPPP###",
+      "###PP.####",
+      "##.PP.####",
+      "##.PPNP###",
+      "##.PPP.###",
+      "##PPPP.###",
+      "##PP...###",
+      "##NPP#####",
+      "##PPP#####",
+      "##PP.#####",
+      "##SS.G####",
+      "##.......#",
+      "####EE####"
+    ],
+    "platform_notes": [
+      "Row 1: Falkner at x=5 (leader position, top of S)",
+      "Rows 1-3: Upper platform segment (north arm of S)",
+      "Rows 3-7: Mid-platform transition (center of S) — Bird Keeper Rod at row 6",
+      "Rows 7-12: Lower platform segment (south arm of S) — Bird Keeper Abe at row 10",
+      "Rows 13-14: Open floor level — statues at x=3,y=13 and x=6,y=13; Gym Guide at x=7,y=13",
+      "Row 15: Exit mat (E) at x=4-5"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_gym_guide",
+      "name": "Gym Guide",
+      "sprite": "SPRITE_GYM_GUIDE",
+      "x": 7, "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_pre_badge": "The grass-type is weak against the flying-type. Keep this in mind. Believe in yourself!",
+      "dialogue_post_badge": "Nice battle! Keep it up, and you'll be the Champ in no time at all!",
+      "script_ref": "VioletGymGuideScript"
+    }
+  ],
+  "trainers": [
+    {
+      "id": "trainer_bird_keeper_rod",
+      "class": "Bird Keeper",
+      "name": "Rod",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 7, "y": 6,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_ROD",
+      "team": [
+        {"species": "Pidgey", "level": 7, "move1": "Tackle", "move2": null, "move3": null, "move4": null},
+        {"species": "Pidgey", "level": 7, "move1": "Tackle", "move2": null, "move3": null, "move4": null}
+      ],
+      "prize_money": 112,
+      "seen_text": "The keyword is guts! Those here are training night and day to become bird Pokemon masters. Come on!",
+      "beaten_text": "Gaaah!",
+      "after_battle_text": "FALKNER's skills are for real! Don't get cocky just because you beat me!",
+      "rematch": false,
+      "pokecrystal_ref": "TrainerBirdKeeperRod / BIRD_KEEPER ROD party #1"
+    },
+    {
+      "id": "trainer_bird_keeper_abe",
+      "class": "Bird Keeper",
+      "name": "Abe",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 2, "y": 10,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_ABE",
+      "team": [
+        {"species": "Spearow", "level": 9, "move1": "Peck", "move2": "Growl", "move3": null, "move4": null}
+      ],
+      "prize_money": 144,
+      "seen_text": "Let me see if you are good enough to face FALKNER!",
+      "beaten_text": "This can't be true!",
+      "after_battle_text": "This is pathetic, losing to some rookie trainer...",
+      "rematch": false,
+      "pokecrystal_ref": "TrainerBirdKeeperAbe / BIRD_KEEPER ABE party #2"
+    }
+  ],
+  "gym_leader": {
+    "id": "falkner",
+    "name": "Falkner",
+    "class": "Gym Leader",
+    "sprite": "SPRITE_FALKNER",
+    "x": 5, "y": 1,
+    "facing": "down",
+    "movement": "standing",
+    "event_flag": "EVENT_BEAT_FALKNER",
+    "title": "The Elegant Master of Flying Pokemon",
+    "type_specialty": "Flying",
+    "intro_text": "I'm FALKNER, the VIOLET POKEMON GYM leader! People say you can clip flying-type Pokemon's wings with a jolt of electricity... I won't allow such insults to bird Pokemon! I'll show you the real power of the magnificent bird Pokemon!",
+    "loss_text": "...Darn! My dad's cherished bird Pokemon... All right. Take this. It's the official POKEMON LEAGUE ZEPHYRBADGE.",
+    "team": [
+      {
+        "species": "Pidgey",
+        "level": 7,
+        "trainer_type": "TRAINERTYPE_MOVES",
+        "move1": "Tackle",
+        "move2": "Mud-Slap",
+        "move3": null,
+        "move4": null
+      },
+      {
+        "species": "Pidgeotto",
+        "level": 9,
+        "trainer_type": "TRAINERTYPE_MOVES",
+        "move1": "Tackle",
+        "move2": "Mud-Slap",
+        "move3": "Gust",
+        "move4": null
+      }
+    ],
+    "prize_money": 900,
+    "badge_awarded": "Zephyr Badge",
+    "badge_effects": [
+      "Raises Attack stat of all Pokemon in party",
+      "Allows use of HM05 Flash outside of battle"
+    ],
+    "tm_awarded": "TM31 Mud-Slap",
+    "tm_description": "Reduces the enemy's accuracy while causing damage. Both defensive and offensive.",
+    "post_battle_script": [
+      "Sets EVENT_BEAT_FALKNER.",
+      "Sets ENGINE_ZEPHYRBADGE flag.",
+      "Sets EVENT_BEAT_BIRD_KEEPER_ROD and EVENT_BEAT_BIRD_KEEPER_ABE (clears both trainers).",
+      "Sets SCENE_ELMSLAB_NOOP on Elm's Lab.",
+      "Triggers SPECIALCALL_ASSISTANT (Elm's aide phone call -> will give Mystery Egg at Pokemon Center).",
+      "Awards TM31 Mud-Slap via verbosegiveitem.",
+      "After badge count check: may trigger GoldenrodRocketsScript or RadioTowerRocketsScript if applicable."
+    ],
+    "pokecrystal_ref": "VioletGymFalknerScript / FALKNER FALKNER1 party"
+  },
+  "statues": [
+    {
+      "x": 3, "y": 13,
+      "script_ref": "VioletGymStatue",
+      "pre_badge_text": "GymStatue1Script (standard unbeaten gym statue text)",
+      "post_badge_text": "GymStatue2Script — displays Falkner's name"
+    },
+    {
+      "x": 6, "y": 13,
+      "script_ref": "VioletGymStatue",
+      "pre_badge_text": "GymStatue1Script (standard unbeaten gym statue text)",
+      "post_badge_text": "GymStatue2Script — displays Falkner's name"
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "notes": "Indoor area — no wild encounters."
+  },
+  "events": [
+    {
+      "id": "falkner_battle",
+      "trigger": "talk_to_falkner",
+      "description": "Falkner intro speech -> battle -> Zephyr Badge + TM31 Mud-Slap. Subsequent visits give post-battle monologue about challenging other gyms.",
+      "script_ref": "VioletGymFalknerScript"
+    },
+    {
+      "id": "gym_statue_check",
+      "trigger": "read_statue",
+      "description": "Before badge: standard challenge-accepted text. After badge: shows Falkner's name from GymStatue2Script.",
+      "script_ref": "VioletGymStatue"
+    },
+    {
+      "id": "activate_rockets",
+      "trigger": "post_falkner_badge_count_check",
+      "description": "Internal script VioletGymActivateRockets checks badge count. At 6 badges triggers GoldenrodRocketsScript; at 7 triggers RadioTowerRocketsScript. This is a story-progression hook for Team Rocket events.",
+      "script_ref": "VioletGymActivateRockets"
+    }
+  ],
+  "layout_notes": [
+    "S-shaped elevated platform: players must navigate stairs up/down to traverse the S-curve.",
+    "Lower entrance area is flat. Gym Guide stands at south near statues.",
+    "Bird Keeper Rod patrols the upper-right arm of the S. Line of sight faces left.",
+    "Bird Keeper Abe patrols the lower-left arm of the S. Line of sight faces right.",
+    "Falkner stands at the top (north) of the S on the highest platform.",
+    "Exit warps at y=15 (two tiles wide) lead back to Violet City warp id 2.",
+    ".blk file size: 40 bytes = 5 blocks wide x 8 blocks tall = 10x16 tiles (confirmed)."
+  ]
+}

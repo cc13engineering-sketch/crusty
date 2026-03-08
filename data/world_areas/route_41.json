@@ -1,0 +1,564 @@
+{
+  "area_id": "route_41",
+  "area_name": "Route 41",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_41",
+  "width_blocks": 25,
+  "height_blocks": 27,
+  "width_tiles": 50,
+  "height_tiles": 54,
+  "tileset": "johto",
+  "music": "MUSIC_ROUTE_36",
+  "fishing_group": "FISHGROUP_OCEAN",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_40",
+      "offset": 15,
+      "requires": "Surf",
+      "notes": "Route40 connects south with offset -15"
+    },
+    {
+      "direction": "west",
+      "target_area_id": "cianwood_city",
+      "offset": 0,
+      "requires": "Surf",
+      "notes": "CianwoodCity connects east with offset 0"
+    }
+  ],
+  "warps": [
+    {
+      "x": 12,
+      "y": 17,
+      "target_area_id": "whirl_island_nw",
+      "target_warp_id": 1,
+      "notes": "Northwest Whirl Island cave entrance. Requires Whirlpool to access."
+    },
+    {
+      "x": 36,
+      "y": 19,
+      "target_area_id": "whirl_island_ne",
+      "target_warp_id": 1,
+      "notes": "Northeast Whirl Island cave entrance. Requires Whirlpool to access."
+    },
+    {
+      "x": 12,
+      "y": 37,
+      "target_area_id": "whirl_island_sw",
+      "target_warp_id": 1,
+      "notes": "Southwest Whirl Island cave entrance. Requires Whirlpool to access."
+    },
+    {
+      "x": 36,
+      "y": 45,
+      "target_area_id": "whirl_island_se",
+      "target_warp_id": 1,
+      "notes": "Southeast Whirl Island cave entrance. Requires Whirlpool to access."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "W": "whirlpool",
+      "R": "rock",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "C": "cave_entrance",
+      "I": "island_rock"
+    },
+    "rows": [
+      "##################################################",
+      "##################################################",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~N~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~C~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~N~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~?~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~C~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~C~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~N~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~N~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~",
+      "##################################################",
+      "##################################################"
+    ],
+    "layout_notes": "Route 41 is a large open-ocean map (50x54 tiles). The Whirl Islands are represented by four cave entrances at pokecrystal tile coordinates: NW at (12,17), NE at (36,19), SW at (12,37), SE at (36,45). The hidden Max Ether appears near the southwest island at (9,35) per the bg_event in pokecrystal. Trainer positions N are from pokecrystal object_event tile coordinates: Charlie (32,6), George (46,8), Berke (20,26), Kirk (32,30), Mathew (19,46), Kaylee (17,4), Susie (23,19), Denise (27,34), Kara (44,28), Wendy (9,50). Note: George at x=46 is near the right edge; the actual tile is within bounds for a 50-wide map."
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Swimmer (M)",
+      "name": "Charlie",
+      "x": 32,
+      "y": 6,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Shellder",
+          "level": 21
+        },
+        {
+          "species": "Tentacool",
+          "level": 19
+        },
+        {
+          "species": "Tentacruel",
+          "level": 19
+        }
+      ],
+      "prize_money": 152,
+      "rematch": false,
+      "seen_text": "The water's warm here. I'm loose and limber. Sure, I'll take you on!",
+      "beaten_text": "Yikes! I've got prune skin!",
+      "after_battle_text": "Isn't it relaxing just floating like this?"
+    },
+    {
+      "class": "Swimmer (M)",
+      "name": "George",
+      "x": 46,
+      "y": 8,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Tentacool",
+          "level": 16
+        },
+        {
+          "species": "Tentacool",
+          "level": 17
+        },
+        {
+          "species": "Tentacool",
+          "level": 16
+        },
+        {
+          "species": "Staryu",
+          "level": 19
+        },
+        {
+          "species": "Tentacool",
+          "level": 17
+        },
+        {
+          "species": "Remoraid",
+          "level": 19
+        }
+      ],
+      "prize_money": 128,
+      "rematch": false,
+      "seen_text": "I'm a bit tired. If I win, lend me your MON.",
+      "beaten_text": "Pant, pant\u2026",
+      "after_battle_text": "It's so far to CIANWOOD. But it's no easy return trip to OLIVINE either. What should I do?"
+    },
+    {
+      "class": "Swimmer (M)",
+      "name": "Berke",
+      "x": 20,
+      "y": 26,
+      "facing": "random",
+      "movement": "spin_counterclockwise",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Qwilfish",
+          "level": 23
+        }
+      ],
+      "prize_money": 184,
+      "rematch": false,
+      "seen_text": "See those islands that are blocked by whirlpools? There just has to be a secret!",
+      "beaten_text": "What's the secret to your strength?",
+      "after_battle_text": "It was a dark and stormy night\u2026 I saw this giant MON flying from the islands. It was scattering feathers from its silver wings."
+    },
+    {
+      "class": "Swimmer (M)",
+      "name": "Kirk",
+      "x": 32,
+      "y": 30,
+      "facing": "random",
+      "movement": "spin_clockwise",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Gyarados",
+          "level": 20
+        },
+        {
+          "species": "Gyarados",
+          "level": 20
+        }
+      ],
+      "prize_money": 160,
+      "rematch": false,
+      "seen_text": "The waves are wild here. They tire you out while you swim.",
+      "beaten_text": "I'm beat!",
+      "after_battle_text": "The currents keep me from reaching that island."
+    },
+    {
+      "class": "Swimmer (M)",
+      "name": "Mathew",
+      "x": 19,
+      "y": 46,
+      "facing": "random",
+      "movement": "spin_counterclockwise",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Krabby",
+          "level": 23
+        }
+      ],
+      "prize_money": 184,
+      "rematch": false,
+      "seen_text": "Are you seeking the secrets of WHIRL ISLANDS?",
+      "beaten_text": "Ooh, you've got great endurance!",
+      "after_battle_text": "A secret about WHIRL ISLANDS\u2026 It's pitch-black inside!"
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Kaylee",
+      "x": 17,
+      "y": 4,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Goldeen",
+          "level": 18
+        },
+        {
+          "species": "Goldeen",
+          "level": 20
+        },
+        {
+          "species": "Seaking",
+          "level": 20
+        }
+      ],
+      "prize_money": 400,
+      "rematch": false,
+      "seen_text": "I'm on my way to WHIRL ISLANDS. I'm going exploring with friends.",
+      "beaten_text": "Is that how you do it?",
+      "after_battle_text": "There's supposed to be a big MON deep beneath WHIRL ISLANDS. I wonder what it could be?"
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Susie",
+      "x": 23,
+      "y": 19,
+      "facing": "up",
+      "movement": "standing_up",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Psyduck",
+          "level": 20,
+          "moves": [
+            "Scratch",
+            "Tail Whip",
+            "Disable",
+            "Confusion"
+          ]
+        },
+        {
+          "species": "Goldeen",
+          "level": 22,
+          "moves": [
+            "Peck",
+            "Tail Whip",
+            "Supersonic",
+            "Horn Attack"
+          ]
+        }
+      ],
+      "trainer_type": "TRAINERTYPE_MOVES",
+      "prize_money": 440,
+      "rematch": false,
+      "seen_text": "You look so elegant, riding your MON.",
+      "beaten_text": "I'm crushed\u2026",
+      "after_battle_text": "Wasn't there a hit song about a boy riding a LAPRAS?"
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Denise",
+      "x": 27,
+      "y": 34,
+      "facing": "left",
+      "movement": "standing_left",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Seel",
+          "level": 22
+        }
+      ],
+      "prize_money": 440,
+      "rematch": false,
+      "seen_text": "The weather is so beautiful, I'm in a daze!",
+      "beaten_text": "Ohhh!",
+      "after_battle_text": "A sunburn is the worst for skin. But I don't use a sunblock. I won't pollute the water."
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Kara",
+      "x": 44,
+      "y": 28,
+      "facing": "right",
+      "movement": "standing_right",
+      "line_of_sight": 4,
+      "team": [
+        {
+          "species": "Staryu",
+          "level": 20
+        },
+        {
+          "species": "Starmie",
+          "level": 20
+        }
+      ],
+      "prize_money": 400,
+      "rematch": false,
+      "seen_text": "If you need to rest, just tread water. You'll get your wind back, so you can keep on going strong.",
+      "beaten_text": "Oh! You have more energy than I do.",
+      "after_battle_text": "I heard roars from deep inside the ISLANDS."
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Wendy",
+      "x": 9,
+      "y": 50,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Horsea",
+          "level": 21,
+          "moves": [
+            "Bubble",
+            "Smokescreen",
+            "Leer",
+            "Water Gun"
+          ]
+        },
+        {
+          "species": "Horsea",
+          "level": 21,
+          "moves": [
+            "Dragon Rage",
+            "Smokescreen",
+            "Leer",
+            "Water Gun"
+          ]
+        }
+      ],
+      "trainer_type": "TRAINERTYPE_MOVES",
+      "prize_money": 420,
+      "rematch": false,
+      "seen_text": "At night, STARYU gather near the water's surface.",
+      "beaten_text": "Oh, dear\u2026",
+      "after_battle_text": "The clusters of STARYU light up at the same time. It's so beautiful, it's scary."
+    }
+  ],
+  "items": [
+    {
+      "name": "Max Ether",
+      "x": 9,
+      "y": 35,
+      "hidden": true,
+      "requires": "Whirlpool (to access southwest island area)",
+      "notes": "Hidden item near the southwest Whirl Island. Event flag: EVENT_ROUTE_41_HIDDEN_MAX_ETHER. bg_event at tile (9,35) in pokecrystal."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": [],
+      "notes": "No grass on this route. Entirely water-based."
+    },
+    "water": {
+      "encounter_rate": 6,
+      "encounter_rate_notes": "6 percent as defined in pokecrystal johto_water.asm",
+      "mons": [
+        {
+          "species": "Tentacool",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 60,
+          "notes": "Two separate Tentacool entries in pokecrystal"
+        },
+        {
+          "species": "Tentacruel",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 30
+        },
+        {
+          "species": "Mantine",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 10
+        }
+      ]
+    },
+    "fishing": {
+      "fishing_group": "FISHGROUP_OCEAN",
+      "notes": "Ocean group fishing \u2014 Route 41 uses FISHGROUP_OCEAN as defined in data/maps/maps.asm. Time slots resolve via TimeFishGroups: Good Rod slot 4 and Super Rod slot 2/4 are time-based.",
+      "old_rod": [
+        {
+          "species": "Magikarp",
+          "level": 10,
+          "rate": 85
+        },
+        {
+          "species": "Tentacool",
+          "level": 10,
+          "rate": 15
+        }
+      ],
+      "good_rod": [
+        {
+          "species": "Magikarp",
+          "level": 20,
+          "rate": 35
+        },
+        {
+          "species": "Tentacool",
+          "level": 20,
+          "rate": 35
+        },
+        {
+          "species": "Chinchou",
+          "level": 20,
+          "rate": 20
+        },
+        {
+          "species": "Shellder",
+          "level": 20,
+          "rate": 10,
+          "notes": "Time-group slot (Shellder as daytime entry; resolves from TimeFishGroups)"
+        }
+      ],
+      "super_rod": [
+        {
+          "species": "Chinchou",
+          "level": 40,
+          "rate": 40
+        },
+        {
+          "species": "Shellder",
+          "level": 40,
+          "rate": 30,
+          "notes": "Time-group slot"
+        },
+        {
+          "species": "Tentacruel",
+          "level": 40,
+          "rate": 20
+        },
+        {
+          "species": "Lanturn",
+          "level": 40,
+          "rate": 10
+        }
+      ]
+    }
+  },
+  "whirl_islands": {
+    "description": "Four rocky island formations in the center of Route 41, each surrounded by whirlpools that prevent direct access without the HM Whirlpool. Each island has one cave entrance leading to the Whirl Islands dungeon system. The four dungeons (NW, NE, SW, SE) are interconnected and lead ultimately to Lugia's chamber.",
+    "entrances": [
+      {
+        "name": "Whirl Island NW",
+        "area_id": "whirl_island_nw",
+        "tile_x": 12,
+        "tile_y": 17,
+        "notes": "Warp 1 of the NW island dungeon"
+      },
+      {
+        "name": "Whirl Island NE",
+        "area_id": "whirl_island_ne",
+        "tile_x": 36,
+        "tile_y": 19,
+        "notes": "Warp 1 of the NE island dungeon"
+      },
+      {
+        "name": "Whirl Island SW",
+        "area_id": "whirl_island_sw",
+        "tile_x": 12,
+        "tile_y": 37,
+        "notes": "Warp 1 of the SW island dungeon"
+      },
+      {
+        "name": "Whirl Island SE",
+        "area_id": "whirl_island_se",
+        "tile_x": 36,
+        "tile_y": 45,
+        "notes": "Warp 1 of the SE island dungeon. The path to Lugia is accessible from the SE island."
+      }
+    ],
+    "hidden_max_ether_location": "Near the SW island at tile (9,35). Accessible only after clearing the whirlpool blockade with Whirlpool HM.",
+    "narrative_significance": "The Whirl Islands are strongly hinted at by trainers on Route 41. Swimmer Berke mentions 'islands blocked by whirlpools' with a secret. Swimmer Berke's after-battle text describes a giant Pokemon flying from the islands with silver wings \u2014 a direct reference to Lugia. Swimmer Mathew says it is pitch-black inside. Swimmer Kaylee says there is a big Pokemon deep beneath the islands. Swimmer Kirk says currents keep him from reaching the island."
+  },
+  "events": [
+    {
+      "trigger": "whirlpool_required",
+      "description": "All four Whirl Island cave entrances require HM Whirlpool (HM06) to be used on the whirlpool tiles blocking each entrance. Whirlpool is obtainable from the Mahogany Town area; the badge requirement is the Glacier Badge (7th badge, from Pryce in Mahogany) to use it outside battle in Crystal or the Plain Badge in Gold/Silver."
+    },
+    {
+      "trigger": "lugia_encounter",
+      "description": "Lugia resides deep within the Whirl Islands (WhirlIslandB2F \u2014 the deepest chamber). In Gold/Silver Lugia is available at Level 40. In Crystal it is at Level 60. The Silver Wing key item (received from old man in Pewter City post-credits in Gold/Silver, or from Radio Director after Goldenrod events in Crystal) is required to make Lugia appear."
+    }
+  ],
+  "notes": "Route 41 is the largest water route in Johto, stretching from Route 40 in the north to Cianwood City in the west. The Whirl Islands \u2014 four rocky islands in the center \u2014 are the defining geographical feature and the location of the legendary Pokemon Lugia. The route is traversable only by Surfing and features 10 Swimmer trainers (5 male, 5 female), the highest trainer density of any Johto water route. Wild Mantine (10% encounter rate via Surf) is exclusive to this route in Johto and is not found anywhere else nearby. George's team of 6 Pokemon (four Tentacool, one Remoraid, one Staryu) is the largest single-trainer party on this route. Pokecrystal source: maps/Route41.asm, maps/Route41.blk, data/maps/attributes.asm (ROUTE_41), data/wild/johto_water.asm, data/maps/maps.asm (FISHGROUP_OCEAN). Map constants: ROUTE41_OLIVINE_RIVAL1 through ROUTE41_OLIVINE_RIVAL5 (male swimmer sprites), ROUTE41_SWIMMER_GIRL1 through ROUTE41_SWIMMER_GIRL5 (female swimmer sprites)."
+}

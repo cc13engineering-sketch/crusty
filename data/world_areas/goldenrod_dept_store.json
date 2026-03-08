@@ -1,0 +1,382 @@
+{
+  "area_id": "goldenrod_dept_store",
+  "area_name": "Goldenrod Department Store",
+  "area_type": "building",
+  "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_1F",
+  "sign_text": "Full Selection of Pokemon Goods! GOLDENROD CITY DEPT.STORE",
+  "floor_count": 9,
+  "floors_included": ["B1F", "1F", "2F", "3F", "4F", "5F", "6F", "Roof"],
+  "standard_floor_dimensions": {
+    "width_blocks": 8,
+    "height_blocks": 4,
+    "width_tiles": 16,
+    "height_tiles": 8
+  },
+  "b1f_dimensions": {
+    "width_blocks": 10,
+    "height_blocks": 9,
+    "width_tiles": 20,
+    "height_tiles": 18,
+    "note": "B1F is larger because it connects to the Underground Warehouse and has puzzle box layout"
+  },
+  "roof_dimensions": {
+    "width_blocks": 8,
+    "height_blocks": 4,
+    "width_tiles": 16,
+    "height_tiles": 8,
+    "note": "Rooftop has binoculars, Poke Doll vending machine, and optional sale event"
+  },
+  "directory": {
+    "1F": "Service Counter",
+    "2F": "Trainer's Market",
+    "3F": "Battle Collection",
+    "4F": "Medicine Box",
+    "5F": "TM Corner / Tranquil Square (partial)",
+    "6F": "Tranquil Square (vending machines)",
+    "Roof": "Rooftop Lookout",
+    "B1F": "Storage / Underground connection"
+  },
+  "elevator": {
+    "present": true,
+    "floors_served": ["B1F", "1F", "2F", "3F", "4F", "5F", "6F"],
+    "note": "Elevator button on each floor. Stairs also connect between floors via left-side staircase."
+  },
+  "floor_layouts": [
+    {
+      "floor": "1F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_1F",
+      "name": "Service Counter",
+      "tile_layout": {
+        "legend": {
+          ".": "walkable_floor",
+          "#": "wall/obstacle",
+          "K": "counter",
+          "N": "npc_position",
+          "^": "stairs_up",
+          "E": "elevator",
+          "D": "door",
+          "S": "sign_directory"
+        },
+        "rows": [
+          "################",
+          "EE.S............",
+          "##..KKKKNKKKKKK.",
+          "##...............",
+          "##..NNNN........",
+          "##...............",
+          "##...............",
+          "DD.EEEEEEEEEEEDD"
+        ],
+        "notes": "Receptionist at counter (x=10,y=1). Pokefan F and Bug Catcher wander near x=5. Gentleman wanders near x=11. Directory sign at x=14,y=0. Elevator at x=2,y=0. Stairs up at x=15,y=0."
+      },
+      "warps": [
+        {"direction": "exit", "x": 7, "y": 7, "target": "goldenrod_city", "warp_id": 9},
+        {"direction": "exit", "x": 8, "y": 7, "target": "goldenrod_city", "warp_id": 9},
+        {"direction": "stairs_up", "x": 15, "y": 0, "target": "goldenrod_dept_store_2f", "warp_id": 2},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "npcs": [
+        {
+          "id": "receptionist",
+          "name": "Receptionist",
+          "x": 10, "y": 1,
+          "facing": "down",
+          "dialogue_summary": "Welcome to GOLDENROD DEPT.STORE."
+        },
+        {
+          "id": "pokefan_f",
+          "name": "PokeFan F",
+          "x": 5, "y": 4,
+          "facing": "down",
+          "dialogue_summary": "Raring to shop again today."
+        },
+        {
+          "id": "bug_catcher",
+          "name": "Bug Catcher",
+          "x": 5, "y": 5,
+          "facing": "down",
+          "movement": "walk_left_right",
+          "dialogue_summary": "Mom is good at bargain hunting and always buys stuff at lower prices."
+        },
+        {
+          "id": "gentleman",
+          "name": "Gentleman",
+          "x": 11, "y": 5,
+          "facing": "down",
+          "movement": "wander",
+          "dialogue_summary": "Dept Store has a decent selection, but some items are only available as Game Corner prizes."
+        }
+      ]
+    },
+    {
+      "floor": "2F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_2F",
+      "name": "Trainer's Market",
+      "tile_layout": {
+        "rows": [
+          "################",
+          "EE.S............",
+          "##...............",
+          "##...............",
+          "##..NNNN......NN",
+          "##...............",
+          "##...............",
+          "^..............."
+        ],
+        "notes": "Two clerks at x=13,y=5 and x=13,y=6. Youngster walks up/down near x=9. Cooltrainer F walks left/right near x=6. Gentleman wanders near x=2. Stairs down at x=15,y=0, stairs up at x=12,y=0."
+      },
+      "warps": [
+        {"direction": "stairs_up", "x": 12, "y": 0, "target": "goldenrod_dept_store_3f", "warp_id": 1},
+        {"direction": "stairs_down", "x": 15, "y": 0, "target": "goldenrod_dept_store_1f", "warp_id": 3},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "mart_inventory": {
+        "clerk1": "MART_GOLDENROD_2F_1",
+        "clerk2": "MART_GOLDENROD_2F_2",
+        "note": "Two separate mart lists. Standard Poke Balls, basic healing, and trainer items.",
+        "approximate_stock": [
+          "Poke Ball", "Great Ball", "Potion", "Super Potion", "Antidote", "Paralyze Heal",
+          "Awakening", "Burn Heal", "Ice Heal", "Escape Rope", "Repel"
+        ]
+      },
+      "npcs": [
+        {"id": "clerk1", "x": 13, "y": 5, "facing": "up", "script_type": "shopkeeper", "mart": "MART_GOLDENROD_2F_1"},
+        {"id": "clerk2", "x": 13, "y": 6, "facing": "left", "script_type": "shopkeeper", "mart": "MART_GOLDENROD_2F_2"},
+        {"id": "youngster", "x": 9, "y": 6, "movement": "walk_up_down", "dialogue_summary": "Pokegear can store up to ten phone numbers. Hard to decide which to keep."},
+        {"id": "cooltrainer_f", "x": 6, "y": 2, "movement": "walk_left_right", "dialogue_summary": "Got Abra at the Game Corner. Now it's her best partner."},
+        {"id": "gentleman", "x": 2, "y": 6, "movement": "spin_random_slow", "dialogue_summary": "Dept Store makes him realize Goldenrod is a big city. Selection is unmatched anywhere else."}
+      ]
+    },
+    {
+      "floor": "3F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_3F",
+      "name": "Battle Collection",
+      "mart_inventory": {
+        "clerk": "MART_GOLDENROD_3F",
+        "approximate_stock": [
+          "X Attack ($500)", "X Defend ($550)", "X Speed ($350)", "X Special ($350)",
+          "X Accuracy ($950)", "Guard Spec ($700)", "Dire Hit ($650)", "PP Up ($9800)"
+        ]
+      },
+      "warps": [
+        {"direction": "stairs_up", "x": 12, "y": 0, "target": "goldenrod_dept_store_2f", "warp_id": 1},
+        {"direction": "stairs_down", "x": 15, "y": 0, "target": "goldenrod_dept_store_4f", "warp_id": 2},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "npcs": [
+        {"id": "clerk", "x": 6, "y": 1, "facing": "down", "script_type": "shopkeeper", "mart": "MART_GOLDENROD_3F"},
+        {"id": "super_nerd", "x": 12, "y": 5, "movement": "spin_random_fast", "dialogue_summary": "Uses X Speed to speed up his Pokemon in battle."},
+        {"id": "rocker", "x": 2, "y": 5, "movement": "walk_up_down", "dialogue_summary": "Uses X Special to jack up Special Attack."}
+      ]
+    },
+    {
+      "floor": "4F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_4F",
+      "name": "Medicine Box",
+      "mart_inventory": {
+        "clerk": "MART_GOLDENROD_4F",
+        "approximate_stock": [
+          "HP Up ($9800)", "Protein ($9800)", "Iron ($9800)", "Carbos ($9800)",
+          "Calcium ($9800)", "PP Up ($9800)"
+        ]
+      },
+      "warps": [
+        {"direction": "stairs_up", "x": 12, "y": 0, "target": "goldenrod_dept_store_5f", "warp_id": 1},
+        {"direction": "stairs_down", "x": 15, "y": 0, "target": "goldenrod_dept_store_3f", "warp_id": 2},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "npcs": [
+        {"id": "clerk", "x": 13, "y": 5, "facing": "up", "script_type": "shopkeeper", "mart": "MART_GOLDENROD_4F"},
+        {"id": "cooltrainer_m", "x": 11, "y": 7, "facing": "right", "dialogue_summary": "Feeds Pokemon Protein to crank up their Attack."},
+        {"id": "bug_catcher", "x": 7, "y": 2, "movement": "walk_left_right", "dialogue_summary": "Iron adds to Pokemon Defense."},
+        {"id": "gameboy_kid", "x": 5, "y": 1, "facing": "down", "dialogue_summary": "Names four Pokemon that evolve by trade: Machoke, Kadabra, Haunter, Graveler. Hints there are others."}
+      ]
+    },
+    {
+      "floor": "5F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_5F",
+      "name": "TM Corner",
+      "mart_inventory": {
+        "clerk": "MART_GOLDENROD_5F (variant based on which HMs player has)",
+        "variants": {
+          "neither_headbutt_nor_rocksmash": "MART_GOLDENROD_5F_1",
+          "only_headbutt": "MART_GOLDENROD_5F_2",
+          "only_rocksmash": "MART_GOLDENROD_5F_3",
+          "both": "MART_GOLDENROD_5F_4"
+        },
+        "approximate_stock": [
+          "TM11 Sunny Day ($2000)", "TM17 Protect ($2000)", "TM20 Endure ($2000)",
+          "TM13 Snore ($2000)", "TM32 Double Team ($1000)", "TM34 Swagger ($2000)",
+          "TM10 Hidden Power ($3000)", "TM05 Roar ($1000)",
+          "Note: Stock adjusts if player has TM02 Headbutt or TM08 Rock Smash"
+        ]
+      },
+      "special_events": [
+        {
+          "id": "sunday_tm_lady",
+          "trigger": "Sunday only (weekday check)",
+          "npc_sprite": "SPRITE_RECEPTIONIST",
+          "position": {"x": 7, "y": 5},
+          "event_flag": "EVENT_GOLDENROD_DEPT_STORE_5F_HAPPINESS_EVENT_LADY",
+          "description": "Checks lead Pokemon happiness. If happiness >= 150: gives TM27 Return. If happiness >= 50 but < 150: says it's adorable. If happiness < 50: gives TM21 Frustration. Can only give one TM per game (ENGINE_GOLDENROD_DEPT_STORE_TM27_RETURN flag).",
+          "dialogue_summary": "Oh, your Pokemon... evaluates it and gives TM27 Return (high friendship) or TM21 Frustration (low friendship)."
+        },
+        {
+          "id": "mystery_gift",
+          "npc": "Carrie",
+          "position": {"x": 9, "y": 1},
+          "sprite": "SPRITE_TWIN",
+          "description": "Unlocks Mystery Gift feature. Requires Game Boy Color in Gold/Silver (dummy check in Crystal)."
+        },
+        {
+          "id": "mike_trade",
+          "npc": "Mike",
+          "position": {"x": 6, "y": 3},
+          "sprite": "SPRITE_COOLTRAINER_M",
+          "description": "In-game trade: gives Drowzee, receives Machop (nicknamed from Mike) holding Gold Berry.",
+          "trade": {
+            "give": "Drowzee",
+            "receive": "Machop",
+            "held_item": "Gold Berry"
+          }
+        }
+      ],
+      "warps": [
+        {"direction": "stairs_up", "x": 12, "y": 0, "target": "goldenrod_dept_store_4f", "warp_id": 1},
+        {"direction": "stairs_down", "x": 15, "y": 0, "target": "goldenrod_dept_store_6f", "warp_id": 1},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "npcs": [
+        {"id": "clerk", "x": 8, "y": 5, "facing": "up", "script_type": "shopkeeper", "mart": "MART_GOLDENROD_5F (variant)"},
+        {"id": "lass", "x": 3, "y": 6, "movement": "wander", "dialogue_summary": "On Sundays, a lady comes to check Pokemon and give away TMs."},
+        {"id": "mike", "x": 6, "y": 3, "movement": "spin_random_slow", "script_type": "trade", "dialogue_summary": "Trades Machop for Drowzee."},
+        {"id": "pokefan_m", "x": 13, "y": 5, "movement": "wander", "dialogue_summary": "Can't rename a Pokemon from a trade; the name reflects the original trainer's feelings."},
+        {"id": "carrie", "x": 9, "y": 1, "facing": "down", "dialogue_summary": "Mystery Gift explanation. Requires GBC."},
+        {"id": "sunday_lady", "x": 7, "y": 5, "facing": "up", "event_flag": "EVENT_GOLDENROD_DEPT_STORE_5F_HAPPINESS_EVENT_LADY", "schedule": "Sunday only", "dialogue_summary": "Checks happiness and gives TM27 Return or TM21 Frustration."}
+      ]
+    },
+    {
+      "floor": "6F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_6F",
+      "name": "Tranquil Square",
+      "vending_machines": {
+        "positions": [{"x": 8, "y": 1}, {"x": 9, "y": 1}, {"x": 10, "y": 1}, {"x": 11, "y": 1}],
+        "activation": "face_up",
+        "items": [
+          {"item": "Fresh Water", "cost": 200, "heal_hp": 50},
+          {"item": "Soda Pop", "cost": 300, "heal_hp": 60},
+          {"item": "Lemonade", "cost": 350, "heal_hp": 80}
+        ],
+        "note": "Drinks can also be used to heal Pokemon. Cannot purchase if party bag is full."
+      },
+      "warps": [
+        {"direction": "stairs_down", "x": 15, "y": 0, "target": "goldenrod_dept_store_5f", "warp_id": 2},
+        {"direction": "stairs_to_roof", "x": 13, "y": 0, "target": "goldenrod_dept_store_roof", "warp_id": 1},
+        {"direction": "elevator", "x": 2, "y": 0, "target": "goldenrod_dept_store_elevator", "warp_id": 1}
+      ],
+      "npcs": [
+        {"id": "lass", "x": 10, "y": 2, "movement": "walk_left_right", "dialogue_summary": "Explains the Lucky Channel lottery: trade with many people to get different ID numbers."},
+        {"id": "super_nerd", "x": 8, "y": 2, "facing": "up", "dialogue_summary": "If tired, try the vending machine drinks. Pokemon love them too."}
+      ]
+    },
+    {
+      "floor": "Roof",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_ROOF",
+      "name": "Rooftop Lookout",
+      "tile_layout": {
+        "rows": [
+          "################",
+          "##C..............",
+          "##..NNNN.......##",
+          "##..NNNN.....BBB",
+          "##..NNNN.......##",
+          "##..NN.........##",
+          "##.............##",
+          "^..............##"
+        ],
+        "notes": "Binoculars on east wall (x=15, y=3/5/6). Poke Doll vending machine at x=3,y=0. Sale clerk/twin conditional on sale event. Stairs down at x=13,y=1."
+      },
+      "warps": [
+        {"direction": "stairs_down", "x": 13, "y": 1, "target": "goldenrod_dept_store_6f", "warp_id": 3}
+      ],
+      "bg_events": [
+        {"type": "binoculars", "x": 15, "y": 3, "direction": "right", "text": "Can see far away. Tries to spot his house with the green roof."},
+        {"type": "binoculars", "x": 15, "y": 5, "direction": "right", "text": "Sees trainers battling on the road, a Pokemon fired a flurry of leaves."},
+        {"type": "binoculars", "x": 15, "y": 6, "direction": "right", "text": "A fisher caught a lot of Magikarp; they're all splashing at the same time."},
+        {"type": "poke_doll_vending_machine", "x": 3, "y": 0, "direction": "up", "text": "Vending machine for Pokemon dolls. Insert money and turn crank. Almost empty."}
+      ],
+      "sale_event": {
+        "flag": "ENGINE_GOLDENROD_DEPT_STORE_SALE_IS_ON",
+        "description": "When sale is active: changeblock places cardboard boxes and a vendor booth. Sale clerk (OFF flag) replaced by Twin vendor (ON flag). Occasional sale event, details not scripted in normal gameplay.",
+        "clerk_normal": {"x": 1, "y": 4, "event": "EVENT_GOLDENROD_SALE_OFF", "script_type": "shopkeeper", "mart": "MARTTYPE_ROOFTOP"},
+        "twin_sale": {"x": 3, "y": 4, "event": "EVENT_GOLDENROD_SALE_ON", "dialogue_summary": "Bargain sales here every so often."},
+        "super_nerd_sale": {"x": 14, "y": 6, "event": "EVENT_GOLDENROD_SALE_ON", "dialogue_summary": "Oh wow! Will you quit bothering me?"}
+      },
+      "npcs": [
+        {"id": "pokefan_f", "x": 10, "y": 3, "movement": "walk_left_right", "dialogue_summary": "Sometimes comes to rooftop to take a break from shopping."},
+        {"id": "fisher", "x": 2, "y": 1, "facing": "up", "dialogue_summary": "Going to collect all the dolls from the vending machine. Adults can be into dolls too."},
+        {"id": "pokefan_m", "x": 7, "y": 0, "movement": "walk_left_right", "event": "EVENT_GOLDENROD_SALE_OFF", "dialogue_summary": "Wants something but doesn't have the cash. Thinking of selling Berries."},
+        {"id": "teacher", "x": 5, "y": 3, "movement": "wander", "event": "EVENT_GOLDENROD_SALE_OFF", "dialogue_summary": "Everything is so cheap! Pack is crammed from buying so much."},
+        {"id": "bug_catcher", "x": 1, "y": 6, "facing": "up", "event": "EVENT_GOLDENROD_SALE_OFF", "dialogue_summary": "Pokemon keep getting paralyzed or poisoned. Came to buy Full Heal."}
+      ]
+    },
+    {
+      "floor": "B1F",
+      "pokecrystal_map_id": "GOLDENROD_DEPT_STORE_B1F",
+      "name": "Storage / Underground Connection",
+      "width_blocks": 10,
+      "height_blocks": 9,
+      "width_tiles": 20,
+      "height_tiles": 18,
+      "note": "Larger than other floors. Puzzle layout with boxes that change position based on events. Connects to Underground Warehouse (Radio Tower story event). Three Black Belt workers + a Machop wander the storage floor.",
+      "warps": [
+        {"direction": "to_warehouse", "x": 17, "y": 2, "target": "goldenrod_underground_warehouse", "warp_id": 3, "note": "Story-locked; requires Basement Key from Radio Tower 3F during Rocket takeover"},
+        {"direction": "elevator", "x": 9, "y": 4, "target": "goldenrod_dept_store_elevator", "warp_id": 1},
+        {"direction": "elevator", "x": 10, "y": 4, "target": "goldenrod_dept_store_elevator", "warp_id": 2}
+      ],
+      "items": [
+        {"name": "Ether", "x": 10, "y": 15, "hidden": false, "event_flag": "EVENT_GOLDENROD_DEPT_STORE_B1F_ETHER"},
+        {"name": "Amulet Coin", "x": 14, "y": 2, "hidden": false, "event_flag": "EVENT_GOLDENROD_DEPT_STORE_B1F_AMULET_COIN", "note": "Very valuable — doubles prize money when held"},
+        {"name": "Burn Heal", "x": 6, "y": 3, "hidden": false, "event_flag": "EVENT_GOLDENROD_DEPT_STORE_B1F_BURN_HEAL"},
+        {"name": "Ultra Ball", "x": 15, "y": 15, "hidden": false, "event_flag": "EVENT_GOLDENROD_DEPT_STORE_B1F_ULTRA_BALL"}
+      ],
+      "npcs": [
+        {"id": "black_belt1", "x": 9, "y": 10, "movement": "walk_up_down", "dialogue_summary": "Tells the player they're holding them up. Their policy is to work behind the scenes."},
+        {"id": "black_belt2", "x": 4, "y": 8, "movement": "spin_random_slow", "dialogue_summary": "Loses passion if someone's watching. Tells the player to scoot."},
+        {"id": "black_belt3", "x": 6, "y": 13, "movement": "walk_left_right", "dialogue_summary": "The stuff on the ground is junk. Take it if you want it."},
+        {"id": "machop", "x": 7, "y": 7, "sprite": "SPRITE_MACHOP", "dialogue_summary": "MACHOP: Maaacho! (plays Machoke cry)"}
+      ],
+      "special": {
+        "basement_key_door": {
+          "position": {"x": 16, "y": 4},
+          "requires": "BASEMENT_KEY item",
+          "event_flag": "EVENT_RECEIVED_CARD_KEY",
+          "description": "Door to Underground Warehouse area. Locked until player uses Basement Key obtained during Radio Tower Rocket takeover event. Changeblock at (16,4) opens/closes door."
+        },
+        "box_layouts": {
+          "layout_1": "Default: box at tile (10,8) removed",
+          "layout_2": "EVENT_GOLDENROD_DEPT_STORE_B1F_LAYOUT_2: box at (4,10) removed",
+          "layout_3": "EVENT_GOLDENROD_DEPT_STORE_B1F_LAYOUT_3: box at (10,12) removed",
+          "card_key_door": "EVENT_RECEIVED_CARD_KEY: block at (16,4) changed to floor tile"
+        }
+      }
+    }
+  ],
+  "connections": [],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "sunday_only",
+      "description": "5F Happiness Lady appears and gives TM27 Return (high friendship) or TM21 Frustration (low friendship). One-time per game."
+    },
+    {
+      "trigger": "radio_tower_takeover",
+      "description": "B1F basement door becomes accessible with Basement Key. Leads to Underground Warehouse where the Radio Tower Director is imprisoned. Clearing the warehouse is required to complete the Radio Tower story event."
+    },
+    {
+      "trigger": "sale_event",
+      "description": "Roof sale event activates when ENGINE_GOLDENROD_DEPT_STORE_SALE_IS_ON flag is set. Changes roof NPC layout and adds sale vendor."
+    }
+  ],
+  "notes": "The Goldenrod Department Store spans 8 floors (B1F through Roof). Standard floors are 8x4 blocks (16x8 tiles). B1F is larger at 10x9 blocks (20x18 tiles) and connects to the Underground Warehouse during the Radio Tower story arc. The Amulet Coin in B1F is one of the most valuable pickup items in the game. 5F hosts the Machop/Drowzee in-game trade and the Sunday TM lady event."
+}

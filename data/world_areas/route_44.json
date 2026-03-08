@@ -1,0 +1,480 @@
+{
+  "area_id": "route_44",
+  "area_name": "Route 44",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_44",
+  "width_blocks": 30,
+  "height_blocks": 9,
+  "width_tiles": 60,
+  "height_tiles": 18,
+  "tileset": "johto_routes",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "mahogany_town",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "ice_path_1f",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 56,
+      "y": 7,
+      "target_area_id": "ice_path_1f",
+      "target_warp_id": 1,
+      "notes": "East entrance into Ice Path 1F"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "W": "whirlpool",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "N": "npc_position",
+      "t": "fruit_tree"
+    },
+    "rows": [
+      "############################################################",
+      "##TTTTTT....GGGGGGG....GGGGGGGG...GGGG..NNNNN..GGGGGG.....##",
+      "##TTTTTT....GGGGGGG....GGGGGGGG...GGGG..NNNNN..GGGGGG.....##",
+      "##t.........GGGGGGG....GGGGGGGG...GGGG...!.N...GGGGGG.....##",
+      "##..........PPPPPPP....PPPPPPPP...PPPP.........PPPPPP.N...##",
+      "##..........PPPPPPP.N..PPPPPPPP...PPPP.....N...PPPPPP.....##",
+      "##...N......~~~~~~~....~~~~~~~~~..~~~~..!..N....~~~~~~....##",
+      "##..........~~~~~~~....~~~~~~~~~..~~~~..........~~~~~~....##",
+      "##..........~~~~~~~....~~~~~~~~~..~~~~.........~~~~~~..N..##",
+      "##...N......~~~~~~~....~~~~~~~~~..~~~~.N.......~~~~~~.PP..##",
+      "##..........~~~~~~~....~~~~~~~~~..~~~~.........~~~~~~.....##",
+      "##..........~~~~~~~....~~~~~~~~~..~~~~.........~~~~~~..N..##",
+      "##T.........~~~~~~~....~~~~~~~~~..~~~~.........~~~~~~.....##",
+      "##TT........~~~~~~~....~~~~~~~~~..~~~~.........~~~~~~..N..##",
+      "##TT........~~~~~~~....~~~~~~~~~..~~~~...N......~~~~~~....##",
+      "##TT.....N..PPPPP.....PPPPPPPP..PPPPPP.......PPPPPP.......##",
+      "##TT........PPPPP.....PPPPPPPP..PPPPPP.......PPPPPP.......##",
+      "############################################################"
+    ],
+    "notes": "Route 44 is a wide east-west water route. Two large ponds occupy the center-south. Tall grass patches flank the northern path. Trainers patrol the center. Fruit tree at far west. Item balls at tile (30,8) and (45,4). Hidden Elixir at tile (32,9). Sign at tiles (53,7) and (6,10). Ice Path warp at far east (56,7). Layout is schematic \u2014 actual map has more irregular pond edges."
+  },
+  "signs": [
+    {
+      "x": 53,
+      "y": 7,
+      "text": "ROUTE 44 \u2014 ICE PATH AHEAD"
+    },
+    {
+      "x": 6,
+      "y": 10,
+      "text": "ROUTE 44 \u2014 MAHOGANY TOWN - BLACKTHORN CITY"
+    }
+  ],
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Fisher",
+      "name": "Wilton",
+      "trainer_id": "FISHER_WILTON1",
+      "x": 35,
+      "y": 3,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Goldeen",
+          "level": 23
+        },
+        {
+          "species": "Goldeen",
+          "level": 23
+        },
+        {
+          "species": "Seaking",
+          "level": 25
+        }
+      ],
+      "prize_money": 1000,
+      "rematch": true,
+      "rematch_note": "Pokegear rematch available. Gives Ultra Ball or Great Ball or Poke Ball as gift."
+    },
+    {
+      "class": "Fisher",
+      "name": "Edgar",
+      "trainer_id": "FISHER_EDGAR",
+      "x": 19,
+      "y": 13,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Remoraid",
+          "level": 25,
+          "moves": [
+            "Lock-On",
+            "Psybeam",
+            "Aurora Beam",
+            "BubbleBeam"
+          ]
+        },
+        {
+          "species": "Remoraid",
+          "level": 25,
+          "moves": [
+            "Lock-On",
+            "Psybeam",
+            "Aurora Beam",
+            "BubbleBeam"
+          ]
+        }
+      ],
+      "prize_money": 1000,
+      "rematch": false
+    },
+    {
+      "class": "Psychic",
+      "name": "Phil",
+      "trainer_id": "PSYCHIC_T_PHIL",
+      "x": 10,
+      "y": 9,
+      "facing": "spin_clockwise",
+      "movement": "spin_clockwise",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Natu",
+          "level": 24,
+          "moves": [
+            "Leer",
+            "Night Shade",
+            "Future Sight",
+            "Confuse Ray"
+          ]
+        },
+        {
+          "species": "Kadabra",
+          "level": 26,
+          "moves": [
+            "Disable",
+            "Psybeam",
+            "Recover",
+            "Future Sight"
+          ]
+        }
+      ],
+      "prize_money": 972,
+      "rematch": false
+    },
+    {
+      "class": "Pokemaniac",
+      "name": "Zach",
+      "trainer_id": "POKEMANIAC_ZACH",
+      "x": 43,
+      "y": 2,
+      "facing": "spin_clockwise",
+      "movement": "spin_clockwise",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Rhyhorn",
+          "level": 27
+        }
+      ],
+      "prize_money": 1620,
+      "rematch": false
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Vance",
+      "trainer_id": "BIRD_KEEPER_VANCE1",
+      "x": 51,
+      "y": 5,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Pidgeotto",
+          "level": 25
+        },
+        {
+          "species": "Pidgeotto",
+          "level": 25
+        }
+      ],
+      "prize_money": 600,
+      "rematch": true,
+      "rematch_note": "Pokegear rematch. Rewards Carbos on final rematch (VANCE3: 2x Pidgeot Lv38 with moves)."
+    },
+    {
+      "class": "Cooltrainer M",
+      "name": "Allen",
+      "trainer_id": "COOLTRAINERM_ALLEN",
+      "x": 41,
+      "y": 15,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 5,
+      "team": [
+        {
+          "species": "Charmeleon",
+          "level": 27,
+          "moves": [
+            "Ember",
+            "Smokescreen",
+            "Rage",
+            "Scary Face"
+          ]
+        }
+      ],
+      "prize_money": 1296,
+      "rematch": false
+    },
+    {
+      "class": "Cooltrainer F",
+      "name": "Cybil",
+      "trainer_id": "COOLTRAINERF_CYBIL",
+      "x": 31,
+      "y": 14,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 5,
+      "team": [
+        {
+          "species": "Butterfree",
+          "level": 25,
+          "moves": [
+            "Confusion",
+            "Sleep Powder",
+            "Whirlwind",
+            "Gust"
+          ]
+        },
+        {
+          "species": "Bellossom",
+          "level": 25,
+          "moves": [
+            "Absorb",
+            "Stun Spore",
+            "Acid",
+            "SolarBeam"
+          ]
+        }
+      ],
+      "prize_money": 1200,
+      "rematch": false
+    }
+  ],
+  "items": [
+    {
+      "name": "Max Revive",
+      "x": 30,
+      "y": 8,
+      "hidden": false,
+      "requires": "Surf",
+      "notes": "On the grass island in the center lake \u2014 requires Surf to reach"
+    },
+    {
+      "name": "Ultra Ball",
+      "x": 45,
+      "y": 4,
+      "hidden": false,
+      "requires": null
+    },
+    {
+      "name": "Max Repel",
+      "x": 14,
+      "y": 9,
+      "hidden": false,
+      "requires": null
+    },
+    {
+      "name": "Elixir",
+      "x": 32,
+      "y": 9,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_44_HIDDEN_ELIXER"
+    },
+    {
+      "name": "Burnt Berry",
+      "x": 9,
+      "y": 5,
+      "hidden": false,
+      "requires": null,
+      "notes": "Fruit tree \u2014 daily respawn (FRUITTREE_ROUTE_44)"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {
+          "species": "Weepinbell",
+          "level_min": 22,
+          "level_max": 24,
+          "rate": 35
+        },
+        {
+          "species": "Tangela",
+          "level_min": 23,
+          "level_max": 23,
+          "rate": 30
+        },
+        {
+          "species": "Bellsprout",
+          "level_min": 22,
+          "level_max": 22,
+          "rate": 20
+        },
+        {
+          "species": "Lickitung",
+          "level_min": 24,
+          "level_max": 26,
+          "rate": 15
+        }
+      ],
+      "day": [
+        {
+          "species": "Weepinbell",
+          "level_min": 22,
+          "level_max": 24,
+          "rate": 35
+        },
+        {
+          "species": "Tangela",
+          "level_min": 23,
+          "level_max": 23,
+          "rate": 30
+        },
+        {
+          "species": "Bellsprout",
+          "level_min": 22,
+          "level_max": 22,
+          "rate": 20
+        },
+        {
+          "species": "Lickitung",
+          "level_min": 24,
+          "level_max": 26,
+          "rate": 15
+        }
+      ],
+      "night": [
+        {
+          "species": "Weepinbell",
+          "level_min": 22,
+          "level_max": 24,
+          "rate": 35
+        },
+        {
+          "species": "Tangela",
+          "level_min": 23,
+          "level_max": 23,
+          "rate": 30
+        },
+        {
+          "species": "Bellsprout",
+          "level_min": 22,
+          "level_max": 22,
+          "rate": 20
+        },
+        {
+          "species": "Lickitung",
+          "level_min": 24,
+          "level_max": 26,
+          "rate": 15
+        }
+      ],
+      "notes": "No time-of-day variation in Gold/Silver."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {
+          "species": "Poliwag",
+          "level_min": 20,
+          "level_max": 29,
+          "rate": 90
+        },
+        {
+          "species": "Poliwhirl",
+          "level_min": 20,
+          "level_max": 29,
+          "rate": 10
+        }
+      ]
+    },
+    "fishing": {
+      "old_rod": [
+        {
+          "species": "Magikarp",
+          "level_min": 10,
+          "level_max": 10,
+          "rate": 85
+        },
+        {
+          "species": "Poliwag",
+          "level_min": 10,
+          "level_max": 10,
+          "rate": 15
+        }
+      ],
+      "good_rod": [
+        {
+          "species": "Poliwag",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 65
+        },
+        {
+          "species": "Magikarp",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 35
+        }
+      ],
+      "super_rod": [
+        {
+          "species": "Poliwag",
+          "level_min": 40,
+          "level_max": 40,
+          "rate": 80
+        },
+        {
+          "species": "Magikarp",
+          "level_min": 40,
+          "level_max": 40,
+          "rate": 20
+        }
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "talk_fisher_wilton_post_battle",
+      "description": "Fisher Wilton asks for the player's phone number (Pokegear contact). Calls to offer rematches and gives a ball item (Ultra Ball / Great Ball / Poke Ball) based on rematch count via ENGINE_WILTON_HAS_ITEM flag."
+    },
+    {
+      "trigger": "talk_bird_keeper_vance_post_battle",
+      "description": "Bird Keeper Vance asks for the player's phone number. Discusses legendary birds (Articuno, Zapdos, Moltres). Calls for rematches; on third rematch (VANCE3) rewards Carbos."
+    }
+  ],
+  "notes": "Route 44 is the penultimate Johto route, connecting Mahogany Town to Ice Path (and thus Blackthorn City). The route is wide and flat with two large central fishing ponds. The northern corridor is dominated by tall grass with mid-to-high-level Grass/Normal types. Trainers are spread across both sides of the ponds. Fisher Wilton and Bird Keeper Vance are rematching Pokegear contacts. The warp at (56,7) is the Ice Path entrance. pokecrystal object constants: ROUTE44_FISHER1=Wilton, ROUTE44_FISHER2=Edgar, ROUTE44_YOUNGSTER1=Psychic Phil (uses Youngster sprite reference in object_const_def, but the actual trainer class is PSYCHIC_T), ROUTE44_SUPER_NERD=Pokemaniac Zach, ROUTE44_YOUNGSTER2=Bird Keeper Vance, ROUTE44_COOLTRAINER_M=Allen, ROUTE44_COOLTRAINER_F=Cybil."
+}

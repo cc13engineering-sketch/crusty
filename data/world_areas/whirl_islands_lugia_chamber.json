@@ -1,0 +1,165 @@
+{
+  "area_id": "whirl_islands_lugia_chamber",
+  "area_name": "Whirl Islands (Lugia Chamber)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_LUGIA_CHAMBER",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "pokecrystal_attr_tileset_id": "$0f",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9,
+      "y": 13,
+      "target_area_id": "whirl_islands_b2f",
+      "target_warp_id": 3,
+      "notes": "Exit back up to B2F (waterfall ascent). warp_event 9,13 WHIRL_ISLAND_B2F 3."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "F": "waterfall_entry",
+      "E": "exit_up_to_b2f",
+      "L": "lugia_spawn_position",
+      "N": "lugia_npc_object"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#########L##########",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#########E##########",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic from warp and object_event coordinates in WhirlIslandLugiaChamber.asm. 20x18 tiles. The chamber is a simple, dramatic single room with Lugia's position at (9,5) and the exit at (9,13). No items or other objects are present — the entire map exists for the Lugia encounter. The entry is through the waterfall from B2F. Actual block layout in maps/WhirlIslandLugiaChamber.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "legendary_encounters": [
+    {
+      "species": "Lugia",
+      "level": 60,
+      "x": 9,
+      "y": 5,
+      "battle_type": "BATTLETYPE_FORCEITEM",
+      "sprite": "SPRITE_LUGIA",
+      "palette": "PAL_NPC_BLUE",
+      "movement": "SPRITEMOVEDATA_POKEMON",
+      "requires_item": "Silver Wing",
+      "appears_condition": "EVENT_FOUGHT_LUGIA not set AND Silver Wing in bag",
+      "disappears_after_battle": true,
+      "reload_map_after_battle": true,
+      "one_time": true,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_LUGIA_CHAMBER_LUGIA",
+      "pokecrystal_label": "Lugia",
+      "pokecrystal_object": "object_event 9,5 SPRITE_LUGIA SPRITEMOVEDATA_POKEMON 0 0 -1 -1 PAL_NPC_BLUE OBJECTTYPE_SCRIPT 0 Lugia EVENT_WHIRL_ISLAND_LUGIA_CHAMBER_LUGIA",
+      "pre_battle_text": "Gyaaas!",
+      "pre_battle_cry": true,
+      "callback_logic": "MAPCALLBACK_OBJECTS: checks EVENT_FOUGHT_LUGIA (if set, disappear). Checks SILVER_WING in inventory (if present, appear). Otherwise disappear.",
+      "crystal_note": "In Pokemon Crystal, Lugia is level 60. In Gold/Silver, Lugia is level 70. Silver Wing is obtained from the elderly man in Pewter City (Kanto) after the player arrives by Magnet Train.",
+      "notes": "The Silver Wing is required for Lugia to appear. Without it, Lugia will not spawn (disappear callback fires). If EVENT_FOUGHT_LUGIA is already set (player has encountered Lugia before), it will not reappear — this is a one-time encounter in Crystal."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "The Lugia Chamber has the highest-level wild encounters in the entire Whirl Islands complex. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_LUGIA_CHAMBER lines 1041-1067.",
+      "morning": [
+        {"species": "Krabby",  "level": 25, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 26, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 25, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 27, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 28, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 27, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 27, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 25, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 26, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 25, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 27, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 28, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 27, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 27, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 25, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 26, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 25, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 27, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 28, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 27, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 27, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 4,
+      "notes": "The chamber has a surfable water section. Source: data/wild/johto_water.asm def_water_wildmons WHIRL_ISLAND_LUGIA_CHAMBER lines 89-94.",
+      "mons": [
+        {"species": "Horsea",     "level": 20, "rate": 60},
+        {"species": "Tentacruel", "level": 20, "rate": 30},
+        {"species": "Seadra",     "level": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS. The chamber has water, making fishing technically accessible.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "lugia_spawn_check",
+      "description": "On map load, MAPCALLBACK_OBJECTS fires: if EVENT_FOUGHT_LUGIA is set, Lugia disappears permanently. If Silver Wing is in the player's bag, Lugia appears. Otherwise Lugia disappears. This callback runs every time the map is entered.",
+      "requires": "Silver_Wing (Key Item)",
+      "pokecrystal_label": "WhirlIslandLugiaChamberLugiaCallback"
+    },
+    {
+      "trigger": "lugia_battle",
+      "description": "Lugia faces the player, cries, then initiates a forced battle (BATTLETYPE_FORCEITEM). After the battle (catch, KO, or flee), Lugia disappears and the map reloads. EVENT_FOUGHT_LUGIA is set permanently, preventing respawn.",
+      "requires": "Silver_Wing (Key Item)",
+      "battle_outcome": "One-time event. If Lugia faints, it cannot be re-encountered. Catching is the only way to obtain Lugia in Crystal."
+    }
+  ],
+  "signs": [],
+  "notes": "The final chamber of the Whirl Islands and the home of the legendary Pokemon Lugia. This is a simple 10x9 block (20x18 tile) room accessible only by descending the waterfall in B2F with HM07 Waterfall. Lugia appears at level 60 in Crystal (60 in Crystal vs 70 in Gold/Silver). The Silver Wing key item — obtained from the elderly man in Pewter City after arriving via Magnet Train — is required for Lugia to materialize. Without the Silver Wing, the chamber appears empty. EVENT_FOUGHT_LUGIA is a permanent flag: once the encounter triggers (regardless of whether Lugia is caught or fainted), Lugia will never reappear. BATTLETYPE_FORCEITEM means the battle uses a special type that allows item use even if normally restricted. The water pool contains Horsea, Tentacruel, and Seadra (the only map in the complex with Seadra on Surf). The cave encounter table peaks at level 28 Golbat — the highest in the complex. Tileset attribute $0f matches the SE entrance cave. Source: maps/WhirlIslandLugiaChamber.asm, constants/map_constants.asm line 138, data/maps/attributes.asm line 451, data/wild/johto_grass.asm lines 1041-1067, data/wild/johto_water.asm lines 89-94."
+}

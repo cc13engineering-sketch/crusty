@@ -1,0 +1,401 @@
+{
+  "area_id": "route_30",
+  "area_name": "Route 30",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_30",
+  "width_blocks": 10,
+  "height_blocks": 27,
+  "width_tiles": 20,
+  "height_tiles": 54,
+  "tileset": "johto",
+  "music": "MUSIC_ROUTE_30",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_31",
+      "offset": -10,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "cherrygrove_city",
+      "offset": -5,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 7,
+      "y": 39,
+      "target_area_id": "route_30_berry_house",
+      "target_warp_id": 1,
+      "note": "Berry House entrance on western side of route, lower section"
+    },
+    {
+      "x": 17,
+      "y": 5,
+      "target_area_id": "mr_pokemons_house",
+      "target_warp_id": 1,
+      "note": "Mr. Pokemon's House entrance — upper northeast section of route"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": [
+      "20 tiles wide x 54 tiles tall (10 blocks x 27 blocks)",
+      "Route runs north-south. Player enters from south (Cherrygrove) and travels north (Route 31).",
+      "Mr. Pokemon's House is in the upper-right area — warp at tile (17,5), sign at (15,5).",
+      "MrPokemonsHouse directions sign at tile (13,29).",
+      "Trainer Tips sign at tile (3,21).",
+      "Route 30 sign at tile (9,43).",
+      "Berry House warp at tile (7,39).",
+      "Fruit tree 1: tile (5,39). Fruit tree 2: tile (11,5).",
+      "Item ball (Antidote): tile (8,35). Hidden item (Potion): tile (14,9).",
+      "Surfable water runs along a stream on the east side of the route (mid section).",
+      "Youngster Joey: tile (2,28) — facing right, line of sight 3. EVENT_ROUTE_30_YOUNGSTER_JOEY.",
+      "Youngster battle script object (ROUTE30_YOUNGSTER1): tile (5,26) — EVENT_ROUTE_30_BATTLE.",
+      "Monster sprites for Rattata battle setup: tiles (5,24) and (5,25). EVENT_ROUTE_30_BATTLE.",
+      "Youngster Mikey: tile (5,23) — facing down, line of sight 1.",
+      "Bug Catcher Don: tile (1,7) — facing down, line of sight 3.",
+      "Non-trainer Youngster (Route30YoungsterScript): tile (7,30) — walk_left_right, gives Mr. Pokemon directions.",
+      "CooltrainerF (non-trainer NPC): tile (2,13) — facing down, warns about eye contact."
+    ],
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTT.TTTTTTTT",
+      "TTN.....TTTT.THHHETTT",
+      "TTN......TTT.TTTTTTTT",
+      "TTN.........S.........",
+      "TT.?..........GGGGGGGG",
+      "TT............GGGGGGGG",
+      "TT............GGGGGGGG",
+      "TT.....TTTTTTTTTTTTTT.",
+      "TT.....TTTTTTTTTTTTTT.",
+      "TT.N...TTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTT.",
+      "TTTTTTTTTTTTTTTTTTTTTT",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGGSN.......TTTTTTTTT.",
+      "GGGGG.......TTTTTTTTT.",
+      "GGG.N.......TTTTTTTTT.",
+      "GGG..NNNNN..TTTTTTTTT.",
+      "GGG..NNNNN..TTTTTTTTT.",
+      "GGG..N......TTTTTTTTT.",
+      "GGG..N......TTTTTTTTT.",
+      "GGG..N......TTTTTTTTT.",
+      "GGG.SN......TTTTTTTTT.",
+      "GGG.N.......TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG..!......TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.........TTTTTTTTT.",
+      "GGG.HHE.N...TTTTTTTTT.",
+      "GGG.HH......TTTTTTTTT.",
+      "GGGGGGGGGGGGGGGGGGGGG.",
+      "GGGGGGGGGGGGGGGGGGGGG.",
+      "GGG..........SGGGGGGG.",
+      "GGG..........SGGGGGGG.",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "GGG..........TTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTT"
+    ],
+    "npc_tile_positions": {
+      "ROUTE30_YOUNGSTER1_JOEY": {"x": 2, "y": 28, "note": "Trainer — faces right, line_of_sight 3"},
+      "ROUTE30_YOUNGSTER2_MIKEY": {"x": 5, "y": 23, "note": "Trainer — faces down, line_of_sight 1"},
+      "ROUTE30_BUG_CATCHER_DON": {"x": 1, "y": 7, "note": "Trainer — faces down, line_of_sight 3"},
+      "ROUTE30_YOUNGSTER4_SCRIPT_NPC": {"x": 7, "y": 30, "note": "Non-trainer youngster giving directions to Mr. Pokemon"},
+      "ROUTE30_MONSTER1": {"x": 5, "y": 24, "note": "Rattata sprite, part of Joey's battle scene"},
+      "ROUTE30_MONSTER2": {"x": 5, "y": 25, "note": "Rattata sprite, part of battle scene, EVENT_ROUTE_30_BATTLE"},
+      "ROUTE30_YOUNGSTER_BATTLE_TRIGGER": {"x": 5, "y": 26, "note": "YoungsterJoey_ImportantBattleScript trigger object, EVENT_ROUTE_30_BATTLE"},
+      "ROUTE30_COOLTRAINER_F": {"x": 2, "y": 13, "note": "Non-trainer CooltrainerF NPC"},
+      "ROUTE30_FRUIT_TREE1": {"x": 5, "y": 39},
+      "ROUTE30_FRUIT_TREE2": {"x": 11, "y": 5},
+      "ROUTE30_POKE_BALL": {"x": 8, "y": 35}
+    }
+  },
+  "npcs": [
+    {
+      "id": "youngster_directions",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 7,
+      "y": 30,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Before player delivers Mystery Egg to Elm: gives directions to Mr. Pokemon's house ('It's a bit farther ahead'). After: comments that everyone is having fun battling."
+    },
+    {
+      "id": "cooltrainer_f",
+      "name": "CooltrainerF",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 2,
+      "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "dialogue",
+      "dialogue_summary": "Says she is not a trainer, but warns that making eye contact with a trainer means you have to battle."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Youngster",
+      "name": "Joey",
+      "trainer_id": "YOUNGSTER_JOEY1",
+      "x": 2,
+      "y": 28,
+      "facing": "right",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Rattata", "level": 4, "type": "TRAINERTYPE_NORMAL"}
+      ],
+      "prize_money": 64,
+      "rematch": true,
+      "event_flag": "EVENT_BEAT_YOUNGSTER_JOEY",
+      "event_flag_display": "EVENT_ROUTE_30_YOUNGSTER_JOEY",
+      "phone_number": "PHONE_YOUNGSTER_JOEY",
+      "rematch_note": "Joey rematches via Pokegear phone. Team upgrades through JOEY1-JOEY5 based on game progress flags (Goldenrod flypoint, Olivine flypoint, Radio Tower, Elite Four). Can give HP_UP after defeating JOEY5.",
+      "dialogue": {
+        "seen": "I just lost, so I'm trying to find more Pokemon. Wait! You look weak! Come on, let's battle!",
+        "beaten": "Ack! I lost again! Doggone it!",
+        "after": "Do I have to have more Pokemon in order to battle better? No! I'm sticking with this one no matter what!"
+      },
+      "scene_event": {
+        "flag": "EVENT_ROUTE_30_BATTLE",
+        "description": "Before battling Joey, a cutscene plays: Joey commands his Rattata to use Tackle on Mikey's Rattata. Dialogue then triggers the actual trainer battle. The Rattata sprites (ROUTE30_MONSTER1 at tile 5,25 and ROUTE30_MONSTER2 at tile 5,24) animate the tackle sequence."
+      }
+    },
+    {
+      "class": "Youngster",
+      "name": "Mikey",
+      "trainer_id": "YOUNGSTER_MIKEY",
+      "x": 5,
+      "y": 23,
+      "facing": "down",
+      "line_of_sight": 1,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Pidgey",  "level": 2, "type": "TRAINERTYPE_NORMAL"},
+        {"species": "Rattata", "level": 4, "type": "TRAINERTYPE_NORMAL"}
+      ],
+      "prize_money": 64,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_YOUNGSTER_MIKEY",
+      "dialogue": {
+        "seen": "You're a Pokemon trainer, right? Then you have to battle!",
+        "beaten": "That's strange. I won before.",
+        "after": "Becoming a good trainer is really tough. I'm going to battle other people to get better."
+      }
+    },
+    {
+      "class": "Bug Catcher",
+      "name": "Don",
+      "trainer_id": "BUG_CATCHER_DON",
+      "x": 1,
+      "y": 7,
+      "facing": "down",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Caterpie", "level": 3, "type": "TRAINERTYPE_NORMAL"},
+        {"species": "Caterpie", "level": 3, "type": "TRAINERTYPE_NORMAL"}
+      ],
+      "prize_money": 48,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_DON",
+      "dialogue": {
+        "seen": "Instead of a bug Pokemon, I found a trainer!",
+        "beaten": "Argh! You're too strong!",
+        "after": "I ran out of Poke Balls while I was catching Pokemon. I should've bought some more..."
+      }
+    }
+  ],
+  "items": [
+    {
+      "name": "Antidote",
+      "x": 8,
+      "y": 35,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_30_ANTIDOTE",
+      "note": "Item ball on eastern side of route, lower-mid section"
+    },
+    {
+      "name": "Potion",
+      "x": 14,
+      "y": 9,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_30_HIDDEN_POTION",
+      "note": "Hidden item (BGEVENT_ITEM). Check near trees in the upper section."
+    }
+  ],
+  "signs": [
+    {
+      "x": 9,
+      "y": 43,
+      "text": "ROUTE 30 / VIOLET CITY - CHERRYGROVE CITY"
+    },
+    {
+      "x": 13,
+      "y": 29,
+      "text": "MR. POKEMON'S HOUSE STRAIGHT AHEAD!"
+    },
+    {
+      "x": 15,
+      "y": 5,
+      "text": "MR. POKEMON'S HOUSE"
+    },
+    {
+      "x": 3,
+      "y": 21,
+      "text": "TRAINER TIPS: No stealing other people's Pokemon! Poke Balls are to be thrown only at wild Pokemon!"
+    }
+  ],
+  "fruit_trees": [
+    {
+      "id": "FRUITTREE_ROUTE_30_1",
+      "x": 5,
+      "y": 39,
+      "note": "Berry fruit tree 1 — gives one berry per day. Lower-west section of route."
+    },
+    {
+      "id": "FRUITTREE_ROUTE_30_2",
+      "x": 11,
+      "y": 5,
+      "note": "Berry fruit tree 2 — gives one berry per day. Upper section near Mr. Pokemon's House."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "note": "10% encounter rate each time period, from johto_grass.asm def_grass_wildmons ROUTE_30. Gold version has Caterpie; Silver version has Weedle in same slots.",
+      "morning": [
+        {"species": "Ledyba",   "level": 3, "slot": 1},
+        {"species": "Caterpie", "level": 3, "slot": 2, "note": "Gold; Weedle in Silver"},
+        {"species": "Caterpie", "level": 4, "slot": 3, "note": "Gold; Weedle in Silver"},
+        {"species": "Pidgey",   "level": 4, "slot": 4},
+        {"species": "Weedle",   "level": 3, "slot": 5, "note": "Gold; Caterpie in Silver"},
+        {"species": "Hoppip",   "level": 4, "slot": 6},
+        {"species": "Hoppip",   "level": 4, "slot": 7}
+      ],
+      "day": [
+        {"species": "Pidgey",   "level": 3, "slot": 1},
+        {"species": "Caterpie", "level": 3, "slot": 2, "note": "Gold; Weedle in Silver"},
+        {"species": "Caterpie", "level": 4, "slot": 3, "note": "Gold; Weedle in Silver"},
+        {"species": "Pidgey",   "level": 4, "slot": 4},
+        {"species": "Weedle",   "level": 3, "slot": 5, "note": "Gold; Caterpie in Silver"},
+        {"species": "Hoppip",   "level": 4, "slot": 6},
+        {"species": "Hoppip",   "level": 4, "slot": 7}
+      ],
+      "night": [
+        {"species": "Spinarak",  "level": 3, "slot": 1},
+        {"species": "Hoothoot",  "level": 3, "slot": 2},
+        {"species": "Poliwag",   "level": 4, "slot": 3},
+        {"species": "Hoothoot",  "level": 4, "slot": 4},
+        {"species": "Zubat",     "level": 3, "slot": 5},
+        {"species": "Hoothoot",  "level": 4, "slot": 6},
+        {"species": "Hoothoot",  "level": 4, "slot": 7}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "note": "From johto_water.asm def_water_wildmons ROUTE_30. 2% encounter rate.",
+      "mons": [
+        {"species": "Poliwag",   "level": 20, "slot": 1},
+        {"species": "Poliwag",   "level": 15, "slot": 2},
+        {"species": "Poliwhirl", "level": 20, "slot": 3}
+      ]
+    },
+    "fishing": {
+      "fish_group": "FISHGROUP_POND",
+      "note": "Route 30 uses the Pond fish group (Poliwag-based). Data from fish.asm .Pond_* tables.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate_threshold": "71%"},
+        {"species": "Magikarp", "level": 10, "rate_threshold": "86%"},
+        {"species": "Poliwag",  "level": 10, "rate_threshold": "100%"}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate_threshold": "35%"},
+        {"species": "Poliwag",  "level": 20, "rate_threshold": "70%"},
+        {"species": "Poliwag",  "level": 20, "rate_threshold": "91%"},
+        {"species": "time_group_6", "level": 20, "rate_threshold": "100%", "note": "Time-based slot"}
+      ],
+      "super_rod": [
+        {"species": "Poliwag",  "level": 40, "rate_threshold": "40%"},
+        {"species": "time_group_7", "level": 40, "rate_threshold": "70%", "note": "Time-based slot"},
+        {"species": "Magikarp", "level": 40, "rate_threshold": "91%"},
+        {"species": "Poliwag",  "level": 40, "rate_threshold": "100%"}
+      ]
+    },
+    "headbutt_trees": {
+      "treemon_set": "TREEMON_SET_ROUTE",
+      "note": "Route 30 uses TREEMON_SET_ROUTE per treemon_maps.asm",
+      "common": [
+        {"species": "Hoothoot",  "level": 10, "rate": 50},
+        {"species": "Spinarak",  "level": 10, "rate": 15},
+        {"species": "Ledyba",    "level": 10, "rate": 15},
+        {"species": "Exeggcute", "level": 10, "rate": 10},
+        {"species": "Exeggcute", "level": 10, "rate": 5},
+        {"species": "Exeggcute", "level": 10, "rate": 5}
+      ],
+      "rare": [
+        {"species": "Hoothoot",  "level": 10, "rate": 50},
+        {"species": "Pineco",    "level": 10, "rate": 15},
+        {"species": "Pineco",    "level": 10, "rate": 15},
+        {"species": "Exeggcute", "level": 10, "rate": 10},
+        {"species": "Exeggcute", "level": 10, "rate": 5},
+        {"species": "Exeggcute", "level": 10, "rate": 5}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "first_arrival_at_mr_pokemons_house",
+      "description": "Visiting Mr. Pokemon triggers the scene in MrPokemonsHouse — not on the route itself but this is the route's primary story objective. Player receives Mystery Egg from Mr. Pokemon and Pokedex from Prof. Oak."
+    },
+    {
+      "trigger": "EVENT_ROUTE_30_BATTLE",
+      "description": "Special cutscene before battling Youngster Joey. Joey commands his Rattata to tackle Mikey's Rattata. The two MONSTER sprite objects (Rattata) animate the tackle using applymovement. This event clears once the battle has occurred. Controlled by EVENT_ROUTE_30_BATTLE flag."
+    }
+  ],
+  "notes": "Route 30 is the second route in the game and the player's primary goal after getting their starter from Elm is to traverse it north to reach Mr. Pokemon's House. The route runs north-south and is notably narrow (10 blocks wide). There is surfable water mid-route on the east side. Three trainers are present: Bug Catcher Don guards the northern upper section near Mr. Pokemon's House, while Youngster Joey and Mikey are in the mid-lower section. Joey is the game's most famous recurring trainer — he can be rematched via Pokegear phone throughout the game with progressively stronger teams. The Berry House (Route30BerryHouse) at tile (7,39) is a side building not covered in this file but shares the route landmark."
+}

@@ -1,0 +1,243 @@
+{
+  "area_id": "union_cave_b2f",
+  "area_name": "Union Cave (B2F)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "UNION_CAVE_B2F",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 5,
+      "y": 3,
+      "target_area_id": "union_cave_b1f",
+      "target_warp_id": 5,
+      "notes": "Staircase up to B1F — warp_event 5,3 UNION_CAVE_B1F 5. This is the only exit from B2F; Surf is required to reach this floor and navigate its water areas."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "^": "stairs_up",
+      "N": "npc_trainer_position",
+      "!": "item_ball",
+      "L": "lapras_spawn"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####^...............#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####N...............#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#############N......#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###L~~~#############",
+      "####N..#~~~#########",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic from warp coordinates and object_event positions in UnionCaveB2F.asm. The floor is primarily a large water cave accessible only via Surf. Lapras spawns at (11,31) — visible only on Fridays before being caught. Staircase up to B1F at (5,3). The three Cool Trainer positions are approximate from pokecrystal coordinates. Actual block layout in UnionCaveB2F.blk."
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Nick",
+      "trainer_id": "NICK",
+      "pokecrystal_trainer": "COOLTRAINERM, NICK",
+      "x": 15,
+      "y": 19,
+      "facing": "down",
+      "movement": "standing_down",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_ROCKER",
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Charmander", "level": 26, "moves": ["Ember", "Smokescreen", "Rage", "Scary Face"]},
+        {"species": "Squirtle",   "level": 26, "moves": ["Withdraw", "Water Gun", "Bite", "Curse"]},
+        {"species": "Bulbasaur",  "level": 26, "moves": ["Leech Seed", "Poisonpowder", "Sleep Powder", "Razor Leaf"]}
+      ],
+      "prize_money": 2080,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_COOLTRAINERM_NICK",
+      "after_battle_dialogue": "Your #MON style is stunning and colorful, I admit. You'll just keep getting better!",
+      "notes": "Uses TRAINERTYPE_MOVES — all three starter Pokemon with custom movesets."
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Gwen",
+      "trainer_id": "GWEN",
+      "pokecrystal_trainer": "COOLTRAINERF, GWEN",
+      "x": 5,
+      "y": 13,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 1,
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Eevee",   "level": 26},
+        {"species": "Flareon",  "level": 22},
+        {"species": "Vaporeon", "level": 22},
+        {"species": "Jolteon",  "level": 22}
+      ],
+      "prize_money": 1760,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_COOLTRAINERF_GWEN",
+      "after_battle_dialogue": "I'm going to train by myself until I improve."
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Emma",
+      "trainer_id": "EMMA",
+      "pokecrystal_trainer": "COOLTRAINERF, EMMA",
+      "x": 3,
+      "y": 30,
+      "facing": "up",
+      "movement": "standing_up",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Poliwhirl", "level": 28}
+      ],
+      "prize_money": 2240,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_COOLTRAINERF_EMMA",
+      "after_battle_dialogue": "Just once a week, a #MON comes to the water's edge. I wanted to see that #MON…",
+      "notes": "Her dialogue alludes to the Friday Lapras event."
+    }
+  ],
+  "items": [
+    {
+      "name": "Elixir",
+      "x": 16,
+      "y": 2,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_B2F_ELIXER",
+      "pokecrystal_label": "UnionCaveB2FElixer",
+      "notes": "Restores 10 PP to all moves of one Pokemon."
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 12,
+      "y": 19,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_B2F_HYPER_POTION",
+      "pokecrystal_label": "UnionCaveB2FHyperPotion",
+      "notes": "Restores 200 HP to one Pokemon."
+    }
+  ],
+  "special_encounters": [
+    {
+      "id": "lapras",
+      "species": "Lapras",
+      "level": 20,
+      "x": 11,
+      "y": 31,
+      "sprite": "SPRITE_SURF",
+      "movement": "swim_wander",
+      "movement_radius": 1,
+      "palette": "PAL_NPC_BLUE",
+      "condition": "VAR_WEEKDAY == FRIDAY",
+      "one_time": true,
+      "pokecrystal_event": "EVENT_UNION_CAVE_B2F_LAPRAS",
+      "pokecrystal_flag": "ENGINE_UNION_CAVE_LAPRAS",
+      "pokecrystal_label": "UnionCaveLapras",
+      "pokecrystal_callback": "UnionCaveB2FLaprasCallback",
+      "script_summary": "The Lapras callback checks ENGINE_UNION_CAVE_LAPRAS flag first — if already caught, it disappears permanently. Otherwise checks VAR_WEEKDAY for FRIDAY. If it is Friday, Lapras appears; if not, Lapras disappears. On interaction it cries, initiates a wild battle via loadwildmon LAPRAS 20, then sets ENGINE_UNION_CAVE_LAPRAS on capture/defeat and vanishes permanently.",
+      "notes": "Appears once per save file on Fridays only. After the battle (win, lose, or run), the ENGINE_UNION_CAVE_LAPRAS flag is NOT set unless the player catches it — in pokecrystal, setflag is called after startbattle which means it runs regardless of outcome after the battle ends. Lapras is level 20 and Water/Ice type. One of the most memorable weekly events in Pokemon Crystal."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 4,
+      "notes": "Lower encounter rate (4%) compared to 1F and B1F (both 6%). Higher-level Pokemon indicating deep cave. Source: johto_grass.asm def_grass_wildmons UNION_CAVE_B2F.",
+      "morning": [
+        {"species": "Zubat",    "level": 22, "rate": 30},
+        {"species": "Golbat",   "level": 22, "rate": 30},
+        {"species": "Zubat",    "level": 22, "rate": 20},
+        {"species": "Raticate", "level": 21, "rate": 10},
+        {"species": "Geodude",  "level": 20, "rate": 5},
+        {"species": "Onix",     "level": 23, "rate": 4},
+        {"species": "Onix",     "level": 23, "rate": 1}
+      ],
+      "day": [
+        {"species": "Zubat",    "level": 22, "rate": 30},
+        {"species": "Golbat",   "level": 22, "rate": 30},
+        {"species": "Zubat",    "level": 22, "rate": 20},
+        {"species": "Raticate", "level": 21, "rate": 10},
+        {"species": "Geodude",  "level": 20, "rate": 5},
+        {"species": "Onix",     "level": 23, "rate": 4},
+        {"species": "Onix",     "level": 23, "rate": 1}
+      ],
+      "night": [
+        {"species": "Zubat",    "level": 22, "rate": 30},
+        {"species": "Golbat",   "level": 22, "rate": 30},
+        {"species": "Quagsire", "level": 22, "rate": 20},
+        {"species": "Raticate", "level": 21, "rate": 10},
+        {"species": "Geodude",  "level": 20, "rate": 5},
+        {"species": "Onix",     "level": 23, "rate": 4},
+        {"species": "Onix",     "level": 23, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 4,
+      "notes": "B2F has a larger and deeper water area than B1F with different species. Tentacool/Tentacruel appear here instead of Wooper/Quagsire. Source: johto_water.asm def_water_wildmons UNION_CAVE_B2F.",
+      "mons": [
+        {"species": "Tentacool",  "level": 15, "rate": 60},
+        {"species": "Quagsire",   "level": 20, "rate": 30},
+        {"species": "Tentacruel", "level": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "notes": "No fishing data defined for Union Cave B2F in pokecrystal fish.asm.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "friday_lapras",
+      "description": "On Fridays, Lapras (level 20) appears at (11,31) swimming in the underground lake. Interacting initiates a wild battle. After any battle outcome the ENGINE_UNION_CAVE_LAPRAS flag is set and Lapras never appears again for that save file. This is a one-time weekly encounter unique to Pokemon Crystal.",
+      "condition": "VAR_WEEKDAY == FRIDAY and ENGINE_UNION_CAVE_LAPRAS not set",
+      "pokecrystal_callback": "UnionCaveB2FLaprasCallback",
+      "pokecrystal_flag": "ENGINE_UNION_CAVE_LAPRAS"
+    }
+  ],
+  "signs": [],
+  "notes": "Union Cave B2F is the deepest level of Union Cave, accessible only via Surf from B1F. It is a large underground lake cavern. The floor has only one exit — the staircase at (5,3) returning to B1F. Surf is mandatory both to access this floor and to navigate most of it. Three high-level Cool Trainers inhabit the floor: Cool Trainer M Nick (x15,y19) with starter-trio team, Cool Trainer F Gwen (x5,y13) with Eeveelution team, and Cool Trainer F Emma (x3,y30) with Poliwhirl. Both Cool Trainer F trainers allude to the Friday Lapras in dialogue. Two items: Elixir (x16,y2) and Hyper Potion (x12,y19). Wild cave encounters feature Golbat (evolved Zubat) reflecting the deeper location, and Quagsire replaces the third Zubat slot at night. Water encounters differ from upper floors: Tentacool and Tentacruel instead of Wooper/Quagsire. The Friday Lapras at level 20 is one of the most iconic timed events in Generation II and appears nowhere else in the game as a wild encounter. Tileset $09 confirmed in attributes.asm. Source: maps/UnionCaveB2F.asm."
+}

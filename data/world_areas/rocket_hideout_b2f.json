@@ -1,0 +1,320 @@
+{
+  "area_id": "rocket_hideout_b2f",
+  "area_name": "Team Rocket Base B2F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TEAM_ROCKET_BASE_B2F",
+  "width_blocks": 15,
+  "height_blocks": 9,
+  "width_tiles": 30,
+  "height_tiles": 18,
+  "tileset": "rocket_base",
+  "music": "MUSIC_ROCKET_HIDEOUT",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 14,
+      "target_area_id": "rocket_hideout_b1f",
+      "target_warp_id": 2,
+      "label": "Stairs up to B1F (west staircase)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 2,
+      "target_area_id": "rocket_hideout_b3f",
+      "target_warp_id": 1,
+      "label": "Stairs to B3F (north-west staircase)"
+    },
+    {
+      "warp_id": 3,
+      "x": 27, "y": 2,
+      "target_area_id": "rocket_hideout_b3f",
+      "target_warp_id": 2,
+      "label": "Stairs to B3F (north-east staircase)"
+    },
+    {
+      "warp_id": 4,
+      "x": 3, "y": 6,
+      "target_area_id": "rocket_hideout_b3f",
+      "target_warp_id": 3,
+      "label": "Stairs to B3F (west-center staircase)"
+    },
+    {
+      "warp_id": 5,
+      "x": 27, "y": 14,
+      "target_area_id": "rocket_hideout_b3f",
+      "target_warp_id": 4,
+      "label": "Stairs to B3F (south-east staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "v": "stairs_down",
+      "^": "stairs_up",
+      "E": "electrode_pokemon",
+      "N": "npc_position",
+      "T": "trainer_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "M": "transmitter_machine",
+      "D": "locked_door",
+      "L": "lance_position",
+      "R": "executive_position"
+    },
+    "rows": [
+      "##############################",
+      "##############################",
+      "##v..........................v##",
+      "##............................##",
+      "##..T.........................##",
+      "##..E...........E.............##",
+      "##v...........................##",
+      "##..E...........E.............##",
+      "##.....MMMMMM.................##",
+      "##..E...MMMMMM..E.............##",
+      "##.....MMMMMM.................##",
+      "##....................................##",
+      "##...........DD...............##",
+      "##..T.......L.......T.........##",
+      "##^..............................R.##",
+      "##............................##",
+      "##...........?................##",
+      "##............................##"
+    ],
+    "notes": "Layout approximated. Transmitter machine spans bg_events at (12,4)-(17,9). Locked door at (14,12)-(15,12). Electrode pairs at (7,5)+(22,5), (7,7)+(22,7), (7,9)+(22,9). Lance appears at (5,13) area. Executive appears at (20,16). Three Grunts at (25,13), (4,1), (21,14). Item ball TM_THIEF at (3,10). Hidden Full Heal at (26,7)."
+  },
+  "electrode_puzzle": {
+    "description": "The transmitter on B2F broadcasts a radio signal that drives Pokemon at the Lake of Rage mad. To shut it down, all three Electrode groups must be defeated. Each Electrode battle shuts off the paired Electrodes (floor Electrode + ceiling-adjacent Electrode). All three pairs must be fainted before the machine deactivates. Lance splits the work with the player, taking the right side (Electrodes 4-6 at x=22).",
+    "lance_dialogue_setup": "Lance: 'It's this machine that's causing all the problems. I don't see a switch on it... We have no choice. We have to make all the ELECTRODE faint. That should stop this machine from transmitting that strange signal. It's no fault of the Pokemon, so it makes me feel guilty. [Player], let's split the job.'",
+    "electrode_objects": [
+      {
+        "id": "TEAMROCKETBASEB2F_ELECTRODE1",
+        "x": 7, "y": 5,
+        "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_ELECTRODE_1",
+        "species": "Electrode", "level": 23,
+        "paired_with": "TEAMROCKETBASEB2F_ELECTRODE4 (x=22,y=5) - disappears when Electrode1 fainted"
+      },
+      {
+        "id": "TEAMROCKETBASEB2F_ELECTRODE2",
+        "x": 7, "y": 7,
+        "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_ELECTRODE_2",
+        "species": "Electrode", "level": 23,
+        "paired_with": "TEAMROCKETBASEB2F_ELECTRODE5 (x=22,y=7) - disappears when Electrode2 fainted"
+      },
+      {
+        "id": "TEAMROCKETBASEB2F_ELECTRODE3",
+        "x": 7, "y": 9,
+        "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_ELECTRODE_3",
+        "species": "Electrode", "level": 23,
+        "paired_with": "TEAMROCKETBASEB2F_ELECTRODE6 (x=22,y=9) - disappears when Electrode3 fainted"
+      }
+    ],
+    "completion_rewards": [
+      {
+        "item": "HM06 (Whirlpool)",
+        "given_by": "Lance",
+        "dialogue": "LANCE: That odd signal has finally stopped. The LAKE should be back to normal. You're the hero! Let me thank you on behalf of all the Pokemon. Oh, yes. You should take this. I found it here, but I don't have any need for it. [That's WHIRLPOOL. Teach it to a Pokemon to get across wild water. But keep this in mind. You can use that out of battle only with the BADGE from MAHOGANY GYM.]"
+      }
+    ],
+    "post_clear_events": [
+      "EVENT_CLEARED_ROCKET_HIDEOUT",
+      "ENGINE_ROCKET_SIGNAL_ON_CH20 flag cleared",
+      "EVENT_ROUTE_43_GATE_ROCKETS set (Route 43 roadblock removed)",
+      "EVENT_MAHOGANY_TOWN_POKEFAN_M_BLOCKS_GYM set (Mahogany Gym now accessible)",
+      "EVENT_LAKE_OF_RAGE_CIVILIANS cleared (Lake of Rage civilians return)",
+      "All security camera events set (cameras disabled)",
+      "SCENE_TEAMROCKETBASEB2F_NOOP set"
+    ]
+  },
+  "murkrow_password": {
+    "description": "NOTE: The Murkrow that whispers the password 'HAIL GIOVANNI' is located on B3F (not B2F). The password unlocks the door on B2F. After the player obtains the password on B3F (EVENT_LEARNED_HAIL_GIOVANNI), they can use it on the locked door at (14,12)/(15,12) on B2F.",
+    "locked_door": {
+      "x_range": [14, 15], "y": 12,
+      "event_flag_unlock": "EVENT_OPENED_DOOR_TO_ROCKET_HIDEOUT_TRANSMITTER",
+      "requires_event": "EVENT_LEARNED_HAIL_GIOVANNI",
+      "sound": "SFX_ENTER_DOOR",
+      "result": "Block at (14,12) changes to floor tile ($07), opening path to transmitter area",
+      "door_text_locked": "The door's closed... It needs a password to open.",
+      "door_text_open": "The door's closed... [Player] entered the password. The door opened!"
+    }
+  },
+  "executive_battle": {
+    "description": "Executive F (Ariana's earlier appearance) confronts the player after they penetrate deep into B2F. Lance accompanies the player. Ariana threatens with a Dragonite, Lance intervenes. Ariana then battles the player alone.",
+    "executive": {
+      "class": "Executive F",
+      "trainer_id": "EXECUTIVEF_2",
+      "name": "Executive (Ariana)",
+      "x": 20, "y": 16,
+      "event_flag": "EVENT_BEAT_ROCKET_EXECUTIVEF_2",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_B2F_EXECUTIVE",
+      "team": [
+        {"species": "Arbok", "level": 23, "moves": ["Wrap", "Leer", "Poison Sting", "Bite"]},
+        {"species": "Gloom", "level": 23, "moves": ["Absorb", "Sweet Scent", "Sleep Powder", "Acid"]},
+        {"species": "Murkrow", "level": 25, "moves": ["Peck", "Pursuit", "Haze"]}
+      ],
+      "prize_money": 2500,
+      "seen_text": "Hold it right there!",
+      "pre_battle_text": "We can't have a brat like you on the loose. It's harmful to TEAM ROCKET's pride, you see. However strong you may be, you can't take both of us at the same time. Sorry, baby. Now get ready to be thrashed.",
+      "win_text": "Tch, you really are strong. It's too bad. If you were to join TEAM ROCKET, you could become an EXECUTIVE.",
+      "retreat_text": "...This hideout is done for... But that's fine. The broadcast experiment was a total success. It doesn't matter what happens to this hideout now. We have much bigger plans. You'll come to appreciate TEAM ROCKET's true power soon enough. Enjoy yourself while you can... Fufufufu...",
+      "lance_interception": "Hey! Don't be so selfish. Spread the fun around. [Lance's Dragonite threatens Ariana, who then dismisses Lance's companion Grunt to fight Lance while she battles the player]"
+    }
+  },
+  "lance_heals": {
+    "description": "If the player enters coord tiles (5,14) or (4,13) during SCENE_TEAMROCKETBASEB2F_LANCE_HEALS, Lance fully heals the party for free before the executive battle.",
+    "trigger_coords": [{"x": 5, "y": 14}, {"x": 4, "y": 13}],
+    "heal_text": "LANCE: Are you all right? Your Pokemon are hurt and tired. Here, give them some of my medicine.",
+    "post_heal_text": "LANCE: [Player], let's give it our best for Pokemon.",
+    "post_heal_scene": "SCENE_TEAMROCKETBASEB2F_ROCKET_BOSS",
+    "sets_event": "EVENT_LANCE_HEALED_YOU_IN_TEAM_ROCKET_BASE"
+  },
+  "npcs": [
+    {
+      "id": "lance",
+      "name": "Lance",
+      "sprite": "SPRITE_LANCE",
+      "x": 5, "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_LANCE",
+      "script_type": "ally_npc",
+      "dialogue_summary": "Lance appears here as an ally. Heals the player if encountered at specific coords before the executive battle. After clearing all Electrodes, he gives HM06 Whirlpool and departs."
+    },
+    {
+      "id": "dragonite",
+      "name": "Dragonite",
+      "sprite": "SPRITE_DRAGON",
+      "x": 9, "y": 13,
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_DRAGONITE",
+      "dialogue_summary": "Lance's Dragonite. Appears during the Executive cutscene, charges at the Executive's grunt to intimidate them."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_17",
+      "name": "Grunt",
+      "x": 25, "y": 13,
+      "facing": "down",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Golbat", "level": 18}
+      ],
+      "prize_money": 576,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_17",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "The door won't open? Well, duh. It has to have a password that only TEAM ROCKET knows.",
+      "beaten_text": "What? I lost?",
+      "after_battle_text": "Heh, I'm just a GRUNT. I don't know the password. Too bad for you.",
+      "rematch": false
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_18",
+      "name": "Grunt",
+      "x": 4, "y": 1,
+      "facing": "down",
+      "movement": "spin_random_fast",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Rattata", "level": 17},
+        {"species": "Zubat", "level": 17},
+        {"species": "Rattata", "level": 17}
+      ],
+      "prize_money": 544,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_18",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "Oh, a kid? I don't really like this, but eliminate you I must.",
+      "beaten_text": "I knew I'd lose...",
+      "after_battle_text": "I got wiped out on the last mission by a kid too. When we were abducting Pokemon, this kid with long red hair and mean-looking eyes just creamed me...",
+      "rematch": false,
+      "note": "Post-battle text hints at Silver (the rival)"
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_19",
+      "name": "Grunt",
+      "x": 21, "y": 14,
+      "facing": "left",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Venonat", "level": 18},
+        {"species": "Venonat", "level": 18}
+      ],
+      "prize_money": 576,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_19",
+      "population_flag": "EVENT_TEAM_ROCKET_BASE_POPULATION",
+      "seen_text": "You rotten little pest!",
+      "beaten_text": "Grrrr...",
+      "after_battle_text": "Heh, only the boss knows the password for that door. Where's the boss? Who knows? Go look for yourself.",
+      "rematch": false
+    }
+  ],
+  "items": [
+    {
+      "name": "TM46 (Thief)",
+      "x": 3, "y": 10,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_TM_THIEF"
+    }
+  ],
+  "hidden_items": [
+    {
+      "name": "Full Heal",
+      "x": 26, "y": 7,
+      "event_flag": "EVENT_TEAM_ROCKET_BASE_B2F_HIDDEN_FULL_HEAL"
+    }
+  ],
+  "bg_events": [
+    {
+      "x_range": [12, 17], "y_range": [4, 9],
+      "type": "BGEVENT_READ",
+      "script": "TeamRocketBaseB2FTransmitterScript",
+      "description": "Radio transmitter machine. Can be interacted with from multiple tiles around its perimeter. Before clearing: 'It's the radio transmitter that's sending the sinister signal. It's working at full capacity.' After clearing: 'The radio transmitter has finally stopped its evil broadcast.'"
+    },
+    {
+      "x_range": [14, 15], "y": 12,
+      "type": "BGEVENT_IFNOTSET",
+      "script": "TeamRocketBaseB2FLockedDoor",
+      "description": "Locked door to transmitter area. Requires EVENT_LEARNED_HAIL_GIOVANNI (Murkrow password from B3F). Sets EVENT_OPENED_DOOR_TO_ROCKET_HIDEOUT_TRANSMITTER on success."
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "tile_load_callback",
+      "script": "TeamRocketBaseB2FTransmitterDoorCallback",
+      "description": "On tile load, checks EVENT_OPENED_DOOR_TO_ROCKET_HIDEOUT_TRANSMITTER. If set, changes block at (14,12) to floor tile ($07) to keep door open visually."
+    },
+    {
+      "trigger": "scene",
+      "scene": "SCENE_TEAMROCKETBASEB2F_LANCE_HEALS",
+      "description": "Active when Lance is present for healing. Triggered by coord events at (5,14) and (4,13). Transitions to SCENE_TEAMROCKETBASEB2F_ROCKET_BOSS after heal."
+    },
+    {
+      "trigger": "scene",
+      "scene": "SCENE_TEAMROCKETBASEB2F_ROCKET_BOSS",
+      "description": "Active when Executive Ariana is present for battle. Coord events at (14,11) and (15,11) trigger RocketBaseBossFLeft/Right scripts."
+    },
+    {
+      "trigger": "scene",
+      "scene": "SCENE_TEAMROCKETBASEB2F_ELECTRODES",
+      "description": "Active after defeating Ariana. Coord events prevent player from leaving the Electrode area until all three are defeated. Lance guards the right side (Electrodes 4-6)."
+    },
+    {
+      "trigger": "coord_event",
+      "coords": [{"x": 12, "y": 3}, {"x": 12, "y": 10}, {"x": 12, "y": 11}],
+      "scene": "SCENE_TEAMROCKETBASEB2F_ELECTRODES",
+      "script": "RocketBaseLancesSideScript",
+      "description": "During Electrode phase, Lance blocks the right side saying 'LANCE: Leave this side to me.'"
+    }
+  ],
+  "notes": "B2F is the operational center of the Rocket Hideout. Key features: (1) The transmitter machine that broadcasts the signal driving Pokemon at Lake of Rage mad - spans a large area (bg_events across 12x6 tiles). (2) A locked door requiring the Murkrow password from B3F ('Hail Giovanni') to open, leading to the transmitter room. (3) Lance arrives as an ally - heals the player's team before the executive battle if the player walks near him. (4) Executive Ariana (EXECUTIVEF_2) confronts the player in a cinematic event with Lance and a Dragonite. Her team is Arbok Lv23 / Gloom Lv23 / Murkrow Lv25. (5) After defeating Ariana, the Electrode puzzle begins - three Electrode pairs (Lv.23 each) power the transmitter; all must be fainted to shut it down. Lance takes the right side. Defeating all three triggers HM06 Whirlpool reward from Lance. Connects to both B1F (stairs up) and B3F (four separate staircases)."
+}

@@ -1,0 +1,217 @@
+{
+  "area_id": "olivine_port",
+  "area_name": "Olivine Port",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_PORT",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "port",
+  "connections": [],
+  "warps": [
+    {
+      "x": 11, "y": 7,
+      "target_area_id": "olivine_port_passage",
+      "target_warp_id": 5,
+      "notes": "Passage door leading back to Olivine Port Passage building (lobby/gate area)"
+    },
+    {
+      "x": 7, "y": 23,
+      "target_area_id": "fast_ship_1f",
+      "target_warp_id": 1,
+      "notes": "Gangway onto S.S. Aqua 1F — only reachable after ticket check and boarding cutscene"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_dock",
+      "#": "wall/building",
+      "~": "water",
+      "P": "pier/platform",
+      "S": "ship_body",
+      "N": "npc_position",
+      "D": "door",
+      "E": "exit_mat",
+      "F": "fence/railing",
+      "?": "hidden_item",
+      "R": "rope/post"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###########D########",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####N.......N#######",
+      "####N....N..N#######",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##?#################",
+      "####SSSSSSSSSSSS####",
+      "####SSSSSSSSSSSS####",
+      "####SSSSSSSSSSSS####",
+      "####SSSSSSSSSSSS####",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic layout. The port passage door (D) is at y=7 x=11. NPC cluster at y=14-15 near pier. Hidden Protein item at x=1 y=22. Ship body (S.S. Aqua) occupies rows y=23-26, gangway entry at x=7 y=23. Coord_event trigger at x=7 y=15 for the boarding prompt."
+  },
+  "coord_events": [
+    {
+      "x": 7, "y": 15,
+      "scene": "SCENE_OLIVINEPORT_ASK_ENTER_SHIP",
+      "script": "OlivinePortWalkUpToShipScript",
+      "description": "Walking up to the ship gangway triggers the boarding prompt. Checks for S.S. TICKET. If player has beaten the Elite Four (Hall of Fame), uses OlivinePortSailorAfterHOFScript logic instead. Ship schedule varies by day of week: available Mon/Fri, closed Tue/Wed/Thu/Sun/Sat."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "olivineport_sailor_gangway",
+      "name": "Sailor (Gangway)",
+      "x": 7, "y": 23,
+      "facing": "up",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SAILOR_AT_GANGWAY",
+      "script_type": "scene_gate",
+      "dialogue_summary": "We're departing soon. Please get on board.",
+      "notes": "Visible at gangway only after ticket check is passed and player approaches ship. Disappears during the boarding animation, reappears after leaving the ship."
+    },
+    {
+      "id": "olivineport_sailor_before_hof",
+      "name": "Sailor (Guard, Pre-HOF)",
+      "x": 7, "y": 15,
+      "facing": "up",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_BEFORE_HALL_OF_FAME",
+      "script_type": "dialogue",
+      "dialogue_summary": "We don't want you to fall into the sea, so you're not allowed in.",
+      "availability": "Visible before Hall of Fame. Blocks access to S.S. Aqua before Elite Four is beaten."
+    },
+    {
+      "id": "olivineport_sailor_after_hof",
+      "name": "Sailor (Boarding Agent, Post-HOF)",
+      "x": 6, "y": 15,
+      "facing": "right",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_AFTER_HALL_OF_FAME",
+      "script_type": "scene_gate",
+      "dialogue_summary": "Welcome to FAST SHIP S.S.AQUA. Will you be boarding today? / May I see your S.S.TICKET?",
+      "availability": "Visible after Hall of Fame. Initiates the boarding sequence if player has S.S. TICKET."
+    },
+    {
+      "id": "olivineport_fishing_guru1",
+      "name": "Fishing Guru 1",
+      "x": 4, "y": 14,
+      "facing": "up",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_BEFORE_HALL_OF_FAME",
+      "script_type": "dialogue",
+      "dialogue_summary": "SHELLDER are easy to catch here. They're kind of rare elsewhere."
+    },
+    {
+      "id": "olivineport_fishing_guru2",
+      "name": "Fishing Guru 2",
+      "x": 13, "y": 14,
+      "facing": "up",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_BEFORE_HALL_OF_FAME",
+      "script_type": "dialogue",
+      "dialogue_summary": "How many RODS do you have? Different RODS catch different POKEMON."
+    },
+    {
+      "id": "olivineport_youngster",
+      "name": "Youngster",
+      "x": 4, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_AFTER_HALL_OF_FAME",
+      "script_type": "dialogue",
+      "dialogue_summary": "S.S.AQUA uses jets to skim over the waves!"
+    },
+    {
+      "id": "olivineport_cooltrainer_f",
+      "name": "CoolTrainer F",
+      "x": 11, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "event_flag": "EVENT_OLIVINE_PORT_SPRITES_AFTER_HALL_OF_FAME",
+      "script_type": "dialogue",
+      "dialogue_summary": "There are lots of POKEMON in KANTO. I wish I could go..."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Protein",
+      "x": 1, "y": 22,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_OLIVINE_PORT_HIDDEN_PROTEIN",
+      "notes": "Hidden item on the dock floor near the ship. Checked via bg_event with BGEVENT_ITEM using OlivinePortHiddenProtein hiddenitem script."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "approach_gangway_pre_hof",
+      "description": "Before beating the Elite Four, a sailor guard blocks access at y=15. He tells the player they are not allowed in to prevent falling into the sea."
+    },
+    {
+      "trigger": "approach_gangway_post_hof_first_time",
+      "description": "After Hall of Fame and on first S.S. Aqua ride: coord_event at (7,15) fires OlivinePortWalkUpToShipScript. Player is asked if they want to board. If yes, asked to show S.S. TICKET. If ticket present, sets EVENT_FAST_SHIP_FIRST_TIME, clears destination flag EVENT_FAST_SHIP_DESTINATION_OLIVINE, warps to FAST_SHIP_1F at (25,1) triggering SCENE_FASTSHIP1F_ENTER_SHIP."
+    },
+    {
+      "trigger": "approach_gangway_post_hof_return_trips",
+      "description": "On return trips: ship schedule is day-of-week gated. Available Monday and Friday. On Saturday/Sunday player is told next ship is Monday. On Tuesday/Wednesday/Thursday player is told next ship is Friday. When eligible, same ticket-check and boarding flow applies. EVENT_FAST_SHIP_PASSENGERS_WESTBOUND is set (Olivine to Vermilion direction) and all ship trainer battle events are cleared to allow rematches."
+    },
+    {
+      "trigger": "leave_ship",
+      "description": "SCENE_OLIVINEPORT_LEAVE_SHIP fires OlivinePortLeaveShipScript: player movement step UP off gangway, sailor reappears, scene advances to SCENE_OLIVINEPORT_ASK_ENTER_SHIP, EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 set (prevents re-boarding in same map session), blackout to OLIVINE_CITY."
+    },
+    {
+      "trigger": "already_rode_this_session",
+      "description": "EVENT_TEMPORARY_UNTIL_MAP_RELOAD_1 blocks re-boarding within the same map load session. Sailor says 'Sorry. You can't board now.'"
+    }
+  ],
+  "s_s_aqua": {
+    "ship_name": "S.S. Aqua",
+    "item_required": "S.S. TICKET",
+    "item_id": "S_S_TICKET",
+    "destination_from_olivine": "Vermilion City, Kanto (FAST_SHIP_1F)",
+    "schedule": {
+      "available_days": ["Monday", "Friday"],
+      "closed_days": ["Tuesday", "Wednesday", "Thursday", "Saturday", "Sunday"],
+      "message_monday": "The FAST SHIP will sail next Monday.",
+      "message_friday": "The FAST SHIP will sail next Friday."
+    },
+    "availability": "Post-game only (after beating Elite Four and entering Hall of Fame)",
+    "first_time_note": "On the very first boarding, EVENT_FAST_SHIP_FIRST_TIME is not yet set so the schedule check is bypassed — player can board immediately. Subsequent trips are schedule-gated.",
+    "ship_interior": "FAST_SHIP_1F (and deeper decks) — separate map area with trainers CooltrainerM Sean, CooltrainerF Carol, Gentleman Edward, Beauty Cassie, Psychic Rodney, Super Nerd Shawn, Sailor Garrett, Fisher Jonah, Blackbelt Wai. All battles reset each trip."
+  },
+  "notes": "Olivine Port is a large interior dock map (10x18 blocks). Access is split by game progress: before Hall of Fame a guard blocks the pier entirely; after Hall of Fame the S.S. Aqua becomes available with the S.S. TICKET on Monday and Friday. The port passage door at (11,7) connects back to the city lobby. A hidden Protein sits on the dock floor at (1,22). NPC sprites use event flags to swap between pre-HOF (fishing gurus as flavor) and post-HOF (youngster and CooltrainerF as excited travelers). Map constants: OLIVINEPORT_SAILOR1=0 (gangway), OLIVINEPORT_SAILOR2=1 (pre-HOF guard), OLIVINEPORT_SAILOR3=2 (post-HOF agent), OLIVINEPORT_FISHING_GURU1=3, OLIVINEPORT_FISHING_GURU2=4, OLIVINEPORT_YOUNGSTER=5, OLIVINEPORT_COOLTRAINER_F=6."
+}

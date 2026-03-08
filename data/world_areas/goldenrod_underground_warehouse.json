@@ -1,0 +1,226 @@
+{
+  "area_id": "goldenrod_underground_warehouse",
+  "area_name": "Goldenrod Underground Warehouse",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "GOLDENROD_UNDERGROUND_WAREHOUSE",
+  "width_blocks": 9,
+  "height_blocks": 10,
+  "width_tiles": 18,
+  "height_tiles": 20,
+  "tileset": "underground",
+  "music": "MUSIC_ROCKET_ENCOUNTER",
+  "story_arc": "Radio Tower Takeover (after Mahogany Gym badge, after clearing Rocket Hideout)",
+  "access_condition": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER must be set (Radio Tower taken over by Team Rocket). Accessible from Goldenrod Dept Store B1F (warp at (17,2) here corresponds to GOLDENROD_DEPT_STORE_B1F warp 1). Also reachable via Goldenrod Underground > Basement Door (requires Basement Key) > Switch Room Entrances > warps at (22,10)/(23,10).",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 2, "y": 12,
+      "target_area_id": "goldenrod_underground_switch_room_entrances",
+      "target_warp_id": 2,
+      "label": "Exit west to Switch Room Entrances (left warp tile)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 12,
+      "target_area_id": "goldenrod_underground_switch_room_entrances",
+      "target_warp_id": 3,
+      "label": "Exit west to Switch Room Entrances (right warp tile)"
+    },
+    {
+      "warp_id": 3,
+      "x": 17, "y": 2,
+      "target_area_id": "goldenrod_dept_store_b1f",
+      "target_warp_id": 1,
+      "label": "Exit north to Goldenrod Dept Store B1F (used to reach surface during Radio Tower arc)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door/exit_warp",
+      "T": "trainer_position",
+      "N": "npc_director",
+      "!": "item_ball",
+      "E": "exit_upstairs"
+    },
+    "rows": [
+      "##################",
+      "##################",
+      "##...!..........E##",
+      "##................##",
+      "##................##",
+      "##................##",
+      "##................##",
+      "##................##",
+      "##....T..N.T......##",
+      "##....T...........##",
+      "##................##",
+      "##................##",
+      "##DD..............##",
+      "##................##",
+      "##......T.........##",
+      "##................##",
+      "##................##",
+      "##................##",
+      "##......!..!......##",
+      "##................##"
+    ],
+    "notes": "Layout approximated from object coordinates. Grunts at (9,8), (8,15), (14,3). Director/Gentleman NPC at (12,8). Item balls: Ultra Ball at (2,1), Max Ether at (18,15), TM Sleep Talk at (13,9). Exit warp up at (17,2). Warps to Switch Room at (2,12) and (3,12)."
+  },
+  "director_rescue": {
+    "description": "The Radio Tower Director is imprisoned in this warehouse by Team Rocket during the Radio Tower Takeover event. The player must defeat the Rocket Grunts guarding him and then speak to him to receive the Card Key, which unlocks shutters on Radio Tower 3F.",
+    "director_npc": {
+      "name": "Radio Tower Director",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 12, "y": 8,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "script": "GoldenrodUndergroundWarehouseDirectorScript"
+    },
+    "director_intro_text": "DIRECTOR: Who? What? You came to rescue me? Thank you! The RADIO TOWER! What's happening there? Taken over by TEAM ROCKET? Here. Take this CARD KEY.",
+    "card_key_text": "DIRECTOR: Use that to open the shutters on 3F.",
+    "director_after_text": "I'm begging you to help. There's no telling what they'll do if they control the transmitter. They may even be able to control Pokemon using a special signal! You're the only one I can call on. Please save the RADIO TOWER... And all the Pokemon nationwide!",
+    "reward": {
+      "item": "Card Key",
+      "event": "EVENT_RECEIVED_CARD_KEY",
+      "side_effects": [
+        "EVENT_GOLDENROD_DEPT_STORE_B1F_LAYOUT_1 set",
+        "EVENT_GOLDENROD_DEPT_STORE_B1F_LAYOUT_2 cleared",
+        "EVENT_GOLDENROD_DEPT_STORE_B1F_LAYOUT_3 cleared"
+      ]
+    }
+  },
+  "switch_reset": {
+    "description": "Like the Underground tunnel, entering the Warehouse resets all switch/door states via GoldenrodUndergroundWarehouseResetSwitchesCallback on MAPCALLBACK_NEWMAP.",
+    "cleared_events": [
+      "EVENT_SWITCH_1", "EVENT_SWITCH_2", "EVENT_SWITCH_3",
+      "EVENT_EMERGENCY_SWITCH",
+      "EVENT_DOOR_1_OPEN through EVENT_DOOR_11_OPEN",
+      "wUndergroundSwitchPositions set to 0"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "radio_tower_director",
+      "name": "Radio Tower Director",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 12, "y": 8,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "script_type": "key_npc",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "gives_item": "Card Key",
+      "dialogue_summary": "The imprisoned Director of the Goldenrod Radio Tower. Grateful for rescue. Gives the Card Key needed to open shutters on Radio Tower 3F and begs the player to save the tower."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_24",
+      "name": "Grunt",
+      "x": 9, "y": 8,
+      "facing": "up",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Koffing", "level": 25},
+        {"species": "Koffing", "level": 25}
+      ],
+      "prize_money": 800,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_24",
+      "active_event": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "seen_text": "How did you get this far? I guess it can't be helped. I'll dispose of you.",
+      "beaten_text": "I got disposed of...",
+      "after_battle_text": "TEAM ROCKET will keep going, waiting for the return of GIOVANNI. We'll do whatever it takes.",
+      "rematch": false
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_14",
+      "name": "Grunt",
+      "x": 8, "y": 15,
+      "facing": "up",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Raticate", "level": 24},
+        {"species": "Golbat", "level": 24}
+      ],
+      "prize_money": 768,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_14",
+      "active_event": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "seen_text": "You're not going any farther! I don't show mercy to my enemies, not even brats!",
+      "beaten_text": "Blast it!",
+      "after_battle_text": "I lost... Please forgive me, GIOVANNI!",
+      "rematch": false
+    },
+    {
+      "class": "Rocket Grunt (Male)",
+      "trainer_id": "GRUNTM_15",
+      "name": "Grunt",
+      "x": 14, "y": 3,
+      "facing": "right",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Grimer", "level": 26},
+        {"species": "Weezing", "level": 23}
+      ],
+      "prize_money": 736,
+      "event_flag": "EVENT_BEAT_ROCKET_GRUNTM_15",
+      "active_event": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "seen_text": "Hyuck-hyuck-hyuck! I remember you! You got me good at our hideout!",
+      "beaten_text": "Hyuck-hyuck-hyuck! So, that's how?",
+      "after_battle_text": "Hyuck-hyuck-hyuck! That was a blast! I'll remember you!",
+      "rematch": false,
+      "note": "This grunt recognizes the player from the Mahogany Rocket Hideout - same comedic grunt type as GruntM_28"
+    }
+  ],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 2, "y": 1,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_WAREHOUSE_ULTRA_BALL"
+    },
+    {
+      "name": "TM46 (Sleep Talk)",
+      "x": 13, "y": 9,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_WAREHOUSE_TM_SLEEP_TALK",
+      "note": "TM_SLEEP_TALK in pokecrystal - TM46"
+    },
+    {
+      "name": "Max Ether",
+      "x": 18, "y": 15,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_WAREHOUSE_MAX_ETHER"
+    }
+  ],
+  "hidden_items": [],
+  "bg_events": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter_callback",
+      "script": "GoldenrodUndergroundWarehouseResetSwitchesCallback",
+      "description": "Resets all switch/door states (EVENT_SWITCH_1-3, EVENT_EMERGENCY_SWITCH, EVENT_DOOR_1-11_OPEN, wUndergroundSwitchPositions=0) on every map entry."
+    }
+  ],
+  "narrative_context": {
+    "when_accessible": "After clearing the Mahogany Town Rocket Hideout and defeating Pryce at Mahogany Gym, Team Rocket seizes control of the Goldenrod Radio Tower. The Underground Warehouse serves as the Director's prison during this period.",
+    "route_to_warehouse": [
+      "Option A: From Goldenrod Underground main tunnel - use Basement Key on locked door at (18,6), pass through Switch Room Entrances (puzzle), reach warehouse warps at (22,10)/(23,10) of Switch Room map.",
+      "Option B: From Goldenrod Dept Store B1F (requires Basement Key and knowledge of dept store layout) - warp at GOLDENROD_DEPT_STORE_B1F exits to warehouse warp 3 at (17,2)."
+    ],
+    "what_happens_after": "With the Card Key obtained from the Director, the player returns to the Radio Tower to use it on shutters on 3F, eventually reaching and battling Executive F Ariana (EXECUTIVEF_1 team: Arbok/Vileplume/Murkrow) and then Executive M Archer on 5F to reclaim the tower."
+  },
+  "notes": "The Goldenrod Underground Warehouse (9x10 blocks, 18x20 tiles) is a story-critical area accessible only during the Radio Tower Takeover arc. Three Rocket Grunts (GRUNTM_24, GRUNTM_14, GRUNTM_15) guard the imprisoned Radio Tower Director. GruntM_15 is a recurring 'hyuck-hyuck' grunt who recognizes the player from the Mahogany hideout (GruntM_28 equivalent personality). After defeating all guards and speaking to the Director, the player receives the Card Key - required to unlock 3F shutters in the Radio Tower. Three item balls are present: Ultra Ball at the northeast corner, TM Sleep Talk near the center, and Max Ether in the south. The warehouse shares the Underground's switch reset mechanic on entry. No bg_events or hidden items. All trainers and the Director NPC are gated on EVENT_RADIO_TOWER_ROCKET_TAKEOVER."
+}

@@ -1,0 +1,128 @@
+{
+  "area_id": "ice_path_b2f_blackthorn",
+  "area_name": "Ice Path B2F (Blackthorn Side)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "ICE_PATH_B2F_BLACKTHORN_SIDE",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "ice_path",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 15,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 8,
+      "notes": "Stairs/hole up to B1F (south exit back to B1F Blackthorn descent point)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 3,
+      "target_area_id": "ice_path_b3f",
+      "target_warp_id": 2,
+      "notes": "Stairs down to B3F (north-center)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "I": "ice",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "notes": "10 wide x 18 tall tiles. B2F Blackthorn Side is a small 5x9 block floor below the southern section of B1F. It is simpler than the Mahogany side — no boulders, just ice-sliding sections. The northern warp (3,3) descends to B3F; the southern warp (3,15) returns up to B1F. Item TM44 Rest at (8,16). Hidden Ice Heal at (2,10). This is the more direct route toward B3F and the Blackthorn connection.",
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "###v######",
+      "IIIIIIIIII",
+      "IIIIIIIIII",
+      "IIIIIIIIII",
+      "IIIIIIIIII",
+      "IIIIIIIIII",
+      "IIIIIIIIII",
+      "##?#######",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "###^#####!",
+      "##########",
+      "##########"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM44 Rest",
+      "x": 8, "y": 16,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B2F_BLACKTHORN_SIDE_TM_REST",
+      "notes": "Pokeball sprite near the south stairs area. TM44 Rest teaches the move Rest (user sleeps 2 turns and fully restores HP and status)."
+    },
+    {
+      "name": "Ice Heal",
+      "x": 2, "y": 10,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B2F_BLACKTHORN_SIDE_HIDDEN_ICE_HEAL",
+      "notes": "Hidden item defined as bg_event at (2,10). Cures freeze status. Found in the central-west area amid the ice tiles."
+    }
+  ],
+  "puzzle": {
+    "type": "ice_sliding",
+    "description": "B2F Blackthorn Side consists largely of open ice tiles. The player slides uncontrollably until hitting a wall. The layout is compact (only 10 tiles wide) and the puzzle is simpler than the Mahogany side — there are no boulders to manage. The goal is to reach the B3F staircase at (3,3) by sliding to the correct stopping points."
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 2,
+      "notes": "Cave encounters, 2% per step. Same table as B2F Mahogany Side.",
+      "morning": [
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Swinub",   "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10}
+      ],
+      "day": [
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Swinub",   "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10}
+      ],
+      "night": [
+        {"species": "Delibird", "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Delibird", "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Sneasel",  "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Sneasel",  "level_min": 24, "level_max": 24, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on B2F Blackthorn Side."
+    },
+    "fishing": {
+      "group": "FISHGROUP_DRATINI",
+      "notes": "Fishing data defined but no accessible water on this floor."
+    }
+  },
+  "events": [],
+  "notes": "Ice Path B2F Blackthorn Side (5x9 blocks, 10x18 tiles) is the smallest floor in Ice Path. Tileset: TILESET_ICE_PATH. Music: MUSIC_DARK_CAVE. Actual map constant width is 5 blocks (10 tiles), confirmed from map_constants.asm (not 10x9 as the prompt suggested). This floor is reached from B1F via the southern hole at (11,27) on B1F. The floor is predominantly ice tiles with a direct path between B3F (north, warp 2 at 3,3) and B1F (south, warp 1 at 3,15). TM44 Rest is the notable item here — one of only a handful of TMs found in the wild in Johto. The hidden Ice Heal at (2,10) is easily missed. Wild encounters are identical to B2F Mahogany Side: Swinub/Jynx during day, Delibird/Sneasel at night."
+}

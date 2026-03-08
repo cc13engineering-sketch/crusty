@@ -1,0 +1,153 @@
+{
+  "area_id": "ilex_forest_azalea_gate",
+  "area_name": "Ilex Forest / Azalea Town Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ILEX_FOREST_AZALEA_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ILEX_FOREST",
+  "palette": "PALETTE_AUTO",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 0,
+      "y": 4,
+      "target_area_id": "ilex_forest",
+      "pokecrystal_target": "ILEX_FOREST",
+      "target_warp_id": 2,
+      "notes": "Left door tile — exits into Ilex Forest south entrance"
+    },
+    {
+      "warp_id": 1,
+      "x": 0,
+      "y": 5,
+      "target_area_id": "ilex_forest",
+      "pokecrystal_target": "ILEX_FOREST",
+      "target_warp_id": 3,
+      "notes": "Right door tile (west side) — exits into Ilex Forest south entrance"
+    },
+    {
+      "warp_id": 2,
+      "x": 9,
+      "y": 4,
+      "target_area_id": "azalea_town",
+      "pokecrystal_target": "AZALEA_TOWN",
+      "target_warp_id": 7,
+      "notes": "Left door tile (east side) — exits into Azalea Town"
+    },
+    {
+      "warp_id": 3,
+      "x": 9,
+      "y": 5,
+      "target_area_id": "azalea_town",
+      "pokecrystal_target": "AZALEA_TOWN",
+      "target_warp_id": 8,
+      "notes": "Right door tile (east side) — exits into Azalea Town"
+    }
+  ],
+
+  "signs": [],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "10 columns x 8 rows. Standard gate building connecting Ilex Forest (west exits x=0,y=4-5) to Azalea Town (east exits x=9,y=4-5). Officer NPC at x=5,y=2 warns about getting lost in the forest. Granny NPC at x=1,y=3 mentions the forest's protector.",
+    "rows": [
+      "##########",
+      "##########",
+      "#....N...#",
+      "#N.......#",
+      "D........D",
+      "D........D",
+      "#........#",
+      "EEEEEEEEEE"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_officer",
+      "object_const": "ILEXFORESTAZALEAGATE_OFFICER",
+      "name": "Officer",
+      "sprite": "SPRITE_OFFICER",
+      "x": 5,
+      "y": 2,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "ILEX FOREST is big. Be careful! Don't get lost."
+    },
+    {
+      "id": "npc_granny",
+      "object_const": "ILEXFORESTAZALEAGATE_GRANNY",
+      "name": "Granny",
+      "sprite": "SPRITE_GRANNY",
+      "x": 1,
+      "y": 3,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "dialogue",
+      "dialogue_summary": "The FOREST is watched over by its protector. Stay out of mischief! (References Celebi's guardianship of Ilex Forest.)"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "map_callbacks": [],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "pass_through_east_to_west",
+      "description": "Player passes through from Azalea Town into Ilex Forest. No blocking conditions — gate is always passable in both directions.",
+      "notes": "This gate is entered from Azalea Town (east side) and exits into the southern end of Ilex Forest (west side). It is distinct from Route34IlexForestGate which connects Ilex Forest to Route 34 on the north side."
+    }
+  ],
+
+  "notes": "The Ilex Forest / Azalea Town Gate is a standard 5x4 block (10x8 tile) gate building forming the eastern entrance to Ilex Forest from Azalea Town. It connects ILEX_FOREST warp IDs 2 and 3 on the west to AZALEA_TOWN warp IDs 7 and 8 on the east. Two NPCs: an Officer who warns about getting lost, and a Granny who alludes to the forest's mystical protector (Celebi). No items, no trainers, no blocking scripts. Always traversable in both directions."
+}

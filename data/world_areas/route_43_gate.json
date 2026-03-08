@@ -1,0 +1,143 @@
+{
+  "area_id": "route_43_gate",
+  "area_name": "Route 43 Gate (Team Rocket Toll Gate)",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_43_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 0,
+      "target_area_id": "route_43",
+      "target_warp_id": 4,
+      "notes": "North door tile, left — exits to Route 43 tile x=17 y=31"
+    },
+    {
+      "x": 5, "y": 0,
+      "target_area_id": "route_43",
+      "target_warp_id": 5,
+      "notes": "North door tile, right — exits to Route 43 tile x=18 y=31"
+    },
+    {
+      "x": 4, "y": 7,
+      "target_area_id": "route_43",
+      "target_warp_id": 3,
+      "notes": "South door tile, left — exits to Route 43 tile x=17 y=35"
+    },
+    {
+      "x": 5, "y": 7,
+      "target_area_id": "route_43",
+      "target_warp_id": 3,
+      "notes": "South door tile, right — exits to Route 43 tile x=17 y=35 (both south tiles share warp_id 3)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall",
+      "D": "door_tile",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "R": "rocket_grunt_position",
+      "O": "officer_position",
+      "C": "counter",
+      "W": "window"
+    },
+    "rows": [
+      "####DDDDDD####",
+      "##############",
+      "##WWWWWWWWWW##",
+      "##WWWWWWWWWW##",
+      "O..R.....R..##",
+      "##............",
+      "##############",
+      "####DDDDDDDD##"
+    ],
+    "notes": "Standard gate building. North doors connect to upper Route 43 (Lake of Rage side). South doors connect to lower Route 43 (Mahogany Town side). During SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN: two Rocket Grunts (R) at x=2 y=4 and x=7 y=4 block the corridor and execute the toll script. Officer (O) is at x=0 y=4 with conditional visibility (EVENT_LAKE_OF_RAGE_CIVILIANS flag). After rockets are cleared the Officer gives TM36 Sludge Bomb and the two Rocket sprites are removed."
+  },
+  "npcs": [
+    {
+      "id": "route43gate_officer",
+      "name": "Officer",
+      "x": 0, "y": 4,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "conditional_dialogue",
+      "dialogue_summary": "Pre-Rocket-clear: hidden/absent from post (fled from Rockets). Post-Rocket-clear: visible, gives TM36 Sludge Bomb, saying 'I got chased from my post by these thugs in black. They left this behind. It makes me uncomfortable. Could you take it away?' After receiving TM36: 'Use this gate to avoid walking in the grass.'",
+      "event_flag": "EVENT_LAKE_OF_RAGE_CIVILIANS",
+      "item_given": "TM36 (Sludge Bomb)",
+      "item_event_flag": "EVENT_GOT_TM36_SLUDGE_BOMB",
+      "sprite": "SPRITE_OFFICER",
+      "palette": "PAL_NPC_RED",
+      "pokecrystal_const": "ROUTE43GATE_OFFICER"
+    }
+  ],
+  "rocket_grunts": [
+    {
+      "id": "route43gate_rocket1",
+      "name": "Rocket Grunt",
+      "x": 2, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "scene_script",
+      "active_scene": "SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN",
+      "dialogue_summary": "Part of the toll shakedown script. During Rocket occupation: blocks the player and participates in the 1000P toll extortion. Moves dynamically during the shakedown scripted sequence — steps up and right to block southbound player, or down and right to block northbound player. Steps back to let player pass after toll is paid.",
+      "event_flag": "EVENT_ROUTE_43_GATE_ROCKETS",
+      "sprite": "SPRITE_ROCKET",
+      "pokecrystal_const": "ROUTE43GATE_ROCKET1"
+    },
+    {
+      "id": "route43gate_rocket2",
+      "name": "Rocket Grunt",
+      "x": 7, "y": 4,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "scene_script",
+      "active_scene": "SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN",
+      "dialogue_summary": "Second Rocket Grunt in the toll shakedown. Moves in concert with Rocket1 to physically block player from passing. When approached for non-confrontational dialogue (after shakedown is already set to NOOP): 'He-he-he. We're making a bundle. Everyone wants to see what's going on up at LAKE OF RAGE.'",
+      "event_flag": "EVENT_ROUTE_43_GATE_ROCKETS",
+      "sprite": "SPRITE_ROCKET",
+      "pokecrystal_const": "ROUTE43GATE_ROCKET2"
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM36 (Sludge Bomb)",
+      "x": 0, "y": 4,
+      "hidden": false,
+      "requires": null,
+      "source": "npc_gift_from_officer",
+      "event_flag": "EVENT_GOT_TM36_SLUDGE_BOMB",
+      "notes": "Received from the Officer after EVENT_CLEARED_ROCKET_HIDEOUT is set. The Officer gives it verbosely (verbosegiveitem TM_SLUDGE_BOMB). One-time event."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "map_entry_callback_MAPCALLBACK_NEWMAP",
+      "description": "Route43GateCheckIfRocketsCallback fires on every map entry. Checks EVENT_CLEARED_ROCKET_HIDEOUT. If not cleared: sets ROUTE_43 map scene to 0 (non-scene, ensuring route 43 reflects Rocket presence). If cleared: sets ROUTE_43 map scene to 1. This callback is bidirectional — it also syncs the Route 43 outer map's scene state whenever the gate is entered."
+    },
+    {
+      "trigger": "scene_SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN",
+      "description": "Defers Route43GateRocketTakeoverScript. Reads VAR_FACING to determine player direction (DOWN = coming from north/Lake of Rage side, UP = coming from south/Mahogany side). Changes gate music to MUSIC_ROCKET_ENCOUNTER. Two Rocket Grunts execute choreographed movement to physically block the player. Dialogue box: 'Hold it there, kiddo! The toll is 1000P to go through.' If player has >=1000P: takes exactly 1000P, replies 'Thank you very much!' If player has <1000P: takes all remaining money, replies 'Then pay what you have, please.' Either way, Grunts step aside after transaction. Scene resets to SCENE_ROUTE43GATE_NOOP. Music restores to normal via RestartMapMusic special."
+    },
+    {
+      "trigger": "scene_SCENE_ROUTE43GATE_NOOP",
+      "description": "Normal operation. Rocket Grunts are absent (event_flag EVENT_ROUTE_43_GATE_ROCKETS not set). Officer is present if EVENT_LAKE_OF_RAGE_CIVILIANS is set. Player passes freely north-south."
+    },
+    {
+      "trigger": "toll_amount",
+      "description": "ROUTE43GATE_TOLL constant is defined as 1000 (PokeDollar). This is the toll charged by the Rocket Grunts regardless of direction of travel. The engine uses checkmoney/takemoney scripting commands."
+    }
+  ],
+  "notes": "The Route 43 Gate is the most scripted gate building in Johto. During the Rocket occupation of Mahogany Town (before EVENT_CLEARED_ROCKET_HIDEOUT), this building is controlled by Team Rocket. Two Grunt NPCs are placed at opposite ends of the corridor (x=2 y=4 and x=7 y=4) and block passage until the player pays a 1000 PokeDollar toll. The extortion works in both travel directions (north and south). The Officer NPC who normally staffs the gate has been chased off and is not present until after the Rockets are defeated. Post-Rocket-defeat: Officer returns, grants TM36 Sludge Bomb (unique item only obtainable here), and the gate becomes a normal bypass allowing the player to cross Route 43 without encountering wild grass on the main path. Map attribute: no connections (0), tileset $00. Warp topology: north doors connect to Route 43 tiles at y=31, south doors to y=35."
+}

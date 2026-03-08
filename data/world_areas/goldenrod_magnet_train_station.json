@@ -1,0 +1,159 @@
+{
+  "area_id": "goldenrod_magnet_train_station",
+  "area_name": "Goldenrod Magnet Train Station",
+  "area_type": "building",
+  "pokecrystal_map_id": "GOLDENROD_MAGNET_TRAIN_STATION",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "train_station",
+  "sign_text": "GOLDENROD CITY STATION",
+  "description": "The Magnet Train station connecting Goldenrod City in Johto to Saffron City in Kanto. Requires a rail Pass to board.",
+  "connections": [
+    {
+      "direction": "train",
+      "target_area_id": "saffron_magnet_train_station",
+      "requires": "PASS item + EVENT_RESTORED_POWER_TO_KANTO",
+      "travel_time": "instantaneous (special MagnetTrain)",
+      "note": "Post-game only. Power must be restored to Kanto (after Elite 4/Power Plant quest)."
+    }
+  ],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 8, "y": 17,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 5,
+      "label": "Station exit (left door)"
+    },
+    {
+      "warp_id": 2,
+      "x": 9, "y": 17,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 5,
+      "label": "Station exit (right door)"
+    },
+    {
+      "warp_id": 3,
+      "x": 6, "y": 5,
+      "target_area_id": "saffron_magnet_train_station",
+      "target_warp_id": 4,
+      "label": "Train departure (left track door)"
+    },
+    {
+      "warp_id": 4,
+      "x": 11, "y": 5,
+      "target_area_id": "saffron_magnet_train_station",
+      "target_warp_id": 3,
+      "label": "Train arrival (right track door)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "P": "platform",
+      "T": "train_track",
+      "N": "npc_position",
+      "D": "door/gate",
+      "E": "exit_mat",
+      "B": "boarding_gate",
+      "R": "train_car"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##..TTTTTTTTTTTT..##",
+      "##DDRRRRRRRRRRRRDD##",
+      "##..BBBBBBBBBBBB..##",
+      "##..BBBBBBBBBBBB..##",
+      "##..BBBBBBBBBBBB..##",
+      "##....N.........N..##",
+      "##..................##",
+      "##..................##",
+      "##..................##",
+      "##..................##",
+      "##..................##",
+      "##..................##",
+      "##..................##",
+      "##.....EEEEDDDD....##"
+    ],
+    "notes": "Platform/boarding area in upper half. Officer (x=9,y=9) stands at boarding gate checking passes. Gentleman (x=11,y=14) wanders the waiting area. Train tracks at row 4, train doors at row 5. Actual layout from GoldenrodMagnetTrainStation.blk."
+  },
+  "npcs": [
+    {
+      "id": "officer",
+      "name": "Officer",
+      "x": 9, "y": 9,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "service",
+      "service": "Magnet Train boarding",
+      "dialogue_before_power": "The train hasn't come in... I know! I'll carry the passengers on my back! That won't work.",
+      "dialogue_after_power": "We'll soon depart for SAFFRON. Are you coming aboard?",
+      "dialogue_no_pass": "Sorry. You don't have a rail PASS.",
+      "dialogue_have_pass": "May I see your rail PASS, please? OK. Right this way, please.",
+      "dialogue_declined": "We hope to see you again!",
+      "dialogue_arrived": "We have arrived in GOLDENROD. We hope to see you again.",
+      "board_sequence": "Officer moves up to train door, player walks up through boarding gate and onto train. MagnetTrain special handles travel.",
+      "arrival_sequence": "Player steps off train, officer walks to door, greets player, walks back to post."
+    },
+    {
+      "id": "gentleman",
+      "name": "Gentleman (Train Company President)",
+      "x": 11, "y": 14,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOLDENROD_TRAIN_STATION_GENTLEMAN",
+      "dialogue_summary": "Claims to be the PRESIDENT. His dream was to build a train faster than any Pokemon. Says it really brings Johto much closer to Kanto."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "requirements": {
+    "board_train": [
+      "EVENT_RESTORED_POWER_TO_KANTO (post-game: Power Plant in Kanto must be restored)",
+      "PASS item in bag (obtained from Copycat in Saffron City, who gives it after you find her Poke Doll)"
+    ],
+    "access_building": "None — station is accessible but train does not run until post-game requirements met"
+  },
+  "travel_mechanics": {
+    "departure_movement": [
+      "Officer walks: UP, UP, RIGHT (faces left at train door)",
+      "Player walks: UP x3, LEFT x3, UP x2 (boards train car)",
+      "MagnetTrain special executes (loads new map with MAPSETUP_TRAIN)",
+      "Player faces down on train"
+    ],
+    "arrival_movement": [
+      "Officer at Goldenrod station walks to train door",
+      "Player walks: LEFT x2, DOWN x4 (exits train)",
+      "Player faces up",
+      "Officer returns to boarding gate post: LEFT, DOWN x2",
+      "Officer delivers arrival announcement"
+    ],
+    "scene": "SCENE_GOLDENRODMAGNETTRAINSTATION_ARRIVE_FROM_SAFFRON triggers Script_ArriveFromSaffron when player steps at coord_event (11,6)"
+  },
+  "coord_events": [
+    {
+      "x": 11, "y": 6,
+      "scene": "SCENE_GOLDENRODMAGNETTRAINSTATION_ARRIVE_FROM_SAFFRON",
+      "script": "Script_ArriveFromSaffron",
+      "description": "Triggers arrival sequence from Saffron City. Only fires when scene is set (on arrival from train)."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "story_prereq",
+      "description": "Train is non-functional until EVENT_RESTORED_POWER_TO_KANTO is set. Officer says the train hasn't come in and jokes about carrying passengers on his back."
+    },
+    {
+      "trigger": "post_game",
+      "description": "After restoring Kanto power and obtaining the PASS from Copycat (Saffron City), the officer facilitates boarding to Saffron's Magnet Train Station."
+    }
+  ],
+  "notes": "The Magnet Train Station is a key post-game feature allowing fast travel between Johto (Goldenrod) and Kanto (Saffron). The PASS is a key item obtained in post-game from Copycat in Saffron City after finding her Poke Doll (the Clefairy Doll, obtained from a fan in Vermilion City). The President Gentleman NPC provides lore about the train project. Map dimensions: 10x9 blocks (20x18 tiles)."
+}

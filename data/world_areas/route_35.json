@@ -1,0 +1,481 @@
+{
+  "area_id": "route_35",
+  "area_name": "Route 35",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_35",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_ROUTE_35",
+  "environment_type": "ROUTE",
+  "landmark": "LANDMARK_ROUTE_35",
+  "palette": "PALETTE_AUTO",
+  "fish_group": "FISHGROUP_RIVER",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "goldenrod_city",
+      "pokecrystal_target": "GOLDENROD_CITY",
+      "offset": -5,
+      "requires": null,
+      "notes": "South end connects through Route 35/Goldenrod Gate building"
+    },
+    {
+      "direction": "north",
+      "target_area_id": "route_36",
+      "pokecrystal_target": "ROUTE_36",
+      "offset": 0,
+      "requires": null,
+      "notes": "North end connects through Route 35/National Park Gate building into National Park and then Route 36"
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 9,
+      "y": 33,
+      "target_area_id": "route_35_goldenrod_gate",
+      "pokecrystal_target": "ROUTE_35_GOLDENROD_GATE",
+      "target_warp_id": 1,
+      "notes": "Left tile of south gate entrance"
+    },
+    {
+      "warp_id": 1,
+      "x": 10,
+      "y": 33,
+      "target_area_id": "route_35_goldenrod_gate",
+      "pokecrystal_target": "ROUTE_35_GOLDENROD_GATE",
+      "target_warp_id": 2,
+      "notes": "Right tile of south gate entrance"
+    },
+    {
+      "warp_id": 2,
+      "x": 3,
+      "y": 5,
+      "target_area_id": "route_35_national_park_gate",
+      "pokecrystal_target": "ROUTE_35_NATIONAL_PARK_GATE",
+      "target_warp_id": 3,
+      "notes": "North gate entrance to National Park Gate building"
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 1,
+      "y": 7,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "ROUTE 35"
+    },
+    {
+      "x": 11,
+      "y": 31,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "ROUTE 35"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 36 rows. X=0,Y=0 is top-left (north edge connecting to National Park Gate at x=3,y=5). South end at y=33 warps to Goldenrod Gate. Officer Dirk at x=5,y=6 is night-only. Fruit tree at x=2,y=25. TM04 (Rollout) item ball at x=13,y=16. Water channel on east side (x=16-19, y=0-20) for Surf encounters. Bug Catcher Arnie at x=16,y=7 reacts to Yanma swarm.",
+    "rows": [
+      "TTTTEEPPPPPPPPPPP~~~~",
+      "TTTTTPPPPPPPPPPP~~~~~",
+      "TTTTTPPPPPPPPPPP~~~~~",
+      "TTTTTPPPPPPPPPPP~~~~~",
+      "TTTTTPPPPPPPPPPP~~~~~",
+      "TTTTNPPPPPPPPPPP~~~~~",
+      "TTTTSPPPPPPPPPGPN~~~~",
+      "TTTTTPPPPPPPPGGP~~~~~",
+      "TTTTTPPPPPPPPGGP~~~~~",
+      "TTTTTPPPPPPPPGGP~~~~~",
+      "TTTTNPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPP!PPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTGGPPPPPPPPPPP~~~~",
+      "TTTTGGPPPPPPPPPPP~~~~",
+      "TTTTGGPPPPPPPPPPP~~~~",
+      "TTTTGGPPPPPPPPPPP~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTTPPPPPPPPPPPP~~~~",
+      "TTTTFPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTNPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "TTTTGGPPPPPPPPPPP~~~~",
+      "TTTTSPPPPPPPPPPP~~~~~",
+      "TTTTPPPPPPPPPPPP~~~~~",
+      "PPPPPPPPEEEPPPPPPPPP~",
+      "PPPPPPPPPPPPPPPPPPP~~",
+      "PPPPPPPPPPPPPPPPPPPPP"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_fruit_tree",
+      "object_const": "ROUTE35_FRUIT_TREE",
+      "name": "Fruit Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 2,
+      "y": 25,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "fruittree",
+      "dialogue_summary": "Gives a daily Berry via FRUITTREE_ROUTE_35. Interact each day for fresh fruit."
+    }
+  ],
+
+  "trainers": [
+    {
+      "id": "trainer_camper_ivan",
+      "class": "Camper",
+      "name": "Ivan",
+      "object_const": "ROUTE35_YOUNGSTER1",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 4,
+      "y": 19,
+      "facing": "spin_random_fast",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_FAST",
+      "line_of_sight": 2,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Diglett", "level": 10},
+        {"species": "Zubat", "level": 10},
+        {"species": "Diglett", "level": 14}
+      ],
+      "prize_money": 280,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_CAMPER_IVAN"
+    },
+    {
+      "id": "trainer_camper_elliot",
+      "class": "Camper",
+      "name": "Elliot",
+      "object_const": "ROUTE35_YOUNGSTER2",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 8,
+      "y": 20,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Sandshrew", "level": 13},
+        {"species": "Marill", "level": 15}
+      ],
+      "prize_money": 300,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_CAMPER_ELLIOT",
+      "notes": "Stands near girlfriend (Picnicker Brooke at x=7,y=20). Couple pair."
+    },
+    {
+      "id": "trainer_picnicker_brooke",
+      "class": "Picnicker",
+      "name": "Brooke",
+      "object_const": "ROUTE35_LASS1",
+      "sprite": "SPRITE_LASS",
+      "x": 7,
+      "y": 20,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Pikachu", "level": 16}
+      ],
+      "prize_money": 320,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_PICNICKER_BROOKE",
+      "notes": "Couple pair with Camper Elliot."
+    },
+    {
+      "id": "trainer_picnicker_kim",
+      "class": "Picnicker",
+      "name": "Kim",
+      "object_const": "ROUTE35_LASS2",
+      "sprite": "SPRITE_LASS",
+      "x": 10,
+      "y": 26,
+      "facing": "spin_random_fast",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_FAST",
+      "line_of_sight": 1,
+      "palette": "PAL_NPC_GREEN",
+      "team": [
+        {"species": "Vulpix", "level": 15}
+      ],
+      "prize_money": 300,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_PICNICKER_KIM"
+    },
+    {
+      "id": "trainer_bird_keeper_bryan",
+      "class": "Bird Keeper",
+      "name": "Bryan",
+      "object_const": "ROUTE35_YOUNGSTER3",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 14,
+      "y": 28,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 0,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Pidgey", "level": 12},
+        {"species": "Pidgeotto", "level": 14}
+      ],
+      "prize_money": 336,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_BRYAN",
+      "notes": "Post-battle advises using White Apricorn Ball (Fast Ball) from Kurt to catch fleeing Pokemon."
+    },
+    {
+      "id": "trainer_firebreather_walt",
+      "class": "Firebreather",
+      "name": "Walt",
+      "object_const": "ROUTE35_FISHER",
+      "sprite": "SPRITE_FISHER",
+      "x": 2,
+      "y": 10,
+      "facing": "spin_counterclockwise",
+      "movement": "SPRITEMOVEDATA_SPINCOUNTERCLOCKWISE",
+      "line_of_sight": 2,
+      "palette": "PAL_NPC_RED",
+      "team": [
+        {"species": "Magmar", "level": 11},
+        {"species": "Magmar", "level": 13}
+      ],
+      "prize_money": 624,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_FIREBREATHER_WALT",
+      "notes": "Post-battle mentions #MON March radio luring wild Pokemon."
+    },
+    {
+      "id": "trainer_bug_catcher_arnie",
+      "class": "Bug Catcher",
+      "name": "Arnie",
+      "object_const": "ROUTE35_BUG_CATCHER",
+      "sprite": "SPRITE_BUG_CATCHER",
+      "x": 16,
+      "y": 7,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 3,
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Venonat", "level": 15}
+      ],
+      "prize_money": 240,
+      "rematch": true,
+      "phone_rematch": true,
+      "phone_id": "PHONE_BUG_CATCHER_ARNIE",
+      "event_flag": "EVENT_BEAT_BUG_CATCHER_ARNIE",
+      "rematch_progression": ["BUG_CATCHER_ARNIE1", "BUG_CATCHER_ARNIE2", "BUG_CATCHER_ARNIE3", "BUG_CATCHER_ARNIE4", "BUG_CATCHER_ARNIE5"],
+      "notes": "Pokegear rematch available. When ENGINE_YANMA_SWARM is set, gives alternate frozen dialogue about a Yanma swarm instead of battling."
+    },
+    {
+      "id": "trainer_juggler_irwin",
+      "class": "Juggler",
+      "name": "Irwin",
+      "object_const": "ROUTE35_SUPER_NERD",
+      "sprite": "SPRITE_SUPER_NERD",
+      "x": 5,
+      "y": 10,
+      "facing": "spin_random_fast",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_FAST",
+      "line_of_sight": 2,
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Voltorb", "level": 2},
+        {"species": "Voltorb", "level": 6},
+        {"species": "Voltorb", "level": 10},
+        {"species": "Voltorb", "level": 14}
+      ],
+      "prize_money": 560,
+      "rematch": true,
+      "phone_rematch": true,
+      "phone_id": "PHONE_JUGGLER_IRWIN",
+      "event_flag": "EVENT_BEAT_JUGGLER_IRWIN",
+      "notes": "Pokegear rematch available. Uses standard phone number exchange script."
+    },
+    {
+      "id": "trainer_officer_dirk",
+      "class": "Officer",
+      "name": "Dirk",
+      "object_const": "ROUTE35_OFFICER",
+      "sprite": "SPRITE_OFFICER",
+      "x": 5,
+      "y": 6,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "line_of_sight": 0,
+      "palette": "PAL_NPC_BLUE",
+      "time_restriction": "night_only",
+      "team": [
+        {"species": "Growlithe", "level": 14},
+        {"species": "Growlithe", "level": 14}
+      ],
+      "prize_money": 560,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_OFFICER_DIRK",
+      "notes": "Night-only trainer. Uses checktime NITE. During daytime gives dialogue about player's tough-looking Pokemon. Plays MUSIC_OFFICER_ENCOUNTER on sight at night."
+    }
+  ],
+
+  "items": [
+    {
+      "name": "TM04 (Rollout)",
+      "x": 13,
+      "y": 16,
+      "source": "item_ball",
+      "object_const": "ROUTE35_POKE_BALL",
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_35_TM_ROLLOUT",
+      "notes": "Visible item ball in southern grass patch."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Nidoran F", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Nidoran M", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Drowzee", "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Pidgey", "level_min": 14, "level_max": 14, "rate": 5},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 4},
+        {"species": "Yanma", "level_min": 12, "level_max": 12, "rate": 1}
+      ],
+      "day": [
+        {"species": "Nidoran F", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Nidoran M", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Drowzee", "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Pidgey", "level_min": 14, "level_max": 14, "rate": 5},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 4},
+        {"species": "Yanma", "level_min": 12, "level_max": 12, "rate": 1}
+      ],
+      "night": [
+        {"species": "Nidoran F", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Nidoran M", "level_min": 12, "level_max": 12, "rate": 30},
+        {"species": "Drowzee", "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Abra", "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Hoothoot", "level_min": 14, "level_max": 14, "rate": 5},
+        {"species": "Ditto", "level_min": 10, "level_max": 10, "rate": 4},
+        {"species": "Yanma", "level_min": 12, "level_max": 12, "rate": 1}
+      ],
+      "notes": "Pidgey morning/day only; Hoothoot night only. Yanma swarm event (ENGINE_YANMA_SWARM) increases Yanma rate dramatically."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Psyduck", "level_min": 15, "level_max": 24, "rate": 90},
+        {"species": "Golduck", "level_min": 15, "level_max": 24, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 85},
+        {"species": "Poliwag", "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Poliwag", "level": 20, "rate": 65},
+        {"species": "Magikarp", "level": 20, "rate": 35}
+      ],
+      "super_rod": [
+        {"species": "Poliwag", "level": 40, "rate": 80},
+        {"species": "Magikarp", "level": 40, "rate": 20}
+      ]
+    }
+  },
+
+  "map_callbacks": [],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "travel_north_from_goldenrod",
+      "description": "Player leaves Goldenrod City northward through the Route 35/Goldenrod Gate. Randy in the gate gives the player Kenya (a Spearow with Flower Mail) to deliver to his friend on Route 31.",
+      "items_given": ["Kenya the Spearow (Level 10, holding Flower Mail)"],
+      "flags_set": ["EVENT_GOT_KENYA"]
+    },
+    {
+      "order": 2,
+      "trigger": "return_kenya_to_friend",
+      "description": "After delivering Kenya to the sleepy man on Route 31, return to Randy in the Goldenrod Gate to collect a reward of HP Up.",
+      "requires": "EVENT_GAVE_KENYA",
+      "items_given": ["HP Up"],
+      "flags_set": ["EVENT_GOT_HP_UP_FROM_RANDY"]
+    },
+    {
+      "order": 3,
+      "trigger": "reach_national_park_gate",
+      "description": "Player arrives at the north gate building for the National Park. The Bug-Catching Contest runs on Tuesday, Thursday, and Saturday. Officer at gate manages contest entry including rules, Park Balls, and party management.",
+      "notes": "Contest requires going through Route35NationalParkGate. On contest days, player uses only one Pokemon and catches a bug Pokemon to be judged."
+    }
+  ],
+
+  "buildings": [
+    {
+      "name": "Route 35/Goldenrod Gate",
+      "area_id": "route_35_goldenrod_gate",
+      "pokecrystal_map": "ROUTE_35_GOLDENROD_GATE",
+      "warp_tile_x": 9,
+      "warp_tile_y": 33,
+      "width_blocks": 10,
+      "height_blocks": 4
+    },
+    {
+      "name": "Route 35/National Park Gate",
+      "area_id": "route_35_national_park_gate",
+      "pokecrystal_map": "ROUTE_35_NATIONAL_PARK_GATE",
+      "warp_tile_x": 3,
+      "warp_tile_y": 5,
+      "width_blocks": 10,
+      "height_blocks": 4
+    }
+  ],
+
+  "notes": "Route 35 connects Goldenrod City (south) to the National Park area and Route 36 (north). It is 10x18 blocks (20x36 tiles) and features a mix of grass patches, a water channel on the east side accessible via Surf, and 9 trainers. Officer Dirk is night-only. The National Park Gate at the north end manages the Bug-Catching Contest system (Tuesday/Thursday/Saturday). The Goldenrod Gate contains Randy, who initiates the Kenya delivery side-quest. Bug Catcher Arnie's battle dialogue changes when a Yanma swarm is active (ENGINE_YANMA_SWARM flag). The TM04 Rollout item ball sits in the southern grass patch. A fruit tree provides a daily Berry."
+}

@@ -1,0 +1,228 @@
+{
+  "area_id": "dance_theater",
+  "area_name": "Ecruteak Dance Theater",
+  "area_type": "building",
+  "pokecrystal_map_id": "DANCE_THEATER",
+  "width_blocks": 6,
+  "height_blocks": 7,
+  "width_tiles": 12,
+  "height_tiles": 14,
+  "tileset": "mansion",
+  "connections": [],
+  "warps": [
+    {
+      "x": 5, "y": 13,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 8,
+      "note": "left exit tile back to Ecruteak City"
+    },
+    {
+      "x": 6, "y": 13,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 8,
+      "note": "right exit tile back to Ecruteak City"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "S": "stage_platform",
+      "P": "fancy_panel/decoration",
+      "N": "npc_position",
+      "R": "rhydon_sprite_position",
+      "K": "kimono_girl_position"
+    },
+    "notes": [
+      "Width=12 tiles, Height=14 tiles.",
+      "The north portion (rows 0-7) is the raised stage area where the five Kimono Girls perform/train.",
+      "Two fancy panels at (5,6) and (6,6) are readable bg events (flowers decoration).",
+      "The south portion (rows 8-13) is the audience/floor area with NPCs and the Surf Guy.",
+      "Kimono Girls span the width of the stage in two rows.",
+      "The Rhydon at (6,8) belongs to the Gentleman (Surf Guy) who stands at (7,10)."
+    ],
+    "rows": [
+      "############",
+      "############",
+      "#KKKKKKKKKK#",
+      "#..........#",
+      "#..........#",
+      "#..........#",
+      "#...PP.....#",
+      "#..........#",
+      "#.....R....#",
+      "#..........#",
+      "#......N.N.#",
+      "#..........#",
+      "#..........#",
+      "#####EE####"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "surf_guy_gentleman",
+      "name": "Gentleman (Surf Guy)",
+      "x": 7, "y": 10,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Never left a scratch on the Kimono Girls. Offers HM03 Surf as a gift if player defeats all five Kimono Girls. Gender-aware text (lad/lassie). After giving Surf: 'I wish my Pokemon were as elegant as the KIMONO GIRLS...'",
+      "reward": "HM03 Surf",
+      "reward_event_flag": "EVENT_GOT_HM03_SURF",
+      "condition": "All five Kimono Girls defeated (EVENT_BEAT_KIMONO_GIRL_NAOKO + SAYO + ZUKI + KUNI + MIKI)"
+    },
+    {
+      "id": "rhydon",
+      "name": "Rhydon",
+      "x": 6, "y": 8,
+      "facing": "down",
+      "movement": "pokemon",
+      "script_type": "dialogue",
+      "dialogue_summary": "Rhydon: 'Gugooh gugogooh!' (cry plays on interaction)",
+      "note": "Belongs to the Gentleman. He wants a Pokemon that can Surf and dance — humorously trying to teach Rhydon."
+    },
+    {
+      "id": "cooltrainer_m",
+      "name": "Cool Trainer M",
+      "x": 10, "y": 10,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "That man's always with his Rhydon. Says he wants a Pokemon that can Surf and dance. 'Is he trying to make a synchronized swimming Pokemon?'"
+    },
+    {
+      "id": "granny",
+      "name": "Granny",
+      "x": 3, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "The Kimono Girls are beautiful but undergo rigorous training and must follow customs. 'But if you love something, anything is possible.'"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Kimono Girl",
+      "name": "Naoko",
+      "trainer_id": "KIMONO_GIRL_NAOKO",
+      "x": 0, "y": 2,
+      "facing": "counterclockwise_spin",
+      "movement": "spincounterclockwise",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Flareon", "level": 17, "trainer_type": "normal"}
+      ],
+      "note": "pokecrystal party index 2 (KIMONO_GIRL 2) — Flareon. The Naoko group has two entries; the trainer fight uses entry 2 (Flareon L17). Entry 1 (Skiploom/Vulpix) may be a different context.",
+      "prize_money": 680,
+      "event_flag": "EVENT_BEAT_KIMONO_GIRL_NAOKO",
+      "seen_text": "You have lovely Pokemon. May I see them in battle?",
+      "beaten_text": "Oh, you are very strong.",
+      "after_battle_text": "I enjoyed that bout. I would like to see you again."
+    },
+    {
+      "class": "Kimono Girl",
+      "name": "Sayo",
+      "trainer_id": "KIMONO_GIRL_SAYO",
+      "x": 2, "y": 1,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Espeon", "level": 17, "trainer_type": "normal"}
+      ],
+      "prize_money": 680,
+      "event_flag": "EVENT_BEAT_KIMONO_GIRL_SAYO",
+      "seen_text": "I always dance with my Pokemon. Of course, I also train them.",
+      "beaten_text": "Oh, so close! I almost had you.",
+      "after_battle_text": "Rhythm is important for both dancing and Pokemon."
+    },
+    {
+      "class": "Kimono Girl",
+      "name": "Zuki",
+      "trainer_id": "KIMONO_GIRL_ZUKI",
+      "x": 6, "y": 2,
+      "facing": "random",
+      "movement": "spinrandom_slow",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Umbreon", "level": 17, "trainer_type": "normal"}
+      ],
+      "prize_money": 680,
+      "event_flag": "EVENT_BEAT_KIMONO_GIRL_ZUKI",
+      "seen_text": "Isn't my barrette pretty? Oh. A Pokemon battle?",
+      "beaten_text": "I don't have any Pokemon left...",
+      "after_battle_text": "I put a different flower in my barrette every month."
+    },
+    {
+      "class": "Kimono Girl",
+      "name": "Kuni",
+      "trainer_id": "KIMONO_GIRL_KUNI",
+      "x": 9, "y": 1,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Vaporeon", "level": 17, "trainer_type": "normal"}
+      ],
+      "prize_money": 680,
+      "event_flag": "EVENT_BEAT_KIMONO_GIRL_KUNI",
+      "seen_text": "Oh, you're a cute trainer. Would you like to battle?",
+      "beaten_text": "You're stronger than you look.",
+      "after_battle_text": "I trained a lot, so I thought I was a capable trainer. I guess I'm not."
+    },
+    {
+      "class": "Kimono Girl",
+      "name": "Miki",
+      "trainer_id": "KIMONO_GIRL_MIKI",
+      "x": 11, "y": 2,
+      "facing": "clockwise_spin",
+      "movement": "spinclockwise",
+      "line_of_sight": 0,
+      "team": [
+        {"species": "Jolteon", "level": 17, "trainer_type": "normal"}
+      ],
+      "prize_money": 680,
+      "event_flag": "EVENT_BEAT_KIMONO_GIRL_MIKI",
+      "seen_text": "Do you like my dancing? I'm good at Pokemon too.",
+      "beaten_text": "Ooh, you're good at Pokemon too.",
+      "after_battle_text": "I can keep dancing because there are people who enjoy what I do. My Pokemon keep my spirits up too."
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 5, "y": 6,
+      "type": "BGEVENT_UP",
+      "script": "DanceTheaterFancyPanel",
+      "text": "It's a fancy panel that's decorated with flowers."
+    },
+    {
+      "x": 6, "y": 6,
+      "type": "BGEVENT_UP",
+      "script": "DanceTheaterFancyPanel",
+      "text": "It's a fancy panel that's decorated with flowers."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "all_kimono_girls_defeated",
+      "description": "If EVENT_BEAT_KIMONO_GIRL_NAOKO + SAYO + ZUKI + KUNI + MIKI all set, Gentleman gives HM03 Surf. EVENT_GOT_HM03_SURF is set. Surf allows Pokemon to use the move outside of battle."
+    }
+  ],
+  "kimono_girl_eeveelution_summary": {
+    "Naoko": "Flareon (Fire)",
+    "Sayo": "Espeon (Psychic)",
+    "Zuki": "Umbreon (Dark)",
+    "Kuni": "Vaporeon (Water)",
+    "Miki": "Jolteon (Electric)",
+    "note": "All five Eeveelutions at level 17. Each Kimono Girl uses one. Type coverage is intentionally broad. All use TRAINERTYPE_NORMAL (no custom movesets — default level-up moves)."
+  },
+  "notes": "The Ecruteak Dance Theater is 6x7 blocks (12x14 tiles). The five Kimono Girls stand on the north stage area performing spinning dances. Their movements vary: counterclockwise spin (Naoko), random fast spin (Sayo), random slow spin (Zuki), random fast spin (Kuni), clockwise spin (Miki). All use line_of_sight 0 — they do not challenge the player automatically; player must talk to them. The reward for defeating all five is HM03 Surf from the Gentleman standing in the south audience area. His Rhydon companion is an interactable Pokemon sprite. The fancy panel bg events at (5,6) and (6,6) are readable decorations. The Dance Theater is accessible from Ecruteak City warp at (23,21)."
+}

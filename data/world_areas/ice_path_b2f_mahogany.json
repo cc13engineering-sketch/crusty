@@ -1,0 +1,170 @@
+{
+  "area_id": "ice_path_b2f_mahogany",
+  "area_name": "Ice Path B2F (Mahogany Side)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "ICE_PATH_B2F_MAHOGANY_SIDE",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "ice_path",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 17, "y": 1,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 2,
+      "notes": "Stairs/ladder up to B1F (northeast corner)"
+    },
+    {
+      "warp_id": 2,
+      "x": 9, "y": 11,
+      "target_area_id": "ice_path_b3f",
+      "target_warp_id": 1,
+      "notes": "Stairs/hole down to B3F (southeast area)"
+    },
+    {
+      "warp_id": 3,
+      "x": 11, "y": 4,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 3,
+      "notes": "Boulder landing spot — arrival from B1F hole warp 3 (boulder fell through from 11,2)"
+    },
+    {
+      "warp_id": 4,
+      "x": 4, "y": 6,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 4,
+      "notes": "Boulder landing spot — arrival from B1F hole warp 4 (boulder fell through from 4,7)"
+    },
+    {
+      "warp_id": 5,
+      "x": 4, "y": 12,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 5,
+      "notes": "Boulder landing spot — arrival from B1F hole warp 5 (boulder fell through from 5,12)"
+    },
+    {
+      "warp_id": 6,
+      "x": 12, "y": 12,
+      "target_area_id": "ice_path_b1f",
+      "target_warp_id": 6,
+      "notes": "Boulder landing spot — arrival from B1F hole warp 6 (boulder fell through from 12,13)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "I": "ice",
+      "R": "strength_boulder_frozen",
+      "v": "stairs_down",
+      "^": "stairs_up",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "notes": "20 wide x 18 tall tiles. B2F Mahogany Side is below the northern half of B1F. It receives boulders that fell through from B1F. The boulders here are 'immovably embedded in ice' (cannot be pushed with Strength). Four ice boulders appear at fixed positions after falling from B1F. The floor has ice-sliding sections and a path to the B3F descent. Items: Full Heal at (8,9), Max Potion at (0,2). Hidden Carbos at (0,17). The warp up to B1F is at (17,1); the warp down to B3F is at (9,11).",
+    "rows": [
+      "####################",
+      "!##################^",
+      "###########R########",
+      "####################",
+      "IIIIIIIIIII.R.......#",
+      "IIIIIIIIIII.........#",
+      "####R...............#",
+      "####################",
+      "########!...........#",
+      "####################",
+      "####################",
+      "####R...............#",
+      "############R.......#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "?###################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Full Heal",
+      "x": 8, "y": 9,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B2F_MAHOGANY_SIDE_FULL_HEAL",
+      "notes": "Pokeball sprite in the central-east open area."
+    },
+    {
+      "name": "Max Potion",
+      "x": 0, "y": 2,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B2F_MAHOGANY_SIDE_MAX_POTION",
+      "notes": "Pokeball sprite at the far northwest corner of the floor."
+    },
+    {
+      "name": "Carbos",
+      "x": 0, "y": 17,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B2F_MAHOGANY_SIDE_HIDDEN_CARBOS",
+      "notes": "Hidden item defined as bg_event at (0,17). Southwest corner of the floor."
+    }
+  ],
+  "puzzle": {
+    "type": "strength_boulders_frozen",
+    "description": "Four boulders are present on this floor but cannot be moved — they are frozen in ice. The boulders arrive here from B1F when pushed into the floor holes above. Attempting to interact with them gives the message 'It's immovably imbedded in ice.' These boulders serve as landmarks/obstacles but do not need to be moved to progress. The player must navigate around them using the ice-sliding sections to reach the B3F descent at (9,11)."
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 2,
+      "notes": "Cave encounters, 2% per step.",
+      "morning": [
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Swinub",   "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10}
+      ],
+      "day": [
+        {"species": "Swinub",   "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Swinub",   "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Jynx",     "level_min": 24, "level_max": 24, "rate": 10}
+      ],
+      "night": [
+        {"species": "Delibird", "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Zubat",    "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 24, "level_max": 24, "rate": 10},
+        {"species": "Delibird", "level_min": 25, "level_max": 25, "rate": 20},
+        {"species": "Golbat",   "level_min": 26, "level_max": 26, "rate": 10},
+        {"species": "Sneasel",  "level_min": 22, "level_max": 22, "rate": 10},
+        {"species": "Sneasel",  "level_min": 24, "level_max": 24, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on B2F Mahogany Side."
+    },
+    "fishing": {
+      "group": "FISHGROUP_DRATINI",
+      "notes": "Fishing data defined but no accessible water on this floor."
+    }
+  },
+  "events": [
+    {
+      "trigger": "boulder_arrival",
+      "description": "When a boulder falls from B1F through hole warps 3-6, it appears at the corresponding landing coordinates on this floor (warps 3-6 here act as arrival destinations). The boulder is now in its frozen state and displays 'It's immovably imbedded in ice.' when interacted with."
+    }
+  ],
+  "notes": "Ice Path B2F Mahogany Side (10x9 blocks, 20x18 tiles) is the sub-floor below the northern section of B1F. Tileset: TILESET_ICE_PATH. Music: MUSIC_DARK_CAVE. This floor receives the four Strength boulders from B1F when they are pushed into holes. The boulders are frozen here and cannot be moved. The player must navigate ice-sliding sections to reach the B3F stairs at (9,11). Two visible item balls: Max Potion at the northwest (0,2) and Full Heal at center (8,9). One hidden item: Carbos at southwest corner (0,17). The staircase up at (17,1) returns to B1F. Wild encounters add two Jynx slots during morning/day and two Sneasel slots at night. This floor is only accessed by falling through B1F holes or descending from the B1F northeast staircase (warp 2/1 link)."
+}

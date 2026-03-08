@@ -1,0 +1,95 @@
+{
+  "area_id": "route_31_violet_gate",
+  "area_name": "Route 31 Violet Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_31_VIOLET_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate_interior",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0,
+      "y": 4,
+      "target_area_id": "violet_city",
+      "target_warp_id": 8,
+      "notes": "West exit — leads into Violet City"
+    },
+    {
+      "x": 0,
+      "y": 5,
+      "target_area_id": "violet_city",
+      "target_warp_id": 9,
+      "notes": "West exit (second tile) — leads into Violet City"
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "target_area_id": "route_31",
+      "target_warp_id": 1,
+      "notes": "East exit — returns to Route 31 (warp_event 4,6 on route side)"
+    },
+    {
+      "x": 9,
+      "y": 5,
+      "target_area_id": "route_31",
+      "target_warp_id": 2,
+      "notes": "East exit (second tile) — returns to Route 31 (warp_event 4,7 on route side)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "D": "door_exit",
+      "N": "npc_position",
+      "P": "path",
+      "F": "floor_tile",
+      "C": "counter"
+    },
+    "rows": [
+      "##########",
+      "#N.....N.#",
+      "#........#",
+      "#........#",
+      "D........D",
+      "D........D",
+      "#........#",
+      "##########"
+    ],
+    "notes": "Standard east-west route gate building. Two NPCs: Officer (x5,y2) and Cool Trainer F (x1,y2). Exits on both the west (Violet City) and east (Route 31) sides at rows 4-5."
+  },
+  "npcs": [
+    {
+      "id": "gate_officer",
+      "name": "Officer (Jenny)",
+      "x": 5,
+      "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Greets the player and asks if they visited Sprout Tower."
+    },
+    {
+      "id": "gate_cooltrainer_f",
+      "name": "Cool Trainer (female)",
+      "x": 1,
+      "y": 2,
+      "facing": "random",
+      "movement": "spin_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Realizes she came too far east and needs to call home."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [],
+  "notes": "Standard route gate building connecting Route 31 (east) to Violet City (west). Interior dimensions are approximate (standard gate format). Two NPC guards: a Police Officer and a Cool Trainer F. No trainers, items, or wild encounters. Pokecrystal source: maps/Route31VioletGate.asm."
+}

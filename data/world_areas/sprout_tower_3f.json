@@ -1,0 +1,292 @@
+{
+  "area_id": "sprout_tower_3f",
+  "area_name": "Sprout Tower 3F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "SPROUT_TOWER_3F",
+  "width_blocks": 10,
+  "height_blocks": 8,
+  "width_tiles": 20,
+  "height_tiles": 16,
+  "tileset": "TILESET_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "x": 10, "y": 14,
+      "target_area_id": "sprout_tower_2f",
+      "target_warp_id": 4,
+      "note": "Only staircase, leads back down to 2F (warp index 4 = the up-staircase object on 2F)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "P": "swaying_pillar",
+      "v": "stairs_down",
+      "S": "statue",
+      "A": "painting_bellsprout",
+      "T": "trainer_position",
+      "L": "elder_li_position",
+      "R": "rival_position",
+      "!": "item_ball",
+      "X": "rival_encounter_coord_event"
+    },
+    "rows": [
+      "#.....SSAASS.......#",
+      "#...........P...!..#",
+      "#......L....P......#",
+      "#...........P......#",
+      "#.....R.....P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#........T..P......#",
+      "#...........P.X....#",
+      "#...........P......#",
+      "#...........P.T....#",
+      "#...........P......#",
+      "#...........P......#",
+      "#.........v.P......#",
+      "#.....S.....P....S.#"
+    ],
+    "notes": [
+      "Map is 10x8 blocks = 20x16 tiles.",
+      "Swaying Bellsprout pillar (P) at x=11 running through the full height, same column as 1F and 2F.",
+      "Only one staircase (v) at (10,14) leads back down to 2F.",
+      "Elder Li (L, sprite SPRITE_SAGE, standing down, non-trainer script) at object_event (10,2) — north-center, behind the pillar.",
+      "Rival (R, sprite SPRITE_RIVAL, standing up) at object_event (10,4) — disappears after scene EVENT_RIVAL_SPROUT_TOWER.",
+      "Sage Jin (TRAINER, standing right, sight 3) at object_event (8,13) — south-left.",
+      "Sage Troy (TRAINER, standing down, sight 2) at object_event (8,8) — mid-section.",
+      "Sage Neal (TRAINER, standing left, sight 3) at object_event (11,11) — mid-right, east of pillar.",
+      "Potion item ball at object_event (6,14) — south-left corner — event flag EVENT_SPROUT_TOWER_3F_POTION.",
+      "Escape Rope item ball at object_event (14,1) — northeast corner — event flag EVENT_SPROUT_TOWER_3F_ESCAPE_ROPE.",
+      "Coord event at (11,9) triggers SCENE_SPROUTTOWER3F_RIVAL_ENCOUNTER — the rival cutscene.",
+      "Paintings (A) at bg_events (9,0) and (10,0) — powerful Bellsprout painting on the north wall.",
+      "Statues (S) at bg_events (8,1), (11,1) flanking the paintings; also at (5,15) and (14,15) on the south wall.",
+      "Row 0 is drawn as 20 tiles wide; columns 0 and 19 are walls. Item at (14,1) is northeast."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "elder_li",
+      "name": "Elder Li",
+      "sprite": "SPRITE_SAGE",
+      "x": 10, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "special",
+      "dialogue_summary": "If player has not received HM05 Flash: delivers pre-battle speech about the tower as a place of trainer-Pokemon bonding, then battles. After victory, gives HM05 Flash and explains it requires the Violet Gym badge to use outside battle. If already received Flash: brief farewell blessing.",
+      "dialogue_key": "SageLiScript",
+      "reward": "HM05 Flash",
+      "reward_event": "EVENT_GOT_HM05_FLASH",
+      "note": "Elder Li is a boss NPC, not defined as a standard trainer object_event — he is OBJECTTYPE_SCRIPT but triggers a full trainer battle via loadtrainer SAGE, LI inside his script."
+    },
+    {
+      "id": "rival",
+      "name": "Rival",
+      "sprite": "SPRITE_RIVAL",
+      "x": 10, "y": 4,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "scene_object",
+      "dialogue_summary": "Appears only before coord_event SCENE_SPROUTTOWER3F_RIVAL_ENCOUNTER triggers. Disappears after the cutscene using ESCAPE ROPE.",
+      "dialogue_key": "ObjectEvent",
+      "condition_flag": "EVENT_RIVAL_SPROUT_TOWER",
+      "note": "Controlled by scene script SproutTower3FRivalScene. After player steps on coord (11,9), the rival approaches the Elder, hears a lecture, then angrily uses an Escape Rope and vanishes. Scene sets SCENE_SPROUTTOWER3F_NOOP so it does not replay."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Sage",
+      "name": "Jin",
+      "trainer_const": "SAGE_JIN",
+      "event_flag": "EVENT_BEAT_SAGE_JIN",
+      "sprite": "SPRITE_SAGE",
+      "x": 8, "y": 13,
+      "facing": "right",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 6}
+      ],
+      "base_reward": 8,
+      "prize_money": 48,
+      "rematch": false,
+      "seen_text": "I train to find enlightenment in Pokemon!",
+      "beaten_text": "My training is incomplete...",
+      "after_text": "As Pokemon grow stronger, so does the trainer. No, wait. As the trainer grows stronger, so do the Pokemon."
+    },
+    {
+      "class": "Sage",
+      "name": "Troy",
+      "trainer_const": "SAGE_TROY",
+      "event_flag": "EVENT_BEAT_SAGE_TROY",
+      "sprite": "SPRITE_SAGE",
+      "x": 8, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 2,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 7},
+        {"species": "Hoothoot",   "level": 7}
+      ],
+      "base_reward": 8,
+      "prize_money": 56,
+      "rematch": false,
+      "seen_text": "Let me see how much you trust your Pokemon.",
+      "beaten_text": "Yes, your trust is real!",
+      "after_text": "It is not far to the Elder."
+    },
+    {
+      "class": "Sage",
+      "name": "Neal",
+      "trainer_const": "SAGE_NEAL",
+      "event_flag": "EVENT_BEAT_SAGE_NEAL",
+      "sprite": "SPRITE_SAGE",
+      "x": 11, "y": 11,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 6}
+      ],
+      "base_reward": 8,
+      "prize_money": 48,
+      "rematch": false,
+      "seen_text": "The Elder's HM lights even pitch-black darkness.",
+      "beaten_text": "It is my head that is bright!",
+      "after_text": "Let there be light on your journey."
+    },
+    {
+      "class": "Sage",
+      "name": "Li",
+      "trainer_const": "SAGE_LI",
+      "event_flag": "EVENT_BEAT_SAGE_LI",
+      "sprite": "SPRITE_SAGE",
+      "x": 10, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 0,
+      "note": "Elder Li does not use OBJECTTYPE_TRAINER — he is OBJECTTYPE_SCRIPT. His script calls loadtrainer SAGE, LI and startbattle directly. No autonomous line-of-sight; player must talk to him.",
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 7},
+        {"species": "Bellsprout", "level": 7},
+        {"species": "Hoothoot",   "level": 10}
+      ],
+      "base_reward": 8,
+      "prize_money": 80,
+      "rematch": false,
+      "seen_text": "So good of you to come here! Sprout Tower is a place of training. People and Pokemon test their bonds to build a bright future together. I am the final test. Allow me to check the ties between your Pokemon and you!",
+      "beaten_text": "Ah, excellent!",
+      "reward": "HM05 Flash",
+      "reward_event_flag": "EVENT_GOT_HM05_FLASH",
+      "reward_speech": "You and your Pokemon should have no problem using this move. Take this Flash HM.",
+      "post_reward_explanation": "Flash illuminates even the darkest of all places. But to use it out of battle, you need the Badge from Violet's Gym.",
+      "after_text": "I hope you learn and grow from your journey."
+    }
+  ],
+  "items": [
+    {
+      "name": "Potion",
+      "x": 6, "y": 14,
+      "hidden": false,
+      "event_flag": "EVENT_SPROUT_TOWER_3F_POTION",
+      "requires": null,
+      "script": "SproutTower3FPotion"
+    },
+    {
+      "name": "Escape Rope",
+      "x": 14, "y": 1,
+      "hidden": false,
+      "event_flag": "EVENT_SPROUT_TOWER_3F_ESCAPE_ROPE",
+      "requires": null,
+      "script": "SproutTower3FEscapeRope"
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 8,  "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FStatue",
+      "note": "Left statue flanking the north-wall painting"
+    },
+    {
+      "x": 11, "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FStatue",
+      "note": "Right statue flanking the north-wall painting"
+    },
+    {
+      "x": 9,  "y": 0,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FPainting",
+      "note": "Left tile of the Bellsprout painting on the north wall"
+    },
+    {
+      "x": 10, "y": 0,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FPainting",
+      "note": "Right tile of the Bellsprout painting on the north wall"
+    },
+    {
+      "x": 5,  "y": 15,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FStatue",
+      "note": "Left statue on the south wall"
+    },
+    {
+      "x": 14, "y": 15,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower3FStatue",
+      "note": "Right statue on the south wall"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 11, "y": 9,
+      "scene_condition": "SCENE_SPROUTTOWER3F_RIVAL_ENCOUNTER",
+      "script": "SproutTower3FRivalScene",
+      "description": "Triggers the rival cutscene when player steps on this tile before the scene has been resolved. The player is turned to face UP, the earthquake SFX plays twice, then the rival approaches Elder Li who lectures him. The rival leaves angrily via Escape Rope. Scene advances to SCENE_SPROUTTOWER3F_NOOP so it never fires again."
+    }
+  ],
+  "scene_scripts": [
+    {
+      "scene_id": "SCENE_SPROUTTOWER3F_RIVAL_ENCOUNTER",
+      "script": "SproutTower3FRivalScene",
+      "description": "The rival cutscene — see coord_events. Active on first visit."
+    },
+    {
+      "scene_id": "SCENE_SPROUTTOWER3F_NOOP",
+      "script": "SproutTower3FNoop2Scene",
+      "description": "No-op scene; active after the rival cutscene has played."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "rival_cutscene",
+      "trigger": "coord_event at (11,9), scene SCENE_SPROUTTOWER3F_RIVAL_ENCOUNTER",
+      "description": "First-visit event: the player enters the north area and triggers an earthquake. The rival is seen talking to Elder Li, who lectures him about treating Pokemon well. The rival angrily dismisses the Elder, uses an Escape Rope, and vanishes. Elder Li then turns to greet the player. Implemented via SproutTower3FRivalScene script which uses earthquake, applymovement, showemote, disappear, and setscene opcodes."
+    },
+    {
+      "id": "elder_li_battle_and_reward",
+      "trigger": "talk to Elder Li after rival cutscene",
+      "description": "Elder Li battles the player using SAGE, LI party data (2x Bellsprout lv7, Hoothoot lv10). On victory, he gives HM05 Flash and sets EVENT_GOT_HM05_FLASH. He explains Flash requires the Zephyr Badge from Violet City's gym to use outside battle. If EVENT_GOT_HM05_FLASH is already set, he gives a short farewell blessing instead."
+    }
+  ],
+  "notes": "Sprout Tower 3F is the top floor and the climax of the tower dungeon. It contains three Sage trainers guarding the approach to Elder Li, who waits at the north-center behind the swaying Bellsprout pillar. The rival is present on first visit; a cutscene at coord (11,9) plays where the Elder lectures the rival about Pokemon ethics before the rival storms off. Two item balls are accessible: Potion (southwest) and Escape Rope (northeast). The north wall is decorated with two Bellsprout paintings flanked by statues; two more statues decorate the south wall. HM05 Flash is the reward for defeating Elder Li — the only way to obtain Flash in the game — and requires the Zephyr Badge to use outside battle. Map dimensions: 10x8 blocks (20x16 tiles). Only one staircase (south-center) leads down to 2F. All coordinates sourced from SproutTower3F.asm; trainer party data from data/trainers/parties.asm SageGroup entries."
+}

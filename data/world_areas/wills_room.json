@@ -1,0 +1,151 @@
+{
+  "area_id": "wills_room",
+  "area_name": "Will's Room",
+  "area_type": "special",
+  "pokecrystal_map_id": "WILLS_ROOM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 5, "y": 17,
+      "target_area_id": "indigo_plateau_pokecenter",
+      "target_warp_id": 4,
+      "notes": "South entrance — returns to Indigo Plateau Pokecenter"
+    },
+    {
+      "warp_id": 2,
+      "x": 4, "y": 2,
+      "target_area_id": "kogas_room",
+      "target_warp_id": 1,
+      "notes": "North exit left tile — leads to Koga's Room. Locked until Will is defeated."
+    },
+    {
+      "warp_id": 3,
+      "x": 5, "y": 2,
+      "target_area_id": "kogas_room",
+      "target_warp_id": 2,
+      "notes": "North exit right tile — leads to Koga's Room. Locked until Will is defeated."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "D": "door_open",
+      "W": "wall_door_closed",
+      "N": "npc_position",
+      "E": "entrance_mat",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Will stands at (5,7) facing down — center of the room.",
+      "The north door at y=2 (tiles 4,2 and 5,2) starts as a wall ($2a block). It changes to open door ($16 block) after Will is defeated.",
+      "The south entrance at y=14 (tile 4,14) is changed to wall ($2a) immediately after the player enters (WillsRoomDoorLocksBehindYouScript). This locks the player in.",
+      "WillsRoom_EnterMovement walks the player UP 4 steps after entering.",
+      "The room uses the Elite Four chamber tileset — dark stone, ornate decorations.",
+      "Scene SCENE_WILLSROOM_LOCK_DOOR triggers on entry; after door locks, scene changes to SCENE_WILLSROOM_NOOP."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "####DD####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "#####N####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####W#####",
+      "##########",
+      "##########",
+      "#####E####"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Will",
+      "name": "Will",
+      "x": 5, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_WILL",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 0,
+      "trigger": "talk",
+      "trainer_id": "WILL1",
+      "specialization": "Psychic-type",
+      "ai_items": ["Max Potion"],
+      "prize_money": 4200,
+      "rematch": false,
+      "one_time_flag": "EVENT_BEAT_ELITE_4_WILL",
+      "intro_dialogue": "Welcome to Pokemon League, <PLAYER>. Allow me to introduce myself. I am WILL. I have trained all around the world, making my psychic Pokemon powerful. And, at last, I've been accepted into the ELITE FOUR. I can only keep getting better! Losing is not an option!",
+      "beaten_dialogue": "I... I can't... believe it...",
+      "post_defeat_dialogue": "Even though I was defeated, I won't change my course. I will continue battling until I stand above all trainers! Now, <PLAYER>, move on and experience the true ferocity of the ELITE FOUR.",
+      "team": [
+        {
+          "species": "Xatu",
+          "level": 40,
+          "moves": ["Quick Attack", "Future Sight", "Confuse Ray", "Psychic"]
+        },
+        {
+          "species": "Jynx",
+          "level": 41,
+          "moves": ["DoubleSlap", "Lovely Kiss", "Ice Punch", "Psychic"]
+        },
+        {
+          "species": "Exeggutor",
+          "level": 41,
+          "moves": ["Reflect", "Leech Seed", "Egg Bomb", "Psychic"]
+        },
+        {
+          "species": "Slowbro",
+          "level": 41,
+          "moves": ["Curse", "Amnesia", "Body Slam", "Psychic"]
+        },
+        {
+          "species": "Xatu",
+          "level": 42,
+          "moves": ["Quick Attack", "Future Sight", "Confuse Ray", "Psychic"]
+        }
+      ]
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "name": "LockDoorBehindPlayer",
+      "description": "SCENE_WILLSROOM_LOCK_DOOR fires sdefer WillsRoomDoorLocksBehindYouScript. Player is walked UP 4 steps automatically, a rumble/earthquake sound plays, and the south entrance door tile at (4,14) is changed to wall ($2a block). EVENT_WILLS_ROOM_ENTRANCE_CLOSED is set. Scene changes to SCENE_WILLSROOM_NOOP."
+    },
+    {
+      "trigger": "on_defeat_will",
+      "name": "OpenExitDoor",
+      "description": "After Will is beaten, EVENT_BEAT_ELITE_4_WILL is set. The north door tiles at (4,2) and (5,2) change to open ($16 block). EVENT_WILLS_ROOM_EXIT_OPEN is set. Player can then proceed to Koga's Room."
+    },
+    {
+      "trigger": "mapcallback_tiles",
+      "name": "WillsRoomDoorsCallback",
+      "description": "On every map tile refresh: if EVENT_WILLS_ROOM_ENTRANCE_CLOSED is set, forcibly applies the wall block at (4,14). If EVENT_WILLS_ROOM_EXIT_OPEN is set, forcibly applies the open door block at (4,2). This ensures door states persist correctly across map reloads."
+    }
+  ],
+  "notes": "Will is Elite Four member #1, specializing in Psychic-type Pokemon. His room features the standard Elite Four locking-door mechanic: entering seals the south door behind the player, and defeating Will opens the north door to Koga's Room. His team is entirely Psychic-type. Xatu appears twice — the second at a higher level (42) is his lead-out 'ace' after the others fall. Will was formerly a Gym Leader candidate who trained internationally before earning his Elite Four position. Prize money: $4200 (base 25 × highest level 42 × 4)."
+}

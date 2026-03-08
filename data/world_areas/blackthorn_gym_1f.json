@@ -1,0 +1,272 @@
+{
+  "area_id": "blackthorn_gym_1f",
+  "area_name": "Blackthorn Gym 1F",
+  "area_type": "building",
+  "pokecrystal_map_id": "BLACKTHORN_GYM_1F",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 17,
+      "target_area_id": "blackthorn_city",
+      "target_warp_id": 1,
+      "notes": "Left exit tile — back to Blackthorn City"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 17,
+      "target_area_id": "blackthorn_city",
+      "target_warp_id": 1,
+      "notes": "Right exit tile — back to Blackthorn City"
+    },
+    {
+      "warp_id": 3,
+      "x": 1, "y": 7,
+      "target_area_id": "blackthorn_gym_2f",
+      "target_warp_id": 1,
+      "notes": "Staircase / warp tile to 2F — west side"
+    },
+    {
+      "warp_id": 4,
+      "x": 7, "y": 9,
+      "target_area_id": "blackthorn_gym_2f",
+      "target_warp_id": 2,
+      "notes": "Staircase / warp tile to 2F — east side"
+    },
+    {
+      "warp_id": 5,
+      "x": 2, "y": 6,
+      "target_area_id": "blackthorn_gym_2f",
+      "target_warp_id": 3,
+      "notes": "Hole in floor — falls to 2F landing 3 (from boulder puzzle above)"
+    },
+    {
+      "warp_id": 6,
+      "x": 7, "y": 7,
+      "target_area_id": "blackthorn_gym_2f",
+      "target_warp_id": 4,
+      "notes": "Hole in floor — falls to 2F landing 4"
+    },
+    {
+      "warp_id": 7,
+      "x": 7, "y": 6,
+      "target_area_id": "blackthorn_gym_2f",
+      "target_warp_id": 5,
+      "notes": "Hole in floor — falls to 2F landing 5"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "S": "sign/statue",
+      "N": "npc_position",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "O": "hole_in_floor",
+      "B": "boulder_slot",
+      "P": "platform/walkable_stone",
+      "E": "exit_mat",
+      "T": "trainer_sight_line",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "The gym interior uses the Elite Four Room tileset — stone floors, ornate columns.",
+      "Clair stands at (5,3) facing down — she is the gym leader.",
+      "Gym Guide stands near statues at (7,15) facing down.",
+      "CooltrainerM Mike is at (6,6) facing down — guards upper platform.",
+      "CooltrainerM Paul is at (1,14) facing down — guards near exit.",
+      "CooltrainerF Lola is at (9,2) facing down — upper-right area.",
+      "Two gym statues are at bg_event positions (3,15) and (6,15).",
+      "Holes at (2,6), (7,7), (7,6) are pits from 2F boulder puzzle — player falls through when boulders are pushed incorrectly on 2F.",
+      "Stairs at (1,7) and (7,9) lead up to 2F puzzle area.",
+      "BlackthornGym1FBouldersCallback at map load reads boulder event flags and changes tile graphics to show fallen boulders from 2F."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "####N#####",
+      "##########",
+      "##########",
+      "##NO##OOO#",
+      "^#########",
+      "##########",
+      "#######^##",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "N#########",
+      "SS.....NSS",
+      "..........",
+      "####EE####"
+    ]
+  },
+  "gym_leader": {
+    "name": "Clair",
+    "title": "The Blessed User of Dragon Pokemon",
+    "position": {"x": 5, "y": 3},
+    "facing": "down",
+    "sprite": "SPRITE_CLAIR",
+    "palette": "PAL_NPC_BLUE",
+    "badge": {
+      "name": "Rising Badge",
+      "effect": "Enables HM07 Waterfall. Raises Speed of own Pokemon. Makes traded Pokemon obey up to Lv70."
+    },
+    "tm_reward": {
+      "tm": "TM24",
+      "move": "DragonBreath",
+      "notes": "Given only AFTER player passes Dragon's Den quiz and Clair finally relents. Flag: EVENT_GOT_TM24_DRAGONBREATH"
+    },
+    "battle_trigger": "EVENT_BEAT_CLAIR",
+    "post_battle_behaviour": "Refuses to give badge. Sends player to Dragon's Den shrine at the center of Dragon's Den. Sets EVENT_BLACKTHORN_CITY_GRAMPS_BLOCKS_DRAGONS_DEN so Gramps blocks Dragon's Den until quiz is complete.",
+    "intro_dialogue": "I am CLAIR. The world's best dragon master. I can hold my own against even the Pokemon League's Elite Four. Do you still want to take me on? ...Fine. Let's do it! As a Gym Leader, I will use my full power against any opponent!",
+    "lose_dialogue": "I lost? I don't believe it. There must be some mistake...",
+    "post_battle_dialogue": "I won't admit this. I may have lost, but you're still not ready for the Pokemon League. I know. You should take the dragon user challenge. Behind this Gym is a place called Dragon's Den. There is a small shrine at its center. Go there. If you can prove that you've lost your lazy ideals, I will recognize you as a trainer worthy of a Gym Badge!",
+    "badge_given_dialogue": "You've kept me waiting! Here! Take this! That contains DragonBreath. No, it doesn't have anything to do with my breath. If you don't want it, you don't have to take it.",
+    "team": [
+      {
+        "species": "Dragonair",
+        "level": 37,
+        "moves": ["Thunder Wave", "Surf", "Slam", "DragonBreath"]
+      },
+      {
+        "species": "Dragonair",
+        "level": 37,
+        "moves": ["Thunder Wave", "Thunderbolt", "Slam", "DragonBreath"]
+      },
+      {
+        "species": "Dragonair",
+        "level": 37,
+        "moves": ["Thunder Wave", "Ice Beam", "Slam", "DragonBreath"]
+      },
+      {
+        "species": "Kingdra",
+        "level": 40,
+        "moves": ["Smokescreen", "Surf", "Hyper Beam", "DragonBreath"]
+      }
+    ],
+    "trainer_class": "CLAIR",
+    "trainer_id": "CLAIR1",
+    "prize_money_formula": "Level 40 * 2 * trainer_base",
+    "type_specialty": "Dragon"
+  },
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Mike",
+      "x": 6, "y": 6,
+      "facing": "down",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Dragonair", "level": 37}
+      ],
+      "battle_event": "EVENT_BEAT_COOLTRAINERM_MIKE",
+      "seen_dialogue": "My chance of losing? Not even one percent!",
+      "beaten_dialogue": "That's odd.",
+      "after_battle_dialogue": "I know my shortcomings now. Thanks for showing me!",
+      "palette": "PAL_NPC_RED",
+      "prize_money": 1480
+    },
+    {
+      "class": "Cool Trainer M",
+      "name": "Paul",
+      "x": 1, "y": 14,
+      "facing": "down",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Dratini", "level": 34},
+        {"species": "Dratini", "level": 34},
+        {"species": "Dratini", "level": 34}
+      ],
+      "battle_event": "EVENT_BEAT_COOLTRAINERM_PAUL",
+      "seen_dialogue": "Your first battle against dragons? I'll show you how tough they are!",
+      "beaten_dialogue": "My dragon Pokemon lost?",
+      "after_battle_dialogue": "LANCE told you that he'd like to see you again? Not a chance!",
+      "palette": "PAL_NPC_RED",
+      "prize_money": 1360
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Lola",
+      "x": 9, "y": 2,
+      "facing": "down",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Dratini", "level": 34},
+        {"species": "Dragonair", "level": 36}
+      ],
+      "battle_event": "EVENT_BEAT_COOLTRAINERF_LOLA",
+      "seen_dialogue": "Dragons are sacred Pokemon. They are full of life energy. If you're not serious, you won't be able to beat them.",
+      "beaten_dialogue": "Way to go!",
+      "after_battle_dialogue": "Dragons are weak against dragon-type moves.",
+      "palette": "PAL_NPC_RED",
+      "prize_money": 1440
+    }
+  ],
+  "npcs": [
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "x": 7, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "palette": "PAL_NPC_RED",
+      "pre_beat_dialogue": "Yo! Champ in making! It's been a long journey, but we are almost done! Count on me! Clair uses the mythical and sacred dragon-type Pokemon. You can't damage them very easily. But you know, they're supposed to be weak against ice-type moves.",
+      "post_beat_dialogue": "You were great to beat Clair! All that's left is the Pokemon League challenge. You're on the way to becoming the Pokemon Champion!"
+    }
+  ],
+  "bg_events": [
+    {
+      "id": "statue_left",
+      "x": 3, "y": 15,
+      "type": "gym_statue",
+      "script": "BlackthornGymStatue",
+      "notes": "Shows 'unbeaten' text before Clair is defeated; shows Clair's name after."
+    },
+    {
+      "id": "statue_right",
+      "x": 6, "y": 15,
+      "type": "gym_statue",
+      "script": "BlackthornGymStatue",
+      "notes": "Identical behaviour — checks ENGINE_RISINGBADGE flag."
+    }
+  ],
+  "map_callbacks": [
+    {
+      "trigger": "MAPCALLBACK_TILES",
+      "name": "BlackthornGym1FBouldersCallback",
+      "description": "On map load, checks EVENT_BOULDER_IN_BLACKTHORN_GYM_1/2/3. If a boulder fell through from 2F, changes the tile graphic at the corresponding 1F position to show a fallen boulder (tile $3a or $3b). Boulder hole positions: boulder1→(8,2), boulder2→(2,4), boulder3→(8,6) in block coordinates."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "after_clair_battle",
+      "description": "Post-battle script sets EVENT_BEAT_CLAIR, marks all gym trainers as beaten, and instructs player to visit Dragon's Den. Also sets EVENT_BLACKTHORN_CITY_GRAMPS_BLOCKS_DRAGONS_DEN so the city Gramps blocks Dragon's Den until quiz completion. Clears EVENT_MAHOGANY_MART_OWNERS as a continuity flag."
+    },
+    {
+      "trigger": "after_quiz_complete",
+      "description": "Player returns from Dragon's Den. Clair finally gives the Rising Badge and TM24 DragonBreath. Sets EVENT_GOT_TM24_DRAGONBREATH."
+    }
+  ],
+  "strategy_notes": [
+    "Clair's Dragonair are covered across all types of coverage: one has Surf, one has Thunderbolt, one has Ice Beam — minimizing safe switch-ins.",
+    "All three Dragonair open with Thunder Wave to paralyze, then use DragonBreath (may cause paralysis too).",
+    "Kingdra is the real threat: Water/Dragon typing means it is only weak to Dragon-type moves in Gen 2. Ice moves do neutral damage to Kingdra.",
+    "Recommended counter: Ice or Dragon types. Lapras (Ice Beam), Jynx, or your own Dragon-type.",
+    "The boulder puzzle on 2F must be solved with Strength before advancing to Clair.",
+    "Gym is considered the hardest Johto gym due to Kingdra's near-invulnerable typing."
+  ],
+  "notes": "Blackthorn Gym uses the ELITE_FOUR_ROOM tileset. It is a two-floor gym — the 2F contains a Strength boulder puzzle, and boulders pushed into holes fall through to 1F changing the tile graphics. Three trainers guard the path: Lola in the upper right, Mike on the mid-upper platform, Paul near the exit. Clair stands at the far north center. After defeating her she refuses the badge, sending the player to Dragon's Den."
+}

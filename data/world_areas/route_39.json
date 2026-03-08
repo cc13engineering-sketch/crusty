@@ -1,0 +1,385 @@
+{
+  "area_id": "route_39",
+  "area_name": "Route 39",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_39",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "olivine_city",
+      "offset": -5,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_38",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 1, "y": 3,
+      "target_area_id": "route_39_barn",
+      "target_warp_id": 1,
+      "notes": "Barn entrance — left door"
+    },
+    {
+      "x": 5, "y": 3,
+      "target_area_id": "route_39_farmhouse",
+      "target_warp_id": 1,
+      "notes": "Farmhouse entrance"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "G": "tall_grass",
+      "F": "fence",
+      "H": "house_footprint",
+      "D": "door",
+      "P": "path",
+      "S": "sign",
+      "t": "fruit_tree",
+      "N": "npc_position",
+      "?": "hidden_item",
+      "L": "ledge_south"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "GGGG.HHHHH.HHHHHH.##",
+      "GGGG.DDHHH.HDDDHHH##",
+      "GGGG..........N....##",
+      "GGGG..........N....##",
+      "GGGGt.....S........##",
+      "GGGG..N...S...S....##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "GGGG.NNN...........##",
+      "GGGG...............##",
+      "GGGG..N............##",
+      "GGGG.?.............##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "GGGG...............##",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "PPPPPPPPPPPPPPPPPPPP",
+      "GG..N..............##",
+      "GG..N..............##",
+      "GG.................##",
+      "GG.................##",
+      "GG.................##",
+      "GG.................##",
+      "GG.................##",
+      "GG.N...............##",
+      "GGGGGGGGGGGG.......##",
+      "GGGGGGGGGGGG...S...##",
+      "GGGGGGGGGGGG.......##",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Route runs north-south, connecting Olivine City at the south to Route 38 at the north. Moomoo Farm occupies the northwest — the Barn (H left, warp x=1 y=3) and Farmhouse (H right, warp x=5 y=3) side by side. Tall grass dominates the western strip the entire length. A wide path (P) crosses the center east-west at rows 20-21 (the main Olivine-Ecruteak corridor). Miltank NPCs (N) roam the farm field area (rows 10-15). Pokefan Derek and Ruth are positioned mid-route (rows 22-23). Sailor Eugene is near the Olivine approach (row 29). Psychic Norman patrols the upper section (row 7). A fruit tree (t) is north near the farm. Three signs: Trainer Tips (5,31), Moomoo Farm (9,5), Route 39 sign (15,7). Hidden Nugget at (5,13)."
+  },
+  "signs": [
+    {
+      "x": 5, "y": 31,
+      "script": "Route39TrainerTips",
+      "text": "TRAINER TIPS: Use HEADBUTT on trees to shake Pokemon out. Different kinds of Pokemon drop out of trees. Use HEADBUTT on any tree you see!"
+    },
+    {
+      "x": 9, "y": 5,
+      "script": "MoomooFarmSign",
+      "text": "MOOMOO FARM — Enjoy Our Fresh and Tasty Milk"
+    },
+    {
+      "x": 15, "y": 7,
+      "script": "Route39Sign",
+      "text": "ROUTE 39 — OLIVINE CITY - ECRUTEAK CITY"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "route39_miltank1",
+      "name": "Miltank",
+      "sprite": "SPRITE_TAUROS",
+      "x": 3, "y": 12,
+      "facing": "random",
+      "movement": "pokemon_wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "MILTANK: Mooo! (cries as Miltank)"
+    },
+    {
+      "id": "route39_miltank2",
+      "name": "Miltank",
+      "sprite": "SPRITE_TAUROS",
+      "x": 6, "y": 11,
+      "facing": "random",
+      "movement": "pokemon_wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "MILTANK: Mooo! (cries as Miltank)"
+    },
+    {
+      "id": "route39_miltank3",
+      "name": "Miltank",
+      "sprite": "SPRITE_TAUROS",
+      "x": 4, "y": 15,
+      "facing": "random",
+      "movement": "pokemon_wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "MILTANK: Mooo! (cries as Miltank)"
+    },
+    {
+      "id": "route39_miltank4",
+      "name": "Miltank",
+      "sprite": "SPRITE_TAUROS",
+      "x": 8, "y": 13,
+      "facing": "random",
+      "movement": "pokemon_wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "MILTANK: Mooo! (cries as Miltank)"
+    },
+    {
+      "id": "route39_fruit_tree",
+      "name": "Fruit Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 9, "y": 3,
+      "facing": "none",
+      "movement": "still",
+      "script_type": "fruittree",
+      "fruittree_id": "FRUITTREE_ROUTE_39",
+      "dialogue_summary": "Fruit tree; yields a Berry daily."
+    },
+    {
+      "id": "route39_pokefan_jaime",
+      "name": "Pokefan Jaime",
+      "sprite": "SPRITE_POKEFAN_F",
+      "x": 4, "y": 22,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "script",
+      "condition": "night_only_trainer",
+      "notes": "Only challenges player at night (checktime NITE). During day she says 'I hope it gets dark soon.' After being defeated she speaks of meeting her Meowth here at night and how it grows friendlier training here. EVENT_BEAT_POKEFANF_JAIME controls beaten state.",
+      "dialogue": {
+        "daytime": "Ufufufu… I hope it gets dark soon.",
+        "seen_at_night": "You came at just the right time. Let's battle.",
+        "beaten": "Oh, how disappointing…",
+        "after": "I met my MEOWTH at night, right here on ROUTE 39. It seems to like it when I train here. It seems to become friendlier by training here than anywhere else."
+      }
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Psychic",
+      "name": "Norman",
+      "trainer_id": "PSYCHIC_T_NORMAN",
+      "event_flag": "EVENT_BEAT_PSYCHIC_NORMAN",
+      "x": 13, "y": 7,
+      "facing": "random",
+      "sprite": "SPRITE_STANDING_YOUNGSTER",
+      "movement": "spin_random_fast",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Slowpoke", "level": 17, "moves": ["Tackle", "Growl", "Water Gun", "—"]},
+        {"species": "Slowpoke", "level": 20, "moves": ["Curse", "Body Slam", "Water Gun", "Confusion"]}
+      ],
+      "prize_money": 640,
+      "rematch": false,
+      "dialogue": {
+        "seen": "Let me see what your Pokemon are capable of.",
+        "beaten": "Ooh, your Pokemon have potential.",
+        "after": "You know how Pokemon have different abilities? People are like that too. Everyone has different potential."
+      }
+    },
+    {
+      "class": "Pokefan M",
+      "name": "Derek",
+      "trainer_id": "POKEFANM_DEREK1",
+      "event_flag": "EVENT_BEAT_POKEFANM_DEREK",
+      "x": 10, "y": 22,
+      "facing": "up",
+      "sprite": "SPRITE_POKEFAN_M",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Pikachu", "level": 17, "held_item": "Berry"}
+      ],
+      "prize_money": 1360,
+      "rematch": true,
+      "rematch_phone_contact": "PHONE_POKEFANM_DEREK",
+      "condition": "requires_pikachu_in_party_to_exchange_number",
+      "post_rematch_gift": "Nugget",
+      "post_rematch_gift_flag": "ENGINE_DEREK_HAS_NUGGET",
+      "dialogue": {
+        "seen": "This is a good time to brag about my PIKACHU!",
+        "beaten": "I had no time to show off PIKACHU…",
+        "no_pikachu": "PIKACHU is it! Don't you agree?",
+        "intro": "I'm not listening to your bragging! We Pokemon FANS have a policy of not listening to other people brag!"
+      }
+    },
+    {
+      "class": "Pokefan F",
+      "name": "Ruth",
+      "trainer_id": "POKEFANF_RUTH",
+      "event_flag": "EVENT_BEAT_POKEFANF_RUTH",
+      "x": 11, "y": 19,
+      "facing": "right",
+      "sprite": "SPRITE_POKEFAN_F",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Pikachu", "level": 17, "held_item": "Berry"}
+      ],
+      "prize_money": 1360,
+      "rematch": false,
+      "dialogue": {
+        "seen": "Such darling Pokemon. Let's show our Pokemon together at the same time.",
+        "beaten": "I don't mind losing.",
+        "after": "Do you know about baby Pokemon? I bet they're just adorable!"
+      }
+    },
+    {
+      "class": "Sailor",
+      "name": "Eugene",
+      "trainer_id": "SAILOR_EUGENE",
+      "event_flag": "EVENT_BEAT_SAILOR_EUGENE",
+      "x": 13, "y": 29,
+      "facing": "left",
+      "sprite": "SPRITE_SAILOR",
+      "movement": "standing",
+      "line_of_sight": 5,
+      "team": [
+        {"species": "Poliwhirl", "level": 17},
+        {"species": "Raticate",  "level": 17},
+        {"species": "Krabby",    "level": 19}
+      ],
+      "prize_money": 760,
+      "rematch": false,
+      "dialogue": {
+        "seen": "I just got back to OLIVINE. So how about a Pokemon battle?",
+        "beaten": "Awaaargh!",
+        "after": "My Pokemon were caught and raised overseas. They're my companions on those long voyages."
+      }
+    },
+    {
+      "class": "Pokefan F",
+      "name": "Jaime",
+      "trainer_id": "POKEFANF_JAIME",
+      "event_flag": "EVENT_BEAT_POKEFANF_JAIME",
+      "x": 4, "y": 22,
+      "facing": "down",
+      "sprite": "SPRITE_POKEFAN_F",
+      "movement": "standing",
+      "line_of_sight": 0,
+      "condition": "night_only",
+      "team": [
+        {"species": "Meowth", "level": 16, "held_item": "Berry"}
+      ],
+      "prize_money": 1280,
+      "rematch": false,
+      "notes": "Uses faceplayer + custom script rather than standard trainer macro. Only initiates battle at night. During daytime plays idle dialogue."
+    }
+  ],
+  "items": [
+    {
+      "name": "Nugget",
+      "x": 5, "y": 13,
+      "hidden": true,
+      "event_flag": "EVENT_ROUTE_39_HIDDEN_NUGGET",
+      "script": "Route39HiddenNugget",
+      "notes": "Hidden in the field area between Miltank NPCs on the western grass strip."
+    }
+  ],
+  "post_quest_items": [
+    {
+      "name": "TM13 (Snore)",
+      "source": "Pokefan F (farmer wife) in Route 39 Farmhouse",
+      "condition": "EVENT_HEALED_MOOMOO — heal Moomoo by feeding 7 Berries",
+      "event_flag": "EVENT_GOT_TM13_SNORE_FROM_MOOMOO_FARM"
+    },
+    {
+      "name": "Moomoo Milk",
+      "source": "Pokefan M (dairy farmer) in Route 39 Farmhouse",
+      "price": 500,
+      "condition": "EVENT_HEALED_MOOMOO — available for purchase after healing Moomoo",
+      "notes": "Restores 100 HP. Only one bottle purchasable at a time."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Raticate",  "level_min": 17, "level_max": 17, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Farfetch'd","level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Miltank",   "level_min": 15, "level_max": 15, "rate": 5},
+        {"species": "Tauros",    "level_min": 15, "level_max": 15, "rate": 5}
+      ],
+      "day": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 30},
+        {"species": "Raticate",  "level_min": 17, "level_max": 17, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Farfetch'd","level_min": 16, "level_max": 16, "rate": 10},
+        {"species": "Miltank",   "level_min": 15, "level_max": 15, "rate": 5},
+        {"species": "Tauros",    "level_min": 15, "level_max": 15, "rate": 5}
+      ],
+      "night": [
+        {"species": "Rattata",   "level_min": 16, "level_max": 16, "rate": 40},
+        {"species": "Raticate",  "level_min": 17, "level_max": 17, "rate": 30},
+        {"species": "Magnemite", "level_min": 16, "level_max": 16, "rate": 20},
+        {"species": "Miltank",   "level_min": 15, "level_max": 15, "rate": 5},
+        {"species": "Tauros",    "level_min": 15, "level_max": 15, "rate": 5}
+      ],
+      "notes": "Farfetch'd does not appear at night. Grass is concentrated on the western strip and southern approach. Route 39 encounters slightly higher-leveled than Route 38 (Raticate 17 vs 16, Miltank/Tauros 15 vs 13)."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on Route 39."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "moomoo_sick_quest",
+      "description": "Moomoo the Miltank in the Barn is sick and won't produce milk. The Dairy Farmer in the Farmhouse sets EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO on first conversation. Feeding Moomoo Berries one at a time in the Barn triggers milestone text at 3, 5, and 7 Berries. At 7 Berries EVENT_HEALED_MOOMOO is set, unlocking Moomoo Milk for purchase (500) and TM13 Snore as reward from the farmer's wife."
+    },
+    {
+      "trigger": "pokefan_derek_phone_exchange",
+      "description": "Derek asks for the player's number only if they have a Pikachu in their party. If registered he calls for rematches, eventually giving a Nugget (ENGINE_DEREK_HAS_NUGGET)."
+    },
+    {
+      "trigger": "pokefanf_jaime_night_battle",
+      "description": "Jaime only challenges the player at night (checktime NITE). During the day she wanders idly. EVENT_BEAT_POKEFANF_JAIME tracks defeat state. After defeating her she explains her Meowth grows friendlier training here at night."
+    }
+  ],
+  "object_event_constants": {
+    "ROUTE39_SAILOR": 0,
+    "ROUTE39_POKEFAN_M": 1,
+    "ROUTE39_POKEFAN_F1": 2,
+    "ROUTE39_MILTANK1": 3,
+    "ROUTE39_MILTANK2": 4,
+    "ROUTE39_MILTANK3": 5,
+    "ROUTE39_MILTANK4": 6,
+    "ROUTE39_PSYCHIC_NORMAN": 7,
+    "ROUTE39_FRUIT_TREE": 8,
+    "ROUTE39_POKEFAN_F2": 9
+  },
+  "notes": "Route 39 is a north-south route connecting Olivine City (south) to Route 38 (east, via a right-angle bend). Its defining landmark is Moomoo Farm in the northwestern corner, comprising the Barn (where sick Miltank Moomoo lives) and the Farmhouse (where the dairy farming couple live). The Moomoo sidequest is a Gen II classic: feed 7 Berries to heal Moomoo, unlock Moomoo Milk shop and TM13 Snore. Four roaming Miltank NPCs patrol the farm fields. Pokefan Jaime is a night-only trainer using a custom battle script. The route is the last overland route before Olivine City and is traveled frequently in the mid-game. Trainer count: 5 (Psychic Norman, Pokefan Derek, Pokefan Ruth, Sailor Eugene, Pokefan Jaime night-only)."
+}

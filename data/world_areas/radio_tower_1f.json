@@ -1,0 +1,191 @@
+{
+  "area_id": "radio_tower_1f",
+  "area_name": "Goldenrod Radio Tower 1F",
+  "area_type": "building",
+  "pokecrystal_map_id": "RADIO_TOWER_1F",
+  "width_blocks": 9,
+  "height_blocks": 4,
+  "width_tiles": 18,
+  "height_tiles": 8,
+  "tileset": "radio_tower",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 11,
+      "note": "South exit to Goldenrod City"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 11,
+      "note": "South exit to Goldenrod City (double-tile door)"
+    },
+    {
+      "x": 15, "y": 0,
+      "target_area_id": "radio_tower_2f",
+      "target_warp_id": 2,
+      "note": "Stairs up to 2F (right side staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "S": "sign/bg_event",
+      "^": "stairs_up",
+      "D": "door/exit",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "##S###########S###",
+      "##................",
+      "##................",
+      "##................",
+      "##....N.N....N....",
+      "##................",
+      "##.N....N..N......",
+      "##DD.............."
+    ],
+    "notes": "Directory sign at bg_event (3,0). Lucky Channel sign at bg_event (13,0). Receptionist at (5,6) faces left. Lass at (16,4) faces left. Youngster at (15,4) faces right. Rocket Grunt at (14,1) faces down (Rocket state only). Lucky Number Man at (8,6) faces up. Radio Card Woman at (12,6) faces up. Exit at (2,7) and (3,7). Stairs up at (15,0)."
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 0,
+      "type": "read",
+      "text": "1F RECEPTION / 2F SALES / 3F PERSONNEL / 4F PRODUCTION / 5F DIRECTOR'S OFFICE",
+      "label": "RadioTower1FDirectory"
+    },
+    {
+      "x": 13, "y": 0,
+      "type": "read",
+      "text": "LUCKY CHANNEL! Win with Pokemon ID numbers! Trade your Pokemon to collect different ID numbers!",
+      "label": "RadioTower1FLuckyChannelSign"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "receptionist",
+      "name": "Receptionist",
+      "sprite": "SPRITE_RECEPTIONIST",
+      "x": 5, "y": 6,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "always_present",
+      "dialogue_summary": "Welcome! (Normal) / I'm sorry, but we're not offering any tours today. (Rocket takeover — checks ENGINE_ROCKETS_IN_RADIO_TOWER flag)"
+    },
+    {
+      "id": "lass",
+      "name": "Lass",
+      "sprite": "SPRITE_LASS",
+      "x": 16, "y": 4,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "BEN is a fabulous DJ. His sweet voice makes me melt!"
+    },
+    {
+      "id": "youngster",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 15, "y": 4,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "I love MARY, from Pokemon TALK. I only know what she sounds like, though."
+    },
+    {
+      "id": "lucky_number_man",
+      "name": "Lucky Number Man",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 8, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "Runs the Lucky Number Show. Checks all Pokemon ID numbers in your party against this week's number. Prizes: Master Ball (all 5 digits match), Exp.Share (last 3 match), PP Up (last 2 match). Resets weekly. Flag ENGINE_LUCKY_NUMBER_SHOW tracks if prize was already claimed this week.",
+      "movement_notes": "Walks one step RIGHT to PC then returns LEFT after checking IDs."
+    },
+    {
+      "id": "radio_card_woman",
+      "name": "Radio Card Woman",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 12, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "normal",
+      "event_flag": "EVENT_GOLDENROD_CITY_CIVILIANS",
+      "dialogue_summary": "Offers a 5-question quiz to earn the RADIO CARD. Answers: YES, YES, NO, YES, NO. Correct answers unlock Radio Card (ENGINE_RADIO_CARD flag). After receiving the card, Pokegear can function as a radio. After already having the card: Please tune in to our radio shows."
+    }
+  ],
+  "trainers": [
+    {
+      "id": "rocket_grunt_m3",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_3",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 14, "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_3",
+      "team": [
+        {"species": "Raticate", "level": 24},
+        {"species": "Raticate", "level": 24}
+      ],
+      "seen_text": "We've finally taken over the RADIO TOWER! Now everyone will get to experience the true terror of TEAM ROCKET! We'll show you how scary we are!",
+      "beaten_text": "Too strong! We must watch you...",
+      "after_battle_text": "You're too strong. Our plan could be ruined. I must warn the others..."
+    }
+  ],
+  "items": [],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "first_visit_normal_state",
+      "description": "Reception desk staffed. Lucky Number Show runs weekly — Lucky Number Man checks party Pokemon IDs. Radio Card Woman gives 5-question quiz for RADIO CARD Pokegear upgrade."
+    },
+    {
+      "trigger": "engine_rockets_in_radio_tower",
+      "description": "Rocket Grunt M3 appears at (14,1) blocking the staircase area. Receptionist refuses tours. Civilian Lass and Youngster vanish (EVENT_GOLDENROD_CITY_CIVILIANS clears). Lucky Number Man and Radio Card Woman also hidden during takeover."
+    }
+  ],
+  "special_mechanics": {
+    "lucky_number_show": {
+      "flag": "ENGINE_LUCKY_NUMBER_SHOW",
+      "reset_flag": "ENGINE_LUCKY_NUMBER_SHOW (via CheckLuckyNumberShowFlag / ResetLuckyNumberShowFlag)",
+      "weekly_reset": true,
+      "prizes": [
+        {"match": "all_5_digits", "prize": "Master Ball", "sfx": "SFX_1ST_PLACE"},
+        {"match": "last_3_digits", "prize": "Exp.Share", "sfx": "SFX_2ND_PLACE"},
+        {"match": "last_2_digits", "prize": "PP Up", "sfx": "SFX_3RD_PLACE"}
+      ]
+    },
+    "radio_card_quiz": {
+      "flag": "ENGINE_RADIO_CARD",
+      "questions": [
+        {"question": "Is there a Pokemon that appears only in the morning?", "correct": "YES"},
+        {"question": "You can't buy a BERRY at a MART.", "correct": "YES"},
+        {"question": "Does HM01 contain the move FLASH?", "correct": "NO"},
+        {"question": "Is FALKNER the VIOLET GYM LEADER who uses bird Pokemon?", "correct": "YES"},
+        {"question": "Do GOLDENROD GAME CORNER's slots have CHARMANDER on their reels?", "correct": "NO"}
+      ],
+      "reward": "RADIO CARD (allows Pokegear to function as radio)"
+    }
+  },
+  "floor_purpose": "Reception — main entry point, Lucky Number Show, Radio Card quiz",
+  "notes": "1F is the public-facing reception for the Radio Tower. Under normal conditions, visitors can participate in the weekly Lucky Number Show (chance to win Master Ball, Exp.Share, or PP Up based on Pokemon ID matches) and take a trivia quiz to earn the Radio Card for the Pokegear. During the Team Rocket takeover (ENGINE_ROCKETS_IN_RADIO_TOWER flag set), civilian NPCs are replaced by a Rocket Grunt guarding the staircase, and the receptionist turns away visitors. The two exits at (2,7) and (3,7) lead to Goldenrod City warp point 11."
+}

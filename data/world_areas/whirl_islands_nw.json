@@ -1,0 +1,157 @@
+{
+  "area_id": "whirl_islands_nw",
+  "area_name": "Whirl Islands (NW)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_NW",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_41",
+      "offset": 0,
+      "requires": "HM06_Whirlpool",
+      "notes": "Accessible from Route 41 by using Whirlpool HM to clear the surrounding whirlpool. warp_event 5,7 ROUTE_41 1."
+    }
+  ],
+  "warps": [
+    {
+      "x": 5,
+      "y": 7,
+      "target_area_id": "route_41",
+      "target_warp_id": 1,
+      "notes": "Exit to Route 41. Whirlpool surrounds the island — HM06 required to enter from the sea."
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 1,
+      "notes": "Staircase descending to B1F. warp_event 5,3 WHIRL_ISLAND_B1F 1."
+    },
+    {
+      "x": 3,
+      "y": 15,
+      "target_area_id": "whirl_islands_sw",
+      "target_warp_id": 4,
+      "notes": "Passage connecting to SW entrance cave. warp_event 3,15 WHIRL_ISLAND_SW 4."
+    },
+    {
+      "x": 7,
+      "y": 15,
+      "target_area_id": "whirl_islands_cave",
+      "target_warp_id": 2,
+      "notes": "Passage connecting to the interior Cave section. warp_event 7,15 WHIRL_ISLAND_CAVE 2."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "W": "whirlpool",
+      "v": "stairs_down",
+      "E": "cave_exit_to_route_41",
+      "P": "passage_to_adjacent_cave"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "#####v####",
+      "##########",
+      "##########",
+      "##########",
+      "#####E####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "###P###P##",
+      "##########",
+      "##########"
+    ],
+    "notes": "Schematic from warp coordinates in WhirlIslandNW.asm. 10x18 tiles. Staircase down to B1F at (5,3). Exit to Route 41 at (5,7). Two floor passages: west leads to SW cave (3,15), east leads to WhirlIslandCave (7,15). Surroundings of island are whirlpool water on Route 41 requiring HM06. Actual block layout in maps/WhirlIslandNW.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Standard 7-slot cave encounter table. Slots map to approximate rates: slot1 ~30%, slot2 ~30%, slot3 ~20%, slot4 ~10%, slot5 ~5%, slot6 ~4%, slot7 ~1%. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_NW. Tileset attr $09.",
+      "morning": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 24, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 24, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter table defined for WHIRL_ISLAND_NW in johto_water.asm. No surfable pools in this entrance cave.",
+      "mons": []
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Fishing uses FISHGROUP_WHIRL_ISLANDS per maps.asm, but no accessible fishing tiles exist in this small entrance cave.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: day=Horsea lv20, night=Horsea lv20"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: day=Horsea lv40, night=Horsea lv40"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "entry_from_route_41",
+      "description": "Player must use HM06 Whirlpool on the surrounding sea whirlpool before landing on the island and entering the cave. This is one of four Whirl Islands accessible from Route 41.",
+      "requires": "HM06_Whirlpool, Glacier_Badge"
+    }
+  ],
+  "signs": [],
+  "notes": "Northwest entrance to the Whirl Islands complex. This is one of four small entrance caves accessible from Route 41 (all requiring HM06 Whirlpool). The NW cave is unique in having two internal passages: one to the SW entrance cave and one to the interior WhirlIslandCave junction. A staircase at (5,3) descends directly to the main B1F floor. No items or trainers present. Wild encounters are cave-type (Krabby, Zubat, Seel, Golbat). Night encounters replace Seel slots with additional Golbat. Width 5 blocks / 10 tiles, height 9 blocks / 18 tiles. Source: maps/WhirlIslandNW.asm, constants/map_constants.asm line 131, data/maps/maps.asm line 144, data/wild/johto_grass.asm lines 845-871."
+}

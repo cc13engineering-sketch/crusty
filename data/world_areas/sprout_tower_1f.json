@@ -1,0 +1,202 @@
+{
+  "area_id": "sprout_tower_1f",
+  "area_name": "Sprout Tower 1F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "SPROUT_TOWER_1F",
+  "width_blocks": 10,
+  "height_blocks": 8,
+  "width_tiles": 20,
+  "height_tiles": 16,
+  "tileset": "TILESET_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "x": 9,  "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 7,
+      "note": "Left exit tile to Violet City (south door)"
+    },
+    {
+      "x": 10, "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 7,
+      "note": "Right exit tile to Violet City (south door)"
+    },
+    {
+      "x": 6,  "y": 4,
+      "target_area_id": "sprout_tower_2f",
+      "target_warp_id": 1,
+      "note": "Center staircase to 2F (ladder/stairs)"
+    },
+    {
+      "x": 2,  "y": 6,
+      "target_area_id": "sprout_tower_2f",
+      "target_warp_id": 2,
+      "note": "Left side staircase to 2F"
+    },
+    {
+      "x": 17, "y": 3,
+      "target_area_id": "sprout_tower_2f",
+      "target_warp_id": 3,
+      "note": "Right side staircase to 2F"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "P": "swaying_pillar",
+      "^": "stairs_up",
+      "E": "exit_mat",
+      "S": "statue",
+      "N": "npc_position",
+      "T": "trainer_position",
+      "!": "item_ball"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "#.................^#",
+      "#....N..^..P.......#",
+      "#..T.......P.......#",
+      "#.^N.......P..N....#",
+      "#...........P......#",
+      "#...........P..N...#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P..N!..#",
+      "#...........P......#",
+      "#...........P......#",
+      "#......SS...P..EE..#"
+    ],
+    "notes": [
+      "Map is 10x8 blocks = 20x16 tiles; top 3 rows are solid exterior wall/ceiling.",
+      "The swaying Bellsprout pillar (P) runs through x=11 from y=4 to y=15 — the animated center pillar.",
+      "Three staircases (^) to 2F: center at (6,4), left at (2,6), right at (17,3).",
+      "Exit mats (E) at y=15 for warps south to Violet City at tile x=9 and x=10.",
+      "Statues (S) at bg_event positions (7,15) and (12,15): Pokemon statue flanking the entrance.",
+      "Sage1 (NPC, standing down) at object_event (7,4).",
+      "Sage2 (NPC, wander 1x1) at object_event (6,7) — left of pillar.",
+      "Granny (NPC, standing left) at object_event (11,12) — right of pillar.",
+      "Teacher (NPC, standing up) at object_event (9,9).",
+      "Sage Chow (TRAINER, standing up, sight 4) at object_event (3,5).",
+      "Parlyz Heal item ball at object_event (16,7) — event flag EVENT_SPROUT_TOWER_1F_PARLYZ_HEAL.",
+      "Layout is approximate; exact block positions reconstructed from object_event tile coordinates in SproutTower1F.asm."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "sage_1",
+      "name": "Sage",
+      "sprite": "SPRITE_SAGE",
+      "x": 7, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "dialogue_summary": "Only if you reach the top will you obtain an HM.",
+      "dialogue_key": "SproutTower1FSage1Script"
+    },
+    {
+      "id": "sage_2",
+      "name": "Sage",
+      "sprite": "SPRITE_SAGE",
+      "x": 6, "y": 7,
+      "facing": "varies",
+      "movement": "wander_1x1",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "dialogue_summary": "Sprout Tower was built long ago as a place for Pokemon training.",
+      "dialogue_key": "SproutTower1FSage2Script"
+    },
+    {
+      "id": "granny",
+      "name": "Granny",
+      "sprite": "SPRITE_GRANNY",
+      "x": 11, "y": 12,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "dialogue",
+      "dialogue_summary": "A Bellsprout over 100 feet tall became the center pillar here.",
+      "dialogue_key": "SproutTower1FGrannyScript"
+    },
+    {
+      "id": "teacher",
+      "name": "Teacher",
+      "sprite": "SPRITE_TEACHER",
+      "x": 9, "y": 9,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "default",
+      "script_type": "dialogue",
+      "dialogue_summary": "See the pillar shaking? People are training upstairs.",
+      "dialogue_key": "SproutTower1FTeacherScript"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Sage",
+      "name": "Chow",
+      "trainer_const": "SAGE_CHOW",
+      "event_flag": "EVENT_BEAT_SAGE_CHOW",
+      "sprite": "SPRITE_SAGE",
+      "x": 3, "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 4,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3}
+      ],
+      "base_reward": 8,
+      "prize_money": 24,
+      "rematch": false,
+      "seen_text": "We stand guard in this tower. Here, we express our gratitude to honor all Pokemon.",
+      "beaten_text": "Th-Thank you!",
+      "after_text": "All living beings coexist through cooperation. We must always be thankful for this."
+    }
+  ],
+  "items": [
+    {
+      "name": "Parlyz Heal",
+      "x": 16, "y": 7,
+      "hidden": false,
+      "event_flag": "EVENT_SPROUT_TOWER_1F_PARLYZ_HEAL",
+      "requires": null,
+      "script": "SproutTower1FParlyzHeal"
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 7, "y": 15,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower1FStatue",
+      "note": "Left Pokemon statue at the south entrance"
+    },
+    {
+      "x": 12, "y": 15,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower1FStatue",
+      "note": "Right Pokemon statue at the south entrance"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "chow_trainer_battle",
+      "trigger": "line_of_sight_player",
+      "description": "Sage Chow challenges player on sight with line-of-sight 4 facing up. After defeat: sets EVENT_BEAT_SAGE_CHOW."
+    }
+  ],
+  "notes": "Sprout Tower 1F is the ground floor of the three-story tower north of Violet City. The defining feature is the swaying Bellsprout pillar that runs through the center of all three floors — an ancient Bellsprout over 100 feet tall that became the tower's structural core. This floor has one trainer (Sage Chow) and one item (Parlyz Heal). Four non-trainer NPCs provide exposition about the tower's history and the pillar. Three staircases connect to 2F: a center staircase at (6,4), left at (2,6), and right at (17,3). Two Pokemon statues flank the south door. The tower uses TILESET_TOWER and plays MUSIC_SPROUT_TOWER. Map dimensions confirmed from map_constants.asm: 10x8 blocks (20x16 tiles). All warp_event, object_event, and bg_event coordinates sourced directly from SproutTower1F.asm."
+}

@@ -1,0 +1,370 @@
+{
+  "area_id": "ecruteak_city",
+  "area_name": "Ecruteak City",
+  "area_type": "town",
+  "pokecrystal_map_id": "ECRUTEAK_CITY",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_37",
+      "offset": 5,
+      "requires": null
+    },
+    {
+      "direction": "west",
+      "target_area_id": "route_38",
+      "offset": 5,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_42",
+      "offset": 9,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 35, "y": 26,
+      "target_area_id": "route_42_ecruteak_gate",
+      "target_warp_id": 1,
+      "note": "east gate left door"
+    },
+    {
+      "x": 35, "y": 27,
+      "target_area_id": "route_42_ecruteak_gate",
+      "target_warp_id": 2,
+      "note": "east gate right door"
+    },
+    {
+      "x": 18, "y": 11,
+      "target_area_id": "ecruteak_tin_tower_entrance",
+      "target_warp_id": 1,
+      "note": "Tin Tower Entrance (Bell Tower approach)"
+    },
+    {
+      "x": 20, "y": 2,
+      "target_area_id": "wise_trios_room",
+      "target_warp_id": 1,
+      "note": "Wise Trio's Room left door"
+    },
+    {
+      "x": 20, "y": 3,
+      "target_area_id": "wise_trios_room",
+      "target_warp_id": 2,
+      "note": "Wise Trio's Room right door"
+    },
+    {
+      "x": 23, "y": 27,
+      "target_area_id": "ecruteak_pokecenter_1f",
+      "target_warp_id": 1,
+      "note": "Pokemon Center"
+    },
+    {
+      "x": 5, "y": 21,
+      "target_area_id": "ecruteak_lugia_speech_house",
+      "target_warp_id": 1,
+      "note": "House with Lugia/Ho-Oh legend info"
+    },
+    {
+      "x": 23, "y": 21,
+      "target_area_id": "dance_theater",
+      "target_warp_id": 1,
+      "note": "Ecruteak Dance Theater"
+    },
+    {
+      "x": 29, "y": 21,
+      "target_area_id": "ecruteak_mart",
+      "target_warp_id": 2,
+      "note": "Poke Mart"
+    },
+    {
+      "x": 6, "y": 27,
+      "target_area_id": "ecruteak_gym",
+      "target_warp_id": 1,
+      "note": "Ecruteak Gym — Morty"
+    },
+    {
+      "x": 13, "y": 27,
+      "target_area_id": "ecruteak_itemfinder_house",
+      "target_warp_id": 1,
+      "note": "Itemfinder House — player receives Itemfinder"
+    },
+    {
+      "x": 37, "y": 7,
+      "target_area_id": "tin_tower_1f",
+      "target_warp_id": 1,
+      "note": "Tin Tower (Bell Tower) exterior entrance"
+    },
+    {
+      "x": 5, "y": 5,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 1,
+      "note": "Burned Tower (Brass Tower ruins) exterior entrance"
+    },
+    {
+      "x": 0, "y": 18,
+      "target_area_id": "route_38_ecruteak_gate",
+      "target_warp_id": 3,
+      "note": "west gate top door"
+    },
+    {
+      "x": 0, "y": 19,
+      "target_area_id": "route_38_ecruteak_gate",
+      "target_warp_id": 4,
+      "note": "west gate bottom door"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "P": "path",
+      "S": "sign",
+      "G": "gate_building",
+      "M": "mart",
+      "K": "pokecenter",
+      "N": "npc_position",
+      "?": "hidden_item",
+      "X": "blocked",
+      "E": "exit_mat"
+    },
+    "notes": "Tile coordinates are (col, row) 0-indexed. Width=40 tiles, Height=36 tiles. North half contains Burned Tower (west) and Bell Tower / Tin Tower Entrance (east). South half contains city buildings.",
+    "rows": [
+      "########################################",
+      "#TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "#TT......HHHHHH...HH.HHHHHHHHHHHHH.TTT#",
+      "#TT......HHHHHH...HH.HHHHHHHHHHHHH.TTT#",
+      "#TT......HDDDHH...DD.HHHHHHHDDDDHHHTTT#",
+      "#TT......HHHHHH...HH.HHHHHHHHHHHHH.TTT#",
+      "#TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "#TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "#TT......HHHHHH...HH....HHHHHHHHHH..TT#",
+      "#TT......HHHHHH...HH....HHHHHHHHHH..TT#",
+      "#TT......HHHHHHSTTTTTTTTTTTTTTHHHHH.TT#",
+      "#.............PPPPPPPPPPPPPPPP.HHHHH.TT",
+      "#.TTTTTTTT....PPPPPPPPPPPPPPPP......TTT",
+      "#.TTTTTTTT....PPP.?..PPPPPPPPPP.TTTTTTT",
+      "#.TTTTTTTTNTTTTTTTTTTTTTTTTTTTT.TTTTTTT",
+      "#..NNNNNNN.TTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "#.TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "#STTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "E.TTTTTTTTTTT.NTTTTTTTTTTTTTTTTTTTTTTTT",
+      "E.TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "#.TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT##",
+      "##HHDDDHHHHSSHHDDDHHHHHSSHHDDDHHHHHSTTT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTTT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTTT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTTT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTTT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTTT",
+      "##HDDDHHHHHHHHHHHHHDDDHHHHDDDHHHHKKKHHT",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH##",
+      "##HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHTT",
+      "##TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT#",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "gramps_1",
+      "name": "Gramps 1",
+      "x": 18, "y": 15,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions Ecruteak used to have two towers, one in the east and one in the west."
+    },
+    {
+      "id": "gramps_2",
+      "name": "Gramps 2",
+      "x": 20, "y": 21,
+      "facing": "random",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Hints that an odd old man in the Dance Theater will give something nice if you can dance like the Kimono Girls."
+    },
+    {
+      "id": "lass_1",
+      "name": "Lass 1",
+      "x": 21, "y": 29,
+      "facing": "left_right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions going to practice at the Dance Theater."
+    },
+    {
+      "id": "lass_2",
+      "name": "Lass 2",
+      "x": 3, "y": 9,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Before beasts released: says the tower here used to be much taller per her grandma. After beasts released: says three big Pokemon ran off in different directions.",
+      "event_flag": "EVENT_RELEASED_THE_BEASTS",
+      "conditional": true
+    },
+    {
+      "id": "fisher",
+      "name": "Fisher",
+      "x": 9, "y": 22,
+      "facing": "right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Tells the rumor about Olivine Lighthouse and the sick Pokemon beacon. After Jasmine returns to gym, says the Pokemon was cured.",
+      "event_flag": "EVENT_JASMINE_RETURNED_TO_GYM",
+      "conditional": true
+    },
+    {
+      "id": "youngster",
+      "name": "Youngster",
+      "x": 10, "y": 14,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Heard Pokemon are rampaging at the Lake of Rage."
+    },
+    {
+      "id": "gramps_3",
+      "name": "Gramps 3 (former trainer)",
+      "x": 3, "y": 7,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Tells the legend of the Burned Tower fire 150 years ago and how a rainbow-colored Pokemon descended and resurrected the three nameless Pokemon that perished. Was a trainer 'way back when'.",
+      "event_flag": "EVENT_ECRUTEAK_CITY_GRAMPS",
+      "conditional": true
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Hyper Potion",
+      "x": 23, "y": 14,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ECRUTEAK_CITY_HIDDEN_HYPER_POTION"
+    }
+  ],
+  "signs": [
+    {
+      "x": 15, "y": 21,
+      "text": "ECRUTEAK CITY — A Historical City Where the Past Meets the Present"
+    },
+    {
+      "x": 38, "y": 10,
+      "text": "TIN TOWER — A legendary Pokemon is said to roost here."
+    },
+    {
+      "x": 8, "y": 28,
+      "text": "ECRUTEAK CITY Pokemon GYM — LEADER: MORTY — The Mystic Seer of the Future"
+    },
+    {
+      "x": 21, "y": 21,
+      "text": "ECRUTEAK DANCE THEATER"
+    },
+    {
+      "x": 2, "y": 10,
+      "text": "BURNED TOWER — It was destroyed by a mysterious fire. Please stay away, as it is unsafe."
+    },
+    {
+      "x": 24, "y": 27,
+      "text": "Standard Pokecenter sign (jump to standard script)"
+    },
+    {
+      "x": 30, "y": 21,
+      "text": "Standard Mart sign (jump to standard script)"
+    }
+  ],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "map_enter",
+      "description": "Sets ENGINE_FLYPOINT_ECRUTEAK flag — this city becomes a valid Fly destination once visited."
+    },
+    {
+      "trigger": "burned_tower_visit",
+      "description": "Player enters Burned Tower with rival Silver; falls into basement; legendary beasts Raikou, Entei, and Suicune awaken and scatter. EVENT_RELEASED_THE_BEASTS is set."
+    },
+    {
+      "trigger": "after_beasts_released",
+      "description": "Wise Trio blocks Tin Tower entrance. Player must ring the Clear Bell and defeat Wise Trio to gain passage."
+    }
+  ],
+  "layout_landmarks": {
+    "burned_tower": {
+      "position": "northwest quadrant",
+      "warp_tile": {"x": 5, "y": 5},
+      "description": "Ruins of the Brass Tower, destroyed 150 years ago by fire and lightning. Access to the legendary beasts event."
+    },
+    "tin_tower_entrance": {
+      "position": "northeast quadrant",
+      "warp_tile": {"x": 18, "y": 11},
+      "description": "Building entrance leading to the nine-tier Bell Tower where Ho-Oh roosts."
+    },
+    "wise_trios_room": {
+      "position": "north-center",
+      "warp_tiles": [{"x": 20, "y": 2}, {"x": 20, "y": 3}],
+      "description": "Small room accessed from the Tin Tower Entrance building. Three sages (Gaku, Masa, Koji) guard passage to Tin Tower after beasts are released."
+    },
+    "ecruteak_gym": {
+      "position": "south-southwest",
+      "warp_tile": {"x": 6, "y": 27},
+      "leader": "Morty",
+      "badge": "Fog Badge"
+    },
+    "dance_theater": {
+      "position": "south-center",
+      "warp_tile": {"x": 23, "y": 21},
+      "description": "Home of the five Kimono Girls. HM03 Surf reward for defeating all five."
+    },
+    "pokecenter": {
+      "position": "south-east",
+      "warp_tile": {"x": 23, "y": 27}
+    },
+    "mart": {
+      "position": "south-center-right",
+      "warp_tile": {"x": 29, "y": 21},
+      "inventory": ["Poke Ball", "Great Ball", "Potion", "Super Potion", "Antidote", "Parlyz Heal", "Awakening", "Burn Heal", "Ice Heal", "Revive"]
+    },
+    "itemfinder_house": {
+      "position": "south-southwest",
+      "warp_tile": {"x": 13, "y": 27},
+      "description": "Man gives player the Itemfinder."
+    },
+    "lugia_speech_house": {
+      "position": "south-west",
+      "warp_tile": {"x": 5, "y": 21},
+      "description": "House with information about Lugia/Ho-Oh legends tied to the two towers."
+    },
+    "route_38_gate": {
+      "position": "west edge",
+      "warp_tiles": [{"x": 0, "y": 18}, {"x": 0, "y": 19}],
+      "description": "Gate building connecting to Route 38."
+    },
+    "route_42_gate": {
+      "position": "east edge",
+      "warp_tiles": [{"x": 35, "y": 26}, {"x": 35, "y": 27}],
+      "description": "Gate building connecting to Route 42."
+    }
+  },
+  "notes": "Ecruteak City is the cultural heart of Johto. It sits between Route 37 (south), Route 38 (west), and Route 42 (east). The city features the Burned Tower ruins to the northwest and the Bell Tower / Tin Tower to the northeast. The legendary beasts (Raikou, Entei, Suicune) event triggers in the Burned Tower basement. The Fog Badge enables Surf outside of battle and makes Pokemon up to Lv50 obey. The city fly-point is registered on first visit via EcruteakCityFlypointCallback."
+}

@@ -1,0 +1,158 @@
+{
+  "area_id": "charcoal_kiln",
+  "area_name": "Charcoal Kiln",
+  "area_type": "building",
+  "pokecrystal_map_id": "CHARCOAL_KILN",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "azalea_town",
+      "target_warp_id": 2,
+      "note": "Left exit door tile back to Azalea Town"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "azalea_town",
+      "target_warp_id": 2,
+      "note": "Right exit door tile back to Azalea Town"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "B": "bookshelf",
+      "R": "radio",
+      "K": "kiln",
+      "N": "npc_position",
+      "F": "farfetchd_position"
+    },
+    "rows": [
+      "########",
+      "#BB..R##",
+      "#......#",
+      "#.N..N.#",
+      "#......#",
+      "#......#",
+      "#.....F#",
+      "#EEDDEE#"
+    ],
+    "notes": [
+      "Row 0 (y=0): north wall",
+      "Row 1 (y=1): bookshelves at tile(0,1) and tile(1,1); radio at tile(7,1)",
+      "Row 3 (y=3): Boss/Charcoal Maker (Black Belt sprite) at tile(2,3); Apprentice (Youngster sprite) at tile(5,3)",
+      "Row 6 (y=6): Farfetch'd at tile(5,6) — appears after Ilex Forest quest completion",
+      "Row 7 (y=7): exit mats at tile(2,7) and tile(3,7)",
+      "Note: Kiln itself is represented as interior of building; no separate kiln tile in this interior",
+      "Farfetch'd sprite is SPRITE_MOLTRES in pokecrystal (reused sprite for bird-type NPC) mapped to Farfetch'd encounter"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "charcoal_boss",
+      "name": "Charcoal Kiln Boss (Black Belt)",
+      "sprite": "SPRITE_BLACK_BELT",
+      "x": 2, "y": 3,
+      "facing": "varies",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_CHARCOAL_KILN_BOSS",
+      "dialogue_summary": "Three states: (1) before well cleared — Slowpoke disappearance is a bad omen, says stay inside; (2) after well cleared but before Ilex Forest — Slowpoke returned but apprentice still hasn't come back from Ilex Forest; (3) after HM01 Cut obtained — praises player for chasing Team Rocket and going to Ilex Forest alone, invites them to train.",
+      "dialogue_key": "CharcoalKilnBoss"
+    },
+    {
+      "id": "charcoal_apprentice",
+      "name": "Charcoal Kiln Apprentice (Youngster)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 5, "y": 3,
+      "facing": "varies",
+      "movement": "wander",
+      "movement_range": [1, 1],
+      "script_type": "special",
+      "event_flag": "EVENT_CHARCOAL_KILN_APPRENTICE",
+      "dialogue_summary": "Three states: (1) before well cleared — wonders where Slowpoke have gone; (2) after Cut obtained (EVENT_GOT_HM01_CUT) — thanks player and gives Charcoal item (EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN tracks delivery); (3) after Charcoal given — says Slowpoke came back and player found Farfetch'd, calls player the coolest.",
+      "dialogue_key": "CharcoalKilnApprentice",
+      "note": "The apprentice is the one lost in Ilex Forest during the Farfetch'd quest. He is absent from Ilex Forest NPC events but referenced by boss dialogue. Returns to Kiln after player completes the forest."
+    },
+    {
+      "id": "farfetchd",
+      "name": "Farfetch'd",
+      "sprite": "SPRITE_MOLTRES",
+      "x": 5, "y": 6,
+      "facing": "varies",
+      "movement": "pokemon",
+      "movement_range": [2, 2],
+      "palette": "PAL_NPC_BROWN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_CHARCOAL_KILN_FARFETCH_D",
+      "visibility": "visible_after_ilex_forest_quest",
+      "dialogue_summary": "Farfetch'd: Kwaa!",
+      "dialogue_key": "CharcoalKilnFarfetchd",
+      "note": "This Farfetch'd is the one the charcoal maker uses to gather wood from Ilex Forest. Player must herd it back to the Kiln during the Ilex Forest puzzle. Its presence here (event flag set) confirms the quest is complete, which triggers the HM01 Cut reward from the apprentice."
+    }
+  ],
+  "interactables": [
+    {
+      "id": "bookshelf_left",
+      "x": 0, "y": 1,
+      "type": "bookshelf",
+      "script": "CharcoalKilnBookshelf",
+      "text_type": "MagazineBookshelfScript",
+      "note": "Magazine-style bookshelf (less difficult than Kurt's)"
+    },
+    {
+      "id": "bookshelf_right",
+      "x": 1, "y": 1,
+      "type": "bookshelf",
+      "script": "CharcoalKilnBookshelf",
+      "text_type": "MagazineBookshelfScript"
+    },
+    {
+      "id": "radio",
+      "x": 7, "y": 1,
+      "type": "radio",
+      "script": "CharcoalKilnRadio",
+      "text_type": "Radio2Script",
+      "note": "Standard Radio2 broadcast"
+    }
+  ],
+  "items": [
+    {
+      "name": "Charcoal",
+      "x": null, "y": null,
+      "hidden": false,
+      "given_by": "Charcoal Kiln Apprentice",
+      "requires": "EVENT_GOT_HM01_CUT",
+      "event_flag": "EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN",
+      "held_item_effect": "Boosts power of Fire-type moves by 10% when held",
+      "dialogue_on_give": "CharcoalKilnApprenticeText2",
+      "note": "Given as thanks for clearing Ilex Forest. Fire-type held item. Also sold at Azalea Mart for 9800 but can be obtained free here."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "charcoal_delivery",
+      "trigger": "after_ilex_forest_farfetchd_quest",
+      "description": "Once player obtains HM01 Cut (EVENT_GOT_HM01_CUT set), the Apprentice will offer Charcoal as gratitude. EVENT_GOT_CHARCOAL_IN_CHARCOAL_KILN prevents a second delivery. The Farfetch'd NPC appears in the kiln interior (EVENT_CHARCOAL_KILN_FARFETCH_D) after the quest, indicating it has been safely returned home."
+    },
+    {
+      "id": "ilex_forest_connection",
+      "trigger": "contextual",
+      "description": "The Charcoal Kiln's Farfetch'd is central to the Ilex Forest puzzle. The apprentice is absent during that quest arc (he is lost in the forest). The Boss's dialogue tracks this absence and the player's heroism. Completing the quest chain here unlocks Cut for field use, gating access through Ilex Forest to Route 34 and Goldenrod City."
+    }
+  ],
+  "notes": "The Charcoal Kiln is a family business in southeast Azalea Town (warp from town tile 21,13). They produce charcoal using Farfetch'd to collect wood from Ilex Forest. The building is small (4x4 blocks, 8x8 tiles) but narratively important: it is the source of HM01 Cut, obtained after returning the Kiln's Farfetch'd through the Ilex Forest puzzle. The apprentice being lost in the forest during the quest creates a coherent story reason for why HM01 Cut requires clearing Ilex Forest. Charcoal as a held item ties to the fire-fueled kiln theme. The boss's invitation to train (after the quest) acknowledges the player's demonstrated toughness. Farfetch'd NPC uses SPRITE_MOLTRES in pokecrystal source — a sprite reuse for a walking bird Pokemon."
+}

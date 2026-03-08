@@ -1,0 +1,168 @@
+{
+  "area_id": "route_39_farmhouse",
+  "area_name": "Route 39 Farmhouse (Moomoo Farm)",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_39_FARMHOUSE",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "route_39",
+      "target_warp_id": 2,
+      "notes": "Exit — left door back to Route 39"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "route_39",
+      "target_warp_id": 2,
+      "notes": "Exit — right door back to Route 39 (same warp target)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "B": "bookshelf",
+      "F": "furniture",
+      "T": "table",
+      "C": "counter"
+    },
+    "rows": [
+      "########",
+      "#BB.....#",
+      "########",
+      "##.N....#",
+      "########",
+      "#....N..#",
+      "########",
+      "###DD###"
+    ],
+    "notes": "Small farmhouse interior. Bookshelf tiles at (0,1) and (1,1) — both interact with FarmhouseBookshelf (standard PictureBookshelfScript). Dairy Farmer (Pokefan M) stands at (3,2). His wife (Pokefan F, the Snore giver) stands at (5,4). Two exit door tiles at (2,7) and (3,7) warp back to Route 39."
+  },
+  "npcs": [
+    {
+      "id": "route39farmhouse_pokefan_m",
+      "name": "Dairy Farmer (Pokefan M)",
+      "sprite": "SPRITE_POKEFAN_M",
+      "x": 3, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "object_const": "ROUTE39FARMHOUSE_POKEFAN_M",
+      "sprite_palette": "PAL_NPC_BLUE",
+      "script_type": "shop_conditional",
+      "milk_price": 500,
+      "milk_price_constant": "ROUTE39FARMHOUSE_MILK_PRICE",
+      "notes": "Sells Moomoo Milk for 500 once EVENT_HEALED_MOOMOO is set. Before healing Moomoo, sets EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO on first conversation, which unlocks the Berry-feeding prompt in the Barn. Only one Moomoo Milk can be held at a time (checks checkitem MOOMOO_MILK before offering sale).",
+      "dialogue": {
+        "before_heal_first_visit": "My MILTANK ain't givin' me milk n'more. This here FARM's got famous milk. Most everyone wants a drink. It'll give me lots o' milk if'n I feed it lots o' BERRIES, I reckon.",
+        "selling_prompt": "How'd you like my MOOMOO MILK? It's my pride and joy, there. Give it to Pokemon to restore HP! I'll give it to ya fer just 500.",
+        "got_milk": "Here ya go! Drink up'n enjoy!",
+        "no_money": "Sorry, there. No cash, no sale!",
+        "bag_full": "I reckon yer PACK's full.",
+        "no_sale": "You don't want it? Come again, hear?",
+        "already_has_milk": "I best go do my milkin'.",
+        "event_flag_set_on_first_talk": "EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO"
+      }
+    },
+    {
+      "id": "route39farmhouse_pokefan_f",
+      "name": "Farmer's Wife (Pokefan F)",
+      "sprite": "SPRITE_POKEFAN_F",
+      "x": 5, "y": 4,
+      "facing": "left",
+      "movement": "standing",
+      "object_const": "ROUTE39FARMHOUSE_POKEFAN_F",
+      "sprite_palette": "PAL_NPC_BROWN",
+      "script_type": "gift_conditional",
+      "notes": "Gives TM13 Snore after Moomoo is healed. Checks EVENT_GOT_TM13_SNORE_FROM_MOOMOO_FARM to avoid double-giving. Before healing Moomoo, laments the farm's trouble. After healing, rewards the player and explains the Snore TM.",
+      "reward": {
+        "item": "TM13 (Snore)",
+        "condition": "EVENT_HEALED_MOOMOO",
+        "event_flag_set": "EVENT_GOT_TM13_SNORE_FROM_MOOMOO_FARM"
+      },
+      "dialogue": {
+        "before_heal": "Our milk even goes out to KANTO. So if our own MILTANK won't give us any milk, we're in trouble.",
+        "give_snore": "You fixed our MILTANK, hon. Now it gives MOOMOO MILK again. Here's somethin' fer your trouble.",
+        "snore_explanation": "That there's SNORE. It's a rare move that only works while the Pokemon is asleep. You best think how you ought to use it, hon.",
+        "already_got_snore": "(leads directly into Snore explanation again — FarmerFScript_GotSnore)"
+      }
+    },
+    {
+      "id": "route39farmhouse_bookshelf_left",
+      "name": "Bookshelf",
+      "sprite": null,
+      "x": 0, "y": 1,
+      "facing": null,
+      "movement": null,
+      "script_type": "bg_event",
+      "script": "FarmhouseBookshelf",
+      "std_script": "PictureBookshelfScript",
+      "dialogue_summary": "Standard bookshelf interaction — displays a generic picture book message."
+    },
+    {
+      "id": "route39farmhouse_bookshelf_right",
+      "name": "Bookshelf",
+      "sprite": null,
+      "x": 1, "y": 1,
+      "facing": null,
+      "movement": null,
+      "script_type": "bg_event",
+      "script": "FarmhouseBookshelf",
+      "std_script": "PictureBookshelfScript",
+      "dialogue_summary": "Standard bookshelf interaction — displays a generic picture book message."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM13 (Snore)",
+      "x": 5, "y": 4,
+      "hidden": false,
+      "source": "farmer_wife_gift",
+      "condition": "EVENT_HEALED_MOOMOO — heal Moomoo by feeding 7 Berries in the Barn",
+      "event_flag": "EVENT_GOT_TM13_SNORE_FROM_MOOMOO_FARM",
+      "notes": "Reward from Pokefan F after completing the Moomoo sidequest. One-time gift."
+    }
+  ],
+  "shop": {
+    "shopkeeper_npc_id": "route39farmhouse_pokefan_m",
+    "condition": "EVENT_HEALED_MOOMOO must be set",
+    "inventory": [
+      {
+        "item": "Moomoo Milk",
+        "price": 500,
+        "price_constant": "ROUTE39FARMHOUSE_MILK_PRICE",
+        "effect": "Restores 100 HP",
+        "limit": "One bottle at a time — player cannot purchase if they already have one in bag"
+      }
+    ]
+  },
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "first_conversation_with_farmer",
+      "description": "Talking to Pokefan M (dairy farmer) before Moomoo is healed sets EVENT_TALKED_TO_FARMER_ABOUT_MOOMOO. This flag gates the Berry-feeding prompt in the Barn — Moomoo will only ask for a Berry once the player has spoken to the farmer first."
+    },
+    {
+      "trigger": "moomoo_healed_unlock",
+      "description": "Once EVENT_HEALED_MOOMOO is set (by completing the Berry feeding in the Barn), the Farmhouse immediately unlocks: Pokefan M begins selling Moomoo Milk for 500, and Pokefan F gives TM13 Snore as a one-time reward."
+    }
+  ],
+  "object_event_constants": {
+    "ROUTE39FARMHOUSE_POKEFAN_M": 0,
+    "ROUTE39FARMHOUSE_POKEFAN_F": 1
+  },
+  "notes": "The Farmhouse is the companion building to the Barn on Moomoo Farm, Route 39. Both buildings are 4x4 blocks (8x8 tiles) side by side in the northwestern section of Route 39. The Dairy Farmer (Pokefan M) first tells the player about Moomoo's illness and sets the quest-unlock flag. After healing Moomoo in the Barn with 7 Berries, he becomes a shopkeeper selling Moomoo Milk (500 each, one at a time). His wife (Pokefan F) rewards the player with TM13 Snore — the only way to obtain it in the main game without trading. The Snore TM teaches the move Snore, which only functions while the user is asleep. Two bookshelf bg_events use the standard PictureBookshelfScript. Milk price constant: ROUTE39FARMHOUSE_MILK_PRICE = 500."
+}

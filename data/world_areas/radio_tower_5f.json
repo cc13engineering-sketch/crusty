@@ -1,0 +1,325 @@
+{
+  "area_id": "radio_tower_5f",
+  "area_name": "Goldenrod Radio Tower 5F",
+  "area_type": "building",
+  "pokecrystal_map_id": "RADIO_TOWER_5F",
+  "width_blocks": 9,
+  "height_blocks": 4,
+  "width_tiles": 18,
+  "height_tiles": 8,
+  "tileset": "radio_tower",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 0,
+      "target_area_id": "radio_tower_4f",
+      "target_warp_id": 1,
+      "note": "Stairs down to 4F (left side staircase)"
+    },
+    {
+      "x": 12, "y": 0,
+      "target_area_id": "radio_tower_4f",
+      "target_warp_id": 3,
+      "note": "Stairs down to 4F (center-right staircase)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "S": "sign/bg_event",
+      "B": "bookshelf",
+      "!": "item_ball",
+      "v": "stairs_down",
+      "C": "coord_event_trigger"
+    },
+    "rows": [
+      "v...S.......S..S.BB",
+      "##.................",
+      "##.................",
+      "##.C...............",
+      "##.................",
+      "##...N.......C..N..",
+      "##.................",
+      "##................."
+    ],
+    "notes": "Stairs down to 4F at (0,0) and (12,0). Director's Office sign at (3,0). Studio 1 sign at (11,0) and (15,0). Bookshelves at (16,1) and (17,1). Coord event for Fake Director trigger at (0,3) scene SCENE_RADIOTOWER5F_FAKE_DIRECTOR. Coord event for Rocket Boss trigger at (16,5) scene SCENE_RADIOTOWER5F_ROCKET_BOSS. Director (Gentleman sprite) at (3,6) spins random slow. Executive Petrel (Rocket sprite) at (13,5) faces left — present only during Rocket takeover (active scene). Executive Ariana (Rocket Girl sprite) at (17,2) faces left — Rocket takeover trainer. DJ Ben (Rocker sprite) at (13,5) — present post-clearing (EVENT_RADIO_TOWER_CIVILIANS_AFTER). Ultra Ball item ball at (8,5)."
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 0,
+      "type": "read",
+      "text": "5F DIRECTOR'S OFFICE",
+      "label": "RadioTower5FDirectorsOfficeSign"
+    },
+    {
+      "x": 11, "y": 0,
+      "type": "read",
+      "text": "5F STUDIO 1",
+      "label": "RadioTower5FStudio1Sign"
+    },
+    {
+      "x": 15, "y": 0,
+      "type": "read",
+      "text": "5F STUDIO 1",
+      "label": "RadioTower5FStudio1Sign"
+    },
+    {
+      "x": 16, "y": 1,
+      "type": "read",
+      "text": "Magazine bookshelf (standard MagazineBookshelfScript)",
+      "label": "RadioTower5FBookshelf"
+    },
+    {
+      "x": 17, "y": 1,
+      "type": "read",
+      "text": "Magazine bookshelf (standard MagazineBookshelfScript)",
+      "label": "RadioTower5FBookshelf"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 0, "y": 3,
+      "scene": "SCENE_RADIOTOWER5F_FAKE_DIRECTOR",
+      "script": "FakeDirectorScript",
+      "description": "Triggers when player walks into (0,3) during the Fake Director scene. Executive Petrel reveals his disguise, battles, then gives the Basement Key."
+    },
+    {
+      "x": 16, "y": 5,
+      "scene": "SCENE_RADIOTOWER5F_ROCKET_BOSS",
+      "script": "RadioTower5FRocketBossScript",
+      "description": "Triggers when player walks into (16,5) during the Rocket Boss scene. Executive Archer engages in dialogue explaining Team Rocket's plan to summon Giovanni, then battles. Defeating him ends the Radio Tower event."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "director_petrel_disguised",
+      "name": "Fake Director (Executive Petrel in disguise)",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 3, "y": 6,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "script_type": "coord_event",
+      "state": "fake_director_scene",
+      "scene_flag": "SCENE_RADIOTOWER5F_FAKE_DIRECTOR",
+      "dialogue_summary_pre_trigger": "(approaches player, shocked) Y-you! You came to rescue me?",
+      "dialogue_summary_reveal": "Is that what you were expecting? Wrong! I'm an imposter! I pretended to be the real thing to prepare for our takeover. Do you want to know where we hid the real DIRECTOR? Sure, I'll tell you — but only if you can beat me!",
+      "dialogue_summary_after_defeat": "We stashed the real DIRECTOR in the UNDERGROUND WAREHOUSE. It's at the far end of the UNDERGROUND. But I doubt you'll get that far.",
+      "battle_reward": "BASEMENT_KEY",
+      "movement_on_trigger": "Steps LEFT x3, then UP x2 before revealing disguise",
+      "note": "This is Executive Petrel (EXECUTIVEM_3), disguised as the Radio Tower Director in a Gentleman sprite. After defeating him in battle, he gives the Basement Key needed to access the Goldenrod Underground Warehouse."
+    },
+    {
+      "id": "director_real",
+      "name": "Director",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 3, "y": 6,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "state": "post_rocket",
+      "event_flag": "always_present",
+      "dialogue_summary_during_rockets_after_petrel": "We stashed the real DIRECTOR in the UNDERGROUND WAREHOUSE. It's at the far end of the UNDERGROUND.",
+      "dialogue_summary_post_cleared": "DIRECTOR: Hello, [Player]! You know, I love Pokemon. I built this RADIO TOWER so I could express my love of Pokemon. It would be nice if people enjoyed our programs.",
+      "note": "After Rockets are cleared, the real Director walks in cinematically from off-screen and gives the Clear Bell along with a lengthy monologue about the tower's history."
+    },
+    {
+      "id": "executive_archer_rocket_boss",
+      "name": "Executive Archer (Rocket Boss)",
+      "sprite": "SPRITE_ROCKET",
+      "x": 13, "y": 5,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "coord_event",
+      "state": "rocket_boss_scene",
+      "scene_flag": "SCENE_RADIOTOWER5F_ROCKET_BOSS",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "dialogue_summary_pre_battle": "Oh? You managed to get this far? You must be quite the trainer. We intend to take over this RADIO STATION and announce our comeback. That should bring our boss GIOVANNI back from his solo training. We are going to regain our former glory. I won't allow you to interfere with our plans.",
+      "dialogue_summary_after_defeat": "How could this be? Our dreams have come to naught. I wasn't up to the task after all. Like GIOVANNI did before me, I will disband TEAM ROCKET here today. Farewell.",
+      "note": "Executive Archer is the final Radio Tower boss (EXECUTIVEM_1). Defeating him triggers the full Radio Tower clear sequence including disbanding Team Rocket, giving the Clear Bell, and resetting all related event flags."
+    },
+    {
+      "id": "executive_ariana",
+      "name": "Executive Ariana",
+      "sprite": "SPRITE_ROCKET_GIRL",
+      "x": 17, "y": 2,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "trainer",
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_EXECUTIVEF_1",
+      "line_of_sight": 1,
+      "note": "Previously fought at Mahogany Town Rocket Hideout. References that encounter in dialogue."
+    },
+    {
+      "id": "dj_ben",
+      "name": "DJ Ben",
+      "sprite": "SPRITE_ROCKER",
+      "x": 13, "y": 5,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "post_rocket",
+      "event_flag": "EVENT_RADIO_TOWER_CIVILIANS_AFTER",
+      "dialogue_summary": "BEN: Do you listen to our music?",
+      "note": "Ben and Archer share the same tile (13,5). Ben is present only after Rockets are cleared."
+    }
+  ],
+  "trainers": [
+    {
+      "id": "executive_petrel",
+      "class": "Executive (Male) — disguised as Director",
+      "trainer_id": "EXECUTIVEM_3",
+      "name": "Petrel",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 3, "y": 6,
+      "note_position": "Initial position; moves to approx (0,4) before battle",
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "line_of_sight": "coord_event_at_(0,3)",
+      "state": "fake_director_scene",
+      "scene_flag": "SCENE_RADIOTOWER5F_FAKE_DIRECTOR",
+      "event_beaten": "EVENT_BEAT_ROCKET_EXECUTIVEM_3",
+      "team": [
+        {"species": "Koffing", "level": 30, "moves": ["Tackle", "Self-Destruct", "Sludge", "Smokescreen"]},
+        {"species": "Koffing", "level": 30, "moves": ["Tackle", "Self-Destruct", "Sludge", "Smokescreen"]},
+        {"species": "Koffing", "level": 30, "moves": ["Tackle", "Self-Destruct", "Sludge", "Smokescreen"]},
+        {"species": "Weezing", "level": 32, "moves": ["Tackle", "Explosion", "Sludge", "Smokescreen"]},
+        {"species": "Koffing", "level": 30, "moves": ["Tackle", "Self-Destruct", "Sludge", "Smokescreen"]},
+        {"species": "Koffing", "level": 30, "moves": ["Tackle", "Smog", "Sludge", "Smokescreen"]}
+      ],
+      "seen_text": "(Coord event trigger — no standard seen text; instead scripted reveal cutscene)",
+      "beaten_text": "OK, OK. I'll tell you where he is.",
+      "after_battle_text": "We stashed the real DIRECTOR in the UNDERGROUND WAREHOUSE. It's at the far end of the UNDERGROUND. But I doubt you'll get that far.",
+      "reward_on_defeat": "BASEMENT_KEY",
+      "sets_scene": "SCENE_RADIOTOWER5F_ROCKET_BOSS",
+      "note": "Full 6-Pokemon team of Koffing/Weezing with Self-Destruct and Explosion. Extremely dangerous. After defeat, advances scene flag so Executive Archer's coord event becomes active."
+    },
+    {
+      "id": "executive_archer",
+      "class": "Executive (Male)",
+      "trainer_id": "EXECUTIVEM_1",
+      "name": "Archer",
+      "sprite": "SPRITE_ROCKET",
+      "x": 13, "y": 5,
+      "note_position": "Coord event triggers at (16,5); player walks two steps left into Archer's range",
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": "coord_event_at_(16,5)",
+      "state": "rocket_boss_scene",
+      "scene_flag": "SCENE_RADIOTOWER5F_ROCKET_BOSS",
+      "event_beaten": "EVENT_BEAT_ROCKET_EXECUTIVEM_1",
+      "team": [
+        {"species": "Houndour", "level": 33, "moves": ["Ember", "Roar", "Bite", "Faint Attack"]},
+        {"species": "Koffing", "level": 33, "moves": ["Tackle", "Sludge", "Smokescreen", "Haze"]},
+        {"species": "Houndoom", "level": 35, "moves": ["Ember", "Smog", "Bite", "Faint Attack"]}
+      ],
+      "seen_text": "Oh? You managed to get this far? You must be quite the trainer. We intend to take over this RADIO STATION and announce our comeback. That should bring our boss GIOVANNI back from his solo training. We are going to regain our former glory. I won't allow you to interfere with our plans.",
+      "beaten_text": "No! Forgive me, GIOVANNI!",
+      "after_battle_text": "How could this be? Our dreams have come to naught. I wasn't up to the task after all. Like GIOVANNI did before me, I will disband TEAM ROCKET here today. Farewell.",
+      "sets_event": "EVENT_CLEARED_RADIO_TOWER",
+      "clears_flag": "ENGINE_ROCKETS_IN_RADIO_TOWER",
+      "reward_event": "Director walks in and gives CLEAR_BELL",
+      "note": "The final Radio Tower boss. His Houndoom is the signature Pokemon of the arc — Fire/Dark dual-type, level 35. After defeat: Archer and Ariana disappear; Director walks in cinematically from off-screen; player receives CLEAR_BELL; Mahogany Rockets, Goldenrod civilian flags, and all Radio Tower state flags are cleared/set."
+    },
+    {
+      "id": "executive_ariana",
+      "class": "Executive (Female)",
+      "trainer_id": "EXECUTIVEF_1",
+      "name": "Ariana",
+      "sprite": "SPRITE_ROCKET_GIRL",
+      "x": 17, "y": 2,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_EXECUTIVEF_1",
+      "team": [
+        {"species": "Arbok", "level": 32, "moves": ["Wrap", "Poison Sting", "Bite", "Glare"]},
+        {"species": "Vileplume", "level": 32, "moves": ["Absorb", "Sweet Scent", "Sleep Powder", "Acid"]},
+        {"species": "Murkrow", "level": 32, "moves": ["Peck", "Pursuit", "Haze", "Night Shade"]}
+      ],
+      "seen_text": "Remember me from the HIDEOUT in MAHOGANY TOWN? I lost then, but I won't this time.",
+      "beaten_text": "This can't be happening! I fought hard, but I still lost...",
+      "after_battle_text": "[Player], isn't it? A brat like you won't appreciate the magnificence of TEAM ROCKET. That's too bad. I really admire your power.",
+      "note": "Executive Ariana is the female counterpart at the top of the Radio Tower. Previously encountered at the Mahogany Rocket Hideout (EXECUTIVEF_2 in that battle). Her level 32 team features a diverse set: Arbok, Vileplume, and Murkrow — Poison, Grass/Poison, and Dark types respectively."
+    }
+  ],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 8, "y": 5,
+      "hidden": false,
+      "event_flag": "EVENT_RADIO_TOWER_5F_ULTRA_BALL",
+      "sprite": "SPRITE_POKE_BALL",
+      "note": "Visible item ball on the floor. Only one on the entire Radio Tower. Collected once — flag persists."
+    }
+  ],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "scene_radiotower5f_fake_director",
+      "description": "Player enters (0,3) while scene is FAKE_DIRECTOR. Executive Petrel reveals he is an impostor Director, battles player with 6 Koffing/Weezing (all with Self-Destruct/Explosion). On defeat, gives BASEMENT_KEY and reveals Director is in Underground Warehouse. Scene advances to ROCKET_BOSS."
+    },
+    {
+      "trigger": "scene_radiotower5f_rocket_boss",
+      "description": "Player walks to (16,5) while scene is ROCKET_BOSS. Executive Archer engages with speech about reviving Team Rocket to call back Giovanni. Battles with Houndour/Koffing/Houndoom. On defeat: Archer and Ariana disappear; ENGINE_ROCKETS_IN_RADIO_TOWER cleared; EVENT_CLEARED_RADIO_TOWER set; all Goldenrod and Mahogany Rocket events resolved; Director walks in and gives CLEAR_BELL; scene advances to NOOP."
+    },
+    {
+      "trigger": "event_cleared_radio_tower",
+      "description": "Post-clearing state. Director is the real one and gives calm dialogue about loving Pokemon. DJ Ben appears. Ultra Ball can still be collected if not already taken."
+    }
+  ],
+  "special_mechanics": {
+    "fake_director_sequence": {
+      "scene_flag": "SCENE_RADIOTOWER5F_FAKE_DIRECTOR",
+      "executive": "Petrel (EXECUTIVEM_3)",
+      "disguise_sprite": "SPRITE_GENTLEMAN",
+      "trigger": "coord_event at (0,3)",
+      "movement": "FakeDirectorMovement: LEFT x3, UP x2",
+      "music": "MUSIC_ROCKET_ENCOUNTER",
+      "team_danger": "All six Pokemon have Self-Destruct or Explosion — extremely high damage potential",
+      "reward": "BASEMENT_KEY (required to access Goldenrod Underground Warehouse and rescue real Director)"
+    },
+    "rocket_boss_sequence": {
+      "scene_flag": "SCENE_RADIOTOWER5F_ROCKET_BOSS",
+      "executive": "Archer (EXECUTIVEM_1)",
+      "trigger": "coord_event at (16,5), player auto-moves two steps LEFT",
+      "music": "MUSIC_ROCKET_ENCOUNTER",
+      "post_battle_flags_set": [
+        "EVENT_BEAT_ROCKET_EXECUTIVEM_1",
+        "EVENT_CLEARED_RADIO_TOWER",
+        "EVENT_GOLDENROD_CITY_ROCKET_SCOUT",
+        "EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER",
+        "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+        "EVENT_TEAM_ROCKET_DISBANDED"
+      ],
+      "post_battle_flags_cleared": [
+        "ENGINE_ROCKETS_IN_RADIO_TOWER",
+        "ENGINE_ROCKETS_IN_MAHOGANY",
+        "EVENT_MAHOGANY_MART_OWNERS",
+        "EVENT_GOLDENROD_CITY_CIVILIANS",
+        "EVENT_RADIO_TOWER_CIVILIANS_AFTER"
+      ],
+      "post_battle_flags_set_ecruteak": [
+        "EVENT_BLACKTHORN_CITY_SUPER_NERD_BLOCKS_GYM",
+        "SCENE_ECRUTEAKTINTOWERENTRANCE_SAGE_BLOCKS"
+      ],
+      "director_entrance": "Director walks in from (12,0) — DOWN x2, RIGHT x4, DOWN x3, LEFT — and gives CLEAR_BELL",
+      "clear_bell_description": "The Director explains the Radio Tower was built where an old tower stood in Goldenrod; CLEAR BELL was unearthed during construction. Hints at Tin Tower connection. After speech, Director walks off-screen."
+    },
+    "clear_bell_reward": {
+      "item": "CLEAR_BELL",
+      "giver": "Radio Tower Director",
+      "trigger": "EVENT_CLEARED_RADIO_TOWER (set after Archer defeat)",
+      "flag": "EVENT_GOT_CLEAR_BELL",
+      "lore": "Unearthed during Radio Tower construction. Connected to Tin Tower in Ecruteak City. Used alongside RAINBOW WING to unlock Lugia/Ho-Oh encounter.",
+      "director_speech_summary": "This RADIO TOWER replaced an old tower. We dug up that bell during construction. It may connect to the TIN TOWER in ECRUTEAK CITY. Team Rocket was whispering about something at the Tin Tower — look into it."
+    }
+  },
+  "floor_purpose": "Director's Office — climax of Radio Tower story; Fake Director confrontation, Executive Archer boss fight, Clear Bell reward",
+  "notes": "5F is the climactic floor of the Radio Tower arc and contains the game's most complex scripted sequence. There are three distinct scene states controlled by SCENE_RADIOTOWER5F_FAKE_DIRECTOR, SCENE_RADIOTOWER5F_ROCKET_BOSS, and SCENE_RADIOTOWER5F_NOOP. In the initial Rocket state, the player finds who appears to be the Director (actually Executive Petrel in disguise) at coord event (0,3). After revealing the deception, Petrel battles with a 6-Pokemon team of Koffing/Weezing — all carrying Self-Destruct or Explosion. Defeating him yields the BASEMENT_KEY and advances the scene. Executive Archer is then triggered at coord event (16,5); the player auto-moves left into his confrontation. Archer explains Team Rocket's goal of using the radio broadcast to call Giovanni back. His 3-Pokemon team is led by a level 35 Houndoom. Defeating Archer ends the Team Rocket Radio Tower takeover permanently: all Rocket-related flags across Goldenrod and Mahogany are resolved, the Director walks in cinematically and gives the CLEAR_BELL (key item for the Tin Tower / Lugia encounter), and the scene resets to NOOP. After clearing, DJ Ben appears on the same tile where Archer stood, and the real Director gives cheerful dialogue about his love of Pokemon. The Ultra Ball at (8,5) can be collected at any point after reaching 5F."
+}

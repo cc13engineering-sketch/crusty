@@ -1,0 +1,364 @@
+{
+  "area_id": "blackthorn_city",
+  "area_name": "Blackthorn City",
+  "area_type": "town",
+  "pokecrystal_map_id": "BLACKTHORN_CITY",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto_town",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_45",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "west",
+      "target_area_id": "route_44",
+      "offset": 9,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 18, "y": 11,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 1,
+      "notes": "Blackthorn Gym entrance (left door tile)"
+    },
+    {
+      "warp_id": 2,
+      "x": 13, "y": 21,
+      "target_area_id": "blackthorn_dragon_speech_house",
+      "target_warp_id": 1,
+      "notes": "Dragon Speech House entrance"
+    },
+    {
+      "warp_id": 3,
+      "x": 29, "y": 23,
+      "target_area_id": "blackthorn_emys_house",
+      "target_warp_id": 1,
+      "notes": "Emy's House entrance"
+    },
+    {
+      "warp_id": 4,
+      "x": 15, "y": 29,
+      "target_area_id": "blackthorn_mart",
+      "target_warp_id": 2,
+      "notes": "Blackthorn Mart entrance (left door tile)"
+    },
+    {
+      "warp_id": 5,
+      "x": 21, "y": 29,
+      "target_area_id": "blackthorn_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokecenter entrance"
+    },
+    {
+      "warp_id": 6,
+      "x": 9, "y": 31,
+      "target_area_id": "move_deleters_house",
+      "target_warp_id": 1,
+      "notes": "Move Deleter's House entrance"
+    },
+    {
+      "warp_id": 7,
+      "x": 36, "y": 9,
+      "target_area_id": "ice_path_1f",
+      "target_warp_id": 2,
+      "notes": "Ice Path entrance — eastern edge"
+    },
+    {
+      "warp_id": 8,
+      "x": 20, "y": 1,
+      "target_area_id": "dragons_den_1f",
+      "target_warp_id": 1,
+      "notes": "Dragon's Den entrance — north, accessible only after Clair sends player here post-battle"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": [
+      "Map is 40 tiles wide x 36 tiles tall (20x18 blocks).",
+      "Tile coordinates are (col, row) with (0,0) at top-left.",
+      "Dragon's Den cave mouth is at the north shoreline (row 1-2), accessible after beating Clair.",
+      "The gym sits in the northwest quadrant on an elevated cliff area.",
+      "A water channel (lake) separates the northwest cliff from the main south plateau.",
+      "The main town buildings (Mart, Pokecenter, Move Deleter) are on the south plateau.",
+      "Ice Path portal is in the far northeast corner.",
+      "Row and col indices match tile (x=col, y=row) from the warp_event data.",
+      "Gramps NPC blocks Dragon's Den entrance (col 20, row 2) until Clair sends player there.",
+      "Santos (Youngster in purple) appears only on Saturday at (col 22, row 20)."
+    ],
+    "rows": [
+      "########################################",
+      "########TTTT~~C~~TTTT###################",
+      "########TTTT~~~~~TTTT###################",
+      "####TTTTTTTT~~~~~TTTTTTTT###############",
+      "####TTTTTTTT~~~~~TTTTTTTT###############",
+      "####TTTT####~~~~~####TTTT###############",
+      "####TTTT####~~~~~####TTTT###############",
+      "####TTTT####~~~~~####TTTT###############",
+      "####TTTT####~~~~~####TTTTTTTT####CCCCCC#",
+      "####TTTT####~~~~~####TTTTTTTT####......#",
+      "####TTTT####~~~~~####TTTTTTTT####......#",
+      "####TTTT##HHHHHHH####TTTTTTTT###########",
+      "####TTTT##HHDDHHH####TTTTTTTT###########",
+      "####TTTT##HHHHHHH####TTTTTTTT###########",
+      "####TTTT##HHHHHHH####................###",
+      "####TTTT##HHHHHHH####................###",
+      "####TTTT##HHHHHHH####................###",
+      "####TTTT##HHHHHHH####................###",
+      "####TTTT##HHHHHHH####................###",
+      "####TTTT##########...NNTTTT..........###",
+      "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "PPPPPPPPPPPP.DPPPPPPPPPPPPPPPPPPP#######",
+      "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP########",
+      "PPPPPPPPPPPP.....PPPPPPPP.DPPPPP########",
+      "PPPPPPPPPPPP.....PPPPPPPP.PPPPP#########",
+      "PPPNNPPPPPPP.....PPPPPPPPPPPPP##########",
+      "PPPPPPPPPPPP.....PPPPPPPPPPPPP##########",
+      "PPPPPPPPPPPP.....PPPPPPPPPPPPP##########",
+      "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##########",
+      "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##########",
+      "##TTTT.HHHHHHHHTTTTPPHHHHKKKHHHHPP######",
+      "##TTTT.DHHHHHHHTTTTPPHHHHKKKHHHHPP######",
+      "##TTTT.HHHHHHHHTTTTPPHHHHKKKHHHHPP######",
+      "##TTTT##TTTT##TTTT###TTTTTTTTTTTTTT#####",
+      "##TTTT##TTTT##TTTT###TTTTTTTTTTTTTT#####",
+      "########################################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "super_nerd_1",
+      "name": "Super Nerd (blocks gym)",
+      "x": 18, "y": 12,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BLACKTHORN_CITY_SUPER_NERD_BLOCKS_GYM",
+      "dialogue_summary": "Tells player Clair is out in Dragon's Den (before Radio Tower cleared) or inside waiting (after). Disappears once player beats Clair.",
+      "palette": "PAL_NPC_RED"
+    },
+    {
+      "id": "super_nerd_2",
+      "name": "Super Nerd (post-beat dialogue)",
+      "x": 19, "y": 12,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BLACKTHORN_CITY_SUPER_NERD_DOES_NOT_BLOCK_GYM",
+      "dialogue_summary": "Expresses amazement that player beat Clair — 'I've never heard of her losing to anyone other than Lance.'",
+      "palette": "PAL_NPC_RED"
+    },
+    {
+      "id": "gramps_1",
+      "name": "Gramps (blocks Dragon's Den)",
+      "x": 20, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BLACKTHORN_CITY_GRAMPS_BLOCKS_DRAGONS_DEN",
+      "dialogue_summary": "'No. Only chosen trainers may train here. Please leave.' Blocks Dragon's Den entrance.",
+      "palette": "default"
+    },
+    {
+      "id": "gramps_2",
+      "name": "Gramps (grants entry)",
+      "x": 21, "y": 2,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BLACKTHORN_CITY_GRAMPS_NOT_BLOCKING_DRAGONS_DEN",
+      "dialogue_summary": "'If Clair allows it, her grandfather — our master — will also. You may enter.' Appears after Clair sends player to Dragon's Den.",
+      "palette": "default"
+    },
+    {
+      "id": "black_belt",
+      "name": "Black Belt",
+      "x": 24, "y": 31,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "movement_range": 1,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Mentions his radio only gets a weird signal before Radio Tower cleared; 'Voices in my head!' joke after.",
+      "palette": "PAL_NPC_BLUE"
+    },
+    {
+      "id": "cooltrainer_f_1",
+      "name": "Cool Trainer F (near Move Deleter)",
+      "x": 9, "y": 25,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "movement_range": 2,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "'Are you going to make your Pokemon forget some moves?' — hints at Move Deleter nearby.",
+      "palette": "PAL_NPC_RED"
+    },
+    {
+      "id": "youngster",
+      "name": "Youngster",
+      "x": 13, "y": 15,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "movement_range": 1,
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "'Dragon masters all come from the city of Blackthorn.'",
+      "palette": "default"
+    },
+    {
+      "id": "santos",
+      "name": "Santos (Saturday NPC)",
+      "x": 22, "y": 20,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_BLACKTHORN_CITY_SANTOS_OF_SATURDAY",
+      "appearance_condition": "SATURDAY only — callback checks VAR_WEEKDAY",
+      "dialogue_summary": "Gives player a Spell Tag item on first Saturday meeting. Says '…See you again on another Saturday…' thereafter. Vanishes on non-Saturday.",
+      "gives_item": {
+        "name": "Spell Tag",
+        "event_flag": "EVENT_GOT_SPELL_TAG_FROM_SANTOS",
+        "one_time": true
+      }
+    },
+    {
+      "id": "cooltrainer_f_2",
+      "name": "Cool Trainer F (eastern path)",
+      "x": 35, "y": 19,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "'Wow, you came through the Ice Path? You must be a real hotshot trainer!'",
+      "palette": "PAL_NPC_GREEN"
+    }
+  ],
+  "signs": [
+    {
+      "id": "sign_city",
+      "x": 34, "y": 24,
+      "text": "BLACKTHORN CITY — A Quiet Mountain Retreat"
+    },
+    {
+      "id": "sign_gym",
+      "x": 17, "y": 13,
+      "text": "BLACKTHORN CITY POKEMON GYM — LEADER: CLAIR — The Blessed User of Dragon Pokemon"
+    },
+    {
+      "id": "sign_move_deleter",
+      "x": 7, "y": 31,
+      "text": "MOVE DELETER'S HOUSE"
+    },
+    {
+      "id": "sign_dragons_den",
+      "x": 21, "y": 3,
+      "text": "DRAGON'S DEN AHEAD"
+    },
+    {
+      "id": "sign_trainer_tips",
+      "x": 5, "y": 25,
+      "text": "TRAINER TIPS — A Pokemon holding a MIRACLEBERRY will cure itself of any status problem."
+    },
+    {
+      "id": "sign_mart",
+      "x": 16, "y": 29,
+      "text": "BLACKTHORN CITY MART"
+    },
+    {
+      "id": "sign_pokecenter",
+      "x": 22, "y": 29,
+      "text": "BLACKTHORN CITY POKEMON CENTER"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": []
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "first_visit",
+      "flag": "ENGINE_FLYPOINT_BLACKTHORN",
+      "description": "BlackthornCityFlypointCallback sets the Blackthorn flypoint on first map entry, enabling Fly destination."
+    },
+    {
+      "trigger": "on_map_load",
+      "flag": "EVENT_BLACKTHORN_CITY_SANTOS_OF_SATURDAY",
+      "description": "BlackthornCitySantosCallback reads VAR_WEEKDAY. If Saturday, Santos appears at (22,20). Otherwise he disappears."
+    },
+    {
+      "trigger": "post_clair_battle",
+      "flag": "EVENT_BEAT_CLAIR",
+      "description": "After beating Clair in the gym, she refuses the badge and directs player to Dragon's Den. EVENT_BLACKTHORN_CITY_GRAMPS_BLOCKS_DRAGONS_DEN is set and Gramps at (20,2) blocks entry. After completing Dragon's Den quiz, GRAMPS_NOT_BLOCKING is set and player may enter freely."
+    }
+  ],
+  "geography_notes": [
+    "Blackthorn City is the final Johto gym city, set high in the mountains.",
+    "The city is split into two main levels: an upper northwest cliff area (gym + Dragon's Den) and a lower south plateau (shops, homes, Pokecenter).",
+    "A wide water channel divides these two areas; they are connected by a bridge at tile row 20.",
+    "The gym and Dragon's Den share the upper cliff area; Dragon's Den entrance is at the north edge of the cliff where the water opens.",
+    "Ice Path entrance is in the far northeast corner at (36,9) — this is how the player arrives from Mahogany Town.",
+    "There are no wild encounters in the city; the surrounding water channel is decorative (no fishing).",
+    "Route 45 is immediately south (connection offset 0); Route 44 exits west (connection offset 9)."
+  ],
+  "mart_inventory": [
+    "Great Ball",
+    "Ultra Ball",
+    "Hyper Potion",
+    "Max Potion",
+    "Full Heal",
+    "Revive",
+    "Max Repel",
+    "X Defend",
+    "X Attack"
+  ],
+  "notes": "Blackthorn City is home to the eighth and final Johto gym. Clair refuses to give the Rising Badge after defeat, sending the player to Dragon's Den for the Elder's quiz. The Move Deleter — the only character in Gen 2 who can remove HM moves — lives here. Santos is a Saturday-only NPC who gives the Spell Tag. The Ice Path (arrived from Route 44 → Ice Path → Blackthorn) connects to the city from the northeast."
+}

@@ -1,0 +1,233 @@
+{
+  "area_id": "wise_trios_room",
+  "area_name": "Wise Trio's Room",
+  "area_type": "building",
+  "pokecrystal_map_id": "WISE_TRIOS_ROOM",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "pokecenter",
+  "connections": [],
+  "warps": [
+    {
+      "x": 7, "y": 4,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 4,
+      "note": "exits east to Ecruteak City (warp_event 20, 2 in city)"
+    },
+    {
+      "x": 7, "y": 5,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 5,
+      "note": "exits east to Ecruteak City (warp_event 20, 3 in city)"
+    },
+    {
+      "x": 1, "y": 4,
+      "target_area_id": "ecruteak_tin_tower_entrance",
+      "target_warp_id": 5,
+      "note": "exits west to Tin Tower Entrance upper floor (warp_event 17,3)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat/warp_tile",
+      "N": "npc_position",
+      "T": "trainer_position (Wise Trio combat sages)"
+    },
+    "notes": [
+      "Width=8 tiles, Height=8 tiles. Very small map.",
+      "West exit (1,4) leads to Tin Tower Entrance upper floor.",
+      "East exits (7,4) and (7,5) lead back to Ecruteak City exterior (doors on city side at 20,2 and 20,3).",
+      "The room has two NPC states: WISE_TRIO_1 (three observer sages) and WISE_TRIO_2 (three trainer sages).",
+      "A coord event at (7,4) blocks east exit when SCENE_WISETRIOSROOM_SAGE_BLOCKS is active.",
+      "Sage 3 (WiseTriosRoomSage3Script at 7,5) blocks the east door and pushes player back if they try to leave without permission.",
+      "After Koji allows passage, all WISE_TRIO_2 sages are replaced by no-combat versions."
+    ],
+    "rows": [
+      "########",
+      "########",
+      "#T.T...E",
+      "#......E",
+      "E..T..EE",
+      "E......#",
+      "#T.....#",
+      "########"
+    ]
+  },
+  "wise_trio_state_machine": {
+    "description": "The room uses two mutually exclusive NPC sets controlled by WiseTriosRoomWiseTrioCallback which runs on MAPCALLBACK_OBJECTS every map load.",
+    "states": [
+      {
+        "state": "WISE_TRIO_1 (non-trainer observation mode)",
+        "condition": "EVENT_FOUGHT_SUICUNE is NOT set AND (EVENT_KOJI_ALLOWS_YOU_PASSAGE or has CLEAR_BELL is FALSE)",
+        "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1 SET, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2 CLEARED",
+        "npcs_visible": ["sage_observer_1 (6,2)", "sage_observer_2 (6,7)", "sage_observer_3 (7,5)"],
+        "trainers_visible": [],
+        "description": "Three sages wander/stand and give lore dialogue about the beasts awakening and the burned tower. No battles available."
+      },
+      {
+        "state": "WISE_TRIO_2 (trainer battle mode)",
+        "condition": "EVENT_FOUGHT_SUICUNE is NOT set AND (EVENT_KOJI_ALLOWS_YOU_PASSAGE is TRUE OR player has CLEAR_BELL)",
+        "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1 CLEARED, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2 SET",
+        "npcs_visible": [],
+        "trainers_visible": ["sage_gaku (4,2)", "sage_masa (4,6)", "sage_koji (6,4)"],
+        "description": "The three wise sages present themselves as trainers guarding passage to Tin Tower. Player must defeat all three. After defeating Koji, he grants passage via EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER."
+      },
+      {
+        "state": "No Wise Trio (post-Suicune)",
+        "condition": "EVENT_FOUGHT_SUICUNE is SET",
+        "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1 SET, EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2 SET (both cleared = no sages appear)",
+        "description": "After the player has fought Suicune, all sages are gone. The room is empty."
+      }
+    ]
+  },
+  "npcs": [
+    {
+      "id": "sage_observer_1",
+      "name": "Wise Sage 1 (observer)",
+      "x": 6, "y": 2,
+      "facing": "random",
+      "movement": "spinrandom_slow",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1",
+      "conditional": true,
+      "dialogue_summary": "Astounding... SUICUNE, ENTEI and RAIKOU have arisen from their sleep... Is the legend coming true?"
+    },
+    {
+      "id": "sage_observer_2",
+      "name": "Wise Sage 2 (observer)",
+      "x": 6, "y": 7,
+      "facing": "left_right",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1",
+      "conditional": true,
+      "dialogue_summary": "We train at the BURNED TOWER, but we've never heard of a hole opening up there before. It must have been deliberately made by someone."
+    },
+    {
+      "id": "sage_observer_3_doorkeeper",
+      "name": "Wise Sage 3 (door keeper)",
+      "x": 7, "y": 5,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_1",
+      "conditional": true,
+      "dialogue_summary": "We, the WISE TRIO, are the protectors of the legendary Pokemon.",
+      "note": "Also handles coord_event at (7,4): if SCENE_WISETRIOSROOM_SAGE_BLOCKS, this sage turns to face player, shows shock emote, escorts player back (two steps left), blocks east exit, and tells player they may not enter Tin Tower while beasts are awake."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Sage",
+      "name": "Gaku",
+      "trainer_id": "SAGE_GAKU",
+      "x": 4, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2",
+      "conditional": true,
+      "team": [
+        {"species": "Noctowl",  "level": 32, "trainer_type": "normal"},
+        {"species": "Flareon",  "level": 32, "trainer_type": "normal"}
+      ],
+      "prize_money": 1280,
+      "battle_event_flag": "EVENT_BEAT_SAGE_GAKU",
+      "seen_text": "Legend has it that upon the emergence of a trainer who has the ability to touch the souls of Pokemon, a Pokemon will come forth to put that trainer to test at the TIN TOWER. The legend has come true! The legendary Pokemon SUICUNE has arrived! We, the WISE TRIO, shall test your worthiness to go inside!",
+      "beaten_text": "Stronger than we thought? Perhaps...",
+      "after_battle_text": "Ah, so it is you who claim to have seen SUICUNE, ENTEI and RAIKOU while they slept? Unbelievable! Legend has it that they can't be seen while they sleep..."
+    },
+    {
+      "class": "Sage",
+      "name": "Masa",
+      "trainer_id": "SAGE_MASA",
+      "x": 4, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2",
+      "conditional": true,
+      "team": [
+        {"species": "Noctowl",  "level": 32, "trainer_type": "normal"},
+        {"species": "Jolteon",  "level": 32, "trainer_type": "normal"}
+      ],
+      "prize_money": 1280,
+      "battle_event_flag": "EVENT_BEAT_SAGE_MASA",
+      "seen_text": "Can you be trusted with the truth? I must ascertain your worthiness.",
+      "beaten_text": "...I will tell you the truth...",
+      "after_battle_text": "In the past, there were two nine-tier towers here. The BRASS TOWER, which was said to awaken Pokemon, and the TIN TOWER, where Pokemon were said to rest. About 150 years ago, a lightning bolt struck one of the TOWERS. It was engulfed in flames that raged for three days. A sudden downpour finally put out the blaze. And that is how the BURNED TOWER came to be."
+    },
+    {
+      "class": "Sage",
+      "name": "Koji",
+      "trainer_id": "SAGE_KOJI",
+      "x": 6, "y": 4,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "event_flag": "EVENT_WISE_TRIOS_ROOM_WISE_TRIO_2",
+      "conditional": true,
+      "team": [
+        {"species": "Noctowl",  "level": 32, "trainer_type": "normal"},
+        {"species": "Vaporeon", "level": 32, "trainer_type": "normal"}
+      ],
+      "prize_money": 1280,
+      "battle_event_flag": "EVENT_BEAT_SAGE_KOJI",
+      "seen_text": "Let me see your power!",
+      "beaten_text": "Too strong! Why?",
+      "after_battle_script": "After defeat, Koji steps aside (moves right then down). Grants EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER. Sets SCENE_WISETRIOSROOM_NOOP. Asks player if they are the awaited trainer, then grants passage to Tin Tower.",
+      "after_battle_question": "You... Are you the trainer who is awaited by the legendary Pokemon?",
+      "after_battle_speech": "I see... We, the WISE TRIO, have been given the responsibility of protecting the legendary Pokemon. We are to allow passage only to those people who possess the power and soul of truth. Please, do go on and enter the TIN TOWER ahead. SUICUNE will put you to the test.",
+      "final_text": "Please, do go on. SUICUNE will put you to the test.",
+      "post_battle_effects": [
+        "Sets EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER",
+        "Sets SCENE_WISETRIOSROOM_NOOP (disables sage-blocks scene)",
+        "Sage 6 (Koji) moves right then down to clear path to Tin Tower entrance"
+      ]
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 7, "y": 4,
+      "scene": "SCENE_WISETRIOSROOM_SAGE_BLOCKS",
+      "script": "WiseTriosRoom_CannotEnterTinTowerScript",
+      "description": "If player tries to exit east while scene is SAGE_BLOCKS, Sage 3 (Observer Doorkeeper) turns up, shows shock emote, follows player left 2 steps, stops follow, turns player right, delivers block dialogue, then returns to position. Player is physically prevented from leaving east."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [
+    {
+      "trigger": "enter_with_fog_badge_and_clear_bell_but_before_wise_trio",
+      "description": "STATE: WISE_TRIO_2. Three trainer sages (Gaku, Masa, Koji) block progress. Must defeat all three. Koji grants passage after defeat."
+    },
+    {
+      "trigger": "koji_defeated",
+      "description": "EVENT_KOJI_ALLOWS_YOU_PASSAGE_TO_TIN_TOWER set. Koji steps aside. Tin Tower Entrance sages deactivate (EVENT_ECRUTEAK_TIN_TOWER_ENTRANCE_WANDERING_SAGE cleared). Player may now enter Tin Tower freely."
+    },
+    {
+      "trigger": "try_to_exit_east_during_sage_blocks",
+      "description": "Sage 3 doorkeeper intercepts player at coord (7,4), escorts them back, and explains: 'TIN TOWER may be entered by those bearing ECRUTEAK's GYM BADGE. However, now that SUICUNE, RAIKOU and ENTEI have arisen, I ask you to refrain from entering!'"
+    },
+    {
+      "trigger": "post_suicune",
+      "description": "EVENT_FOUGHT_SUICUNE set. Both WISE_TRIO event flags are both set — all sages disappear. Room is permanently empty. Free passage."
+    }
+  ],
+  "lore_content": {
+    "sage_gaku_lore": "Explains that legend says a trainer worthy of meeting the legendary Pokemon will be tested at Tin Tower. Confirms Suicune has arrived and the Wise Trio will test the player.",
+    "sage_masa_lore": "Tells the complete history of the two towers: Brass Tower (awakening) and Tin Tower (rest). Describes the fire 150 years ago — lightning strike, three-day blaze, rain — creating what is now the Burned Tower.",
+    "sage_koji_lore": "Tests the player's power directly. After defeat, confirms the player is the awaited trainer and grants formal passage.",
+    "wise_trio_function": "The Wise Trio are described as protectors of the legendary Pokemon, tasked with allowing passage only to those with power and soul of truth. They serve as the final narrative gate before the player can pursue Suicune (and eventually Ho-Oh) at the Tin Tower."
+  },
+  "notes": "Wise Trio's Room is 4x4 blocks (8x8 tiles) — the smallest named interior in Ecruteak. It is accessed from the Tin Tower Entrance upper floor via warp at (17,3) in that map. Its exits lead either back to the Tin Tower Entrance (west, x=1) or out to Ecruteak City exterior (east, x=7). The room has a sophisticated two-state NPC system. In observation state (WISE_TRIO_1), three sages provide lore and a doorkeeper blocks unauthorized exit east. In trainer state (WISE_TRIO_2), three trainer sages with Lv32 teams (Noctowl + Eeveelution each) must be defeated. Koji's post-defeat scene is the key narrative moment that formally opens Tin Tower. The Wise Trio each use TRAINERTYPE_NORMAL (default movesets). Noctowl is shared across all three as a first Pokemon; second Pokemon varies: Gaku=Flareon, Masa=Jolteon, Koji=Vaporeon."
+}

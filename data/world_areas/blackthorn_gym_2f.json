@@ -1,0 +1,235 @@
+{
+  "area_id": "blackthorn_gym_2f",
+  "area_name": "Blackthorn Gym 2F",
+  "area_type": "building",
+  "pokecrystal_map_id": "BLACKTHORN_GYM_2F",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_GYM",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 1, "y": 7,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 3,
+      "notes": "Staircase back to 1F — west side"
+    },
+    {
+      "warp_id": 2,
+      "x": 7, "y": 9,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 4,
+      "notes": "Staircase back to 1F — east side"
+    },
+    {
+      "warp_id": 3,
+      "x": 2, "y": 5,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 5,
+      "notes": "Hole — boulder pushes player/boulder down to 1F hole landing 3"
+    },
+    {
+      "warp_id": 4,
+      "x": 8, "y": 7,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 6,
+      "notes": "Hole — boulder falls to 1F hole landing 4"
+    },
+    {
+      "warp_id": 5,
+      "x": 8, "y": 3,
+      "target_area_id": "blackthorn_gym_1f",
+      "target_warp_id": 7,
+      "notes": "Hole — boulder falls to 1F hole landing 5"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "S": "sign/statue",
+      "N": "npc_position",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "O": "hole_in_floor",
+      "B": "strength_boulder",
+      "P": "platform/walkable_stone",
+      "E": "exit_mat",
+      "T": "trainer_sight_line",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "2F is the boulder puzzle floor. Six boulders (Strength required) must be pushed into specific holes.",
+      "Three boulders are event-tracked (can fall to 1F): BOULDER1, BOULDER2, BOULDER3.",
+      "Three additional boulders (indices 4,5,6) have no event flag — they cannot fall through.",
+      "Holes that open to 1F are at warp positions (2,5), (8,7), (8,3).",
+      "The stonetable callback checks if any boulder sits ON a warp/hole tile at map load — if so, it disappears that boulder with SFX and earthquake effect.",
+      "CooltrainerM Cody at (4,1) faces right — blocks north path.",
+      "CooltrainerF Fran at (4,11) faces left — guards south approach.",
+      "Stairs back to 1F are at (1,7) west and (7,9) east.",
+      "The puzzle goal: push the three event-tracked boulders into the three holes to change 1F tile graphics and open a direct access path for the player.",
+      "Players who fail to solve the puzzle and fall through a hole land on 1F and must climb back up."
+    ],
+    "rows": [
+      "##########",
+      "####N#B###",
+      "######BB#O",
+      "##B#######",
+      "##########",
+      "##O#######",
+      "##########",
+      "v#########",
+      "##########",
+      "#######v##",
+      "##########",
+      "####N#####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########"
+    ]
+  },
+  "puzzle": {
+    "name": "Strength Boulder Puzzle",
+    "hm_required": "Strength",
+    "description": "Six boulders are scattered across the 2F platform. Three of them (BOULDER1, BOULDER2, BOULDER3) are event-tracked and will fall through specific holes in the floor when pushed onto warp tiles. The other three boulders can be pushed around but do not fall. The puzzle requires the player to navigate around the boulders using HM04 Strength and push the correct ones into the holes.",
+    "boulders": [
+      {
+        "id": "BOULDER1",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 8, "start_y": 2,
+        "event_flag": "EVENT_BOULDER_IN_BLACKTHORN_GYM_1",
+        "target_hole": {"x": 8, "y": 3},
+        "target_warp_id": 5,
+        "fall_effect_1f_tile": "$3b",
+        "fall_effect_1f_block_coords": {"x": 8, "y": 2},
+        "notes": "Push south into hole at (8,3). Falls to 1F position (7,6) in block coords."
+      },
+      {
+        "id": "BOULDER2",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 2, "start_y": 3,
+        "event_flag": "EVENT_BOULDER_IN_BLACKTHORN_GYM_2",
+        "target_hole": {"x": 2, "y": 5},
+        "target_warp_id": 3,
+        "fall_effect_1f_tile": "$3a",
+        "fall_effect_1f_block_coords": {"x": 2, "y": 4},
+        "notes": "Push south into hole at (2,5). Falls to 1F position (2,6) in tile coords."
+      },
+      {
+        "id": "BOULDER3",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 6, "start_y": 16,
+        "event_flag": "EVENT_BOULDER_IN_BLACKTHORN_GYM_3",
+        "target_hole": {"x": 8, "y": 7},
+        "target_warp_id": 4,
+        "fall_effect_1f_tile": "$3b",
+        "fall_effect_1f_block_coords": {"x": 8, "y": 6},
+        "notes": "Push east then north into hole at (8,7)."
+      },
+      {
+        "id": "BOULDER4",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 3, "start_y": 3,
+        "event_flag": null,
+        "notes": "Non-event boulder — can be pushed to clear paths but does not fall through."
+      },
+      {
+        "id": "BOULDER5",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 6, "start_y": 1,
+        "event_flag": null,
+        "notes": "Non-event boulder — can be pushed to clear paths but does not fall through."
+      },
+      {
+        "id": "BOULDER6",
+        "sprite": "SPRITE_BOULDER",
+        "movement": "SPRITEMOVEDATA_STRENGTH_BOULDER",
+        "start_x": 8, "start_y": 14,
+        "event_flag": null,
+        "notes": "Non-event boulder — can be pushed to clear paths but does not fall through."
+      }
+    ],
+    "boulder_fall_sequence": [
+      "Player pushes event boulder onto a hole tile.",
+      "MAPCALLBACK_CMDQUEUE fires BlackthornGym2FSetUpStoneTableCallback on each map load.",
+      "stonetable checks if BOULDER1/2/3 object positions overlap hole warp tiles.",
+      "If overlap found: boulder disappears, pause 30 frames, play SFX_STRENGTH, earthquake 80 frames.",
+      "Text displayed: 'The boulder fell through!'",
+      "Corresponding event flag (EVENT_BOULDER_IN_BLACKTHORN_GYM_1/2/3) is set.",
+      "On 1F, BlackthornGym1FBouldersCallback reads the flags and changes tile graphics to show fallen boulders."
+    ],
+    "solution_notes": "The puzzle primarily serves as a gate — the player must have Strength active to push boulders. Pushing all three event boulders into holes changes 1F visuals but the main benefit is navigating around obstacles to reach the stairs leading to Clair."
+  },
+  "trainers": [
+    {
+      "class": "Cool Trainer M",
+      "name": "Cody",
+      "x": 4, "y": 1,
+      "facing": "right",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Horsea", "level": 34},
+        {"species": "Seadra", "level": 36}
+      ],
+      "battle_event": "EVENT_BEAT_COOLTRAINERM_CODY",
+      "seen_dialogue": "It's not as if we all use dragon-type Pokemon.",
+      "beaten_dialogue": "Rats! If only I had a dragon!",
+      "after_battle_dialogue": "Members of our dragon-user clan can use dragon Pokemon only after our Master allows it.",
+      "palette": "PAL_NPC_RED",
+      "prize_money": 1440,
+      "notes": "Despite being in the dragon gym, Cody uses Water types — Horsea/Seadra. His dialogue lampshades this."
+    },
+    {
+      "class": "Cool Trainer F",
+      "name": "Fran",
+      "x": 4, "y": 11,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Seadra", "level": 37}
+      ],
+      "battle_event": "EVENT_BEAT_COOLTRAINERF_FRAN",
+      "seen_dialogue": "I can't allow a nameless trainer past me! Clair would be livid if I did!",
+      "beaten_dialogue": "Awww... I lost...",
+      "after_battle_dialogue": "Uh-oh... Clair is going to be mad...",
+      "palette": "PAL_NPC_RED",
+      "prize_money": 1480,
+      "notes": "Fran also uses Seadra — another Water type on the Dragon gym 2F."
+    }
+  ],
+  "map_callbacks": [
+    {
+      "trigger": "MAPCALLBACK_CMDQUEUE",
+      "name": "BlackthornGym2FSetUpStoneTableCallback",
+      "description": "Writes a command queue that processes the CMDQUEUE_STONETABLE command. The stonetable checks whether BOULDER1, BOULDER2, or BOULDER3 have their sprite positions on top of hole warp tiles (warp IDs 3, 4, 5). If any boulder is on a hole, it triggers the fall sequence: disappear boulder, pause, SFX+earthquake, show 'boulder fell through' text. This runs every time the 2F map loads, handling cases where the player pushed a boulder to a hole edge on a previous visit."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "boulder_fall",
+      "flags": [
+        "EVENT_BOULDER_IN_BLACKTHORN_GYM_1",
+        "EVENT_BOULDER_IN_BLACKTHORN_GYM_2",
+        "EVENT_BOULDER_IN_BLACKTHORN_GYM_3"
+      ],
+      "description": "Each flag is set when its corresponding boulder falls through a hole. These flags persist and are read by 1F's BlackthornGym1FBouldersCallback to display fallen boulder tiles. Once set, the boulder does not reappear on 2F."
+    }
+  ],
+  "hm_requirements": ["Strength"],
+  "notes": "Blackthorn Gym 2F is a Strength puzzle floor. Six boulders must be navigated; three event-tracked ones can be pushed into holes that open to the floor below (1F). Two trainers guard the floor — Cody in the north and Fran in the south. Notably, both use Water-type Pokemon (Horsea, Seadra) despite the Gym being Dragon-type. The boulder-fall mechanic uses the stonetable/cmdqueue system, a unique Gen 2 engine feature that evaluates NPC positions against warp coordinates on map load. The floor uses the same ELITE_FOUR_ROOM tileset as 1F, giving the gym a grand stone chamber aesthetic throughout."
+}

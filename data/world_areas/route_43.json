@@ -1,0 +1,352 @@
+{
+  "area_id": "route_43",
+  "area_name": "Route 43",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_43",
+  "width_blocks": 10,
+  "height_blocks": 27,
+  "width_tiles": 20,
+  "height_tiles": 54,
+  "tileset": "johto_outside",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "mahogany_town",
+      "offset": 5,
+      "requires": null,
+      "notes": "Route exits south into Mahogany Town. Warp tiles at y=51 connect to the Mahogany Gate (Route43MahoganyGate) which bridges to the town."
+    },
+    {
+      "direction": "north",
+      "target_area_id": "lake_of_rage",
+      "offset": 0,
+      "requires": null,
+      "notes": "Route opens north into Lake of Rage."
+    }
+  ],
+  "warps": [
+    {
+      "x": 9,  "y": 51,
+      "target_area_id": "route_43_mahogany_gate",
+      "target_warp_id": 1,
+      "notes": "South gate entrance, left tile"
+    },
+    {
+      "x": 10, "y": 51,
+      "target_area_id": "route_43_mahogany_gate",
+      "target_warp_id": 2,
+      "notes": "South gate entrance, right tile"
+    },
+    {
+      "x": 17, "y": 35,
+      "target_area_id": "route_43_gate",
+      "target_warp_id": 3,
+      "notes": "Team Rocket toll gate, south exit (y=35 leads to gate bottom)"
+    },
+    {
+      "x": 17, "y": 31,
+      "target_area_id": "route_43_gate",
+      "target_warp_id": 1,
+      "notes": "Team Rocket toll gate, north entrance left tile"
+    },
+    {
+      "x": 18, "y": 31,
+      "target_area_id": "route_43_gate",
+      "target_warp_id": 2,
+      "notes": "Team Rocket toll gate, north entrance right tile"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "G": "tall_grass",
+      "T": "apricorn_tree",
+      "H": "gate_building",
+      "D": "gate_door",
+      "S": "sign",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "N": "npc_position",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "B": "bridge"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "#############S######",
+      "####################",
+      "##GGNN...............",
+      "##GG.................",
+      "##GG....NN.GGGG......",
+      "##GG....GG.GGGG......",
+      "##GG....GG.GGGG......",
+      "##GG....GGGG..........",
+      "##GG....GGGG..........",
+      "##GG.................",
+      "##GGGG...............",
+      "##GGGG...............",
+      "##GGGG...............",
+      "##GGN.N.............",
+      "##GG................",
+      "##GG................",
+      "##GG................",
+      "##GG....N...........",
+      "##GG................",
+      "##GG................",
+      "##GG................",
+      "##GGN..............",
+      "##GG................",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "########HHHHH#######",
+      "########HDDDH#######",
+      "########HDDDH#######",
+      "########HDDDH#######",
+      "########HDDDH#######",
+      "####################",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~N.......",
+      "##GG...~~~~~........",
+      "##GG.S.~~~~~........",
+      "##GG...~~~~~........",
+      "##GG...~~~~~........",
+      "##GG................",
+      "##GG................",
+      "##GG................",
+      "##GG................",
+      "##GGGG.....S........",
+      "##GGGG..............",
+      "##.!................",
+      "####DDDDDDDDDDDDDDDD",
+      "####################",
+      "####################"
+    ],
+    "notes": "Layout is schematic. Route 43 runs north-south and is quite narrow (20 tiles wide). Tall grass lines the west side for much of the route. A small stream/pond (~) cuts through the center-east for several rows. The Team Rocket toll gate building (H/D) is embedded in the route at approximately y=31-35; it spans the walkable path, forcing all traffic through it. A bypass path exists to the west of the gate through heavier grass (the Rocket-free path is the overgrown west side, but this still has wild encounters). The single Apricorn tree (T) is at the far west side near y=26. The Max Ether item ball is southwest of the gate. Two signs: north sign near Lake of Rage end, south sign near Mahogany end. Trainer Tips sign is east-center mid-route."
+  },
+  "signs": [
+    {
+      "x": 13, "y": 3,
+      "text": "ROUTE 43 — LAKE OF RAGE - MAHOGANY TOWN"
+    },
+    {
+      "x": 11, "y": 49,
+      "text": "ROUTE 43 — LAKE OF RAGE - MAHOGANY TOWN"
+    },
+    {
+      "x": 16, "y": 38,
+      "text": "TRAINER TIPS — All Pokemon have pros and cons depending on their types. If their types differ, a higher-level Pokemon may lose in battle. Learn which types are strong and weak against your Pokemon's type."
+    }
+  ],
+  "npcs": [],
+  "trainers": [
+    {
+      "id": "pokemaniac_ben",
+      "class": "Pokemaniac",
+      "name": "Ben",
+      "x": 13, "y": 5,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Slowbro", "level": 19}
+      ],
+      "prize_money": 1140,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_BEN",
+      "pokecrystal_const": "ROUTE43_SUPER_NERD1",
+      "notes": "Sprite is SPRITE_SUPER_NERD. Northernmost trainer on the route. Faces left (west)."
+    },
+    {
+      "id": "pokemaniac_ron",
+      "class": "Pokemaniac",
+      "name": "Ron",
+      "x": 14, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Nidoking", "level": 19}
+      ],
+      "prize_money": 1140,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_RON",
+      "pokecrystal_const": "ROUTE43_SUPER_NERD3",
+      "notes": "Sprite is SPRITE_SUPER_NERD. Faces down (south). North section of route."
+    },
+    {
+      "id": "fisher_marvin",
+      "class": "Fisher",
+      "name": "Marvin",
+      "x": 4, "y": 16,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Magikarp", "level": 10},
+        {"species": "Gyarados", "level": 10},
+        {"species": "Magikarp", "level": 15},
+        {"species": "Gyarados", "level": 15}
+      ],
+      "prize_money": 600,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_FISHER_MARVIN",
+      "pokecrystal_const": "ROUTE43_FISHER",
+      "notes": "Faces right (east), long 4-tile line of sight. Stands near the western pond/stream."
+    },
+    {
+      "id": "picnicker_tiffany",
+      "class": "Picnicker",
+      "name": "Tiffany",
+      "x": 9, "y": 25,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Clefairy", "level": 20}
+      ],
+      "prize_money": 400,
+      "rematch": true,
+      "rematch_notes": "Pokegear rematch available (PHONE_PICNICKER_TIFFANY). Tiffany upgrades her team via rematches after events. She gives Pink Bow as a phone gift if the player has a Clefairy. Asks for player's number if they have a Clefairy in party.",
+      "event_flag": "EVENT_BEAT_PICNICKER_TIFFANY",
+      "pokecrystal_const": "ROUTE43_LASS",
+      "notes": "Sprite is SPRITE_LASS. Faces down (south). Mid-route."
+    },
+    {
+      "id": "pokemaniac_brent",
+      "class": "Pokemaniac",
+      "name": "Brent",
+      "x": 13, "y": 20,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Lickitung", "level": 19}
+      ],
+      "prize_money": 1140,
+      "rematch": true,
+      "rematch_notes": "Pokegear rematch available (PHONE_POKEMANIAC_BRENT). Team upgrades after major game events.",
+      "event_flag": "EVENT_BEAT_POKEMANIAC_BRENT",
+      "pokecrystal_const": "ROUTE43_SUPER_NERD2",
+      "notes": "Sprite is SPRITE_SUPER_NERD. Spins randomly fast. Mid-route, near gate approach."
+    },
+    {
+      "id": "camper_spencer",
+      "class": "Camper",
+      "name": "Spencer",
+      "x": 13, "y": 40,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Sandshrew", "level": 17},
+        {"species": "Sandslash", "level": 17},
+        {"species": "Zubat",     "level": 19}
+      ],
+      "prize_money": 380,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_CAMPER_SPENCER",
+      "pokecrystal_const": "ROUTE43_YOUNGSTER",
+      "notes": "Sprite is SPRITE_YOUNGSTER. Spins randomly fast. Southern portion of route, below the gate."
+    }
+  ],
+  "items": [
+    {
+      "name": "Max Ether",
+      "x": 12, "y": 32,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_43_MAX_ETHER",
+      "notes": "Pokeball sprite item. Located west of the toll gate building, accessible without passing through the gate."
+    },
+    {
+      "name": "TM36 (Sludge Bomb)",
+      "x": 0, "y": 4,
+      "hidden": false,
+      "requires": null,
+      "source": "npc_gift",
+      "notes": "Given by the Officer in Route43Gate after Team Rocket is cleared from the hideout. The officer was chased from his post and hands over the TM the Rockets left behind. Event flag: EVENT_GOT_TM36_SLUDGE_BOMB."
+    }
+  ],
+  "apricorn_trees": [
+    {
+      "id": "fruit_tree_route43",
+      "x": 1, "y": 26,
+      "fruit": "unknown_apricorn",
+      "fruittree_const": "FRUITTREE_ROUTE_43",
+      "pokecrystal_const": "ROUTE43_FRUIT_TREE",
+      "notes": "Single apricorn tree on the far west side of the route near the stream. Fruit type not specified in reference data — confirmed present by fruittree script in pokecrystal. Likely Blue or Purple Apricorn based on game data."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Flaaffy",   "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Girafarig", "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Pidgeotto", "level_min": 17, "level_max": 17, "rate": 25},
+        {"species": "Mareep",    "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Venonat",   "level_min": 16, "level_max": 16, "rate": 5}
+      ],
+      "day": [
+        {"species": "Flaaffy",   "level_min": 15, "level_max": 15, "rate": 40},
+        {"species": "Girafarig", "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Pidgeotto", "level_min": 17, "level_max": 17, "rate": 20},
+        {"species": "Mareep",    "level_min": 15, "level_max": 15, "rate": 10}
+      ],
+      "night": [
+        {"species": "Flaaffy",   "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Girafarig", "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Noctowl",   "level_min": 17, "level_max": 17, "rate": 20},
+        {"species": "Venonat",   "level_min": 16, "level_max": 16, "rate": 15},
+        {"species": "Mareep",    "level_min": 15, "level_max": 15, "rate": 5}
+      ]
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 24, "rate": 100}
+      ],
+      "requires": "surf",
+      "notes": "Surf on the stream/pond section of Route 43 yields only Magikarp."
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 85},
+        {"species": "Poliwag",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Poliwag",  "level_min": 20, "level_max": 20, "rate": 65},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35}
+      ],
+      "super_rod": [
+        {"species": "Poliwag",  "level_min": 40, "level_max": 40, "rate": 80},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "map_entry_callback",
+      "description": "MAPCALLBACK_NEWMAP fires Route43CheckIfRocketsScene every time the player enters Route 43. It checks EVENT_CLEARED_ROCKET_HIDEOUT: if Rockets are not yet cleared, it sets ROUTE_43_GATE scene to SCENE_ROUTE43GATE_ROCKET_SHAKEDOWN; if cleared, sets it to SCENE_ROUTE43GATE_NOOP. This ensures the toll gate behavior is always synchronized with the player's current game progress."
+    },
+    {
+      "trigger": "rocket_shakedown_pre_event",
+      "description": "Before EVENT_CLEARED_ROCKET_HIDEOUT: Team Rocket has seized Route 43 Gate. Two Rocket Grunts block the path inside and demand a 1000 PokeDollar toll from any player passing through (both directions: north and south). If the player cannot pay in full, the Rockets take whatever money they have. After paying, the Grunts step aside. The route gate music changes to MUSIC_ROCKET_ENCOUNTER during this scene."
+    },
+    {
+      "trigger": "rocket_shakedown_post_event",
+      "description": "After EVENT_CLEARED_ROCKET_HIDEOUT: Rocket Grunts are gone from the gate. The Officer returns and gives TM36 Sludge Bomb, explaining the Rockets left it behind when they were chased off. Normal gate passage resumes."
+    }
+  ],
+  "notes": "Route 43 is a long north-south corridor connecting Mahogany Town to Lake of Rage. Width is narrow (20 tiles). The defining feature is the Team Rocket toll gate embedded in the route at approximately y=31-35 (tile coords). Before the Rocket Hideout is cleared, two Grunts man the gate and extort a 1000P toll from the player (in both directions). The western side of the gate area has a rougher path through tall grass that bypasses the gate interior entirely, but still triggers wild encounters. After clearing the Rocket Hideout, the gate becomes a normal passage with the Officer giving TM36 Sludge Bomb. Six trainers total cover the route from north to south. One Apricorn tree near the west stream. The Max Ether item ball is west of the gate. Two route signs (north and south ends) plus a Trainer Tips sign east-center. Map attribute connections: NORTH | SOUTH. Tileset: $05 (outside)."
+}

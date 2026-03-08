@@ -1,0 +1,195 @@
+{
+  "area_id": "ice_path_b1f",
+  "area_name": "Ice Path B1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "ICE_PATH_B1F",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "ice_path",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 15,
+      "target_area_id": "ice_path_1f",
+      "target_warp_id": 3,
+      "notes": "Stairs up to 1F (north upper staircase)"
+    },
+    {
+      "warp_id": 2,
+      "x": 17, "y": 3,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 1,
+      "notes": "Stairs/ladder down to B2F Mahogany Side (northeast)"
+    },
+    {
+      "warp_id": 3,
+      "x": 11, "y": 2,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 3,
+      "notes": "Hole — falls through to B2F Mahogany Side when boulder is pushed over it"
+    },
+    {
+      "warp_id": 4,
+      "x": 4, "y": 7,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 4,
+      "notes": "Hole — falls through to B2F Mahogany Side"
+    },
+    {
+      "warp_id": 5,
+      "x": 5, "y": 12,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 5,
+      "notes": "Hole — falls through to B2F Mahogany Side"
+    },
+    {
+      "warp_id": 6,
+      "x": 12, "y": 13,
+      "target_area_id": "ice_path_b2f_mahogany",
+      "target_warp_id": 6,
+      "notes": "Hole — falls through to B2F Mahogany Side"
+    },
+    {
+      "warp_id": 7,
+      "x": 5, "y": 25,
+      "target_area_id": "ice_path_1f",
+      "target_warp_id": 4,
+      "notes": "Stairs up to 1F (south lower staircase)"
+    },
+    {
+      "warp_id": 8,
+      "x": 11, "y": 27,
+      "target_area_id": "ice_path_b2f_blackthorn",
+      "target_warp_id": 1,
+      "notes": "Stairs/hole down to B2F Blackthorn Side (south area)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "I": "ice",
+      "R": "strength_boulder",
+      "O": "hole_in_floor",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "notes": "20 wide x 36 tall tiles. B1F is the Strength boulder puzzle floor. Four boulders must be pushed into four holes to open the path through. Each boulder sits adjacent to its target hole. If a boulder lands on a hole-warp, it falls through to B2F Mahogany Side (with dialogue 'The boulder fell through.'). The north half connects back to 1F and down to B2F Mahogany. The south half connects back to 1F and down to B2F Blackthorn. Item Iron at (5,35); hidden Max Potion at (17,30).",
+    "rows": [
+      "####################",
+      "####################",
+      "###########O########",
+      "###############^####",
+      "####################",
+      "####################",
+      "####################",
+      "####O......R........",
+      "########.R..........#",
+      "########.R..........#",
+      "####################",
+      "####################",
+      "#####O##############",
+      "############O#######",
+      "####################",
+      "###^################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#####^##############",
+      "####################",
+      "###########v########",
+      "####################",
+      "####################",
+      "#################?##",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#####!##############"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Iron",
+      "x": 5, "y": 35,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B1F_IRON",
+      "notes": "Pokeball sprite at the very bottom of the south section of B1F."
+    },
+    {
+      "name": "Max Potion",
+      "x": 17, "y": 30,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ICE_PATH_B1F_HIDDEN_MAX_POTION",
+      "notes": "Hidden item. Defined as bg_event at (17,30). Found in the southeast area near the Blackthorn descent."
+    }
+  ],
+  "puzzle": {
+    "type": "strength_boulders",
+    "description": "Four Strength boulders (requires HM04 Strength) must be pushed into four floor holes. The holes are warp points to B2F Mahogany Side. If a boulder is pushed onto a hole tile, it falls through with sound effects and a brief earthquake animation, displaying the text 'The boulder fell through.' The IcePathB1FSetUpStoneTableCallback runs on map load (MAPCALLBACK_CMDQUEUE) to check if any boulders are already sitting on hole-warps and handle them. Successfully solving the puzzle clears the path to the B2F Blackthorn staircase. The four boulders start at: Boulder1=(11,7), Boulder2=(7,8), Boulder3=(8,9), Boulder4=(17,7). The four holes are at: (11,2), (4,7), (5,12), (12,13) — these correspond to warps 3-6 leading to B2F Mahogany Side."
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 2,
+      "notes": "Cave encounters, 2% per step.",
+      "morning": [
+        {"species": "Swinub",   "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Zubat",    "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Swinub",   "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "day": [
+        {"species": "Swinub",   "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Zubat",    "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Swinub",   "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Jynx",     "level_min": 22, "level_max": 22, "rate": 10}
+      ],
+      "night": [
+        {"species": "Delibird", "level_min": 22, "level_max": 22, "rate": 20},
+        {"species": "Zubat",    "level_min": 23, "level_max": 23, "rate": 20},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Delibird", "level_min": 24, "level_max": 24, "rate": 20},
+        {"species": "Golbat",   "level_min": 25, "level_max": 25, "rate": 10},
+        {"species": "Golbat",   "level_min": 23, "level_max": 23, "rate": 10},
+        {"species": "Sneasel",  "level_min": 22, "level_max": 22, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water on B1F."
+    },
+    "fishing": {
+      "group": "FISHGROUP_DRATINI",
+      "notes": "Fishing data defined but no accessible water on B1F."
+    }
+  },
+  "events": [
+    {
+      "trigger": "boulder_falls_through",
+      "description": "When a Strength boulder is pushed onto a hole tile, CMDQUEUE_STONETABLE fires on next map load, causing the boulder to disappear with SFX_STRENGTH + earthquake(80) and the message 'The boulder fell through.' The corresponding EVENT_BOULDER_IN_ICE_PATH_nA flag is cleared so the boulder does not reappear."
+    }
+  ],
+  "notes": "Ice Path B1F (10x18 blocks, 20x36 tiles) is the Strength boulder puzzle floor. Tileset: TILESET_ICE_PATH. Music: MUSIC_DARK_CAVE. This is the only floor in Ice Path that requires HM04 Strength. Four boulders start at fixed positions and four holes in the floor serve as targets. Boulders pushed onto holes fall to B2F Mahogany Side. The correct puzzle solution opens the path south to the B2F Blackthorn staircase (warp 8 at tile 11,27). Two staircases lead back up to 1F: warp 1 at (3,15) and warp 7 at (5,25). Wild encounters add Jynx during morning/day and Sneasel at night (replacing Jynx). Iron is found at the far south; hidden Max Potion is in the southeast. The stonetable callback (IcePathB1FSetUpStoneTableCallback) runs every time the map loads to handle boulders already on holes."
+}

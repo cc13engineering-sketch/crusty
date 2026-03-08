@@ -1,0 +1,130 @@
+{
+  "area_id": "tin_tower_roof",
+  "area_name": "Tin Tower Roof",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_ROOF",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_HO_OH_BATTLE",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 9, "y": 13,
+      "target_area_id": "tin_tower_9f",
+      "target_warp_id": 4,
+      "notes": "Only warp — staircase down returning to 9F. South area of the roof."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/railing/obstacle",
+      "v": "stairs_down (to 9F)",
+      "N": "Ho-Oh spawn position (conditional)",
+      "@": "player_arrival_area"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "The roof is the summit of the nine-story Tin Tower.",
+      "Ho-Oh spawns at (9,5) — center-north of the roof platform.",
+      "The only warp is the down-stair at (9,13) returning to 9F.",
+      "Ho-Oh appears only if: (1) EVENT_FOUGHT_HO_OH is NOT set, AND (2) player has RAINBOW_WING in bag.",
+      "If Ho-Oh has already been fought (or fled/defeated), the tile is empty — only the stair remains.",
+      "The roof is open sky — the final destination of the tower ascent.",
+      "The BATTLETYPE_FORCEITEM flag means Ho-Oh forces the player to use an item during battle (Crystal-specific mechanic note)."
+    ],
+    "rows": [
+      "####################",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##........N.........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##........v.........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "ho_oh",
+      "name": "Ho-Oh",
+      "x": 9, "y": 5,
+      "facing": "player",
+      "movement": "pokemon_sprite",
+      "sprite": "SPRITE_HO_OH",
+      "palette": "PAL_NPC_RED",
+      "script_type": "battle_trigger",
+      "event_flag": "EVENT_TIN_TOWER_ROOF_HO_OH",
+      "conditional": true,
+      "notes": "Managed by TinTowerRoofHoOhCallback. Appears if EVENT_FOUGHT_HO_OH NOT set AND player has RAINBOW_WING. Disappears if EVENT_FOUGHT_HO_OH IS set."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "ho_oh_encounter": {
+    "species": "Ho-Oh",
+    "level": 60,
+    "battle_type": "BATTLETYPE_FORCEITEM",
+    "trigger": "Talk to Ho-Oh sprite at (9,5)",
+    "cry": "Plays HO_OH cry before battle initiates",
+    "pre_battle_text": "Shaoooh!",
+    "conditions": {
+      "required_item": "RAINBOW_WING (must be in bag)",
+      "event_must_be_clear": "EVENT_FOUGHT_HO_OH",
+      "notes": "Ho-Oh only appears and is only fightable if the player has the Rainbow Wing and has NOT yet fought Ho-Oh. Callback runs on every map entry."
+    },
+    "post_battle": {
+      "description": "Ho-Oh disappears from the roof. EVENT_FOUGHT_HO_OH is set. EVENT_SET_WHEN_FOUGHT_HO_OH is set. Map reloads after battle (reloadmapafterbattle). Ho-Oh does NOT reappear after being defeated or fleeing — it is a one-time encounter.",
+      "result_if_defeated": "Ho-Oh disappears permanently from roof.",
+      "result_if_caught": "Ho-Oh disappears permanently from roof. Added to party/box."
+    },
+    "callback_logic": {
+      "function": "TinTowerRoofHoOhCallback",
+      "trigger": "MAPCALLBACK_OBJECTS — runs on every map load",
+      "logic": "If EVENT_FOUGHT_HO_OH is set → disappear. Else if player has RAINBOW_WING → appear. Else → disappear."
+    }
+  },
+  "events": [
+    {
+      "trigger": "arrive_on_roof_with_rainbow_wing",
+      "description": "TinTowerRoofHoOhCallback fires on map load. If Rainbow Wing is in bag and Ho-Oh not yet fought: Ho-Oh sprite appears at (9,5). Player can walk up and interact to trigger the battle."
+    },
+    {
+      "trigger": "interact_with_ho_oh",
+      "description": "TinTowerHoOh script: Ho-Oh faces player, text box opens with cry ('Shaoooh!'). Sets EVENT_FOUGHT_HO_OH. Sets VAR_BATTLETYPE to BATTLETYPE_FORCEITEM. Loads Ho-Oh at level 60. Starts battle. After battle: disappear Ho-Oh, reload map, set EVENT_SET_WHEN_FOUGHT_HO_OH."
+    },
+    {
+      "trigger": "arrive_without_rainbow_wing",
+      "description": "Ho-Oh does not appear. Roof is empty. Player can only turn around and descend via the staircase at (9,13)."
+    },
+    {
+      "trigger": "arrive_after_ho_oh_fought",
+      "description": "Ho-Oh does not appear. Roof is permanently empty. EVENT_FOUGHT_HO_OH prevents Ho-Oh from respawning."
+    }
+  ],
+  "access_requirements": {
+    "to_reach_roof": "Must climb all nine floors (1F-9F) of Tin Tower and locate the correct warp tile at (7,9) on 9F.",
+    "to_see_ho_oh": "Must have RAINBOW_WING in bag (obtained from Sage5 on 1F after Suicune encounter/story requirements met). EVENT_FOUGHT_HO_OH must not be set.",
+    "full_chain": "1. Complete Tin Tower storyline (Suicune battle on 1F, receive Rainbow Wing from Sage5). 2. Climb nine floors using the warp puzzle. 3. Step on warp at 9F (7,9) to reach roof. 4. Approach Ho-Oh at (9,5) to trigger level 60 battle."
+  },
+  "notes": "Tin Tower Roof is the summit of the nine-story Bell Tower (Tin Tower) and the site of the Ho-Oh encounter — the flagship legendary Pokemon of Pokemon Crystal. The map is 10x9 blocks (20x18 tiles) and contains only two elements: the Ho-Oh sprite object at (9,5) and the descent warp at (9,13). Ho-Oh appears at level 60 with BATTLETYPE_FORCEITEM, the highest-level legendary encounter in Crystal. The encounter is gated by both story progression (Rainbow Wing required) and the event flag system (one-time only). The callback TinTowerRoofHoOhCallback runs on every map load to correctly show or hide Ho-Oh based on current state. After Ho-Oh is fought (caught, defeated, or fled), it never returns to the roof. The BATTLETYPE_FORCEITEM is notable — it is the same battle type used in situations where the game forces the player to use a specific item during the encounter (in Crystal's context, this relates to the Rainbow Wing held item interaction)."
+}

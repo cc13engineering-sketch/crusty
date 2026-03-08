@@ -1,0 +1,543 @@
+{
+  "area_id": "route_32",
+  "area_name": "Route 32",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_32",
+  "width_blocks": 10,
+  "height_blocks": 45,
+  "width_tiles": 20,
+  "height_tiles": 90,
+  "tileset": "johto_overworld",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "violet_city",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "union_cave_1f",
+      "offset": 0,
+      "requires": null,
+      "notes": "Route 32 terminates at Union Cave entrance. Route 33 is south of Union Cave."
+    }
+  ],
+  "warps": [
+    {
+      "x": 11,
+      "y": 73,
+      "target_area_id": "route_32_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokemon Center mid-route, western side around y73."
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "target_area_id": "route_32_ruins_of_alph_gate",
+      "target_warp_id": 3,
+      "notes": "Ruins of Alph gate — upper door tile"
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "target_area_id": "route_32_ruins_of_alph_gate",
+      "target_warp_id": 4,
+      "notes": "Ruins of Alph gate — lower door tile"
+    },
+    {
+      "x": 6,
+      "y": 79,
+      "target_area_id": "union_cave_1f",
+      "target_warp_id": 4,
+      "notes": "Union Cave entrance at the southern terminus of the route"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "D": "door_gate",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "C": "cave_entrance",
+      "K": "pokecenter",
+      "H": "gate_building",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "B": "bridge"
+    },
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTHD...............T",
+      "TTTHD...............T",
+      "TTT.................T",
+      "TTT..SS.N...........T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG..N.....T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG........T",
+      "TTT.....GGGG........T",
+      "TTT~~~~~GGGG........T",
+      "TTT~~~~~GGGG........T",
+      "TTT~~~~~............T",
+      "TTT~~~~~............T",
+      "TTT~~~~~.GGGG.......T",
+      "TTT~~~~~.GGGG.......T",
+      "TTT~~~~~.GGGG.......T",
+      "TTT~~~~~.GGGG.......T",
+      "TTTBBBBB.GGGG.N.....T",
+      "TTTBBBBB.GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT.N....GGGG.......T",
+      "TTT......GGGG.......T",
+      "TTT~~~~~~GGGG.......T",
+      "TTT~~~~~~GGGG.......T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~?GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG.N....T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.!GGG......T",
+      "TTT~~~~~~N.GGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG.N....T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~.GGGG..N...T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~?GGGG......T",
+      "TTTN~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTTNN~~~~.GGGG......T",
+      "TTTNN~~~~.GGGG......T",
+      "TTT~~~~~~K.GGG......T",
+      "TTT~~~~~~.KGGG..S...T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG......T",
+      "TTT~~~~~~.GGGG.N....T",
+      "TTT~~~~~~...........T",
+      "TTT~~~~~~...........T",
+      "TTTTS~~~~...........T",
+      "TTTTTCTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT"
+    ],
+    "notes": "Route 32 is 20x90 tiles — one of the longest routes in Johto. The left (west) side has a long lake/pond (surfable). Ruins of Alph gate is in the upper-left at y2-3. Pokemon Center sits around y73 on the west side. Union Cave entrance at y79. Coordinates and NPC positions are taken directly from pokecrystal object_event entries. Tile layout is a schematic approximation; actual block pattern comes from Route32.blk."
+  },
+  "npcs": [
+    {
+      "id": "cooltrainer_m",
+      "name": "Cool Trainer (male) — Miracle Seed giver",
+      "x": 19,
+      "y": 8,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "quest",
+      "dialogue_summary": "Blocks the player initially (scene SCENE_ROUTE32_COOLTRAINER_M_BLOCKS) if the player lacks the Zephyr Badge. After beating Falkner and receiving the Togepi Egg from Elm's aide, he gives the player the Miracle Seed (boosts Grass-type move power). After that he just offers encouragement.",
+      "gives_item": "Miracle Seed",
+      "requires": "EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE"
+    },
+    {
+      "id": "roar_tm_guy",
+      "name": "Roar TM Man",
+      "x": 15,
+      "y": 13,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "quest",
+      "dialogue_summary": "Enthusiastically gives the player TM05 (Roar) for free. After receiving it he describes how even Pokemon flee a good roar.",
+      "gives_item": "TM05 (Roar)",
+      "requires": null,
+      "pokecrystal_event": "EVENT_GOT_TM05_ROAR"
+    },
+    {
+      "id": "slowpoke_tail_salesman",
+      "name": "Suspicious Fisher (Slowpoke Tail salesman)",
+      "x": 7,
+      "y": 70,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "quest_scene",
+      "dialogue_summary": "Tries to sell the player a Slowpoke Tail for 1,000,000 yen. The player always declines. This NPC is linked to Team Rocket's Slowpoke Well operation and only appears before that plot is resolved (EVENT_SLOWPOKE_WELL_ROCKETS).",
+      "visible_condition": "EVENT_SLOWPOKE_WELL_ROCKETS (must be unresolved)",
+      "pokecrystal_scene": "SCENE_ROUTE32_OFFER_SLOWPOKETAIL"
+    },
+    {
+      "id": "frieda_of_friday",
+      "name": "Frieda of Friday",
+      "x": 12,
+      "y": 67,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "quest",
+      "dialogue_summary": "Appears ONLY on Fridays. Introduces herself as Frieda of Friday and gives the player a Poison Barb (held item that boosts Poison-type moves). On other days she is invisible (DISAPPEAR callback).",
+      "visible_condition": "VAR_WEEKDAY == FRIDAY",
+      "gives_item": "Poison Barb",
+      "requires": null,
+      "pokecrystal_event": "EVENT_GOT_POISON_BARB_FROM_FRIEDA",
+      "pokecrystal_callback": "Route32FriedaCallback"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Youngster",
+      "name": "Albert",
+      "trainer_id": "ALBERT",
+      "x": 12,
+      "y": 22,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Rattata", "level": 6},
+        {"species": "Zubat",   "level": 8}
+      ],
+      "prize_money": 128,
+      "rematch": false
+    },
+    {
+      "class": "Picnicker",
+      "name": "Liz",
+      "trainer_id": "LIZ1",
+      "x": 10,
+      "y": 30,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Nidoran-F", "level": 9}
+      ],
+      "prize_money": 180,
+      "rematch": true,
+      "rematch_notes": "Pokegear phone rematch. Up to 5 fight tiers. Later teams add higher-level Nidorina/Nidoqueen.",
+      "pokecrystal_trainer": "PICNICKER, LIZ1"
+    },
+    {
+      "class": "Camper",
+      "name": "Roland",
+      "trainer_id": "ROLAND",
+      "x": 3,
+      "y": 45,
+      "facing": "up",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Nidoran-M", "level": 9}
+      ],
+      "prize_money": 180,
+      "rematch": false,
+      "pokecrystal_trainer": "CAMPER, ROLAND"
+    },
+    {
+      "class": "Fisher",
+      "name": "Henry",
+      "trainer_id": "HENRY",
+      "x": 6,
+      "y": 48,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Poliwag", "level": 8},
+        {"species": "Poliwag", "level": 8}
+      ],
+      "prize_money": 256,
+      "rematch": false,
+      "pokecrystal_trainer": "FISHER, HENRY"
+    },
+    {
+      "class": "Fisher",
+      "name": "Justin",
+      "trainer_id": "JUSTIN",
+      "x": 8,
+      "y": 49,
+      "facing": "down",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Magikarp", "level": 5},
+        {"species": "Magikarp", "level": 5},
+        {"species": "Magikarp", "level": 5},
+        {"species": "Magikarp", "level": 15}
+      ],
+      "prize_money": 480,
+      "rematch": false,
+      "pokecrystal_trainer": "FISHER, JUSTIN"
+    },
+    {
+      "class": "Fisher",
+      "name": "Ralph",
+      "trainer_id": "RALPH1",
+      "x": 12,
+      "y": 56,
+      "facing": "up",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Goldeen", "level": 10}
+      ],
+      "prize_money": 320,
+      "rematch": true,
+      "rematch_notes": "Pokegear phone rematch. Up to 5 fight tiers. Announces Qwilfish swarm when ENGINE_QWILFISH_SWARM is active.",
+      "pokecrystal_trainer": "FISHER, RALPH1"
+    },
+    {
+      "class": "Youngster",
+      "name": "Gordon",
+      "trainer_id": "GORDON",
+      "x": 4,
+      "y": 63,
+      "facing": "random",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Wooper", "level": 10}
+      ],
+      "prize_money": 160,
+      "rematch": false,
+      "pokecrystal_trainer": "YOUNGSTER, GORDON"
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Peter",
+      "trainer_id": "PETER",
+      "x": 11,
+      "y": 82,
+      "facing": "up",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Pidgey",  "level": 6},
+        {"species": "Pidgey",  "level": 6},
+        {"species": "Spearow", "level": 8}
+      ],
+      "prize_money": 192,
+      "rematch": false,
+      "pokecrystal_trainer": "BIRD_KEEPER, PETER"
+    }
+  ],
+  "items": [
+    {
+      "name": "Great Ball",
+      "x": 6,
+      "y": 53,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_32_GREAT_BALL"
+    },
+    {
+      "name": "Repel",
+      "x": 3,
+      "y": 30,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_32_REPEL"
+    },
+    {
+      "name": "Great Ball (hidden)",
+      "x": 12,
+      "y": 67,
+      "hidden": true,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_32_HIDDEN_GREAT_BALL"
+    },
+    {
+      "name": "Super Potion (hidden)",
+      "x": 11,
+      "y": 40,
+      "hidden": true,
+      "requires": null,
+      "pokecrystal_event": "EVENT_ROUTE_32_HIDDEN_SUPER_POTION"
+    },
+    {
+      "name": "TM05 (Roar)",
+      "x": 15,
+      "y": 13,
+      "hidden": false,
+      "requires": null,
+      "item_type": "npc_gift",
+      "pokecrystal_event": "EVENT_GOT_TM05_ROAR",
+      "notes": "Given freely by the Roar TM man NPC."
+    },
+    {
+      "name": "Miracle Seed",
+      "x": 19,
+      "y": 8,
+      "hidden": false,
+      "requires": "EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE",
+      "item_type": "npc_gift",
+      "pokecrystal_event": "EVENT_GOT_MIRACLE_SEED_IN_ROUTE_32",
+      "notes": "Given by Cool Trainer M after player has Zephyr Badge and picked up Togepi Egg from Elm's aide at the Pokemon Center."
+    },
+    {
+      "name": "Old Rod",
+      "x": 1,
+      "y": 73,
+      "hidden": false,
+      "requires": null,
+      "item_type": "npc_gift",
+      "pokecrystal_event": "EVENT_GOT_OLD_ROD",
+      "notes": "Given by the Fishing Guru inside the Route 32 Pokemon Center. First fishing rod in the game."
+    },
+    {
+      "name": "Poison Barb",
+      "x": 12,
+      "y": 67,
+      "hidden": false,
+      "requires": "VAR_WEEKDAY == FRIDAY",
+      "item_type": "npc_gift",
+      "pokecrystal_event": "EVENT_GOT_POISON_BARB_FROM_FRIEDA",
+      "notes": "Given by Frieda of Friday on Fridays only."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Rattata",    "level_min": 4, "level_max": 8, "rate": 35},
+        {"species": "Ekans",      "level_min": 4, "level_max": 4, "rate": 30},
+        {"species": "Bellsprout", "level_min": 6, "level_max": 7, "rate": 30},
+        {"species": "Mareep",     "level_min": 6, "level_max": 6, "rate": 20},
+        {"species": "Hoppip",     "level_min": 6, "level_max": 7, "rate": 10},
+        {"species": "Pidgey",     "level_min": 7, "level_max": 7, "rate": 5},
+        {"species": "Wooper",     "level_min": 4, "level_max": 8, "rate": 4},
+        {"species": "Zubat",      "level_min": 4, "level_max": 8, "rate": 1}
+      ],
+      "day": [
+        {"species": "Rattata",    "level_min": 4, "level_max": 8, "rate": 40},
+        {"species": "Ekans",      "level_min": 4, "level_max": 4, "rate": 30},
+        {"species": "Bellsprout", "level_min": 6, "level_max": 7, "rate": 30},
+        {"species": "Mareep",     "level_min": 6, "level_max": 6, "rate": 20},
+        {"species": "Hoppip",     "level_min": 6, "level_max": 7, "rate": 10},
+        {"species": "Pidgey",     "level_min": 7, "level_max": 7, "rate": 5}
+      ],
+      "night": [
+        {"species": "Rattata",    "level_min": 4, "level_max": 8, "rate": 30},
+        {"species": "Bellsprout", "level_min": 6, "level_max": 7, "rate": 20},
+        {"species": "Wooper",     "level_min": 4, "level_max": 8, "rate": 30},
+        {"species": "Mareep",     "level_min": 6, "level_max": 6, "rate": 10},
+        {"species": "Zubat",      "level_min": 4, "level_max": 8, "rate": 10},
+        {"species": "Gastly",     "level_min": 7, "level_max": 7, "rate": 5},
+        {"species": "Hoothoot",   "level_min": 7, "level_max": 7, "rate": 5}
+      ],
+      "version_notes": "Ekans is Gold-exclusive; Snubbull appears in Silver in some slots per HGSS updates (not in GS). Mareep is found here; this is one of its earliest appearances."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Tentacool",  "level_min": 15, "level_max": 24, "rate": 60},
+        {"species": "Quagsire",   "level_min": 15, "level_max": 24, "rate": 30},
+        {"species": "Tentacruel", "level_min": 15, "level_max": 24, "rate": 10}
+      ],
+      "notes": "Long surfable lake runs along the western half of the route."
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp",  "level_min": 10, "level_max": 10, "rate": 85},
+        {"species": "Tentacool", "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Tentacool", "level_min": 10, "level_max": 10, "rate": 40},
+        {"species": "Magikarp",  "level_min": 10, "level_max": 10, "rate": 40},
+        {"species": "Shellder",  "level_min": 10, "level_max": 10, "rate": 10, "version": "Gold"},
+        {"species": "Corsola",   "level_min": 10, "level_max": 10, "rate": 10, "version": "Silver"}
+      ],
+      "super_rod": [
+        {"species": "Tentacool",  "level_min": 10, "level_max": 10, "rate": 40},
+        {"species": "Tentacruel", "level_min": 10, "level_max": 10, "rate": 30},
+        {"species": "Shellder",   "level_min": 10, "level_max": 10, "rate": 15, "version": "Gold"},
+        {"species": "Corsola",    "level_min": 10, "level_max": 10, "rate": 15, "version": "Silver"},
+        {"species": "Staryu",     "level_min": 10, "level_max": 10, "rate": 15}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "enter_route_32_without_zephyr_badge",
+      "description": "Cool Trainer M blocks the path and pushes the player back north toward Violet City with a cutscene. He tells the player to challenge the Pokemon Gym first.",
+      "pokecrystal_scene": "SCENE_ROUTE32_COOLTRAINER_M_BLOCKS",
+      "pokecrystal_coord_event": "coord_event 18,8"
+    },
+    {
+      "trigger": "enter_route_32_after_badge_before_egg",
+      "description": "Cool Trainer M now stands aside but tells the player that a man wearing glasses (Elm's aide) is waiting at the Pokemon Center.",
+      "requires": "ENGINE_ZEPHYRBADGE without EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE"
+    },
+    {
+      "trigger": "enter_route_32_after_egg",
+      "description": "Cool Trainer M gives Miracle Seed once the Togepi Egg has been collected from Elm's aide at the Pokemon Center.",
+      "requires": "EVENT_GOT_TOGEPI_EGG_FROM_ELMS_AIDE"
+    },
+    {
+      "trigger": "cross_y71_with_slowpoke_salesman",
+      "description": "Crossing y71 while Slowpoke Well Rockets are active triggers a cutscene where the suspicious fisher tries to sell a Slowpoke Tail for 1,000,000 yen.",
+      "pokecrystal_scene": "SCENE_ROUTE32_OFFER_SLOWPOKETAIL",
+      "pokecrystal_coord_event": "coord_event 7,71"
+    },
+    {
+      "trigger": "friday_visit",
+      "description": "Frieda of Friday appears and gives Poison Barb held item on Fridays only.",
+      "requires": "VAR_WEEKDAY == FRIDAY"
+    }
+  ],
+  "signs": [
+    {
+      "x": 13,
+      "y": 5,
+      "text": "ROUTE 32 / VIOLET CITY - AZALEA TOWN"
+    },
+    {
+      "x": 9,
+      "y": 1,
+      "text": "RUINS OF ALPH — EAST ENTRANCE"
+    },
+    {
+      "x": 10,
+      "y": 84,
+      "text": "UNION CAVE AHEAD"
+    },
+    {
+      "x": 12,
+      "y": 73,
+      "text": "POKEMON CENTER (Pokecenter sign — standard)"
+    }
+  ],
+  "notes": "Route 32 is the longest route in Johto at 10x45 blocks (20x90 tiles). It runs south from Violet City through a region of tall grass and a long western lake before reaching Union Cave. Key features: (1) Cool Trainer M blocks entry without Zephyr Badge; (2) Ruins of Alph gate access in the upper-left; (3) Pokemon Center mid-route where the Fishing Guru gives the Old Rod; (4) 8 trainers including 3 fishers; (5) Frieda of Friday Friday-only NPC; (6) Slowpoke Tail salesman cutscene; (7) 4 items (2 visible, 2 hidden). Ekans is Gold-exclusive in grass. Pokecrystal source: maps/Route32.asm. Route 33 is NOT a direct connection — Union Cave separates them."
+}

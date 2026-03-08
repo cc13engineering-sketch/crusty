@@ -1,0 +1,299 @@
+{
+  "area_id": "route_40",
+  "area_name": "Route 40",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_40",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "music": "MUSIC_ROUTE_36",
+  "fishing_group": "FISHGROUP_SHORE",
+  "connections": [
+    {
+      "direction": "east",
+      "target_area_id": "olivine_city",
+      "offset": -9,
+      "requires": null,
+      "notes": "Connection offset: OlivineCity connects west with offset 9; Route40 connects east with -9"
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_41",
+      "offset": -15,
+      "requires": "Surf",
+      "notes": "Connection offset: Route41 connects north with offset 15"
+    }
+  ],
+  "warps": [
+    {
+      "x": 9,
+      "y": 5,
+      "target_area_id": "route_40_battle_tower_gate",
+      "target_warp_id": 1,
+      "notes": "Gate building on the eastern shoreline strip leading to Battle Tower"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "W": "whirlpool",
+      "R": "rock",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~.......S####",
+      "~~~~~~~~.......D####",
+      "~~~~~~~~.......#####",
+      "~~~~~~~~.......#####",
+      "~~~~?..NR....N.#####",
+      "~~~~...RR....N.#####",
+      "~~~~~~~~.......#####",
+      "~~~~....R......#####",
+      "~~~~~~~~.......#####",
+      "~~~~~~~....N...#####",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~N~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~N~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "~~~~~~~~~~~~~~~~~~~~",
+      "####################",
+      "####################"
+    ],
+    "notes": "Route 40 is mostly open ocean with a narrow eastern land strip running along the Olivine coast. The land strip (tiles 14-19, rows 4-13) contains the Battle Tower gate building, a route sign, smashable rocks, and various NPCs. Three smashable rocks block a path on the strip. Monica (Monday sibling) appears at tile (8,10) on Mondays only. The western ocean section is open water for Surfing south toward Route 41. Trainer positions are approximate — derived from pokecrystal object_event coordinates where x,y map to tile space (each block is 2 tiles). Object coordinates in .asm are in tiles directly: Simon at (14,15), Randall at (18,30), Elaine at (3,19), Paula at (10,25)."
+  },
+  "signs": [
+    {
+      "x": 14,
+      "y": 10,
+      "text": "ROUTE 40 — CIANWOOD CITY - OLIVINE CITY"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "route40_lass1",
+      "name": "Lass",
+      "x": 11,
+      "y": 13,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Although you can't see it from here, CIANWOOD is across the sea."
+    },
+    {
+      "id": "route40_monica",
+      "name": "Monica",
+      "x": 8,
+      "y": 10,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Monica of Monday. Gives the player a Sharp Beak on their first Monday meeting. On other days says she doesn't think today is Monday. After receiving the gift she mentions her brothers and sisters are all over the place.",
+      "event_flag": "EVENT_ROUTE_40_MONICA_OF_MONDAY",
+      "condition": "Appears on Mondays only via Route40MonicaCallback. Hidden on other days via MAPCALLBACK_OBJECTS."
+    },
+    {
+      "id": "route40_pokefan_m",
+      "name": "Pokefan (M)",
+      "x": 7,
+      "y": 6,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "There is a big building up ahead — what is it? (References the Battle Tower. Mobile adapter version has alternate text about serious-looking trainers streaming in.)"
+    },
+    {
+      "id": "route40_lass2",
+      "name": "Lass",
+      "x": 13,
+      "y": 4,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Came to Olivine by ship to see the sights. Being a port, it feels so different from a big city."
+    },
+    {
+      "id": "route40_standing_youngster",
+      "name": "Youngster",
+      "x": 16,
+      "y": 9,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Asks if the player has gone to the Battle Tower. Mentions many tough trainers have gathered there. Only visible after the Battle Tower opens (EVENT_BATTLE_TOWER_OPEN_CIVILIANS flag).",
+      "event_flag": "EVENT_BATTLE_TOWER_OPEN_CIVILIANS"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Swimmer (M)",
+      "name": "Simon",
+      "x": 14,
+      "y": 15,
+      "facing": "right",
+      "movement": "standing_right",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Tentacool", "level": 20},
+        {"species": "Tentacool", "level": 20}
+      ],
+      "prize_money": 160,
+      "rematch": false,
+      "seen_text": "You have to warm up before going into the water. That's basic.",
+      "beaten_text": "OK! Uncle! I give!",
+      "after_battle_text": "CIANWOOD CITY is a good distance away from here."
+    },
+    {
+      "class": "Swimmer (M)",
+      "name": "Randall",
+      "x": 18,
+      "y": 30,
+      "facing": "left",
+      "movement": "standing_left",
+      "line_of_sight": 5,
+      "team": [
+        {"species": "Shellder", "level": 18},
+        {"species": "Wartortle", "level": 20},
+        {"species": "Shellder", "level": 18}
+      ],
+      "prize_money": 144,
+      "rematch": false,
+      "seen_text": "Hey, you're young and fit! Don't ride your MON! Swim!",
+      "beaten_text": "Uh-oh. I lost…",
+      "after_battle_text": "Swimming exercises your entire body. It's healthy."
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Elaine",
+      "x": 3,
+      "y": 19,
+      "facing": "right",
+      "movement": "standing_right",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Staryu", "level": 21}
+      ],
+      "prize_money": 420,
+      "rematch": false,
+      "seen_text": "Are you going to CIANWOOD? How about a quick battle first?",
+      "beaten_text": "I lost that one!",
+      "after_battle_text": "I'd say I'm a better swimmer than you. Yeah!"
+    },
+    {
+      "class": "Swimmer (F)",
+      "name": "Paula",
+      "x": 10,
+      "y": 25,
+      "facing": "random",
+      "movement": "spin_clockwise",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Staryu", "level": 19},
+        {"species": "Shellder", "level": 19}
+      ],
+      "prize_money": 380,
+      "rematch": false,
+      "seen_text": "No inner tube for me. I'm hanging on to a sea MON!",
+      "beaten_text": "Ooh, I'm feeling dizzy!",
+      "after_battle_text": "While I float like this, the waves carry me along."
+    }
+  ],
+  "items": [
+    {
+      "name": "Sharp Beak",
+      "x": 8,
+      "y": 10,
+      "hidden": false,
+      "requires": "Talk to Monica on a Monday",
+      "notes": "Given by Monica (Monday sibling). Raises power of Flying-type moves. One-time event: EVENT_GOT_SHARP_BEAK_FROM_MONICA."
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 7,
+      "y": 8,
+      "hidden": true,
+      "requires": null,
+      "notes": "Hidden item on the land strip. Event flag: EVENT_ROUTE_40_HIDDEN_HYPER_POTION. bg_event at tile (7,8)."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": [],
+      "notes": "No grass on this route. Entirely water-based."
+    },
+    "water": {
+      "encounter_rate": 6,
+      "encounter_rate_notes": "6 percent as defined in pokecrystal johto_water.asm",
+      "mons": [
+        {"species": "Tentacool",  "level_min": 15, "level_max": 20, "rate": 90, "notes": "Two Tentacool entries: level 20 and level 15 slots combined ~90%"},
+        {"species": "Tentacruel", "level_min": 20, "level_max": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "fishing_group": "FISHGROUP_SHORE",
+      "notes": "Shore group fishing — same as coastal Johto routes. TimeFishGroups entries resolve to Corsola (morning/day) and Staryu (night) for Good Rod slot 4; Krabby variants for Super Rod time slots.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 85},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 55},
+        {"species": "Corsola",  "level": 20, "rate": 5,  "condition": "morning/day"},
+        {"species": "Staryu",   "level": 20, "rate": 5,  "condition": "night"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 60},
+        {"species": "Corsola",  "level": 40, "rate": 20, "condition": "morning"},
+        {"species": "Staryu",   "level": 40, "rate": 20, "condition": "day/night"},
+        {"species": "Kingler",  "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "map_callback_objects",
+      "description": "Route40MonicaCallback fires on every map load. Reads VAR_WEEKDAY: if it is MONDAY, Monica's sprite appears; otherwise her sprite is hidden via 'disappear'. Also clears EVENT_BATTLE_TOWER_OPEN_CIVILIANS."
+    },
+    {
+      "trigger": "monday_only",
+      "description": "Monica gives Sharp Beak on first Monday meeting. Checks EVENT_GOT_SHARP_BEAK_FROM_MONICA and EVENT_MET_MONICA_OF_MONDAY to sequence the gift dialogue properly."
+    },
+    {
+      "trigger": "battle_tower_civilians",
+      "description": "The Standing Youngster NPC (EVENT_BATTLE_TOWER_OPEN_CIVILIANS) only appears after the Battle Tower opens and the civilians flag is set. Monica's callback also clears this flag each map load — the Youngster is suppressed until the tower is open."
+    }
+  ],
+  "notes": "Route 40 is a short north-south water route connecting Olivine City to Route 41. It requires Surf to traverse. A narrow land strip runs along the eastern edge adjacent to the Olivine coast; this strip holds the Battle Tower gate building, smashable rocks (3 boulders that can be cleared with Rock Smash), and several NPCs. The main water body occupies the western three-quarters of the map. Monica of Monday is the Day-of-the-Week Sibling encountered here — she only appears on Mondays and gives the Sharp Beak held item. Trainer count: 4 Swimmers (2 male, 2 female). Map constants: ROUTE40_OLIVINE_RIVAL1=0, ROUTE40_OLIVINE_RIVAL2=1, ROUTE40_SWIMMER_GIRL1=2, ROUTE40_SWIMMER_GIRL2=3, ROUTE40_ROCK1=4, ROUTE40_ROCK2=5, ROUTE40_ROCK3=6, ROUTE40_LASS1=7, ROUTE40_MONICA=8, ROUTE40_POKEFAN_M=9, ROUTE40_LASS2=10, ROUTE40_STANDING_YOUNGSTER=11. Pokecrystal source: maps/Route40.asm, maps/Route40.blk, data/maps/attributes.asm (ROUTE_40)."
+}

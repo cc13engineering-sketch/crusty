@@ -1,0 +1,209 @@
+{
+  "area_id": "whirl_islands_b2f",
+  "area_name": "Whirl Islands (B2F)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_B2F",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "pokecrystal_attr_tileset_id": "$2e",
+  "connections": [],
+  "warps": [
+    {
+      "x": 11,
+      "y": 5,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 7,
+      "notes": "Staircase up to B1F (east shaft from B1F coord 25,21). warp_event 11,5 WHIRL_ISLAND_B1F 7."
+    },
+    {
+      "x": 7,
+      "y": 11,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 8,
+      "notes": "Second staircase up to B1F (west shaft from B1F coord 13,27). warp_event 7,11 WHIRL_ISLAND_B1F 8."
+    },
+    {
+      "x": 7,
+      "y": 25,
+      "target_area_id": "whirl_islands_lugia_chamber",
+      "target_warp_id": 1,
+      "notes": "Waterfall entrance to the Lugia Chamber. Requires HM07 Waterfall to descend. warp_event 7,25 WHIRL_ISLAND_LUGIA_CHAMBER 1."
+    },
+    {
+      "x": 13,
+      "y": 31,
+      "target_area_id": "whirl_islands_sw",
+      "target_warp_id": 5,
+      "notes": "Passage connecting up to SW entrance cave. warp_event 13,31 WHIRL_ISLAND_SW 5. Serves as a shortcut from the SW island entrance directly to B2F."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "F": "waterfall",
+      "^": "stairs_up_to_b1f",
+      "v": "descent_to_lugia_chamber",
+      "P": "passage_to_sw_cave",
+      "!": "item_ball_visible"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "######!#############",
+      "###########^########",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#######^############",
+      "#####!##############",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#######F############",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#############P######",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic from warp and object_event coordinates in WhirlIslandB2F.asm. 20x36 tiles. Two staircases up to B1F: (11,5) and (7,11). Waterfall descent to Lugia Chamber at (7,25) — requires HM07. Passage to SW entrance cave at (13,31). Items: Max Revive (6,4), Full Restore (10,11), Max Elixer (5,12). Water pool with surfable encounters in the lower section. The waterfall/whirlpool area at (7,25) is the gateway to Lugia. Actual block layout in maps/WhirlIslandB2F.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Max Revive",
+      "x": 6,
+      "y": 4,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B2F_MAX_REVIVE",
+      "pokecrystal_label": "WhirlIslandB2FMaxRevive",
+      "notes": "object_event 6,4. itemball MAX_REVIVE."
+    },
+    {
+      "name": "Full Restore",
+      "x": 10,
+      "y": 11,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B2F_FULL_RESTORE",
+      "pokecrystal_label": "WhirlIslandB2FFullRestore",
+      "notes": "object_event 10,11. itemball FULL_RESTORE."
+    },
+    {
+      "name": "Max Elixer",
+      "x": 5,
+      "y": 12,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_B2F_MAX_ELIXER",
+      "pokecrystal_label": "WhirlIslandB2FMaxElixer",
+      "notes": "object_event 5,12. itemball MAX_ELIXER. Note: game uses 'Elixer' spelling (not 'Elixir')."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "B2F encounters are one level above B1F, two tiers above entrance caves. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_B2F lines 1013-1039.",
+      "morning": [
+        {"species": "Krabby",  "level": 24, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 25, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 24, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 26, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 27, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 26, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 26, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 24, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 25, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 24, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 26, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 27, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 26, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 26, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 24, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 25, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 24, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 26, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 27, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 26, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 26, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 4,
+      "notes": "B2F has a surfable water section in the lower half leading toward the waterfall. Source: data/wild/johto_water.asm def_water_wildmons WHIRL_ISLAND_B2F lines 82-87.",
+      "mons": [
+        {"species": "Horsea",     "level": 15, "rate": 60},
+        {"species": "Horsea",     "level": 20, "rate": 30},
+        {"species": "Tentacruel", "level": 20, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. B2F has accessible water so fishing is viable here.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "waterfall_descent",
+      "description": "The only access to Lugia Chamber is through the waterfall at (7,25). The player must use HM07 Waterfall to descend through it. Without Waterfall, this path is blocked.",
+      "requires": "HM07_Waterfall, Rising_Badge"
+    },
+    {
+      "trigger": "shortcut_from_sw",
+      "description": "The passage at (13,31) connects directly to the SW entrance cave (WhirlIslandSW warp 5), allowing players to skip the full B1F route when approaching from the SW island.",
+      "requires": "HM06_Whirlpool"
+    }
+  ],
+  "signs": [],
+  "notes": "The penultimate floor before the Lugia encounter. B2F is 10x18 blocks (20x36 tiles) and serves as the final navigation challenge before reaching Lugia. The tileset attribute $2e differs from B1F ($09), indicating a different visual sub-type within the dark cave tileset. Key features: three premium items (Max Revive, Full Restore, Max Elixer), a surfable water pool with Horsea/Tentacruel, two staircases to B1F, a shortcut to the SW entrance cave, and the critical waterfall descent to the Lugia Chamber at (7,25). HM07 Waterfall and the Rising Badge are required to clear the waterfall and reach Lugia. Wild encounters escalate to level 24-27, the highest of any floor except the Lugia Chamber itself. Source: maps/WhirlIslandB2F.asm, constants/map_constants.asm line 137, data/maps/attributes.asm line 450, data/wild/johto_grass.asm lines 1013-1039, data/wild/johto_water.asm lines 82-87."
+}

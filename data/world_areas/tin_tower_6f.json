@@ -1,0 +1,88 @@
+{
+  "area_id": "tin_tower_6f",
+  "area_name": "Tin Tower 6F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_6F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 9,
+      "target_area_id": "tin_tower_7f",
+      "target_warp_id": 1,
+      "notes": "Staircase up to 7F — west side of floor"
+    },
+    {
+      "warp_id": 2,
+      "x": 11, "y": 15,
+      "target_area_id": "tin_tower_5f",
+      "target_warp_id": 1,
+      "notes": "Staircase down to 5F — south-central area, mirrors 5F ascending stair"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "!": "item_ball"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "6F is a simpler floor — one item ball (Max Potion at 8,8) and two warp tiles.",
+      "The stair up shifts to the west side (3,9), creating a new traversal direction.",
+      "The stair down is at the south-center (11,15), continuing from 5F.",
+      "No hidden items, no NPCs. Clean traversal floor with one reward."
+    ],
+    "rows": [
+      "####################",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##.^....!...........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##.........v........",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Max Potion",
+      "x": 8, "y": 8,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_6F_MAX_POTION",
+      "requires": null,
+      "notes": "Item ball (SPRITE_POKE_BALL). Script: TinTower6FMaxPotion — itemball MAX_POTION."
+    }
+  ],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [],
+  "access_requirements": {
+    "to_enter": "Reached via stair up from 5F at (11,15) → 5F warp_id 1.",
+    "note": "No floor-specific blocking."
+  },
+  "notes": "Tin Tower 6F is 10x9 blocks (20x18 tiles). It is a transitional floor with one item ball (Max Potion at 8,8) and straightforward warp connections. The ascent stair shifts to the west at (3,9) leading to 7F, while the descent stair at (11,15) returns to 5F. No NPCs, trainers, hidden items, or events. The Max Potion is well-placed for healing before the increasingly complex upper floors (7F-9F) of the tower."
+}

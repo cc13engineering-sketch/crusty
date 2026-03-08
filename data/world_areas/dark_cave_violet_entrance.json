@@ -1,0 +1,214 @@
+{
+  "area_id": "dark_cave_violet_entrance",
+  "area_name": "Dark Cave (Violet Entrance)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "DARK_CAVE_VIOLET_ENTRANCE",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 15,
+      "target_area_id": "route_31",
+      "target_warp_id": 3,
+      "notes": "Western exit to Route 31 — the primary player entry point from Violet City direction"
+    },
+    {
+      "warp_id": 2,
+      "x": 17, "y": 1,
+      "target_area_id": "dark_cave_blackthorn_entrance",
+      "target_warp_id": 2,
+      "notes": "Internal passage connecting to the Blackthorn side — requires Surf + Waterfall to reach"
+    },
+    {
+      "warp_id": 3,
+      "x": 35, "y": 33,
+      "target_area_id": "route_46",
+      "target_warp_id": 3,
+      "notes": "Southeast exit to Route 46 — accessible via Surf across the interior lake"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "R": "rock",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "C": "cave_entrance",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": [
+      "Map is 40 tiles wide x 36 tiles tall (20x18 blocks).",
+      "Tile coordinates are (col=x, row=y) with (0,0) at top-left.",
+      "The cave is pitch black without Flash — the player can navigate but visibility is reduced to a small circle.",
+      "Flash (TM70) or a Pokemon with Flash normalises visibility. The effect is purely cosmetic/strategic.",
+      "An interior lake (water body) runs through the cave middle-east; Surf is required to cross it.",
+      "The Route 46 exit in the southeast corner additionally requires Surf to reach.",
+      "The Blackthorn passage warp at (17,1) is in the far north — Waterfall and Surf needed to ascend.",
+      "Four Rock Smash boulders block alternate paths: (16,14), (27,6), (7,14), (36,31).",
+      "Item ball positions from object_event data: Potion at (6,8), Full Heal at (36,22), Hyper Potion at (35,9), Dire Hit at (30,28).",
+      "Hidden Elixer at bg_event (26,3) — facing tile, no visible ball.",
+      "The cave is entered from Route 31 at the west edge (row 15, col 3)."
+    ],
+    "rows": [
+      "########################################",
+      "########################################",
+      "#.....CCCCCCCC..........................#",
+      "#....................?................###",
+      "#.....................................###",
+      "#.....................................###",
+      "#...!.................................###",
+      "#.....................................###",
+      "#!....................................###",
+      "#.....................................###",
+      "#.....................................###",
+      "#....~~~~~............................###",
+      "#....~~~~~............................###",
+      "#....~~~~~............................###",
+      "#R...~~~~~.R..........................###",
+      "C....~~~~~............................###",
+      "#....~~~~~.............................##",
+      "#....~~~~~.............................##",
+      "#....~~~~~.............................##",
+      "#....~~~~~.............................##",
+      "#....~~~~~.............................##",
+      "#....~~~~~.............................##",
+      "#....~~~~~..................!...........#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.....!.......................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~............................R#",
+      "#....~~~~~.............................#",
+      "#....~~~~~.............................#",
+      "#....~~~~~...........................C##",
+      "########################################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Potion",
+      "x": 6, "y": 8,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_VIOLET_ENTRANCE_POTION"
+    },
+    {
+      "name": "Full Heal",
+      "x": 36, "y": 22,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_VIOLET_ENTRANCE_FULL_HEAL"
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 35, "y": 9,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_VIOLET_ENTRANCE_HYPER_POTION"
+    },
+    {
+      "name": "Dire Hit",
+      "x": 30, "y": 28,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_VIOLET_ENTRANCE_DIRE_HIT"
+    },
+    {
+      "name": "Elixer",
+      "x": 26, "y": 3,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_DARK_CAVE_VIOLET_ENTRANCE_HIDDEN_ELIXER",
+      "notes": "Hidden item — bg_event facing tile, no visible ball"
+    }
+  ],
+  "rock_smash_boulders": [
+    {"x": 16, "y": 14, "notes": "Blocks alternate south path"},
+    {"x": 27, "y": 6,  "notes": "Blocks upper northeast passage"},
+    {"x": 7,  "y": 14, "notes": "Blocks western passage fork"},
+    {"x": 36, "y": 31, "notes": "Blocks southeastern area near Route 46 exit"}
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 4,
+      "notes": "Cave walking encounters — all times of day use the same encounter list except morning Teddiursa",
+      "morning": [
+        {"species": "Geodude",  "level_min": 3, "level_max": 3, "slot": 1},
+        {"species": "Zubat",    "level_min": 2, "level_max": 2, "slot": 2},
+        {"species": "Geodude",  "level_min": 2, "level_max": 2, "slot": 3},
+        {"species": "Geodude",  "level_min": 4, "level_max": 4, "slot": 4},
+        {"species": "Teddiursa","level_min": 2, "level_max": 2, "slot": 5, "notes": "Morning-only; replaced by Zubat day/night"},
+        {"species": "Zubat",    "level_min": 4, "level_max": 4, "slot": 6},
+        {"species": "Dunsparce","level_min": 4, "level_max": 4, "slot": 7}
+      ],
+      "day": [
+        {"species": "Geodude",  "level_min": 3, "level_max": 3, "slot": 1},
+        {"species": "Zubat",    "level_min": 2, "level_max": 2, "slot": 2},
+        {"species": "Geodude",  "level_min": 2, "level_max": 2, "slot": 3},
+        {"species": "Geodude",  "level_min": 4, "level_max": 4, "slot": 4},
+        {"species": "Zubat",    "level_min": 2, "level_max": 2, "slot": 5},
+        {"species": "Zubat",    "level_min": 4, "level_max": 4, "slot": 6},
+        {"species": "Dunsparce","level_min": 4, "level_max": 4, "slot": 7}
+      ],
+      "night": [
+        {"species": "Geodude",  "level_min": 3, "level_max": 3, "slot": 1},
+        {"species": "Zubat",    "level_min": 2, "level_max": 2, "slot": 2},
+        {"species": "Geodude",  "level_min": 2, "level_max": 2, "slot": 3},
+        {"species": "Geodude",  "level_min": 4, "level_max": 4, "slot": 4},
+        {"species": "Zubat",    "level_min": 2, "level_max": 2, "slot": 5},
+        {"species": "Zubat",    "level_min": 4, "level_max": 4, "slot": 6},
+        {"species": "Dunsparce","level_min": 4, "level_max": 4, "slot": 7}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "notes": "Surf encounters on the interior lake — only Magikarp at low levels",
+      "mons": [
+        {"species": "Magikarp", "level_min": 15, "level_max": 15, "slot": 1},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "slot": 2},
+        {"species": "Magikarp", "level_min": 5,  "level_max": 5,  "slot": 3}
+      ]
+    },
+    "fishing": {
+      "notes": "No fishing data defined for Dark Cave in pokecrystal wild data files",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "mechanic",
+      "description": "Dark Cave is pitch-black without Flash. The game renders a heavily darkened map with only a small circle of visibility around the player. Using Flash (TM70) or a Pokemon knowing Flash removes the effect for the current visit. Does not persist between map entries."
+    }
+  ],
+  "geography_notes": [
+    "Dark Cave is the cave connecting Route 31 (Violet City side) to Route 46 (south of Violet City) and the Blackthorn Entrance.",
+    "The Violet Entrance is the first section players encounter — accessible immediately after Violet City Gym.",
+    "Wild Pokemon here are low level (2-4), appropriate for early-game exploration.",
+    "Dunsparce is rare but present in all time slots — one of only two reliable Dunsparce locations in the game.",
+    "Teddiursa appears only in the morning time period. It is otherwise absent.",
+    "Rock Smash is required to fully explore the cave and access certain item balls.",
+    "Surf is required to access the Route 46 exit and the passage to the Blackthorn Entrance.",
+    "The Blackthorn Entrance passage additionally requires Waterfall.",
+    "Despite being accessible early, the Blackthorn side contains Pokemon at level 20-30."
+  ],
+  "notes": "Dark Cave Violet Entrance is the first cave the player can enter, immediately east of Violet City via Route 31. Flash is the recommended HM — the cave is navigable without it but very dark. Items are scattered across both the accessible early section and the Surf-locked deeper areas. Dunsparce is a notable rare encounter here at the start of the game. The full cave connects through to the Blackthorn Entrance via Surf + Waterfall."
+}

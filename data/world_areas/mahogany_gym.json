@@ -1,0 +1,364 @@
+{
+  "area_id": "mahogany_gym",
+  "area_name": "Mahogany Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "MAHOGANY_GYM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "ice_path",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 17,
+      "target_area_id": "mahogany_town",
+      "target_warp_id": 3,
+      "notes": "Left door tile of gym exit"
+    },
+    {
+      "x": 5, "y": 17,
+      "target_area_id": "mahogany_town",
+      "target_warp_id": 3,
+      "notes": "Right door tile of gym exit"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "ice_mechanics": {
+      "description": "Ice floor tiles cause the player to slide in the direction of movement until hitting a wall or a non-ice tile (a raised platform stopper block). The puzzle requires planning which direction to enter each ice segment to land on the correct stopping tile. Trainers stand on raised platforms alongside the ice.",
+      "slide_rule": "Once on ice (I), movement continues in the entered direction until the player hits a wall (#) or a floor stopper (.) platform. Changing direction is not possible mid-slide.",
+      "stopper_tiles": "Small raised platform blocks placed at key positions interrupt sliding and allow direction changes. Represented as '.' within the ice field.",
+      "puzzle_layers": [
+        "Layer 1 (south zone, rows 14-17): Entry level. One small ice patch with Boarder Ronald (left) and Skier Clarissa (right) guarding the south approaches. Slide north to reach center platform.",
+        "Layer 2 (mid zone, rows 9-13): Wider ice field. Boarder Brad guards center platform. Must navigate diagonally placed stoppers to thread through to north.",
+        "Layer 3 (north zone, rows 3-8): Deepest ice section. Boarder Douglas (spinner) and Skier Roxanne guard the final approach to Pryce's platform. Correct slide path exits onto Pryce's raised dais."
+      ]
+    },
+    "notes": [
+      "Gym is 5 blocks (10 tiles) wide x 9 blocks (18 tiles) tall.",
+      "Block data sourced from MahoganyGym.blk. Interior tileset: ice_path (map_attr $00, no connections).",
+      "NPC coordinates from MahoganyGym_MapEvents object_events (tile-space x,y).",
+      "Row 0 = northernmost row (Pryce's wall backing). Row 17 = gym exit doors.",
+      "Pryce stands at (5,3) — north-center raised dais.",
+      "Gym statues at bg_events (3,15) and (6,15) — checked for GLACIERBADGE flag.",
+      "All trainers have line_of_sight 1 (adjacent tile detection per OBJECTTYPE_TRAINER with range 1).",
+      "Boarder Douglas at (2,4) uses SPRITEMOVEDATA_SPINRANDOM_FAST — spins rapidly, still has trainer LOS.",
+      "Exit warp tiles: (4,17) and (5,17) both return to MAHOGANY_TOWN warp 3."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "##.PPPPP.#",
+      "##.PNPPP.#",
+      "#I.PPIII.#",
+      "#IIIIIII.#",
+      "#IIIIIIIX#",
+      "#III.IIIX#",
+      "#II.IIIIN#",
+      "#II..IIII#",
+      "#II.NIIII#",
+      "#IIIIIII.#",
+      "#IIIIIIII#",
+      "#IIIIIIII#",
+      "#I.PIIIP.#",
+      "##.PSPSP.#",
+      "#IIIIIIIP#",
+      "##..DEEE.#"
+    ],
+    "row_annotations": {
+      "0":  "North wall",
+      "1":  "North wall",
+      "2":  "Pryce's dais — raised platform, walkable tiles each side",
+      "3":  "Pryce NPC at tile (5,3) — faces down toward player",
+      "4":  "Ice begins. Boarder Douglas (spinner) at tile (2,4)",
+      "5":  "Deep ice — slides from south enter and pass through",
+      "6":  "Ice with east wall blocker; blocked tile (9,6) is east wall column",
+      "7":  "Ice stopper platform at (3,7); blocked tiles east",
+      "8":  "Ice stopper at (2,8); Skier Roxanne at tile (4,6) — see note",
+      "9":  "Ice field continues — stopper islands at cols 2-3",
+      "10": "Boarder Brad NPC at tile (5,9)",
+      "11": "Ice — long unbroken east-west slide possible",
+      "12": "Ice",
+      "13": "Ice",
+      "14": "South ice zone — stopper platforms at cols 1 and 7",
+      "15": "Gym statues at (3,15) and (6,15) — bg_event signs",
+      "16": "Boarder Ronald at (0,17) and Skier Clarissa at (9,17) — see note; ice row",
+      "17": "Exit row: doors at tiles (4,17) and (5,17); Gym Guide at tile (7,15)"
+    },
+    "layout_description": "The gym is a narrow 10-tile-wide corridor oriented south-to-north. The floor is divided into three zones of ice separated by small raised stopper platforms. Entering from the south (warp tiles at row 17), the player must navigate three successive ice-floor puzzles, battling trainers on the raised platforms between slides. The correct route threads through specific stopper islands to avoid being deflected into dead-end corners. Pryce waits on his raised dais at the north end."
+  },
+  "npcs": [
+    {
+      "id": "npc_gym_guide",
+      "name": "Gym Guide",
+      "x": 7, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "sprite": "SPRITE_GYM_GUIDE",
+      "palette": "PAL_NPC_RED",
+      "dialogue_summary": "Pre-badge: Pryce is a veteran who has trained Pokemon for 50 years, good at freezing opponents with ice-type moves — melt him with burning ambition! Post-badge: that was a hot battle that bridged the generation gap!"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Skier",
+      "name": "Roxanne",
+      "trainer_id": "SKIER_ROXANNE",
+      "x": 4, "y": 6,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_BEAUTY",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_SKIER_ROXANNE",
+      "team": [
+        {"species": "Jynx", "level": 28, "moves": ["default"]}
+      ],
+      "prize_money": 560,
+      "seen_text": "To get to PRYCE, our GYM LEADER, you need to think before you skate.",
+      "beaten_text": "I wouldn't lose to you in skiing!",
+      "after_battle_text": "If you don't skate with precision, you won't get far in this GYM.",
+      "rematch": false,
+      "location_note": "Stands on raised platform in the north ice zone, south of Pryce's dais"
+    },
+    {
+      "class": "Boarder",
+      "name": "Ronald",
+      "trainer_id": "BOARDER_RONALD",
+      "x": 0, "y": 17,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_ROCKER",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_BOARDER_RONALD",
+      "team": [
+        {"species": "Seel", "level": 24, "moves": ["default"]},
+        {"species": "Dewgong", "level": 25, "moves": ["default"]},
+        {"species": "Seel", "level": 24, "moves": ["default"]}
+      ],
+      "prize_money": 480,
+      "seen_text": "I'll freeze your #MON, so you can't do a thing!",
+      "beaten_text": "Darn. I couldn't do a thing.",
+      "after_battle_text": "I think there's a move a #MON can use while it's frozen.",
+      "rematch": false,
+      "location_note": "Stands at the far west end of the south exit row, facing north into the gym"
+    },
+    {
+      "class": "Skier",
+      "name": "Clarissa",
+      "trainer_id": "SKIER_CLARISSA",
+      "x": 9, "y": 17,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_BEAUTY",
+      "palette": "PAL_NPC_RED",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_SKIER_CLARISSA",
+      "team": [
+        {"species": "Dewgong", "level": 28, "moves": ["default"]}
+      ],
+      "prize_money": 560,
+      "seen_text": "Check out my parallel turn!",
+      "beaten_text": "No! You made me wipe out!",
+      "after_battle_text": "I shouldn't have been bragging about my skiing…",
+      "rematch": false,
+      "location_note": "Stands at the far east end of the south exit row, facing north"
+    },
+    {
+      "class": "Boarder",
+      "name": "Brad",
+      "trainer_id": "BOARDER_BRAD",
+      "x": 5, "y": 9,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_ROCKER",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_BOARDER_BRAD",
+      "team": [
+        {"species": "Swinub", "level": 26, "moves": ["default"]},
+        {"species": "Swinub", "level": 26, "moves": ["default"]}
+      ],
+      "prize_money": 520,
+      "seen_text": "This GYM has a slippery floor. It's fun, isn't it? But hey -- we're not playing games here!",
+      "beaten_text": "Do you see how serious we are?",
+      "after_battle_text": "This GYM is great. I love boarding with my #MON!",
+      "rematch": false,
+      "location_note": "Stands on a central stopper platform in the mid ice zone"
+    },
+    {
+      "class": "Boarder",
+      "name": "Douglas",
+      "trainer_id": "BOARDER_DOUGLAS",
+      "x": 2, "y": 4,
+      "facing": "spin_random_fast",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_FAST",
+      "sprite": "SPRITE_ROCKER",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 1,
+      "event_flag": "EVENT_BEAT_BOARDER_DOUGLAS",
+      "team": [
+        {"species": "Shellder", "level": 24, "moves": ["default"]},
+        {"species": "Cloyster", "level": 25, "moves": ["default"]},
+        {"species": "Shellder", "level": 24, "moves": ["default"]}
+      ],
+      "prize_money": 480,
+      "seen_text": "I know PRYCE's secret.",
+      "beaten_text": "OK. I'll tell you PRYCE's secret.",
+      "after_battle_text": "The secret behind PRYCE's power… He meditates under a waterfall daily to strengthen his mind and body.",
+      "rematch": false,
+      "location_note": "Stands on north zone ice, spins rapidly — placed to catch players who slide into the north zone without clearing Roxanne first"
+    },
+    {
+      "class": "Gym Leader",
+      "name": "Pryce",
+      "trainer_id": "PRYCE_PRYCE1",
+      "x": 5, "y": 3,
+      "facing": "down",
+      "movement": "standing",
+      "sprite": "SPRITE_PRYCE",
+      "palette": "PAL_NPC_BROWN",
+      "line_of_sight": 0,
+      "event_flag": "EVENT_BEAT_PRYCE",
+      "team": [
+        {
+          "species": "Seel",
+          "level": 27,
+          "moves": ["Headbutt", "Icy Wind", "Aurora Beam", "Rest"],
+          "source": "pokecrystal data/trainers/parties.asm — TRAINERTYPE_MOVES"
+        },
+        {
+          "species": "Dewgong",
+          "level": 29,
+          "moves": ["Headbutt", "Icy Wind", "Aurora Beam", "Rest"],
+          "source": "pokecrystal data/trainers/parties.asm — TRAINERTYPE_MOVES"
+        },
+        {
+          "species": "Piloswine",
+          "level": 31,
+          "moves": ["Icy Wind", "Fury Attack", "Mist", "Blizzard"],
+          "source": "pokecrystal data/trainers/parties.asm — TRAINERTYPE_MOVES"
+        }
+      ],
+      "dvs": "dn 9, 8, 8, 8",
+      "badge": {
+        "name": "Glacier Badge",
+        "flag": "ENGINE_GLACIERBADGE",
+        "effect": "Raises Special stats of all Pokemon. Enables HM Whirlpool field use.",
+        "sound": "SFX_GET_BADGE"
+      },
+      "tm_reward": {
+        "tm_number": 16,
+        "move": "Icy Wind",
+        "flag": "EVENT_GOT_TM16_ICY_WIND",
+        "description": "Inflicts damage and lowers opponent Speed. Demonstrates the harshness of winter."
+      },
+      "prize_money": 3720,
+      "intro_text": "Pokemon have many experiences in their lives, just like we do. I, too, have seen and suffered much in my life. Since I am your elder, let me show you what I mean. I have been with Pokemon since before you were born. I do not lose easily. I, PRYCE — the winter trainer — shall demonstrate my power!",
+      "win_text": "Ah, I am impressed by your prowess. With your strong will, I know you will overcome all life's obstacles. You are worthy of this BADGE!",
+      "post_badge_text": "That BADGE will raise the SPECIAL stats of Pokemon. It also lets your Pokemon use WHIRLPOOL to get across real whirlpools. And this… This is a gift from me! (gives TM16 Icy Wind)",
+      "after_defeat_text": "When the ice and snow melt, spring arrives. You and your Pokemon will be together for many years to come. Cherish your time together!",
+      "story_trigger": "Defeating Pryce fires MahoganyGymActivateRockets — checks badge count to trigger either GoldenrodRockets or RadioTowerRockets progression events, advancing the Team Rocket subplot."
+    }
+  ],
+  "items": [],
+  "signs": [
+    {
+      "id": "gym_statue_west",
+      "x": 3, "y": 15,
+      "type": "bg_event",
+      "script": "MahoganyGymStatue",
+      "text_pre_badge": "Standard gym statue inscription about Pryce.",
+      "text_post_badge": "Displays trainer name PRYCE via GymStatue2Script after GLACIERBADGE is obtained."
+    },
+    {
+      "id": "gym_statue_east",
+      "x": 6, "y": 15,
+      "type": "bg_event",
+      "script": "MahoganyGymStatue",
+      "text_pre_badge": "Standard gym statue inscription about Pryce.",
+      "text_post_badge": "Displays trainer name PRYCE via GymStatue2Script after GLACIERBADGE is obtained."
+    }
+  ],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "id": "rocket_activation",
+      "trigger": "post_gym_leader_defeat",
+      "description": "After beating Pryce, MahoganyGymActivateRockets checks the current badge count (VAR_BADGES). If the player has 6 badges: triggers GoldenrodRockets (Team Rocket takes over Goldenrod Radio Tower). If 7 badges: triggers RadioTowerRocketsScript. This is the narrative bridge from Mahogany to the Goldenrod Radio Tower arc.",
+      "script": "MahoganyGymActivateRockets"
+    },
+    {
+      "id": "badge_reward_scene",
+      "trigger": "post_beat_pryce",
+      "description": "Sequential event: receive GLACIERBADGE (SFX_GET_BADGE), then receive TM16 Icy Wind (EVENT_GOT_TM16_ICY_WIND). All five gym trainers' defeat events are also set at this time (Roxanne, Clarissa, Ronald, Brad, Douglas), preventing any rematches.",
+      "script": "MahoganyGymPryceScript"
+    }
+  ],
+  "ice_puzzle": {
+    "description": "The Mahogany Gym ice floor is the central mechanic of the dungeon. Three distinct zones of ice are separated by walkable raised platforms. The player slides uncontrollably on ice until hitting a wall or stopper. Success requires determining entry direction for each ice segment to land on the correct stopper for the next slide.",
+    "zones": [
+      {
+        "zone_id": "south_zone",
+        "rows": "14-17",
+        "description": "Entry zone. Boarder Ronald stands at the west edge (0,17) and Skier Clarissa at the east edge (9,17). A small ice patch in the center leads to a stopper platform. The player slides north from the entry mat to reach the first raised platform between zones.",
+        "trainers_guarding": ["Boarder Ronald", "Skier Clarissa"],
+        "solution_note": "Enter ice from the south-center. Slide north to stopper at row 14 center platform."
+      },
+      {
+        "zone_id": "mid_zone",
+        "rows": "9-13",
+        "description": "Wider ice area with a central stopper island. Boarder Brad stands on the central platform at (5,9). Multiple stopper blocks are staggered. The player must approach from the west side of the ice to avoid sliding past Brad's platform into the east wall.",
+        "trainers_guarding": ["Boarder Brad"],
+        "solution_note": "From south zone platform, slide north then adjust west to use stopper island before Boarder Brad. After defeating Brad, slide north-west to exit mid zone onto the transition platform."
+      },
+      {
+        "zone_id": "north_zone",
+        "rows": "3-8",
+        "description": "Deepest and largest ice section. Boarder Douglas (rapid spinner) at (2,4) and Skier Roxanne at (4,6) guard this area. Several stopper blocks are placed asymmetrically. The correct path threads between the east wall and center stoppers to arrive at Pryce's raised dais.",
+        "trainers_guarding": ["Boarder Douglas", "Skier Roxanne"],
+        "solution_note": "From mid zone platform, slide north into the east edge of the north zone. Use stopper at (3,7) to redirect west, then slide north to reach Pryce's dais. Douglas spins rapidly — his LOS triggers if the player slides into his column from the south."
+      }
+    ],
+    "pryce_dais": {
+      "rows": "1-3",
+      "description": "Raised platform at the north end of the gym. Non-ice. Pryce stands at (5,3) facing south. Once reached, player enters Pryce dialogue directly.",
+      "exit_note": "After defeating Pryce, player can walk freely back south through the now-static (non-sliding) gym to the exit warps at (4,17) and (5,17)."
+    }
+  },
+  "notes": "Mahogany Gym is the seventh Johto gym. Leader Pryce has trained Pokemon for 50 years and specializes in Ice-type moves. The gym's ice floor sliding puzzle is a signature mechanic that requires strategic planning of movement direction. Pryce's Piloswine at level 31 is the highest-leveled Pokemon in his party and knows Blizzard, making it the biggest threat. Defeating Pryce triggers the Team Rocket Radio Tower arc — the game's narrative climax for Johto. The Glacier Badge enables HM07 Whirlpool, unlocking the Whirl Islands (Ho-Oh/Lugia lore) and other sea passages. The gym uses the ice_path tileset internally (map_attr $00, no outdoor connections)."
+}

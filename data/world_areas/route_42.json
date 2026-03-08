@@ -1,0 +1,296 @@
+{
+  "area_id": "route_42",
+  "area_name": "Route 42",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_42",
+  "width_blocks": 30,
+  "height_blocks": 9,
+  "width_tiles": 60,
+  "height_tiles": 18,
+  "tileset": "johto_outside",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_42_ecruteak_gate",
+      "offset": 0,
+      "requires": null,
+      "notes": "Gate interior connects to Ecruteak City east exit. Warp tiles at x=0 y=8 and x=0 y=9 (tile coords)."
+    },
+    {
+      "direction": "east",
+      "target_area_id": "mahogany_town",
+      "offset": 9,
+      "requires": null,
+      "notes": "Route ends at Mahogany Town western border."
+    },
+    {
+      "direction": "north",
+      "target_area_id": "mount_mortar_1f_outside",
+      "offset": 0,
+      "requires": null,
+      "notes": "Three separate Mt. Mortar cave entrances along the north wall."
+    }
+  ],
+  "warps": [
+    {
+      "x": 0, "y": 8,
+      "target_area_id": "route_42_ecruteak_gate",
+      "target_warp_id": 3,
+      "notes": "West gate entrance, top tile"
+    },
+    {
+      "x": 0, "y": 9,
+      "target_area_id": "route_42_ecruteak_gate",
+      "target_warp_id": 4,
+      "notes": "West gate entrance, bottom tile"
+    },
+    {
+      "x": 10, "y": 5,
+      "target_area_id": "mount_mortar_1f_outside",
+      "target_warp_id": 1,
+      "notes": "Mt. Mortar western entrance (leftmost cave)"
+    },
+    {
+      "x": 28, "y": 9,
+      "target_area_id": "mount_mortar_1f_outside",
+      "target_warp_id": 2,
+      "notes": "Mt. Mortar central entrance (middle cave)"
+    },
+    {
+      "x": 46, "y": 7,
+      "target_area_id": "mount_mortar_1f_outside",
+      "target_warp_id": 3,
+      "notes": "Mt. Mortar eastern entrance (rightmost cave)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "mountain_wall",
+      "~": "water",
+      "G": "tall_grass",
+      "T": "apricorn_tree",
+      "C": "cave_entrance",
+      "S": "sign",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "N": "npc_position",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "R": "rock_obstacle"
+    },
+    "rows": [
+      "############################################################",
+      "############################################################",
+      "############C###############################################",
+      "############C###############################################",
+      "############.###############################################",
+      "######C#####.###########.....####C##########################",
+      "######C#####.........GGG.....####C##########################",
+      "######C#####.........GGG..!..####C##########################",
+      "E~~~~~C~~~~~~~~~~~~~~~~~~~....GGG..........GGG..............",
+      "E~~~~~C~~~~~~~~~~~~~~~~~~~~~~~~~.....TTT...GGG.....S........",
+      "..SGGG~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~...GGG...............",
+      "..SGGG~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~.....N.N.............",
+      "..GGGG~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~..............",
+      "........?~~~~~~~~~~~~~~~~~~~~~~~~~............................",
+      "........~~~~~~~~~~~~~~~~~~~~~~~~~S............................",
+      "...................................GGG.........................",
+      "############################################################",
+      "############################################################"
+    ],
+    "notes": "Layout is schematic at block resolution. North edge is Mt. Mortar cliff face (impassable wall). Three cave entrances (C) pierce the north wall at x~10, x~28, x~46 (tile coords). Western third has a pond requiring Surf (~) with a hidden Max Potion near x=16. Three Apricorn trees (T) cluster in the southeast near x=27-29 y=16. Tall grass patches (G) scatter mid-route and northeast. Eastern portion is wide-open walking path to Mahogany Town. Signs (S) at west and east ends read ROUTE 42 / ECRUTEAK CITY - MAHOGANY TOWN. E marks the gate exit/entrance tiles at far west."
+  },
+  "signs": [
+    {
+      "x": 4, "y": 10,
+      "text": "ROUTE 42 — ECRUTEAK CITY - MAHOGANY TOWN"
+    },
+    {
+      "x": 7, "y": 5,
+      "text": "MT.MORTAR — WATERFALL CAVE INSIDE"
+    },
+    {
+      "x": 45, "y": 9,
+      "text": "MT.MORTAR — WATERFALL CAVE INSIDE"
+    },
+    {
+      "x": 54, "y": 8,
+      "text": "ROUTE 42 — ECRUTEAK CITY - MAHOGANY TOWN"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "route42_suicune",
+      "name": "Suicune",
+      "x": 26, "y": 16,
+      "facing": "down",
+      "movement": "still",
+      "script_type": "scene_trigger",
+      "dialogue_summary": "Crystal only. Suicune stands on Route 42. When the player approaches (coord_event at x=24 y=14), it plays a shock emote, then slides away to the north/right and disappears. Advances the Suicune chain so it reappears on Route 36. Scene flag: SCENE_ROUTE42_SUICUNE -> SCENE_ROUTE42_NOOP after encounter.",
+      "event_flag": "EVENT_SAW_SUICUNE_ON_ROUTE_42",
+      "crystal_only": true
+    }
+  ],
+  "trainers": [
+    {
+      "id": "fisher_tully",
+      "class": "Fisher",
+      "name": "Tully",
+      "x": 40, "y": 10,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Qwilfish", "level": 18}
+      ],
+      "prize_money": 720,
+      "rematch": true,
+      "rematch_notes": "Pokegear rematch available. Tully upgrades his team after EVENT_CLEARED_ROCKET_HIDEOUT, EVENT_BEAT_ELITE_FOUR, and EVENT_RESTORED_POWER_TO_KANTO. Gives Water Stone as gift via phone after beating him.",
+      "event_flag": "EVENT_BEAT_FISHER_TULLY",
+      "pokecrystal_const": "ROUTE42_FISHER"
+    },
+    {
+      "id": "hiker_benjamin",
+      "class": "Hiker",
+      "name": "Benjamin",
+      "x": 51, "y": 9,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Diglett", "level": 14},
+        {"species": "Geodude", "level": 14},
+        {"species": "Dugtrio", "level": 16}
+      ],
+      "prize_money": 512,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_HIKER_BENJAMIN",
+      "pokecrystal_const": "ROUTE42_POKEFAN_M",
+      "notes": "Sprite is SPRITE_POKEFAN_M in pokecrystal but trainer class is HIKER. Spins randomly fast."
+    },
+    {
+      "id": "pokemaniac_shane",
+      "class": "Pokemaniac",
+      "name": "Shane",
+      "x": 47, "y": 8,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Nidorina", "level": 16},
+        {"species": "Nidorino", "level": 16}
+      ],
+      "prize_money": 960,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_SHANE",
+      "pokecrystal_const": "ROUTE42_SUPER_NERD"
+    }
+  ],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 6, "y": 4,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_42_ULTRA_BALL",
+      "notes": "Pokeball sprite item near western Mt. Mortar entrance. Object event at tile x=6 y=4."
+    },
+    {
+      "name": "Super Potion",
+      "x": 33, "y": 8,
+      "hidden": false,
+      "requires": "surf",
+      "event_flag": "EVENT_ROUTE_42_SUPER_POTION",
+      "notes": "Pokeball sprite item on northeast shore beyond water. Requires Surf to reach."
+    },
+    {
+      "name": "Max Potion",
+      "x": 16, "y": 11,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_42_HIDDEN_MAX_POTION",
+      "notes": "Hidden item in the western pond area. BG event at x=16 y=11."
+    }
+  ],
+  "apricorn_trees": [
+    {
+      "id": "fruit_tree_1",
+      "x": 27, "y": 16,
+      "fruit": "Pink Apricorn",
+      "fruittree_const": "FRUITTREE_ROUTE_42_1",
+      "pokecrystal_const": "ROUTE42_FRUIT_TREE1",
+      "notes": "Leftmost apricorn tree. Kurt makes Lure Balls from Pink Apricorns."
+    },
+    {
+      "id": "fruit_tree_2",
+      "x": 28, "y": 16,
+      "fruit": "Green Apricorn",
+      "fruittree_const": "FRUITTREE_ROUTE_42_2",
+      "pokecrystal_const": "ROUTE42_FRUIT_TREE2",
+      "notes": "Middle apricorn tree. Kurt makes Friend Balls from Green Apricorns."
+    },
+    {
+      "id": "fruit_tree_3",
+      "x": 29, "y": 16,
+      "fruit": "Yellow Apricorn",
+      "fruittree_const": "FRUITTREE_ROUTE_42_3",
+      "pokecrystal_const": "ROUTE42_FRUIT_TREE3",
+      "notes": "Rightmost apricorn tree. Kurt makes Moon Balls from Yellow Apricorns."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {"species": "Mankey",  "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Mareep",  "level_min": 13, "level_max": 13, "rate": 30},
+        {"species": "Spearow", "level_min": 14, "level_max": 16, "rate": 30},
+        {"species": "Flaaffy", "level_min": 15, "level_max": 17, "rate": 10}
+      ],
+      "day": [
+        {"species": "Mankey",  "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Mareep",  "level_min": 13, "level_max": 13, "rate": 30},
+        {"species": "Spearow", "level_min": 14, "level_max": 16, "rate": 30},
+        {"species": "Flaaffy", "level_min": 15, "level_max": 17, "rate": 10}
+      ],
+      "night": [
+        {"species": "Mankey",  "level_min": 15, "level_max": 15, "rate": 30},
+        {"species": "Mareep",  "level_min": 13, "level_max": 13, "rate": 30},
+        {"species": "Zubat",   "level_min": 14, "level_max": 16, "rate": 30},
+        {"species": "Flaaffy", "level_min": 15, "level_max": 17, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {"species": "Goldeen", "level_min": 15, "level_max": 24, "rate": 90},
+        {"species": "Seaking", "level_min": 15, "level_max": 24, "rate": 10}
+      ],
+      "requires": "surf"
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 85},
+        {"species": "Goldeen",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 65},
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level_min": 40, "level_max": 40, "rate": 70},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Seaking",  "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "coord_event_x24_y14_crystal_only",
+      "description": "Suicune encounter scene. Only fires when SCENE_ROUTE42_SUICUNE is active (Crystal only, after seeing Suicune on Route 36). Suicune plays shock emote, slides away north-right off the map, then disappears. Sets SCENE_ROUTE42_NOOP and advances Suicune's roaming chain to Route 36 via SCENE_ROUTE36_SUICUNE. Also clears EVENT_SAW_SUICUNE_ON_ROUTE_36."
+    }
+  ],
+  "notes": "Route 42 is a wide east-west route connecting Ecruteak City (via gate on west edge) to Mahogany Town. The northern cliff wall is Mt. Mortar, which has three cave entrances reachable from the route — western entrance near x=10, central at x=28, and eastern at x=46 (tile coords). The western third contains a pond that requires Surf to cross fully; the hidden Max Potion is in or adjacent to this pond. Three Apricorn trees (Pink, Green, Yellow) sit in the southeast corner. Trainer distribution: Fisher Tully is east-center (Pokegear rematch, Water Stone gift), Hiker Benjamin is far east (spinning), Pokemaniac Shane is far east near cave. Crystal adds the Suicune encounter scene. Map attribute tileset: $05 (outside). Connections: WEST | EAST."
+}

@@ -1,0 +1,127 @@
+{
+  "area_id": "tin_tower_7f",
+  "area_name": "Tin Tower 7F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_7F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 9,
+      "target_area_id": "tin_tower_6f",
+      "target_warp_id": 1,
+      "notes": "Staircase down to 6F — west side, mirrors 6F up-stair position"
+    },
+    {
+      "warp_id": 2,
+      "x": 10, "y": 15,
+      "target_area_id": "tin_tower_8f",
+      "target_warp_id": 1,
+      "notes": "Staircase up to 8F — south-central area"
+    },
+    {
+      "warp_id": 3,
+      "x": 8, "y": 3,
+      "target_area_id": "tin_tower_7f",
+      "target_warp_id": 4,
+      "notes": "Internal warp tile — teleports within 7F (upper platform loop)"
+    },
+    {
+      "warp_id": 4,
+      "x": 12, "y": 7,
+      "target_area_id": "tin_tower_7f",
+      "target_warp_id": 3,
+      "notes": "Internal warp tile — teleports within 7F (lower platform loop). Bidirectional pair with warp_id 3."
+    },
+    {
+      "warp_id": 5,
+      "x": 6, "y": 9,
+      "target_area_id": "tin_tower_9f",
+      "target_warp_id": 5,
+      "notes": "Secret warp to 9F — bypasses 8F entirely. Accessed from west-center position."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "!": "item_ball",
+      "W": "internal_warp_tile"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "7F is the most complex floor in the tower — it has FIVE warp events.",
+      "Two internal warp tiles at (8,3) and (12,7) teleport the player between upper and lower platform sections within 7F itself.",
+      "A secret warp at (6,9) leads directly to 9F, bypassing 8F entirely — a hidden shortcut.",
+      "One item ball: Max Revive at (16,1) — far northeast corner, rewarding thorough exploration.",
+      "The item is placed in the most remote corner of the floor, requiring players to fully navigate the warp puzzle.",
+      "Down to 6F at (3,9); Up to 8F at (10,15)."
+    ],
+    "rows": [
+      "####################",
+      "##..............!...",
+      "##..................",
+      "##........W.........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##......W...........",
+      "##...W....^.........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##.........^........",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Max Revive",
+      "x": 16, "y": 1,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_7F_MAX_REVIVE",
+      "requires": null,
+      "notes": "Item ball (SPRITE_POKE_BALL). Script: TinTower7FMaxRevive — itemball MAX_REVIVE. Located in the far northeast corner."
+    }
+  ],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [],
+  "access_requirements": {
+    "to_enter": "Reached via stair up from 6F at (3,9) → 6F warp_id 1.",
+    "note": "The secret warp at (6,9) to 9F requires discovering it by walking on that specific tile."
+  },
+  "internal_warp_puzzle": {
+    "description": "7F contains two internal warp pairs that create a platform loop within the floor itself.",
+    "warp_pairs": [
+      {
+        "warp_a": { "x": 8, "y": 3, "warp_id": 3 },
+        "warp_b": { "x": 12, "y": 7, "warp_id": 4 },
+        "notes": "Stepping on either tile teleports the player to the other position on 7F. Creates a puzzle where players must navigate the broken platform layout."
+      }
+    ],
+    "secret_warp": {
+      "x": 6, "y": 9,
+      "target": "tin_tower_9f warp_id 5",
+      "notes": "Walking onto tile (6,9) warps directly to 9F — skipping 8F. This is a hidden shortcut that rewards exploration."
+    }
+  },
+  "notes": "Tin Tower 7F is 10x9 blocks (20x18 tiles). It is the puzzle centerpiece of the upper tower with five warp events. Two internal warp tiles create a teleportation loop within the floor at (8,3) and (12,7). A secret third warp at (6,9) sends the player directly to 9F, bypassing 8F. This hidden shortcut rewards players who step on the correct tile. One item ball (Max Revive) sits in the far northeast corner at (16,1). The normal path descends to 6F at (3,9) and ascends to 8F at (10,15). No NPCs or trainers are present."
+}

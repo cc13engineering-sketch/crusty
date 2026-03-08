@@ -1,0 +1,166 @@
+{
+  "area_id": "sprout_tower_2f",
+  "area_name": "Sprout Tower 2F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "SPROUT_TOWER_2F",
+  "width_blocks": 10,
+  "height_blocks": 8,
+  "width_tiles": 20,
+  "height_tiles": 16,
+  "tileset": "TILESET_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "x": 6,  "y": 4,
+      "target_area_id": "sprout_tower_1f",
+      "target_warp_id": 3,
+      "note": "Center staircase down to 1F (warp index 3 = object_event index for the center stairs on 1F)"
+    },
+    {
+      "x": 2,  "y": 6,
+      "target_area_id": "sprout_tower_1f",
+      "target_warp_id": 4,
+      "note": "Left side staircase down to 1F"
+    },
+    {
+      "x": 17, "y": 3,
+      "target_area_id": "sprout_tower_1f",
+      "target_warp_id": 5,
+      "note": "Right side staircase down to 1F"
+    },
+    {
+      "x": 10, "y": 14,
+      "target_area_id": "sprout_tower_3f",
+      "target_warp_id": 1,
+      "note": "Single staircase up to 3F"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "P": "swaying_pillar",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "S": "statue",
+      "T": "trainer_position",
+      "!": "item_ball"
+    },
+    "rows": [
+      "####################",
+      "#..!...T....P......#",
+      "#...........P......#",
+      "#...........P.....v#",
+      "#...........P...v..#",
+      "#...........P......#",
+      "#..v........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#...........P......#",
+      "#.........T.P......#",
+      "#...........P...S..#"
+    ],
+    "notes": [
+      "Map is 10x8 blocks = 20x16 tiles; rows match height_tiles=16.",
+      "Swaying Bellsprout pillar (P) at x=11 running from y=1 to y=15 — same column as on 1F and 3F.",
+      "Three staircases down (v) to 1F: center at (6,4) mirroring 1F (6,4) warp, left at (2,6), right at (17,3).",
+      "One staircase up (^) to 3F at (10,14).",
+      "Sage Nico (TRAINER, spinrandom_fast, sight 4) at object_event (12,3) — north-center area.",
+      "Sage Edmond (TRAINER, standing_left, sight 5) at object_event (9,14) — south, left of center staircase.",
+      "X Accuracy item ball at object_event (3,1) — northwest corner — event flag EVENT_SPROUT_TOWER_2F_X_ACCURACY.",
+      "Pokemon statue at bg_event (12,15) — east side of south wall.",
+      "Layout uses same tower architecture as 1F with stairwells mirrored for vertical continuity."
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Sage",
+      "name": "Nico",
+      "trainer_const": "SAGE_NICO",
+      "event_flag": "EVENT_BEAT_SAGE_NICO",
+      "sprite": "SPRITE_SAGE",
+      "x": 12, "y": 3,
+      "facing": "varies",
+      "movement": "spinrandom_fast",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 4,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3}
+      ],
+      "base_reward": 8,
+      "prize_money": 24,
+      "rematch": false,
+      "seen_text": "However hard we battle, the Tower will stand strong.",
+      "beaten_text": "I fought hard but I'm too weak.",
+      "after_text": "The flexible pillar protects the Tower, even from earthquakes."
+    },
+    {
+      "class": "Sage",
+      "name": "Edmond",
+      "trainer_const": "SAGE_EDMOND",
+      "event_flag": "EVENT_BEAT_SAGE_EDMOND",
+      "sprite": "SPRITE_SAGE",
+      "x": 9, "y": 14,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 5,
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "team": [
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3},
+        {"species": "Bellsprout", "level": 3}
+      ],
+      "base_reward": 8,
+      "prize_money": 24,
+      "rematch": false,
+      "seen_text": "...Sway like leaves in the wind...",
+      "beaten_text": "Oh, I'm weak!",
+      "after_text": "I tried to copy Bellsprout's gentle movements for battle... But I didn't train well enough."
+    }
+  ],
+  "items": [
+    {
+      "name": "X Accuracy",
+      "x": 3, "y": 1,
+      "hidden": false,
+      "event_flag": "EVENT_SPROUT_TOWER_2F_X_ACCURACY",
+      "requires": null,
+      "script": "SproutTower2FXAccuracy"
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 12, "y": 15,
+      "type": "BGEVENT_READ",
+      "script": "SproutTower2FStatue",
+      "note": "Pokemon statue on the east side of the south wall"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "nico_trainer_battle",
+      "trigger": "line_of_sight_player",
+      "description": "Sage Nico spins randomly fast — intercepts player from any direction. After defeat: sets EVENT_BEAT_SAGE_NICO."
+    },
+    {
+      "id": "edmond_trainer_battle",
+      "trigger": "line_of_sight_player",
+      "description": "Sage Edmond stands facing left near the south staircase, sight 5. Guards the route between the down-to-1F staircase and the up-to-3F staircase. After defeat: sets EVENT_BEAT_SAGE_EDMOND."
+    }
+  ],
+  "notes": "Sprout Tower 2F is the middle floor of the tower. Two Sage trainers guard this floor: Nico (north, spins fast) and Edmond (south, facing left near the staircase to 3F). The floor has one item pickup (X Accuracy, northwest corner) and one Pokemon statue (east, south wall). The same swaying Bellsprout pillar continues through the center column. Three staircases descend to 1F (matching the three on 1F), and a single staircase on the south-center leads up to 3F. The asymmetry of a single up-staircase vs. three down-staircases channels the player through the south portion of 2F where Edmond waits. Map dimensions: 10x8 blocks (20x16 tiles). All coordinates sourced from SproutTower2F.asm."
+}

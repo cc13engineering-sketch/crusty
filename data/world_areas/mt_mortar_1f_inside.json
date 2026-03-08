@@ -1,0 +1,288 @@
+{
+  "area_id": "mt_mortar_1f_inside",
+  "area_name": "Mt. Mortar 1F (Inside)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "MOUNT_MORTAR_1F_INSIDE",
+  "width_blocks": 20,
+  "height_blocks": 27,
+  "width_tiles": 40,
+  "height_tiles": 54,
+  "tileset": "dark_cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 11, "y": 47,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 5,
+      "notes": "West south exit back to 1F Outside (warp 5 on Outside = tile x=11, y=21)."
+    },
+    {
+      "x": 29, "y": 47,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 6,
+      "notes": "East south exit back to 1F Outside (warp 6 on Outside = tile x=29, y=21)."
+    },
+    {
+      "x": 5,  "y": 39,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 8,
+      "notes": "West exit back to 1F Outside (warp 8 on Outside = tile x=7, y=13)."
+    },
+    {
+      "x": 33, "y": 41,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 9,
+      "notes": "East exit back to 1F Outside (warp 9 on Outside = tile x=33, y=13)."
+    },
+    {
+      "x": 3,  "y": 19,
+      "target_area_id": "mt_mortar_b1f",
+      "target_warp_id": 1,
+      "notes": "Passage down to B1F basement (warp 1 on B1F = tile x=3, y=3)."
+    },
+    {
+      "x": 9,  "y": 9,
+      "target_area_id": "mt_mortar_2f",
+      "target_warp_id": 2,
+      "notes": "Passage up to 2F Inside (warp 2 on 2F = tile x=3, y=5)."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "R": "boulder",
+      "B": "strength_boulder",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": "40 wide x 54 tall. The main interior cave of Mt. Mortar — a tall, winding multi-level interior. Strength boulder at tile (21,43) blocks progress to the south exits without HM04. Two trainers patrol the cave interior: Pokemaniac Miller near south-east corner, Super Nerd Markus in the central area. 7 items total (5 visible pokeballs, 1 hidden, plus Ultra Ball). A passage at (3,19) leads down to B1F; another at (9,9) leads up to 2F.",
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "#########^......########################",
+      "#########.......########################",
+      "########.........#######################",
+      "########.........#######################",
+      "########.........#######################",
+      "########...!.....#######################",
+      "########..........######################",
+      "########..........######################",
+      "#######!...........#####################",
+      "#######....!.......#####################",
+      "######..............####################",
+      "###v...............!.################..#",
+      "###................!.##############....#",
+      "###.................#######..######....#",
+      "###.................######....#####....#",
+      "###.................######....#####....#",
+      "###.................######....#####..!.#",
+      "###.................######....##########",
+      "###.................######....##########",
+      "####...#..........N.######....##########",
+      "####..........!.....######....##########",
+      "####............####.#####....##########",
+      "####............####.#####....##########",
+      "###.............####.#####....##########",
+      "###.............####.#####....##########",
+      "###.............####.#####....##########",
+      "###..#..........####.#####....##########",
+      "###...........######.#####....##########",
+      "###..............###.#####.N..##########",
+      "###..............###..####....##########",
+      "###...............##..####....##########",
+      "#####E..............###...............##",
+      "########..............................##",
+      "########.......B......................##",
+      "########..............................##",
+      "########..............................##",
+      "########..............................##",
+      "########..............................##",
+      "########..............................##",
+      "########....................N.........##",
+      "##########.....E.......E..............##",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Pokemaniac",
+      "name": "Miller",
+      "x": 33, "y": 43,
+      "facing": "left",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Nidoking",  "level": 17},
+        {"species": "Nidoqueen", "level": 17}
+      ],
+      "prize_money": 816,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_MILLER",
+      "notes": "Sprite: SUPER_NERD (Pokemaniac uses same sprite category). Located near the south-east section near the boulder. Mentions the Karate King went deeper into the cave for training."
+    },
+    {
+      "class": "Super Nerd",
+      "name": "Markus",
+      "x": 24, "y": 28,
+      "facing": "random_spin",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Slowpoke", "level": 19, "moves": ["Curse", "Water Gun", "Growl", "Strength"]}
+      ],
+      "prize_money": 684,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_SUPER_NERD_MARKUS",
+      "notes": "Paired with Super Nerd Hugh on 2F — the two got separated exploring Mt. Mortar. Markus asks if you've seen Hugh (who has a Seadra that knows Waterfall). Sprite: SUPER_NERD with PAL_NPC_BROWN."
+    }
+  ],
+  "items": [
+    {
+      "name": "Escape Rope",
+      "x": 35, "y": 38,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_ESCAPE_ROPE",
+      "notes": "Pokeball sprite on eastern side of cave"
+    },
+    {
+      "name": "Max Revive",
+      "x": 16, "y": 10,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_MAX_REVIVE",
+      "notes": "Pokeball sprite near the upper passage to 2F"
+    },
+    {
+      "name": "Hyper Potion",
+      "x": 10, "y": 27,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_HYPER_POTION",
+      "notes": "Pokeball sprite in the middle-left section of the cave"
+    },
+    {
+      "name": "Max Potion",
+      "x": 22, "y": 20,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_MAX_POTION",
+      "notes": "Pokeball sprite on eastern ledge area"
+    },
+    {
+      "name": "Nugget",
+      "x": 35, "y": 19,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_NUGGET",
+      "notes": "Pokeball sprite on far eastern alcove — valuable sell item"
+    },
+    {
+      "name": "Iron",
+      "x": 8,  "y": 16,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_IRON",
+      "notes": "Pokeball sprite on the upper-left section"
+    },
+    {
+      "name": "Ultra Ball",
+      "x": 17, "y": 17,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_ULTRA_BALL",
+      "notes": "Pokeball sprite on the upper-center ledge"
+    },
+    {
+      "name": "Max Repel",
+      "x": 30, "y": 11,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_1F_INSIDE_HIDDEN_MAX_REPEL",
+      "notes": "Hidden item on the ground in the upper-right section"
+    }
+  ],
+  "obstacles": [
+    {
+      "type": "strength_boulder",
+      "x": 21, "y": 43,
+      "notes": "Strength boulder (HM04 required) blocks the path to the southern exits. Must be pushed to proceed."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "notes": "Cave encounters. Machop (morning/day) swapped for Marill at night; Rattata (morning/day) swapped for Raticate at night (slot 3).",
+      "morning": [
+        {"species": "Geodude",  "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Machop",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Raticate", "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Zubat",    "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10}
+      ],
+      "day": [
+        {"species": "Geodude",  "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Machop",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Raticate", "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Zubat",    "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10}
+      ],
+      "night": [
+        {"species": "Geodude",  "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Rattata",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Raticate", "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Zubat",    "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Marill",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10},
+        {"species": "Golbat",   "level_min": 15, "level_max": 15, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter data defined for 1F Inside in pokecrystal (johto_water.asm has no entry for MOUNT_MORTAR_1F_INSIDE).",
+      "mons": []
+    },
+    "fishing": {
+      "group": "FISHGROUP_LAKE",
+      "notes": "Fishing group applies wherever there is accessible water. Same Lake group as all Mt. Mortar floors.",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 70},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Goldeen",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Poliwag",  "level_min": 20, "level_max": 20, "rate": 10}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Poliwag",  "level_min": 40, "level_max": 40, "rate": 30},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Seaking",  "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [],
+  "notes": "Mt. Mortar 1F Inside (20x27 blocks, 40x54 tiles, confirmed: MountMortar1FInside.blk = 540 bytes). The main interior cave floor — the largest of the four Mt. Mortar areas. Connects back to 1F Outside via four exits, has one passage up to 2F Inside and one down to B1F. A Strength boulder at (21,43) must be pushed aside to reach the southern exits. Two trainers: Pokemaniac Miller (Nidoking Lv17 + Nidoqueen Lv17) near the south-east and Super Nerd Markus (Slowpoke Lv19 with Strength) in the center. Markus is one of two paired Super Nerds exploring Mt. Mortar — his partner Hugh is on 2F. 8 items: Escape Rope, Max Revive, Hyper Potion, Max Potion, Nugget, Iron, Ultra Ball (all visible pokeballs) and hidden Max Repel. Tileset: TILESET_DARK_CAVE. Music: MUSIC_UNION_CAVE."
+}

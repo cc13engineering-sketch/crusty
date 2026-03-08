@@ -1,0 +1,84 @@
+{
+  "area_id": "route_42_ecruteak_gate",
+  "area_name": "Route 42 Ecruteak Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_42_ECRUTEAK_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 4,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 1,
+      "notes": "West door tile — exits to Ecruteak City east gate"
+    },
+    {
+      "x": 0, "y": 5,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 2,
+      "notes": "West door tile (lower) — exits to Ecruteak City east gate"
+    },
+    {
+      "x": 9, "y": 4,
+      "target_area_id": "route_42",
+      "target_warp_id": 1,
+      "notes": "East door tile — exits to Route 42 west edge (tile x=0 y=8)"
+    },
+    {
+      "x": 9, "y": 5,
+      "target_area_id": "route_42",
+      "target_warp_id": 2,
+      "notes": "East door tile (lower) — exits to Route 42 west edge (tile x=0 y=9)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall",
+      "D": "door_tile",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "C": "counter",
+      "W": "window",
+      "F": "floor_decoration"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "##WWWWWW##",
+      "##WWWWWW##",
+      "D..N....ED",
+      "D........D",
+      "##########",
+      "##########"
+    ],
+    "notes": "Standard two-door gate layout. Officer NPC stands near center (x=5 y=4). Exit mats (E) mark both door thresholds. The building is a thin east-west corridor with windows along the north interior wall. No counters or special features beyond the officer NPC."
+  },
+  "npcs": [
+    {
+      "id": "route42ecruteakgate_officer",
+      "name": "Officer",
+      "x": 5, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Warns the player about Mt. Mortar: 'MT.MORTAR is like a maze inside. Be careful. Don't get lost in there.'",
+      "pokecrystal_const": "ROUTE42ECRUTEAKGATE_OFFICER",
+      "sprite": "SPRITE_OFFICER",
+      "palette": "PAL_NPC_RED"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [],
+  "notes": "Standard route gate building connecting Ecruteak City (west) to Route 42 (east). No special events or items. The sole NPC is an Officer who warns about Mt. Mortar's maze-like interior. Map attribute: no connections (0), tileset $00. This gate is the only way to pass between Ecruteak City and Route 42 — the route's western warp tiles at x=0 y=8-9 lead here, and this building's east warps return to Route 42."
+}

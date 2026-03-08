@@ -1,0 +1,162 @@
+{
+  "area_id": "whirl_islands_ne",
+  "area_name": "Whirl Islands (NE)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "WHIRL_ISLAND_NE",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "dark_cave",
+  "pokecrystal_tileset": "TILESET_DARK_CAVE",
+  "palette": "PALETTE_DARK",
+  "music": "MUSIC_UNION_CAVE",
+  "landmark": "LANDMARK_WHIRL_ISLANDS",
+  "connections": [
+    {
+      "direction": "south",
+      "target_area_id": "route_41",
+      "offset": 0,
+      "requires": "HM06_Whirlpool",
+      "notes": "Accessible from Route 41 by using Whirlpool to clear surrounding sea hazard. warp_event 3,13 ROUTE_41 2."
+    }
+  ],
+  "warps": [
+    {
+      "x": 3,
+      "y": 13,
+      "target_area_id": "route_41",
+      "target_warp_id": 2,
+      "notes": "Exit to Route 41. warp_event 3,13 ROUTE_41 2."
+    },
+    {
+      "x": 17,
+      "y": 3,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 2,
+      "notes": "Northeast staircase descending to B1F. warp_event 17,3 WHIRL_ISLAND_B1F 2."
+    },
+    {
+      "x": 13,
+      "y": 11,
+      "target_area_id": "whirl_islands_b1f",
+      "target_warp_id": 3,
+      "notes": "Second staircase to B1F at a different entry point. warp_event 13,11 WHIRL_ISLAND_B1F 3."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "W": "whirlpool",
+      "v": "stairs_down",
+      "E": "cave_exit_to_route_41",
+      "!": "item_ball"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "#################v##",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###########!###v####",
+      "####################",
+      "###E################",
+      "####################",
+      "####################",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic from warp and object_event coordinates in WhirlIslandNE.asm. 20x18 tiles. Two staircases to B1F: (17,3) and (13,11). Exit to Route 41 at (3,13). Ultra Ball item ball at (11,11). This is the widest entrance cave (10 blocks wide), giving it more internal space than the other three. Actual block layout in maps/WhirlIslandNE.blk."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 11,
+      "y": 11,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_WHIRL_ISLAND_NE_ULTRA_BALL",
+      "pokecrystal_label": "WhirlIslandNEUltraBall",
+      "pokecrystal_sprite": "SPRITE_POKE_BALL",
+      "notes": "object_event 11,11 SPRITE_POKE_BALL SPRITEMOVEDATA_STILL. itemball ULTRA_BALL."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Standard 7-slot cave encounter table. Identical table to NW at the same levels. Source: data/wild/johto_grass.asm def_grass_wildmons WHIRL_ISLAND_NE lines 873-899.",
+      "morning": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "day": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Seel",    "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Seel",    "level": 24, "slot": 6, "rate": 4},
+        {"species": "Seel",    "level": 24, "slot": 7, "rate": 1}
+      ],
+      "night": [
+        {"species": "Krabby",  "level": 22, "slot": 1, "rate": 30},
+        {"species": "Zubat",   "level": 23, "slot": 2, "rate": 30},
+        {"species": "Krabby",  "level": 22, "slot": 3, "rate": 20},
+        {"species": "Krabby",  "level": 24, "slot": 4, "rate": 10},
+        {"species": "Golbat",  "level": 25, "slot": 5, "rate": 5},
+        {"species": "Golbat",  "level": 24, "slot": 6, "rate": 4},
+        {"species": "Golbat",  "level": 24, "slot": 7, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water encounter table defined for WHIRL_ISLAND_NE in johto_water.asm.",
+      "mons": []
+    },
+    "fishing": {
+      "fishgroup": "FISHGROUP_WHIRL_ISLANDS",
+      "notes": "Uses FISHGROUP_WHIRL_ISLANDS per maps.asm. No accessible fishing spots visible in this entrance cave.",
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 70},
+        {"species": "Magikarp", "level": 10, "rate": 15},
+        {"species": "Krabby",   "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 35},
+        {"species": "Krabby",   "level": 20, "rate": 20},
+        {"species": "Horsea",   "level": 20, "rate": 10, "notes": "time_group 18: Horsea lv20 day and night"}
+      ],
+      "super_rod": [
+        {"species": "Krabby",   "level": 40, "rate": 40},
+        {"species": "Horsea",   "level": 40, "rate": 30, "notes": "time_group 19: Horsea lv40 day and night"},
+        {"species": "Kingler",  "level": 40, "rate": 20},
+        {"species": "Seadra",   "level": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "entry_from_route_41",
+      "description": "Player must use HM06 Whirlpool to clear the surrounding sea hazard before entering. One of four Whirl Islands entrance caves.",
+      "requires": "HM06_Whirlpool, Glacier_Badge"
+    }
+  ],
+  "signs": [],
+  "notes": "Northeast entrance to the Whirl Islands complex. The NE cave is the widest entrance (10 blocks / 20 tiles wide vs 5 blocks for the others), offering more interior floor space. It contains two staircases to B1F — one at (17,3) entering the far northeast of B1F, one at (13,11) entering the east-central area. Contains one item ball: Ultra Ball at (11,11). No trainers or NPCs. Wild encounters identical to NW at the same levels. Source: maps/WhirlIslandNE.asm, constants/map_constants.asm line 132, data/maps/maps.asm line 145, data/wild/johto_grass.asm lines 873-899."
+}

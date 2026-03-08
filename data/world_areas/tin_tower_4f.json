@@ -1,0 +1,128 @@
+{
+  "area_id": "tin_tower_4f",
+  "area_name": "Tin Tower 4F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_4F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 2, "y": 4,
+      "target_area_id": "tin_tower_5f",
+      "target_warp_id": 2,
+      "notes": "Warp/hole up to 5F — northwest area. One-way drop or warp tile."
+    },
+    {
+      "warp_id": 2,
+      "x": 16, "y": 2,
+      "target_area_id": "tin_tower_3f",
+      "target_warp_id": 2,
+      "notes": "Staircase down to 3F — northeast, same position as 3F up-stair"
+    },
+    {
+      "warp_id": 3,
+      "x": 2, "y": 14,
+      "target_area_id": "tin_tower_5f",
+      "target_warp_id": 3,
+      "notes": "Warp to 5F — southwest area"
+    },
+    {
+      "warp_id": 4,
+      "x": 17, "y": 15,
+      "target_area_id": "tin_tower_5f",
+      "target_warp_id": 4,
+      "notes": "Warp to 5F — southeast corner"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "^": "stairs_up/warp_up",
+      "v": "stairs_down",
+      "!": "item_ball",
+      "?": "hidden_item"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "4F has the most complex warp structure so far — four warp tiles leading to 5F and one returning to 3F.",
+      "Three item balls: Ultra Ball at (14,10), PP Up at (17,14), Escape Rope at (2,12).",
+      "One hidden item: Max Potion at (11,6) — examine bg_event, not visible as a ball.",
+      "Multiple entry points to 5F encourage full exploration of this floor.",
+      "The branching warp layout is part of the tower's puzzle design — different warps land at different 5F positions."
+    ],
+    "rows": [
+      "####################",
+      "##..................",
+      "##..............v...",
+      "##..................",
+      "##^.................",
+      "##..................",
+      "##.........?........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##............!.....",
+      "##..................",
+      "##!.................",
+      "##..................",
+      "##^..............!..",
+      "##...............^..",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Ultra Ball",
+      "x": 14, "y": 10,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_4F_ULTRA_BALL",
+      "requires": null,
+      "notes": "Item ball. Script: TinTower4FUltraBall — itemball ULTRA_BALL."
+    },
+    {
+      "name": "PP Up",
+      "x": 17, "y": 14,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_4F_PP_UP",
+      "requires": null,
+      "notes": "Item ball. Script: TinTower4FPPUp — itemball PP_UP."
+    },
+    {
+      "name": "Escape Rope",
+      "x": 2, "y": 12,
+      "hidden": false,
+      "event_flag": "EVENT_TIN_TOWER_4F_ESCAPE_ROPE",
+      "requires": null,
+      "notes": "Item ball. Script: TinTower4FEscapeRope — itemball ESCAPE_ROPE."
+    },
+    {
+      "name": "Max Potion",
+      "x": 11, "y": 6,
+      "hidden": true,
+      "event_flag": "EVENT_TIN_TOWER_4F_HIDDEN_MAX_POTION",
+      "requires": null,
+      "notes": "Hidden item (bg_event). Script: TinTower4FHiddenMaxPotion — hiddenitem MAX_POTION."
+    }
+  ],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [],
+  "access_requirements": {
+    "to_enter": "Must reach via 3F staircase up (requires Rainbow Wing chain from 1F).",
+    "note": "No floor-specific blocking. Multiple warps to 5F create the puzzle element."
+  },
+  "notes": "Tin Tower 4F is 10x9 blocks (20x18 tiles). It is the most item-rich floor in the lower half of the tower, containing three visible item balls (Ultra Ball at 14,10; PP Up at 17,14; Escape Rope at 2,12) and one hidden item (Max Potion at 11,6 via bg_event). The floor has four warp exits to 5F (at 2,4; 2,14; 17,15) plus one return stair to 3F (at 16,2). The varied warp positions force players to navigate the full floor to find all paths. The Escape Rope here is the only one in the tower, making it a key item for players who want a quick exit. No NPCs or trainers are present."
+}

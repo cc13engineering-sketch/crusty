@@ -1,0 +1,284 @@
+{
+  "area_id": "burned_tower_b1f",
+  "area_name": "Burned Tower B1F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "BURNED_TOWER_B1F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_RUIN",
+  "connections": [],
+  "warps": [
+    {
+      "x": 10, "y": 9,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 3,
+      "note": "Primary ladder up to 1F — this is the warp destination when the player falls through the 1F hole (warp_id 1 on 1F side). Also the active ladder warp before beasts released."
+    },
+    {
+      "x": 17, "y": 7,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 7,
+      "note": "Right-side ladder/warp up to 1F (inaccessible leftover from Gold/Silver — warp_id 2 on 1F)"
+    },
+    {
+      "x": 10, "y": 8,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 9,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 3 on 1F"
+    },
+    {
+      "x": 3,  "y": 13,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 10,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 4 on 1F"
+    },
+    {
+      "x": 17, "y": 14,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 12,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 5 on 1F"
+    },
+    {
+      "x": 7,  "y": 15,
+      "target_area_id": "burned_tower_1f",
+      "target_warp_id": 14,
+      "note": "Inaccessible leftover from Gold/Silver — warp_id 6 on 1F. The ladder at (6,14) on 1F points here."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave/ruin_floor",
+      "#": "wall/column/ruin_wall",
+      "^": "ladder_up_to_1f",
+      "B": "strength_boulder",
+      "N": "npc_position",
+      "!": "item_ball",
+      "@": "legendary_beast_initial_position",
+      "X": "coord_event_trigger (release the beasts)"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "##..................",
+      "##....@..@..@.......",
+      "##....@.X@..........!",
+      "##..................",
+      "##.........X........",
+      "##.................B",
+      "##.................B",
+      "##.........^........",
+      "##..................",
+      "##..................",
+      "##..........N.......",
+      "##..................",
+      "##..................",
+      "##^.................#",
+      "##..................",
+      "####################"
+    ],
+    "notes": [
+      "Map is 10x9 blocks = 20x18 tiles.",
+      "The three legendary beasts are positioned in the upper chamber: Raikou at (7,3), Entei at (12,3), Suicune at (10,4). Each has two object entries — BEASTS_1 (active before release) and BEASTS_2 (appear/disappear pair for the cutscene).",
+      "Coord event trigger at tile (10,6) fires SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS — this is the walkable tile the player steps on after falling from 1F.",
+      "The ReleaseTheBeasts cutscene: wakeup animations for each beast, cries, sliding movement sequences showing them fleeing the basement, then Raikou/Entei/Suicune are dispersed across Johto as roaming Pokemon.",
+      "Strength Boulder at object_event (17,8) — blocks eastern passage; requires HM Strength.",
+      "TM Endure (TM39) item ball at object_event (16,4) — in the upper-right area near the beasts.",
+      "Eusine (SPRITE_SUPER_NERD) appears at (10,12) after the beasts are released (EVENT_EUSINE_IN_BURNED_TOWER). He speaks then exits via movement sequence and SFX_EXIT_BUILDING.",
+      "Ladder up (^) at (10,9) — active before EVENT_RELEASED_THE_BEASTS. The callback BurnedTowerB1FLadderCallback: if EVENT_RELEASED_THE_BEASTS is set, removes the ladder at (6,14) on B1F by changeblock ($1b->$02 floor) — this is actually the reference to the secondary B1F ladder which corresponds to warp at (7,15).",
+      "Layout reconstructed from object_event, warp_event, and coord_event data in BurnedTowerB1F.asm."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "eusine_post_beasts",
+      "name": "Eusine",
+      "sprite": "SPRITE_SUPER_NERD",
+      "object_const": "BURNEDTOWERB1F_EUSINE",
+      "x": 10, "y": 12,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_EUSINE_IN_BURNED_TOWER",
+      "dialogue_summary": "EUSINE: I dug a hole here, too... I was shocked! SUICUNE raced by like a blur, right in front of my eyes! For ten years I chased SUICUNE, and I finally got to see it. I'm all choked up! <PLAYER>, I owe this all to you! Thank you! I heard that the legendary #MON of ECRUTEAK test chosen humans by allowing them to get close. I'm going to track SUICUNE. <PLAYER>, let's meet again! Farewell!",
+      "post_dialogue": "After dialogue, Eusine moves away and disappears with SFX_EXIT_BUILDING. Movement path varies by player facing direction: if UP, he steps DOWN x1, LEFT x3, DOWN x2; if other direction, he steps LEFT x2, DOWN x2, LEFT x1, DOWN x1.",
+      "note": "Appears only after EVENT_RELEASED_THE_BEASTS via the 'appear BURNEDTOWERB1F_EUSINE' command in ReleaseTheBeasts. Faceplayer on interaction. Disappears permanently after dialogue — sets up the next Suicune chase thread in Cianwood City (SCENE_CIANWOODCITY_SUICUNE_AND_EUSINE)."
+    }
+  ],
+  "legendary_beasts": [
+    {
+      "id": "raikou",
+      "species": "Raikou",
+      "sprite": "SPRITE_RAIKOU",
+      "object_const_1": "BURNEDTOWERB1F_RAIKOU1",
+      "object_const_2": "BURNEDTOWERB1F_RAIKOU2",
+      "x": 7, "y": 3,
+      "palette_1": "PAL_NPC_BROWN",
+      "palette_2": "PAL_NPC_EMOTE",
+      "movement_1": "SPRITEMOVEDATA_POKEMON",
+      "movement_2": "SPRITEMOVEDATA_STANDING_DOWN",
+      "event_flag_1": "EVENT_BURNED_TOWER_B1F_BEASTS_1",
+      "event_flag_2": "EVENT_BURNED_TOWER_B1F_BEASTS_2",
+      "release_movement": "set_sliding; fast_jump_step DOWN; fast_jump_step LEFT; remove_sliding",
+      "post_release": "Becomes roaming Pokemon across Johto — initiated by special InitRoamMons in ReleaseTheBeasts script",
+      "note": "Two object entries at the same tile: BEASTS_1 (animated sleeping Pokemon sprite) active before release, BEASTS_2 (standing down, emote palette) used during the wakeup cutscene animation. During release: RAIKOU2 disappears, RAIKOU1 appears and flees DOWN then LEFT via sliding jumps."
+    },
+    {
+      "id": "entei",
+      "species": "Entei",
+      "sprite": "SPRITE_ENTEI",
+      "object_const_1": "BURNEDTOWERB1F_ENTEI1",
+      "object_const_2": "BURNEDTOWERB1F_ENTEI2",
+      "x": 12, "y": 3,
+      "palette_1": "PAL_NPC_RED",
+      "palette_2": "PAL_NPC_EMOTE",
+      "movement_1": "SPRITEMOVEDATA_POKEMON",
+      "movement_2": "SPRITEMOVEDATA_STANDING_DOWN",
+      "event_flag_1": "EVENT_BURNED_TOWER_B1F_BEASTS_1",
+      "event_flag_2": "EVENT_BURNED_TOWER_B1F_BEASTS_2",
+      "release_movement": "set_sliding; fast_jump_step RIGHT; fast_jump_step DOWN; fast_jump_step RIGHT; remove_sliding",
+      "post_release": "Becomes roaming Pokemon across Johto",
+      "note": "Same dual-object structure as Raikou. Entei flees RIGHT, DOWN, RIGHT during release sequence."
+    },
+    {
+      "id": "suicune",
+      "species": "Suicune",
+      "sprite": "SPRITE_SUICUNE",
+      "object_const_1": "BURNEDTOWERB1F_SUICUNE1",
+      "object_const_2": "BURNEDTOWERB1F_SUICUNE2",
+      "x": 10, "y": 4,
+      "palette_1": "PAL_NPC_BLUE",
+      "palette_2": "PAL_NPC_EMOTE",
+      "movement_1": "SPRITEMOVEDATA_POKEMON",
+      "movement_2": "SPRITEMOVEDATA_STANDING_DOWN",
+      "event_flag_1": "EVENT_BURNED_TOWER_B1F_BEASTS_1",
+      "event_flag_2": "EVENT_BURNED_TOWER_B1F_BEASTS_2",
+      "release_movements": [
+        "Movement1: set_sliding; RIGHT; DOWN; DOWN; LEFT; remove_sliding",
+        "Movement2: set_sliding; LEFT; UP; big_step UP; RIGHT; remove_sliding",
+        "Movement3: set_sliding; big_step UP; RIGHT; DOWN x4; remove_sliding"
+      ],
+      "post_release": "Does NOT become a standard roamer. Instead appears in Cianwood City then leads a cross-Johto chase via scripted appearances before a final encounter at Route 25.",
+      "note": "Suicune has a special extended movement sequence — three separate movement phases (SuicuneMovement1, 2, 3) after which she lingers, cries a second time, then flees north-right via Movement3. This is Suicune's only interaction with Eusine directly in the basement. The scene ends with Eusine appearing after Suicune departs. Suicune's future appearances are scripted at Cianwood City and elsewhere, unlike the freely-roaming Raikou and Entei."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "TM39 (Endure)",
+      "x": 16, "y": 4,
+      "hidden": false,
+      "event_flag": "EVENT_BURNED_TOWER_B1F_TM_ENDURE",
+      "script": "BurnedTowerB1FTMEndure",
+      "sprite": "SPRITE_POKE_BALL",
+      "requires": null,
+      "note": "Item ball in the upper-right area of the basement, accessible after navigating around beasts. TM39 Endure teaches the move Endure (user always survives the next hit with at least 1 HP)."
+    }
+  ],
+  "special_objects": [
+    {
+      "id": "strength_boulder",
+      "type": "strength_boulder",
+      "sprite": "SPRITE_BOULDER",
+      "object_const": "BURNEDTOWERB1F_BOULDER",
+      "x": 17, "y": 8,
+      "script": "BurnedTowerB1FBoulder",
+      "uses": "StrengthBoulderScript (HM Strength required)",
+      "note": "A movable boulder blocking part of the eastern passage. Can be pushed with HM Strength once obtained. Stays pushed for the remainder of the session (or until map reload depending on boulder flag). There is only one boulder on this floor, at (17,8)."
+    }
+  ],
+  "special_mechanics": {
+    "release_the_beasts": {
+      "description": "The pivotal scene of the Burned Tower. When the player walks to tile (10,6) after falling from 1F, SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS fires the ReleaseTheBeasts script (if not already triggered). Music stops, then each beast awakens in sequence: Raikou appears/cries/flees, Entei appears/cries/flees, then Suicune appears and performs an extended movement sequence before departing. Eusine then appears at (10,12). After the cutscene: EVENT_RELEASED_THE_BEASTS is set, Raikou and Entei become roaming Pokemon (special InitRoamMons), Suicune is scripted for the Cianwood chase, Morty's gym scene is unlocked (SCENE_ECRUTEAKGYM_NOOP), and multiple event flags are set.",
+      "coord_trigger_tile": {"x": 10, "y": 6},
+      "scene_flag": "SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS",
+      "event_set": "EVENT_RELEASED_THE_BEASTS",
+      "cascade_effects": [
+        "special InitRoamMons — Raikou and Entei begin roaming Johto",
+        "setmapscene ECRUTEAK_GYM SCENE_ECRUTEAKGYM_NOOP — unlocks Morty's gym",
+        "setmapscene CIANWOOD_CITY SCENE_CIANWOODCITY_SUICUNE_AND_EUSINE — starts Suicune's chase chain",
+        "clearevent EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY",
+        "setevent EVENT_ECRUTEAK_GYM_GRAMPS — Gramps guard removed from gym doorway",
+        "clearevent EVENT_ECRUTEAK_CITY_GRAMPS",
+        "setevent EVENT_BURNED_TOWER_MORTY — removes Morty from Burned Tower 1F",
+        "setevent EVENT_BURNED_TOWER_1F_EUSINE — removes Eusine from Burned Tower 1F",
+        "changeblock 6, 14, $1b — restores the secondary ladder tile on B1F side",
+        "Advances scene to SCENE_BURNEDTOWERB1F_NOOP — cutscene cannot replay"
+      ]
+    },
+    "ladder_callback": {
+      "description": "BurnedTowerB1FLadderCallback fires on MAPCALLBACK_TILES each map load: if EVENT_RELEASED_THE_BEASTS is set, the secondary ladder at (6,14) on the B1F side is removed (changeblock to floor tile $02).",
+      "ladder_position": {"x": 6, "y": 14},
+      "note": "Before beasts released, this ladder provides an alternate exit. After release, it is sealed. The primary ladder at (10,9) remains as the normal up-warp."
+    },
+    "beast_positions": {
+      "description": "The three beasts exist as two overlapping object_events each (BEASTS_1 and BEASTS_2 at the same tile coordinates) controlled by separate event flags. Before the scene, BEASTS_1 objects show the sleeping pokemon sprites in random-movement pokemon mode. BEASTS_2 objects (standing, emote palette) appear momentarily during the wakeup animation phase, then disappear as the beast flees. Both sets are removed after EVENT_RELEASED_THE_BEASTS.",
+      "positions": {
+        "Raikou":  {"x": 7,  "y": 3},
+        "Entei":   {"x": 12, "y": 3},
+        "Suicune": {"x": 10, "y": 4}
+      }
+    }
+  },
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate_percent": 6,
+      "note": "6% encounter rate for morning, day, and night — identical table across all time periods. Higher rate than 1F.",
+      "morning": [
+        {"slot": 1, "species": "Rattata", "level": 14, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing", "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Koffing", "level": 16, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",   "level": 15, "rate_percent": 10},
+        {"slot": 5, "species": "Koffing", "level": 12, "rate_percent":  5},
+        {"slot": 6, "species": "Koffing", "level": 16, "rate_percent":  4},
+        {"slot": 7, "species": "Weezing", "level": 16, "rate_percent":  1}
+      ],
+      "day": [
+        {"slot": 1, "species": "Rattata", "level": 14, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing", "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Koffing", "level": 16, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",   "level": 15, "rate_percent": 10},
+        {"slot": 5, "species": "Koffing", "level": 12, "rate_percent":  5},
+        {"slot": 6, "species": "Koffing", "level": 16, "rate_percent":  4},
+        {"slot": 7, "species": "Weezing", "level": 16, "rate_percent":  1}
+      ],
+      "night": [
+        {"slot": 1, "species": "Rattata", "level": 14, "rate_percent": 30},
+        {"slot": 2, "species": "Koffing", "level": 14, "rate_percent": 30},
+        {"slot": 3, "species": "Koffing", "level": 16, "rate_percent": 20},
+        {"slot": 4, "species": "Zubat",   "level": 15, "rate_percent": 10},
+        {"slot": 5, "species": "Koffing", "level": 12, "rate_percent":  5},
+        {"slot": 6, "species": "Koffing", "level": 16, "rate_percent":  4},
+        {"slot": 7, "species": "Weezing", "level": 16, "rate_percent":  1}
+      ]
+    },
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "id": "player_falls_from_1f",
+      "trigger": "Warp through hole at 1F tile (10,8) after rival battle earthquake",
+      "description": "Player drops from 1F via skyfall animation and lands near the beasts. The warp destination is warp_id 1 on B1F side (tile 10,9). The player then walks south to tile (10,6) to trigger ReleaseTheBeasts."
+    },
+    {
+      "id": "release_the_beasts_cutscene",
+      "trigger": "coord_event at tile (10,6) with SCENE_BURNEDTOWERB1F_RELEASE_THE_BEASTS active",
+      "description": "The main story cutscene of the basement. Music stops. Raikou, Entei, and Suicune awaken one by one (appear, cry, flee via sliding movement), then disappear. Suicune performs an elaborate three-phase movement before a final cry and departure. Eusine appears at (10,12) to give closing dialogue. All roaming and chase flags set. Scene cannot replay."
+    },
+    {
+      "id": "eusine_post_scene_dialogue",
+      "trigger": "Talk to Eusine at (10,12) after beasts released",
+      "description": "Eusine thanks the player, explains the legendary test, declares he will track Suicune, says farewell, then disappears via exit SFX. This is Eusine's last appearance in the Burned Tower — he next appears in Cianwood City."
+    },
+    {
+      "id": "ladder_callback",
+      "trigger": "MAPCALLBACK_TILES — fires each time B1F map loads",
+      "description": "BurnedTowerB1FLadderCallback: if EVENT_RELEASED_THE_BEASTS is set, removes the secondary ladder at (6,14) by replacing it with floor tile ($02)."
+    }
+  ],
+  "music": "MUSIC_BURNED_TOWER",
+  "notes": "Burned Tower B1F is the basement of the ruined tower in Ecruteak City and the site of the pivotal Generation II legendary beast release cutscene. The player reaches this floor by falling through the hole opened by the Rival battle earthquake above. Three legendary Pokemon (Raikou, Entei, Suicune) are found sleeping here and flee when the player approaches the trigger tile at (10,6). This is the only place in the game where all three are seen simultaneously before they scatter. Wild encounters have a 6% rate — slightly higher than 1F — with Koffing, Rattata, Zubat, and rare Weezing. One item (TM39 Endure) is found in the beast chamber. A Strength Boulder blocks part of the east passage. Eusine appears post-cutscene for a farewell scene, then the Suicune chase chain advances to Cianwood City. All warp_event, object_event, coord_event data sourced directly from BurnedTowerB1F.asm. Wild encounter data sourced from johto_grass.asm. Slot probability table from probabilities.asm: slot 1=30%, 2=30%, 3=20%, 4=10%, 5=5%, 6=4%, 7=1%. Map dimensions: 10x9 blocks = 20x18 tiles."
+}

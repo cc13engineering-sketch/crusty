@@ -1,0 +1,127 @@
+{
+  "area_id": "ruins_of_alph_research_center",
+  "area_name": "Ruins of Alph Research Center",
+  "area_type": "building",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_RESEARCH_CENTER",
+  "width_blocks": 4,
+  "height_blocks": 4,
+  "width_tiles": 8,
+  "height_tiles": 8,
+  "tileset": "johto_house",
+  "connections": [],
+  "warps": [
+    {
+      "x": 2, "y": 7,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 6,
+      "note": "Front door left tile — exit to Outside"
+    },
+    {
+      "x": 3, "y": 7,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 6,
+      "note": "Front door right tile — exit to Outside"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "N": "npc_position",
+      "B": "bookshelf",
+      "C": "computer_terminal",
+      "P": "printer",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "########",
+      "#....P.#",
+      "#......#",
+      "#N.....#",
+      "#NB....#",
+      "#N.....#",
+      "#......#",
+      "#EEDDEE#"
+    ],
+    "notes": "4x4 block interior (8x8 tiles). Printer at (7,1). Computer at (3,4). Bookshelf at (6,5). Three scientists: Scientist1 at (4,5), Scientist2 wanders area, Scientist3 appears at (2,5) only for Unown Dex scene. Doors at (2,7) and (3,7)."
+  },
+  "npcs": [
+    {
+      "id": "npc_scientist1",
+      "name": "Scientist 1",
+      "x": 4, "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Initial: 'The RUINS are about 1500 years old. But it's not known why they were built or by whom.' After Unown appear: 'POKEMON appeared in the RUINS? That's incredible news! We'll need to investigate this.' After Unown Dex: 'I wonder how many kinds of POKEMON are in the RUINS?' After all Unown caught: 'Our investigation, with your help, is giving us insight into the RUINS. The RUINS appear to have been built as a habitat for POKEMON.'"
+    },
+    {
+      "id": "npc_scientist2",
+      "name": "Scientist 2",
+      "x": 5, "y": 2,
+      "facing": "down",
+      "movement": "wander",
+      "movement_radius": {"x": 2, "y": 1},
+      "script_type": "dialogue",
+      "dialogue_summary": "Initial: 'There are odd patterns drawn on the walls of the RUINS. They must be the keys for unraveling the mystery of the RUINS.' After Unown appear: 'The strange POKEMON you saw in the RUINS? They appear to be very much like the drawings on the walls there. Hmm… That must mean there are many kinds of them…' After all Unown: 'Why did those ancient patterns appear on the wall now? The mystery deepens…'"
+    },
+    {
+      "id": "npc_scientist3",
+      "name": "Scientist 3 (Unown Dex Giver)",
+      "x": 2, "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Normally: 'The UNOWN you catch will all be recorded. Check to see how many kinds exist.' After all Unown caught: 'You caught all the UNOWN variations? That's a great achievement! I've set up the printer here for handling UNOWN. Feel free to use it anytime.'",
+      "event_flag": "EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST",
+      "note": "Hidden by default. MAPCALLBACK_OBJECTS moves him to (3,7) and shows him only during SCENE_RUINSOFALPHRESEARCHCENTER_GET_UNOWN_DEX. Runs the Unown Dex upgrade sequence: boots PC, plays SFX, upgrades Pokedex with ENGINE_UNOWN_DEX flag, then leaves."
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Unown Dex (Pokedex Upgrade)",
+      "x": 3, "y": 5,
+      "hidden": false,
+      "requires": "EVENT_MADE_UNOWN_APPEAR_IN_RUINS and VAR_UNOWNCOUNT >= 3",
+      "note": "Not a held item ball — given as a Pokedex upgrade via the Scientist3 script sequence. Sets ENGINE_UNOWN_DEX flag. Player is automatically walked into the lab from outside when the conditions are met."
+    }
+  ],
+  "interactables": [
+    {
+      "id": "computer",
+      "x": 3, "y": 4,
+      "type": "computer_terminal",
+      "note": "Initial (no all-Unown flag): 'RUINS OF ALPH Exploration Year 10.' After all Unown caught: 'Mystery POKEMON Name: UNOWN A total of 26 kinds found.' Locked out (shows normal text) if EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST is set."
+    },
+    {
+      "id": "printer",
+      "x": 7, "y": 1,
+      "type": "unown_printer",
+      "note": "Normally: 'This doesn't seem to work yet.' After all 26 Unown caught: 'UNOWN may be printed out.' Activates special UnownPrinter to print Unown data. Locked to normal text if EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST is set."
+    },
+    {
+      "id": "bookshelf",
+      "x": 6, "y": 5,
+      "type": "bookshelf",
+      "note": "'There are many academic books. Ancient Ruins… Mysteries of the Ancients…'"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "scene_get_unown_dex",
+      "description": "SCENE_RUINSOFALPHRESEARCHCENTER_GET_UNOWN_DEX: Scientist3 is moved to position (3,7) and made visible. He walks to the computer at (2,2), interacts with it (boot SFX, switch SFX, tally SFX, transaction SFX), turns to face player, gives dialogue about Pokedex modification, approaches player, upgrades the Pokedex (sets ENGINE_UNOWN_DEX), then retreats. This scene is set on the Research Center map by the Outside Scientist's walk sequence."
+    },
+    {
+      "trigger": "callback_show_scientist3",
+      "description": "MAPCALLBACK_OBJECTS fires on each map load. If scene equals SCENE_RUINSOFALPHRESEARCHCENTER_GET_UNOWN_DEX, Scientist3 is repositioned to (3,7) and made to appear. Otherwise he remains hidden (EVENT_RUINS_OF_ALPH_RESEARCH_CENTER_SCIENTIST controls permanence after the scene ends)."
+    }
+  ],
+  "notes": "The Research Center is a 4x4 block building (8x8 tiles) staffed by three scientists studying the Ruins of Alph, which are approximately 1500 years old. The building was founded by Prof. Silktree (referenced in unused text). Scientist1 tracks overall knowledge progress. Scientist2 focuses on the wall patterns. Scientist3 appears only to upgrade the player's Pokedex with the Unown Dex function. The computer tracks exploration progress. The Unown Printer unlocks after all 26 Unown forms are caught, allowing the player to print Unown data. The Research Center is reachable from Outside at warp (17,11)."
+}

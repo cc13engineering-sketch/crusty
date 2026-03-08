@@ -1,0 +1,275 @@
+{
+  "area_id": "cianwood_gym",
+  "area_name": "Cianwood City Pokemon Gym",
+  "area_type": "building",
+  "pokecrystal_map_id": "CIANWOOD_GYM",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "gym",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 17,
+      "target_area_id": "cianwood_city",
+      "target_warp_id": 2,
+      "notes": "Left exit door back to Cianwood City"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 17,
+      "target_area_id": "cianwood_city",
+      "target_warp_id": 2,
+      "notes": "Right exit door back to Cianwood City"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "boulder",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "G": "gym_statue",
+      "L": "gym_leader_platform"
+    },
+    "notes": "Layout is 10 tiles wide x 18 tiles tall. Chuck (gym leader) stands at top-center on a raised platform (tiles 4,1). Four Black Belt trainers guard the path. Three Strength boulders (at y=7, plus one at y=1 beside Chuck) form a puzzle: player must push the y=7 boulders aside to clear a path to Chuck. Chuck kicks boulder at y=1 into the air during his intro. Two gym statues flank the entrance at y=15.",
+    "rows": [
+      "##########",
+      "###LNLB###",
+      "##########",
+      "##########",
+      "#####N####",
+      "##########",
+      "#..BBB...#",
+      "#..BBB...#",
+      "##########",
+      "#N.......#",
+      "#........#",
+      "#........#",
+      "#.......N#",
+      "##########",
+      "#.N....N.#",
+      "#G.EE..G.#",
+      "####DD####",
+      "####EE####"
+    ]
+  },
+  "gym_info": {
+    "gym_leader": "Chuck",
+    "trainer_class": "Leader",
+    "badge": "Storm Badge",
+    "badge_effect": "Pokemon up to Lv70 obey (including traded). Enables use of HM02 Fly outside battle.",
+    "tm_reward": "TM01 DynamicPunch",
+    "tm_description": "DynamicPunch — Fighting-type, 100 base power, 50% accuracy, always confuses on hit.",
+    "type_specialty": "Fighting",
+    "puzzle_type": "Strength boulders",
+    "puzzle_description": "Three Strength boulders block the path to Chuck at tile row y=7 (object coords 3,7 / 4,7 / 5,7). Player must have HM04 Strength to push them aside. Chuck also has a boulder beside him (5,1) which he punches away dramatically during his intro before battle begins.",
+    "pokecrystal_trainer_id": "CHUCK, CHUCK1"
+  },
+  "npcs": [
+    {
+      "id": "npc_chuck",
+      "name": "Chuck",
+      "x": 4, "y": 1,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "trainer",
+      "dialogue_summary": "WAHAHAH! Dramatic intro where he punches a boulder away. Then challenges player. After defeat, gives Storm Badge and TM01 DynamicPunch. Post-battle dialogue about training 24 hours a day.",
+      "trainer_class": "Leader",
+      "trainer_id": "CHUCK1",
+      "team": [
+        {
+          "species": "Primeape",
+          "level": 27,
+          "moves": ["Leer", "Rage", "Karate Chop", "Fury Swipes"],
+          "notes": "Trainertype MOVES — uses specified moveset"
+        },
+        {
+          "species": "Poliwrath",
+          "level": 30,
+          "moves": ["Hypnosis", "Mind Reader", "Surf", "DynamicPunch"],
+          "notes": "Trainertype MOVES — Mind Reader + DynamicPunch combo for guaranteed hit. Surf provides coverage."
+        }
+      ],
+      "prize_money": 3600,
+      "rematch": false
+    }
+  ],
+  "trainers": [
+    {
+      "class": "BlackBelt",
+      "name": "Yoshi",
+      "pokecrystal_id": "BLACKBELT_T 2",
+      "x": 2, "y": 12,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Hitmonlee",
+          "level": 27,
+          "moves": ["Double Kick", "Meditate", "Jump Kick", "Focus Energy"],
+          "notes": "TRAINERTYPE_MOVES"
+        }
+      ],
+      "prize_money": 864,
+      "rematch": false,
+      "dialogue_seen": "My Pokemon and I are bound together by friendship. Our bond will never be broken!",
+      "dialogue_beaten": "This isn't real!",
+      "dialogue_after": "You seem to have a strong bond with your Pokemon too!"
+    },
+    {
+      "class": "BlackBelt",
+      "name": "Lao",
+      "pokecrystal_id": "BLACKBELT_T 4",
+      "x": 7, "y": 12,
+      "facing": "left",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Hitmonchan",
+          "level": 27,
+          "moves": ["Comet Punch", "ThunderPunch", "Ice Punch", "Fire Punch"],
+          "notes": "TRAINERTYPE_MOVES — elemental punches provide wide coverage"
+        }
+      ],
+      "prize_money": 864,
+      "rematch": false,
+      "dialogue_seen": "We martial artists fear nothing!",
+      "dialogue_beaten": "That's shocking!",
+      "dialogue_after": "Fighting Pokemon are afraid of psychics..."
+    },
+    {
+      "class": "BlackBelt",
+      "name": "Nob",
+      "pokecrystal_id": "BLACKBELT_T 5",
+      "x": 3, "y": 9,
+      "facing": "right",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Machop",
+          "level": 25,
+          "moves": ["Leer", "Focus Energy", "Karate Chop", "Seismic Toss"],
+          "notes": "TRAINERTYPE_MOVES"
+        },
+        {
+          "species": "Machoke",
+          "level": 25,
+          "moves": ["Leer", "Karate Chop", "Seismic Toss", "Rock Slide"],
+          "notes": "TRAINERTYPE_MOVES"
+        }
+      ],
+      "prize_money": 800,
+      "rematch": false,
+      "dialogue_seen": "Words are useless. Let your fists do the talking!",
+      "dialogue_beaten": "...",
+      "dialogue_after": "I lost! I'm speechless!"
+    },
+    {
+      "class": "BlackBelt",
+      "name": "Lung",
+      "pokecrystal_id": "BLACKBELT_T 7",
+      "x": 5, "y": 5,
+      "facing": "left",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Mankey",
+          "level": 23,
+          "notes": "TRAINERTYPE_NORMAL — no specified moves"
+        },
+        {
+          "species": "Mankey",
+          "level": 23,
+          "notes": "TRAINERTYPE_NORMAL"
+        },
+        {
+          "species": "Primeape",
+          "level": 25,
+          "notes": "TRAINERTYPE_NORMAL"
+        }
+      ],
+      "prize_money": 800,
+      "rematch": false,
+      "dialogue_seen": "My raging fists will shatter your Pokemon!",
+      "dialogue_beaten": "I got shattered!",
+      "dialogue_after": "My Pokemon lost... My... my pride is shattered..."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 15,
+      "type": "gym_statue",
+      "script": "CianwoodGymStatue",
+      "notes": "Left statue — displays gym info before Chuck beaten, Chuck's name after"
+    },
+    {
+      "x": 6, "y": 15,
+      "type": "gym_statue",
+      "script": "CianwoodGymStatue",
+      "notes": "Right statue — same as left"
+    }
+  ],
+  "boulders": [
+    {
+      "id": "boulder_chuck_intro",
+      "x": 5, "y": 1,
+      "type": "strength_boulder",
+      "notes": "Chuck punches this boulder during intro (movement: big_step LEFT, big_step UP, fast_jump_step RIGHT). Disappears after intro script."
+    },
+    {
+      "id": "boulder_1",
+      "x": 3, "y": 7,
+      "type": "strength_boulder",
+      "notes": "Puzzle boulder blocking path to Chuck. Push with HM04 Strength."
+    },
+    {
+      "id": "boulder_2",
+      "x": 4, "y": 7,
+      "type": "strength_boulder",
+      "notes": "Puzzle boulder blocking path to Chuck."
+    },
+    {
+      "id": "boulder_3",
+      "x": 5, "y": 7,
+      "type": "strength_boulder",
+      "notes": "Puzzle boulder blocking path to Chuck."
+    }
+  ],
+  "events": [
+    {
+      "trigger": "talk_to_chuck_pre_battle",
+      "description": "Chuck delivers his WAHAHAH! speech, turns to face right, then punches the boulder beside him (boulder_chuck_intro slides left then up then right, disappears). Chuck then faces player and delivers second speech before battle begins."
+    },
+    {
+      "trigger": "beat_chuck",
+      "description": "Sets EVENT_BEAT_CHUCK. Awards Storm Badge (SFX_GET_BADGE, sets ENGINE_STORMBADGE flag). Checks badge count: if 6 badges, activates Goldenrod Rockets event; if 7, activates Radio Tower Rockets event. Then gives TM01 DynamicPunch."
+    },
+    {
+      "trigger": "return_after_beat",
+      "description": "Chuck gives TM01 DynamicPunch if not already received. After that he talks about training 24 hours a day."
+    }
+  ],
+  "notes": "Cianwood Gym is a Fighting-type gym. The main puzzle involves three Strength boulders blocking the central corridor leading to Chuck. Players need HM04 Strength (obtainable from a Gentleman on Route 42 or from the Ruins of Alph area) to push the boulders. Chuck performs one of the most memorable intro animations in the game — throwing a boulder before the fight. His Poliwrath's Mind Reader + DynamicPunch combo is a signature threat. The Storm Badge is the 5th Johto badge. Defeating Chuck also eventually triggers Team Rocket events in Goldenrod City depending on how many badges the player has."
+}

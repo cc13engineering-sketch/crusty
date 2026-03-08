@@ -1,0 +1,466 @@
+{
+  "area_id": "elms_lab",
+  "area_name": "Elm's Pokemon Lab",
+  "area_type": "building",
+  "pokecrystal_map_id": "ELMS_LAB",
+  "width_blocks": 5,
+  "height_blocks": 6,
+  "width_tiles": 10,
+  "height_tiles": 12,
+  "tileset": "TILESET_LAB",
+  "music": "MUSIC_PROF_ELM",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_NEW_BARK_TOWN",
+  "palette": "PALETTE_DAY",
+  "fish_group": "FISHGROUP_SHORE",
+  "parent_area_id": "new_bark_town",
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 4,
+      "y": 11,
+      "target_area_id": "new_bark_town",
+      "pokecrystal_target": "NEW_BARK_TOWN",
+      "target_warp_id": 1,
+      "notes": "Left exit tile — back to New Bark Town"
+    },
+    {
+      "warp_id": 1,
+      "x": 5,
+      "y": 11,
+      "target_area_id": "new_bark_town",
+      "pokecrystal_target": "NEW_BARK_TOWN",
+      "target_warp_id": 1,
+      "notes": "Right exit tile — back to New Bark Town"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "H": "heal_machine",
+      "B": "bookshelf",
+      "K": "computer_pc",
+      "W": "window",
+      "T": "table_counter",
+      "O": "poke_ball_on_table",
+      "P": "research_table",
+      "R": "reference_book",
+      "N": "npc_position",
+      "D": "door",
+      "Z": "trash_can",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked"
+    },
+    "notes": "10 columns x 12 rows. The lab is 5 blocks wide x 6 blocks tall (10x12 tiles). Exit warps at (4,11) and (5,11). BG events: healing machine at (2,1), bookshelves at (6-9,1), travel tip books at (0-3,7), more bookshelves at (6-9,7), trashcan at (9,3), window at (5,0), PC at (3,5). Object events: Elm at (5,2), Aide at (2,9), Poke Balls at (6,3),(7,3),(8,3), Officer at (5,3). Coord events for cant-leave at y=6, meet-cop at y=5, aide-gives-item at y=8.",
+    "rows": [
+      "####.W####",
+      "##H..BBBB#",
+      "#...N....#",
+      "##..OOO.Z#",
+      "###K......",
+      "##..N.....",
+      "##########",
+      "RRRR.BBBB#",
+      "##.N......",
+      "##........",
+      "##........",
+      "####DD####"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_elm",
+      "object_const": "ELMSLAB_ELM",
+      "name": "Professor Elm",
+      "sprite": "SPRITE_ELM",
+      "x": 5,
+      "y": 2,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "script_type": "dialogue",
+      "script": "ProfElmScript",
+      "event_flag": null,
+      "dialogue_summary": "Complex multi-stage script. Initial meeting: gives research mission, allows starter selection. After theft: receives Mystery Egg, gives Pokedex context. Later visits: gives Everstone (post-Togepi), Master Ball (post-8 badges), S.S. Ticket (post-E4).",
+      "position_note": "Moves to (3,4) via MAPCALLBACK_OBJECTS callback when SCENE_ELMSLAB_MEET_ELM is active"
+    },
+    {
+      "id": "npc_elms_aide",
+      "object_const": "ELMSLAB_ELMS_AIDE",
+      "name": "Elm's Aide",
+      "sprite": "SPRITE_SCIENTIST",
+      "x": 2,
+      "y": 9,
+      "facing": "spin_random_slow",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "script": "ElmsAideScript",
+      "event_flag": "EVENT_ELMS_AIDE_IN_LAB",
+      "dialogue_summary": "Gives Potion when player leaves lab after getting starter (SCENE_ELMSLAB_AIDE_GIVES_POTION coord event). Gives 5 Poke Balls after returning Mystery Egg to Elm (SCENE_ELMSLAB_AIDE_GIVES_POKE_BALLS). Otherwise comments about being always busy. After theft: testifies about the robbery."
+    },
+    {
+      "id": "npc_pokeball_cyndaquil",
+      "object_const": "ELMSLAB_POKE_BALL1",
+      "name": "Cyndaquil Poke Ball",
+      "sprite": "SPRITE_POKE_BALL",
+      "x": 6,
+      "y": 3,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "starter_selection",
+      "script": "CyndaquilPokeBallScript",
+      "event_flag": "EVENT_CYNDAQUIL_POKEBALL_IN_ELMS_LAB",
+      "dialogue_summary": "Shows Cyndaquil Pokemon picture with its cry. Asks player to confirm choice. Gives Cyndaquil Lv.5 holding Berry if accepted."
+    },
+    {
+      "id": "npc_pokeball_totodile",
+      "object_const": "ELMSLAB_POKE_BALL2",
+      "name": "Totodile Poke Ball",
+      "sprite": "SPRITE_POKE_BALL",
+      "x": 7,
+      "y": 3,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "starter_selection",
+      "script": "TotodilePokeBallScript",
+      "event_flag": "EVENT_TOTODILE_POKEBALL_IN_ELMS_LAB",
+      "dialogue_summary": "Shows Totodile Pokemon picture with its cry. Asks player to confirm choice. Gives Totodile Lv.5 holding Berry if accepted."
+    },
+    {
+      "id": "npc_pokeball_chikorita",
+      "object_const": "ELMSLAB_POKE_BALL3",
+      "name": "Chikorita Poke Ball",
+      "sprite": "SPRITE_POKE_BALL",
+      "x": 8,
+      "y": 3,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "starter_selection",
+      "script": "ChikoritaPokeBallScript",
+      "event_flag": "EVENT_CHIKORITA_POKEBALL_IN_ELMS_LAB",
+      "dialogue_summary": "Shows Chikorita Pokemon picture with its cry. Asks player to confirm choice. Gives Chikorita Lv.5 holding Berry if accepted."
+    },
+    {
+      "id": "npc_officer",
+      "object_const": "ELMSLAB_OFFICER",
+      "name": "Officer Jenny",
+      "sprite": "SPRITE_OFFICER",
+      "x": 5,
+      "y": 3,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "script": "CopScript",
+      "event_flag": "EVENT_COP_IN_ELMS_LAB",
+      "dialogue_summary": "Present after lab theft event. Describes the thief (young male, long red hair) and asks player to name the rival. Calling NameRival special assigns the rival's name. Then leaves via OfficerLeavesMovement."
+    }
+  ],
+
+  "starters": [
+    {
+      "species": "Chikorita",
+      "type": "Grass",
+      "level": 5,
+      "held_item": "Berry",
+      "poke_ball_position": {"x": 8, "y": 3},
+      "event_flag": "EVENT_GOT_CHIKORITA_FROM_ELM"
+    },
+    {
+      "species": "Cyndaquil",
+      "type": "Fire",
+      "level": 5,
+      "held_item": "Berry",
+      "poke_ball_position": {"x": 6, "y": 3},
+      "event_flag": "EVENT_GOT_CYNDAQUIL_FROM_ELM"
+    },
+    {
+      "species": "Totodile",
+      "type": "Water",
+      "level": 5,
+      "held_item": "Berry",
+      "poke_ball_position": {"x": 7, "y": 3},
+      "event_flag": "EVENT_GOT_TOTODILE_FROM_ELM"
+    }
+  ],
+
+  "bg_events": [
+    {
+      "x": 2,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabHealingMachine",
+      "description": "Pokemon healing machine. Before getting starter: 'I wonder what this does?' After getting starter: offers to heal party (uses HealMachineAnim with HEALMACHINE_ELMS_LAB constant)."
+    },
+    {
+      "x": 6,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf (DifficultBookshelfScript — too difficult to understand)"
+    },
+    {
+      "x": 7,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 8,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 9,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 0,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabTravelTip1",
+      "description": "Travel Tip 1: Press START to open the MENU."
+    },
+    {
+      "x": 1,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabTravelTip2",
+      "description": "Travel Tip 2: Record your trip with SAVE!"
+    },
+    {
+      "x": 2,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabTravelTip3",
+      "description": "Travel Tip 3: Open your PACK and press SELECT to move items."
+    },
+    {
+      "x": 3,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabTravelTip4",
+      "description": "Travel Tip 4: Check your Pokemon moves. Press A Button to switch moves."
+    },
+    {
+      "x": 6,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 7,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 8,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 9,
+      "y": 7,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabBookshelf",
+      "description": "Bookshelf"
+    },
+    {
+      "x": 9,
+      "y": 3,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabTrashcan",
+      "description": "Trash can: 'The wrapper from the snack PROF.ELM ate is in there...'"
+    },
+    {
+      "x": 5,
+      "y": 0,
+      "type": "BGEVENT_READ",
+      "script": "ElmsLabWindow",
+      "description": "Window. Normal: 'A pleasant breeze is blowing in.' After theft: 'He broke in through here!' (checked via EVENT_ELM_CALLED_ABOUT_STOLEN_POKEMON and ENGINE_FLYPOINT_VIOLET)"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "type": "BGEVENT_DOWN",
+      "script": "ElmsLabPC",
+      "description": "Lab PC. Text: 'OBSERVATIONS ON POKEMON EVOLUTION... It says on the screen...'"
+    }
+  ],
+
+  "coord_events": [
+    {
+      "x": 4,
+      "y": 6,
+      "scene": "SCENE_ELMSLAB_CANT_LEAVE",
+      "script": "LabTryToLeaveScript",
+      "notes": "Elm blocks player from leaving lab before choosing a starter"
+    },
+    {
+      "x": 5,
+      "y": 6,
+      "scene": "SCENE_ELMSLAB_CANT_LEAVE",
+      "script": "LabTryToLeaveScript",
+      "notes": "Second tile of cant-leave blocker"
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "scene": "SCENE_ELMSLAB_MEET_OFFICER",
+      "script": "MeetCopScript",
+      "notes": "Triggers Officer Jenny meeting after lab theft (player walks up)"
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "scene": "SCENE_ELMSLAB_MEET_OFFICER",
+      "script": "MeetCopScript2",
+      "notes": "Alternate Officer meeting tile (steps player left first)"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "scene": "SCENE_ELMSLAB_AIDE_GIVES_POTION",
+      "script": "AideScript_WalkPotion1",
+      "notes": "Aide intercepts player leaving for the first time after choosing starter, gives Potion"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "scene": "SCENE_ELMSLAB_AIDE_GIVES_POTION",
+      "script": "AideScript_WalkPotion2",
+      "notes": "Second tile for aide Potion intercept"
+    },
+    {
+      "x": 4,
+      "y": 8,
+      "scene": "SCENE_ELMSLAB_AIDE_GIVES_POKE_BALLS",
+      "script": "AideScript_WalkBalls1",
+      "notes": "Aide intercepts player on return after Mystery Egg, gives 5 Poke Balls"
+    },
+    {
+      "x": 5,
+      "y": 8,
+      "scene": "SCENE_ELMSLAB_AIDE_GIVES_POKE_BALLS",
+      "script": "AideScript_WalkBalls2",
+      "notes": "Second tile for aide Poke Ball intercept"
+    }
+  ],
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "ElmsLabMoveElmCallback",
+      "notes": "On map load, if scene is SCENE_ELMSLAB_MEET_ELM, moves Elm to position (3,4) for the intro walk-up cutscene"
+    }
+  ],
+
+  "items": [
+    {
+      "name": "Starter Pokemon (Chikorita / Cyndaquil / Totodile)",
+      "source": "npc_gift_choice",
+      "giver": "Professor Elm (via Poke Ball objects)",
+      "level": 5,
+      "held_item": "Berry",
+      "hidden": false,
+      "requires": "SCENE_ELMSLAB_CANT_LEAVE active (after Elm's intro)",
+      "trigger": "player_interacts_with_poke_ball_objects"
+    },
+    {
+      "name": "Potion x1",
+      "source": "npc_gift",
+      "giver": "Elm's Aide",
+      "hidden": false,
+      "requires": "EVENT_GOT_A_POKEMON_FROM_ELM",
+      "trigger": "coord_event_aide_walk_potion (y=8)"
+    },
+    {
+      "name": "Poke Ball x5",
+      "source": "npc_gift",
+      "giver": "Elm's Aide",
+      "hidden": false,
+      "requires": "EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+      "trigger": "coord_event_aide_walk_balls (y=8)"
+    },
+    {
+      "name": "Everstone",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "hidden": false,
+      "requires": "EVENT_SHOWED_TOGEPI_TO_ELM",
+      "trigger": "show_togepi_or_togetic_to_elm"
+    },
+    {
+      "name": "Master Ball",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "hidden": false,
+      "requires": "ENGINE_RISINGBADGE (all 8 Johto badges)",
+      "trigger": "visit_elm_after_8_badges"
+    },
+    {
+      "name": "S.S. Ticket",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "hidden": false,
+      "requires": "EVENT_BEAT_ELITE_FOUR",
+      "trigger": "visit_elm_after_defeating_elite_four"
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "scene_progression": [
+    {
+      "scene_id": "SCENE_ELMSLAB_MEET_ELM",
+      "order": 1,
+      "description": "Initial scene. Elm walks player up to his position via cutscene (ElmsLabWalkUpToElmScript). Player must say yes to help. Elm explains his research, then gives option to pick a starter Pokemon."
+    },
+    {
+      "scene_id": "SCENE_ELMSLAB_CANT_LEAVE",
+      "order": 2,
+      "description": "After intro but before choosing a starter. Elm blocks exit at y=6 coord events."
+    },
+    {
+      "scene_id": "SCENE_ELMSLAB_AIDE_GIVES_POTION",
+      "order": 3,
+      "description": "After choosing starter. Aide intercepts at y=8 and gives Potion."
+    },
+    {
+      "scene_id": "SCENE_ELMSLAB_NOOP",
+      "order": 4,
+      "description": "Normal state post-errand departure. Elm and Aide have normal dialogue."
+    },
+    {
+      "scene_id": "SCENE_ELMSLAB_MEET_OFFICER",
+      "order": 5,
+      "description": "After returning from Mr. Pokemon errand. Officer Jenny present. Player triggers naming the rival at y=5 coord events."
+    },
+    {
+      "scene_id": "SCENE_ELMSLAB_AIDE_GIVES_POKE_BALLS",
+      "order": 6,
+      "description": "After Mystery Egg given to Elm. Aide intercepts at y=8 and gives 5 Poke Balls."
+    }
+  ],
+
+  "notes": "Professor Elm's research lab is the most event-dense location in New Bark Town. It uses TILESET_LAB (the standard lab tileset shared with Oak's lab). The healing machine at (2,1) doubles as an early Pokemon Center substitute — fully functional after the player has a starter. The lab has an open window at (5,0) which becomes relevant after Silver breaks in to steal a Pokemon (the window text changes from 'pleasant breeze' to 'He broke in through here!'). Four travel tip books line the south wall at (0-3,7) serving as tutorials for new players. The Elm NPC position is dynamically moved by MAPCALLBACK_OBJECTS during the intro cutscene. The Officer Jenny NPC only appears after the theft event (EVENT_COP_IN_ELMS_LAB) and departs after the rival is named. Music changes to MUSIC_PROF_ELM when entering the lab, distinct from the town's MUSIC_NEW_BARK_TOWN."
+}

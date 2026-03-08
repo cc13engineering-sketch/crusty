@@ -1,0 +1,130 @@
+{
+  "area_id": "ruins_of_alph_ho_oh_chamber",
+  "area_name": "Ruins of Alph — Ho-Oh Chamber",
+  "area_type": "special",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_HO_OH_CHAMBER",
+  "width_blocks": 4,
+  "height_blocks": 5,
+  "width_tiles": 8,
+  "height_tiles": 10,
+  "tileset": "ruins",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 1,
+      "note": "South exit left tile — back to Outside"
+    },
+    {
+      "x": 4, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 1,
+      "note": "South exit right tile — back to Outside"
+    },
+    {
+      "x": 3, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 2,
+      "note": "Floor hole left — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 3,
+      "note": "Floor hole right — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 0,
+      "target_area_id": "ruins_of_alph_ho_oh_item_room",
+      "target_warp_id": 1,
+      "note": "North wall passage — opens after HO-OH word puzzle solved on north wall"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "R": "ruins_wall_with_unown_pattern",
+      "P": "sliding_puzzle_panel",
+      "H": "floor_hole_to_inner_chamber",
+      "D": "door_north_hidden",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "####DDDD####",
+      "##RRRRRR##",
+      "##..PP..##",
+      "##HHHH..##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##EEEEEE##"
+    ],
+    "notes": "4x5 block chamber (8x10 tiles). Same layout as all four puzzle chambers. Puzzle panel at tiles (3,2)-(4,2). Floor holes at (3,3)-(4,3) after completion. This chamber also calls special HoOhChamber on entry (checks if player has the Rainbow Wing to influence scene)."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "signs": [
+    {
+      "x": 2, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 5, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 4, "y": 2,
+      "type": "description_sign",
+      "text": "A POKEMON that flew gracefully on rainbow-colored wings."
+    },
+    {
+      "x": 3, "y": 0,
+      "type": "unown_wall_pattern_left",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_HO_OH — spells HO-OH in Unown script]"
+    },
+    {
+      "x": 4, "y": 0,
+      "type": "unown_wall_pattern_right",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_HO_OH]. After wall opens: 'There's a big hole in the wall!'"
+    }
+  ],
+  "puzzle": {
+    "type": "sliding_tile",
+    "puzzle_id": "UNOWNPUZZLE_HO_OH",
+    "target_pokemon": "Ho-Oh",
+    "panel_location": {"x": 3, "y": 2},
+    "completion_effects": [
+      "Sets EVENT_SOLVED_HO_OH_PUZZLE",
+      "Sets ENGINE_UNLOCKED_UNOWNS_X_TO_Z (unlocks Unown forms X, Y, and Z)",
+      "Sets EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS",
+      "Sets SCENE_RUINSOFALPHINNERCHAMBER_STRANGE_PRESENCE on Inner Chamber",
+      "Triggers earthquake and skyfall — player drops through floor to Inner Chamber",
+      "Floor blocks at (3,3) and (4,3) change to hole tiles ($18/$19)"
+    ],
+    "wall_word": "HO-OH",
+    "wall_word_effect": "Opens north wall passage to Ho-Oh Item Room (block $2e becomes $30)"
+  },
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "on_enter_check_wall_scene",
+      "description": "SCENE_RUINSOFALPHHOOHCHAMBER_CHECK_WALL: calls special HoOhChamber first (checks for Rainbow Wing / Ho-Oh encounter conditions), then checks EVENT_WALL_OPENED_IN_HO_OH_CHAMBER. MAPCALLBACK_TILES restores closed floor unless puzzle already solved."
+    },
+    {
+      "trigger": "puzzle_complete_skyfall",
+      "description": "Completing the Ho-Oh puzzle triggers earthquake, shock emote, converts floor tiles to holes, skyfall — player falls into Inner Chamber at warps 2 and 3."
+    }
+  ],
+  "notes": "The Ho-Oh Chamber is the north-west puzzle chamber, entered from RuinsOfAlphOutside warp at (2,17). Completing the Ho-Oh sliding tile puzzle unlocks Unown X, Y, and Z — the rarest set, unlocked last if this chamber is done after the others. The north wall displays HO-OH in Unown script. The entry scene calls special HoOhChamber which is linked to the Ho-Oh encounter eligibility check. No NPCs present in this chamber."
+}

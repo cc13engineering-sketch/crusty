@@ -1,0 +1,273 @@
+{
+  "area_id": "olivine_city",
+  "area_name": "Olivine City",
+  "area_type": "town",
+  "pokecrystal_map_id": "OLIVINE_CITY",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_39",
+      "offset": 5,
+      "requires": null
+    },
+    {
+      "direction": "west",
+      "target_area_id": "route_40",
+      "offset": 9,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 13, "y": 21,
+      "target_area_id": "olivine_pokecenter_1f",
+      "target_warp_id": 1,
+      "notes": "Pokecenter entrance"
+    },
+    {
+      "x": 10, "y": 11,
+      "target_area_id": "olivine_gym",
+      "target_warp_id": 1,
+      "notes": "Gym entrance"
+    },
+    {
+      "x": 25, "y": 11,
+      "target_area_id": "olivine_tims_house",
+      "target_warp_id": 1,
+      "notes": "Tim's house entrance"
+    },
+    {
+      "x": 0, "y": 0,
+      "target_area_id": "olivine_house_beta",
+      "target_warp_id": 1,
+      "notes": "Inaccessible in final game — door blocked by map geometry"
+    },
+    {
+      "x": 29, "y": 11,
+      "target_area_id": "olivine_punishment_speech_house",
+      "target_warp_id": 1,
+      "notes": "Punishment Speech House entrance"
+    },
+    {
+      "x": 13, "y": 15,
+      "target_area_id": "olivine_good_rod_house",
+      "target_warp_id": 1,
+      "notes": "Good Rod House entrance"
+    },
+    {
+      "x": 7, "y": 21,
+      "target_area_id": "olivine_cafe",
+      "target_warp_id": 1,
+      "notes": "Olivine Cafe entrance"
+    },
+    {
+      "x": 19, "y": 17,
+      "target_area_id": "olivine_mart",
+      "target_warp_id": 2,
+      "notes": "Mart entrance"
+    },
+    {
+      "x": 29, "y": 27,
+      "target_area_id": "olivine_lighthouse_1f",
+      "target_warp_id": 1,
+      "notes": "Glitter Lighthouse entrance"
+    },
+    {
+      "x": 19, "y": 27,
+      "target_area_id": "olivine_port_passage",
+      "target_warp_id": 1,
+      "notes": "Port passage left door"
+    },
+    {
+      "x": 20, "y": 27,
+      "target_area_id": "olivine_port_passage",
+      "target_warp_id": 2,
+      "notes": "Port passage right door"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "P": "path",
+      "S": "sign",
+      "M": "mart",
+      "K": "pokecenter",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "G": "gym_footprint",
+      "L": "lighthouse_footprint",
+      "O": "port_footprint",
+      "@": "player_start"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "##TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT##",
+      "##TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT##",
+      "##TT....................................##",
+      "##TT....................................##",
+      "##TT....GGGGGGGGG.....HHHH.....HHHHHH.##",
+      "##TT....GGGGGGGGG.....HHHH.....HHHHHH.##",
+      "##TT....GGGGGGGGG.....HHHH.....HHHHHH.##",
+      "##TT....GGGGGGGGG.....HHHH.....HHHHHH.##",
+      "##TT.....SGGDGGGG......S........S..S...##",
+      "##TT....DD..DD..D......D........D..D...##",
+      "##TT....@.........N.....................##",
+      "##TT....................................##",
+      "##TT.............HHHH..................##",
+      "##TT.............HHHH..................##",
+      "##TT.............HHHD.....MMMMMM......##",
+      "##TT.............HHHH.....MDDDMM......##",
+      "##TT....................................##",
+      "##TT....................................##",
+      "##TT....HHHH.KKKKKKKK.....S............##",
+      "##TT....HDDD.KDDDDDDKK.................##",
+      "##TT....................................##",
+      "##TT....................................##",
+      "##TT.............S.SF..................##",
+      "##TT....................................##",
+      "##TT....................................##",
+      "##TT...............OOOOO..LLLLLL.......##",
+      "##TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT##",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FFFF##",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FFFF##",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FFFF##",
+      "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~FFFF##",
+      "##TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT##",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Layout is schematic; water occupies the south edge (Route 40 coast). Trees line the north border near Route 39. The lighthouse (L) sits southeast. Port (O) south-center. Gym (G) northwest interior. Pokecenter (K) and Cafe (H) along west mid-section. Mart (M) central-east."
+  },
+  "signs": [
+    {
+      "x": 17, "y": 11,
+      "text": "OLIVINE CITY — The Port Closest to Foreign Lands"
+    },
+    {
+      "x": 20, "y": 24,
+      "text": "OLIVINE PORT FAST SHIP PIER"
+    },
+    {
+      "x": 7, "y": 11,
+      "text": "OLIVINE CITY POKEMON GYM — LEADER: JASMINE — The Steel-Clad Defense Girl"
+    },
+    {
+      "x": 30, "y": 28,
+      "text": "OLIVINE LIGHTHOUSE — Also known as the GLITTER LIGHTHOUSE"
+    },
+    {
+      "x": 3, "y": 23,
+      "text": "BATTLE TOWER AHEAD — Opening Now!"
+    },
+    {
+      "x": 14, "y": 21,
+      "text": "OLIVINE CITY POKEMON CENTER"
+    },
+    {
+      "x": 20, "y": 17,
+      "text": "OLIVINE CITY POKE MART"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "olivinecity_sailor1",
+      "name": "Sailor",
+      "x": 26, "y": 27,
+      "facing": "up",
+      "movement": "walk_up_down",
+      "script_type": "dialogue",
+      "dialogue_summary": "Without the lighthouse beacon no ship can sail; the sea at night is treacherous."
+    },
+    {
+      "id": "olivinecity_standing_youngster",
+      "name": "Youngster",
+      "x": 20, "y": 13,
+      "facing": "random",
+      "movement": "spin_random_slow",
+      "script_type": "dialogue",
+      "dialogue_summary": "Randomly comments on the player's Pokegear or Pokedex with admiration."
+    },
+    {
+      "id": "olivinecity_sailor2",
+      "name": "Sailor",
+      "x": 17, "y": 21,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Loves the sea. Sings sailor songs about sunsets on the water."
+    },
+    {
+      "id": "olivinecity_olivine_rival",
+      "name": "Rival",
+      "x": 10, "y": 11,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "scene_trigger",
+      "dialogue_summary": "Rival scene: tells player Jasmine is at the lighthouse tending to a sick Pokemon, mocks the player, suggests training there. Appears once at coord_events (13,12) or (13,13) depending on approach direction. After scene his sprite becomes SWIMMER_GUY.",
+      "event_flag": "EVENT_RIVAL_OLIVINE_CITY",
+      "scene_flags": ["SCENE_OLIVINECITY_RIVAL_ENCOUNTER", "SCENE_OLIVINECITY_NOOP"]
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": []
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    },
+    "notes": "No wild encounters in town. Fishing encounters are on adjacent Route 40 water tiles."
+  },
+  "events": [
+    {
+      "trigger": "first_visit",
+      "description": "ENGINE_FLYPOINT_OLIVINE flag is set via OlivineCityFlypointCallback on map entry, enabling Olivine City as a fly destination."
+    },
+    {
+      "trigger": "coord_event_at_13_12_or_13_13",
+      "description": "Rival encounter scene fires when SCENE_OLIVINECITY_RIVAL_ENCOUNTER is active. Rival approaches from the gym door, delivers monologue about Jasmine being at the lighthouse, then leaves east off-screen. Scene flag advances to SCENE_OLIVINECITY_NOOP afterward."
+    },
+    {
+      "trigger": "gate_jasmine",
+      "description": "Jasmine is not present in the gym until EVENT_JASMINE_RETURNED_TO_GYM is set. This requires the player to obtain SecretPotion in Cianwood City and deliver it to Amphy at the top of Glitter Lighthouse. Only then does Jasmine return and the gym battle becomes available."
+    }
+  ],
+  "mart_inventory": [
+    {"item": "Ultra Ball", "price": 1200},
+    {"item": "Great Ball", "price": 600},
+    {"item": "Net Ball", "notes": "Crystal only"},
+    {"item": "Repel", "price": 350},
+    {"item": "Super Repel", "price": 500},
+    {"item": "Antidote", "price": 100},
+    {"item": "Parlyz Heal", "price": 200},
+    {"item": "Awakening", "price": 250},
+    {"item": "Burn Heal", "price": 250},
+    {"item": "Ice Heal", "price": 250},
+    {"item": "Full Heal", "price": 600},
+    {"item": "Hyper Potion", "price": 1200},
+    {"item": "Super Potion", "price": 700}
+  ],
+  "notes": "Olivine City is a coastal port town in western Johto. It connects north to Route 39 (Moo Moo Farm direction) and west to Route 40 (ocean route to Cianwood). The Glitter Lighthouse dominates the southeast. The S.S. Aqua departs from Olivine Port post-game to Vermilion City in Kanto. The gym (Steel type, Jasmine) cannot be challenged until after the SecretPotion sidequest at Glitter Lighthouse and Cianwood. Map constants: OLIVINECITY_SAILOR1=0, OLIVINECITY_STANDING_YOUNGSTER=1, OLIVINECITY_SAILOR2=2, OLIVINECITY_OLIVINE_RIVAL=3."
+}

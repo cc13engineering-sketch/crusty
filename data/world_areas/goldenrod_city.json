@@ -1,0 +1,544 @@
+{
+  "area_id": "goldenrod_city",
+  "area_name": "Goldenrod City",
+  "area_type": "town",
+  "pokecrystal_map_id": "GOLDENROD_CITY",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "johto_city",
+  "slogan": "The Festive City of Opulent Charm",
+  "description": "A developing city where people and Pokemon come and go as they like. The largest city in Johto and a major economic center.",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_35",
+      "offset": 5,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_34",
+      "offset": 5,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 24, "y": 7,
+      "target_area_id": "goldenrod_gym",
+      "target_warp_id": 1,
+      "label": "Goldenrod Gym entrance"
+    },
+    {
+      "warp_id": 2,
+      "x": 29, "y": 29,
+      "target_area_id": "goldenrod_bike_shop",
+      "target_warp_id": 1,
+      "label": "Bike Shop entrance"
+    },
+    {
+      "warp_id": 3,
+      "x": 31, "y": 21,
+      "target_area_id": "goldenrod_happiness_rater",
+      "target_warp_id": 1,
+      "label": "Happiness Rater entrance"
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 25,
+      "target_area_id": "bills_familys_house",
+      "target_warp_id": 1,
+      "label": "Bill's Family House entrance"
+    },
+    {
+      "warp_id": 5,
+      "x": 9, "y": 13,
+      "target_area_id": "goldenrod_magnet_train_station",
+      "target_warp_id": 2,
+      "label": "Magnet Train Station entrance"
+    },
+    {
+      "warp_id": 6,
+      "x": 29, "y": 5,
+      "target_area_id": "goldenrod_flower_shop",
+      "target_warp_id": 1,
+      "label": "Flower Shop entrance"
+    },
+    {
+      "warp_id": 7,
+      "x": 33, "y": 9,
+      "target_area_id": "goldenrod_pp_speech_house",
+      "target_warp_id": 1,
+      "label": "PP Speech House entrance"
+    },
+    {
+      "warp_id": 8,
+      "x": 15, "y": 7,
+      "target_area_id": "goldenrod_name_rater",
+      "target_warp_id": 1,
+      "label": "Name Rater House entrance"
+    },
+    {
+      "warp_id": 9,
+      "x": 24, "y": 27,
+      "target_area_id": "goldenrod_dept_store",
+      "target_warp_id": 1,
+      "label": "Dept Store 1F entrance"
+    },
+    {
+      "warp_id": 10,
+      "x": 14, "y": 21,
+      "target_area_id": "goldenrod_game_corner",
+      "target_warp_id": 1,
+      "label": "Game Corner entrance"
+    },
+    {
+      "warp_id": 11,
+      "x": 5, "y": 15,
+      "target_area_id": "radio_tower_1f",
+      "target_warp_id": 1,
+      "label": "Radio Tower entrance"
+    },
+    {
+      "warp_id": 12,
+      "x": 19, "y": 1,
+      "target_area_id": "route_35_goldenrod_gate",
+      "target_warp_id": 3,
+      "label": "North gate to Route 35"
+    },
+    {
+      "warp_id": 13,
+      "x": 9, "y": 5,
+      "target_area_id": "goldenrod_underground",
+      "target_warp_id": 8,
+      "label": "Underground north entrance"
+    },
+    {
+      "warp_id": 14,
+      "x": 11, "y": 29,
+      "target_area_id": "goldenrod_underground",
+      "target_warp_id": 5,
+      "label": "Underground south entrance"
+    },
+    {
+      "warp_id": 15,
+      "x": 15, "y": 27,
+      "target_area_id": "goldenrod_pokecenter_1f",
+      "target_warp_id": 1,
+      "label": "Pokemon Center entrance"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "P": "path",
+      "H": "house_footprint",
+      "D": "door",
+      "S": "sign",
+      "N": "npc_position",
+      "T": "tree",
+      "F": "fence",
+      "^": "stairs_up",
+      "E": "exit_mat",
+      "K": "pokecenter",
+      "M": "mart",
+      "G": "gym_footprint",
+      "R": "radio_tower",
+      "U": "underground_entrance",
+      "X": "blocked"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "##UUPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP..##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP..##",
+      "##U.PPPPPPPPPP..HHHHPP..HH.PPPPPPPP.H##",
+      "##..PPPPPPPPPP..HHHHPP..HHDPPPPPPPP.H##",
+      "##..PPPPGGGG..PPPPPPPPPPPP.PPPPPPPP.P##",
+      "##..PPPPGGGG..PPPPPPPPPPPP.PPPPPPPP.P##",
+      "##..PPPPGGGGGGPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPGGGGGGPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPP..HHPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPP..HHPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPRRRRPP..PPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPRRRRPP..PPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPRRRRPPD.PPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPRRRRPP..PPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP##",
+      "##D.PPPPPPPPPPPPKKPPPPPPHHHHHHPPPPPPPP##",
+      "##..PPPPPPPPPPPPKKPPPPPPHHHHHHPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPHHHHHHPPPPPPPP##",
+      "##..PPPPPPPPPPPPPPPPPPPPHHHHHHPPPPPPPP##",
+      "##U.PPPPPPPUPPPPPPPPPPPPPPPPPPPPPPPPP.##",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Simplified layout. G=Gym (NW of center), R=Radio Tower (W side), K=Pokemon Center, H=Dept Store and other buildings. Actual block layout from GoldenrodCity.blk."
+  },
+  "npcs": [
+    {
+      "id": "pokefan_m1",
+      "name": "PokeFan M",
+      "x": 7, "y": 18,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Comments that the new Radio Tower was built to replace the old creaky one."
+    },
+    {
+      "id": "youngster1",
+      "name": "Youngster",
+      "x": 30, "y": 17,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Says they can't find the new Bike Shop anywhere."
+    },
+    {
+      "id": "cooltrainer_f1",
+      "name": "Cool Trainer F",
+      "x": 12, "y": 16,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Wonders if the man in black is dressed as Team Rocket. After Radio Tower cleared, is shocked it was real."
+    },
+    {
+      "id": "cooltrainer_f2",
+      "name": "Cool Trainer F",
+      "x": 20, "y": 26,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains the Radio Tower promotion to upgrade the Pokegear with Radio Card. After getting card, acknowledges it."
+    },
+    {
+      "id": "youngster2",
+      "name": "Youngster",
+      "x": 19, "y": 17,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Got in trouble for playing in the basement of the Dept Store."
+    },
+    {
+      "id": "lass",
+      "name": "Lass",
+      "x": 17, "y": 10,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains the Name Rater can rate and rename your Pokemon."
+    },
+    {
+      "id": "gramps",
+      "name": "Gramps",
+      "x": 11, "y": 27,
+      "facing": "down",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "dialogue_summary": "Overwhelmed by the size of Goldenrod, doesn't know where anything is."
+    },
+    {
+      "id": "rocket_scout",
+      "name": "Rocket Scout",
+      "x": 4, "y": 16,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOLDENROD_CITY_ROCKET_SCOUT",
+      "dialogue_summary": "Scopes out the Radio Tower, tells the player to scram when confronted."
+    },
+    {
+      "id": "move_tutor",
+      "name": "Move Tutor",
+      "x": 12, "y": 22,
+      "facing": "down",
+      "movement": "spin_random_slow",
+      "script_type": "move_tutor",
+      "event_flag": "EVENT_GOLDENROD_CITY_MOVE_TUTOR",
+      "dialogue_summary": "Post-game (after Elite 4). Teaches Flamethrower, Thunderbolt, or Ice Beam for 4000 coins. Appears Wednesday and Saturday if player has Coin Case.",
+      "service": {
+        "type": "move_tutor",
+        "cost_coins": 4000,
+        "moves": ["Flamethrower", "Thunderbolt", "Ice Beam"],
+        "requires": ["beat_elite_four", "coin_case"],
+        "schedule": ["Wednesday", "Saturday"]
+      }
+    },
+    {
+      "id": "rocket1",
+      "name": "Team Rocket Grunt",
+      "x": 28, "y": 20,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER",
+      "dialogue_summary": "Tells the player to stay out of the way during Radio Tower takeover."
+    },
+    {
+      "id": "rocket2",
+      "name": "Team Rocket Grunt",
+      "x": 8, "y": 15,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOLDENROD_CITY_ROCKET_TAKEOVER",
+      "dialogue_summary": "Antagonistic grunt guarding the Radio Tower area."
+    },
+    {
+      "id": "rocket3",
+      "name": "Team Rocket Grunt",
+      "x": 16, "y": 23,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "dialogue_summary": "Says Pokemon are just tools for making money."
+    },
+    {
+      "id": "rocket4",
+      "name": "Team Rocket Grunt",
+      "x": 29, "y": 20,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "dialogue_summary": "Says their dream will soon come true."
+    },
+    {
+      "id": "rocket5",
+      "name": "Team Rocket Grunt",
+      "x": 29, "y": 7,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "dialogue_summary": "Tells the player they don't belong here."
+    },
+    {
+      "id": "rocket6",
+      "name": "Team Rocket Grunt",
+      "x": 31, "y": 10,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "dialogue_summary": "Challenges the player to taste Team Rocket's true terror."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null,
+    "gift": [
+      {
+        "species": "Eevee",
+        "level": 20,
+        "source": "Bill's Family House",
+        "requires": "met_bill_in_ecruteak"
+      }
+    ],
+    "in_game_trade": [
+      {
+        "give": "Drowzee",
+        "receive": "Machop",
+        "held_item": "Gold Berry",
+        "npc": "Mike",
+        "location": "Goldenrod Dept Store 5F"
+      }
+    ],
+    "game_corner": [
+      {
+        "species": "Abra",
+        "level": 5,
+        "cost_coins": 100
+      },
+      {
+        "species": "Cubone",
+        "level": 15,
+        "cost_coins": 800,
+        "note": "Crystal version. Gold/Silver had Ekans (Gold) or Sandshrew (Silver)"
+      },
+      {
+        "species": "Wobbuffet",
+        "level": 15,
+        "cost_coins": 1500,
+        "note": "Crystal version"
+      }
+    ]
+  },
+  "signs": [
+    {
+      "x": 10, "y": 14,
+      "text": "GOLDENROD CITY STATION"
+    },
+    {
+      "x": 4, "y": 17,
+      "text": "GOLDENROD CITY RADIO TOWER"
+    },
+    {
+      "x": 26, "y": 27,
+      "text": "Full Selection of Pokemon Goods! GOLDENROD CITY DEPT.STORE"
+    },
+    {
+      "x": 26, "y": 9,
+      "text": "GOLDENROD CITY POKEMON GYM / LEADER: WHITNEY / The Incredibly Pretty Girl!"
+    },
+    {
+      "x": 22, "y": 18,
+      "text": "GOLDENROD CITY / The Festive City of Opulent Charm"
+    },
+    {
+      "x": 28, "y": 30,
+      "text": "The World is a Cycle Path! BIKE SHOP"
+    },
+    {
+      "x": 16, "y": 22,
+      "text": "Your Playground! GOLDENROD CITY GAME CORNER"
+    },
+    {
+      "x": 12, "y": 7,
+      "text": "NAME RATER / Get Your Pokemon Nicknames Rated"
+    },
+    {
+      "x": 8, "y": 6,
+      "text": "UNDERGROUND ENTRANCE (north)"
+    },
+    {
+      "x": 12, "y": 30,
+      "text": "UNDERGROUND ENTRANCE (south)"
+    },
+    {
+      "x": 30, "y": 6,
+      "text": "Blooming Beautiful FLOWER SHOP"
+    }
+  ],
+  "events": [
+    {
+      "trigger": "first_visit",
+      "script": "GoldenrodCityFlypointAndFloriaCallback",
+      "description": "Sets flypoint flag and ENGINE_REACHED_GOLDENROD. Checks if Floria has been met for SquirtBottle chain."
+    },
+    {
+      "trigger": "story_event",
+      "id": "radio_tower_takeover",
+      "prerequisite": "mahogany_gym_badge",
+      "description": "Team Rocket seizes the Radio Tower. Rockets appear on the city streets (NPCs rocket1-6). Player must clear all 5 floors and rescue the Director from the Underground Warehouse to receive Rainbow Wing (Gold) or Silver Wing (Silver)."
+    },
+    {
+      "trigger": "post_game",
+      "id": "move_tutor",
+      "description": "After Elite 4, Move Tutor appears on Wednesday and Saturday outside the Game Corner (if player has Coin Case). Teaches Flamethrower, Thunderbolt, or Ice Beam for 4000 coins each."
+    }
+  ],
+  "buildings": [
+    {
+      "id": "goldenrod_gym",
+      "name": "Goldenrod City Pokemon Gym",
+      "warp_x": 24, "warp_y": 7,
+      "area_file": "goldenrod_gym.json"
+    },
+    {
+      "id": "goldenrod_dept_store",
+      "name": "Goldenrod Department Store (1F–Roof + B1F)",
+      "warp_x": 24, "warp_y": 27,
+      "area_file": "goldenrod_dept_store.json"
+    },
+    {
+      "id": "goldenrod_game_corner",
+      "name": "Goldenrod Game Corner",
+      "warp_x": 14, "warp_y": 21,
+      "area_file": "goldenrod_game_corner.json"
+    },
+    {
+      "id": "goldenrod_magnet_train_station",
+      "name": "Goldenrod Magnet Train Station",
+      "warp_x": 9, "warp_y": 13,
+      "area_file": "goldenrod_magnet_train_station.json"
+    },
+    {
+      "id": "goldenrod_underground",
+      "name": "Goldenrod Underground Tunnel",
+      "warp_x_north": 9, "warp_y_north": 5,
+      "warp_x_south": 11, "warp_y_south": 29,
+      "area_file": "goldenrod_underground.json"
+    },
+    {
+      "id": "goldenrod_flower_shop",
+      "name": "Goldenrod Flower Shop",
+      "warp_x": 29, "warp_y": 5,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "key_npc": "Flower Shop Teacher",
+      "key_item": "SquirtBottle (requires Plain Badge + Plain Badge obtained + talked to Floria)"
+    },
+    {
+      "id": "goldenrod_bike_shop",
+      "name": "Miracle Cycle (Bike Shop)",
+      "warp_x": 29, "warp_y": 29,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "key_npc": "Bike Shop Clerk",
+      "key_item": "Bicycle (free loan, becomes permanent)"
+    },
+    {
+      "id": "radio_tower",
+      "name": "Goldenrod Radio Tower",
+      "warp_x": 5, "warp_y": 15,
+      "note": "5-floor tower. 1F: Radio Card quiz (answers: Yes, Yes, No, Yes, No). 2F-5F locked until Radio Tower Takeover event."
+    },
+    {
+      "id": "goldenrod_name_rater",
+      "name": "Name Rater House",
+      "warp_x": 15, "warp_y": 7,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "service": "Rename player-caught Pokemon only"
+    },
+    {
+      "id": "goldenrod_happiness_rater",
+      "name": "Happiness Rater House",
+      "warp_x": 31, "warp_y": 21,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "service": "Evaluates lead Pokemon friendship level"
+    },
+    {
+      "id": "goldenrod_pokecenter",
+      "name": "Pokemon Center",
+      "warp_x": 15, "warp_y": 27,
+      "service": "Healing + Communication Center 2F"
+    },
+    {
+      "id": "bills_familys_house",
+      "name": "Bill's Family House",
+      "warp_x": 5, "warp_y": 25,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "key_npc": "Bill",
+      "key_item": "Eevee Lv.20 (after meeting Bill in Ecruteak City)"
+    },
+    {
+      "id": "goldenrod_pp_speech_house",
+      "name": "PP Speech House",
+      "warp_x": 33, "warp_y": 9,
+      "dimensions": "4x4 blocks (8x8 tiles)",
+      "note": "NPC explains PP mechanics"
+    }
+  ],
+  "notes": "Goldenrod City is the largest city in Johto. Warps to Underground use GOLDENROD_UNDERGROUND_SWITCH_ROOM_ENTRANCES as an intermediate map. The Radio Tower Takeover is a major late-game story event (after Mahogany Gym). The Move Tutor is a post-Elite-4 event. Map dimensions per pokecrystal: 20x18 blocks (40x36 tiles). Object positions in tile coordinates (1 block = 2 tiles)."
+}

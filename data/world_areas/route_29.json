@@ -1,0 +1,296 @@
+{
+  "area_id": "route_29",
+  "area_name": "Route 29",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_29",
+  "width_blocks": 30,
+  "height_blocks": 9,
+  "width_tiles": 60,
+  "height_tiles": 18,
+  "tileset": "johto",
+  "music": "MUSIC_ROUTE_29",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_46",
+      "offset": 10,
+      "requires": null,
+      "note": "Access via Route29Route46Gate building warp at tile (27,1)"
+    },
+    {
+      "direction": "west",
+      "target_area_id": "cherrygrove_city",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "new_bark_town",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 27,
+      "y": 1,
+      "target_area_id": "route_29_route_46_gate",
+      "target_warp_id": 3,
+      "note": "North gate building entrance"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": [
+      "60 tiles wide x 18 tiles tall (30 blocks x 9 blocks)",
+      "West edge connects to Cherrygrove City, east edge to New Bark Town",
+      "Gate building at tile (27,1) leads north to Route 46",
+      "Ledges along central strip allow one-way shortcuts east toward New Bark Town",
+      "Two grass patches: one on western half, one flanking the ledge zone",
+      "Two signs: Route29Sign1 at tile (51,7), Route29Sign2 at tile (3,5)",
+      "Fruit tree (berry): tile (12,2). Item ball (Potion): tile (48,2)",
+      "NPC positions from pokecrystal object_event data (tile coordinates)",
+      "Tuscany appears only on Tuesday after player has Zephyr Badge"
+    ],
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "..........T.T.TTTTTTTTTTTTTT.HHDGGG..TT!TTTTTTTTT.GGG.TTTTT",
+      "..........T.T.TTTTTTTTTTTTTT.HHE.....TTT.TTTTTTTTTSGGGG.TTTTT",
+      "..........SGGG.TTTTTTTTTTTTT.NGGGG..TTT..TTTTTTTTTTGGGG.TTTTTT",
+      "SGGGGGG...GGGG..TTTTTTTTTTTLLLLLLL..TTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "GGGGGGGG..GGG...TTTTTTTTTTLLLLLLLLL..TTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "..........TTTTTTTTTTTTTTLLLLLLLLLL....NTTTTTTTTTTTTTTTTTTTTTTTT",
+      "..........TTTTTTTTTTTTTLLLLLLLLLL.N....TTTTTTTTTTTTTTTTTTTTTTT"
+    ],
+    "npc_tile_positions": {
+      "ROUTE29_COOLTRAINER_M1_DUDE": {"x": 50, "y": 12, "note": "Catching Tutorial NPC (CooltrainerM), tile coords from asm"},
+      "ROUTE29_YOUNGSTER": {"x": 27, "y": 16},
+      "ROUTE29_TEACHER1": {"x": 15, "y": 11},
+      "ROUTE29_FRUIT_TREE": {"x": 12, "y": 2},
+      "ROUTE29_FISHER": {"x": 25, "y": 3},
+      "ROUTE29_COOLTRAINER_M2": {"x": 13, "y": 4},
+      "ROUTE29_TUSCANY": {"x": 29, "y": 12},
+      "ROUTE29_POKE_BALL": {"x": 48, "y": 2}
+    }
+  },
+  "npcs": [
+    {
+      "id": "catching_tutorial_dude",
+      "name": "Catching Tutorial Dude",
+      "sprite": "SPRITE_COOLTRAINER_M",
+      "x": 50,
+      "y": 12,
+      "facing": "random",
+      "movement": "walk_around",
+      "palette": "PAL_NPC_RED",
+      "script_type": "tutorial",
+      "dialogue_summary": "Offers to demonstrate how to catch Pokemon. Initiates tutorial battle with Lv5 Rattata. Repeatable if player has not yet delivered Mystery Egg to Elm.",
+      "trigger": "SCENE_ROUTE29_CATCH_TUTORIAL via coord_events at tiles (53,8) and (53,9)"
+    },
+    {
+      "id": "youngster_npc",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 27,
+      "y": 16,
+      "facing": "up",
+      "movement": "walk_up_down",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Warns player to keep weak Pokemon out of the tall grass."
+    },
+    {
+      "id": "teacher",
+      "name": "Teacher",
+      "sprite": "SPRITE_TEACHER",
+      "x": 15,
+      "y": 11,
+      "facing": "left",
+      "movement": "walk_left_right",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains that ledges are one-way shortcuts — jump south off ledges to reach New Bark Town without walking through the grass."
+    },
+    {
+      "id": "fisher",
+      "name": "Fisher",
+      "sprite": "SPRITE_FISHER",
+      "x": 25,
+      "y": 3,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "dialogue_summary": "Took a break and saved to record progress."
+    },
+    {
+      "id": "cooltrainer_m_night",
+      "name": "CooltrainerM",
+      "sprite": "SPRITE_COOLTRAINER_M",
+      "x": 13,
+      "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Waiting for Pokemon that appear only at night (says he's waiting for night during day, and for morning during night). Hints at time-based encounters."
+    },
+    {
+      "id": "tuscany",
+      "name": "Tuscany",
+      "sprite": "SPRITE_TEACHER",
+      "x": 29,
+      "y": 12,
+      "facing": "random",
+      "movement": "walk_around",
+      "palette": "default",
+      "script_type": "item_giver",
+      "event_flag": "EVENT_ROUTE_29_TUSCANY_OF_TUESDAY",
+      "dialogue_summary": "Appears only on Tuesdays after player has the Zephyr Badge. Gives the player a Pink Bow (boosts Normal-type moves) as a gift on first Tuesday meeting. Subsequent Tuesdays she talks about her siblings (seven siblings of the week).",
+      "gives_item": "PINK_BOW",
+      "condition": "TUESDAY only, after ENGINE_ZEPHYRBADGE flag is set"
+    }
+  ],
+  "trainers": [],
+  "items": [
+    {
+      "name": "Potion",
+      "x": 48,
+      "y": 2,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_29_POTION",
+      "note": "Item ball on north ledge area, eastern portion of route"
+    }
+  ],
+  "signs": [
+    {
+      "x": 51,
+      "y": 7,
+      "text": "ROUTE 29 / CHERRYGROVE CITY - NEW BARK TOWN"
+    },
+    {
+      "x": 3,
+      "y": 5,
+      "text": "ROUTE 29 / CHERRYGROVE CITY - NEW BARK TOWN"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 53,
+      "y": 8,
+      "scene": "SCENE_ROUTE29_CATCH_TUTORIAL",
+      "script": "Route29Tutorial1",
+      "note": "Triggers catching tutorial scene (position 1)"
+    },
+    {
+      "x": 53,
+      "y": 9,
+      "scene": "SCENE_ROUTE29_CATCH_TUTORIAL",
+      "script": "Route29Tutorial2",
+      "note": "Triggers catching tutorial scene (position 2)"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "note": "10% encounter rate each time period, from johto_grass.asm def_grass_wildmons ROUTE_29",
+      "morning": [
+        {"species": "Pidgey",  "level": 2, "slot": 1},
+        {"species": "Sentret", "level": 2, "slot": 2},
+        {"species": "Pidgey",  "level": 3, "slot": 3},
+        {"species": "Sentret", "level": 3, "slot": 4},
+        {"species": "Rattata", "level": 2, "slot": 5},
+        {"species": "Hoppip",  "level": 3, "slot": 6},
+        {"species": "Hoppip",  "level": 3, "slot": 7}
+      ],
+      "day": [
+        {"species": "Pidgey",  "level": 2, "slot": 1},
+        {"species": "Sentret", "level": 2, "slot": 2},
+        {"species": "Pidgey",  "level": 3, "slot": 3},
+        {"species": "Sentret", "level": 3, "slot": 4},
+        {"species": "Rattata", "level": 2, "slot": 5},
+        {"species": "Hoppip",  "level": 3, "slot": 6},
+        {"species": "Hoppip",  "level": 3, "slot": 7}
+      ],
+      "night": [
+        {"species": "Hoothoot", "level": 2, "slot": 1},
+        {"species": "Rattata",  "level": 2, "slot": 2},
+        {"species": "Hoothoot", "level": 3, "slot": 3},
+        {"species": "Rattata",  "level": 3, "slot": 4},
+        {"species": "Rattata",  "level": 2, "slot": 5},
+        {"species": "Hoothoot", "level": 3, "slot": 6},
+        {"species": "Hoothoot", "level": 3, "slot": 7}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "note": "No surfable water on Route 29. No entry in johto_water.asm."
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": [],
+      "note": "No fishing on Route 29. No bodies of water present."
+    },
+    "headbutt_trees": {
+      "treemon_set": "TREEMON_SET_ROUTE",
+      "note": "Route 29 uses TREEMON_SET_ROUTE per treemon_maps.asm",
+      "common": [
+        {"species": "Hoothoot",  "level": 10, "rate": 50},
+        {"species": "Spinarak",  "level": 10, "rate": 15},
+        {"species": "Ledyba",    "level": 10, "rate": 15},
+        {"species": "Exeggcute", "level": 10, "rate": 10},
+        {"species": "Exeggcute", "level": 10, "rate": 5},
+        {"species": "Exeggcute", "level": 10, "rate": 5}
+      ],
+      "rare": [
+        {"species": "Hoothoot",  "level": 10, "rate": 50},
+        {"species": "Pineco",    "level": 10, "rate": 15},
+        {"species": "Pineco",    "level": 10, "rate": 15},
+        {"species": "Exeggcute", "level": 10, "rate": 10},
+        {"species": "Exeggcute", "level": 10, "rate": 5},
+        {"species": "Exeggcute", "level": 10, "rate": 5}
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "scene_SCENE_ROUTE29_CATCH_TUTORIAL",
+      "description": "Catching Tutorial Dude initiates tutorial when player walks onto coord_event tiles near east end of route. Teaches catching mechanics with a Lv5 Rattata. Scene is set to NOOP once completed or declined."
+    },
+    {
+      "trigger": "tuesday_after_zephyr_badge",
+      "description": "Tuscany of Tuesday appears on the route (west-central section). Gives Pink Bow on first Tuesday encounter after player has obtained the Zephyr Badge from Violet City."
+    }
+  ],
+  "fruit_trees": [
+    {
+      "id": "FRUITTREE_ROUTE_29",
+      "x": 12,
+      "y": 2,
+      "note": "Berry fruit tree — gives one berry per day. Represented by SPRITE_FRUIT_TREE object."
+    }
+  ],
+  "notes": "Route 29 is the first route in the game. It runs east-west connecting New Bark Town to Cherrygrove City. The route features ledges along its central strip that can only be jumped southward, allowing players heading west (to Cherrygrove) to take a shortcut by jumping the ledges. Heading east (to New Bark) requires walking through the tall grass. There are no trainers — this is intentional as it is the first area the player explores before receiving their starter Pokemon. The catching tutorial DudeNPC demonstrates Pokemon catching using a Lv5 Rattata loaded via loadwildmon, not a trainer battle. Route 29 uses TREEMON_SET_ROUTE for Headbutt encounters."
+}

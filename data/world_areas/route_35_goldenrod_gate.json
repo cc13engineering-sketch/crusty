@@ -1,0 +1,202 @@
+{
+  "area_id": "route_35_goldenrod_gate",
+  "area_name": "Route 35 / Goldenrod City Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_35_GOLDENROD_GATE",
+  "width_blocks": 10,
+  "height_blocks": 4,
+  "width_tiles": 20,
+  "height_tiles": 8,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ROUTE_35",
+  "palette": "PALETTE_AUTO",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 4,
+      "y": 0,
+      "target_area_id": "route_35",
+      "pokecrystal_target": "ROUTE_35",
+      "target_warp_id": 1,
+      "notes": "Left door tile on north side — exits to Route 35 warp 1 (x=9,y=33)"
+    },
+    {
+      "warp_id": 1,
+      "x": 5,
+      "y": 0,
+      "target_area_id": "route_35",
+      "pokecrystal_target": "ROUTE_35",
+      "target_warp_id": 2,
+      "notes": "Right door tile on north side — exits to Route 35 warp 2 (x=10,y=33)"
+    },
+    {
+      "warp_id": 2,
+      "x": 4,
+      "y": 7,
+      "target_area_id": "goldenrod_city",
+      "pokecrystal_target": "GOLDENROD_CITY",
+      "target_warp_id": 12,
+      "notes": "Left door tile on south side — exits to Goldenrod City warp 12"
+    },
+    {
+      "warp_id": 3,
+      "x": 5,
+      "y": 7,
+      "target_area_id": "goldenrod_city",
+      "pokecrystal_target": "GOLDENROD_CITY",
+      "target_warp_id": 12,
+      "notes": "Right door tile on south side — also exits to Goldenrod City warp 12"
+    }
+  ],
+
+  "signs": [],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 8 rows. Gate building connecting Route 35 (north exits x=4-5,y=0) to Goldenrod City (south exits x=4-5,y=7). Randy (Officer sprite) at x=0,y=4 on west side initiates the Kenya Spearow delivery quest. Pokefan F at x=6,y=4 walks up/down and mentions Sudowoodo. Fisher at x=3,y=2 spins slowly and muses about how many kinds of Pokemon exist.",
+    "rows": [
+      "EEEEEDDEEEEEEEEEEEEEE",
+      "#####################",
+      "###.N...#############",
+      "#..................##",
+      "N....N.N...........##",
+      "#..................##",
+      "#..................##",
+      "EEEEEDDEEEEEEEEEEEEE"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_randy",
+      "object_const": "ROUTE35GOLDENRODGATE_RANDY",
+      "name": "Randy",
+      "sprite": "SPRITE_OFFICER",
+      "x": 0,
+      "y": 4,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "dialogue_summary": "Asks the player to deliver Kenya (a Spearow with Flower Mail) to his friend on Route 31. If accepted, gives Kenya (Lv.10 Spearow named KENYA, OT RANDY, holding Flower Mail). If player already has Kenya, reminds them to go to Route 31. After delivery (EVENT_GAVE_KENYA), gives HP Up as thanks. After EVENT_GOT_HP_UP_FROM_RANDY, gives idle dialogue.",
+      "quest": {
+        "name": "Kenya Delivery",
+        "receive_flag": "EVENT_GOT_KENYA",
+        "deliver_flag": "EVENT_GAVE_KENYA",
+        "reward_flag": "EVENT_GOT_HP_UP_FROM_RANDY",
+        "reward_item": "HP Up",
+        "delivery_destination": "Route 31 (sleepy man)",
+        "mail_text": "DARK CAVE leads to another road"
+      }
+    },
+    {
+      "id": "npc_pokefan_f",
+      "object_const": "ROUTE35GOLDENRODGATE_POKEFAN_F",
+      "name": "Pokefan F",
+      "sprite": "SPRITE_POKEFAN_F",
+      "x": 6,
+      "y": 4,
+      "facing": "walk_up_down",
+      "movement": "SPRITEMOVEDATA_WALK_UP_DOWN",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "dialogue_summary": "Before Sudowoodo defeated: 'A strange tree is blocking the road. It wriggles around if you talk to it. I heard it became wild when someone watered it with a SQUIRTBOTTLE.' After (EVENT_FOUGHT_SUDOWOODO): 'I like the Pokemon Lullaby they play on the radio.'"
+    },
+    {
+      "id": "npc_fisher",
+      "object_const": "ROUTE35GOLDENRODGATE_FISHER",
+      "name": "Fisher",
+      "sprite": "SPRITE_FISHER",
+      "x": 3,
+      "y": 2,
+      "facing": "spin_random_slow",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Muses about how many kinds of Pokemon exist in the world. 'Three years ago, PROF.OAK said that there were 150 different kinds.' (Nostalgic reference to Gen 1 Pokedex completion goal.)"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [
+    {
+      "name": "Kenya (Spearow Lv.10 with Flower Mail)",
+      "source": "npc_gift",
+      "giver": "Randy",
+      "hidden": false,
+      "requires": "accept Randy's delivery quest",
+      "event_flag": "EVENT_GOT_KENYA",
+      "notes": "Named KENYA, OT RANDY. Holds Flower Mail reading 'DARK CAVE leads to another road'. Must be delivered to Randy's friend on Route 31 to receive HP Up."
+    },
+    {
+      "name": "HP Up",
+      "source": "npc_gift",
+      "giver": "Randy",
+      "hidden": false,
+      "requires": "EVENT_GAVE_KENYA",
+      "event_flag": "EVENT_GOT_HP_UP_FROM_RANDY",
+      "notes": "Reward from Randy after delivering Kenya to his friend on Route 31."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "map_callbacks": [],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_northward_entry",
+      "description": "Player travels north from Goldenrod into Route 35 and passes through this gate. Randy intercepts and asks them to deliver Kenya the Spearow with mail to a friend on Route 31.",
+      "flags_set": ["EVENT_GOT_KENYA (if accepted)"],
+      "items_given": ["Kenya (Spearow Lv.10 with Flower Mail, named KENYA)"]
+    },
+    {
+      "order": 2,
+      "trigger": "return_after_delivery",
+      "description": "After delivering Kenya to the Route 31 receiver (EVENT_GAVE_KENYA), return to Randy for an HP Up.",
+      "flags_set": ["EVENT_GOT_HP_UP_FROM_RANDY"],
+      "items_given": ["HP Up"]
+    }
+  ],
+
+  "notes": "The Route 35 / Goldenrod Gate is a 10x4 block (20x8 tile) gate building connecting Route 35 (north) to Goldenrod City (south). It connects ROUTE_35 warps 1-2 (x=9-10,y=33) to GOLDENROD_CITY warp 12. Randy (using SPRITE_OFFICER) stands on the west side and initiates the Kenya delivery side-quest: he gives the player a Spearow named KENYA holding Flower Mail to deliver to his friend on Route 31. The Pokefan F NPC gives context about the Sudowoodo tree blocking the northern road. The Fisher provides flavor dialogue about the size of the world's Pokemon population. No contest mechanics here (those are handled by Route35NationalParkGate)."
+}

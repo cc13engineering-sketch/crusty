@@ -1,0 +1,151 @@
+{
+  "area_id": "ruins_of_alph_kabuto_chamber",
+  "area_name": "Ruins of Alph — Kabuto Chamber",
+  "area_type": "special",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_KABUTO_CHAMBER",
+  "width_blocks": 4,
+  "height_blocks": 5,
+  "width_tiles": 8,
+  "height_tiles": 10,
+  "tileset": "ruins",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 2,
+      "note": "South exit left tile — back to Outside"
+    },
+    {
+      "x": 4, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 2,
+      "note": "South exit right tile — back to Outside"
+    },
+    {
+      "x": 3, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 4,
+      "note": "Floor hole left — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 5,
+      "note": "Floor hole right — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 0,
+      "target_area_id": "ruins_of_alph_kabuto_item_room",
+      "target_warp_id": 1,
+      "note": "North wall passage — opens after ESCAPE word puzzle solved on north wall"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "R": "ruins_wall_with_unown_pattern",
+      "P": "sliding_puzzle_panel",
+      "H": "floor_hole_to_inner_chamber",
+      "D": "door_north_hidden",
+      "N": "npc_position",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "####DDDD####",
+      "##RRRRRR##",
+      "##..PP..##",
+      "##HHHH..##",
+      "##......##",
+      "##..NN..##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##EEEEEE##"
+    ],
+    "notes": "5x5 block chamber (10x10 tiles). Puzzle panel area is at tiles (3,2)-(4,2). Floor holes appear at (3,3)-(4,3) after completing the Kabuto sliding tile puzzle. North wall at y=0 starts closed; tile block $2e replaces $30 until ESCAPE word is spelled on wall, opening the passage to the Item Room."
+  },
+  "npcs": [
+    {
+      "id": "npc_receptionist",
+      "name": "Receptionist",
+      "x": 5, "y": 5,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Explains the sliding panel puzzle: 'Slide the panels around to form the picture.' Disappears after puzzle is completed (EVENT_RUINS_OF_ALPH_KABUTO_CHAMBER_RECEPTIONIST set).",
+      "event_flag": "EVENT_RUINS_OF_ALPH_KABUTO_CHAMBER_RECEPTIONIST"
+    },
+    {
+      "id": "npc_scientist",
+      "name": "Scientist",
+      "x": 3, "y": 1,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Pre-puzzle: 'Recently, strange, cryptic patterns have appeared… You should take a look at the walls.' Post-puzzle: 'That tremor was pretty scary! But I'm more concerned about this wall here…' After wall opens: 'Ah! Here's another huge hole! It's big enough to go through!'"
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "signs": [
+    {
+      "x": 2, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 5, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 4, "y": 2,
+      "type": "description_sign",
+      "text": "A POKEMON that hid on the sea floor. Eyes on its back scanned the area."
+    },
+    {
+      "x": 3, "y": 0,
+      "type": "unown_wall_pattern_left",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_ESCAPE — spells ESCAPE in Unown script]"
+    },
+    {
+      "x": 4, "y": 0,
+      "type": "unown_wall_pattern_right",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_ESCAPE — spells ESCAPE in Unown script]. After wall opens: 'There's a big hole in the wall!'"
+    }
+  ],
+  "puzzle": {
+    "type": "sliding_tile",
+    "puzzle_id": "UNOWNPUZZLE_KABUTO",
+    "target_pokemon": "Kabuto",
+    "panel_location": {"x": 3, "y": 2},
+    "completion_effects": [
+      "Sets EVENT_SOLVED_KABUTO_PUZZLE",
+      "Sets ENGINE_UNLOCKED_UNOWNS_A_TO_K (unlocks Unown forms A through K)",
+      "Sets EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS",
+      "Sets SCENE_RUINSOFALPHINNERCHAMBER_STRANGE_PRESENCE on Inner Chamber",
+      "Triggers earthquake and skyfall — player drops through floor to Inner Chamber",
+      "Floor blocks at (3,3) and (4,3) change to hole tiles ($18/$19)"
+    ],
+    "wall_word": "ESCAPE",
+    "wall_word_effect": "Opens north wall passage to Kabuto Item Room (block $2e becomes $30)"
+  },
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "on_enter_check_wall_scene",
+      "description": "SCENE_RUINSOFALPHKABUTOCHAMBER_CHECK_WALL: if EVENT_WALL_OPENED_IN_KABUTO_CHAMBER is set, runs the wall-open script (earthquake + open block). MAPCALLBACK_TILES restores closed floor (blocks at 2,2 and 4,2) unless puzzle is solved."
+    },
+    {
+      "trigger": "puzzle_complete_skyfall",
+      "description": "Completing the Kabuto puzzle triggers an earthquake, shows shock emote, converts floor tiles to holes, then applies skyfall movement — player falls into Inner Chamber (warps to RUINS_OF_ALPH_INNER_CHAMBER warps 4 and 5)."
+    }
+  ],
+  "notes": "The Kabuto Chamber is the north-east puzzle chamber, entered from RuinsOfAlphOutside warp at (14,7). Completing the Kabuto sliding tile puzzle unlocks Unown A through K. The north wall displays the word ESCAPE in Unown script. Solving the word puzzle opens the hidden passage to the Kabuto Item Room, and from there to the Kabuto Word Room. The chamber has no wild encounters — all action is event-driven."
+}

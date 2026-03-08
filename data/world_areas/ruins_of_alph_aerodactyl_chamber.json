@@ -1,0 +1,130 @@
+{
+  "area_id": "ruins_of_alph_aerodactyl_chamber",
+  "area_name": "Ruins of Alph — Aerodactyl Chamber",
+  "area_type": "special",
+  "pokecrystal_map_id": "RUINS_OF_ALPH_AERODACTYL_CHAMBER",
+  "width_blocks": 4,
+  "height_blocks": 5,
+  "width_tiles": 8,
+  "height_tiles": 10,
+  "tileset": "ruins",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 4,
+      "note": "South exit left tile — back to Outside"
+    },
+    {
+      "x": 4, "y": 9,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 4,
+      "note": "South exit right tile — back to Outside"
+    },
+    {
+      "x": 3, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 8,
+      "note": "Floor hole left — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 3,
+      "target_area_id": "ruins_of_alph_inner_chamber",
+      "target_warp_id": 9,
+      "note": "Floor hole right — drops into Inner Chamber after puzzle solved"
+    },
+    {
+      "x": 4, "y": 0,
+      "target_area_id": "ruins_of_alph_aerodactyl_item_room",
+      "target_warp_id": 1,
+      "note": "North wall passage — opens after LIGHT word puzzle solved on north wall"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "R": "ruins_wall_with_unown_pattern",
+      "P": "sliding_puzzle_panel",
+      "H": "floor_hole_to_inner_chamber",
+      "D": "door_north_hidden",
+      "E": "exit_mat"
+    },
+    "rows": [
+      "####DDDD####",
+      "##RRRRRR##",
+      "##..PP..##",
+      "##HHHH..##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##......##",
+      "##EEEEEE##"
+    ],
+    "notes": "Identical layout to the other three puzzle chambers: 4x5 blocks (8x10 tiles). No NPCs in this chamber. Puzzle panel at tiles (3,2)-(4,2). Floor holes at (3,3)-(4,3) appear after Aerodactyl puzzle completion."
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "signs": [
+    {
+      "x": 2, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 5, "y": 3,
+      "type": "ancient_replica",
+      "text": "It's a replica of an ancient POKEMON."
+    },
+    {
+      "x": 4, "y": 2,
+      "type": "description_sign",
+      "text": "This flying POKEMON attacked its prey with saw-like fangs."
+    },
+    {
+      "x": 3, "y": 0,
+      "type": "unown_wall_pattern_left",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_LIGHT — spells LIGHT in Unown script]"
+    },
+    {
+      "x": 4, "y": 0,
+      "type": "unown_wall_pattern_right",
+      "text": "Patterns appeared on the walls… [Displays UNOWNWORDS_LIGHT]. After wall opens: 'There's a big hole in the wall!'"
+    }
+  ],
+  "puzzle": {
+    "type": "sliding_tile",
+    "puzzle_id": "UNOWNPUZZLE_AERODACTYL",
+    "target_pokemon": "Aerodactyl",
+    "panel_location": {"x": 3, "y": 2},
+    "completion_effects": [
+      "Sets EVENT_SOLVED_AERODACTYL_PUZZLE",
+      "Sets ENGINE_UNLOCKED_UNOWNS_S_TO_W (unlocks Unown forms S through W)",
+      "Sets EVENT_RUINS_OF_ALPH_INNER_CHAMBER_TOURISTS",
+      "Sets SCENE_RUINSOFALPHINNERCHAMBER_STRANGE_PRESENCE on Inner Chamber",
+      "Triggers earthquake and skyfall — player drops through floor to Inner Chamber",
+      "Floor blocks at (3,3) and (4,3) change to hole tiles ($18/$19)"
+    ],
+    "wall_word": "LIGHT",
+    "wall_word_effect": "Opens north wall passage to Aerodactyl Item Room (block $2e becomes $30)"
+  },
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "on_enter_check_wall_scene",
+      "description": "SCENE_RUINSOFALPHAERODACTYLCHAMBER_CHECK_WALL: if EVENT_WALL_OPENED_IN_AERODACTYL_CHAMBER is set, runs the wall-open script. MAPCALLBACK_TILES restores closed floor unless puzzle is already solved."
+    },
+    {
+      "trigger": "puzzle_complete_skyfall",
+      "description": "Completing the Aerodactyl puzzle triggers an earthquake, shows shock emote, converts floor tiles to holes, then applies skyfall — player falls into Inner Chamber at warps 8 and 9."
+    }
+  ],
+  "notes": "The Aerodactyl Chamber is the south-east puzzle chamber, entered from RuinsOfAlphOutside warp at (16,33). Completing the Aerodactyl sliding tile puzzle unlocks Unown S through W. The north wall displays LIGHT in Unown script. Solving the word puzzle opens the hidden passage to the Aerodactyl Item Room. No NPCs are present in this chamber. This chamber requires the most southward travel in the outside area to reach."
+}

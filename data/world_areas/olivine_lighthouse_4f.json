@@ -1,0 +1,173 @@
+{
+  "area_id": "olivine_lighthouse_4f",
+  "area_name": "Olivine Lighthouse 4F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_4F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_LIGHTHOUSE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 13, "y": 3,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 1,
+      "note": "North staircase down to 3F warp 1"
+    },
+    {
+      "x": 3, "y": 5,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 2,
+      "note": "West staircase up to 5F"
+    },
+    {
+      "x": 9, "y": 7,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 3,
+      "note": "Center staircase up to 5F"
+    },
+    {
+      "x": 9, "y": 5,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 3,
+      "note": "Center staircase down to 3F warp 3"
+    },
+    {
+      "x": 16, "y": 9,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 6,
+      "note": "East staircase down to 3F (left tile)"
+    },
+    {
+      "x": 17, "y": 9,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 7,
+      "note": "East staircase down to 3F (right tile)"
+    },
+    {
+      "x": 8, "y": 3,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 8,
+      "note": "Additional staircase down to 3F (left tile)"
+    },
+    {
+      "x": 9, "y": 3,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 9,
+      "note": "Additional staircase down to 3F (right tile)"
+    },
+    {
+      "x": 16, "y": 7,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 4,
+      "note": "East staircase up to 5F (left tile)"
+    },
+    {
+      "x": 17, "y": 7,
+      "target_area_id": "olivine_lighthouse_5f",
+      "target_warp_id": 5,
+      "note": "East staircase up to 5F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "T": "trainer_position",
+      "P": "pillar",
+      "H": "hole/gap"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "#..................#",
+      "#.......vv..v..^...#",
+      "#..................#",
+      "#.^.......v........#",
+      "#..................#",
+      "#.........^.....^^.#",
+      "#..................#",
+      "#...............vv.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#...T..............#",
+      "#..........T.......#",
+      "#..................#",
+      "####################"
+    ],
+    "notes": [
+      "Sailor Kent (trainer) at tile(7,14) facing left — line of sight 3",
+      "Lass Connie (trainer) at tile(11,2) facing down — line of sight 1",
+      "West staircase at (3,5) leads up to 5F warp 2",
+      "Center stairs at (9,5) lead down to 3F warp 3",
+      "Center stairs at (9,7) lead up to 5F warp 3",
+      "Stairs at (13,3) lead down to 3F warp 1",
+      "Stairs at (8,3)/(9,3) lead down to 3F warps 8-9",
+      "East stairs at (16,7)/(17,7) lead up to 5F warps 4-5",
+      "East stairs at (16,9)/(17,9) lead down to 3F warps 6-7",
+      "Sailor Kent is positioned near south-center of the floor"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Sailor",
+      "name": "Kent",
+      "trainer_const": "SAILOR_KENT",
+      "event_flag": "EVENT_BEAT_SAILOR_KENT",
+      "sprite": "SPRITE_SAILOR",
+      "x": 7, "y": 14,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Krabby", "level": 18, "moves": ["Bubble", "Leer", "ViceGrip", "Harden"]},
+        {"species": "Krabby", "level": 20, "moves": ["BubbleBeam", "Leer", "ViceGrip", "Harden"]}
+      ],
+      "trainer_type": "TRAINERTYPE_MOVES",
+      "prize_money": 640,
+      "rematch": false,
+      "seen_text": "JASMINE must be worried sick about the Pokemon here. She won't even smile these days.",
+      "beaten_text": "I can't manage a smile either…",
+      "after_text": "Speaking of sick, I've heard there's a good PHARMACY in CIANWOOD."
+    },
+    {
+      "class": "Lass",
+      "name": "Connie",
+      "trainer_const": "LASS_CONNIE1",
+      "event_flag": "EVENT_BEAT_LASS_CONNIE",
+      "sprite": "SPRITE_LASS",
+      "x": 11, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Marill", "level": 21}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 672,
+      "rematch": false,
+      "seen_text": "JASMINE is this city's GYM LEADER. I mean to bring her back with me. Nobody had better get in my way!",
+      "beaten_text": "Aaack! My Pokemon!",
+      "after_text": "Right. Anybody would be worried if his or her own Pokemon were hurt. I'll pray for the Pokemon here, so JASMINE can come back to the GYM."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [],
+  "events": [],
+  "notes": "Fourth floor of the Olivine Lighthouse. Has two trainers: Sailor Kent (2x Krabby with move sets, hints about Cianwood Pharmacy) and Lass Connie (Marill Lv21, came to bring Jasmine back to the Gym). Sailor Kent's after-battle dialogue is an explicit pointer directing the player to Cianwood for the SecretPotion. The floor is heavily connected to both 3F below and 5F above with 10 warp events total across multiple staircase routes. No items on this floor. Lass Connie is positioned near the north, Sailor Kent near the south-center."
+}

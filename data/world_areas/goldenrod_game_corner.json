@@ -1,0 +1,250 @@
+{
+  "area_id": "goldenrod_game_corner",
+  "area_name": "Goldenrod Game Corner",
+  "area_type": "building",
+  "pokecrystal_map_id": "GOLDENROD_GAME_CORNER",
+  "width_blocks": 10,
+  "height_blocks": 7,
+  "width_tiles": 20,
+  "height_tiles": 14,
+  "tileset": "game_corner",
+  "sign_text": "Your Playground! GOLDENROD CITY GAME CORNER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 2, "y": 13,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 10,
+      "label": "Game Corner exit (left door)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 13,
+      "target_area_id": "goldenrod_city",
+      "target_warp_id": 10,
+      "label": "Game Corner exit (right door)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "P": "path/floor",
+      "S": "slot_machine",
+      "C": "card_flip_machine",
+      "N": "npc_position",
+      "D": "door",
+      "E": "exit_mat",
+      "K": "counter",
+      "!": "item_on_counter"
+    },
+    "rows": [
+      "####################",
+      "##KKKKKKNKKKKKKNKK##",
+      "##..................##",
+      "##...N..............##",
+      "##..................##",
+      "##...N..............##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##SSCSSSCCCSSSCCCS##",
+      "##..................##",
+      "##..EEDDDDDDEE....##"
+    ],
+    "notes": "Top row is the service counter area with coin vendor (x=3) and two prize vendors (x=16,18). Gaming floor has slot machines in columns 6-7, 12-13, and 18, and card flip machines in columns 13, 18. One drink left on counter at bg_event (12,1). Actual machine positions from GoldenrodGameCorner.blk."
+  },
+  "npcs": [
+    {
+      "id": "coin_vendor",
+      "name": "Clerk",
+      "x": 3, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "service": "GameCornerCoinVendorScript",
+      "dialogue_summary": "Sells game coins. Standard prices: 50 coins for $1,000, 500 coins for $10,000."
+    },
+    {
+      "id": "tm_vendor",
+      "name": "Receptionist",
+      "x": 16, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "dialogue_summary": "Exchanges coins for TM prizes. Requires Coin Case.",
+      "stock": [
+        {"item": "TM25 Thunder", "cost_coins": 5500},
+        {"item": "TM14 Blizzard", "cost_coins": 5500},
+        {"item": "TM38 Fire Blast", "cost_coins": 5500}
+      ]
+    },
+    {
+      "id": "prize_mon_vendor",
+      "name": "Receptionist",
+      "x": 18, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "dialogue_summary": "Exchanges coins for Pokemon prizes. Requires Coin Case.",
+      "stock": [
+        {"species": "Abra", "level": 5, "cost_coins": 100},
+        {"species": "Cubone", "level": 15, "cost_coins": 800, "note": "Crystal. Gold had Ekans Lv10 (700c), Silver had Sandshrew Lv10 (700c)"},
+        {"species": "Wobbuffet", "level": 15, "cost_coins": 1500, "note": "Crystal. Gold/Silver had Dratini Lv10 (2100c)"}
+      ]
+    },
+    {
+      "id": "pharmacist1",
+      "name": "Pharmacist",
+      "x": 8, "y": 7,
+      "facing": "left",
+      "movement": "standing",
+      "time_restriction": "day",
+      "script_type": "dialogue",
+      "dialogue_summary": "Thinks his slot machine pays out more than others (standard Crystal text: notices the machine looks the same as others)."
+    },
+    {
+      "id": "pharmacist2",
+      "name": "Pharmacist",
+      "x": 8, "y": 7,
+      "facing": "left",
+      "movement": "standing",
+      "time_restriction": "night",
+      "script_type": "dialogue",
+      "dialogue_summary": "Same script as pharmacist1, appears at night."
+    },
+    {
+      "id": "pokefan_m1",
+      "name": "PokeFan M",
+      "x": 11, "y": 10,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Loves the slot machines; says they're more of a challenge than Celadon's."
+    },
+    {
+      "id": "cooltrainer_m",
+      "name": "Cool Trainer M",
+      "x": 14, "y": 8,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Says life is a gamble and he'll flip cards till he drops."
+    },
+    {
+      "id": "pokefan_f",
+      "name": "PokeFan F",
+      "x": 17, "y": 6,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Prefers card flip over slots because it's easier to figure the odds, but the payout is much lower."
+    },
+    {
+      "id": "cooltrainer_f",
+      "name": "Cool Trainer F",
+      "x": 10, "y": 3,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Won't quit until she wins."
+    },
+    {
+      "id": "gentleman",
+      "name": "Gentleman",
+      "x": 5, "y": 10,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "dialogue_summary": "Taught Blizzard to his Pokemon. It was hard to save enough coins but worth it."
+    },
+    {
+      "id": "pokefan_m2",
+      "name": "PokeFan M",
+      "x": 2, "y": 9,
+      "facing": "down",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "dialogue_summary": "Lost at slots and card flip, got so furious he tossed his Coin Case in the Underground. Hints at where to find a Coin Case."
+    },
+    {
+      "id": "move_tutor_inside",
+      "name": "Move Tutor",
+      "x": 17, "y": 10,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_GOLDENROD_GAME_CORNER_MOVE_TUTOR",
+      "dialogue_summary": "Post-game Move Tutor when inside the Game Corner. Says the coins keep rolling in. Only appears when Move Tutor is indoors (when player does not have Coin Case or not correct day)."
+    }
+  ],
+  "bg_events": [
+    {
+      "type": "slot_machine",
+      "positions": [
+        {"x": 6, "y": 6}, {"x": 6, "y": 7}, {"x": 6, "y": 8}, {"x": 6, "y": 9}, {"x": 6, "y": 10}, {"x": 6, "y": 11},
+        {"x": 7, "y": 6}, {"x": 7, "y": 8}, {"x": 7, "y": 9}, {"x": 7, "y": 10}, {"x": 7, "y": 11},
+        {"x": 12, "y": 6}, {"x": 12, "y": 7}, {"x": 12, "y": 8}, {"x": 12, "y": 9}, {"x": 12, "y": 10}, {"x": 12, "y": 11},
+        {"x": 18, "y": 6}, {"x": 18, "y": 7}, {"x": 18, "y": 8}, {"x": 18, "y": 9}, {"x": 18, "y": 10}, {"x": 18, "y": 11}
+      ],
+      "note": "1 in 6 chance of lucky machine (higher payout). Position (7,7) is the lucky slot machine."
+    },
+    {
+      "type": "lucky_slot_machine",
+      "x": 7, "y": 7,
+      "note": "Special lucky machine with better odds (setval TRUE before SlotMachine special)."
+    },
+    {
+      "type": "card_flip_machine",
+      "positions": [
+        {"x": 13, "y": 6}, {"x": 13, "y": 7}, {"x": 13, "y": 8}, {"x": 13, "y": 9}, {"x": 13, "y": 10}, {"x": 13, "y": 11},
+        {"x": 18, "y": 6}, {"x": 18, "y": 7}, {"x": 18, "y": 8}, {"x": 18, "y": 9}, {"x": 18, "y": 10}, {"x": 18, "y": 11}
+      ],
+      "note": "Gen II Crystal exclusive. Gentler odds but lower payout than slots."
+    },
+    {
+      "type": "item_left",
+      "x": 12, "y": 1,
+      "direction": "left",
+      "script": "GoldenrodGameCornerLeftTheirDrinkScript",
+      "text": "Someone left their drink. It smells sweet."
+    }
+  ],
+  "coin_mechanics": {
+    "purchase": [
+      {"amount": 50, "cost": 1000},
+      {"amount": 500, "cost": 10000}
+    ],
+    "prizes_tm": [
+      {"item": "TM25 Thunder", "cost_coins": 5500},
+      {"item": "TM14 Blizzard", "cost_coins": 5500},
+      {"item": "TM38 Fire Blast", "cost_coins": 5500}
+    ],
+    "prizes_pokemon_crystal": [
+      {"species": "Abra", "level": 5, "cost_coins": 100},
+      {"species": "Cubone", "level": 15, "cost_coins": 800},
+      {"species": "Wobbuffet", "level": 15, "cost_coins": 1500}
+    ],
+    "prizes_pokemon_gold": [
+      {"species": "Abra", "level": 10, "cost_coins": 200},
+      {"species": "Ekans", "level": 10, "cost_coins": 700},
+      {"species": "Dratini", "level": 10, "cost_coins": 2100}
+    ],
+    "prizes_pokemon_silver": [
+      {"species": "Abra", "level": 10, "cost_coins": 200},
+      {"species": "Sandshrew", "level": 10, "cost_coins": 700},
+      {"species": "Dratini", "level": 10, "cost_coins": 2100}
+    ],
+    "coin_case": "Required to use any prize vendor. Coin Case is found in Goldenrod Underground as an item ball."
+  },
+  "events": [
+    {
+      "trigger": "callback_objects",
+      "description": "GoldenrodGameCornerMoveTutorCallback: After Elite 4, Move Tutor appears inside (if no Coin Case) or outside on correct days (Wed/Sat with Coin Case). Handles disappear/appear logic."
+    }
+  ],
+  "notes": "Slot machines: standard slot machine special or lucky slot machine (1/6 chance). Card Flip is a Gen II unique minigame. The Coin Case is required to use prize counters; it is obtained as an item ball in the Goldenrod Underground. The Move Tutor uses this building as his destination when leaving the outdoor position."
+}

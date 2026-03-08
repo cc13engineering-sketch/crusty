@@ -1,0 +1,222 @@
+{
+  "area_id": "mt_mortar_2f",
+  "area_name": "Mt. Mortar 2F (Inside)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "MOUNT_MORTAR_2F_INSIDE",
+  "width_blocks": 20,
+  "height_blocks": 18,
+  "width_tiles": 40,
+  "height_tiles": 36,
+  "tileset": "dark_cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 17, "y": 33,
+      "target_area_id": "mt_mortar_1f_outside",
+      "target_warp_id": 4,
+      "notes": "Exit south to 1F Outside (warp 4 on Outside = tile x=17, y=5). The elevated exit emerges at the north end of the Outside map."
+    },
+    {
+      "x": 3,  "y": 5,
+      "target_area_id": "mt_mortar_1f_inside",
+      "target_warp_id": 6,
+      "notes": "Exit down to 1F Inside (warp 6 on 1F Inside = tile x=9, y=9). The main connection back down into the cave interior."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "E": "exit_mat"
+    },
+    "notes": "40 wide x 36 tall. The upper floor of Mt. Mortar — a high-altitude cave section with water pools (Surf required) and a waterfall (Waterfall HM required to reach upper areas). Super Nerd Hugh patrols this floor, looking for his partner Markus on 1F Inside. Six items visible plus one hidden Full Restore. The Dragon Scale here is a key held item for evolving Seadra into Kingdra. Warp at (17,33) leads south down to the 1F Outside north entrance; warp at (3,5) leads back down to 1F Inside.",
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "##v.....################################",
+      "##......##....!.########################",
+      "##......##.....!########################",
+      "##......##......########################",
+      "##......##......########################",
+      "##......##......########################",
+      "##......##......########################",
+      "##......##..!...########################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##......####...~~~~~~~~~################",
+      "##.......###...~~~~~~~~~################",
+      "##........##...~~~~~~~~~################",
+      "##........##...~~~~~~~~~################",
+      "##........##...~~~~~~~~~################",
+      "##........##....!......#################",
+      "##........##...........#################",
+      "##........##...........#################",
+      "##........##...........#################",
+      "##.....N..##...........#################",
+      "##........##...........#################",
+      "##.......!##...........#################",
+      "##........##...........#################",
+      "##........##...........#################",
+      "##........##...........#################",
+      "##........##...........#################",
+      "################E#######################",
+      "########################################",
+      "########################################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Super Nerd",
+      "name": "Hugh",
+      "x": 13, "y": 26,
+      "facing": "random_spin",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Seadra",
+          "level": 39,
+          "moves": ["Smokescreen", "Twister", "Surf", "Waterfall"]
+        }
+      ],
+      "prize_money": 1404,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_SUPER_NERD_HUGH",
+      "notes": "Paired with Super Nerd Markus on 1F Inside. Hugh's Seadra knows Waterfall — the clue Markus asks about on 1F. Sprite: SUPER_NERD with PAL_NPC_BROWN. High-level trainer due to the 2F location. Seadra with Waterfall can evolve into Kingdra when holding Dragon Scale (which is also found on this floor)."
+    }
+  ],
+  "items": [
+    {
+      "name": "Max Potion",
+      "x": 28, "y": 22,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_MAX_POTION",
+      "notes": "Pokeball sprite on eastern rocky shelf"
+    },
+    {
+      "name": "Rare Candy",
+      "x": 2,  "y": 33,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_RARE_CANDY",
+      "notes": "Pokeball sprite near south exit to 1F Outside. Near the bottom of the map."
+    },
+    {
+      "name": "TM49 (Defense Curl)",
+      "x": 19, "y": 17,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_TM_DEFENSE_CURL",
+      "notes": "TM49 — Defense Curl. Pokeball sprite near the water pool area."
+    },
+    {
+      "name": "Dragon Scale",
+      "x": 16, "y": 5,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_DRAGON_SCALE",
+      "notes": "Pokeball sprite near the upper exit to 1F Inside. The Dragon Scale is held by Seadra to evolve into Kingdra when traded. Significant item for evolution."
+    },
+    {
+      "name": "Elixir",
+      "x": 9,  "y": 11,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_ELIXER",
+      "notes": "Pokeball sprite on the western walkway"
+    },
+    {
+      "name": "Escape Rope",
+      "x": 28, "y": 5,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_ESCAPE_ROPE",
+      "notes": "Pokeball sprite near upper-right corner of the accessible area"
+    },
+    {
+      "name": "Full Restore",
+      "x": 24, "y": 8,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_MOUNT_MORTAR_2F_INSIDE_HIDDEN_FULL_RESTORE",
+      "notes": "Hidden item on the ground in the upper area near the water"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 6,
+      "notes": "Higher-level encounters than lower floors. Graveler and Machoke appear here. Marill replaces Machop at night.",
+      "morning": [
+        {"species": "Graveler", "level_min": 31, "level_max": 31, "rate": 20},
+        {"species": "Machoke",  "level_min": 32, "level_max": 32, "rate": 20},
+        {"species": "Geodude",  "level_min": 31, "level_max": 31, "rate": 10},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Machop",   "level_min": 28, "level_max": 28, "rate": 10},
+        {"species": "Golbat",   "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Golbat",   "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "day": [
+        {"species": "Graveler", "level_min": 31, "level_max": 31, "rate": 20},
+        {"species": "Machoke",  "level_min": 32, "level_max": 32, "rate": 20},
+        {"species": "Geodude",  "level_min": 31, "level_max": 31, "rate": 10},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Machop",   "level_min": 28, "level_max": 28, "rate": 10},
+        {"species": "Golbat",   "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Golbat",   "level_min": 30, "level_max": 30, "rate": 10}
+      ],
+      "night": [
+        {"species": "Graveler", "level_min": 31, "level_max": 31, "rate": 20},
+        {"species": "Geodude",  "level_min": 31, "level_max": 31, "rate": 20},
+        {"species": "Raticate", "level_min": 30, "level_max": 30, "rate": 10},
+        {"species": "Golbat",   "level_min": 30, "level_max": 30, "rate": 20},
+        {"species": "Marill",   "level_min": 28, "level_max": 28, "rate": 10},
+        {"species": "Golbat",   "level_min": 32, "level_max": 32, "rate": 10},
+        {"species": "Golbat",   "level_min": 32, "level_max": 32, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "requires": "Surf",
+      "mons": [
+        {"species": "Goldeen", "level_min": 20, "level_max": 20, "rate": 60},
+        {"species": "Marill",  "level_min": 25, "level_max": 25, "rate": 30},
+        {"species": "Seaking", "level_min": 25, "level_max": 25, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "group": "FISHGROUP_LAKE",
+      "notes": "Same Lake fishing group as all Mt. Mortar floors.",
+      "old_rod": [
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 70},
+        {"species": "Magikarp", "level_min": 10, "level_max": 10, "rate": 15},
+        {"species": "Goldeen",  "level_min": 10, "level_max": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 35},
+        {"species": "Goldeen",  "level_min": 20, "level_max": 20, "rate": 20},
+        {"species": "Poliwag",  "level_min": 20, "level_max": 20, "rate": 10}
+      ],
+      "super_rod": [
+        {"species": "Goldeen",  "level_min": 40, "level_max": 40, "rate": 40},
+        {"species": "Poliwag",  "level_min": 40, "level_max": 40, "rate": 30},
+        {"species": "Magikarp", "level_min": 40, "level_max": 40, "rate": 20},
+        {"species": "Seaking",  "level_min": 40, "level_max": 40, "rate": 10}
+      ]
+    }
+  },
+  "events": [],
+  "notes": "Mt. Mortar 2F Inside (20x18 blocks, 40x36 tiles, confirmed: MountMortar2FInside.blk = 360 bytes). The upper interior floor of Mt. Mortar — accessed from the north end of 1F Outside or from within 1F Inside. This floor has water pools navigable by Surf and a waterfall area (Waterfall HM required to access the upper sections where the Dragon Scale and Escape Rope are found). One trainer: Super Nerd Hugh (Seadra Lv39 with Smokescreen, Twister, Surf, Waterfall) — Hugh's partner Markus is on 1F Inside and mentions a trainer with a Seadra that knows Waterfall. Six visible pokeball items: Max Potion, Rare Candy, TM49 Defense Curl, Dragon Scale (key evolution item for Seadra->Kingdra), Elixir, Escape Rope. One hidden Full Restore. The Dragon Scale on this floor combined with Hugh's Seadra creates an intentional connection — the player can obtain the item to evolve their own traded Seadra. Tileset: TILESET_DARK_CAVE. Music: MUSIC_UNION_CAVE."
+}

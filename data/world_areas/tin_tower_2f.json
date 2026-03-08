@@ -1,0 +1,79 @@
+{
+  "area_id": "tin_tower_2f",
+  "area_name": "Tin Tower 2F",
+  "area_type": "dungeon",
+  "pokecrystal_map_id": "TIN_TOWER_2F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "tin_tower",
+  "music": "MUSIC_TIN_TOWER",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 10, "y": 14,
+      "target_area_id": "tin_tower_3f",
+      "target_warp_id": 1,
+      "notes": "Staircase up to 3F at north area of floor"
+    },
+    {
+      "warp_id": 2,
+      "x": 10, "y": 2,
+      "target_area_id": "tin_tower_1f",
+      "target_warp_id": 3,
+      "notes": "Staircase down back to 1F — landing point from 1F stair warp"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/pillar/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down"
+    },
+    "notes": [
+      "Width=20 tiles, Height=18 tiles (10x9 blocks).",
+      "2F is a pure traversal floor with no NPCs, trainers, or items.",
+      "The stair down at (10,2) returns to 1F; the stair up at (10,14) proceeds to 3F.",
+      "The floor features the tower's internal wooden beam architecture.",
+      "The Tin Tower uses a warp-based stair system — players step onto specific tiles to change floors.",
+      "No special events or scripted triggers on this floor."
+    ],
+    "rows": [
+      "####################",
+      "##..................",
+      "##......v...........",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##......^...........",
+      "##..................",
+      "##..................",
+      "####################"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": { "encounter_rate": 0, "morning": [], "day": [], "night": [] },
+    "water": { "encounter_rate": 0, "mons": [] },
+    "fishing": { "old_rod": [], "good_rod": [], "super_rod": [] }
+  },
+  "events": [],
+  "access_requirements": {
+    "to_enter": "Rainbow Wing required (staircase on 1F only appears after Rainbow Wing obtained from Sage5).",
+    "note": "No events, items, or NPCs on this floor. Pure traversal between 1F and 3F."
+  },
+  "notes": "Tin Tower 2F is a bare transitional floor with no scripts, no NPCs, no items, and no callbacks. It is 10x9 blocks (20x18 tiles). The ASM file contains only two warp events: warp_event (10,14) to TIN_TOWER_3F warp 1, and warp_event (10,2) to TIN_TOWER_1F warp 3. Players pass through this floor as part of the climb toward the roof."
+}

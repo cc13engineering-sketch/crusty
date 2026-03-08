@@ -1,0 +1,389 @@
+{
+  "area_id": "goldenrod_underground",
+  "area_name": "Goldenrod Underground Tunnel",
+  "area_type": "building",
+  "pokecrystal_map_id": "GOLDENROD_UNDERGROUND",
+  "width_blocks": 15,
+  "height_blocks": 18,
+  "width_tiles": 30,
+  "height_tiles": 36,
+  "tileset": "underground",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 2,
+      "target_area_id": "goldenrod_underground_switch_room_entrances",
+      "target_warp_id": 7,
+      "label": "North exit (leads to north Goldenrod City underground entrance at tile 9,5)"
+    },
+    {
+      "warp_id": 2,
+      "x": 3, "y": 34,
+      "target_area_id": "goldenrod_underground_switch_room_entrances",
+      "target_warp_id": 4,
+      "label": "South exit (leads to south Goldenrod City underground entrance at tile 11,29)"
+    },
+    {
+      "warp_id": 3,
+      "x": 21, "y": 31,
+      "target_area_id": "goldenrod_underground",
+      "target_warp_id": 3,
+      "label": "Internal loop connection south-west"
+    },
+    {
+      "warp_id": 4,
+      "x": 22, "y": 31,
+      "target_area_id": "goldenrod_underground",
+      "target_warp_id": 3,
+      "label": "Internal loop connection south-east"
+    },
+    {
+      "warp_id": 5,
+      "x": 22, "y": 27,
+      "target_area_id": "goldenrod_underground_switch_room_entrances",
+      "target_warp_id": 1,
+      "label": "Switch room connection (leads to Dept Store B1F area)"
+    },
+    {
+      "warp_id": 6,
+      "x": 18, "y": 6,
+      "target_area_id": "goldenrod_underground",
+      "target_warp_id": 4,
+      "label": "Basement door (locked; requires Basement Key)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "P": "path/corridor",
+      "S": "shop_stall",
+      "N": "npc_position",
+      "T": "trainer_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "D": "door_locked",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "E": "exit/entrance",
+      "X": "no_entry_sign"
+    },
+    "rows": [
+      "##############################",
+      "##############################",
+      "##E...........................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##..T..........DN.............##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##..T.?.......................##",
+      "##............................##",
+      "##............................##",
+      "##..SNN.....................?..##",
+      "##..SNN.......................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##..?.........................##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##..!.........................##",
+      "##............................##",
+      "##......T..........E..........##",
+      "##............................##",
+      "##............................##",
+      "##............................##",
+      "##..................EE........##",
+      "##............................##",
+      "##............................##",
+      "##E...........................##",
+      "##############################"
+    ],
+    "notes": "Simplified corridor layout. Actual layout from GoldenrodUnderground.blk. The tunnel runs north-south with branches. Shops are in the western section. Trainers patrol various corridors. Hidden items scattered throughout. Basement door at (18,6) is locked until Basement Key used."
+  },
+  "npcs": [
+    {
+      "id": "gramps_bargain",
+      "name": "Gramps (Bargain Merchant)",
+      "x": 7, "y": 11,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_GRAMPS",
+      "schedule": "Monday morning only (checktime MORN on Monday)",
+      "service": "Bargain Shop (MARTTYPE_BARGAIN)",
+      "mart_id": "MART type: MARTTYPE_BARGAIN, index 0",
+      "stock": [
+        {"item": "Nugget", "price": 4500},
+        {"item": "Pearl", "price": 650},
+        {"item": "Big Pearl", "price": 3500},
+        {"item": "Stardust", "price": 900},
+        {"item": "Star Piece", "price": 4600}
+      ],
+      "closed_flag": "ENGINE_GOLDENROD_UNDERGROUND_MERCHANT_CLOSED",
+      "closed_text": "We're not open today.",
+      "dialogue_summary": "Open only Monday mornings. Sells valuables at reduced prices. Closed after Radio Tower cleared."
+    },
+    {
+      "id": "older_haircut_brother",
+      "name": "Older Haircut Brother",
+      "x": 7, "y": 14,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "service",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_OLDER_HAIRCUT_BROTHER",
+      "schedule": "Tuesday, Thursday, Saturday",
+      "service": "Pokemon Haircut (Pokemon Salon)",
+      "price": 500,
+      "happiness_gain": {
+        "result_much_happier": "Pokemon looks delighted! (friendship increases significantly)",
+        "result_happier": "Pokemon looks happy. (friendship increases moderately)",
+        "result_slightly_happier": "Pokemon looks a little happier. (friendship increases slightly)"
+      },
+      "limit": "One haircut per day (ENGINE_GOLDENROD_UNDERGROUND_GOT_HAIRCUT flag)",
+      "dialogue_summary": "The older and better of the two Haircut Brothers. Charges 500 yen. Claims to make your Pokemon beautiful. Available Tue/Thu/Sat."
+    },
+    {
+      "id": "younger_haircut_brother",
+      "name": "Younger Haircut Brother",
+      "x": 7, "y": 15,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "service",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_YOUNGER_HAIRCUT_BROTHER",
+      "schedule": "Sunday, Wednesday, Friday",
+      "service": "Pokemon Haircut (Pokemon Salon)",
+      "price": 300,
+      "happiness_gain": {
+        "result_much_happier": "Pokemon looks delighted!",
+        "result_happier": "Pokemon looks happy.",
+        "result_slightly_happier": "Pokemon looks a little happier."
+      },
+      "limit": "One haircut per day (ENGINE_GOLDENROD_UNDERGROUND_GOT_HAIRCUT flag, shared with older brother)",
+      "dialogue_summary": "The younger and less expensive of the Haircut Brothers. Charges 300 yen. Available Sun/Wed/Fri."
+    },
+    {
+      "id": "granny_bitter",
+      "name": "Granny (Bitter Herb Merchant)",
+      "x": 7, "y": 21,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "shopkeeper",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_GRANNY",
+      "schedule": "Saturday and Sunday only",
+      "service": "Herbal Shop (MARTTYPE_BITTER)",
+      "mart_id": "MART_UNDERGROUND",
+      "stock": [
+        {"item": "Energy Root", "price": 800, "heal_hp": 200, "note": "Lowers friendship"},
+        {"item": "Energy Powder", "price": 500, "heal_hp": 50, "note": "Lowers friendship"},
+        {"item": "Revival Herb", "price": 2800, "effect": "Revives fainted Pokemon to full HP", "note": "Lowers friendship significantly"},
+        {"item": "Heal Powder", "price": 450, "effect": "Cures all status conditions", "note": "Lowers friendship"}
+      ],
+      "closed_text": "We're not open today.",
+      "dialogue_summary": "Sells bitter herbal medicines on weekends. Cheaper than standard items but lowers Pokemon friendship."
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Pokemaniac",
+      "name": "Donald",
+      "x": 2, "y": 6,
+      "facing": "right",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Slowpoke", "level": 10},
+        {"species": "Slowpoke", "level": 10}
+      ],
+      "seen_text": "I think you have some rare Pokemon with you. Let me see them!",
+      "beaten_text": "Gaah! I lost! That makes me mad!",
+      "after_battle_text": "Hiker Anthony on Route 33 will phone if he sees rare Pokemon.",
+      "prize_money": 480,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_DONALD"
+    },
+    {
+      "class": "Super Nerd",
+      "name": "Teru",
+      "x": 6, "y": 9,
+      "facing": "up",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Magnemite", "level": 7},
+        {"species": "Voltorb", "level": 11},
+        {"species": "Magnemite", "level": 7},
+        {"species": "Magnemite", "level": 7}
+      ],
+      "seen_text": "Do you consider type alignments in battle? If you know your type advantages, you'll do better.",
+      "beaten_text": "Ow, ow, ow!",
+      "after_battle_text": "I know type alignments but only use one type of Pokemon.",
+      "prize_money": 616,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_SUPER_NERD_TERU"
+    },
+    {
+      "class": "Pokemaniac",
+      "name": "Issac",
+      "x": 3, "y": 27,
+      "facing": "down",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Lickitung", "level": 12}
+      ],
+      "seen_text": "My Pokemon just got a haircut! I'll show you how strong it is!",
+      "beaten_text": "Aiyeeee!",
+      "after_battle_text": "Your Pokemon will like you more if you give them haircuts.",
+      "prize_money": 576,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEMANIAC_ISSAC"
+    },
+    {
+      "class": "Super Nerd",
+      "name": "Eric",
+      "x": 5, "y": 31,
+      "facing": "left",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Grimer", "level": 11},
+        {"species": "Grimer", "level": 11}
+      ],
+      "seen_text": "I got booted out of the Game Corner. I was trying to cheat using my Pokemon...",
+      "beaten_text": "...Grumble...",
+      "after_battle_text": "I guess I have to do things fair and square...",
+      "prize_money": 616,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_SUPER_NERD_ERIC"
+    }
+  ],
+  "items": [
+    {
+      "name": "Coin Case",
+      "x": 7, "y": 25,
+      "hidden": false,
+      "sprite": "SPRITE_POKE_BALL",
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_COIN_CASE",
+      "importance": "Required to use the Game Corner prize vendors and Move Tutor"
+    }
+  ],
+  "hidden_items": [
+    {
+      "name": "Parlyz Heal",
+      "x": 6, "y": 13,
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_HIDDEN_PARLYZ_HEAL"
+    },
+    {
+      "name": "Super Potion",
+      "x": 4, "y": 18,
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_HIDDEN_SUPER_POTION"
+    },
+    {
+      "name": "Antidote",
+      "x": 17, "y": 8,
+      "event_flag": "EVENT_GOLDENROD_UNDERGROUND_HIDDEN_ANTIDOTE"
+    }
+  ],
+  "bg_events": [
+    {
+      "x": 18, "y": 6,
+      "type": "door",
+      "script": "BasementDoorScript",
+      "description": "Locked door to Dept Store B1F (and thence Underground Warehouse). Requires Basement Key item. Once used, EVENT_USED_BASEMENT_KEY is set and door stays open."
+    },
+    {
+      "x": 19, "y": 6,
+      "type": "sign",
+      "script": "GoldenrodUndergroundNoEntrySign",
+      "text": "NO ENTRY BEYOND THIS POINT"
+    }
+  ],
+  "day_of_week_callbacks": {
+    "description": "On map load, day-of-week check controls which shop NPCs appear.",
+    "schedule": {
+      "Sunday": {
+        "gramps": "hidden",
+        "older_brother": "hidden",
+        "younger_brother": "visible",
+        "granny": "visible"
+      },
+      "Monday": {
+        "gramps": "visible (morning only)",
+        "older_brother": "hidden",
+        "younger_brother": "hidden",
+        "granny": "hidden"
+      },
+      "Tuesday": {
+        "gramps": "hidden",
+        "older_brother": "visible",
+        "younger_brother": "hidden",
+        "granny": "hidden"
+      },
+      "Wednesday": {
+        "gramps": "hidden",
+        "older_brother": "hidden",
+        "younger_brother": "visible",
+        "granny": "hidden"
+      },
+      "Thursday": {
+        "gramps": "hidden",
+        "older_brother": "visible",
+        "younger_brother": "hidden",
+        "granny": "hidden"
+      },
+      "Friday": {
+        "gramps": "hidden",
+        "older_brother": "hidden",
+        "younger_brother": "visible",
+        "granny": "hidden"
+      },
+      "Saturday": {
+        "gramps": "hidden",
+        "older_brother": "visible",
+        "younger_brother": "hidden",
+        "granny": "visible"
+      }
+    }
+  },
+  "switch_room": {
+    "description": "The Underground uses a switch room system (GOLDENROD_UNDERGROUND_SWITCH_ROOM_ENTRANCES) as an intermediary between the city surface and the tunnel. Switches reset every time the underground is loaded (clearevent for all 11 switch/door events). The switch room is separate from the main Underground map.",
+    "reset_on_enter": [
+      "EVENT_SWITCH_1 through EVENT_SWITCH_3",
+      "EVENT_EMERGENCY_SWITCH",
+      "EVENT_DOOR_1_OPEN through EVENT_DOOR_11_OPEN",
+      "wUndergroundSwitchPositions memory variable set to 0"
+    ]
+  },
+  "warehouse": {
+    "id": "goldenrod_underground_warehouse",
+    "area_file": "goldenrod_underground_warehouse.json",
+    "pokecrystal_map_id": "GOLDENROD_UNDERGROUND_WAREHOUSE",
+    "description": "Accessible from Goldenrod Dept Store B1F or via Underground switch room during Radio Tower takeover event. The Radio Tower Director is imprisoned here by Team Rocket. Must defeat three Rocket Grunts to rescue Director and obtain Card Key.",
+    "access": "Requires Basement Key (opens door at (18,6) in this map) + navigate switch room puzzle (GOLDENROD_UNDERGROUND_SWITCH_ROOM_ENTRANCES). Also reachable from Goldenrod Dept Store B1F warp 1.",
+    "story_requirement": "Radio Tower Takeover arc (after Mahogany Gym and Pryce badge)"
+  },
+  "events": [
+    {
+      "trigger": "on_map_enter",
+      "script": "GoldenrodUndergroundResetSwitchesCallback",
+      "description": "Resets all switch and door events and wUndergroundSwitchPositions to 0 every time the Underground is entered."
+    },
+    {
+      "trigger": "tile_load",
+      "script": "GoldenrodUndergroundCheckBasementKeyCallback",
+      "description": "Checks EVENT_USED_BASEMENT_KEY. If not used, changes block at (18,6) to locked door tile."
+    },
+    {
+      "trigger": "objects_load",
+      "script": "GoldenrodUndergroundCheckDayOfWeekCallback",
+      "description": "Sets NPC visibility based on current day of week for all four shop NPCs."
+    }
+  ],
+  "notes": "The Goldenrod Underground is a large tunnel (15x18 blocks, 30x36 tiles) connecting the north and south parts of Goldenrod City. It is most notable for: the Coin Case item (required for Game Corner), the Haircut Brothers service (boosts friendship, only one brother available per day), the weekend Herbal Shop (bitter medicines), and the Monday-morning-only Bargain Shop. The basement door connects to a story-critical area during the Radio Tower Takeover event. The Underground switch room (separate map) handles the entrance/exit warp transitions."
+}

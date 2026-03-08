@@ -1,0 +1,278 @@
+{
+  "area_id": "union_cave_b1f",
+  "area_name": "Union Cave (B1F)",
+  "area_type": "cave",
+  "pokecrystal_map_id": "UNION_CAVE_B1F",
+  "width_blocks": 10,
+  "height_blocks": 18,
+  "width_tiles": 20,
+  "height_tiles": 36,
+  "tileset": "cave",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3,
+      "y": 3,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 7,
+      "notes": "Secret passage to Ruins of Alph — warp_event 3,3 RUINS_OF_ALPH_OUTSIDE 7. Upper northern warp."
+    },
+    {
+      "x": 3,
+      "y": 11,
+      "target_area_id": "ruins_of_alph_outside",
+      "target_warp_id": 8,
+      "notes": "Second passage to Ruins of Alph — warp_event 3,11 RUINS_OF_ALPH_OUTSIDE 8. Lower northern warp."
+    },
+    {
+      "x": 7,
+      "y": 19,
+      "target_area_id": "union_cave_1f",
+      "target_warp_id": 1,
+      "notes": "Staircase up to 1F — warp_event 7,19 UNION_CAVE_1F 1. Returns to warp index 1 on 1F (x5,y19)."
+    },
+    {
+      "x": 3,
+      "y": 33,
+      "target_area_id": "union_cave_1f",
+      "target_warp_id": 2,
+      "notes": "Second staircase up to 1F — warp_event 3,33 UNION_CAVE_1F 2. Returns to warp index 2 on 1F (x3,y33)."
+    },
+    {
+      "x": 17,
+      "y": 31,
+      "target_area_id": "union_cave_b2f",
+      "target_warp_id": 1,
+      "notes": "Staircase down to B2F — warp_event 17,31 UNION_CAVE_B2F 1. Requires Surf to reach (water blocks path)."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_cave_floor",
+      "#": "cave_wall",
+      "~": "water",
+      "R": "strength_boulder",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "P": "passage_to_ruins",
+      "N": "npc_trainer_position",
+      "!": "item_ball"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "##PPP...............#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "#########N.........##",
+      "####################",
+      "####N...............#",
+      "##PPP...............#",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "###!................#",
+      "####################",
+      "####################",
+      "#######^............#",
+      "####################",
+      "####################",
+      "####################",
+      "###################!",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##########v~~~~~~~~~#",
+      "###N.......~~~~~~~~~#",
+      "####N......~~~~~~~~~#",
+      "####################",
+      "####################"
+    ],
+    "notes": "Schematic from warp coordinates and object_event positions in UnionCaveB1F.asm. A water body is in the southern section; Surf is required to reach the B2F staircase at (17,31). The Ruins of Alph passages are in the upper-northwest. A Strength boulder at (7,10) blocks a shortcut. Actual block layout in UnionCaveB1F.blk."
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Hiker",
+      "name": "Phillip",
+      "trainer_id": "PHILLIP",
+      "pokecrystal_trainer": "HIKER, PHILLIP",
+      "x": 9,
+      "y": 4,
+      "facing": "random",
+      "movement": "spinrandom_fast",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_POKEFAN_M",
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Geodude",  "level": 23},
+        {"species": "Geodude",  "level": 23},
+        {"species": "Graveler", "level": 23}
+      ],
+      "prize_money": 736,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_HIKER_PHILLIP",
+      "after_battle_dialogue": "I've been lost for a long time… I don't mind it here, but I am soooo hungry!"
+    },
+    {
+      "class": "Hiker",
+      "name": "Leonard",
+      "trainer_id": "LEONARD",
+      "pokecrystal_trainer": "HIKER, LEONARD",
+      "x": 16,
+      "y": 7,
+      "facing": "down",
+      "movement": "standing_down",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_POKEFAN_M",
+      "palette": "PAL_NPC_BROWN",
+      "team": [
+        {"species": "Geodude", "level": 23},
+        {"species": "Machop",  "level": 25}
+      ],
+      "prize_money": 800,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_HIKER_LEONARD",
+      "after_battle_dialogue": "I live down here. You can, too, if you'd like. There's plenty of room, you see."
+    },
+    {
+      "class": "Pokemaniac",
+      "name": "Andrew",
+      "trainer_id": "ANDREW",
+      "pokecrystal_trainer": "POKEMANIAC, ANDREW",
+      "x": 5,
+      "y": 32,
+      "facing": "left",
+      "movement": "standing_left",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_SUPER_NERD",
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Marowak", "level": 24},
+        {"species": "Marowak", "level": 24}
+      ],
+      "prize_money": 1920,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_POKEMANIAC_ANDREW",
+      "after_battle_dialogue": "Just me and my #MON. I'm delirious with joy."
+    },
+    {
+      "class": "Pokemaniac",
+      "name": "Calvin",
+      "trainer_id": "CALVIN",
+      "pokecrystal_trainer": "POKEMANIAC, CALVIN",
+      "x": 17,
+      "y": 30,
+      "facing": "left",
+      "movement": "standing_left",
+      "line_of_sight": 3,
+      "sprite": "SPRITE_SUPER_NERD",
+      "palette": "PAL_NPC_BLUE",
+      "team": [
+        {"species": "Kangaskhan", "level": 26}
+      ],
+      "prize_money": 2080,
+      "rematch": false,
+      "pokecrystal_event": "EVENT_BEAT_POKEMANIAC_CALVIN",
+      "after_battle_dialogue": "I should compile and announce my study findings. I might even become famous like PROF.ELM."
+    }
+  ],
+  "items": [
+    {
+      "name": "TM39 (Swift)",
+      "x": 2,
+      "y": 16,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_B1F_TM_SWIFT",
+      "pokecrystal_label": "UnionCaveB1FTMSwift",
+      "notes": "TM39 teaches Swift, a Normal-type move that never misses."
+    },
+    {
+      "name": "X Defend",
+      "x": 17,
+      "y": 23,
+      "hidden": false,
+      "requires": null,
+      "pokecrystal_event": "EVENT_UNION_CAVE_B1F_X_DEFEND",
+      "pokecrystal_label": "UnionCaveB1FXDefend"
+    }
+  ],
+  "obstacles": [
+    {
+      "type": "strength_boulder",
+      "x": 7,
+      "y": 10,
+      "pokecrystal_label": "UnionCaveB1FBoulder",
+      "script": "StrengthBoulderScript",
+      "requires": "HM04 Strength",
+      "notes": "Pushable boulder that blocks a passage. Requires HM04 Strength and the Plain Badge (Goldenrod Gym) to move."
+    }
+  ],
+  "wild_encounters": {
+    "cave": {
+      "encounter_rate": 6,
+      "notes": "Cave encounter table — 7 slots per time period. Source: johto_grass.asm def_grass_wildmons UNION_CAVE_B1F.",
+      "morning": [
+        {"species": "Geodude",  "level": 8, "rate": 30},
+        {"species": "Zubat",    "level": 6, "rate": 30},
+        {"species": "Zubat",    "level": 8, "rate": 20},
+        {"species": "Onix",     "level": 8, "rate": 10},
+        {"species": "Rattata",  "level": 6, "rate": 5},
+        {"species": "Rattata",  "level": 8, "rate": 4},
+        {"species": "Rattata",  "level": 8, "rate": 1}
+      ],
+      "day": [
+        {"species": "Geodude",  "level": 8, "rate": 30},
+        {"species": "Zubat",    "level": 6, "rate": 30},
+        {"species": "Zubat",    "level": 8, "rate": 20},
+        {"species": "Onix",     "level": 8, "rate": 10},
+        {"species": "Rattata",  "level": 6, "rate": 5},
+        {"species": "Rattata",  "level": 8, "rate": 4},
+        {"species": "Rattata",  "level": 8, "rate": 1}
+      ],
+      "night": [
+        {"species": "Geodude",  "level": 8, "rate": 30},
+        {"species": "Zubat",    "level": 6, "rate": 30},
+        {"species": "Wooper",   "level": 8, "rate": 20},
+        {"species": "Onix",     "level": 8, "rate": 10},
+        {"species": "Rattata",  "level": 6, "rate": 5},
+        {"species": "Rattata",  "level": 8, "rate": 4},
+        {"species": "Rattata",  "level": 8, "rate": 1}
+      ]
+    },
+    "water": {
+      "encounter_rate": 2,
+      "notes": "Southern water body requires Surf to navigate. Grants access to B2F staircase. Source: johto_water.asm def_water_wildmons UNION_CAVE_B1F.",
+      "mons": [
+        {"species": "Wooper",   "level": 15, "rate": 60},
+        {"species": "Quagsire", "level": 20, "rate": 30},
+        {"species": "Quagsire", "level": 15, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "notes": "No fishing data defined for Union Cave B1F in pokecrystal fish.asm.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "access_ruins_of_alph_passage",
+      "description": "The two northern warps at (3,3) and (3,11) lead to hidden passages that exit at Ruins of Alph Outside (warps 7 and 8). These allow the player to reach Ruins of Alph from the west side via Union Cave B1F.",
+      "requires": null,
+      "notes": "No event flag required — the passages are always open."
+    }
+  ],
+  "signs": [],
+  "notes": "Union Cave B1F is reached by stairs from 1F. It features a hidden connection to Ruins of Alph via two warp passages in the northwest (warp indices 1 and 2 of the floor). The southern section has a Surf-required water body; the staircase to B2F at (17,31) cannot be reached without Surf. A Strength boulder at (7,10) provides an optional shortcut when HM04 Strength is available. Four trainers guard the floor: Hikers Phillip (x9,y4) and Leonard (x16,y7) in the north, and Pokemaniacs Andrew (x5,y32) and Calvin (x17,y30) near the water. Items: TM39 Swift (x2,y16) and X Defend (x17,y23). Wild encounters on this floor are higher level than 1F — Zubat and Rattata dominate, with Wooper replacing the third Zubat slot at night. Tileset $09 confirmed in attributes.asm. Source: maps/UnionCaveB1F.asm."
+}

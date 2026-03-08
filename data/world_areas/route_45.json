@@ -1,0 +1,560 @@
+{
+  "area_id": "route_45",
+  "area_name": "Route 45",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_45",
+  "width_blocks": 10,
+  "height_blocks": 45,
+  "width_tiles": 20,
+  "height_tiles": 90,
+  "tileset": "johto_mountain",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "blackthorn_city",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_46",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 2,
+      "y": 5,
+      "target_area_id": "dark_cave_blackthorn_entrance",
+      "target_warp_id": 1,
+      "notes": "Dark Cave entrance on the west side near the top of the route"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "C": "cave_entrance",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "N": "npc_position",
+      "t": "fruit_tree"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "####################",
+      "##CR................",
+      "##CR.......P.P.P....",
+      "##..........PPPPPP.N",
+      "##..........PPPPPP..",
+      "##..........PPPPPP..",
+      "##..........PPPPPP..",
+      "##GGGGG.....LLLLLL..",
+      "##GGGGG....LLLLLLLL.",
+      "##GGGGG...LLLLLLLLLL",
+      "##GGGGG...LLLLLLLLLL",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG..N...PPPPPP.",
+      "##GGGGG......PPPPPP.",
+      "##GGGGG......PPPPPP.",
+      "##GGGGG......PPPPPP.",
+      "##LLLLLL.......!....",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG......!......",
+      "##GGGGG.............",
+      "##LLLLLL............",
+      "##LLLLLL....N.......",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##GGGGG.............",
+      "##GGGGG.....!.......",
+      "##GGGGG.............",
+      "##GGGGG..N..........",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##GGGGG...~~~~......",
+      "##GGGGG...~~~~......",
+      "##GGGGG...~~~~......",
+      "##GGGGG...~~~~......",
+      "##GGGGG...~~~~......",
+      "##.......N~~~~......",
+      "##.......~~~~~......",
+      "##........~~~~.N....",
+      "##........~~~~..!...",
+      "##........~~~~......",
+      "##........LLLL......",
+      "##........LLLL......",
+      "##........LLLL......",
+      "##........LLLL......",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##GGGGG.N.........N.",
+      "##GGGGG.............",
+      "##GGGGG.....!.......",
+      "##GGGGG......N......",
+      "##LLLLLL.N...PPPPPP.",
+      "##LLLLLL.....PPPPPP.",
+      "##LLLLLL.....PPPPPP.",
+      "##LLLLLL.....PPPPPP.",
+      "##GGGGG.............",
+      "##GGGGG.N..N........",
+      "##GGGGG.............",
+      "##GGGGG.....?.......",
+      "##GGGGG.............",
+      "##GGGGG.............",
+      "##LLLLLL.N..........",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##LLLLLL............",
+      "##..t...............",
+      "##..................",
+      "##..................",
+      "##..................",
+      "##..N...............",
+      "##..................",
+      "##........LLLLLLLL..",
+      "##........LLLLLLLL..",
+      "##........PPPPPPPP..",
+      "##........PPPPPPPP.."
+    ],
+    "notes": "Route 45 is a very long (20x90 tile) one-way mountain descent from Blackthorn City south to Route 46. The route is defined by repeated ledge sections (L) that force southward one-way travel. Tall grass patches are interspersed throughout. A small lake/pond appears in the center-south section (around rows 42-51) with fishing access for Dratini. The Dark Cave entrance (C) is at the northwest tip (2,5). Sign at (10,4). Trainers are scattered at various depths. Fruit tree at (16,82). Layout is schematic \u2014 actual pokecrystal map has irregular cliff edges and narrow passages."
+  },
+  "signs": [
+    {
+      "x": 10,
+      "y": 4,
+      "text": "ROUTE 45 \u2014 MOUNTAIN RD. AHEAD"
+    }
+  ],
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Hiker",
+      "name": "Erik",
+      "trainer_id": "HIKER_ERIK",
+      "x": 10,
+      "y": 16,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Machop",
+          "level": 24
+        },
+        {
+          "species": "Graveler",
+          "level": 27
+        },
+        {
+          "species": "Machop",
+          "level": 27
+        }
+      ],
+      "prize_money": 864,
+      "rematch": false
+    },
+    {
+      "class": "Cooltrainer M",
+      "name": "Ryan",
+      "trainer_id": "COOLTRAINERM_RYAN",
+      "x": 17,
+      "y": 18,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Pidgeot",
+          "level": 25,
+          "moves": [
+            "Sand Attack",
+            "Quick Attack",
+            "Whirlwind",
+            "Wing Attack"
+          ]
+        },
+        {
+          "species": "Electabuzz",
+          "level": 27,
+          "moves": [
+            "ThunderPunch",
+            "Light Screen",
+            "Swift",
+            "Screech"
+          ]
+        }
+      ],
+      "prize_money": 1296,
+      "rematch": false
+    },
+    {
+      "class": "Hiker",
+      "name": "Parry",
+      "trainer_id": "HIKER_PARRY3",
+      "x": 5,
+      "y": 28,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Onix",
+          "level": 29
+        }
+      ],
+      "prize_money": 928,
+      "rematch": true,
+      "rematch_note": "Pokegear rematch. Rewards Iron on final rematch (PARRY2: Piloswine Lv35, Dugtrio Lv35, Steelix Lv38)."
+    },
+    {
+      "class": "Cooltrainer F",
+      "name": "Kelly",
+      "trainer_id": "COOLTRAINERF_KELLY",
+      "x": 5,
+      "y": 36,
+      "facing": "spin_random_fast",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {
+          "species": "Marill",
+          "level": 27
+        },
+        {
+          "species": "Wartortle",
+          "level": 24
+        },
+        {
+          "species": "Wartortle",
+          "level": 24
+        }
+      ],
+      "prize_money": 1152,
+      "rematch": false
+    },
+    {
+      "class": "Blackbelt",
+      "name": "Kenji",
+      "trainer_id": "BLACKBELT_T_KENJI3",
+      "x": 11,
+      "y": 50,
+      "facing": "spin_random_fast",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Machoke",
+          "level": 28
+        }
+      ],
+      "prize_money": 672,
+      "rematch": true,
+      "rematch_note": "Pokegear rematch. Full rematch team (KENJI3): Onix Lv33, Machamp Lv38, Steelix Lv33, Hitmonlee Lv36 with moves. Gives PP Up on off-day rematch gift."
+    },
+    {
+      "class": "Hiker",
+      "name": "Timothy",
+      "trainer_id": "HIKER_TIMOTHY",
+      "x": 9,
+      "y": 65,
+      "facing": "left",
+      "movement": "standing",
+      "line_of_sight": 1,
+      "team": [
+        {
+          "species": "Diglett",
+          "level": 27,
+          "moves": [
+            "Magnitude",
+            "Dig",
+            "Sand Attack",
+            "Slash"
+          ]
+        },
+        {
+          "species": "Dugtrio",
+          "level": 27,
+          "moves": [
+            "Magnitude",
+            "Dig",
+            "Sand Attack",
+            "Slash"
+          ]
+        }
+      ],
+      "prize_money": 864,
+      "rematch": false
+    },
+    {
+      "class": "Hiker",
+      "name": "Michael",
+      "trainer_id": "HIKER_MICHAEL",
+      "x": 15,
+      "y": 65,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "team": [
+        {
+          "species": "Geodude",
+          "level": 25
+        },
+        {
+          "species": "Graveler",
+          "level": 25
+        },
+        {
+          "species": "Golem",
+          "level": 25
+        }
+      ],
+      "prize_money": 800,
+      "rematch": false
+    },
+    {
+      "class": "Camper",
+      "name": "Quentin",
+      "trainer_id": "CAMPER_QUENTIN",
+      "x": 4,
+      "y": 70,
+      "facing": "spin_random_slow",
+      "movement": "spin_random_slow",
+      "line_of_sight": 0,
+      "team": [
+        {
+          "species": "Fearow",
+          "level": 30
+        },
+        {
+          "species": "Primeape",
+          "level": 30
+        },
+        {
+          "species": "Tauros",
+          "level": 30
+        }
+      ],
+      "prize_money": 720,
+      "rematch": false,
+      "notes": "Uses face-player interaction (no line-of-sight), not a standard trainer trigger. Script checks EVENT_BEAT_CAMPER_QUENTIN. References Battle Tower."
+    }
+  ],
+  "items": [
+    {
+      "name": "Elixir",
+      "x": 6,
+      "y": 20,
+      "hidden": false,
+      "requires": null,
+      "notes": "Item ball on left path, upper section"
+    },
+    {
+      "name": "Max Potion",
+      "x": 7,
+      "y": 33,
+      "hidden": false,
+      "requires": null,
+      "notes": "Item ball on center-left path, mid section"
+    },
+    {
+      "name": "Nugget",
+      "x": 6,
+      "y": 51,
+      "hidden": false,
+      "requires": null,
+      "notes": "Item ball near pond area"
+    },
+    {
+      "name": "Revive",
+      "x": 5,
+      "y": 66,
+      "hidden": false,
+      "requires": null,
+      "notes": "Item ball, lower left section"
+    },
+    {
+      "name": "PP Up",
+      "x": 13,
+      "y": 80,
+      "hidden": true,
+      "requires": null,
+      "event_flag": "EVENT_ROUTE_45_HIDDEN_PP_UP",
+      "notes": "Hidden item near bottom of route, pond area"
+    },
+    {
+      "name": "Burnt Berry",
+      "x": 16,
+      "y": 82,
+      "hidden": false,
+      "requires": null,
+      "notes": "Fruit tree \u2014 daily respawn (FRUITTREE_ROUTE_45)"
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 25,
+      "morning": [
+        {
+          "version": "Gold",
+          "mons": [
+            {
+              "species": "Graveler",
+              "level_min": 23,
+              "level_max": 27,
+              "rate": 40
+            },
+            {
+              "species": "Geodude",
+              "level_min": 23,
+              "level_max": 23,
+              "rate": 30
+            },
+            {
+              "species": "Gligar",
+              "level_min": 24,
+              "level_max": 24,
+              "rate": 20
+            },
+            {
+              "species": "Teddiursa",
+              "level_min": 20,
+              "level_max": 20,
+              "rate": 10
+            }
+          ]
+        },
+        {
+          "version": "Silver",
+          "mons": [
+            {
+              "species": "Graveler",
+              "level_min": 23,
+              "level_max": 25,
+              "rate": 55
+            },
+            {
+              "species": "Geodude",
+              "level_min": 23,
+              "level_max": 23,
+              "rate": 30
+            },
+            {
+              "species": "Phanpy",
+              "level_min": 20,
+              "level_max": 20,
+              "rate": 10
+            },
+            {
+              "species": "Skarmory",
+              "level_min": 27,
+              "level_max": 27,
+              "rate": 5
+            }
+          ]
+        }
+      ],
+      "day": "same_as_morning",
+      "night": "same_as_morning",
+      "notes": "No time-of-day variation in Gold/Silver. Gold-exclusive: Gligar and Teddiursa. Silver-exclusive: Phanpy and Skarmory."
+    },
+    "water": {
+      "encounter_rate": 15,
+      "mons": [
+        {
+          "species": "Magikarp",
+          "level_min": 5,
+          "level_max": 24,
+          "rate": 100
+        }
+      ]
+    },
+    "fishing": {
+      "old_rod": [
+        {
+          "species": "Magikarp",
+          "level_min": 10,
+          "level_max": 10,
+          "rate": 100
+        }
+      ],
+      "good_rod": [
+        {
+          "species": "Magikarp",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 90
+        },
+        {
+          "species": "Dratini",
+          "level_min": 20,
+          "level_max": 20,
+          "rate": 10
+        }
+      ],
+      "super_rod": [
+        {
+          "species": "Magikarp",
+          "level_min": 40,
+          "level_max": 40,
+          "rate": 60
+        },
+        {
+          "species": "Dratini",
+          "level_min": 40,
+          "level_max": 40,
+          "rate": 30
+        },
+        {
+          "species": "Dragonair",
+          "level_min": 40,
+          "level_max": 40,
+          "rate": 10
+        }
+      ]
+    }
+  },
+  "events": [
+    {
+      "trigger": "enter_from_blackthorn",
+      "description": "Route 45 can only be entered from the north (Blackthorn City). Ledges throughout the route prevent northward travel. Players must use Fly or go through Blackthorn to repeat the route."
+    },
+    {
+      "trigger": "talk_blackbelt_kenji_post_battle",
+      "description": "Blackbelt Kenji asks for the player's phone number. Calls mid-day to offer PP Up gift when on break (EVENT_KENJI_ON_BREAK). Has morning/night dialogue variants."
+    },
+    {
+      "trigger": "talk_hiker_parry_post_battle",
+      "description": "Hiker Parry asks for the player's phone number. Pokegear rematch contact. Rewards Iron on final third rematch (PARRY2 team)."
+    },
+    {
+      "trigger": "dark_cave_blackthorn_entrance_warp",
+      "description": "The Dark Cave entrance at (2,5) leads to DARK_CAVE_BLACKTHORN_ENTRANCE \u2014 the western section of Dark Cave, which requires Flash and has Lv20-30 encounters including Wobbuffet and Ursaring (Gold)."
+    }
+  ],
+  "notes": "Route 45 is the longest route in Johto at 10x45 blocks (20x90 tiles). It descends south from Blackthorn City's southern gate through rugged mountain terrain to connect with Route 46. One-way ledges appear repeatedly throughout \u2014 players can only travel south. The route is notable for Dratini fishing (Good Rod 10%, Super Rod 30%) and Dragonair (Super Rod 10%) in the central pond. Dark Cave has its Blackthorn entrance here. The route splits into multiple narrow rock-ledge corridors at various points with tall grass in between. pokecrystal object constants: ROUTE45_POKEFAN_M1=HikerErik, ROUTE45_POKEFAN_M2=HikerMichael, ROUTE45_POKEFAN_M3=HikerParry, ROUTE45_POKEFAN_M4=HikerTimothy, ROUTE45_BLACK_BELT=BlackbeltKenji, ROUTE45_COOLTRAINER_M=CooltrainermRyan, ROUTE45_COOLTRAINER_F=CooltrainerfKelly, ROUTE45_YOUNGSTER=CamperQuentin. Note: despite using POKEFAN_M sprite constants for some hikers in the object_const_def, the actual trainer classes are HIKER."
+}

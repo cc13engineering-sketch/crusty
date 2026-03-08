@@ -1,0 +1,177 @@
+{
+  "area_id": "olivine_lighthouse_2f",
+  "area_name": "Olivine Lighthouse 2F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_2F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_LIGHTHOUSE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 3, "y": 11,
+      "target_area_id": "olivine_lighthouse_1f",
+      "target_warp_id": 3,
+      "note": "West staircase down to 1F"
+    },
+    {
+      "x": 5, "y": 3,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 2,
+      "note": "North-center staircase up to 3F"
+    },
+    {
+      "x": 16, "y": 13,
+      "target_area_id": "olivine_lighthouse_1f",
+      "target_warp_id": 4,
+      "note": "East staircase down to 1F (left tile)"
+    },
+    {
+      "x": 17, "y": 13,
+      "target_area_id": "olivine_lighthouse_1f",
+      "target_warp_id": 5,
+      "note": "East staircase down to 1F (right tile)"
+    },
+    {
+      "x": 16, "y": 11,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 4,
+      "note": "East staircase up to 3F (left tile)"
+    },
+    {
+      "x": 17, "y": 11,
+      "target_area_id": "olivine_lighthouse_3f",
+      "target_warp_id": 5,
+      "note": "East staircase up to 3F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "T": "trainer_position",
+      "P": "pillar",
+      "H": "hole/gap"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "####################",
+      "#...T..............#",
+      "#..................#",
+      "#....^.............#",
+      "#..................#",
+      "#..................#",
+      "#...............T..#",
+      "#..................#",
+      "#..................#",
+      "#..v...........^^..#",
+      "#..................#",
+      "#...............vv.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "####################"
+    ],
+    "notes": [
+      "Sailor Huey (trainer) at tile(9,3) facing right — line of sight 3, triggers battle",
+      "Gentleman Alfred (trainer) at tile(17,8) facing left — line of sight 3, triggers battle",
+      "West staircase at (3,11) leads down to 1F warp 3",
+      "Center staircase at (5,3) leads up to 3F warp 2",
+      "East staircases at (16,11)/(17,11) lead up to 3F warps 4-5",
+      "East staircases at (16,13)/(17,13) lead down to 1F warps 4-5",
+      "Floor has holes/gaps that prevent direct east-west traversal — must navigate around them",
+      "Sailor Huey is a phone-registered rematch trainer with 4 escalating teams"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Sailor",
+      "name": "Huey",
+      "trainer_const": "SAILOR_HUEY1",
+      "event_flag": "EVENT_BEAT_SAILOR_HUEY",
+      "sprite": "SPRITE_SAILOR",
+      "x": 9, "y": 3,
+      "facing": "right",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Poliwag", "level": 18},
+        {"species": "Poliwhirl", "level": 18}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 576,
+      "rematch": true,
+      "rematch_note": "Huey registers his phone number after battle. He calls for rematches with escalating teams: HUEY2 (Lv28 Poliwhirl x2) after Radio Tower cleared; HUEY3 (Lv34 Poliwhirl + Poliwrath) after Elite Four; HUEY4 (Lv38 Politoed + Poliwrath with moves) after Kanto restored. Beating HUEY4 can earn a Protein.",
+      "phone_id": "PHONE_SAILOR_HUEY",
+      "rematch_teams": [
+        {
+          "trigger": "EVENT_CLEARED_RADIO_TOWER",
+          "trainer_const": "SAILOR_HUEY2",
+          "team": [
+            {"species": "Poliwhirl", "level": 28},
+            {"species": "Poliwhirl", "level": 28}
+          ]
+        },
+        {
+          "trigger": "EVENT_BEAT_ELITE_FOUR",
+          "trainer_const": "SAILOR_HUEY3",
+          "team": [
+            {"species": "Poliwhirl", "level": 34},
+            {"species": "Poliwrath", "level": 34}
+          ]
+        },
+        {
+          "trigger": "EVENT_RESTORED_POWER_TO_KANTO",
+          "trainer_const": "SAILOR_HUEY4",
+          "team": [
+            {"species": "Politoed", "level": 38, "moves": ["Whirlpool", "Rain Dance", "Body Slam", "Perish Song"]},
+            {"species": "Poliwrath", "level": 38, "moves": ["Surf", "Strength", "Ice Punch", "Submission"]}
+          ],
+          "reward_item": "Protein",
+          "reward_event": "EVENT_GOT_PROTEIN_FROM_HUEY"
+        }
+      ],
+      "seen_text": "Men of the sea are always spoiling for a good fight!",
+      "beaten_text": "Urf! I lose!",
+      "after_text": "Men of the sea are always spoiling for a good fight!"
+    },
+    {
+      "class": "Gentleman",
+      "name": "Alfred",
+      "trainer_const": "GENTLEMAN_ALFRED",
+      "event_flag": "EVENT_BEAT_GENTLEMAN_ALFRED",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 17, "y": 8,
+      "facing": "left",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Noctowl", "level": 20}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 1600,
+      "rematch": false,
+      "seen_text": "Hm? This is no place for playing.",
+      "beaten_text": "Ah! I can see that you're serious.",
+      "after_text": "Up top is a Pokemon that keeps the LIGHTHOUSE lit. But I hear that it's sick now and can't be cured by ordinary medicine."
+    }
+  ],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [],
+  "events": [],
+  "notes": "Second floor of the Olivine Lighthouse. Has two trainers: Sailor Huey (registerable rematch trainer with 4 escalating teams keyed to story progress) and Gentleman Alfred (single battle, lore about the sick Pokemon on top). The floor has multiple staircases — west stairs at (3,11) go back to 1F, center stairs at (5,3) go to 3F, and east side has two pairs of stairs at (16-17,11) going to 3F and (16-17,13) going to 1F. The split east staircases reflect the floor's hole-heavy layout requiring navigation around gaps. Gentleman Alfred's after-battle dialogue is the first in-game hint about Amphy's sickness and the need for special medicine."
+}

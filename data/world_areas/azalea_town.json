@@ -1,0 +1,525 @@
+{
+  "area_id": "azalea_town",
+  "area_name": "Azalea Town",
+  "area_type": "town",
+  "pokecrystal_map_id": "AZALEA_TOWN",
+  "width_blocks": 20,
+  "height_blocks": 9,
+  "width_tiles": 40,
+  "height_tiles": 18,
+  "tileset": "johto",
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_34",
+      "offset": -18,
+      "requires": null,
+      "note": "Actually connects to Ilex Forest Azalea Gate; pokecrystal uses warp at (2,10)/(2,11)"
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_33",
+      "offset": 0,
+      "requires": null
+    }
+  ],
+  "warps": [
+    {
+      "x": 15, "y": 9,
+      "target_area_id": "azalea_pokecenter_1f",
+      "target_warp_id": 1,
+      "note": "Pokemon Center front door"
+    },
+    {
+      "x": 21, "y": 13,
+      "target_area_id": "charcoal_kiln",
+      "target_warp_id": 1,
+      "note": "Charcoal Kiln door"
+    },
+    {
+      "x": 21, "y": 5,
+      "target_area_id": "azalea_mart",
+      "target_warp_id": 2,
+      "note": "Poke Mart door"
+    },
+    {
+      "x": 9, "y": 5,
+      "target_area_id": "kurts_house",
+      "target_warp_id": 1,
+      "note": "Kurt's House door"
+    },
+    {
+      "x": 10, "y": 15,
+      "target_area_id": "azalea_gym",
+      "target_warp_id": 1,
+      "note": "Azalea Gym door"
+    },
+    {
+      "x": 31, "y": 7,
+      "target_area_id": "slowpoke_well_b1f",
+      "target_warp_id": 1,
+      "note": "Slowpoke Well entrance (northeast area)"
+    },
+    {
+      "x": 2, "y": 10,
+      "target_area_id": "ilex_forest_azalea_gate",
+      "target_warp_id": 3,
+      "note": "West exit to Ilex Forest gate (top tile)"
+    },
+    {
+      "x": 2, "y": 11,
+      "target_area_id": "ilex_forest_azalea_gate",
+      "target_warp_id": 4,
+      "note": "West exit to Ilex Forest gate (bottom tile)"
+    }
+  ],
+  "coord_events": [
+    {
+      "x": 5, "y": 10,
+      "scene": "SCENE_AZALEATOWN_RIVAL_BATTLE",
+      "script": "AzaleaTownRivalBattleScene1",
+      "note": "Rival Silver approaches from east (player walking west toward Ilex gate)"
+    },
+    {
+      "x": 5, "y": 11,
+      "scene": "SCENE_AZALEATOWN_RIVAL_BATTLE",
+      "script": "AzaleaTownRivalBattleScene2",
+      "note": "Alternate tile trigger for rival battle approach"
+    },
+    {
+      "x": 9, "y": 6,
+      "scene": "SCENE_AZALEATOWN_KURT_RETURNS_GS_BALL",
+      "script": "AzaleaTownCelebiScene",
+      "note": "Crystal-only: Kurt returns GS Ball, Ilex Forest becomes restless"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start",
+      "A": "apricorn_tree",
+      "U": "cave_stairwell"
+    },
+    "rows": [
+      "########################################",
+      "########TTTTTT...........................",
+      "########ATTTTTT..........................",
+      "########TTTTTT...........................",
+      "########........HHHHHH..HHHHHH..........",
+      "##E##...........DKKKKKD.DMMMMD..........",
+      "##E##...........HHHHHH..HHHHHH..........",
+      "HHHHHHN.........S.......S....?.STTTHHHH.",
+      "DKKKKKD.......S.KKKKKK..MMMMMM.N..DKKKD",
+      "HHHHHHHHN..N..S.KKKKKK..MMMMMM....HHHH.",
+      "E.....SHHHHHHH..........HHHHHH...NTTTHH",
+      "E.....HHHHHHHHH.........HHHHHH....TTTHH",
+      "......HHHHHHHHH.........DHHHHHD....TTTH",
+      "......HHHHHD...S........HHHHHHH....TTTH",
+      "......HHHHHH...........NHHHHHHN....TTTH",
+      "......DHHHHD.S..........HHHHHH.....TTTH",
+      "......HHHHHH............HHHHHH......TTT",
+      "########################################"
+    ],
+    "notes": [
+      "Row 0 (y=0): north border wall",
+      "Row 1-3 (y=1-3): northwest trees including White Apricorn tree at block(4,1) -> tile(8,2)",
+      "Rows 4-6 (y=4-6): northwest Kurt's House footprint at tile(8-13, 4-6), mart/center northeast",
+      "Row 7-9 (y=7-9): path through town, signs, Slowpoke Well entrance at tile(31,7)",
+      "Row 10-11 (y=10-11): west exit (E) tiles to Ilex Forest gate, rival battle trigger zone",
+      "Row 15-16 (y=15-16): Azalea Gym in southwest, Charcoal Kiln adjacent",
+      "Coordinate system: tile(x,y) directly from pokecrystal warp_event/object_event data"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "azalea_rocket_1",
+      "name": "Team Rocket Grunt",
+      "sprite": "SPRITE_AZALEA_ROCKET",
+      "x": 31, "y": 9,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET",
+      "visibility": "visible_before_slowpoke_well_cleared",
+      "dialogue_summary": "Pretends to be guarding the Well as a good Samaritan; actually blocking it for Rocket",
+      "dialogue_key": "AzaleaTownRocket1Text"
+    },
+    {
+      "id": "gramps",
+      "name": "Gramps (elderly man)",
+      "sprite": "SPRITE_GRAMPS",
+      "x": 21, "y": 9,
+      "facing": "varies",
+      "movement": "wander",
+      "movement_range": [1, 2],
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Laments Slowpoke disappearance before well cleared; glad they returned after",
+      "dialogue_key": "AzaleaTownGrampsScript"
+    },
+    {
+      "id": "teacher",
+      "name": "Teacher",
+      "sprite": "SPRITE_TEACHER",
+      "x": 15, "y": 13,
+      "facing": "varies",
+      "movement": "walk_up_down",
+      "movement_range": [0, 2],
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "dialogue_summary": "Mentions that many people come to get Kurt to make Balls",
+      "dialogue_key": "AzaleaTownTeacherText"
+    },
+    {
+      "id": "youngster",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 7, "y": 9,
+      "facing": "varies",
+      "movement": "walk_left_right",
+      "movement_range": [1, 0],
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Warns that trees block Ilex Forest; says the Charcoal Man's Pokemon knows Cut",
+      "dialogue_key": "AzaleaTownYoungsterText"
+    },
+    {
+      "id": "slowpoke_1",
+      "name": "Slowpoke",
+      "sprite": "SPRITE_SLOWPOKE",
+      "x": 8, "y": 17,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKES",
+      "visibility": "visible_after_slowpoke_well_cleared",
+      "dialogue_summary": "Slowpoke standing around, says \"Yawn?\"",
+      "dialogue_key": "AzaleaTownSlowpokeScript"
+    },
+    {
+      "id": "slowpoke_2",
+      "name": "Slowpoke",
+      "sprite": "SPRITE_SLOWPOKE",
+      "x": 18, "y": 9,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKES",
+      "visibility": "visible_after_slowpoke_well_cleared",
+      "dialogue_summary": "Slowpoke standing around, says \"Yawn?\"",
+      "dialogue_key": "AzaleaTownSlowpokeScript"
+    },
+    {
+      "id": "slowpoke_3",
+      "name": "Slowpoke",
+      "sprite": "SPRITE_SLOWPOKE",
+      "x": 29, "y": 9,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKES",
+      "visibility": "visible_after_slowpoke_well_cleared",
+      "dialogue_summary": "Slowpoke standing around, says \"Yawn?\"",
+      "dialogue_key": "AzaleaTownSlowpokeScript"
+    },
+    {
+      "id": "slowpoke_4",
+      "name": "Slowpoke",
+      "sprite": "SPRITE_SLOWPOKE",
+      "x": 15, "y": 15,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKES",
+      "visibility": "visible_after_slowpoke_well_cleared",
+      "dialogue_summary": "Slowpoke near the gym door, says \"Yawn?\"",
+      "dialogue_key": "AzaleaTownSlowpokeScript"
+    },
+    {
+      "id": "fruit_tree",
+      "name": "White Apricorn Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 8, "y": 2,
+      "facing": "still",
+      "movement": "still",
+      "script_type": "fruit_tree",
+      "fruit_tree_id": "FRUITTREE_AZALEA_TOWN",
+      "fruit": "White Apricorn",
+      "dialogue_summary": "Harvest White Apricorn once per day; Kurt converts to Fast Ball",
+      "dialogue_key": "WhiteApricornTree"
+    },
+    {
+      "id": "rival_silver",
+      "name": "Silver (Rival)",
+      "sprite": "SPRITE_AZALEA_ROCKET",
+      "x": 11, "y": 10,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "scene_trigger",
+      "event_flag": "EVENT_RIVAL_AZALEA_TOWN",
+      "visibility": "hidden_until_rival_battle_scene",
+      "note": "Appears only during SCENE_AZALEATOWN_RIVAL_BATTLE; object positioned at (11,10) initially then moved to (11,11) by script"
+    },
+    {
+      "id": "azalea_rocket_2",
+      "name": "Team Rocket Grunt",
+      "sprite": "SPRITE_AZALEA_ROCKET",
+      "x": 10, "y": 16,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_SLOWPOKE_WELL_ROCKETS",
+      "visibility": "visible_before_slowpoke_well_cleared",
+      "dialogue_summary": "Brags about Slowpoke Tail being tasty; guarding Gym area",
+      "dialogue_key": "AzaleaTownRocket2Script"
+    },
+    {
+      "id": "kurt_outside",
+      "name": "Kurt",
+      "sprite": "SPRITE_KURT_OUTSIDE",
+      "x": 6, "y": 5,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_AZALEA_TOWN_KURT",
+      "visibility": "visible_after_gs_ball_scene_crystal_only",
+      "dialogue_summary": "Crystal-only: Kurt outside house after returning GS Ball; asks player to investigate restless Ilex Forest",
+      "dialogue_key": "AzaleaTownKurtScript"
+    }
+  ],
+  "trainers": [
+    {
+      "class": "Rival1",
+      "name": "Silver (Rival)",
+      "battle_id": "RIVAL1_2",
+      "location_note": "Triggered by coord_event at tile(5,10) or tile(5,11) when SCENE_AZALEATOWN_RIVAL_BATTLE is active",
+      "trigger": "walk_into_coord",
+      "facing": "right",
+      "team_variants": [
+        {
+          "condition": "player_chose_cyndaquil",
+          "trainer_const": "RIVAL1_2_CHIKORITA",
+          "team": [
+            {"species": "Gastly", "level": 12},
+            {"species": "Zubat", "level": 14},
+            {"species": "Bayleef", "level": 16}
+          ]
+        },
+        {
+          "condition": "player_chose_chikorita",
+          "trainer_const": "RIVAL1_2_CYNDAQUIL",
+          "team": [
+            {"species": "Gastly", "level": 12},
+            {"species": "Zubat", "level": 14},
+            {"species": "Quilava", "level": 16}
+          ]
+        },
+        {
+          "condition": "player_chose_totodile",
+          "trainer_const": "RIVAL1_2_TOTODILE",
+          "team": [
+            {"species": "Gastly", "level": 12},
+            {"species": "Zubat", "level": 14},
+            {"species": "Croconaw", "level": 16}
+          ]
+        }
+      ],
+      "prize_money": 1600,
+      "rematch": false,
+      "event_flag": "EVENT_RIVAL_AZALEA_TOWN",
+      "pre_battle_dialogue": "AzaleaTownRivalBeforeText",
+      "post_battle_dialogue": "AzaleaTownRivalAfterText",
+      "loss_dialogue": "AzaleaTownRivalLossText",
+      "music": "MUSIC_RIVAL_ENCOUNTER"
+    }
+  ],
+  "items": [
+    {
+      "name": "Full Heal",
+      "x": 31, "y": 6,
+      "hidden": true,
+      "event_flag": "EVENT_AZALEA_TOWN_HIDDEN_FULL_HEAL",
+      "requires": null,
+      "note": "Hidden item north of Slowpoke Well entrance; bg_event BGEVENT_ITEM"
+    },
+    {
+      "name": "White Apricorn",
+      "x": 8, "y": 2,
+      "hidden": false,
+      "daily": true,
+      "requires": null,
+      "note": "Fruit tree; yields one White Apricorn per day via FRUITTREE_AZALEA_TOWN"
+    },
+    {
+      "name": "Lure Ball",
+      "x": null, "y": null,
+      "hidden": false,
+      "given_by": "Kurt",
+      "requires": "EVENT_CLEARED_SLOWPOKE_WELL",
+      "note": "Gift from Kurt upon returning to his house after clearing Slowpoke Well"
+    },
+    {
+      "name": "GS Ball",
+      "x": null, "y": null,
+      "hidden": false,
+      "given_by": "Kurt (Crystal-only)",
+      "requires": "EVENT_AZALEATOWN_KURT_RETURNS_GS_BALL scene trigger",
+      "note": "Crystal-only; Kurt returns GS Ball to player outside his house; triggers Ilex Forest Celebi quest"
+    }
+  ],
+  "signs": [
+    {
+      "x": 19, "y": 9,
+      "script": "AzaleaTownSign",
+      "text": "AZALEA TOWN — Where People and Pokemon Live in Happy Harmony"
+    },
+    {
+      "x": 10, "y": 9,
+      "script": "KurtsHouseSign",
+      "text": "KURT'S HOUSE"
+    },
+    {
+      "x": 14, "y": 15,
+      "script": "AzaleaGymSign",
+      "text": "AZALEA TOWN POKEMON GYM — LEADER: BUGSY — The Walking Bug Pokemon Encyclopedia"
+    },
+    {
+      "x": 29, "y": 7,
+      "script": "SlowpokeWellSign",
+      "text": "SLOWPOKE WELL — Also known as the RAINMAKER WELL. Locals believe a SLOWPOKE's yawn summons rain. Records show a SLOWPOKE's yawn ended a drought 400 years ago."
+    },
+    {
+      "x": 19, "y": 13,
+      "script": "CharcoalKilnSign",
+      "text": "CHARCOAL KILN"
+    },
+    {
+      "x": 16, "y": 9,
+      "script": "AzaleaTownPokecenterSign",
+      "text": "POKEMON CENTER"
+    },
+    {
+      "x": 22, "y": 5,
+      "script": "AzaleaTownMartSign",
+      "text": "POKE MART"
+    },
+    {
+      "x": 3, "y": 9,
+      "script": "AzaleaTownIlexForestSign",
+      "text": "ILEX FOREST — Enter through the gate."
+    }
+  ],
+  "mart_inventory": [
+    {"item": "Poke Ball", "price": 200},
+    {"item": "Potion", "price": 300},
+    {"item": "Super Potion", "price": 700},
+    {"item": "Escape Rope", "price": 550},
+    {"item": "Repel", "price": 350},
+    {"item": "Antidote", "price": 100},
+    {"item": "Paralyze Heal", "price": 200},
+    {"item": "Charcoal", "price": 9800},
+    {"item": "Flower Mail", "price": 50}
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": [],
+      "note": "No grass encounters in town proper"
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "note": "No water in Azalea Town proper"
+    },
+    "fishing": {
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    },
+    "headbutt_trees": {
+      "note": "Headbutt trees are in surrounding routes and Ilex Forest, not town",
+      "moderate_chance": [
+        {"species": "Caterpie", "level": 10},
+        {"species": "Butterfree", "level": 10},
+        {"species": "Weedle", "level": 10},
+        {"species": "Beedrill", "level": 10},
+        {"species": "Spearow", "level": 10},
+        {"species": "Ekans", "level": 10},
+        {"species": "Exeggcute", "level": 10},
+        {"species": "Aipom", "level": 10},
+        {"species": "Pineco", "level": 10}
+      ],
+      "low_chance": [
+        {"species": "Caterpie", "level": 10},
+        {"species": "Metapod", "level": 10},
+        {"species": "Butterfree", "level": 10},
+        {"species": "Weedle", "level": 10},
+        {"species": "Kakuna", "level": 10},
+        {"species": "Beedrill", "level": 10},
+        {"species": "Spearow", "level": 10},
+        {"species": "Exeggcute", "level": 10},
+        {"species": "Aipom", "level": 10},
+        {"species": "Heracross", "level": 10}
+      ]
+    }
+  },
+  "events": [
+    {
+      "id": "team_rocket_slowpoke_well",
+      "trigger": "first_arrival",
+      "description": "Town is in crisis. Team Rocket Grunts are stationed near Slowpoke Well and by the gym, cutting Slowpoke tails for sale. Well entrance is guarded by Rocket1 (EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET).",
+      "event_flag_controls": "EVENT_AZALEA_TOWN_SLOWPOKETAIL_ROCKET and EVENT_SLOWPOKE_WELL_ROCKETS"
+    },
+    {
+      "id": "slowpokes_absent",
+      "trigger": "before_clearing_slowpoke_well",
+      "description": "Slowpoke NPCs are invisible (EVENT_AZALEA_TOWN_SLOWPOKES not set). Gramps laments their disappearance. Town feels empty of the sacred Slowpoke."
+    },
+    {
+      "id": "slowpokes_return",
+      "trigger": "after_clearing_slowpoke_well",
+      "description": "EVENT_AZALEA_TOWN_SLOWPOKES set. Four Slowpoke NPCs appear around town. Gramps comments on their return. Rocket Grunts vanish.",
+      "event_flag": "EVENT_AZALEA_TOWN_SLOWPOKES"
+    },
+    {
+      "id": "rival_battle_at_ilex_gate",
+      "trigger": "after_defeating_bugsy",
+      "description": "SCENE_AZALEATOWN_RIVAL_BATTLE activates. Silver intercepts player at coordinates (5,10)/(5,11) near the west Ilex Forest gate. He questions player about Team Rocket, challenges to battle. After battle he vows to become stronger than Team Rocket. Scene resets to SCENE_AZALEATOWN_NOOP after.",
+      "event_flag": "EVENT_RIVAL_AZALEA_TOWN",
+      "note": "Script logic: default loads RIVAL1_2_TOTODILE unless player has Totodile (loads CHIKORITA variant) or Chikorita (loads CYNDAQUIL variant)"
+    },
+    {
+      "id": "gs_ball_kurt_scene",
+      "trigger": "crystal_only_after_gs_ball_obtained",
+      "description": "SCENE_AZALEATOWN_KURT_RETURNS_GS_BALL. Player exits Kurt's House, Kurt follows outside and returns GS Ball. Ilex Forest becomes restless (ENGINE_FOREST_IS_RESTLESS). Triggers Celebi event chain.",
+      "event_flag": "EVENT_FOREST_IS_RESTLESS"
+    }
+  ],
+  "notes": "Azalea Town is the 2nd gym city in Johto. The town's identity revolves around its spiritual relationship with Slowpoke. The Slowpoke Well (northeast, tile 31,7) is a sacred landmark believed to summon rain. Team Rocket's presence here (cutting Slowpoke tails for profit) is the player's first major Team Rocket confrontation. Kurt is the sole craftsman of Apricorn-based Poke Balls in the region — his house is northwest. The Charcoal Kiln provides the Farfetch'd that unlocks HM01 Cut via the Ilex Forest quest. The west exits at tile(2,10) and tile(2,11) lead to the Ilex Forest Azalea Gate, which requires Cut to traverse. Connection offset from prompt: WEST to Route34 at offset -18 refers to gate connection; EAST to Route33 at offset 0."
+}

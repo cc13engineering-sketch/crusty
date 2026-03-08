@@ -1,0 +1,174 @@
+{
+  "area_id": "players_house_2f",
+  "area_name": "Player's House (2F)",
+  "area_type": "building",
+  "pokecrystal_map_id": "PLAYERS_HOUSE_2F",
+  "width_blocks": 4,
+  "height_blocks": 3,
+  "width_tiles": 8,
+  "height_tiles": 6,
+  "tileset": "TILESET_PLAYERS_ROOM",
+  "music": "MUSIC_NEW_BARK_TOWN",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_NEW_BARK_TOWN",
+  "palette": "PALETTE_DAY",
+  "fish_group": "FISHGROUP_SHORE",
+  "parent_area_id": "players_house_1f",
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 7,
+      "y": 0,
+      "target_area_id": "players_house_1f",
+      "pokecrystal_target": "PLAYERS_HOUSE_1F",
+      "target_warp_id": 3,
+      "notes": "Stairs down to 1F"
+    }
+  ],
+
+  "spawn_point": {
+    "notes": "The game begins here. Initial spawn is PLAYERS_HOUSE_2F at tile (3,3).",
+    "x": 3,
+    "y": 3
+  },
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "P": "pc",
+      "R": "radio",
+      "B": "bookshelf",
+      "O": "poster",
+      "C": "game_console",
+      "D": "doll_small",
+      "G": "big_doll",
+      "v": "stairs_down",
+      "X": "blocked",
+      "@": "player_start_bed"
+    },
+    "notes": "8 columns x 6 rows. Warp at (7,0) is stairs down to 1F. BG events: PC at (2,1), Radio at (3,1), Bookshelf at (5,1) and (6,0) for poster. Object events: Console at (4,2), Doll1 at (4,4), Doll2 at (5,4), BigDoll at (0,1). Player spawn at (3,3). Tileset is TILESET_PLAYERS_ROOM which includes bedroom furniture tiles.",
+    "rows": [
+      "#######v",
+      "GP.RB.O#",
+      "####C###",
+      "...@....",
+      "....DD..",
+      "########"
+    ]
+  },
+
+  "npcs": [],
+
+  "bg_events": [
+    {
+      "x": 2,
+      "y": 1,
+      "type": "BGEVENT_UP",
+      "script": "PlayersHousePCScript",
+      "description": "PC. Accesses Pokecom PC system (Bill's PC for item and Pokemon storage). On game start allows player to warp to Elm's Lab intro."
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouseRadioScript",
+      "description": "Radio. Before getting a starter, plays Prof. Oak's Pokemon Talk intro (MUSIC_POKEMON_TALK jingle with DJ Mary). After getting starter, plays standard Radio1Script."
+    },
+    {
+      "x": 5,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouseBookshelfScript",
+      "description": "Bookshelf. Calls DifficultBookshelfScript (standard difficult reading text)."
+    },
+    {
+      "x": 6,
+      "y": 0,
+      "type": "BGEVENT_IFSET",
+      "script": "PlayersHousePosterScript",
+      "event_flag": "EVENT_PLAYERS_ROOM_POSTER",
+      "description": "Poster on wall (decoration). Only interactable if EVENT_PLAYERS_ROOM_POSTER is set (poster decoration purchased by Mom)."
+    }
+  ],
+
+  "object_events": [
+    {
+      "object_const": "PLAYERSHOUSE2F_CONSOLE",
+      "sprite": "SPRITE_CONSOLE",
+      "x": 4,
+      "y": 2,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script": "PlayersHouseGameConsoleScript",
+      "event_flag": "EVENT_PLAYERS_HOUSE_2F_CONSOLE",
+      "description": "Game console / N64 decoration. Interactable as decoration (DECODESC_CONSOLE). Purchased by Mom as bedroom decoration."
+    },
+    {
+      "object_const": "PLAYERSHOUSE2F_DOLL_1",
+      "sprite": "SPRITE_DOLL_1",
+      "x": 4,
+      "y": 4,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script": "PlayersHouseDoll1Script",
+      "event_flag": "EVENT_PLAYERS_HOUSE_2F_DOLL_1",
+      "description": "Small doll decoration (left). Interactable as DECODESC_LEFT_DOLL."
+    },
+    {
+      "object_const": "PLAYERSHOUSE2F_DOLL_2",
+      "sprite": "SPRITE_DOLL_2",
+      "x": 5,
+      "y": 4,
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script": "PlayersHouseDoll2Script",
+      "event_flag": "EVENT_PLAYERS_HOUSE_2F_DOLL_2",
+      "description": "Small doll decoration (right). Interactable as DECODESC_RIGHT_DOLL."
+    },
+    {
+      "object_const": "PLAYERSHOUSE2F_BIG_DOLL",
+      "sprite": "SPRITE_BIG_DOLL",
+      "x": 0,
+      "y": 1,
+      "movement": "SPRITEMOVEDATA_BIGDOLL",
+      "script": "PlayersHouseBigDollScript",
+      "event_flag": "EVENT_PLAYERS_HOUSE_2F_BIG_DOLL",
+      "description": "Large doll decoration (e.g. Clefairy doll). Interactable as DECODESC_BIG_DOLL."
+    }
+  ],
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_NEWMAP",
+      "script": "PlayersHouse2FInitializeRoomCallback",
+      "notes": "Runs ToggleDecorationsVisibility; initializes events on very first visit (jumpstd InitializeEventsScript)"
+    },
+    {
+      "type": "MAPCALLBACK_TILES",
+      "script": "PlayersHouse2FSetUpTileDecorationsCallback",
+      "notes": "Runs ToggleMaptileDecorations — updates tile graphics based on which decorations Mom has bought"
+    }
+  ],
+
+  "items": [],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "decorations": {
+    "description": "The 2F bedroom supports the full Gen II decoration system. Mom buys decorations using saved prize money. Decoration slots are: console (N64), left_doll, right_doll, big_doll, poster, and potentially bed/carpet variants. Each decoration is toggled via event flags and rendered by MAPCALLBACK_TILES.",
+    "slots": [
+      {"slot": "console", "event_flag": "EVENT_PLAYERS_HOUSE_2F_CONSOLE", "decodesc": "DECODESC_CONSOLE"},
+      {"slot": "left_doll", "event_flag": "EVENT_PLAYERS_HOUSE_2F_DOLL_1", "decodesc": "DECODESC_LEFT_DOLL"},
+      {"slot": "right_doll", "event_flag": "EVENT_PLAYERS_HOUSE_2F_DOLL_2", "decodesc": "DECODESC_RIGHT_DOLL"},
+      {"slot": "big_doll", "event_flag": "EVENT_PLAYERS_HOUSE_2F_BIG_DOLL", "decodesc": "DECODESC_BIG_DOLL"},
+      {"slot": "poster", "event_flag": "EVENT_PLAYERS_ROOM_POSTER", "decodesc": "DECODESC_POSTER"}
+    ]
+  },
+
+  "notes": "The player's bedroom — the game's true starting location. Player spawns here at (3,3) at the very beginning of the game. The radio triggers an intro Pokemon Talk broadcast before a starter is obtained (EVENT_LISTENED_TO_INITIAL_RADIO tracks this). The PC can warp player to Elm's Lab before events are underway. The room uses the decoration system: MAPCALLBACK_TILES rerenders floor and wall tiles as Mom purchases decorations. Tileset TILESET_PLAYERS_ROOM has unique bedroom-specific tiles not shared with 1F. Stairs at top-right corner (7,0) lead back to 1F."
+}

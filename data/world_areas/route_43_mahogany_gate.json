@@ -1,0 +1,91 @@
+{
+  "area_id": "route_43_mahogany_gate",
+  "area_name": "Route 43 Mahogany Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_43_MAHOGANY_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate",
+  "connections": [],
+  "warps": [
+    {
+      "x": 4, "y": 0,
+      "target_area_id": "route_43",
+      "target_warp_id": 1,
+      "notes": "North door tile, left — exits to Route 43 tile x=9 y=51"
+    },
+    {
+      "x": 5, "y": 0,
+      "target_area_id": "route_43",
+      "target_warp_id": 2,
+      "notes": "North door tile, right — exits to Route 43 tile x=10 y=51"
+    },
+    {
+      "x": 4, "y": 7,
+      "target_area_id": "mahogany_town",
+      "target_warp_id": 5,
+      "notes": "South door tile, left — exits to Mahogany Town warp 5"
+    },
+    {
+      "x": 5, "y": 7,
+      "target_area_id": "mahogany_town",
+      "target_warp_id": 5,
+      "notes": "South door tile, right — exits to Mahogany Town warp 5 (both south tiles use same target)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall",
+      "D": "door_tile",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "C": "counter",
+      "W": "window"
+    },
+    "rows": [
+      "####DDDDDD####",
+      "##############",
+      "##WWWWWWWWWW##",
+      "##WWWWWWWWWW##",
+      "N.............",
+      "##............",
+      "##############",
+      "####DDDDDDDD##"
+    ],
+    "notes": "Standard two-door gate building. North doors open to Route 43 (Lake of Rage direction). South doors open to Mahogany Town. One Officer NPC stands near the west side of the corridor at x=0 y=4. No counters or items. The building serves purely as a transition between Mahogany Town and Route 43."
+  },
+  "npcs": [
+    {
+      "id": "route43mahoganygate_officer",
+      "name": "Officer",
+      "x": 0, "y": 4,
+      "facing": "right",
+      "movement": "standing",
+      "script_type": "conditional_dialogue",
+      "dialogue_summary_pre_rockets_cleared": "Only people headed up to LAKE OF RAGE have been through here lately.",
+      "dialogue_summary_post_rockets_cleared": "Nobody goes up to LAKE OF RAGE these days.",
+      "condition": "EVENT_CLEARED_ROCKET_HIDEOUT",
+      "sprite": "SPRITE_OFFICER",
+      "palette": "PAL_NPC_RED",
+      "pokecrystal_const": "ROUTE43MAHOGANYGATE_OFFICER",
+      "notes": "Officer is always present (no event_flag condition on the object_event — set to -1). Dialogue changes based on EVENT_CLEARED_ROCKET_HIDEOUT. Before: comments on Lake of Rage traffic. After: notes that traffic has stopped since the Red Gyarados incident was resolved."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [
+    {
+      "trigger": "officer_dialogue_conditional",
+      "description": "The Officer NPC uses faceplayer + opentext + checkevent EVENT_CLEARED_ROCKET_HIDEOUT to determine which text to show. This is the only dynamic element in this building. No scene scripts, no callbacks, no items. The building is purely a transit gate."
+    }
+  ],
+  "notes": "The Route 43 Mahogany Gate is the southern gate of Route 43, bridging the route to Mahogany Town. It is simpler than the northern Route 43 Gate (which has the Rocket toll mechanic). The single Officer NPC provides contextual flavor dialogue about Lake of Rage traffic — a storytelling device reflecting the pre/post Rocket Hideout world state. Both south door warp tiles share the same Mahogany Town target warp (warp_id 5). Map attribute: no connections (0), tileset $00. This gate was not involved in the Rocket toll scheme; only the northern Route 43 Gate (ROUTE_43_GATE) ran the extortion script."
+}

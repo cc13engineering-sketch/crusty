@@ -1,0 +1,237 @@
+{
+  "area_id": "players_house_1f",
+  "area_name": "Player's House (1F)",
+  "area_type": "building",
+  "pokecrystal_map_id": "PLAYERS_HOUSE_1F",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "TILESET_PLAYERS_HOUSE",
+  "music": "MUSIC_NEW_BARK_TOWN",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_NEW_BARK_TOWN",
+  "palette": "PALETTE_DAY",
+  "fish_group": "FISHGROUP_SHORE",
+  "parent_area_id": "new_bark_town",
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 6,
+      "y": 7,
+      "target_area_id": "new_bark_town",
+      "pokecrystal_target": "NEW_BARK_TOWN",
+      "target_warp_id": 2,
+      "notes": "Left exit door tile (back to town)"
+    },
+    {
+      "warp_id": 1,
+      "x": 7,
+      "y": 7,
+      "target_area_id": "new_bark_town",
+      "pokecrystal_target": "NEW_BARK_TOWN",
+      "target_warp_id": 2,
+      "notes": "Right exit door tile (back to town)"
+    },
+    {
+      "warp_id": 2,
+      "x": 9,
+      "y": 0,
+      "target_area_id": "players_house_2f",
+      "pokecrystal_target": "PLAYERS_HOUSE_2F",
+      "target_warp_id": 1,
+      "notes": "Staircase up to 2F (player's bedroom)"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "H": "house_footprint",
+      "D": "door",
+      "P": "path",
+      "S": "sign",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "F": "furniture",
+      "K": "counter_kitchen",
+      "R": "refrigerator",
+      "V": "tv",
+      "Z": "sink"
+    },
+    "notes": "10 columns x 8 rows. Warp events at (6,7) and (7,7) go to New Bark Town. Warp at (9,0) goes to stairs up. NPC Mom at (7,4) facing left in main state; at (2,2) morning, (0,2) night. Neighbor (PokemanFan_F) at (4,4) facing right. BG events: stove (0,1), sink (1,1), fridge (2,1), TV (4,1). Coord events at (8,4) and (9,4) trigger MeetMom scene.",
+    "rows": [
+      "#########^",
+      "KZRF..V###",
+      "N.......##",
+      "##########",
+      "....N..N..",
+      "##########",
+      "##########",
+      "......DD.."
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_mom_main",
+      "object_const": "PLAYERSHOUSE1F_MOM1",
+      "name": "Mom",
+      "sprite": "SPRITE_MOM",
+      "x": 7,
+      "y": 4,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_PLAYERS_HOUSE_MOM_1",
+      "dialogue_summary": "Main Mom NPC. Greets player on first visit, gives Pokegear, sets clock/DST, explains phone. Later: saves prize money, buys decorations. Present when EVENT_PLAYERS_HOUSE_MOM_1 is set.",
+      "time_of_day": "any"
+    },
+    {
+      "id": "npc_mom_morning",
+      "object_const": "PLAYERSHOUSE1F_MOM2",
+      "name": "Mom (morning variant)",
+      "sprite": "SPRITE_MOM",
+      "x": 2,
+      "y": 2,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_PLAYERS_HOUSE_MOM_2",
+      "dialogue_summary": "Mom's morning position (near stove). Same Bank of Mom script.",
+      "time_of_day": "MORN"
+    },
+    {
+      "id": "npc_mom_day",
+      "object_const": "PLAYERSHOUSE1F_MOM2",
+      "name": "Mom (day variant)",
+      "sprite": "SPRITE_MOM",
+      "x": 7,
+      "y": 4,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_PLAYERS_HOUSE_MOM_2",
+      "dialogue_summary": "Mom's daytime position (near table). Same Bank of Mom script.",
+      "time_of_day": "DAY"
+    },
+    {
+      "id": "npc_mom_night",
+      "object_const": "PLAYERSHOUSE1F_MOM2",
+      "name": "Mom (night variant)",
+      "sprite": "SPRITE_MOM",
+      "x": 0,
+      "y": 2,
+      "facing": "up",
+      "movement": "SPRITEMOVEDATA_STANDING_UP",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_PLAYERS_HOUSE_MOM_2",
+      "dialogue_summary": "Mom's night position (near fridge). Same Bank of Mom script.",
+      "time_of_day": "NITE"
+    },
+    {
+      "id": "npc_neighbor",
+      "object_const": "PLAYERSHOUSE1F_POKEFAN_F",
+      "name": "Neighbor (visiting woman)",
+      "sprite": "SPRITE_POKEFAN_F",
+      "x": 4,
+      "y": 4,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_PLAYERS_HOUSE_1F_NEIGHBOR",
+      "dialogue_summary": "Visiting neighbor. Greets player by time of day (morning/day/night). Says her daughter wants to be Elm's assistant because she loves Pokemon."
+    }
+  ],
+
+  "bg_events": [
+    {
+      "x": 0,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouse1FStoveScript",
+      "description": "Stove. Text: 'Mom's specialty! CINNABAR VOLCANO BURGER!'"
+    },
+    {
+      "x": 1,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouse1FSinkScript",
+      "description": "Sink. Text: 'The sink is spotless. Mom likes it clean.'"
+    },
+    {
+      "x": 2,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouse1FFridgeScript",
+      "description": "Refrigerator. Text: 'FRESH WATER and tasty LEMONADE!'"
+    },
+    {
+      "x": 4,
+      "y": 1,
+      "type": "BGEVENT_READ",
+      "script": "PlayersHouse1FTVScript",
+      "description": "TV. Text: Movie about two boys riding a train."
+    }
+  ],
+
+  "coord_events": [
+    {
+      "x": 8,
+      "y": 4,
+      "scene": "SCENE_PLAYERSHOUSE1F_MEET_MOM",
+      "script": "MeetMomLeftScript",
+      "notes": "Player triggers Mom cutscene (approached from left)"
+    },
+    {
+      "x": 9,
+      "y": 4,
+      "scene": "SCENE_PLAYERSHOUSE1F_MEET_MOM",
+      "script": "MeetMomRightScript",
+      "notes": "Player triggers Mom cutscene (approached from right) — this is the main Pokegear-giving scene"
+    }
+  ],
+
+  "items": [
+    {
+      "name": "Pokegear",
+      "source": "npc_gift",
+      "giver": "Mom",
+      "hidden": false,
+      "requires": null,
+      "trigger": "coord_event_meet_mom_scene",
+      "flags_set": ["ENGINE_POKEGEAR", "ENGINE_PHONE_CARD"],
+      "notes": "Also registers Mom's phone number (PHONE_MOM) and initiates clock setup"
+    }
+  ],
+
+  "scene_scripts": [
+    {
+      "scene_id": "SCENE_PLAYERSHOUSE1F_MEET_MOM",
+      "description": "Initial scene on first 1F visit. Mom gives Pokegear, sets clock, explains phone."
+    },
+    {
+      "scene_id": "SCENE_PLAYERSHOUSE1F_NOOP",
+      "description": "Normal state after Pokegear given. Mom is in Bank of Mom mode."
+    }
+  ],
+
+  "mechanics": {
+    "bank_of_mom": {
+      "description": "After EVENT_GAVE_MYSTERY_EGG_TO_ELM and talking to Mom again (EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST), Mom begins saving a portion of prize money. She calls periodically and may spend the savings on bedroom decorations.",
+      "trigger_event": "EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST"
+    }
+  },
+
+  "notes": "The ground floor of the player's starting home. Contains kitchen appliances (stove, sink, fridge), a TV, and a staircase to the bedroom. The Mom NPC has three time-of-day position variants (morning near stove, day near table, night near fridge) plus a primary version used in the initial Pokegear cutscene. A neighbor lady also visits. The coord_event at (9,4) triggers the Pokegear handoff scene if SCENE_PLAYERSHOUSE1F_MEET_MOM is active. Door at bottom leads back to New Bark Town; stairs at top-right lead to 2F player bedroom."
+}

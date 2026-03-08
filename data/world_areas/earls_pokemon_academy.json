@@ -1,0 +1,240 @@
+{
+  "area_id": "earls_pokemon_academy",
+  "area_name": "Earl's Pokemon Academy",
+  "area_type": "building",
+  "pokecrystal_map_id": "EARLS_POKEMON_ACADEMY",
+  "width_blocks": 4,
+  "height_blocks": 8,
+  "width_tiles": 8,
+  "height_tiles": 16,
+  "tileset": "house",
+  "connections": [],
+  "warps": [
+    {
+      "id": 1,
+      "x": 3, "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 3,
+      "notes": "Exit (left tile of exit mat)"
+    },
+    {
+      "id": 2,
+      "x": 4, "y": 15,
+      "target_area_id": "violet_city",
+      "target_warp_id": 3,
+      "notes": "Exit (right tile of exit mat)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "B": "bookshelf",
+      "K": "blackboard",
+      "D": "desk/table",
+      "C": "chair",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "P": "pokedex_object",
+      "M": "machine/sticker_machine"
+    },
+    "layout_description": [
+      "4x8 block interior (8x16 tiles). Standard house tileset.",
+      "North wall (y=0): Bookshelves at x=0-1; Blackboard at x=3-4 (bg_events).",
+      "Earl stands near the north at x=4, y=2 (teacher's position, facing south/down).",
+      "Youngster1 at x=2, y=5 (taking notes, facing north/up).",
+      "Two Game Boy Kids at x=3-4, y=11 (link trade scene, facing each other).",
+      "Youngster2 at x=4, y=7 (discussing held items, facing north/up).",
+      "Pokedex (notebook) object at x=2, y=4 (readable, contains catching tutorial).",
+      "Exit mat at y=15 (x=3-4)."
+    ],
+    "rows": [
+      "BBKKKKBB",
+      "B.NNNN.B",
+      "B..NNE..B",
+      "........",
+      "..PN....",
+      "..N.....",
+      "........",
+      "....N...",
+      "........",
+      "........",
+      "........",
+      "...NN...",
+      "........",
+      "........",
+      "........",
+      "###EE###"
+    ],
+    "tile_notes": [
+      "y=0: Bookshelves at x=0-1 (BG events), Blackboard at x=3-4 (BG events).",
+      "y=2: Earl (SPRITE_FISHER) at x=4, facing down.",
+      "y=4-5: Youngster1 at x=2, y=5 facing up. Notebook (SPRITE_POKEDEX) at x=2, y=4.",
+      "y=7: Youngster2 at x=4, y=7 facing up.",
+      "y=11: GameboyKid1 at x=3 facing down; GameboyKid2 at x=4 facing left (link trade pair).",
+      "y=15: Exit mat (2 tiles wide, x=3-4)."
+    ]
+  },
+  "npcs": [
+    {
+      "id": "npc_earl",
+      "name": "Earl",
+      "sprite": "SPRITE_FISHER",
+      "x": 4, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_EARLS_ACADEMY_EARL",
+      "dialogue_summary": "Earl introduces himself and offers to teach. Interactive branching dialogue: asks if you want to know how to win (party order tip), then how to raise Pokemon well (EXP share tip). Closing: 'Oh! Smart student you are! Nothing more do I teach!' Spins in place before speaking.",
+      "dialogue_tree": {
+        "intro": "EARL, I am! Wonderful are Pokemon, yes! Teach you I will to be a better trainer! What you want to know? Want to be a winner is you?",
+        "branch_yes_winner": "Good! Teach you, I will! In battle, Pokemon top on list jump out first! Change order in list, make battle easy, maybe! More from me you want to hear?",
+        "branch_yes_raise": "Fine! Teach you, I will! If Pokemon come out in battle even briefly, some EXP Points it gets. At top of list put weak Pokemon. Switch in battle quick! This way, weak Pokemon strong become!",
+        "branch_no_more": "Oh! Smart student you are! Nothing more do I teach! Good to Pokemon you must be!",
+        "branch_no_teach_more": "So, want to know how to raise Pokemon well?"
+      },
+      "notes": "Event flag EVENT_EARLS_ACADEMY_EARL: Earl is only present inside after being escorted from outdoors (cleared by VioletCityEarlScript). If flag is set, Earl does not appear inside yet.",
+      "script_ref": "AcademyEarl"
+    },
+    {
+      "id": "npc_youngster1",
+      "name": "Youngster (Note-taker)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 2, "y": 5,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Taking notes of the teacher's lecture. Should copy the stuff on the blackboard too.",
+      "script_ref": "EarlsPokemonAcademyYoungster1Script"
+    },
+    {
+      "id": "npc_gameboy_kid1",
+      "name": "Game Boy Kid 1",
+      "sprite": "SPRITE_GAMEBOY_KID",
+      "x": 3, "y": 11,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Traded his best Pokemon to the guy beside him (link trade demo). After dialogue, faces down.",
+      "script_ref": "EarlsPokemonAcademyGameboyKid1Script"
+    },
+    {
+      "id": "npc_gameboy_kid2",
+      "name": "Game Boy Kid 2",
+      "sprite": "SPRITE_GAMEBOY_KID",
+      "x": 4, "y": 11,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "Received a Pokemon that is holding something (demonstrating held items). After dialogue, faces down.",
+      "script_ref": "EarlsPokemonAcademyGameboyKid2Script"
+    },
+    {
+      "id": "npc_youngster2",
+      "name": "Youngster (Held Items)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 4, "y": 7,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "event_flag": null,
+      "dialogue_summary": "A Pokemon holding a BERRY will heal itself in battle. Many other items can be held. It sure is tough taking notes...",
+      "script_ref": "EarlsPokemonAcademyYoungster2Script"
+    }
+  ],
+  "interactable_objects": [
+    {
+      "id": "blackboard",
+      "type": "bg_event",
+      "x1": 3, "y1": 0,
+      "x2": 4, "y2": 0,
+      "script_ref": "AcademyBlackboard",
+      "description": "Interactive blackboard with 2x3 menu listing status conditions. Player selects a topic to read full explanation.",
+      "menu_options": [
+        {
+          "label": "PSN (Poison)",
+          "text": "If poisoned, a Pokemon steadily loses HP. Poison lingers after the battle, and HP is lost as you walk. To cure it, use an ANTIDOTE."
+        },
+        {
+          "label": "PAR (Paralysis)",
+          "text": "Paralysis reduces speed and may prevent movement. It remains after battle, so use a PARLYZ HEAL."
+        },
+        {
+          "label": "SLP (Sleep)",
+          "text": "If asleep, your Pokemon can't make a move. A sleeping Pokemon doesn't wake up after battle. Wake it up with an AWAKENING."
+        },
+        {
+          "label": "BRN (Burn)",
+          "text": "A burn steadily consumes HP. It also reduces attack power. A burn lingers after battle. Use a BURN HEAL as the cure."
+        },
+        {
+          "label": "FRZ (Freeze)",
+          "text": "If your Pokemon is frozen, it can't do a thing. It remains frozen after battle. Thaw it out with an ICE HEAL."
+        },
+        {
+          "label": "QUIT",
+          "text": "(closes menu)"
+        }
+      ]
+    },
+    {
+      "id": "bookshelf_left",
+      "type": "bg_event",
+      "x": 0, "y": 1,
+      "script_ref": "AcademyBookshelf",
+      "description": "Bookshelf on left side of north wall. Uses standard DifficultBookshelfScript (too difficult to read)."
+    },
+    {
+      "id": "bookshelf_right",
+      "type": "bg_event",
+      "x": 1, "y": 1,
+      "script_ref": "AcademyBookshelf",
+      "description": "Bookshelf on right side of north wall (left column pair). Uses standard DifficultBookshelfScript."
+    },
+    {
+      "id": "notebook",
+      "type": "object_event",
+      "sprite": "SPRITE_POKEDEX",
+      "x": 2, "y": 4,
+      "movement": "still",
+      "script_ref": "AcademyNotebook",
+      "description": "A student's notebook on a desk. Multi-page tutorial on catching Pokemon. Interactive yes/no prompts to continue reading.",
+      "pages": [
+        "Catch Pokemon using Poke Balls. Up to six can be in your party. Keep reading?",
+        "Before throwing a Poke Ball, weaken the target first. A poisoned or burned Pokemon is easier to catch. Keep reading?",
+        "Some moves may cause confusion. Confusion may make a Pokemon attack itself. Leaving battle clears up any confusion. Keep reading?",
+        "People who catch and use Pokemon in battle are Pokemon trainers. They are expected to visit Pokemon Gyms and defeat other trainers. The next page is... Blank! Boy: E-he-he... I haven't written anymore..."
+      ]
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "notes": "Indoor area — no wild encounters."
+  },
+  "events": [
+    {
+      "id": "earl_arrival",
+      "trigger": "event_flag_cleared",
+      "event_flag": "EVENT_EARLS_ACADEMY_EARL",
+      "description": "Earl appears inside the Academy after VioletCityEarlScript (outdoors) clears EVENT_EARLS_ACADEMY_EARL. Before this, Earl is absent from the interior. The flag works inversely: the object_event for Earl inside uses EVENT_EARLS_ACADEMY_EARL, and it is cleared (not set) when Earl enters — meaning Earl is NOT visible until the outdoor script runs.",
+      "script_ref": "VioletCityEarlScript (outdoor) -> AcademyEarl (indoor)"
+    }
+  ],
+  "purpose_and_design": {
+    "purpose": "Tutorial building for new players. Teaches: (1) battle party order, (2) EXP sharing via switching, (3) all five status conditions via blackboard, (4) catching mechanics and held items via notebook and student NPCs.",
+    "design_notes": [
+      "Earl uses broken English throughout ('EARL, I am!', 'Wonderful are Pokemon') for characterization.",
+      "The link trade scene between the two Game Boy Kids demonstrates in-game trading and held items simultaneously.",
+      "The blackboard is a full interactive menu — unique among early-game buildings.",
+      "The notebook (SPRITE_POKEDEX object) is a readable multi-page document, not a character NPC.",
+      "AcademyStickerMachine is present in the map script but unreferenced by any object_event — it exists in code only (db '$': AcademyStickerMachineText — sticker machine that prints data). Not currently accessible in the shipped game.",
+      "Both bookshelf objects use DifficultBookshelfScript (generic 'too hard to read' response).",
+      "Exit warps return to Violet City warp_id 3 (warp_event 30, 17 in VioletCity.asm)."
+    ]
+  },
+  "notes": ".blk file size: 32 bytes = 4 blocks wide x 8 blocks tall = 8x16 tiles (confirmed). Map has no connections ($00 flags in attributes.asm). Earl's object_event uses EVENT_EARLS_ACADEMY_EARL flag — he only appears inside after the outdoor escort sequence completes."
+}

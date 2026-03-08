@@ -1,0 +1,112 @@
+{
+  "area_id": "dragons_den_1f",
+  "area_name": "Dragon's Den 1F",
+  "area_type": "cave",
+  "pokecrystal_map_id": "DRAGONS_DEN_1F",
+  "width_blocks": 5,
+  "height_blocks": 9,
+  "width_tiles": 10,
+  "height_tiles": 18,
+  "tileset": "TILESET_CAVE",
+  "music": "MUSIC_DRAGONS_DEN",
+  "palette": "PALETTE_NITE",
+  "fish_group": "FISHGROUP_DRATINI",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 3, "y": 5,
+      "target_area_id": "blackthorn_city",
+      "target_warp_id": 8,
+      "notes": "Exit south — returns to Blackthorn City (warp 8 in city, the Dragon's Den cave mouth tile)"
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 13,
+      "target_area_id": "dragons_den_1f",
+      "target_warp_id": 4,
+      "notes": "Internal loop warp — used for continuity, points back into this floor"
+    },
+    {
+      "warp_id": 3,
+      "x": 3, "y": 3,
+      "target_area_id": "dragons_den_1f",
+      "target_warp_id": 2,
+      "notes": "Internal warp — upward connection within 1F"
+    },
+    {
+      "warp_id": 4,
+      "x": 5, "y": 15,
+      "target_area_id": "dragons_den_b1f",
+      "target_warp_id": 1,
+      "notes": "Descend to B1F — the water entry point; player must use Surf to traverse B1F"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "~": "water",
+      "D": "door",
+      "C": "cave_entrance",
+      "v": "stairs_down",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "@": "player_start"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 18 tiles tall (5x9 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "1F is a narrow cave antechamber — essentially an entrance vestibule connecting Blackthorn City above to B1F below.",
+      "The Blackthorn City exit warp is at (3,5) — cave mouth leading out south to the city.",
+      "Stairway/water descent to B1F is at tile (5,15).",
+      "There are no wild encounters, NPCs, trainers, or items on this floor.",
+      "No HMs are required to traverse 1F itself; Surf is needed once in B1F.",
+      "The cave uses darkness / CAVE environment; Flash or internal lighting via PALETTE_NITE."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "##########",
+      "###E######",
+      "##........",
+      "##E.......",
+      "##........",
+      "##........",
+      "##........",
+      "##........",
+      "##........",
+      "##........",
+      "##........",
+      "#####E####",
+      "##########",
+      "#####v####",
+      "##########",
+      "##########"
+    ]
+  },
+  "npcs": [],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "morning": [],
+      "day": [],
+      "night": []
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": []
+    },
+    "fishing": {
+      "fish_group": "FISHGROUP_DRATINI",
+      "notes": "FISHGROUP_DRATINI assigned in maps.asm but no water tiles exist on 1F — fishing is not possible here.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [],
+  "notes": "Dragon's Den 1F is a compact cave vestibule with no wild encounters, NPCs, or items. It is accessed from Blackthorn City's northern shoreline (cave mouth at city warp_id 8). The floor's sole function is to funnel the player downward to B1F. Access is initially blocked by a Gramps NPC standing outside in Blackthorn City (EVENT_BLACKTHORN_CITY_GRAMPS_BLOCKS_DRAGONS_DEN) until Clair sends the player here after her gym battle. After the Dragon Shrine quiz and Clair granting the Rising Badge, the den is freely accessible."
+}

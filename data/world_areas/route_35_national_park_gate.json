@@ -1,0 +1,233 @@
+{
+  "area_id": "route_35_national_park_gate",
+  "area_name": "Route 35 / National Park Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_35_NATIONAL_PARK_GATE",
+  "width_blocks": 10,
+  "height_blocks": 4,
+  "width_tiles": 20,
+  "height_tiles": 8,
+  "tileset": "TILESET_GATE",
+  "music": "MUSIC_GATE",
+  "environment_type": "INDOOR",
+  "landmark": "LANDMARK_ROUTE_35",
+  "palette": "PALETTE_AUTO",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 3,
+      "y": 0,
+      "target_area_id": "national_park",
+      "pokecrystal_target": "NATIONAL_PARK",
+      "target_warp_id": 3,
+      "notes": "Left door tile on north side — exits to National Park warp 3"
+    },
+    {
+      "warp_id": 1,
+      "x": 4,
+      "y": 0,
+      "target_area_id": "national_park",
+      "pokecrystal_target": "NATIONAL_PARK",
+      "target_warp_id": 4,
+      "notes": "Right door tile on north side — exits to National Park warp 4"
+    },
+    {
+      "warp_id": 2,
+      "x": 3,
+      "y": 7,
+      "target_area_id": "route_35",
+      "pokecrystal_target": "ROUTE_35",
+      "target_warp_id": 3,
+      "notes": "Left door tile on south side — exits to Route 35 warp 3 (x=3,y=5)"
+    },
+    {
+      "warp_id": 3,
+      "x": 4,
+      "y": 7,
+      "target_area_id": "route_35",
+      "pokecrystal_target": "ROUTE_35",
+      "target_warp_id": 3,
+      "notes": "Right door tile on south side — also exits to Route 35 warp 3 (x=3,y=5)"
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 5,
+      "y": 0,
+      "bg_event_type": "BGEVENT_READ",
+      "text": "The Bug-Catching Contest is held on Tuesday, Thursday and Saturday. Not only do you earn a prize just for participating, you also get to keep the bug Pokemon you may have at the end of the contest."
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 8 rows. Gate building connecting Route 35 (south exits x=3-4,y=7) to National Park (north exits x=3-4,y=0). Contest Officer NPC at x=2,y=1 (visible on contest days: Tue/Thu/Sat). Youngster NPC at x=6,y=5 wanders (visible on non-contest days). Non-contest Officer at x=0,y=3 (visible on non-contest days). Sign at x=5,y=0 describes contest schedule. Contest mechanics fully scripted in Route35OfficerScriptContest.",
+    "rows": [
+      "EEEEDDSEEEEEEEEEEEEE",
+      "##N################",
+      "#..................#",
+      "N..................#",
+      "#..................#",
+      "#......N...........#",
+      "#..................#",
+      "EEEEDDEEEEEEEEEEEEEE"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_officer_contest",
+      "object_const": "ROUTE35NATIONALPARKGATE_OFFICER1",
+      "name": "Officer (Contest Day)",
+      "sprite": "SPRITE_OFFICER",
+      "x": 2,
+      "y": 1,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_35_NATIONAL_PARK_GATE_OFFICER_CONTEST_DAY",
+      "dialogue_summary": "On contest days (Tue/Thu/Sat): Reads day of week from VAR_WEEKDAY, asks if player wants to participate. Handles full contest entry flow: party management (only first Pokemon allowed), gives Park Balls, explains rules (20 min time limit), warps player into NATIONAL_PARK_BUG_CONTEST. If contest already done today (ENGINE_DAILY_BUG_CONTEST): 'Today's Contest is over.' If player leaving early (ENGINE_BUG_CONTEST_TIMER active): asks if they want to finish, then warps to results or sends back.",
+      "special_functions": [
+        "ContestDropOffMons (deposits excess party to contest helper)",
+        "CheckFirstMonIsEgg (validates party)",
+        "GiveParkBalls (gives contest Park Balls)",
+        "SelectRandomBugContestContestants",
+        "FadeOutToWhite",
+        "BugContestResultsWarpScript"
+      ],
+      "notes": "Only appears (via MAPCALLBACK_OBJECTS) when the day of week is Tuesday, Thursday, or Saturday. Uses VAR_WEEKDAY. Contest runs for BUG_CONTEST_MINUTES. Player uses BUG_CONTEST_BALLS Park Balls."
+    },
+    {
+      "id": "npc_youngster",
+      "object_const": "ROUTE35NATIONALPARKGATE_YOUNGSTER",
+      "name": "Youngster",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 6,
+      "y": 5,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "palette": "PAL_NPC_RED",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_35_NATIONAL_PARK_GATE_YOUNGSTER",
+      "dialogue_summary": "When is the next Bug-Catching Contest going to be? (Appears on non-contest days only.)"
+    },
+    {
+      "id": "npc_officer_no_contest",
+      "object_const": "ROUTE35NATIONALPARKGATE_OFFICER2",
+      "name": "Officer (Non-Contest Day)",
+      "sprite": "SPRITE_OFFICER",
+      "x": 0,
+      "y": 3,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_ROUTE_35_NATIONAL_PARK_GATE_OFFICER_NOT_CONTEST_DAY",
+      "dialogue_summary": "We hold Contests regularly in the PARK. You should give it a shot. (Appears on non-contest days: Sun/Mon/Wed/Fri.)"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [],
+
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0},
+    "water": {"encounter_rate": 0},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_NEWMAP",
+      "script": "Route35NationalParkGateCheckIfContestRunningCallback",
+      "notes": "On entering the map: checks ENGINE_BUG_CONTEST_TIMER flag. If contest is actively running, sets SCENE_ROUTE35NATIONALPARKGATE_LEAVE_CONTEST_EARLY (triggers leave-early dialog scene). Otherwise sets SCENE_ROUTE35NATIONALPARKGATE_NOOP."
+    },
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route35NationalParkGateCheckIfContestAvailableCallback",
+      "notes": "Checks VAR_WEEKDAY. If Tue/Thu/Sat: shows Officer1 (contest), hides Youngster and Officer2. Otherwise (and not mid-contest): hides Officer1, shows Youngster and Officer2."
+    }
+  ],
+
+  "scene_scripts": [
+    {
+      "scene_id": "SCENE_ROUTE35NATIONALPARKGATE_NOOP",
+      "script": "Route35NationalParkGateNoop1Scene",
+      "description": "No-op scene (end). Default state when not mid-contest."
+    },
+    {
+      "scene_id": "SCENE_ROUTE35NATIONALPARKGATE_UNUSED",
+      "script": "Route35NationalParkGateNoop2Scene",
+      "description": "Unused no-op scene variant (end)."
+    },
+    {
+      "scene_id": "SCENE_ROUTE35NATIONALPARKGATE_LEAVE_CONTEST_EARLY",
+      "script": "Route35NationalParkGateLeaveContestEarlyScene",
+      "description": "Triggered when player exits park mid-contest (ENGINE_BUG_CONTEST_TIMER active). Officer1 intercepts, asks if they want to finish. If yes: warps to contest results. If no: sends player back into the park."
+    }
+  ],
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_arrival_from_route_35",
+      "description": "Player arrives at National Park Gate from Route 35. On a non-contest day, Officer2 tells them about contests. On a contest day, Officer1 offers contest entry.",
+      "notes": "Gate is freely traversable in both directions outside contest hours."
+    },
+    {
+      "order": 2,
+      "trigger": "contest_entry_tuesday_thursday_saturday",
+      "description": "On contest days, Officer1 manages entry: reads day, confirms participation, handles party setup (only first Pokemon used — others held by Contest Helper), gives Park Balls (BUG_CONTEST_BALLS), explains 20-minute rules, warps player into National Park Bug Contest area.",
+      "flags_set": ["ENGINE_BUG_CONTEST_TIMER", "EVENT_LEFT_MONS_WITH_CONTEST_OFFICER (if applicable)"],
+      "items_given": ["Park Balls x{BUG_CONTEST_BALLS}"]
+    },
+    {
+      "order": 3,
+      "trigger": "leaving_contest_early",
+      "description": "If player re-enters the gate while ENGINE_BUG_CONTEST_TIMER is active (contest still running), Officer1 intercepts. Player can choose to forfeit (warp to results) or return to the park.",
+      "flags_checked": ["ENGINE_BUG_CONTEST_TIMER"]
+    },
+    {
+      "order": 4,
+      "trigger": "contest_complete_today",
+      "description": "Once ENGINE_DAILY_BUG_CONTEST is set for the day, Officer1 tells player the contest is over and to come back another time.",
+      "flags_checked": ["ENGINE_DAILY_BUG_CONTEST"]
+    }
+  ],
+
+  "notes": "The Route 35 / National Park Gate is a 10x4 block (20x8 tile) gate building forming the sole southern entrance to the National Park from Route 35. It is the hub for the Bug-Catching Contest system — the most complex scripted recurring event in Johto. Contest runs Tuesdays, Thursdays, and Saturdays. The gate has three NPC variants managed by MAPCALLBACK_OBJECTS: Officer1 (contest days), Officer2 + Youngster (non-contest days). The MAPCALLBACK_NEWMAP callback detects if the player is exiting mid-contest (ENGINE_BUG_CONTEST_TIMER) and triggers a scene that forces them to decide whether to forfeit. Party management is fully automated: on entry with more than one Pokemon, extras are deposited with the Contest Helper. Contest warps the player to NATIONAL_PARK_BUG_CONTEST at coordinates (10,47) via warpfacing UP. A sign on the north wall explains contest schedule and prizes."
+}

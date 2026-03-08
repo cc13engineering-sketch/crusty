@@ -1,0 +1,248 @@
+{
+  "area_id": "radio_tower_3f",
+  "area_name": "Goldenrod Radio Tower 3F",
+  "area_type": "building",
+  "pokecrystal_map_id": "RADIO_TOWER_3F",
+  "width_blocks": 9,
+  "height_blocks": 4,
+  "width_tiles": 18,
+  "height_tiles": 8,
+  "tileset": "radio_tower",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 0,
+      "target_area_id": "radio_tower_2f",
+      "target_warp_id": 1,
+      "note": "Stairs down to 2F (left side staircase)"
+    },
+    {
+      "x": 7, "y": 0,
+      "target_area_id": "radio_tower_4f",
+      "target_warp_id": 2,
+      "note": "Stairs up to 4F (left-center staircase, west side of Card Key shutter)"
+    },
+    {
+      "x": 17, "y": 0,
+      "target_area_id": "radio_tower_4f",
+      "target_warp_id": 4,
+      "note": "Stairs up to 4F (right side staircase, east of Card Key shutter)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "N": "npc_position",
+      "S": "sign/bg_event",
+      "K": "card_key_slot",
+      "X": "shutter_closed",
+      "v": "stairs_down",
+      "^": "stairs_up"
+    },
+    "rows": [
+      "v..S.....S.....^..^",
+      "##.................",
+      "##..........N..K..",
+      "##...N.....N.......",
+      "##....N..N..N......",
+      "##.................",
+      "##.................",
+      "##................."
+    ],
+    "notes": "Stairs down at (0,0). Personnel sign at (3,0). Pokemon Music sign at (9,0). Stairs up at (7,0) west of shutter. Stairs up at (17,0) east of shutter. Card Key slot bg_event at (14,2) face_up. Shutter blocks tile (14,2)/(14,4) until Card Key is used. Super Nerd at (7,4) faces up (post-Rocket). Gym Guide at (3,4) spins random fast. Cooltrainer F at (11,3) wanders 1x1. Rocket Grunt M7 at (5,1) faces right. Rocket Grunt M8 at (6,2) faces down. Rocket Grunt M9 at (16,6) faces up. Scientist Marc at (9,6) faces up."
+  },
+  "bg_events": [
+    {
+      "x": 3, "y": 0,
+      "type": "read",
+      "text": "3F PERSONNEL",
+      "label": "RadioTower3FPersonnelSign"
+    },
+    {
+      "x": 9, "y": 0,
+      "type": "read",
+      "text": "Pokemon MUSIC with Host DJ BEN",
+      "label": "RadioTower3FPokemonMusicSign"
+    },
+    {
+      "x": 14, "y": 2,
+      "type": "face_up",
+      "text": "It's the CARD KEY slot.",
+      "label": "CardKeySlotScript",
+      "note": "If player has CARD_KEY item: inserts it, sets EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER, plays SFX_ENTER_DOOR, changes blocks at (14,2) to open shutter ($2a) and (14,4) to floor ($01), refreshes map."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "super_nerd",
+      "name": "Super Nerd",
+      "sprite": "SPRITE_SUPER_NERD",
+      "x": 7, "y": 4,
+      "facing": "up",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "state": "post_rocket",
+      "event_flag": "EVENT_RADIO_TOWER_CIVILIANS_AFTER",
+      "dialogue_summary": "We have recordings of the cries of all Pokemon that have been found. We must have about 200 kinds."
+    },
+    {
+      "id": "gym_guide",
+      "name": "Gym Guide",
+      "sprite": "SPRITE_GYM_GUIDE",
+      "x": 3, "y": 4,
+      "facing": "down",
+      "movement": "spin_random_fast",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary_rockets": "To trainers, Pokemon are their beloved partners. It's terrible how TEAM ROCKET is trying to control Pokemon.",
+      "dialogue_summary_normal": "We run 24 hours a day to broadcast entertaining programs. I'll do my best to run around the clock too!"
+    },
+    {
+      "id": "cooltrainer_f",
+      "name": "Cooltrainer F",
+      "sprite": "SPRITE_COOLTRAINER_F",
+      "x": 11, "y": 3,
+      "facing": "down",
+      "movement": "wander",
+      "movement_range": "1x1",
+      "script_type": "dialogue",
+      "state": "both",
+      "event_flag": "always_present",
+      "dialogue_summary_pre_card_key": "The TEAM ROCKET boss has locked himself in. But the DIRECTOR can open it. He's up on the fifth floor. Please save him!",
+      "dialogue_summary_post_card_key": "Is the DIRECTOR safe?",
+      "dialogue_summary_post_cleared": "Thank you! You're my hero! This is a token of my appreciation. (gives TM Sunny Day — EVENT_GOT_SUNNY_DAY_FROM_RADIO_TOWER)",
+      "dialogue_summary_got_tm": "You were simply marvelous!",
+      "reward": "TM11 Sunny Day",
+      "reward_flag": "EVENT_GOT_SUNNY_DAY_FROM_RADIO_TOWER",
+      "reward_trigger": "EVENT_CLEARED_RADIO_TOWER"
+    }
+  ],
+  "trainers": [
+    {
+      "id": "rocket_grunt_m7",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_7",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 5, "y": 1,
+      "facing": "right",
+      "movement": "standing",
+      "line_of_sight": 2,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_7",
+      "team": [
+        {"species": "Koffing", "level": 23},
+        {"species": "Grimer", "level": 23},
+        {"species": "Zubat", "level": 23},
+        {"species": "Rattata", "level": 23}
+      ],
+      "seen_text": "I've been given strict orders. I'm to crush anyone who challenges TEAM ROCKET!",
+      "beaten_text": "What?!",
+      "after_battle_text": "I failed in my duties... I'll be docked pay for this..."
+    },
+    {
+      "id": "rocket_grunt_m8",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_8",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 6, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_8",
+      "team": [
+        {"species": "Weezing", "level": 26}
+      ],
+      "seen_text": "It feels great ordering Pokemon to commit crimes.",
+      "beaten_text": "You're kidding!",
+      "after_battle_text": "I feel lousy over losing! Darn it! I hate useless Pokemon!"
+    },
+    {
+      "id": "rocket_grunt_m9",
+      "class": "Grunt (Male)",
+      "trainer_id": "GRUNTM_9",
+      "name": "Grunt",
+      "sprite": "SPRITE_ROCKET",
+      "x": 16, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 3,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_ROCKET_GRUNTM_9",
+      "team": [
+        {"species": "Raticate", "level": 24},
+        {"species": "Koffing", "level": 26}
+      ],
+      "seen_text": "Why did the shutter open? Did you have something to do with this?",
+      "beaten_text": "I'm done for!",
+      "after_battle_text": "What?! You made it past our men in the UNDERGROUND? How could you?"
+    },
+    {
+      "id": "scientist_marc",
+      "class": "Scientist",
+      "trainer_id": "SCIENTIST_MARC",
+      "name": "Marc",
+      "sprite": "SPRITE_SCIENTIST",
+      "x": 9, "y": 6,
+      "facing": "up",
+      "movement": "standing",
+      "line_of_sight": 5,
+      "state": "rocket_takeover",
+      "event_flag": "EVENT_RADIO_TOWER_ROCKET_TAKEOVER",
+      "event_beaten": "EVENT_BEAT_SCIENTIST_MARC",
+      "team": [
+        {"species": "Magnemite", "level": 27},
+        {"species": "Magnemite", "level": 27},
+        {"species": "Magnemite", "level": 27}
+      ],
+      "seen_text": "An unknown child wandering here? Who are you?",
+      "beaten_text": "Tch! I took you too lightly!",
+      "after_battle_text": "Bwahahaha... I can transmit as strong a signal as I need from here."
+    }
+  ],
+  "items": [],
+  "wild_encounters": null,
+  "events": [
+    {
+      "trigger": "engine_rockets_in_radio_tower",
+      "description": "Three Rocket Grunts and Scientist Marc appear. Shutter at (14,2)-(14,4) blocks passage to east staircase. Civilian Super Nerd is hidden."
+    },
+    {
+      "trigger": "player_uses_card_key",
+      "description": "EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER set. Shutter tiles change: (14,2) -> $2a (open shutter), (14,4) -> $01 (floor). Map is refreshed. Grunt M9 east of shutter can now be reached. Cooltrainer F changes dialogue to ask if Director is safe."
+    },
+    {
+      "trigger": "event_cleared_radio_tower",
+      "description": "All Rockets gone. Cooltrainer F gives TM11 Sunny Day as reward. Gym Guide switches to normal broadcast dialogue. Super Nerd returns."
+    }
+  ],
+  "special_mechanics": {
+    "card_key_shutter": {
+      "shutter_tiles": [
+        {"x": 14, "y": 2, "closed_block": "default", "open_block": "$2a"},
+        {"x": 14, "y": 4, "closed_block": "default", "open_block": "$01"}
+      ],
+      "item_required": "CARD_KEY",
+      "event_flag": "EVENT_USED_THE_CARD_KEY_IN_THE_RADIO_TOWER",
+      "callback": "RadioTower3FCardKeyShutterCallback",
+      "description": "A locked shutter at x=14 divides the floor. Left staircase (x=7) is accessible without Card Key. Right staircase (x=17) requires Card Key insertion to open the shutter. Card Key is obtained from the Goldenrod Underground Warehouse (after defeating Executive Proton's forces).",
+      "note": "The Card Key is found in the Goldenrod Underground, not in the Radio Tower itself."
+    },
+    "tm_reward": {
+      "item": "TM11 Sunny Day",
+      "giver": "Cooltrainer F",
+      "trigger": "EVENT_CLEARED_RADIO_TOWER",
+      "flag": "EVENT_GOT_SUNNY_DAY_FROM_RADIO_TOWER",
+      "description": "After all Rockets are defeated, Cooltrainer F rewards player with TM11 Sunny Day. Powers up Fire-type moves for a while."
+    }
+  },
+  "floor_purpose": "Personnel — Card Key shutter puzzle, key gate to upper floors",
+  "notes": "3F is the Personnel floor and the key gating point of the Radio Tower. A locked shutter at column 14 splits the floor into two halves. During the Rocket takeover, four enemy trainers are spread across both sides. The left staircase (x=7) goes up to 4F and is accessible without the Card Key; the right staircase (x=17) requires using the Card Key in the slot at (14,2) to open the shutter. The Card Key itself is obtained in the Goldenrod Underground Warehouse after rescuing the Director. Scientist Marc has the longest line of sight (5 tiles) on this floor. After clearing the tower, the Cooltrainer F rewards the player with TM11 Sunny Day."
+}

@@ -1,0 +1,205 @@
+{
+  "area_id": "olivine_lighthouse_3f",
+  "area_name": "Olivine Lighthouse 3F",
+  "area_type": "building",
+  "pokecrystal_map_id": "OLIVINE_LIGHTHOUSE_3F",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_LIGHTHOUSE",
+  "music": "MUSIC_LIGHTHOUSE",
+  "connections": [],
+  "warps": [
+    {
+      "x": 13, "y": 3,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 1,
+      "note": "North-center staircase up to 4F"
+    },
+    {
+      "x": 5, "y": 3,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 2,
+      "note": "West staircase down to 2F"
+    },
+    {
+      "x": 9, "y": 5,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 4,
+      "note": "Center staircase up to 4F"
+    },
+    {
+      "x": 16, "y": 11,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 5,
+      "note": "East staircase down to 2F (left tile)"
+    },
+    {
+      "x": 17, "y": 11,
+      "target_area_id": "olivine_lighthouse_2f",
+      "target_warp_id": 6,
+      "note": "East staircase down to 2F (right tile)"
+    },
+    {
+      "x": 16, "y": 9,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 5,
+      "note": "East staircase up to 4F (left tile)"
+    },
+    {
+      "x": 17, "y": 9,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 6,
+      "note": "East staircase up to 4F (right tile)"
+    },
+    {
+      "x": 8, "y": 3,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 7,
+      "note": "Additional staircase up to 4F (left tile)"
+    },
+    {
+      "x": 9, "y": 3,
+      "target_area_id": "olivine_lighthouse_4f",
+      "target_warp_id": 8,
+      "note": "Additional staircase up to 4F (right tile)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "T": "trainer_position",
+      "!": "item_ball",
+      "P": "pillar",
+      "H": "hole/gap"
+    },
+    "rows": [
+      "####################",
+      "####################",
+      "#..................#",
+      "#...T..v..^^^..^...#",
+      "#..................#",
+      "#.........T........#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#...T...........^^.#",
+      "#..................#",
+      "#...............vv.#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "#..................#",
+      "####################"
+    ],
+    "notes": [
+      "Sailor Terrell (trainer) at tile(9,2) facing down — line of sight 1",
+      "Gentleman Preston (trainer) at tile(13,5) facing right — line of sight 4",
+      "Bird Keeper Theo (trainer) at tile(3,9) facing up — line of sight 3; uses SPRITE_YOUNGSTER per ASM",
+      "Ether item ball at tile(8,2) — EVENT_OLIVINE_LIGHTHOUSE_3F_ETHER",
+      "West staircase at (5,3) leads down to 2F",
+      "Center staircase at (9,5) leads up to 4F warp 4",
+      "Stairs at (8,3)/(9,3) lead up to 4F warps 7-8",
+      "Staircase at (13,3) leads up to 4F warp 1",
+      "East stairs at (16,9)/(17,9) lead up to 4F warps 5-6",
+      "East stairs at (16,11)/(17,11) lead down to 2F warps 5-6",
+      "This floor has many staircase connections due to multi-route hole navigation"
+    ]
+  },
+  "npcs": [],
+  "trainers": [
+    {
+      "class": "Sailor",
+      "name": "Terrell",
+      "trainer_const": "SAILOR_TERRELL",
+      "event_flag": "EVENT_BEAT_SAILOR_TERRELL",
+      "sprite": "SPRITE_SAILOR",
+      "x": 9, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 1,
+      "team": [
+        {"species": "Poliwhirl", "level": 20}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 640,
+      "rematch": false,
+      "seen_text": "Sailors are both kind and strong. How about you?",
+      "beaten_text": "You are both kind and strong…",
+      "after_text": "Every time I come back to OLIVINE, I visit the GYM. The GYM LEADER's Pokemon type has changed without me noticing."
+    },
+    {
+      "class": "Gentleman",
+      "name": "Preston",
+      "trainer_const": "GENTLEMAN_PRESTON",
+      "event_flag": "EVENT_BEAT_GENTLEMAN_PRESTON",
+      "sprite": "SPRITE_GENTLEMAN",
+      "x": 13, "y": 5,
+      "facing": "right",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 4,
+      "team": [
+        {"species": "Growlithe", "level": 18},
+        {"species": "Growlithe", "level": 18}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 1440,
+      "rematch": false,
+      "seen_text": "I travel the world to train my Pokemon. I wish to battle with you.",
+      "beaten_text": "…sigh… I must train some more…",
+      "after_text": "JASMINE used to use rock Pokemon like ONIX."
+    },
+    {
+      "class": "Bird Keeper",
+      "name": "Theo",
+      "trainer_const": "BIRD_KEEPER_THEO",
+      "event_flag": "EVENT_BEAT_BIRD_KEEPER_THEO",
+      "sprite": "SPRITE_YOUNGSTER",
+      "sprite_note": "Sprite is SPRITE_YOUNGSTER in ASM despite class being BIRD_KEEPER — a pokecrystal quirk",
+      "x": 3, "y": 9,
+      "facing": "up",
+      "movement": "standing",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Pidgey", "level": 17},
+        {"species": "Pidgey", "level": 15},
+        {"species": "Pidgey", "level": 19},
+        {"species": "Pidgey", "level": 15},
+        {"species": "Pidgey", "level": 15}
+      ],
+      "trainer_type": "TRAINERTYPE_NORMAL",
+      "prize_money": 608,
+      "rematch": false,
+      "seen_text": "Why are you here? Are you just going to gawk? I suggest that you leave!",
+      "beaten_text": "You really are concerned…",
+      "after_text": "How the heck do you go up? I want to visit the sick Pokemon, but I can't get there…"
+    }
+  ],
+  "items": [
+    {
+      "name": "Ether",
+      "x": 8, "y": 2,
+      "hidden": false,
+      "item_ball": true,
+      "event_flag": "EVENT_OLIVINE_LIGHTHOUSE_3F_ETHER",
+      "script": "OlivineLighthouse3FEther",
+      "requires": null
+    }
+  ],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "bg_events": [],
+  "events": [],
+  "notes": "Third floor of the Olivine Lighthouse. Has three trainers: Sailor Terrell (1 Poliwhirl Lv20), Gentleman Preston (2x Growlithe Lv18 — confirms Jasmine used to use Rock types), and Bird Keeper Theo (5x Pidgey, uses SPRITE_YOUNGSTER in ASM). One item ball: Ether. This floor has the most staircases of any floor — 9 warp events total — reflecting the complex hole-riddled layout requiring multiple paths to navigate between east and west sections. Theo's after-battle dialogue indicates the route to the upper floors is not obvious even for trainers on this floor. Preston's after-battle dialogue is key Jasmine lore: she used to use Rock types (Onix) before switching to Steel."
+}

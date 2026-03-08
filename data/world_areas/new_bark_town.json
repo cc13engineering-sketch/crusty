@@ -1,0 +1,450 @@
+{
+  "area_id": "new_bark_town",
+  "area_name": "New Bark Town",
+  "area_type": "town",
+  "pokecrystal_map_id": "NEW_BARK_TOWN",
+  "width_blocks": 10,
+  "height_blocks": 9,
+  "width_tiles": 20,
+  "height_tiles": 18,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_NEW_BARK_TOWN",
+  "environment_type": "TOWN",
+  "landmark": "LANDMARK_NEW_BARK_TOWN",
+  "palette": "PALETTE_AUTO",
+  "fish_group": "FISHGROUP_OCEAN",
+  "population": 11,
+  "slogan": "The Town Where Winds of a New Beginning Blow",
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [
+    {
+      "direction": "west",
+      "target_area_id": "route_29",
+      "pokecrystal_target": "ROUTE_29",
+      "offset": 0,
+      "requires": null
+    },
+    {
+      "direction": "east",
+      "target_area_id": "route_27",
+      "pokecrystal_target": "ROUTE_27",
+      "offset": 0,
+      "requires": "Surf",
+      "notes": "Late-game Kanto connection; water border along east edge"
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 6,
+      "y": 3,
+      "target_area_id": "elms_lab",
+      "pokecrystal_target": "ELMS_LAB",
+      "target_warp_id": 1,
+      "notes": "Front-left tile of Elm's Lab entrance"
+    },
+    {
+      "warp_id": 1,
+      "x": 13,
+      "y": 5,
+      "target_area_id": "players_house_1f",
+      "pokecrystal_target": "PLAYERS_HOUSE_1F",
+      "target_warp_id": 1,
+      "notes": "Front door of player's house"
+    },
+    {
+      "warp_id": 2,
+      "x": 3,
+      "y": 11,
+      "target_area_id": "players_neighbors_house",
+      "pokecrystal_target": "PLAYERS_NEIGHBORS_HOUSE",
+      "target_warp_id": 1,
+      "notes": "Front door of neighbor's house (Silver's house)"
+    },
+    {
+      "warp_id": 3,
+      "x": 11,
+      "y": 13,
+      "target_area_id": "elms_house",
+      "pokecrystal_target": "ELMS_HOUSE",
+      "target_warp_id": 1,
+      "notes": "Front door of Elm's house"
+    }
+  ],
+
+  "signs": [
+    {
+      "x": 8,
+      "y": 8,
+      "text": "NEW BARK TOWN — The Town Where the Winds of a New Beginning Blow"
+    },
+    {
+      "x": 11,
+      "y": 5,
+      "text": "<PLAYER>'s House"
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "text": "ELM POKEMON LAB"
+    },
+    {
+      "x": 9,
+      "y": 13,
+      "text": "ELM'S HOUSE"
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start"
+    },
+    "notes": "20 columns x 18 rows. X=0,Y=0 is top-left. West edge (x=0) connects to Route 29. East edge (x=19) is water / Route 27 border. Buildings use H for interior footprint tiles, D for door tiles. NPC coords from pokecrystal object_event data.",
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTT",
+      "TTHHHHHHT...TTTTTTTT",
+      "TTHDDDHHTS..TTTTTTTT",
+      "TTHHHHHHT...TTTTTTTT",
+      "PP.PP.PPPHHHHHHS.~~~",
+      "PP.PP.PPPHHHHHH..~~~",
+      "PP.PP.PPPHHDHHHP.~~~",
+      "PPNPP.PPPPPSPPP..~~~",
+      "PP.PP.PPPPPPPPPN.~~~",
+      "PP.PP.PPPPPPPPPP.~~~",
+      "PPPHHHHS.PPPPPP..~~~",
+      "PPPHHHHPPPPPPPP..~~~",
+      "PPPHDHHPPPHHHHSP.~~~",
+      "PPPHHHHPPPHHHHP..~~~",
+      "TTTTTTTTTTTTTTTT.~~~",
+      "TTTTTTTTTTTTTTT..~~~",
+      "TTTTTTTTTTTTTTTT~~~~"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_teacher",
+      "object_const": "NEWBARKTOWN_TEACHER",
+      "name": "Woman (Player's Neighbor / Teacher)",
+      "sprite": "SPRITE_TEACHER",
+      "x": 6,
+      "y": 8,
+      "facing": "spin_random_slow",
+      "movement": "SPRITEMOVEDATA_SPINRANDOM_SLOW",
+      "script_type": "dialogue",
+      "dialogue_summary": "Comments on Pokegear; warns player not to leave without a Pokemon; gives advice about calling Mom. Intercepts player if they try to reach Route 27 without a starter.",
+      "scene_flags": [
+        "EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST",
+        "EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+        "EVENT_GOT_A_POKEMON_FROM_ELM"
+      ]
+    },
+    {
+      "id": "npc_fisher",
+      "object_const": "NEWBARKTOWN_FISHER",
+      "name": "Fisher",
+      "sprite": "SPRITE_FISHER",
+      "x": 12,
+      "y": 9,
+      "facing": "up_down",
+      "movement": "SPRITEMOVEDATA_WALK_UP_DOWN",
+      "palette": "PAL_NPC_GREEN",
+      "script_type": "dialogue",
+      "dialogue_summary": "Says he heard Prof. Elm discovered some new Pokemon."
+    },
+    {
+      "id": "npc_rival",
+      "object_const": "NEWBARKTOWN_RIVAL",
+      "name": "Silver (Rival)",
+      "sprite": "SPRITE_RIVAL",
+      "x": 3,
+      "y": 2,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_RIVAL_NEW_BARK_TOWN",
+      "dialogue_summary": "Silver lurks outside Elm's Lab, staring at it. When spoken to he says 'What are you staring at?' and shoves the player away before slipping off. Only present before the lab theft event."
+    }
+  ],
+
+  "coord_events": [
+    {
+      "x": 1,
+      "y": 8,
+      "scene": "SCENE_NEWBARKTOWN_TEACHER_STOPS_YOU",
+      "script": "NewBarkTown_TeacherStopsYouScene1",
+      "notes": "Teacher intercepts player heading west at y=8 (first trigger tile)"
+    },
+    {
+      "x": 1,
+      "y": 9,
+      "scene": "SCENE_NEWBARKTOWN_TEACHER_STOPS_YOU",
+      "script": "NewBarkTown_TeacherStopsYouScene2",
+      "notes": "Teacher intercepts player heading west at y=9 (second trigger tile)"
+    }
+  ],
+
+  "trainers": [],
+
+  "items": [
+    {
+      "name": "Pokegear",
+      "source": "npc_gift",
+      "giver": "Mom",
+      "location": "players_house_1f",
+      "hidden": false,
+      "requires": null,
+      "trigger": "game_start_cutscene"
+    },
+    {
+      "name": "Potion",
+      "source": "npc_gift",
+      "giver": "Elm's Aide",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": "EVENT_GOT_A_POKEMON_FROM_ELM",
+      "trigger": "leaving_lab_after_choosing_starter"
+    },
+    {
+      "name": "Berry",
+      "source": "held_item",
+      "giver": "held by starter Pokemon",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": null,
+      "trigger": "received_with_starter"
+    },
+    {
+      "name": "Poke Ball x5",
+      "source": "npc_gift",
+      "giver": "Elm's Aide",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": "EVENT_GAVE_MYSTERY_EGG_TO_ELM",
+      "trigger": "returned_after_mr_pokemon_errand"
+    },
+    {
+      "name": "Everstone",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": "EVENT_SHOWED_TOGEPI_TO_ELM",
+      "trigger": "show_hatched_togepi_to_elm"
+    },
+    {
+      "name": "Master Ball",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": "ENGINE_RISINGBADGE",
+      "trigger": "all_8_johto_badges_obtained"
+    },
+    {
+      "name": "S.S. Ticket",
+      "source": "npc_gift",
+      "giver": "Professor Elm",
+      "location": "elms_lab",
+      "hidden": false,
+      "requires": "EVENT_BEAT_ELITE_FOUR",
+      "trigger": "after_hall_of_fame"
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 0,
+      "notes": "No tall grass in New Bark Town itself"
+    },
+    "water": {
+      "encounter_rate": 15,
+      "notes": "East edge — requires Surf (late game, Route 27 border water)",
+      "mons": [
+        {"species": "Tentacool", "level_min": 15, "level_max": 24, "rate": 90},
+        {"species": "Tentacruel", "level_min": 20, "level_max": 24, "rate": 10}
+      ]
+    },
+    "fishing": {
+      "old_rod": [
+        {"species": "Magikarp", "level": 10, "rate": 85},
+        {"species": "Tentacool", "level": 10, "rate": 15}
+      ],
+      "good_rod": [
+        {"species": "Magikarp", "level": 20, "rate": 35},
+        {"species": "Tentacool", "level": 20, "rate": 35},
+        {"species": "Shellder", "level": 20, "rate": 10},
+        {"species": "Chinchou", "level": 20, "rate": 20}
+      ],
+      "super_rod": [
+        {"species": "Chinchou", "level": 40, "rate": 40},
+        {"species": "Shellder", "level": 40, "rate": 30},
+        {"species": "Tentacruel", "level": 40, "rate": 20},
+        {"species": "Lanturn", "level": 40, "rate": 10}
+      ]
+    }
+  },
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "game_start",
+      "description": "Game begins in player's bedroom on the 2nd floor of Player's House.",
+      "flags_set": [],
+      "flags_cleared": ["EVENT_FIRST_TIME_BANKING_WITH_MOM"]
+    },
+    {
+      "order": 2,
+      "trigger": "descend_to_1f",
+      "description": "Mom intercepts player, gives Pokegear back from repair shop, registers her phone number, sets clock.",
+      "flags_set": ["ENGINE_POKEGEAR", "ENGINE_PHONE_CARD", "EVENT_PLAYERS_HOUSE_MOM_1"],
+      "flags_cleared": ["EVENT_PLAYERS_HOUSE_MOM_2"],
+      "items_given": ["Pokegear"]
+    },
+    {
+      "order": 3,
+      "trigger": "enter_elms_lab",
+      "description": "Elm walks player up to his position, explains research, gets email from Mr. Pokemon, gives player a starter Pokemon (Chikorita, Cyndaquil, or Totodile at Lv.5 holding Berry), registers his phone number.",
+      "flags_set": ["EVENT_GOT_A_POKEMON_FROM_ELM", "EVENT_RIVAL_CHERRYGROVE_CITY", "SCENE_ELMSLAB_AIDE_GIVES_POTION"],
+      "items_given": ["Starter Pokemon (Lv.5, holding Berry)", "Elm's phone number"]
+    },
+    {
+      "order": 4,
+      "trigger": "leave_elms_lab",
+      "description": "Elm's Aide stops player at the door and gives a Potion for the errand.",
+      "flags_set": ["SCENE_ELMSLAB_NOOP"],
+      "items_given": ["Potion x1"]
+    },
+    {
+      "order": 5,
+      "trigger": "first_exit_west",
+      "description": "Player departs for Route 29. Silver (rival) was visible near Elm's Lab window beforehand but is now gone.",
+      "notes": "Teacher NPC blocks player from heading east (Route 27) without a Pokemon"
+    },
+    {
+      "order": 6,
+      "trigger": "return_after_mr_pokemon",
+      "description": "Player returns to find lab was robbed. Officer Jenny present. Player names the rival. Elm receives Mystery Egg and Pokedex from Oak's endorsement. Aide gives 5 Poke Balls.",
+      "flags_set": ["EVENT_GAVE_MYSTERY_EGG_TO_ELM", "ENGINE_MOBILE_SYSTEM"],
+      "items_given": ["Pokedex (from Oak at Mr. Pokemon's house)", "Poke Ball x5"]
+    },
+    {
+      "order": 7,
+      "trigger": "return_with_togepi",
+      "description": "Show hatched Togepi or Togetic to Elm. He gives Everstone.",
+      "flags_set": ["EVENT_SHOWED_TOGEPI_TO_ELM", "EVENT_GOT_EVERSTONE_FROM_ELM"],
+      "items_given": ["Everstone"]
+    },
+    {
+      "order": 8,
+      "trigger": "return_with_8_badges",
+      "description": "Elm gives Master Ball as thanks for research contribution.",
+      "flags_set": ["EVENT_GOT_MASTER_BALL_FROM_ELM"],
+      "items_given": ["Master Ball"]
+    },
+    {
+      "order": 9,
+      "trigger": "post_elite_four",
+      "description": "Elm gives S.S. Ticket to sail to Kanto via Olivine City.",
+      "flags_set": ["EVENT_GOT_SS_TICKET_FROM_ELM"],
+      "items_given": ["S.S. Ticket"]
+    }
+  ],
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_NEWMAP",
+      "script": "NewBarkTownFlypointCallback",
+      "notes": "Sets ENGINE_FLYPOINT_NEW_BARK flag and clears EVENT_FIRST_TIME_BANKING_WITH_MOM on every visit"
+    }
+  ],
+
+  "buildings": [
+    {
+      "name": "Elm's Pokemon Lab",
+      "area_id": "elms_lab",
+      "pokecrystal_map": "ELMS_LAB",
+      "warp_tile_x": 6,
+      "warp_tile_y": 3,
+      "sign_tile_x": 3,
+      "sign_tile_y": 3,
+      "sign_text": "ELM POKEMON LAB",
+      "width_blocks": 5,
+      "height_blocks": 6
+    },
+    {
+      "name": "Player's House",
+      "area_id": "players_house_1f",
+      "pokecrystal_map": "PLAYERS_HOUSE_1F",
+      "warp_tile_x": 13,
+      "warp_tile_y": 5,
+      "sign_tile_x": 11,
+      "sign_tile_y": 5,
+      "sign_text": "<PLAYER>'s House",
+      "width_blocks": 5,
+      "height_blocks": 4,
+      "floors": 2
+    },
+    {
+      "name": "Player's Neighbor's House (Silver's House)",
+      "area_id": "players_neighbors_house",
+      "pokecrystal_map": "PLAYERS_NEIGHBORS_HOUSE",
+      "warp_tile_x": 3,
+      "warp_tile_y": 11,
+      "width_blocks": 4,
+      "height_blocks": 4
+    },
+    {
+      "name": "Elm's House",
+      "area_id": "elms_house",
+      "pokecrystal_map": "ELMS_HOUSE",
+      "warp_tile_x": 11,
+      "warp_tile_y": 13,
+      "sign_tile_x": 9,
+      "sign_tile_y": 13,
+      "sign_text": "ELM'S HOUSE",
+      "width_blocks": 4,
+      "height_blocks": 4
+    }
+  ],
+
+  "spawn_point": {
+    "notes": "Default spawn is PLAYERS_HOUSE_2F at tile (3,3). Town re-spawn after white-out uses NEW_BARK_TOWN at (13,6).",
+    "town_spawn_x": 13,
+    "town_spawn_y": 6,
+    "initial_spawn_map": "PLAYERS_HOUSE_2F",
+    "initial_spawn_x": 3,
+    "initial_spawn_y": 3
+  },
+
+  "notes": "New Bark Town is the starting town of Pokemon Gold, Silver, and Crystal. It has no Pokemon Center or Poke Mart. The only healing available is the machine inside Elm's Lab (usable after receiving a starter). The east border is ocean water leading to Route 27 (Kanto), which requires Surf and is only accessible late-game. The town map tileset is TILESET_JOHTO. Silver (rival) appears outside Elm's Lab window early in the game (event flag EVENT_RIVAL_NEW_BARK_TOWN) and is scripted to shove the player away if spoken to before the lab theft. The teacher NPC runs a blocking script at coord events x=1,y=8 and x=1,y=9 to prevent the player from leaving west before obtaining a starter. Fish group is FISHGROUP_OCEAN for the eastern water tiles."
+}

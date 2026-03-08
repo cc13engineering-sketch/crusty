@@ -1,0 +1,505 @@
+{
+  "area_id": "route_36",
+  "area_name": "Route 36",
+  "area_type": "route",
+  "pokecrystal_map_id": "ROUTE_36",
+  "width_blocks": 30,
+  "height_blocks": 9,
+  "width_tiles": 60,
+  "height_tiles": 18,
+  "tileset": "TILESET_JOHTO",
+  "music": "MUSIC_ROUTE_36",
+  "environment_type": "OUTDOOR",
+  "landmark": "LANDMARK_ROUTE_36",
+  "palette": "PALETTE_AUTO",
+  "fish_group": null,
+  "has_pokecenter": false,
+  "has_pokemart": false,
+
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_37",
+      "pokecrystal_target": "ROUTE_37",
+      "offset": -10,
+      "requires": null,
+      "notes": "North connection offset -10 (western half of route leads to Route 37)"
+    },
+    {
+      "direction": "south",
+      "target_area_id": "violet_city",
+      "pokecrystal_target": "VIOLET_CITY",
+      "offset": 0,
+      "requires": null,
+      "notes": "South connects back to Violet City"
+    },
+    {
+      "direction": "west",
+      "target_area_id": "national_park",
+      "pokecrystal_target": "NATIONAL_PARK",
+      "offset": 0,
+      "requires": null,
+      "notes": "Western gate building leads to National Park via Route 36 National Park Gate"
+    },
+    {
+      "direction": "east",
+      "target_area_id": "ruins_of_alph_outside",
+      "pokecrystal_target": "RUINS_OF_ALPH_OUTSIDE",
+      "offset": 0,
+      "requires": null,
+      "notes": "Eastern path leads toward Ruins of Alph via Route 36 Ruins of Alph Gate"
+    }
+  ],
+
+  "warps": [
+    {
+      "warp_id": 0,
+      "x": 18,
+      "y": 8,
+      "target_area_id": "route_36_national_park_gate",
+      "pokecrystal_target": "ROUTE_36_NATIONAL_PARK_GATE",
+      "target_warp_id": 3,
+      "notes": "Left tile of National Park Gate entrance (west side)"
+    },
+    {
+      "warp_id": 1,
+      "x": 18,
+      "y": 9,
+      "target_area_id": "route_36_national_park_gate",
+      "pokecrystal_target": "ROUTE_36_NATIONAL_PARK_GATE",
+      "target_warp_id": 4,
+      "notes": "Right tile of National Park Gate entrance (west side)"
+    },
+    {
+      "warp_id": 2,
+      "x": 47,
+      "y": 13,
+      "target_area_id": "route_36_ruins_of_alph_gate",
+      "pokecrystal_target": "ROUTE_36_RUINS_OF_ALPH_GATE",
+      "target_warp_id": 1,
+      "notes": "Left tile of Ruins of Alph Gate entrance (south-east area)"
+    },
+    {
+      "warp_id": 3,
+      "x": 48,
+      "y": 13,
+      "target_area_id": "route_36_ruins_of_alph_gate",
+      "pokecrystal_target": "ROUTE_36_RUINS_OF_ALPH_GATE",
+      "target_warp_id": 2,
+      "notes": "Right tile of Ruins of Alph Gate entrance (south-east area)"
+    }
+  ],
+
+  "signs": [
+    {
+      "bg_event_id": 0,
+      "x": 29,
+      "y": 1,
+      "script": "Route36TrainerTips2",
+      "text": "TRAINER TIPS: Use DIG to return to the entrance of any place. It is convenient for exploring caves and other landmarks."
+    },
+    {
+      "bg_event_id": 1,
+      "x": 45,
+      "y": 11,
+      "script": "RuinsOfAlphNorthSign",
+      "text": "RUINS OF ALPH — NORTH ENTRANCE"
+    },
+    {
+      "bg_event_id": 2,
+      "x": 55,
+      "y": 7,
+      "script": "Route36Sign",
+      "text": "ROUTE 36"
+    },
+    {
+      "bg_event_id": 3,
+      "x": 21,
+      "y": 7,
+      "script": "Route36TrainerTips1",
+      "text": "TRAINER TIPS: Pokemon stats vary — even within the same species. Their stats may be similar at first. However, differences will become pronounced as the Pokemon grow."
+    }
+  ],
+
+  "coord_events": [
+    {
+      "x": 20,
+      "y": 7,
+      "scene": "SCENE_ROUTE36_SUICUNE",
+      "script": "Route36SuicuneScript",
+      "notes": "Suicune encounter trigger tile (left). Suicune flees south-east, sets Cianwood Suicune scene. Only fires on Crystal when Suicune event is active (EVENT_SAW_SUICUNE_ON_ROUTE_36)."
+    },
+    {
+      "x": 22,
+      "y": 7,
+      "scene": "SCENE_ROUTE36_SUICUNE",
+      "script": "Route36SuicuneScript",
+      "notes": "Suicune encounter trigger tile (right). Duplicate trigger column for wider detection."
+    }
+  ],
+
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall_obstacle",
+      "T": "tree",
+      "~": "water",
+      "G": "tall_grass",
+      "H": "house_footprint",
+      "D": "door",
+      "F": "fence",
+      "L": "ledge_south",
+      "P": "path",
+      "S": "sign",
+      "R": "rock",
+      "B": "bridge",
+      "C": "cave_entrance",
+      "W": "whirlpool",
+      "I": "ice",
+      "M": "mart",
+      "K": "pokecenter",
+      "^": "stairs_up",
+      "v": "stairs_down",
+      "X": "blocked_sudowoodo",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "@": "player_start",
+      "A": "apricorn_tree",
+      "O": "sudowoodo_blocker"
+    },
+    "notes": "60 columns x 18 rows. X=0,Y=0 top-left. West side (x=0..19) connects to National Park Gate building at x=18,y=8-9. East side connects to Violet City (south) and Ruins of Alph Gate at x=47-48,y=13. Sudowoodo occupies tile x=35,y=9 and blocks north-south passage until watered with SquirtBottle. Tall grass occupies a broad central strip. NPC coordinates derived from pokecrystal object_event data (tile coordinates). Route is unusually wide: 30 blocks (60 tiles). Sections: National Park gate area (west), Sudowoodo block (center-west), open area with trainers (center), Ruins of Alph connector (east).",
+    "rows": [
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTS.TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT?ATTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT.TTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTT.SN.....O..GGGGGGGGGGG.TTTTTTTTTTTTTTTT",
+      "HHHHHHHHHE.TTTTTTTTGGGGGGGGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTT",
+      "HHHHHHHHHE..TTTTTTGGGGGGGGGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTGGGGGGGGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTGGGGGGNGGGGGGGGGGGGSTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTGGGGGGGGGGGGGGGGGGGTTTTHHHHHHHE.TTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTGGGGGGGGGGGGGGGGGGTTTTTHHHHHHHD.TTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTT..TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT",
+      "TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT"
+    ]
+  },
+
+  "npcs": [
+    {
+      "id": "npc_floria",
+      "object_const": "ROUTE36_FLORIA",
+      "name": "Floria",
+      "sprite": "SPRITE_LASS",
+      "x": 33,
+      "y": 12,
+      "facing": "down",
+      "movement": "SPRITEMOVEDATA_STANDING_DOWN",
+      "palette": "PAL_NPC_BLUE",
+      "script_type": "dialogue",
+      "event_flag": "EVENT_FLORIA_AT_SUDOWOODO",
+      "dialogue_summary": "Floria from the Goldenrod Flower Shop. On first meeting, she tells the player that watering the weird tree (Sudowoodo) might reveal it as a Pokemon, then departs to borrow her sister's water bottle (triggering SquirtBottle acquisition from Whitney's gym). She disappears after this dialogue. Only present before Sudowoodo is cleared.",
+      "script": "Route36FloriaScript"
+    },
+    {
+      "id": "npc_lass",
+      "object_const": "ROUTE36_LASS1",
+      "name": "Lass",
+      "sprite": "SPRITE_LASS",
+      "x": 51,
+      "y": 8,
+      "facing": "walk_left_right",
+      "movement": "SPRITEMOVEDATA_WALK_LEFT_RIGHT",
+      "radius_x": 2,
+      "script_type": "dialogue",
+      "dialogue_summary": "Before clearing Sudowoodo: complains about the strange tree blocking the way to Goldenrod City. After clearing: expresses surprise that the tree was a Pokemon.",
+      "script": "Route36LassScript"
+    },
+    {
+      "id": "npc_rock_smash_guy",
+      "object_const": "ROUTE36_FISHER",
+      "name": "Rock Smash Guy (uses Fisher sprite)",
+      "sprite": "SPRITE_FISHER",
+      "x": 44,
+      "y": 9,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "script_type": "dialogue_item",
+      "dialogue_summary": "Before clearing Sudowoodo: laments that he couldn't break the tree. After clearing: rewards player with TM08 (Rock Smash). After giving TM: explains Rock Smash mechanics.",
+      "items_given": [
+        {
+          "name": "TM08 Rock Smash",
+          "event_flag": "EVENT_GOT_TM08_ROCK_SMASH",
+          "condition": "EVENT_FOUGHT_SUDOWOODO"
+        }
+      ],
+      "script": "Route36RockSmashGuyScript"
+    },
+    {
+      "id": "npc_arthur",
+      "object_const": "ROUTE36_ARTHUR",
+      "name": "Arthur (of Thursday)",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 46,
+      "y": 6,
+      "facing": "wander",
+      "movement": "SPRITEMOVEDATA_WANDER",
+      "radius_x": 1,
+      "radius_y": 1,
+      "event_flag": "EVENT_ROUTE_36_ARTHUR_OF_THURSDAY",
+      "script_type": "dialogue_item",
+      "dialogue_summary": "One of the 7 sibling NPCs (the Thursday sibling). Appears only on Thursdays. Gives the player a Hard Stone as a gift, citing it boosts Rock-type moves. Already got it: says he is the second son of seven children.",
+      "schedule": "THURSDAY only",
+      "items_given": [
+        {
+          "name": "Hard Stone",
+          "event_flag": "EVENT_GOT_HARD_STONE_FROM_ARTHUR",
+          "condition": "THURSDAY and first meeting"
+        }
+      ],
+      "callback": "Route36ArthurCallback",
+      "script": "ArthurScript"
+    },
+    {
+      "id": "npc_sudowoodo",
+      "object_const": "ROUTE36_WEIRD_TREE",
+      "name": "Sudowoodo (disguised as weird tree)",
+      "sprite": "SPRITE_WEIRD_TREE",
+      "x": 35,
+      "y": 9,
+      "facing": "sudowoodo_movement",
+      "movement": "SPRITEMOVEDATA_SUDOWOODO",
+      "event_flag": "EVENT_ROUTE_36_SUDOWOODO",
+      "script_type": "special_encounter",
+      "dialogue_summary": "The Sudowoodo blocking the route. Shakes if approached without SquirtBottle. If SquirtBottle is in bag: prompts player to use it, triggers Level 20 Sudowoodo battle. After battle or if KO'd, Sudowoodo sprite is replaced by a Twin sprite and disappears.",
+      "species": "SUDOWOODO",
+      "level": 20,
+      "script": "SudowoodoScript"
+    },
+    {
+      "id": "npc_suicune",
+      "object_const": "ROUTE36_SUICUNE",
+      "name": "Suicune",
+      "sprite": "SPRITE_SUICUNE",
+      "x": 21,
+      "y": 6,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "palette": "PAL_NPC_BLUE",
+      "event_flag": "EVENT_SAW_SUICUNE_ON_ROUTE_36",
+      "script_type": "crystal_only_event",
+      "dialogue_summary": "Crystal only. Suicune appears standing on the route. When player steps onto coord event tiles at (20,7) or (22,7), Suicune flees south-east (jump steps), then disappears. This sets up the Cianwood City Suicune/Eusine scene. Coord event script clears EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY.",
+      "script": "Route36SuicuneScript"
+    },
+    {
+      "id": "npc_fruit_tree",
+      "object_const": "ROUTE36_FRUIT_TREE",
+      "name": "Fruit Tree",
+      "sprite": "SPRITE_FRUIT_TREE",
+      "x": 21,
+      "y": 4,
+      "facing": "still",
+      "movement": "SPRITEMOVEDATA_STILL",
+      "script_type": "fruittree",
+      "dialogue_summary": "Daily fruit tree on the western side of the route.",
+      "fruittree_id": "FRUITTREE_ROUTE_36",
+      "script": "Route36FruitTree"
+    }
+  ],
+
+  "trainers": [
+    {
+      "id": "trainer_psychic_mark",
+      "object_const": "ROUTE36_YOUNGSTER1",
+      "class": "Psychic",
+      "name": "Mark",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 20,
+      "y": 13,
+      "facing": "right",
+      "movement": "SPRITEMOVEDATA_STANDING_RIGHT",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 3,
+      "event_flag": "EVENT_BEAT_PSYCHIC_MARK",
+      "team": [
+        {"species": "Abra", "level": 13},
+        {"species": "Abra", "level": 13},
+        {"species": "Kadabra", "level": 15}
+      ],
+      "prize_money": 544,
+      "rematch": false,
+      "seen_text": "I'm going to read your thoughts!",
+      "beaten_text": "I misread you!",
+      "after_battle_text": "I'd be strong if only I could tell what my opponent was thinking.",
+      "script": "TrainerPsychicMark"
+    },
+    {
+      "id": "trainer_schoolboy_alan",
+      "object_const": "ROUTE36_YOUNGSTER2",
+      "class": "Schoolboy",
+      "name": "Alan",
+      "sprite": "SPRITE_YOUNGSTER",
+      "x": 31,
+      "y": 14,
+      "facing": "left",
+      "movement": "SPRITEMOVEDATA_STANDING_LEFT",
+      "palette": "PAL_NPC_BLUE",
+      "line_of_sight": 5,
+      "event_flag": "EVENT_BEAT_SCHOOLBOY_ALAN",
+      "phone_contact": "PHONE_SCHOOLBOY_ALAN",
+      "team": [
+        {"species": "Tangela", "level": 16}
+      ],
+      "prize_money": 512,
+      "rematch": true,
+      "rematch_team_progression": [
+        {"fight": 0, "trainer": "ALAN1", "team": [{"species": "Tangela", "level": 16}]},
+        {"fight": 1, "trainer": "ALAN2", "unlock": "ENGINE_FLYPOINT_OLIVINE"},
+        {"fight": 2, "trainer": "ALAN3", "unlock": "ENGINE_FLYPOINT_BLACKTHORN"},
+        {"fight": 3, "trainer": "ALAN4", "unlock": "EVENT_BEAT_ELITE_FOUR"},
+        {"fight": 4, "trainer": "ALAN5", "unlock": "EVENT_RESTORED_POWER_TO_KANTO"}
+      ],
+      "special_phone_gift": {
+        "item": "Fire Stone",
+        "flag": "ENGINE_ALAN_HAS_FIRE_STONE",
+        "event": "EVENT_ALAN_GAVE_FIRE_STONE"
+      },
+      "seen_text": "Thanks to my studies, I'm ready for any Pokemon!",
+      "beaten_text": "Oops! Computation error?",
+      "script": "TrainerSchoolboyAlan1"
+    }
+  ],
+
+  "items": [
+    {
+      "name": "TM08 Rock Smash",
+      "x": 44,
+      "y": 9,
+      "hidden": false,
+      "source": "npc_gift",
+      "giver": "Rock Smash Guy",
+      "event_flag": "EVENT_GOT_TM08_ROCK_SMASH",
+      "requires": "EVENT_FOUGHT_SUDOWOODO",
+      "notes": "Given by the Fisher-sprite NPC after clearing Sudowoodo from the route."
+    },
+    {
+      "name": "Hard Stone",
+      "x": 46,
+      "y": 6,
+      "hidden": false,
+      "source": "npc_gift",
+      "giver": "Arthur (of Thursday)",
+      "event_flag": "EVENT_GOT_HARD_STONE_FROM_ARTHUR",
+      "requires": "THURSDAY weekday",
+      "notes": "Boosts Rock-type moves. Received from Arthur, the Thursday sibling. One-time gift; Arthur wanders in the area on Thursdays only."
+    },
+    {
+      "name": "Fruit (daily, random berry type)",
+      "x": 21,
+      "y": 4,
+      "hidden": false,
+      "source": "fruit_tree",
+      "fruittree_id": "FRUITTREE_ROUTE_36",
+      "requires": null,
+      "notes": "Daily fruit tree respawn. Shaking the tree may yield a berry item."
+    }
+  ],
+
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "notes": "Crystal encounter table. Slot probabilities (7 slots): 30%, 30%, 20%, 10%, 5%, 4%, 1%. Gold/Silver table differs: uses Nidoran-F/M, Pidgey, Hoothoot, Growlithe, Stantler at levels 12-15. Crystal uses early-route bug/bird mix.",
+      "morning": [
+        {"slot": 0, "species": "Ledyba",   "level": 4,  "rate": 30},
+        {"slot": 1, "species": "Pidgey",    "level": 4,  "rate": 30},
+        {"slot": 2, "species": "Bellsprout","level": 5,  "rate": 20},
+        {"slot": 3, "species": "Growlithe", "level": 5,  "rate": 10},
+        {"slot": 4, "species": "Pidgey",    "level": 5,  "rate":  5},
+        {"slot": 5, "species": "Pidgey",    "level": 6,  "rate":  4},
+        {"slot": 6, "species": "Pidgey",    "level": 6,  "rate":  1}
+      ],
+      "day": [
+        {"slot": 0, "species": "Pidgey",    "level": 4,  "rate": 30},
+        {"slot": 1, "species": "Pidgey",    "level": 4,  "rate": 30},
+        {"slot": 2, "species": "Bellsprout","level": 5,  "rate": 20},
+        {"slot": 3, "species": "Growlithe", "level": 5,  "rate": 10},
+        {"slot": 4, "species": "Pidgey",    "level": 5,  "rate":  5},
+        {"slot": 5, "species": "Pidgey",    "level": 6,  "rate":  4},
+        {"slot": 6, "species": "Pidgey",    "level": 6,  "rate":  1}
+      ],
+      "night": [
+        {"slot": 0, "species": "Spinarak",  "level": 4,  "rate": 30},
+        {"slot": 1, "species": "Hoothoot",  "level": 4,  "rate": 30},
+        {"slot": 2, "species": "Bellsprout","level": 5,  "rate": 20},
+        {"slot": 3, "species": "Hoothoot",  "level": 5,  "rate": 10},
+        {"slot": 4, "species": "Hoothoot",  "level": 5,  "rate":  5},
+        {"slot": 5, "species": "Gastly",    "level": 5,  "rate":  4},
+        {"slot": 6, "species": "Gastly",    "level": 5,  "rate":  1}
+      ],
+      "gold_silver_note": "Gold/Silver grass encounters differ significantly: Nidoran-F 30%, Nidoran-M 30%, Pidgey 25% (morn/day), Hoothoot 25% (night), Growlithe 10-15%, Stantler 5%. Levels 12-15. Crystal grass has lower levels (4-6) due to this being traversable earlier when coming from Violet City."
+    },
+    "water": {
+      "encounter_rate": 0,
+      "notes": "No water tiles on Route 36. No Surf encounters."
+    },
+    "fishing": {
+      "notes": "No fishing spots on Route 36.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+
+  "story_events": [
+    {
+      "order": 1,
+      "trigger": "first_arrival_from_violet_city",
+      "description": "Player arrives from Violet City to the south. The route is partially accessible but Sudowoodo blocks the path north to Route 37 and west toward National Park's eastern connection. Floria may be present if the player hasn't yet obtained the SquirtBottle.",
+      "flags_checked": ["EVENT_FLORIA_AT_SUDOWOODO"],
+      "notes": "Suicune also appears here in Crystal before the Cianwood City encounter sequence."
+    },
+    {
+      "order": 2,
+      "trigger": "approach_sudowoodo_without_squirtbottle",
+      "description": "Sudowoodo shakes and plays SFX_SANDSTORM. Player cannot pass. Floria (if present) comments on watering the tree, then leaves to borrow her sister's water bottle.",
+      "flags_set": ["EVENT_MET_FLORIA"],
+      "flags_cleared": ["EVENT_FLORIA_AT_FLOWER_SHOP"],
+      "notes": "After Floria departs the player must win the Goldenrod Gym Badge and receive the SquirtBottle from the Flower Shop NPC."
+    },
+    {
+      "order": 3,
+      "trigger": "use_squirtbottle_on_sudowoodo",
+      "description": "Player uses SquirtBottle from the pack or interacts with Sudowoodo while holding it. Sudowoodo attacks! Wild battle: Sudowoodo Lv.20. After battling (caught or KO'd), Sudowoodo disappears and the path to Route 37 opens. Rock Smash Guy NPC immediately rewards player with TM08.",
+      "flags_set": ["EVENT_FOUGHT_SUDOWOODO"],
+      "items_given": ["TM08 Rock Smash"],
+      "wild_battle": {"species": "SUDOWOODO", "level": 20},
+      "notes": "Sudowoodo is a rare Rock-type Pokemon. Recommended to bring a Pokemon with False Swipe or a status move. Only one Sudowoodo in the game."
+    },
+    {
+      "order": 4,
+      "trigger": "crystal_suicune_event",
+      "description": "Crystal only: Suicune stands at (21,6). When player steps on coord tiles (20,7) or (22,7), Suicune leaps away and disappears. This clears EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY and sets the Cianwood City scene for Eusine encounter.",
+      "flags_set": ["SCENE_CIANWOODCITY_SUICUNE_AND_EUSINE"],
+      "flags_cleared": ["EVENT_SAW_SUICUNE_AT_CIANWOOD_CITY"],
+      "scene": "SCENE_ROUTE36_SUICUNE",
+      "version": "Crystal only"
+    }
+  ],
+
+  "map_callbacks": [
+    {
+      "type": "MAPCALLBACK_OBJECTS",
+      "script": "Route36ArthurCallback",
+      "notes": "On map load: checks day of week. If THURSDAY, Arthur appears (ROUTE36_ARTHUR). Otherwise, Arthur is hidden. This is the standard 'weekday sibling' pattern."
+    }
+  ],
+
+  "notes": "Route 36 is a wide route (30 blocks / 60 tiles) connecting Violet City (south), Route 37 (north), National Park via gate building (west), and Ruins of Alph via gate building (east). The defining feature is Sudowoodo — a Level 20 Rock-type Pokemon disguised as a weird tree at tile (35,9) that blocks the northern half of the route until the player uses the SquirtBottle (obtained from Goldenrod Flower Shop after defeating Whitney). The route splits conceptually into three zones: (1) western zone around National Park Gate with Floria event and fruit tree, (2) central zone with Sudowoodo, Psychic Mark and Schoolboy Alan trainers, and (3) eastern spur with Ruins of Alph Gate. Trainer Tips signs at (21,7) and (29,1) reference stat growth and HM Dig. Arthur (Thursday sibling) wanders at (46,6) on Thursdays and gives a Hard Stone. In Crystal, Suicune makes an appearance and flees across the route as part of the legendary dog roaming sequence."
+}

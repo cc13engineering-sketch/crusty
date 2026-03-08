@@ -1,0 +1,392 @@
+{
+  "area_id": "national_park",
+  "area_name": "National Park",
+  "area_type": "special",
+  "pokecrystal_map_id": "NATIONAL_PARK",
+  "width_blocks": 20,
+  "height_blocks": 27,
+  "width_tiles": 40,
+  "height_tiles": 54,
+  "tileset": "park",
+  "music": "MUSIC_NATIONAL_PARK",
+  "palette": "auto",
+  "fishgroup": "FISHGROUP_SHORE",
+  "connections": [
+    {
+      "direction": "north",
+      "target_area_id": "route_36_national_park_gate",
+      "offset": 0,
+      "requires": null,
+      "notes": "North exit leads to Route 36 via the National Park Gate (Route36NationalParkGate). Warp tiles at (33,18) and (33,19) connect to warp IDs 1 and 2 inside the gate."
+    },
+    {
+      "direction": "south",
+      "target_area_id": "route_35_national_park_gate",
+      "offset": 0,
+      "requires": null,
+      "notes": "South exit leads to Route 35 via the National Park Gate (Route35NationalParkGate). Warp tiles at (10,47) and (11,47) connect to warp IDs 1 and 2 inside the gate."
+    }
+  ],
+  "warps": [
+    {
+      "x": 33, "y": 18,
+      "target_area_id": "route_36_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "North gate entrance, left tile"
+    },
+    {
+      "x": 33, "y": 19,
+      "target_area_id": "route_36_national_park_gate",
+      "target_warp_id": 2,
+      "notes": "North gate entrance, right tile"
+    },
+    {
+      "x": 10, "y": 47,
+      "target_area_id": "route_35_national_park_gate",
+      "target_warp_id": 1,
+      "notes": "South gate entrance, left tile"
+    },
+    {
+      "x": 11, "y": 47,
+      "target_area_id": "route_35_national_park_gate",
+      "target_warp_id": 2,
+      "notes": "South gate entrance, right tile"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "T": "tree",
+      "G": "tall_grass",
+      "P": "paved_path",
+      "F": "fence",
+      "~": "fountain/water_feature",
+      "S": "sign",
+      "N": "npc_position",
+      "!": "item_ball",
+      "?": "hidden_item",
+      "D": "gate_door",
+      "H": "gate_building"
+    },
+    "rows": [
+      "########################################",
+      "########################################",
+      "########################################",
+      "########################################",
+      "##TTTTTTTTTTTTTSTTTTTTTTTTTTTTTTTTTTTT##",
+      "##T...................................T##",
+      "##T..NNPP..........................PP.T##",
+      "##T..PPPP.................PPPP.....PP.T##",
+      "##T..PP...................PPPP........T##",
+      "##T..PP.....TTTTTTT.......PP..N......T##",
+      "##T..PP.....TTTTTTT.......PP.........T##",
+      "##T..PPPP...TTTTTTT.......PPPP.......T##",
+      "##T..PPPP...TTTTTTT......PPPPP.......T##",
+      "##T..PP.....TTTTTTT......PPPPP.......T##",
+      "##T..PP...........................N..T##",
+      "##T..PP..........................PP..T##",
+      "##T..PPPPPPPPPPPPPPPPPPPPPPPPPP..PP..T##",
+      "##T..P~~~~~~~~~~~~~~~~~~~~~~~~~~P....T##",
+      "##T..P~~~~~~~~~~~~~~~~~~~~~~~~~~P....T##",
+      "##T..PPPPPPPPPPPPPPPPPPPPPPPPPP......T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP..GGG..............GGG..PP....T##",
+      "##T..PP.N.GGG............GGG..PP.N...T##",
+      "##T..PP...GGG............GGG..PP.....T##",
+      "##T..N....GGG.N..........GGG.........T##",
+      "##T.......GGG............GGG.........T##",
+      "##T.......GGG.N.........GGGG.........T##",
+      "##T..PP...GGG..........GGGGG..PP.....T##",
+      "##T..PP...GGG..........GGGGG..PP.....T##",
+      "##T..PPPP.GGG...S.......GGG..PPPP....T##",
+      "##T..PPPP.GGG...........GGG..PPPP....T##",
+      "##T..PP...GGG...N.......GGG..PP......T##",
+      "##T..PP...GGG...........GGG..PP......T##",
+      "##T..PP...GGG...........GGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG.......GGGGG..PP......T##",
+      "##T..PP...GGGGG...S...GGGGG..PP......T##",
+      "##T..PP...GGG.........GGG....PP......T##",
+      "##T..PP...GGG.N.......GGG....PP......T##",
+      "##T..PPNPP.GGG.......GGG..PPPPP......T##",
+      "##T..PPPPP.GGG.......GGG..PPPPP......T##",
+      "##T..PPPPP.GGG.......GGG..PPPPP.S....T##",
+      "##T..S.PPP.GGG...?...GGG..PPP........T##",
+      "##T..PP....GGG.......GGG..PP.........T##",
+      "##T..PP....GGG.......GGG..PP.........T##",
+      "##T...!..TTTTT.......TTTTT...........T##",
+      "##TTTTTT.TTTTT...S...TTTTT...TTTTTTTT##",
+      "########.........D.........##########",
+      "########.........D.........##########",
+      "########################################",
+      "########################################",
+      "########################################"
+    ],
+    "notes": "Layout is schematic. National Park is a large outdoor park (40x54 tiles). A paved path system (P) runs along the perimeter and through the interior, creating a relaxation square in the middle with a decorative fountain (~) at approximately y=17-19. Two large patches of tall grass (G) fill the eastern and western halves of the interior, separated by the central path. Trees (T) line the outer border and cluster in the northeast and northwest interior. The north gate (y=18-19) connects to Route 36. The south gate (y=47-48) connects to Route 35. Signs are placed at Relaxation Square (14,44), the Battle Notice board (27,31), and the Trainer Tips board (12,4). The hidden Full Heal is along the south fence at (6,47). TM28 Dig item ball is at far west (1,43). Parlyz Heal item ball is at northeast corner (35,12)."
+  },
+  "signs": [
+    {
+      "x": 14, "y": 44,
+      "text": "RELAXATION SQUARE — NATIONAL PARK"
+    },
+    {
+      "x": 27, "y": 31,
+      "text": "Please battle only in the grass. — NATIONAL PARK WARDEN'S OFFICE"
+    },
+    {
+      "x": 12, "y": 4,
+      "text": "TRAINER TIPS — Print out MAIL by opening it then pressing START."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "npc_lass_1",
+      "name": "Lass (unnamed)",
+      "x": 15, "y": 24,
+      "facing": "random",
+      "movement": "walk_left_right",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_LASS1",
+      "dialogue_summary": "She printed out her favorite Pokemon from her Pokedex and stuck them on her bag."
+    },
+    {
+      "id": "npc_pokefan_f",
+      "name": "Pokefan (female)",
+      "x": 14, "y": 4,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_POKEFAN_F1",
+      "dialogue_summary": "Shows off mail she received from her daughter, which cheers her up."
+    },
+    {
+      "id": "npc_teacher_1",
+      "name": "Teacher",
+      "x": 27, "y": 40,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "item_gift",
+      "pokecrystal_const": "NATIONALPARK_TEACHER1",
+      "dialogue_summary": "A teacher who tries to stop being so teacher-like on vacation. Gives QUICK CLAW to the player (first time only, event EVENT_GOT_QUICK_CLAW). After giving: reminds the player that Quick Claw sometimes lets a Pokemon strike first."
+    },
+    {
+      "id": "npc_youngster_1",
+      "name": "Youngster (unnamed)",
+      "x": 11, "y": 41,
+      "facing": "left",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_YOUNGSTER1",
+      "dialogue_summary": "Playing with Pokedex stickers he printed out."
+    },
+    {
+      "id": "npc_youngster_2",
+      "name": "Youngster (unnamed)",
+      "x": 10, "y": 41,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_YOUNGSTER2",
+      "dialogue_summary": "Gets the other trainer's Pokedex sticker if he wins a battle."
+    },
+    {
+      "id": "npc_teacher_2",
+      "name": "Teacher",
+      "x": 17, "y": 41,
+      "facing": "random",
+      "movement": "wander",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_TEACHER2",
+      "dialogue_summary": "Takes walks in the park but never goes into the grass. Observes that trainers always want to battle."
+    },
+    {
+      "id": "npc_persian",
+      "name": "Persian",
+      "x": 26, "y": 40,
+      "facing": "random",
+      "movement": "pokemon_idle",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_PERSIAN",
+      "dialogue_summary": "The Persian belonging to a Pokefan makes a cry sound (cry PERSIAN) when talked to."
+    },
+    {
+      "id": "npc_gameboy_kid",
+      "name": "Game Boy Kid",
+      "x": 26, "y": 6,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "pokecrystal_const": "NATIONALPARK_GAMEBOY_KID",
+      "dialogue_summary": "Printing out his Pokedex via the Game Boy Printer. Explains that you can also print MAIL and PC BOX contents. Turns to face down after the conversation ends."
+    }
+  ],
+  "trainers": [
+    {
+      "id": "schoolboy_jack",
+      "class": "Schoolboy",
+      "name": "Jack",
+      "x": 27, "y": 23,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Oddish", "level": 12},
+        {"species": "Voltorb", "level": 15}
+      ],
+      "prize_money": 480,
+      "rematch": true,
+      "rematch_notes": "Pokegear rematch available (PHONE_SCHOOLBOY_JACK). Jack has 5 progressive rematch teams keyed to game events: Fight1 (Olivine flypoint unlocked): Oddish 14 + Voltorb 17; Fight2 (Radio Tower cleared): Gloom 28 + Electrode 31; Fight3 (Elite Four beaten): Gloom 30 + Growlithe 33 + Electrode 33; Fight4 (Kanto power restored): Electrode 35 + Growlithe 35 + Vileplume 37 (all with moves). He gives his phone number if the player has traded a Pokemon (asks after battle, wJackFightCount tracks rematch depth).",
+      "event_flag": "EVENT_BEAT_SCHOOLBOY_JACK",
+      "pokecrystal_const": "NATIONALPARK_YOUNGSTER3",
+      "notes": "Sprite uses SPRITE_YOUNGSTER. Spin-random-fast movement. Northeast quadrant of park, northeast of grass patches."
+    },
+    {
+      "id": "pokefan_f_beverly",
+      "class": "Pokefan (Female)",
+      "name": "Beverly",
+      "x": 18, "y": 29,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Snubbull", "level": 14, "held_item": "Berry"}
+      ],
+      "prize_money": 1008,
+      "rematch": true,
+      "rematch_notes": "Pokegear rematch available (PHONE_POKEFAN_BEVERLY). Beverly only gives her number if the player has a Marill in their party. On rematch callback ENGINE_BEVERLY_HAS_NUGGET: Beverly calls and gives the player a Nugget as a gift. Without Marill, she just talks about wanting one.",
+      "event_flag": "EVENT_BEAT_POKEFANF_BEVERLY",
+      "pokecrystal_const": "NATIONALPARK_POKEFAN_F2",
+      "notes": "Spin-random-fast. Central area between grass patches."
+    },
+    {
+      "id": "pokefan_m_william",
+      "class": "Pokefan (Male)",
+      "name": "William",
+      "x": 16, "y": 9,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 2,
+      "team": [
+        {"species": "Raichu", "level": 14, "held_item": "Berry"}
+      ],
+      "prize_money": 1008,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_POKEFANM_WILLIAM",
+      "pokecrystal_const": "NATIONALPARK_POKEFAN_M",
+      "notes": "Spin-random-fast. Northern section of park. After battle: 'I lost the battle, but my Pokemon win the prize for being most lovely.'"
+    },
+    {
+      "id": "lass_krise",
+      "class": "Lass",
+      "name": "Krise",
+      "x": 8, "y": 14,
+      "facing": "random",
+      "movement": "spin_random_fast",
+      "line_of_sight": 3,
+      "team": [
+        {"species": "Oddish", "level": 12},
+        {"species": "Cubone", "level": 15}
+      ],
+      "prize_money": 240,
+      "rematch": false,
+      "event_flag": "EVENT_BEAT_LASS_KRISE",
+      "pokecrystal_const": "NATIONALPARK_LASS2",
+      "notes": "Spin-random-fast. Northwest quadrant. After battle: 'I thought you were staring at me because I'm cute!'"
+    }
+  ],
+  "items": [
+    {
+      "name": "Parlyz Heal",
+      "x": 35, "y": 12,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_NATIONAL_PARK_PARLYZ_HEAL",
+      "pokecrystal_const": "NATIONALPARK_POKE_BALL1",
+      "notes": "Poke Ball sprite item in the northeast corner of the park near the fence."
+    },
+    {
+      "name": "TM28 (Dig)",
+      "x": 1, "y": 43,
+      "hidden": false,
+      "requires": null,
+      "event_flag": "EVENT_NATIONAL_PARK_TM_DIG",
+      "pokecrystal_const": "NATIONALPARK_POKE_BALL2",
+      "notes": "Poke Ball sprite item in the far west side near the south gate approach. Teaching Dig is useful for removing field obstacles."
+    },
+    {
+      "name": "Full Heal",
+      "x": 6, "y": 47,
+      "hidden": true,
+      "requires": "itemfinder",
+      "event_flag": "EVENT_NATIONAL_PARK_HIDDEN_FULL_HEAL",
+      "notes": "Hidden item along the south fence near the gate. Detected via Itemfinder."
+    },
+    {
+      "name": "Quick Claw",
+      "x": 27, "y": 40,
+      "hidden": false,
+      "requires": null,
+      "source": "npc_gift",
+      "event_flag": "EVENT_GOT_QUICK_CLAW",
+      "notes": "Given by the Teacher NPC at (27,40). One-time gift. Teacher checks EVENT_GOT_QUICK_CLAW to avoid giving it again."
+    }
+  ],
+  "wild_encounters": {
+    "grass": {
+      "encounter_rate": 10,
+      "notes": "10% encounter rate for all three time periods. Wild encounters occur in the two large grass patches in the interior.",
+      "morning": [
+        {"species": "Nidoran-M", "level_min": 12, "level_max": 12, "rate": 20},
+        {"species": "Nidoran-F", "level_min": 12, "level_max": 12, "rate": 20},
+        {"species": "Ledyba",    "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Pidgey",    "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Caterpie",  "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Weedle",    "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Weedle",    "level_min": 10, "level_max": 10, "rate": 10}
+      ],
+      "day": [
+        {"species": "Nidoran-F", "level_min": 12, "level_max": 12, "rate": 20},
+        {"species": "Nidoran-M", "level_min": 12, "level_max": 12, "rate": 20},
+        {"species": "Sunkern",   "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Pidgey",    "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Caterpie",  "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Weedle",    "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Weedle",    "level_min": 10, "level_max": 10, "rate": 10}
+      ],
+      "night": [
+        {"species": "Psyduck",   "level_min": 12, "level_max": 12, "rate": 20},
+        {"species": "Hoothoot",  "level_min": 13, "level_max": 13, "rate": 20},
+        {"species": "Spinarak",  "level_min": 14, "level_max": 14, "rate": 20},
+        {"species": "Hoothoot",  "level_min": 15, "level_max": 15, "rate": 20},
+        {"species": "Venonat",   "level_min": 10, "level_max": 10, "rate": 10},
+        {"species": "Venonat",   "level_min": 12, "level_max": 12, "rate": 10},
+        {"species": "Venonat",   "level_min": 12, "level_max": 12, "rate": 10}
+      ]
+    },
+    "water": {
+      "encounter_rate": 0,
+      "mons": [],
+      "notes": "No surfable water inside National Park. The fountain is decorative only."
+    },
+    "fishing": {
+      "notes": "FISHGROUP_SHORE applies to this map but there is no fishable water in National Park. Fishing is not possible here in practice.",
+      "old_rod": [],
+      "good_rod": [],
+      "super_rod": []
+    }
+  },
+  "events": [
+    {
+      "trigger": "tuesday_thursday_saturday",
+      "description": "On Tuesdays, Thursdays, and Saturdays, the map switches to NATIONAL_PARK_BUG_CONTEST (a separate map entry). The regular trainer NPCs and the Teacher/Quick Claw NPC are replaced by Bug Catching Contest participants. The player receives Park Balls and can catch bug Pokemon. A contest judge (the man by the south gate area) tallies the entries and awards prizes: first place gets a Sun Stone, second gets Everstone, third gets Gold Berry. The contest state persists until the player leaves the map."
+    },
+    {
+      "trigger": "quick_claw_gift",
+      "description": "The Teacher NPC at (27,40) gives Quick Claw when talked to for the first time (EVENT_GOT_QUICK_CLAW not set). If the player has no room, nothing happens. After giving, the teacher explains how Quick Claw works."
+    }
+  ],
+  "notes": "National Park is a large manicured park located between Route 35 (south) and Route 36 (north), in central Johto. The park is accessible via two gate buildings. It uses TILESET_PARK and MUSIC_NATIONAL_PARK. The interior features two substantial tall grass patches separated by a central paved path and a decorative fountain plaza (Relaxation Square). The park is home to four trainers, several wandering NPCs including a Game Boy Kid, a Persian belonging to a Pokefan, and a Teacher who gives away Quick Claw. On Tuesdays, Thursdays, and Saturdays, the park hosts the Bug Catching Contest (separate NATIONAL_PARK_BUG_CONTEST map). Wild encounters are modest — Nidoran, Pidgey, Caterpie, Weedle in the morning/day; Psyduck, Hoothoot, Spinarak, Venonat at night; Ledyba in the morning and Sunkern in the day are the rarer finds. Three signs provide flavor (Relaxation Square marker, Battle Notice, Trainer Tips). Three items: Parlyz Heal (northeast), TM28 Dig (far west), and a hidden Full Heal near the south gate. NPC Schoolboy Jack has a full rematch phone tree. Pokefan Beverly gives her number only if the player has Marill, and later calls to give a Nugget."
+}

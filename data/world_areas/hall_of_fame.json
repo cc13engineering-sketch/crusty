@@ -1,0 +1,109 @@
+{
+  "area_id": "hall_of_fame",
+  "area_name": "Hall of Fame",
+  "area_type": "special",
+  "pokecrystal_map_id": "HALL_OF_FAME",
+  "width_blocks": 5,
+  "height_blocks": 7,
+  "width_tiles": 10,
+  "height_tiles": 14,
+  "tileset": "elite_four_room",
+  "music": "MUSIC_HALL_OF_FAME",
+  "connections": [],
+  "warps": [
+    {
+      "warp_id": 1,
+      "x": 4, "y": 13,
+      "target_area_id": "lances_room",
+      "target_warp_id": 3,
+      "notes": "South exit left tile — leads back to Lance's Room. Used only if player re-enters after completing the game."
+    },
+    {
+      "warp_id": 2,
+      "x": 5, "y": 13,
+      "target_area_id": "lances_room",
+      "target_warp_id": 4,
+      "notes": "South exit right tile — leads back to Lance's Room."
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_floor",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "M": "hall_of_fame_machine",
+      "N": "npc_position",
+      "X": "blocked"
+    },
+    "notes": [
+      "Map is 10 tiles wide x 14 tiles tall (5x7 blocks).",
+      "Tile coordinates (x=col, y=row), (0,0) at top-left.",
+      "Lance (SPRITE_LANCE, standing UP) starts at (4,12) — positioned near the south entrance.",
+      "The Hall of Fame machine is at the north end of the room — the player approaches it slowly in the cutscene.",
+      "HallOfFame_WalkUpWithLance: Lance leads the player UP 8 steps north, then 1 step RIGHT, then turns LEFT to face the machine.",
+      "HallOfFame_SlowlyApproachMachine: Player takes 1 slow step UP toward the machine — the ceremonial final approach.",
+      "The warpfacing from Lance's Room lands the player at (4,13) facing UP — they enter at the south edge.",
+      "No random encounters, no trainers. Pure cutscene map.",
+      "The HealMachine animation plays using HEALMACHINE_HALL_OF_FAME when player reaches the machine.",
+      "After halloffame special runs, sets: EVENT_BEAT_ELITE_FOUR, EVENT_TELEPORT_GUY (removes Gramps), EVENT_RIVAL_SPROUT_TOWER, EVENT_OLIVINE_PORT_SPRITES_BEFORE_HALL_OF_FAME, clears EVENT_RED_IN_MT_SILVER (enables Red at Mt. Silver after beating the Kanto gyms), sets SPROUTTOWER3F to NOOP scene.",
+      "If the player hasn't received the SS Ticket yet (EVENT_GOT_SS_TICKET_FROM_ELM not set), a special phone call triggers from Elm offering the SS Ticket — enabling the S.S. Aqua and Kanto access."
+    ],
+    "rows": [
+      "##########",
+      "##########",
+      "####M#####",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "##########",
+      "####N#####",
+      "####EE####"
+    ]
+  },
+  "npcs": [
+    {
+      "id": "lance_escort",
+      "name": "Lance",
+      "x": 4, "y": 12,
+      "facing": "up",
+      "movement": "standing",
+      "sprite": "SPRITE_LANCE",
+      "palette": "default",
+      "script_type": "cutscene_only",
+      "event_flag": "always_present_on_first_entry",
+      "dialogue_summary": "Leads the player north to the Hall of Fame machine. Delivers speech about the Hall of Fame and inducting the new Champion. Turns to face the machine as the player approaches. Lance's NPC disappears once the player reaches the machine (disappear HALLOFFAME_LANCE fires). Only present during SCENE_HALLOFFAME_ENTER."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": null,
+    "water": null,
+    "fishing": null
+  },
+  "events": [
+    {
+      "trigger": "scene_on_enter",
+      "name": "HallOfFameEnterScene",
+      "description": "SCENE_HALLOFFAME_ENTER fires sdefer HallOfFameEnterScript. Lance leads the player UP 8 steps then RIGHT 1 then turns LEFT. Lance delivers his induction speech. Player is told to face RIGHT, then slowly approaches the machine (1 slow step UP). Scene changes to SCENE_HALLOFFAME_NOOP. Pause 15 frames. HEALMACHINE_HALL_OF_FAME animation plays. HealParty is called (full party heal). Multiple flags are set/cleared (see notes). Elm's phone call fires if SS Ticket not yet obtained. halloffame special executes — records the player's team to the Hall of Fame save data and shows the credits/Hall of Fame screen."
+    },
+    {
+      "trigger": "on_complete",
+      "name": "PostHallOfFameState",
+      "description": "After the Hall of Fame sequence: EVENT_BEAT_ELITE_FOUR is permanently set, enabling the post-game. EVENT_RED_IN_MT_SILVER is cleared — Red (the Gen 1 protagonist) will appear at Mt. Silver's summit as the true final boss. Kanto is now accessible via S.S. Aqua. Elm calls to give the SS Ticket. Sprout Tower 3F Sage is set to NOOP (he was blocking until this point in some routes). Teleport Guy's event is set so he disappears from the Pokecenter."
+    }
+  ],
+  "hall_of_fame_machine": {
+    "position": {"x": 4, "y": 2},
+    "function": "Records the player's current party (species, levels, nicknames, OT) permanently to save data as the Hall of Fame entry. Each subsequent championship run appends a new entry. Displays each Pokemon in sequence with fanfare.",
+    "special_call": "HEALMACHINE_HALL_OF_FAME",
+    "heal_party": true
+  },
+  "notes": "The Hall of Fame is the final map in the main Johto story and the culmination of the Elite Four gauntlet. It is a short, simple room — 5x7 blocks — designed purely for ceremony. The only gameplay element is the Hall of Fame machine at the north end. Lance escorts the player here from his room via a scripted warpfacing. The cutscene emphasizes the weight of becoming Champion. After the Hall of Fame sequence completes, the entire post-game opens: Kanto's 8 gyms become accessible (via S.S. Aqua to Vermilion City), and Mt. Silver's summit spawns Red as the true ultimate challenge. The Hall of Fame data is stored in SRAM and can be viewed from the title screen."
+}

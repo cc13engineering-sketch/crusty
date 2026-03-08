@@ -1,0 +1,85 @@
+{
+  "area_id": "route_38_ecruteak_gate",
+  "area_name": "Route 38 Ecruteak Gate",
+  "area_type": "building",
+  "pokecrystal_map_id": "ROUTE_38_ECRUTEAK_GATE",
+  "width_blocks": 5,
+  "height_blocks": 4,
+  "width_tiles": 10,
+  "height_tiles": 8,
+  "tileset": "gate",
+  "connections": [],
+  "warps": [
+    {
+      "x": 0, "y": 4,
+      "target_area_id": "route_38",
+      "target_warp_id": 1,
+      "notes": "West exit — back to Route 38 (north door)"
+    },
+    {
+      "x": 0, "y": 5,
+      "target_area_id": "route_38",
+      "target_warp_id": 2,
+      "notes": "West exit — back to Route 38 (south door)"
+    },
+    {
+      "x": 9, "y": 4,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 14,
+      "notes": "East exit — into Ecruteak City (north door)"
+    },
+    {
+      "x": 9, "y": 5,
+      "target_area_id": "ecruteak_city",
+      "target_warp_id": 15,
+      "notes": "East exit — into Ecruteak City (south door)"
+    }
+  ],
+  "tile_layout": {
+    "legend": {
+      ".": "walkable_ground",
+      "#": "wall/obstacle",
+      "D": "door",
+      "E": "exit_mat",
+      "N": "npc_position",
+      "C": "counter",
+      "P": "path"
+    },
+    "rows": [
+      "##########",
+      "##########",
+      "####N#####",
+      "##........",
+      "E.........E",
+      "E.........E",
+      "##########",
+      "##########"
+    ],
+    "notes": "Standard Johto gate building. Two door pairs on left (west, to Route 38) and right (east, to Ecruteak City) at rows 4-5. Officer NPC stands center at (5, 2). Interior is a single throughway room."
+  },
+  "npcs": [
+    {
+      "id": "route38ecruteakgate_officer",
+      "name": "Officer",
+      "sprite": "SPRITE_OFFICER",
+      "x": 5, "y": 2,
+      "facing": "down",
+      "movement": "standing",
+      "script_type": "dialogue",
+      "object_const": "ROUTE38ECRUTEAKGATE_OFFICER",
+      "dialogue_summary": "Comments that the player has come from New Bark Town, recognizes Professor Elm's hometown, and remarks on the long journey. Flavour NPC only — no items, events, or trade."
+    }
+  ],
+  "trainers": [],
+  "items": [],
+  "wild_encounters": {
+    "grass": {"encounter_rate": 0, "morning": [], "day": [], "night": []},
+    "water": {"encounter_rate": 0, "mons": []},
+    "fishing": {"old_rod": [], "good_rod": [], "super_rod": []}
+  },
+  "events": [],
+  "object_event_constants": {
+    "ROUTE38ECRUTEAKGATE_OFFICER": 0
+  },
+  "notes": "Small standard gate building between Route 38 and Ecruteak City. Contains one Officer NPC who gives flavour dialogue referencing New Bark Town and Professor Elm. No items, trainer battles, or events. The building has two side-by-side door warps on each face (north/south doors on west and east walls). Gate type: ROUTE_38_ECRUTEAK_GATE."
+}

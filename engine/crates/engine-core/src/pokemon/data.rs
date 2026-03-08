@@ -604,6 +604,8 @@ pub const MOVE_PSYCH_UP: MoveId = 244;
 pub const MOVE_LOCK_ON: MoveId = 199;
 pub const MOVE_MIND_READER: MoveId = 170;
 pub const MOVE_CONVERSION_2: MoveId = 176;
+pub const MOVE_LEECH_SEED: MoveId = 73;
+pub const MOVE_NIGHTMARE: MoveId = 171;
 
 /// Static species data
 #[derive(Debug)]
@@ -2183,7 +2185,7 @@ const SPECIES_DB: &[SpeciesData] = &[
 
 // ─── Move Database ──────────────────────────────────────
 
-const MOVE_DB: &[MoveData] = &[
+pub const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_TACKLE, name: "Tackle", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 35, accuracy: 95, pp: 35, description: "A full-body charge attack." },
     MoveData { id: MOVE_SCRATCH, name: "Scratch", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 40, accuracy: 100, pp: 35, description: "Scratches with sharp claws." },
     MoveData { id: MOVE_GROWL, name: "Growl", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 40, description: "Reduces the foe's Attack." },
@@ -2407,6 +2409,9 @@ const MOVE_DB: &[MoveData] = &[
     MoveData { id: MOVE_LOCK_ON, name: "Lock-On", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Ensures the next attack will hit." },
     MoveData { id: MOVE_MIND_READER, name: "Mind Reader", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 5, description: "Ensures the next attack will hit." },
     MoveData { id: MOVE_CONVERSION_2, name: "Conversion2", move_type: PokemonType::Normal, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 30, description: "Changes type to resist foe's last move." },
+    // Sprint 166 moves
+    MoveData { id: MOVE_LEECH_SEED, name: "Leech Seed", move_type: PokemonType::Grass, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 10, description: "Drains HP from the foe every turn." },
+    MoveData { id: MOVE_NIGHTMARE, name: "Nightmare", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 15, description: "A sleeping foe loses 1/4 HP per turn." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

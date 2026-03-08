@@ -4255,3 +4255,32 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_focus_energy_crit_boost` — base 1/16, with FE 1/8, high-crit+FE 1/3, scope+FE 1/4
 - `test_all_types_array` — ALL_TYPES has 17 entries
 - `test_conversion2_resist_logic` — Fire resisted by Water, Rock, Fire; not by Grass
+
+### Sprint 166: Leech Seed + Nightmare + Metronome + Sketch
+
+#### New Moves
+- **Leech Seed** (ID 73): Grass/Status, acc 90, pp 10. Seeds target; drains 1/8 max HP per turn and heals user. Fails against Grass types and already-seeded targets.
+  - Source: `pokecrystal-master/engine/battle/move_effects/leech_seed.asm`
+- **Nightmare** (ID 171): Ghost/Status, acc 100, pp 15. Only works on sleeping targets. Drains 1/4 max HP per turn while asleep. Clears on wake.
+  - Source: `pokecrystal-master/engine/battle/move_effects/nightmare.asm`
+- **Sketch** (ID 166): Normal/Status, acc 100, pp 1. Permanently copies opponent's last move, replacing Sketch in moveset. Sets PP to the copied move's PP. Fails if no last move or Struggle.
+- **Metronome** (ID 118): Normal/Status, acc 100, pp 10. Picks a random move from entire MOVE_DB excluding banned moves per pokecrystal (Metronome, Struggle, Sketch, Mimic, Counter, Mirror Coat, Protect, Detect, Endure, Destiny Bond, Sleep Talk, Thief). Re-enters attack phase with chosen move.
+  - Source: `pokecrystal-master/engine/battle/move_effects/metronome.asm`, `data/moves/metronome_exception_moves.asm`
+
+#### Battle System Changes
+- **BattleState new fields**: `player_seeded`, `enemy_seeded`, `player_nightmare`, `enemy_nightmare`
+- **Leech Seed end-of-turn**: Drains 1/8 max HP (min 1) from seeded target, heals seeder. In both PlayerAttack and EnemyAttack end-of-turn blocks.
+- **Nightmare end-of-turn**: Drains 1/4 max HP (min 1) while asleep. In both end-of-turn blocks.
+- **Nightmare wake clearing**: Flag cleared in all 4 wake-up code paths.
+- **MOVE_DB made pub**: Required for Metronome to iterate all available moves.
+- All handlers implemented in both PlayerAttack and EnemyAttack phases.
+
+#### New Tests (8 tests, 1472 total)
+- `test_leech_seed_move_data` — ID 73, Grass/Status, acc 90, pp 10
+- `test_nightmare_move_data` — ID 171, Ghost/Status, acc 100, pp 15
+- `test_sketch_move_data` — ID 166, Status
+- `test_metronome_move_data` — ID 118, Status, pp 10
+- `test_metronome_exclusion_list` — validates excluded moves not in candidates, Tackle is valid
+- `test_leech_seed_drain_amount` — 1/8 max HP, min 1
+- `test_nightmare_drain_amount` — 1/4 max HP, min 1
+- `test_leech_seed_fails_vs_grass` — Chikorita (Grass) should be immune

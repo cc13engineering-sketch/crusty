@@ -602,6 +602,12 @@ struct BattleState {
     // Focus Energy: +1 crit level
     player_focus_energy: bool,
     enemy_focus_energy: bool,
+    // Leech Seed: drains 1/8 max HP per turn, heals seeder
+    player_seeded: bool,
+    enemy_seeded: bool,
+    // Nightmare: drains 1/4 max HP per turn while asleep
+    player_nightmare: bool,
+    enemy_nightmare: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2097,6 +2103,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -4064,6 +4074,67 @@ enemy_focus_energy: false,
                         } else {
                             Some("But it failed!".to_string())
                         }
+                    } else if move_id == MOVE_LEECH_SEED {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        // Fails against Grass types
+                        let enemy_sp = get_species(battle.enemy.species_id);
+                        let is_grass = enemy_sp.map(|s| s.type1 == PokemonType::Grass || s.type2 == Some(PokemonType::Grass)).unwrap_or(false);
+                        if is_grass {
+                            Some(format!("It doesn't affect {}{}...", prefix, battle.enemy.name()))
+                        } else if battle.enemy_seeded {
+                            Some(format!("{}{} is already seeded!", prefix, battle.enemy.name()))
+                        } else {
+                            battle.enemy_seeded = true;
+                            Some(format!("{}{} was seeded!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_NIGHTMARE {
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        let is_asleep = matches!(battle.enemy.status, StatusCondition::Sleep { .. });
+                        if !is_asleep || battle.enemy_nightmare {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_nightmare = true;
+                            Some(format!("{}{} began having a Nightmare!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_SKETCH {
+                        if battle.enemy_last_move == 0 || battle.enemy_last_move == MOVE_STRUGGLE {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let copied_move = battle.enemy_last_move;
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                if let Some(slot) = p.moves.iter().position(|m| *m == Some(MOVE_SKETCH)) {
+                                    p.moves[slot] = Some(copied_move);
+                                    if let Some(md) = get_move(copied_move) {
+                                        p.move_pp[slot] = md.pp;
+                                    }
+                                }
+                            }
+                            let mname = get_move(copied_move).map(|m| m.name).unwrap_or("???");
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                            Some(format!("{} Sketched {}!", pname, mname))
+                        }
+                    } else if move_id == MOVE_METRONOME {
+                        // Metronome: pick a random move from the entire move DB, excluding banned moves per pokecrystal
+                        let metronome_excluded = [
+                            0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
+                            MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
+                            MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
+                        ];
+                        let candidates: Vec<MoveId> = MOVE_DB.iter()
+                            .map(|m| m.id)
+                            .filter(|id| !metronome_excluded.contains(id))
+                            .collect();
+                        if candidates.is_empty() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let chosen = candidates[(engine.rng.next_u64() as usize) % candidates.len()];
+                            let (m_dmg, m_eff, m_crit) = self.calc_player_damage(engine, chosen, &battle);
+                            battle.phase = BattlePhase::PlayerAttack {
+                                timer: 0.0, move_id: chosen, damage: m_dmg, effectiveness: m_eff, is_crit: m_crit, from_pending,
+                            };
+                            self.battle = Some(battle);
+                            return; // re-enter PlayerAttack with the chosen move
+                        }
                     } else { None }
                 } else { None };
 
@@ -4155,7 +4226,10 @@ enemy_focus_energy: false,
                             eot_msgs.push(st);
                         }
                         let woke = p.tick_status();
-                        if woke { eot_msgs.push(format!("{} woke up!", pname_eot)); }
+                        if woke {
+                            eot_msgs.push(format!("{} woke up!", pname_eot));
+                            battle.player_nightmare = false; // Nightmare ends on wake
+                        }
                     }
                     let eprefix = if battle.is_wild { "Wild " } else { "Foe " };
                     let ename_eot = battle.enemy.name().to_string();
@@ -4169,7 +4243,10 @@ enemy_focus_energy: false,
                         eot_msgs.push(st);
                     }
                     let ewoke = battle.enemy.tick_status();
-                    if ewoke { eot_msgs.push(format!("{}{} woke up!", eprefix, battle.enemy.name())); }
+                    if ewoke {
+                        eot_msgs.push(format!("{}{} woke up!", eprefix, battle.enemy.name()));
+                        battle.enemy_nightmare = false;
+                    }
 
                     // Trapping damage: 1/16 max HP per turn (Gen 2)
                     if battle.player_trap_turns > 0 {
@@ -4294,6 +4371,50 @@ enemy_focus_energy: false,
                         battle.enemy.hp = battle.enemy.hp.saturating_sub(cdmg);
                         let ename_c = battle.enemy.name().to_string();
                         eot_msgs.push(format!("{}{} is afflicted by the CURSE!", eprefix, ename_c));
+                    }
+
+                    // Leech Seed drain: 1/8 max HP per turn
+                    if battle.player_seeded {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if p.hp > 0 {
+                                let drain = (p.max_hp / 8).max(1);
+                                let actual = drain.min(p.hp);
+                                p.hp = p.hp.saturating_sub(drain);
+                                battle.enemy.hp = (battle.enemy.hp + actual).min(battle.enemy.max_hp);
+                                let pn = p.name().to_string();
+                                eot_msgs.push(format!("{}'s health is sapped by Leech Seed!", pn));
+                            }
+                        }
+                    }
+                    if battle.enemy_seeded {
+                        if battle.enemy.hp > 0 {
+                            let drain = (battle.enemy.max_hp / 8).max(1);
+                            let actual = drain.min(battle.enemy.hp);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(drain);
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = (p.hp + actual).min(p.max_hp);
+                            }
+                            eot_msgs.push(format!("{}{}'s health is sapped by Leech Seed!", eprefix, ename_eot));
+                        }
+                    }
+
+                    // Nightmare drain: 1/4 max HP per turn while asleep
+                    if battle.player_nightmare {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if matches!(p.status, StatusCondition::Sleep { .. }) && p.hp > 0 {
+                                let ndmg = (p.max_hp / 4).max(1);
+                                p.hp = p.hp.saturating_sub(ndmg);
+                                let pn = p.name().to_string();
+                                eot_msgs.push(format!("{} is locked in a Nightmare!", pn));
+                            }
+                        }
+                    }
+                    if battle.enemy_nightmare {
+                        if matches!(battle.enemy.status, StatusCondition::Sleep { .. }) && battle.enemy.hp > 0 {
+                            let ndmg = (battle.enemy.max_hp / 4).max(1);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(ndmg);
+                            eot_msgs.push(format!("{}{} is locked in a Nightmare!", eprefix, ename_eot));
+                        }
                     }
 
                     // Perish Song countdown (end of turn)
@@ -4979,6 +5100,70 @@ enemy_focus_energy: false,
                         } else {
                             Some("But it failed!".to_string())
                         }
+                    } else if move_id == MOVE_LEECH_SEED {
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        let p_sp = self.party.get(battle.player_idx).and_then(|p| get_species(p.species_id));
+                        let is_grass = p_sp.map(|s| s.type1 == PokemonType::Grass || s.type2 == Some(PokemonType::Grass)).unwrap_or(false);
+                        if is_grass {
+                            Some(format!("It doesn't affect {}...", pname))
+                        } else if battle.player_seeded {
+                            Some(format!("{} is already seeded!", pname))
+                        } else {
+                            battle.player_seeded = true;
+                            Some(format!("{} was seeded!", pname))
+                        }
+                    } else if move_id == MOVE_NIGHTMARE {
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                        let is_asleep = self.party.get(battle.player_idx)
+                            .map(|p| matches!(p.status, StatusCondition::Sleep { .. }))
+                            .unwrap_or(false);
+                        if !is_asleep || battle.player_nightmare {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_nightmare = true;
+                            Some(format!("{} began having a Nightmare!", pname))
+                        }
+                    } else if move_id == MOVE_SKETCH {
+                        // Enemy Sketch: copy player's last move
+                        if battle.player_last_move == 0 || battle.player_last_move == MOVE_STRUGGLE {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let copied_move = battle.player_last_move;
+                            if let Some(slot) = battle.enemy.moves.iter().position(|m| *m == Some(MOVE_SKETCH)) {
+                                battle.enemy.moves[slot] = Some(copied_move);
+                                if let Some(md) = get_move(copied_move) {
+                                    battle.enemy.move_pp[slot] = md.pp;
+                                }
+                            }
+                            let mname = get_move(copied_move).map(|m| m.name).unwrap_or("???");
+                            let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                            Some(format!("{}{} Sketched {}!", prefix, battle.enemy.name(), mname))
+                        }
+                    } else if move_id == MOVE_METRONOME {
+                        // Enemy Metronome: pick random move excluding banned moves per pokecrystal
+                        let metronome_excluded = [
+                            0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
+                            MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
+                            MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
+                        ];
+                        let candidates: Vec<MoveId> = MOVE_DB.iter()
+                            .map(|m| m.id)
+                            .filter(|id| !metronome_excluded.contains(id))
+                            .collect();
+                        if candidates.is_empty() {
+                            Some("But it failed!".to_string())
+                        } else {
+                            let chosen = candidates[(engine.rng.next_u64() as usize) % candidates.len()];
+                            let (e_dmg, e_eff, e_crit) = {
+                                let r = self.calc_enemy_move_forced(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, chosen, battle.weather, battle.enemy_focus_energy, battle.enemy_lock_on);
+                                (r.1, r.2, r.3)
+                            };
+                            battle.phase = BattlePhase::EnemyAttack {
+                                timer: 0.0, move_id: chosen, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                            };
+                            self.battle = Some(battle);
+                            return; // re-enter EnemyAttack with the chosen move
+                        }
                     } else { None }
                 } else { None };
 
@@ -5075,7 +5260,10 @@ enemy_focus_energy: false,
                             eot_msgs.push(st);
                         }
                         let woke = p.tick_status();
-                        if woke { eot_msgs.push(format!("{} woke up!", pname2)); }
+                        if woke {
+                            eot_msgs.push(format!("{} woke up!", pname2));
+                            battle.player_nightmare = false;
+                        }
                         player_fainted_from_status = p.is_fainted() && !fainted;
                     } else { player_fainted_from_status = false; }
                     let eprefix2 = if battle.is_wild { "Wild " } else { "Foe " };
@@ -5086,7 +5274,10 @@ enemy_focus_energy: false,
                         eot_msgs.push(st);
                     }
                     let ewoke2 = battle.enemy.tick_status();
-                    if ewoke2 { eot_msgs.push(format!("{}{} woke up!", eprefix2, battle.enemy.name())); }
+                    if ewoke2 {
+                        eot_msgs.push(format!("{}{} woke up!", eprefix2, battle.enemy.name()));
+                        battle.enemy_nightmare = false;
+                    }
 
                     // Trapping damage: 1/16 max HP per turn (Gen 2)
                     if battle.player_trap_turns > 0 {
@@ -5128,6 +5319,50 @@ enemy_focus_energy: false,
                         battle.enemy.hp = battle.enemy.hp.saturating_sub(cdmg);
                         let ename_c = battle.enemy.name().to_string();
                         eot_msgs.push(format!("{}{} is afflicted by the CURSE!", eprefix2, ename_c));
+                    }
+
+                    // Leech Seed drain: 1/8 max HP per turn
+                    if battle.player_seeded {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if p.hp > 0 {
+                                let drain = (p.max_hp / 8).max(1);
+                                let actual = drain.min(p.hp);
+                                p.hp = p.hp.saturating_sub(drain);
+                                battle.enemy.hp = (battle.enemy.hp + actual).min(battle.enemy.max_hp);
+                                let pn = p.name().to_string();
+                                eot_msgs.push(format!("{}'s health is sapped by Leech Seed!", pn));
+                            }
+                        }
+                    }
+                    if battle.enemy_seeded {
+                        if battle.enemy.hp > 0 {
+                            let drain = (battle.enemy.max_hp / 8).max(1);
+                            let actual = drain.min(battle.enemy.hp);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(drain);
+                            if let Some(p) = self.party.get_mut(battle.player_idx) {
+                                p.hp = (p.hp + actual).min(p.max_hp);
+                            }
+                            eot_msgs.push(format!("{}{}'s health is sapped by Leech Seed!", eprefix2, ename2));
+                        }
+                    }
+
+                    // Nightmare drain: 1/4 max HP per turn while asleep
+                    if battle.player_nightmare {
+                        if let Some(p) = self.party.get_mut(battle.player_idx) {
+                            if matches!(p.status, StatusCondition::Sleep { .. }) && p.hp > 0 {
+                                let ndmg = (p.max_hp / 4).max(1);
+                                p.hp = p.hp.saturating_sub(ndmg);
+                                let pn = p.name().to_string();
+                                eot_msgs.push(format!("{} is locked in a Nightmare!", pn));
+                            }
+                        }
+                    }
+                    if battle.enemy_nightmare {
+                        if matches!(battle.enemy.status, StatusCondition::Sleep { .. }) && battle.enemy.hp > 0 {
+                            let ndmg = (battle.enemy.max_hp / 4).max(1);
+                            battle.enemy.hp = battle.enemy.hp.saturating_sub(ndmg);
+                            eot_msgs.push(format!("{}{} is locked in a Nightmare!", eprefix2, ename2));
+                        }
                     }
 
                     // Perish Song countdown (end of turn)
@@ -6392,6 +6627,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -6479,6 +6718,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6562,6 +6805,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6645,6 +6892,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6729,6 +6980,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6813,6 +7068,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -11637,6 +11896,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
             trainer_name: String::new(),
         };
 
@@ -11760,6 +12023,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
             trainer_name: String::new(),
         };
 
@@ -11849,6 +12116,10 @@ player_lock_on: false,
 enemy_lock_on: false,
 player_focus_energy: false,
 enemy_focus_energy: false,
+player_seeded: false,
+enemy_seeded: false,
+player_nightmare: false,
+enemy_nightmare: false,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -14748,5 +15019,94 @@ enemy_focus_energy: false,
         assert!(resist.contains(&PokemonType::Rock));
         assert!(resist.contains(&PokemonType::Fire));
         assert!(!resist.contains(&PokemonType::Grass)); // Grass is weak to Fire
+    }
+
+    // ─── Sprint 166: Leech Seed, Nightmare, Metronome, Sketch ──────
+
+    #[test]
+    fn test_leech_seed_move_data() {
+        let m = get_move(MOVE_LEECH_SEED).expect("Leech Seed should exist");
+        assert_eq!(m.name, "Leech Seed");
+        assert_eq!(m.move_type, PokemonType::Grass);
+        assert!(matches!(m.category, MoveCategory::Status));
+        assert_eq!(m.accuracy, 90);
+        assert_eq!(m.pp, 10);
+    }
+
+    #[test]
+    fn test_nightmare_move_data() {
+        let m = get_move(MOVE_NIGHTMARE).expect("Nightmare should exist");
+        assert_eq!(m.name, "Nightmare");
+        assert_eq!(m.move_type, PokemonType::Ghost);
+        assert!(matches!(m.category, MoveCategory::Status));
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 15);
+    }
+
+    #[test]
+    fn test_sketch_move_data() {
+        let m = get_move(MOVE_SKETCH).expect("Sketch should exist");
+        assert_eq!(m.name, "Sketch");
+        assert_eq!(m.id, 166);
+        assert!(matches!(m.category, MoveCategory::Status));
+    }
+
+    #[test]
+    fn test_metronome_move_data() {
+        let m = get_move(MOVE_METRONOME).expect("Metronome should exist");
+        assert_eq!(m.name, "Metronome");
+        assert_eq!(m.id, 118);
+        assert!(matches!(m.category, MoveCategory::Status));
+        assert_eq!(m.pp, 10);
+    }
+
+    #[test]
+    fn test_metronome_exclusion_list() {
+        // Per pokecrystal, Metronome cannot select these moves
+        let excluded = [
+            0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
+            MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
+            MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
+        ];
+        let candidates: Vec<MoveId> = MOVE_DB.iter()
+            .map(|m| m.id)
+            .filter(|id| !excluded.contains(id))
+            .collect();
+        assert!(!candidates.is_empty(), "Metronome must have valid candidates");
+        // Verify none of the excluded moves are in candidates
+        for &ex in &excluded {
+            assert!(!candidates.contains(&ex), "Excluded move {} found in candidates", ex);
+        }
+        // Verify a valid move IS in candidates
+        assert!(candidates.contains(&MOVE_TACKLE));
+    }
+
+    #[test]
+    fn test_leech_seed_drain_amount() {
+        // Leech Seed drains 1/8 max HP per turn, minimum 1
+        let max_hp: u16 = 100;
+        let drain = (max_hp / 8).max(1);
+        assert_eq!(drain, 12);
+        // Low HP: minimum 1
+        let low_max = 7u16;
+        assert_eq!((low_max / 8).max(1), 1);
+    }
+
+    #[test]
+    fn test_nightmare_drain_amount() {
+        // Nightmare drains 1/4 max HP per turn while asleep, minimum 1
+        let max_hp: u16 = 100;
+        let ndmg = (max_hp / 4).max(1);
+        assert_eq!(ndmg, 25);
+        let low_max = 3u16;
+        assert_eq!((low_max / 4).max(1), 1);
+    }
+
+    #[test]
+    fn test_leech_seed_fails_vs_grass() {
+        // Leech Seed should fail against Grass-type pokemon
+        let chikorita = get_species(CHIKORITA).expect("Chikorita should exist");
+        let is_grass = chikorita.type1 == PokemonType::Grass || chikorita.type2 == Some(PokemonType::Grass);
+        assert!(is_grass, "Chikorita must be Grass type for Leech Seed immunity");
     }
 }

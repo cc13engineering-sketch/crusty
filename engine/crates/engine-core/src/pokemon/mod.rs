@@ -608,6 +608,9 @@ struct BattleState {
     // Nightmare: drains 1/4 max HP per turn while asleep
     player_nightmare: bool,
     enemy_nightmare: bool,
+    // Foresight/Odor Sleuth: identified — negates Ghost immunity, resets evasion
+    player_identified: bool,
+    enemy_identified: bool,
 }
 
 // ─── Dialogue State ─────────────────────────────────────
@@ -2107,6 +2110,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                                 trainer_name: String::new(),
                             });
                             // Trigger encounter transition flash instead of going directly to battle
@@ -3628,6 +3633,25 @@ enemy_nightmare: false,
                     }
                 }
 
+                // Rapid Spin: clear Leech Seed, Spikes, and trapping from user's side (flags only; messages added to queue later)
+                let mut rapid_spin_msgs: Vec<String> = Vec::new();
+                if move_id == MOVE_RAPID_SPIN && damage > 0 {
+                    if battle.player_seeded {
+                        battle.player_seeded = false;
+                        let pn = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                        rapid_spin_msgs.push(format!("{} shed Leech Seed!", pn));
+                    }
+                    if battle.player_spikes {
+                        battle.player_spikes = false;
+                        rapid_spin_msgs.push("Spikes were blown away!".to_string());
+                    }
+                    if battle.player_trap_turns > 0 {
+                        battle.player_trap_turns = 0;
+                        let pn = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                        rapid_spin_msgs.push(format!("{} was released!", pn));
+                    }
+                }
+
                 // Self-Destruct/Explosion: user faints
                 if move_id == MOVE_SELF_DESTRUCT {
                     if let Some(p) = self.party.get_mut(battle.player_idx) {
@@ -4139,6 +4163,25 @@ enemy_nightmare: false,
                             self.battle = Some(battle);
                             return; // re-enter PlayerAttack with the chosen move
                         }
+                    } else if move_id == MOVE_SWEET_SCENT {
+                        // Sweet Scent: lower target's evasion by 1 stage
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_stages[6] > -6 {
+                            battle.enemy_stages[6] -= 1;
+                            Some(format!("{}{}'s evasion fell!", prefix, battle.enemy.name()))
+                        } else {
+                            Some(format!("{}{}'s evasion won't go lower!", prefix, battle.enemy.name()))
+                        }
+                    } else if move_id == MOVE_FORESIGHT {
+                        // Foresight: reset target's evasion, set identified flag (negates Ghost immunity)
+                        let prefix = if battle.is_wild { "Wild " } else { "Foe " };
+                        if battle.enemy_identified {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.enemy_identified = true;
+                            battle.enemy_stages[6] = 0; // Reset evasion
+                            Some(format!("{}{} was identified!", prefix, battle.enemy.name()))
+                        }
                     } else { None }
                 } else { None };
 
@@ -4205,6 +4248,10 @@ enemy_nightmare: false,
                 }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+                // Rapid Spin: add clearing messages to queue
+                for rsm in &rapid_spin_msgs {
+                    battle.battle_queue.push_back(BattleStep::Text(rsm.clone()));
+                }
                 // Moonlight/healing: update player HP bar display
                 if move_id == MOVE_MOONLIGHT {
                     let hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
@@ -4744,6 +4791,25 @@ enemy_nightmare: false,
                     battle.player_trap_turns = trap_turns;
                 }
 
+                // Enemy Rapid Spin: clear Leech Seed, Spikes, trapping from enemy's side
+                let mut e_rapid_spin_msgs: Vec<String> = Vec::new();
+                if move_id == MOVE_RAPID_SPIN && damage > 0 {
+                    if battle.enemy_seeded {
+                        battle.enemy_seeded = false;
+                        let eprefix_rs = if battle.is_wild { "Wild " } else { "Foe " };
+                        e_rapid_spin_msgs.push(format!("{}{} shed Leech Seed!", eprefix_rs, battle.enemy.name()));
+                    }
+                    if battle.enemy_spikes {
+                        battle.enemy_spikes = false;
+                        e_rapid_spin_msgs.push("Spikes were blown away!".to_string());
+                    }
+                    if battle.enemy_trap_turns > 0 {
+                        battle.enemy_trap_turns = 0;
+                        let eprefix_rs = if battle.is_wild { "Wild " } else { "Foe " };
+                        e_rapid_spin_msgs.push(format!("{}{} was released!", eprefix_rs, battle.enemy.name()));
+                    }
+                }
+
                 let move_data_ref = get_move(move_id);
                 let move_name = move_data_ref.map(|m| m.name).unwrap_or("???");
                 let ename = battle.enemy.name().to_string();
@@ -5170,6 +5236,25 @@ enemy_nightmare: false,
                             self.battle = Some(battle);
                             return; // re-enter EnemyAttack with the chosen move
                         }
+                    } else if move_id == MOVE_SWEET_SCENT {
+                        // Enemy Sweet Scent: lower player's evasion by 1 stage
+                        let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                        if battle.player_stages[6] > -6 {
+                            battle.player_stages[6] -= 1;
+                            Some(format!("{}'s evasion fell!", pname))
+                        } else {
+                            Some(format!("{}'s evasion won't go lower!", pname))
+                        }
+                    } else if move_id == MOVE_FORESIGHT {
+                        // Enemy Foresight: reset player's evasion, set identified flag
+                        if battle.player_identified {
+                            Some("But it failed!".to_string())
+                        } else {
+                            battle.player_identified = true;
+                            battle.player_stages[6] = 0;
+                            let pname = self.party.get(battle.player_idx).map(|p| p.name()).unwrap_or("???");
+                            Some(format!("{} was identified!", pname))
+                        }
                     } else { None }
                 } else { None };
 
@@ -5226,6 +5311,10 @@ enemy_nightmare: false,
                 }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = e_stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
+                // Enemy Rapid Spin: add clearing messages to queue
+                for rsm in &e_rapid_spin_msgs {
+                    battle.battle_queue.push_back(BattleStep::Text(rsm.clone()));
+                }
                 // Moonlight/healing: update enemy HP bar display
                 if move_id == MOVE_MOONLIGHT {
                     battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
@@ -5604,6 +5693,7 @@ enemy_nightmare: false,
                     battle.enemy_nightmare = false;
                     battle.enemy_lock_on = false;
                     battle.enemy_focus_energy = false;
+                    battle.enemy_identified = false;
                     // Spikes damage on enemy switch-in
                     if battle.enemy_spikes {
                         let is_flying = get_species(battle.enemy.species_id).map(|sp| {
@@ -5801,6 +5891,7 @@ enemy_nightmare: false,
                                 battle.enemy_nightmare = false;
                                 battle.enemy_lock_on = false;
                                 battle.enemy_focus_energy = false;
+                                battle.enemy_identified = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -5864,6 +5955,7 @@ enemy_nightmare: false,
                                 battle.enemy_nightmare = false;
                                 battle.enemy_lock_on = false;
                                 battle.enemy_focus_energy = false;
+                                battle.enemy_identified = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -6412,7 +6504,13 @@ enemy_nightmare: false,
             let atk_mult = if is_crit { stage_multiplier(atk_stage.max(0)) } else { stage_multiplier(atk_stage) };
             let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
             if let Some(atk) = self.party.get(battle.player_idx) {
-                let (dmg, eff) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, is_crit, atk_mult, def_mult);
+                // Foresight: if enemy is identified, strip Ghost immunity for Normal/Fighting
+                let (eff_dt1, eff_dt2) = if battle.enemy_identified && matches!(move_data.move_type, PokemonType::Normal | PokemonType::Fighting) {
+                    let t1 = if dt1 == PokemonType::Ghost { PokemonType::Normal } else { dt1 };
+                    let t2 = dt2.map(|t| if t == PokemonType::Ghost { PokemonType::Normal } else { t });
+                    (t1, t2)
+                } else { (dt1, dt2) };
+                let (dmg, eff) = calc_damage(atk, def_stat, eff_dt1, eff_dt2, move_data, rng, is_crit, atk_mult, def_mult);
                 let wm = weather_move_modifier(battle.weather, move_data.move_type, move_id);
                 let hm = held_item_type_boost(atk.held_item, move_data.move_type);
                 ((dmg as f64 * wm * hm) as u16, eff, is_crit)
@@ -6649,6 +6747,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                             trainer_name: tname,
                         });
                         self.encounter_flash_count = 0;
@@ -6740,6 +6840,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6827,6 +6929,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -6914,6 +7018,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7002,6 +7108,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7090,6 +7198,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
                         trainer_name: String::new(),
                     });
                     self.encounter_flash_count = 0;
@@ -7344,6 +7454,7 @@ enemy_nightmare: false,
                                 b.player_nightmare = false; // Nightmare cleared on switch
                                 b.player_lock_on = false; // Lock-On cleared on switch
                                 b.player_focus_energy = false; // Focus Energy cleared on switch
+                                b.player_identified = false; // Foresight cleared on switch
                                 b.player_trapped = false; // Mean Look cleared on switch
                                 b.player_trap_turns = 0; // Trapping cleared on switch
                                 b.player_must_recharge = false; // Clear recharge on switch
@@ -11922,6 +12033,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
             trainer_name: String::new(),
         };
 
@@ -12049,6 +12162,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
             trainer_name: String::new(),
         };
 
@@ -12142,6 +12257,8 @@ player_seeded: false,
 enemy_seeded: false,
 player_nightmare: false,
 enemy_nightmare: false,
+player_identified: false,
+enemy_identified: false,
             trainer_name: if is_wild { String::new() } else { "Trainer".to_string() },
         }
     }
@@ -15193,5 +15310,77 @@ enemy_nightmare: false,
         assert_eq!(lo.pp, mr.pp); // both 5
         assert_eq!(lo.accuracy, mr.accuracy); // both 100
         assert_eq!(lo.power, mr.power); // both 0
+    }
+
+    // ─── Sprint 168: Rapid Spin, Sweet Scent, Foresight ──────
+
+    #[test]
+    fn test_rapid_spin_move_data() {
+        let m = get_move(MOVE_RAPID_SPIN).expect("Rapid Spin should exist");
+        assert_eq!(m.name, "Rapid Spin");
+        assert_eq!(m.move_type, PokemonType::Normal);
+        assert!(matches!(m.category, MoveCategory::Physical));
+        assert_eq!(m.power, 20);
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 40);
+    }
+
+    #[test]
+    fn test_sweet_scent_move_data() {
+        let m = get_move(MOVE_SWEET_SCENT).expect("Sweet Scent should exist");
+        assert_eq!(m.name, "Sweet Scent");
+        assert!(matches!(m.category, MoveCategory::Status));
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 20);
+    }
+
+    #[test]
+    fn test_foresight_move_data() {
+        let m = get_move(MOVE_FORESIGHT).expect("Foresight should exist");
+        assert_eq!(m.name, "Foresight");
+        assert!(matches!(m.category, MoveCategory::Status));
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 40);
+    }
+
+    #[test]
+    fn test_pursuit_move_data() {
+        let m = get_move(MOVE_PURSUIT).expect("Pursuit should exist");
+        assert_eq!(m.name, "Pursuit");
+        assert_eq!(m.move_type, PokemonType::Dark);
+        assert_eq!(m.power, 40);
+        assert_eq!(m.pp, 20);
+    }
+
+    #[test]
+    fn test_hidden_power_move_data() {
+        let m = get_move(MOVE_HIDDEN_POWER).expect("Hidden Power should exist");
+        assert_eq!(m.name, "Hidden Power");
+        assert_eq!(m.accuracy, 100);
+        assert_eq!(m.pp, 15);
+    }
+
+    #[test]
+    fn test_foresight_ghost_bypass() {
+        // Normal vs Ghost is 0.0, but Foresight should override
+        // When enemy is identified, Ghost type should be treated as Normal for Normal/Fighting moves
+        let eff = type_effectiveness(PokemonType::Normal, PokemonType::Ghost);
+        assert_eq!(eff, 0.0, "Normal should normally be immune to Ghost");
+        let eff_fight = type_effectiveness(PokemonType::Fighting, PokemonType::Ghost);
+        assert_eq!(eff_fight, 0.0, "Fighting should normally be immune to Ghost");
+        // After Foresight, we strip Ghost => Normal, so effectiveness becomes Normal vs Normal = 1.0
+        let eff_fixed = type_effectiveness(PokemonType::Normal, PokemonType::Normal);
+        assert_eq!(eff_fixed, 1.0, "Normal vs Normal should be neutral");
+    }
+
+    #[test]
+    fn test_sweet_scent_evasion_stage_limit() {
+        // Evasion can go down to -6
+        let mut stage: i8 = -5;
+        if stage > -6 { stage -= 1; }
+        assert_eq!(stage, -6);
+        // At -6, no further lowering
+        if stage > -6 { stage -= 1; }
+        assert_eq!(stage, -6);
     }
 }

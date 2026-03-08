@@ -606,6 +606,8 @@ pub const MOVE_MIND_READER: MoveId = 170;
 pub const MOVE_CONVERSION_2: MoveId = 176;
 pub const MOVE_LEECH_SEED: MoveId = 73;
 pub const MOVE_NIGHTMARE: MoveId = 171;
+// Sprint 168 moves
+pub const MOVE_RAPID_SPIN: MoveId = 229;
 
 /// Static species data
 #[derive(Debug)]
@@ -2412,6 +2414,8 @@ pub const MOVE_DB: &[MoveData] = &[
     // Sprint 166 moves
     MoveData { id: MOVE_LEECH_SEED, name: "Leech Seed", move_type: PokemonType::Grass, category: MoveCategory::Status, power: 0, accuracy: 90, pp: 10, description: "Drains HP from the foe every turn." },
     MoveData { id: MOVE_NIGHTMARE, name: "Nightmare", move_type: PokemonType::Ghost, category: MoveCategory::Status, power: 0, accuracy: 100, pp: 15, description: "A sleeping foe loses 1/4 HP per turn." },
+    // Sprint 168 moves
+    MoveData { id: MOVE_RAPID_SPIN, name: "Rapid Spin", move_type: PokemonType::Normal, category: MoveCategory::Physical, power: 20, accuracy: 100, pp: 40, description: "Removes hazards and trapping moves." },
 ];
 
 // ─── Type Effectiveness Chart ───────────────────────────

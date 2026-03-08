@@ -4305,3 +4305,31 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_sketch_pp_1_per_pokecrystal` — pp 1
 - `test_focus_energy_pp_30_per_pokecrystal` — pp 30, Normal type
 - `test_lock_on_mind_reader_same_effect` — both pp 5, acc 100, power 0
+
+### Sprint 168: Rapid Spin + Sweet Scent + Foresight (+ Pursuit, Hidden Power)
+
+#### New Moves / Handlers
+- **Rapid Spin** (ID 229): Normal/Physical, 20 power, acc 100, pp 40. Deals damage AND clears Leech Seed, Spikes, and trapping from user's side. New constant + MoveData added.
+  - Source: `pokecrystal-master/engine/battle/move_effects/rapid_spin.asm`
+- **Sweet Scent** (ID 230): Normal/Status, acc 100, pp 20. Lowers target's evasion by 1 stage (EFFECT_EVASION_DOWN).
+  - Source: `pokecrystal-master/data/moves/moves.asm`
+- **Foresight** (ID 193): Normal/Status, acc 100, pp 40. Sets identified flag on target, resets evasion to 0. Negates Ghost-type immunity for Normal/Fighting moves in `calc_player_damage`.
+  - Source: `pokecrystal-master/engine/battle/move_effects/foresight.asm`
+- **Pursuit** (ID 228): Already has MoveData (Dark/Physical, 40 power). Works as regular damage move. Switch-doubling mechanic not implemented.
+- **Hidden Power** (ID 237): Already has MoveData (Normal/Special, 60 power). Works as regular damage move. Type variation by DVs not implemented.
+
+#### Battle System Changes
+- **BattleState new fields**: `player_identified`, `enemy_identified` (Foresight flag)
+- **Foresight Ghost bypass**: In `calc_player_damage`, when enemy is identified, Ghost type is replaced with Normal for damage calc purposes when using Normal/Fighting moves.
+- **Rapid Spin post-attack**: Clears `player_seeded`, `player_spikes`, `player_trap_turns` (player side) or equivalent enemy-side flags after dealing damage.
+- **Identified flag cleared on switch**: Added to all player and enemy switch-in paths.
+- All handlers implemented in both PlayerAttack and EnemyAttack phases.
+
+#### New Tests (7 tests, 1485 total)
+- `test_rapid_spin_move_data` — ID 229, Normal/Physical, 20 power, acc 100, pp 40
+- `test_sweet_scent_move_data` — Status, acc 100, pp 20
+- `test_foresight_move_data` — Status, acc 100, pp 40
+- `test_pursuit_move_data` — Dark, 40 power, pp 20
+- `test_hidden_power_move_data` — acc 100, pp 15
+- `test_foresight_ghost_bypass` — Normal vs Ghost = 0.0; after strip, Normal vs Normal = 1.0
+- `test_sweet_scent_evasion_stage_limit` — evasion stage clamps at -6

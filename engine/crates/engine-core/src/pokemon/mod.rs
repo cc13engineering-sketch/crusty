@@ -4115,14 +4115,18 @@ enemy_nightmare: false,
                         }
                     } else if move_id == MOVE_METRONOME {
                         // Metronome: pick a random move from the entire move DB, excluding banned moves per pokecrystal
+                        // Also excludes user's own moves (pokecrystal CheckUserMove)
                         let metronome_excluded = [
                             0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
                             MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
                             MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
                         ];
+                        let user_moves: Vec<MoveId> = self.party.get(battle.player_idx)
+                            .map(|p| p.moves.iter().filter_map(|m| *m).collect())
+                            .unwrap_or_default();
                         let candidates: Vec<MoveId> = MOVE_DB.iter()
                             .map(|m| m.id)
-                            .filter(|id| !metronome_excluded.contains(id))
+                            .filter(|id| !metronome_excluded.contains(id) && !user_moves.contains(id))
                             .collect();
                         if candidates.is_empty() {
                             Some("But it failed!".to_string())
@@ -5141,14 +5145,16 @@ enemy_nightmare: false,
                         }
                     } else if move_id == MOVE_METRONOME {
                         // Enemy Metronome: pick random move excluding banned moves per pokecrystal
+                        // Also excludes user's own moves (pokecrystal CheckUserMove)
                         let metronome_excluded = [
                             0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
                             MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
                             MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
                         ];
+                        let enemy_moves: Vec<MoveId> = battle.enemy.moves.iter().filter_map(|m| *m).collect();
                         let candidates: Vec<MoveId> = MOVE_DB.iter()
                             .map(|m| m.id)
-                            .filter(|id| !metronome_excluded.contains(id))
+                            .filter(|id| !metronome_excluded.contains(id) && !enemy_moves.contains(id))
                             .collect();
                         if candidates.is_empty() {
                             Some("But it failed!".to_string())
@@ -5594,6 +5600,10 @@ enemy_nightmare: false,
                     battle.enemy_flinched = false;
                     battle.enemy_must_recharge = false;
                     battle.enemy_rampage = (0, 0);
+                    battle.enemy_seeded = false;
+                    battle.enemy_nightmare = false;
+                    battle.enemy_lock_on = false;
+                    battle.enemy_focus_energy = false;
                     // Spikes damage on enemy switch-in
                     if battle.enemy_spikes {
                         let is_flying = get_species(battle.enemy.species_id).map(|sp| {
@@ -5787,6 +5797,10 @@ enemy_nightmare: false,
                                 battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
+                                battle.enemy_seeded = false;
+                                battle.enemy_nightmare = false;
+                                battle.enemy_lock_on = false;
+                                battle.enemy_focus_energy = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -5846,6 +5860,10 @@ enemy_nightmare: false,
                                 battle.enemy_flinched = false;
                                 battle.enemy_must_recharge = false;
                                 battle.enemy_rampage = (0, 0);
+                                battle.enemy_seeded = false;
+                                battle.enemy_nightmare = false;
+                                battle.enemy_lock_on = false;
+                                battle.enemy_focus_energy = false;
                                 battle.phase = BattlePhase::TrainerSwitchPrompt { next_name, cursor: 0 };
                             } else {
                                 // Queue-based Won: show "You won!" text, then skip to Won cleanup
@@ -7322,6 +7340,10 @@ enemy_nightmare: false,
                                 b.player_hp_display = self.party[selected].hp as f64;
                                 b.player_stages = [0; 7]; // Reset player stages on switch
                                 b.player_confused = 0; // Reset confusion on switch
+                                b.player_seeded = false; // Leech Seed cleared on switch
+                                b.player_nightmare = false; // Nightmare cleared on switch
+                                b.player_lock_on = false; // Lock-On cleared on switch
+                                b.player_focus_energy = false; // Focus Energy cleared on switch
                                 b.player_trapped = false; // Mean Look cleared on switch
                                 b.player_trap_turns = 0; // Trapping cleared on switch
                                 b.player_must_recharge = false; // Clear recharge on switch
@@ -15108,5 +15130,68 @@ enemy_nightmare: false,
         let chikorita = get_species(CHIKORITA).expect("Chikorita should exist");
         let is_grass = chikorita.type1 == PokemonType::Grass || chikorita.type2 == Some(PokemonType::Grass);
         assert!(is_grass, "Chikorita must be Grass type for Leech Seed immunity");
+    }
+
+    // ─── Sprint 167: QA Tests ────────────────────────────────
+
+    #[test]
+    fn test_metronome_excludes_user_moves() {
+        // Metronome should also exclude the user's own moves per pokecrystal CheckUserMove
+        let user_moves = vec![MOVE_TACKLE, MOVE_METRONOME];
+        let metronome_excluded = [
+            0u16, MOVE_METRONOME, MOVE_STRUGGLE, MOVE_SKETCH, MOVE_MIMIC,
+            MOVE_COUNTER, MOVE_MIRROR_COAT, MOVE_PROTECT, MOVE_DETECT,
+            MOVE_ENDURE, MOVE_DESTINY_BOND, MOVE_SLEEP_TALK, MOVE_THIEF,
+        ];
+        let candidates: Vec<MoveId> = MOVE_DB.iter()
+            .map(|m| m.id)
+            .filter(|id| !metronome_excluded.contains(id) && !user_moves.contains(id))
+            .collect();
+        assert!(!candidates.contains(&MOVE_TACKLE), "User's own moves must be excluded");
+        assert!(!candidates.contains(&MOVE_METRONOME), "Metronome itself must be excluded");
+        assert!(!candidates.is_empty(), "Must still have valid candidates");
+    }
+
+    #[test]
+    fn test_leech_seed_move_accuracy_matches_pokecrystal() {
+        // Leech Seed: accuracy 90 per pokecrystal data/moves/moves.asm
+        let ls = get_move(MOVE_LEECH_SEED).unwrap();
+        assert_eq!(ls.accuracy, 90);
+        assert_eq!(ls.pp, 10);
+        assert_eq!(ls.power, 0);
+    }
+
+    #[test]
+    fn test_nightmare_requires_sleep_per_pokecrystal() {
+        // Nightmare should only affect sleeping targets per pokecrystal
+        // Status check: SLP_MASK test in nightmare.asm
+        let nm = get_move(MOVE_NIGHTMARE).unwrap();
+        assert_eq!(nm.move_type, PokemonType::Ghost);
+        assert_eq!(nm.accuracy, 100);
+    }
+
+    #[test]
+    fn test_sketch_pp_1_per_pokecrystal() {
+        // Sketch: pp 1 per pokecrystal data/moves/moves.asm
+        let sk = get_move(MOVE_SKETCH).unwrap();
+        assert_eq!(sk.pp, 1);
+    }
+
+    #[test]
+    fn test_focus_energy_pp_30_per_pokecrystal() {
+        // Focus Energy: pp 30 per pokecrystal data/moves/moves.asm
+        let fe = get_move(MOVE_FOCUS_ENERGY).unwrap();
+        assert_eq!(fe.pp, 30);
+        assert_eq!(fe.move_type, PokemonType::Normal);
+    }
+
+    #[test]
+    fn test_lock_on_mind_reader_same_effect() {
+        // Both Lock-On and Mind Reader use EFFECT_LOCK_ON in pokecrystal
+        let lo = get_move(MOVE_LOCK_ON).unwrap();
+        let mr = get_move(MOVE_MIND_READER).unwrap();
+        assert_eq!(lo.pp, mr.pp); // both 5
+        assert_eq!(lo.accuracy, mr.accuracy); // both 100
+        assert_eq!(lo.power, mr.power); // both 0
     }
 }

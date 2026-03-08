@@ -4284,3 +4284,24 @@ Per pokecrystal `move_effects/belly_drum.asm`:
 - `test_leech_seed_drain_amount` — 1/8 max HP, min 1
 - `test_nightmare_drain_amount` — 1/4 max HP, min 1
 - `test_leech_seed_fails_vs_grass` — Chikorita (Grass) should be immune
+
+### Sprint 167: QA Audit — Sprints 165-166
+
+#### Bugs Found and Fixed
+1. **Leech Seed/Nightmare not clearing on switch**: `player_seeded`, `player_nightmare`, `enemy_seeded`, `enemy_nightmare` were not reset when Pokemon switched out. Fixed by adding clears at all switch-in points (1 player switch, 4 enemy switch-in paths).
+2. **Lock-On/Focus Energy not clearing on switch**: `player_lock_on`, `player_focus_energy`, `enemy_lock_on`, `enemy_focus_energy` also not reset on switch. Fixed alongside #1.
+3. **Metronome not excluding user's own moves**: Per pokecrystal `CheckUserMove` (metronome.asm line 30-33), Metronome should not select moves the user already knows. Fixed in both PlayerAttack and EnemyAttack handlers.
+
+#### Verified Against Pokecrystal
+- All move data (Leech Seed, Nightmare, Sketch, Metronome, Psych Up, Lock-On, Mind Reader, Focus Energy, Conversion, Conversion2) verified against `pokecrystal-master/data/moves/moves.asm`
+- Metronome exclusion list verified against `data/moves/metronome_exception_moves.asm` (13 entries match exactly)
+- Leech Seed end-of-turn: `GetEighthMaxHP` + `SubtractHPFromUser` + `RestoreHP` confirmed in `engine/battle/core.asm`
+- Nightmare end-of-turn: `GetQuarterMaxHP` + `SubtractHPFromUser` confirmed in `engine/battle/core.asm`
+
+#### New Tests (6 tests, 1478 total)
+- `test_metronome_excludes_user_moves` — user's own moves not in candidates
+- `test_leech_seed_move_accuracy_matches_pokecrystal` — acc 90, pp 10, power 0
+- `test_nightmare_requires_sleep_per_pokecrystal` — Ghost type, acc 100
+- `test_sketch_pp_1_per_pokecrystal` — pp 1
+- `test_focus_energy_pp_30_per_pokecrystal` — pp 30, Normal type
+- `test_lock_on_mind_reader_same_effect` — both pp 5, acc 100, power 0

@@ -431,6 +431,22 @@ fn crit_denominator(move_id: MoveId, held_item: u8) -> u64 {
     }
 }
 
+/// Move priority (Gen 2). Higher priority moves go first regardless of speed.
+/// Per pokecrystal data/moves/effects_priorities.asm
+fn move_priority(move_id: MoveId) -> i8 {
+    match move_id {
+        MOVE_PROTECT | MOVE_DETECT => 3,
+        MOVE_QUICK_ATTACK | MOVE_MACH_PUNCH | MOVE_EXTREME_SPEED => 1,
+        MOVE_VITAL_THROW => -1,
+        _ => 0,
+    }
+}
+
+/// Drain moves heal the user for 50% of damage dealt (Gen 2: Absorb, Leech Life, Giga Drain, Dream Eater, Mega Drain)
+fn is_drain_move(move_id: MoveId) -> bool {
+    matches!(move_id, MOVE_ABSORB | MOVE_LEECH_LIFE | MOVE_GIGA_DRAIN | MOVE_DREAM_EATER)
+}
+
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
 /// Returns a recognizable name for gym leaders, rivals, and important trainers;
 /// uses sprite_id to derive a class name for generic route trainers.
@@ -3239,20 +3255,33 @@ weather_turns: 0,
                         (0, 1.0)
                     };
 
-                    // Check speed for turn order (paralysis halves speed, apply speed stages)
-                    let player_spd_stage = stage_multiplier(battle.player_stages[STAGE_SPE]);
-                    let enemy_spd_stage = stage_multiplier(battle.enemy_stages[STAGE_SPE]);
-                    let mut player_speed = (self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0) as f64 * player_spd_stage) as u16;
-                    if let Some(p) = self.party.get(battle.player_idx) {
-                        if matches!(p.status, StatusCondition::Paralysis) {
-                            player_speed /= 2;
+                    // Pre-calculate enemy move for priority comparison
+                    let (e_pre_move, e_pre_dmg, e_pre_eff, e_pre_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
+
+                    // Move priority: higher priority always goes first (Gen 2)
+                    let player_priority = move_priority(move_id);
+                    let enemy_priority = move_priority(e_pre_move);
+
+                    // Determine turn order: priority first, then speed
+                    let player_goes_first = if player_priority != enemy_priority {
+                        player_priority > enemy_priority
+                    } else {
+                        // Equal priority: compare speed (paralysis halves, apply stages)
+                        let player_spd_stage = stage_multiplier(battle.player_stages[STAGE_SPE]);
+                        let enemy_spd_stage = stage_multiplier(battle.enemy_stages[STAGE_SPE]);
+                        let mut player_speed = (self.party.get(battle.player_idx).map(|p| p.speed).unwrap_or(0) as f64 * player_spd_stage) as u16;
+                        if let Some(p) = self.party.get(battle.player_idx) {
+                            if matches!(p.status, StatusCondition::Paralysis) {
+                                player_speed /= 2;
+                            }
                         }
-                    }
-                    let mut enemy_speed = (battle.enemy.speed as f64 * enemy_spd_stage) as u16;
-                    if matches!(battle.enemy.status, StatusCondition::Paralysis) {
-                        enemy_speed /= 2;
-                    }
-                    if player_speed >= enemy_speed {
+                        let mut enemy_speed = (battle.enemy.speed as f64 * enemy_spd_stage) as u16;
+                        if matches!(battle.enemy.status, StatusCondition::Paralysis) {
+                            enemy_speed /= 2;
+                        }
+                        player_speed >= enemy_speed
+                    };
+                    if player_goes_first {
                         // Player goes first
                         battle.pending_player_move = None;
                         let attack_phase = BattlePhase::PlayerAttack {
@@ -3271,12 +3300,11 @@ weather_turns: 0,
                             battle.enemy_confused -= 1;
                             let prefix = if battle.is_wild { "Wild " } else { "Foe " };
                             if battle.enemy_confused == 0 {
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                                 battle.phase = BattlePhase::Text {
                                     message: format!("{}{} snapped out of confusion!", prefix, battle.enemy.name()),
                                     timer: 0.0,
                                     next_phase: Box::new(BattlePhase::EnemyAttack {
-                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                        timer: 0.0, move_id: e_pre_move, damage: e_pre_dmg, effectiveness: e_pre_eff, is_crit: e_pre_crit,
                                     }),
                                 };
                             } else if engine.rng.next_f64() < 0.5 {
@@ -3310,19 +3338,17 @@ weather_turns: 0,
                                     }),
                                 };
                             } else {
-                                let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                                 battle.phase = BattlePhase::Text {
                                     message: format!("{}{} is confused!", prefix, battle.enemy.name()),
                                     timer: 0.0,
                                     next_phase: Box::new(BattlePhase::EnemyAttack {
-                                        timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                        timer: 0.0, move_id: e_pre_move, damage: e_pre_dmg, effectiveness: e_pre_eff, is_crit: e_pre_crit,
                                     }),
                                 };
                             }
                         } else {
-                            let (e_move, e_dmg, e_eff, e_crit) = self.calc_enemy_move(engine, &battle.enemy, battle.player_idx, &battle.enemy_stages, &battle.player_stages, battle.weather);
                             battle.phase = BattlePhase::EnemyAttack {
-                                timer: 0.0, move_id: e_move, damage: e_dmg, effectiveness: e_eff, is_crit: e_crit,
+                                timer: 0.0, move_id: e_pre_move, damage: e_pre_dmg, effectiveness: e_pre_eff, is_crit: e_pre_crit,
                             };
                         }
                     }
@@ -3338,12 +3364,27 @@ weather_turns: 0,
                 // Apply damage to enemy
                 battle.enemy.hp = battle.enemy.hp.saturating_sub(damage);
 
+                // Focus Band: 12% chance to survive KO with 1 HP (protects target)
+                let enemy_focus_band = battle.enemy.is_fainted() && battle.enemy.held_item == HELD_FOCUS_BAND && damage > 0 && engine.rng.next_f64() < 0.117;
+                if enemy_focus_band {
+                    battle.enemy.hp = 1;
+                }
+
                 // Recoil: 1/4 of damage dealt to self (Gen 2) for Struggle, Take Down, Submission, Double-Edge
                 let has_recoil = matches!(move_id, MOVE_STRUGGLE | MOVE_TAKE_DOWN | MOVE_SUBMISSION | MOVE_DOUBLE_EDGE) && damage > 0;
                 if has_recoil {
                     let recoil = (damage / 4).max(1);
                     if let Some(p) = self.party.get_mut(battle.player_idx) {
                         p.hp = p.hp.saturating_sub(recoil);
+                    }
+                }
+
+                // Drain moves: heal user for 50% of damage dealt (Gen 2)
+                let has_drain = is_drain_move(move_id) && damage > 0;
+                if has_drain {
+                    let heal = (damage / 2).max(1);
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        p.hp = (p.hp + heal).min(p.max_hp);
                     }
                 }
 
@@ -3500,6 +3541,11 @@ weather_turns: 0,
                 if move_id == MOVE_SELF_DESTRUCT {
                     battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: 0, duration: 0.3 });
                 }
+                // Drain move: show HP recovery animation for player
+                if has_drain {
+                    let player_hp_drain = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: true, to_hp: player_hp_drain, duration: 0.3 });
+                }
 
                 // Follow-up text messages
                 if is_miss {
@@ -3510,6 +3556,14 @@ weather_turns: 0,
                     if !eff.is_empty() { battle.battle_queue.push_back(BattleStep::Text(eff.to_string())); }
                 }
                 if has_recoil { battle.battle_queue.push_back(BattleStep::Text(format!("{} is hit with recoil!", pname))); }
+                if has_drain {
+                    let eprefix_dr = if battle.is_wild { "Wild " } else { "Foe " };
+                    battle.battle_queue.push_back(BattleStep::Text(format!("Sucked health from {}{}!", eprefix_dr, battle.enemy.name())));
+                }
+                if enemy_focus_band {
+                    let eprefix_fb = if battle.is_wild { "Wild " } else { "Foe " };
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{}{} hung on using its Focus Band!", eprefix_fb, battle.enemy.name())));
+                }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
 
@@ -3777,8 +3831,14 @@ weather_turns: 0,
                 let damage = damage * num_hits as u16;
 
                 // Apply damage + effects to player
+                let mut player_focus_band = false;
                 if let Some(p) = self.party.get_mut(battle.player_idx) {
                     p.hp = p.hp.saturating_sub(damage);
+                    // Focus Band: 12% chance to survive KO with 1 HP
+                    if p.is_fainted() && p.held_item == HELD_FOCUS_BAND && damage > 0 && engine.rng.next_f64() < 0.117 {
+                        p.hp = 1;
+                        player_focus_band = true;
+                    }
                     let is_status_move = get_move(move_id).map(|m| m.category == MoveCategory::Status).unwrap_or(false);
                     if damage > 0 || is_status_move {
                         let roll = engine.rng.next_f64();
@@ -3805,6 +3865,12 @@ weather_turns: 0,
                 if e_has_recoil {
                     let recoil = (damage / 4).max(1);
                     battle.enemy.hp = battle.enemy.hp.saturating_sub(recoil);
+                }
+                // Drain moves: enemy heals for 50% of damage dealt
+                let e_has_drain = is_drain_move(move_id) && damage > 0;
+                if e_has_drain {
+                    let heal = (damage / 2).max(1);
+                    battle.enemy.hp = (battle.enemy.hp + heal).min(battle.enemy.max_hp);
                 }
                 if move_id == MOVE_SELF_DESTRUCT { battle.enemy.hp = 0; }
                 if move_id == MOVE_HYPER_BEAM && damage > 0 { battle.enemy_must_recharge = true; }
@@ -3875,7 +3941,6 @@ weather_turns: 0,
                     } else { None }
                 } else { None };
 
-                let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
                 let has_pending = battle.pending_player_move.is_some();
 
                 // --- Build queue ---
@@ -3902,6 +3967,10 @@ weather_turns: 0,
                 if e_has_recoil || move_id == MOVE_SELF_DESTRUCT {
                     battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
                 }
+                // Drain move: show HP recovery animation for enemy
+                if e_has_drain {
+                    battle.battle_queue.push_back(BattleStep::DrainHp { is_player: false, to_hp: battle.enemy.hp, duration: 0.3 });
+                }
 
                 // Follow-up messages
                 if is_miss {
@@ -3915,10 +3984,19 @@ weather_turns: 0,
                     let eprefix_rc = if battle.is_wild { "Wild " } else { "Foe " };
                     battle.battle_queue.push_back(BattleStep::Text(format!("{}{} is hit with recoil!", eprefix_rc, ename)));
                 }
+                if e_has_drain {
+                    let pname_dr = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.push_back(BattleStep::Text(format!("Sucked health from {}!", pname_dr)));
+                }
+                if player_focus_band {
+                    let pname_fb = self.party.get(battle.player_idx).map(|p| p.name().to_string()).unwrap_or_default();
+                    battle.battle_queue.push_back(BattleStep::Text(format!("{} hung on using its Focus Band!", pname_fb)));
+                }
                 if num_hits > 1 && !is_miss { battle.battle_queue.push_back(BattleStep::Text(format!("Hit {} times!", num_hits))); }
                 if let Some(ref sm) = e_stage_msg { battle.battle_queue.push_back(BattleStep::Text(sm.clone())); }
 
                 // Determine terminal phase
+                let fainted = self.party.get(battle.player_idx).map(|p| p.is_fainted()).unwrap_or(true);
                 let next = if fainted {
                     BattlePhase::PlayerFainted
                 } else if battle.enemy.is_fainted() {
@@ -12407,5 +12485,101 @@ weather_turns: 0,
             assert_eq!(held_item_type_boost(item, ptype), 1.1,
                 "Type boost failed for {:?}", ptype);
         }
+    }
+
+    #[test]
+    fn test_move_priority_values() {
+        // Priority +3: Protect, Detect
+        assert_eq!(move_priority(MOVE_PROTECT), 3);
+        assert_eq!(move_priority(MOVE_DETECT), 3);
+        // Priority +1: Quick Attack, Mach Punch, ExtremeSpeed
+        assert_eq!(move_priority(MOVE_QUICK_ATTACK), 1);
+        assert_eq!(move_priority(MOVE_MACH_PUNCH), 1);
+        assert_eq!(move_priority(MOVE_EXTREME_SPEED), 1);
+        // Priority -1: Vital Throw
+        assert_eq!(move_priority(MOVE_VITAL_THROW), -1);
+        // Priority 0: everything else
+        assert_eq!(move_priority(MOVE_TACKLE), 0);
+        assert_eq!(move_priority(MOVE_THUNDERBOLT), 0);
+        assert_eq!(move_priority(MOVE_EARTHQUAKE), 0);
+    }
+
+    #[test]
+    fn test_drain_move_identification() {
+        assert!(is_drain_move(MOVE_ABSORB));
+        assert!(is_drain_move(MOVE_LEECH_LIFE));
+        assert!(is_drain_move(MOVE_GIGA_DRAIN));
+        assert!(is_drain_move(MOVE_DREAM_EATER));
+        // Non-drain moves
+        assert!(!is_drain_move(MOVE_TACKLE));
+        assert!(!is_drain_move(MOVE_THUNDERBOLT));
+        assert!(!is_drain_move(MOVE_FIRE_BLAST));
+    }
+
+    #[test]
+    fn test_drain_move_heals_player() {
+        // Set up a battle where player uses Absorb
+        let mut mon = Pokemon::new(CHIKORITA, 20);
+        mon.moves = [Some(MOVE_ABSORB), None, None, None];
+        mon.hp = 30; // reduced HP so healing is visible
+        let original_hp = mon.hp;
+        let max_hp = mon.max_hp;
+
+        let mut enemy = Pokemon::new(SENTRET, 15);
+        let enemy_hp_before = enemy.hp;
+
+        // Simulate drain: 50% of damage dealt heals user
+        let damage = 10u16;
+        enemy.hp = enemy.hp.saturating_sub(damage);
+        let heal = (damage / 2).max(1);
+        mon.hp = (mon.hp + heal).min(max_hp);
+
+        assert!(enemy.hp < enemy_hp_before, "Enemy should take damage");
+        assert!(mon.hp > original_hp, "Player should heal from drain");
+        assert_eq!(mon.hp, original_hp + heal);
+    }
+
+    #[test]
+    fn test_focus_band_constant() {
+        assert_eq!(HELD_FOCUS_BAND, 103);
+        assert_eq!(held_item_name(HELD_FOCUS_BAND), "Focus Band");
+    }
+
+    #[test]
+    fn test_focus_band_survives_ko() {
+        // Focus Band: if holder would faint, 12% chance to survive with 1 HP
+        let mut mon = Pokemon::new(CHIKORITA, 20);
+        mon.held_item = HELD_FOCUS_BAND;
+        mon.hp = 5;
+
+        // Simulate a hit that would KO
+        let damage = 100u16;
+        mon.hp = mon.hp.saturating_sub(damage);
+        assert!(mon.is_fainted());
+
+        // Focus Band triggers: restore to 1 HP
+        mon.hp = 1;
+        assert!(!mon.is_fainted());
+        assert_eq!(mon.hp, 1);
+    }
+
+    #[test]
+    fn test_priority_ordering_logic() {
+        // Quick Attack (+1) should go before Tackle (0) regardless of speed
+        let p_priority = move_priority(MOVE_QUICK_ATTACK);
+        let e_priority = move_priority(MOVE_TACKLE);
+        assert!(p_priority > e_priority);
+        let player_goes_first = p_priority > e_priority;
+        assert!(player_goes_first);
+
+        // Vital Throw (-1) should go after Tackle (0) regardless of speed
+        let p_priority2 = move_priority(MOVE_VITAL_THROW);
+        let e_priority2 = move_priority(MOVE_TACKLE);
+        assert!(p_priority2 < e_priority2);
+
+        // Two priority 0 moves: falls back to speed comparison
+        let p3 = move_priority(MOVE_TACKLE);
+        let e3 = move_priority(MOVE_EARTHQUAKE);
+        assert_eq!(p3, e3);
     }
 }

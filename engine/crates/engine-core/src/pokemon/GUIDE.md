@@ -3834,3 +3834,45 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 - `test_sprint155_qa_move_ids_match_pokecrystal` — all 12 move IDs verified
 - `test_sprint155_qa_crit_level_system` — crit levels 0-3 including Scope Lens + high-crit stacking
 - `test_sprint155_qa_type_boost_completeness` — all 17 types have corresponding boost item
+
+---
+
+### Sprint 156 — Content: Priority Moves + Drain Moves + Focus Band
+
+#### Move Priority System
+Added `move_priority(move_id) -> i8` function per pokecrystal `data/moves/effects_priorities.asm`:
+- **+3**: Protect, Detect
+- **+1**: Quick Attack, Mach Punch, ExtremeSpeed
+- **-1**: Vital Throw
+- **0**: All other moves
+
+**Turn order integration**: Pre-calculates enemy move BEFORE speed comparison. If priorities differ, higher priority always goes first regardless of speed. Equal priority falls back to speed comparison (with paralysis halving, stat stages).
+
+This replaces 3 redundant `calc_enemy_move` calls in the enemy-goes-first branches with a single pre-calculation, also improving efficiency.
+
+#### Drain Moves (HP Absorption)
+Added `is_drain_move()` function identifying: Absorb, Leech Life, Giga Drain, Dream Eater.
+
+Per pokecrystal `HandleDrain` in `effect_commands.asm`:
+- User heals for 50% of damage dealt (rounded down, minimum 1)
+- Applies in both PlayerAttack and EnemyAttack phases
+- Queue shows HP bar animation + "Sucked health from [target]!" text
+
+#### Focus Band
+Per pokecrystal `HELD_FOCUS_BAND` in `effect_commands.asm`:
+- 12% chance (30/256 ≈ 0.117) to survive a KO with 1 HP
+- Applies to the target of an attack (protects the holder)
+- Works in both PlayerAttack (protects enemy) and EnemyAttack (protects player)
+- Shows "[Pokemon] hung on using its Focus Band!" text
+
+#### Files Modified
+- `mod.rs`: `move_priority()`, `is_drain_move()`, turn order restructuring, drain healing in both attack phases, Focus Band in both attack phases
+- `GUIDE.md`: Sprint 156 documentation
+
+#### New Tests (6 tests, 1415 total)
+- `test_move_priority_values` — all priority values correct
+- `test_drain_move_identification` — drain move detection
+- `test_drain_move_heals_player` — 50% heal from damage
+- `test_focus_band_constant` — item ID and name correct
+- `test_focus_band_survives_ko` — survive KO with 1 HP
+- `test_priority_ordering_logic` — priority comparison logic

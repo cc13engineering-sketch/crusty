@@ -3724,3 +3724,41 @@ Verified all 110 entries against pokecrystal `data/types/type_matchups.asm` — 
 #### New Tests
 - `test_sprint152_qa_new_species_stats` — verifies Kingler, Persian, Parasect, Granbull base stats
 - `test_sprint152_qa_weather_duration` — verifies WEATHER_DURATION=5 and weather edge cases
+
+---
+
+### Sprint 153 — Held Items + Battle Effects
+
+**Type**: Content | **Tests**: 1401 (+6 new, 0 failures)
+
+#### Held Item System
+- Added `held_item: u8` field to Pokemon struct (default HELD_NONE = 0)
+- Held item IDs use 100+ range to avoid conflicts with bag item IDs (1-20)
+- 28 held item constants covering all Gen 2 battle-relevant items
+
+#### Type-Boost Items (17 items, 10% damage boost per pokecrystal)
+- One item per type: Charcoal (Fire), Mystic Water (Water), Miracle Seed (Grass), etc.
+- Applied in all 3 damage calc paths: main player attack, calc_player_damage, calc_enemy_move_inner
+- Matches pokecrystal exactly: TypeBoostItems table, multiply by 110/100
+- Note: Dragon Scale boosts Dragon (not Dragon Fang) — matches pokecrystal bug
+
+#### Battle Effect Items
+- **Leftovers**: End-of-turn 1/16 max HP recovery (per pokecrystal HandleLeftovers)
+- **Berry**: Heals 10 HP when HP drops below 50%, consumed on use
+- **Gold Berry**: Heals 30 HP when HP drops below 50%, consumed on use
+- **Scope Lens**: Crit rate 1/8 instead of 1/16 (via crit_denominator helper)
+- All effects apply to both player and enemy Pokemon
+
+#### Helper Functions
+- `held_item_type_boost(item, move_type) -> f64` — 1.1 for matching type, 1.0 otherwise
+- `held_item_name(item) -> &str` — display name for all 28 items
+- `crit_denominator(move_id, held_item) -> u64` — unified crit rate logic
+
+#### Test Results
+- **1401 tests passing** (+6 new, 0 failures)
+- `test_sprint153_held_item_type_boost` — all 17 type boosts + edge cases
+- `test_sprint153_held_item_names` — display names for all item categories
+- `test_sprint153_crit_denominator` — base/high-crit/Scope Lens interactions
+- `test_sprint153_pokemon_held_item_default` — new Pokemon has HELD_NONE
+- `test_sprint153_leftovers_recovery` — 1/16 max HP recovery math
+- `test_sprint153_berry_consumption` — heal + consumption logic

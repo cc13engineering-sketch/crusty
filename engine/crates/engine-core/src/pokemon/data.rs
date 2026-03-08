@@ -74,6 +74,97 @@ pub type SpeciesId = u16;
 /// Move identification
 pub type MoveId = u16;
 
+// ─── Held Item IDs (Gen 2 battle-relevant items, 100+ range to avoid bag item conflicts) ───
+pub const HELD_NONE: u8 = 0;
+pub const HELD_LEFTOVERS: u8 = 100;
+pub const HELD_BERRY: u8 = 101;       // Heals 10 HP when HP < 50%
+pub const HELD_GOLD_BERRY: u8 = 102;  // Heals 30 HP when HP < 50%
+pub const HELD_FOCUS_BAND: u8 = 103;  // 12% chance to survive KO with 1 HP
+pub const HELD_SCOPE_LENS: u8 = 104;  // Increases crit rate
+pub const HELD_KINGS_ROCK: u8 = 105;  // 12% flinch chance on damaging moves
+pub const HELD_QUICK_CLAW: u8 = 106;  // 24% chance to go first
+pub const HELD_BRIGHT_POWDER: u8 = 107; // Lowers foe accuracy
+// Type-boost items (10% damage boost to matching type)
+pub const HELD_CHARCOAL: u8 = 110;      // Fire
+pub const HELD_MYSTIC_WATER: u8 = 111;  // Water
+pub const HELD_MIRACLE_SEED: u8 = 112;  // Grass
+pub const HELD_MAGNET: u8 = 113;        // Electric
+pub const HELD_NEVERMELTICE: u8 = 114;  // Ice
+pub const HELD_BLACK_BELT: u8 = 115;    // Fighting
+pub const HELD_POISON_BARB: u8 = 116;   // Poison
+pub const HELD_SOFT_SAND: u8 = 117;     // Ground
+pub const HELD_SHARP_BEAK: u8 = 118;    // Flying
+pub const HELD_TWISTED_SPOON: u8 = 119; // Psychic
+pub const HELD_SILVER_POWDER: u8 = 120; // Bug
+pub const HELD_HARD_STONE: u8 = 121;    // Rock
+pub const HELD_SPELL_TAG: u8 = 122;     // Ghost
+pub const HELD_DRAGON_SCALE: u8 = 123;  // Dragon (pokecrystal bug: Dragon Scale boosts, not Dragon Fang)
+pub const HELD_BLACK_GLASSES: u8 = 124; // Dark
+pub const HELD_METAL_COAT: u8 = 125;    // Steel
+pub const HELD_PINK_BOW: u8 = 126;      // Normal
+pub const HELD_POLKADOT_BOW: u8 = 127;  // Normal (same effect as Pink Bow)
+
+/// Get the type-boost multiplier for a held item matching a move type.
+/// Returns 1.1 if the item boosts the given type, 1.0 otherwise.
+/// Per pokecrystal: all type-boost items give 10% (multiply by 110, divide by 100).
+pub fn held_item_type_boost(item: u8, move_type: PokemonType) -> f64 {
+    let boosted_type = match item {
+        HELD_PINK_BOW | HELD_POLKADOT_BOW => Some(PokemonType::Normal),
+        HELD_BLACK_BELT => Some(PokemonType::Fighting),
+        HELD_SHARP_BEAK => Some(PokemonType::Flying),
+        HELD_POISON_BARB => Some(PokemonType::Poison),
+        HELD_SOFT_SAND => Some(PokemonType::Ground),
+        HELD_HARD_STONE => Some(PokemonType::Rock),
+        HELD_SILVER_POWDER => Some(PokemonType::Bug),
+        HELD_SPELL_TAG => Some(PokemonType::Ghost),
+        HELD_CHARCOAL => Some(PokemonType::Fire),
+        HELD_MYSTIC_WATER => Some(PokemonType::Water),
+        HELD_MIRACLE_SEED => Some(PokemonType::Grass),
+        HELD_MAGNET => Some(PokemonType::Electric),
+        HELD_TWISTED_SPOON => Some(PokemonType::Psychic),
+        HELD_NEVERMELTICE => Some(PokemonType::Ice),
+        HELD_DRAGON_SCALE => Some(PokemonType::Dragon),
+        HELD_BLACK_GLASSES => Some(PokemonType::Dark),
+        HELD_METAL_COAT => Some(PokemonType::Steel),
+        _ => None,
+    };
+    if boosted_type == Some(move_type) { 1.1 } else { 1.0 }
+}
+
+/// Get the name of a held item for display purposes.
+pub fn held_item_name(item: u8) -> &'static str {
+    match item {
+        HELD_NONE => "",
+        HELD_LEFTOVERS => "Leftovers",
+        HELD_BERRY => "Berry",
+        HELD_GOLD_BERRY => "Gold Berry",
+        HELD_FOCUS_BAND => "Focus Band",
+        HELD_SCOPE_LENS => "Scope Lens",
+        HELD_KINGS_ROCK => "King's Rock",
+        HELD_QUICK_CLAW => "Quick Claw",
+        HELD_BRIGHT_POWDER => "BrightPowder",
+        HELD_CHARCOAL => "Charcoal",
+        HELD_MYSTIC_WATER => "Mystic Water",
+        HELD_MIRACLE_SEED => "Miracle Seed",
+        HELD_MAGNET => "Magnet",
+        HELD_NEVERMELTICE => "NeverMeltIce",
+        HELD_BLACK_BELT => "BlackBelt",
+        HELD_POISON_BARB => "Poison Barb",
+        HELD_SOFT_SAND => "Soft Sand",
+        HELD_SHARP_BEAK => "Sharp Beak",
+        HELD_TWISTED_SPOON => "TwistedSpoon",
+        HELD_SILVER_POWDER => "SilverPowder",
+        HELD_HARD_STONE => "Hard Stone",
+        HELD_SPELL_TAG => "Spell Tag",
+        HELD_DRAGON_SCALE => "Dragon Scale",
+        HELD_BLACK_GLASSES => "BlackGlasses",
+        HELD_METAL_COAT => "Metal Coat",
+        HELD_PINK_BOW => "Pink Bow",
+        HELD_POLKADOT_BOW => "Polkadot Bow",
+        _ => "???",
+    }
+}
+
 // ─── Species IDs ────────────────────────────────────────
 pub const CHIKORITA: SpeciesId = 152;
 pub const BAYLEEF: SpeciesId = 153;
@@ -503,6 +594,7 @@ pub struct Pokemon {
     pub move_pp: [u8; 4],
     pub move_max_pp: [u8; 4],
     pub status: StatusCondition,
+    pub held_item: u8,
 }
 
 // ─── Species Database ───────────────────────────────────
@@ -2405,6 +2497,7 @@ impl Pokemon {
             move_pp,
             move_max_pp,
             status: StatusCondition::None,
+            held_item: HELD_NONE,
         }
     }
 

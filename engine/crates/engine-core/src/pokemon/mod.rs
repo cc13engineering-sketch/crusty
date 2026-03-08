@@ -413,6 +413,19 @@ fn is_high_crit_move(move_id: MoveId) -> bool {
     matches!(move_id, MOVE_KARATE_CHOP | MOVE_RAZOR_WIND | MOVE_RAZOR_LEAF | MOVE_CRABHAMMER | MOVE_SLASH | MOVE_AEROBLAST | MOVE_CROSS_CHOP)
 }
 
+/// Get crit rate denominator accounting for high-crit moves and Scope Lens.
+/// Gen 2: base 1/16, high-crit 1/4, Scope Lens bumps base to 1/8.
+const CRIT_CHANCE_SCOPE_LENS: u64 = 8; // 1/8 crit rate with Scope Lens
+fn crit_denominator(move_id: MoveId, held_item: u8) -> u64 {
+    if is_high_crit_move(move_id) {
+        CRIT_CHANCE_HIGH
+    } else if held_item == HELD_SCOPE_LENS {
+        CRIT_CHANCE_SCOPE_LENS
+    } else {
+        CRIT_CHANCE
+    }
+}
+
 /// Look up the canonical trainer name for a (map_id, npc_idx) pair.
 /// Returns a recognizable name for gym leaders, rivals, and important trainers;
 /// uses sprite_id to derive a class name for generic route trainers.
@@ -3178,8 +3191,9 @@ weather_turns: 0,
                         }
                     } else { true };
 
-                    // Calc player damage (1/16 base crit, 1/4 for high-crit moves)
-                    let crit_denom = if is_high_crit_move(move_id) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+                    // Calc player damage (1/16 base crit, 1/4 for high-crit moves, 1/8 with Scope Lens)
+                    let p_held = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
+                    let crit_denom = crit_denominator(move_id, p_held);
                     let p_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
                     let (p_damage, p_eff) = if !accuracy_ok {
                         (0, 1.0)
@@ -3208,7 +3222,8 @@ weather_turns: 0,
                         if let Some(atk) = self.party.get(battle.player_idx) {
                             let (d, e) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, p_crit, atk_mult, def_mult);
                             let wm = weather_move_modifier(battle.weather, move_data.move_type, move_id);
-                            ((d as f64 * wm) as u16, e)
+                            let hm = held_item_type_boost(atk.held_item, move_data.move_type);
+                            ((d as f64 * wm * hm) as u16, e)
                         } else {
                             (0, 1.0)
                         }
@@ -3590,9 +3605,53 @@ weather_turns: 0,
                         }
                     }
 
+                    // Held item end-of-turn effects (per pokecrystal HandleLeftovers)
+                    // Leftovers: recover 1/16 max HP each turn if not at full
+                    if let Some(p) = self.party.get_mut(battle.player_idx) {
+                        if p.held_item == HELD_LEFTOVERS && p.hp > 0 && p.hp < p.max_hp {
+                            let heal = (p.max_hp / 16).max(1);
+                            p.hp = (p.hp + heal).min(p.max_hp);
+                            eot_msgs.push(format!("{} restored a little HP using its Leftovers!", p.name()));
+                        }
+                        // Berry: heal 10 HP when HP drops below 50%
+                        if p.held_item == HELD_BERRY && p.hp > 0 && p.hp * 2 <= p.max_hp {
+                            let heal = 10u16.min(p.max_hp - p.hp);
+                            p.hp += heal;
+                            p.held_item = HELD_NONE; // consumed
+                            eot_msgs.push(format!("{}'s Berry restored its health!", p.name()));
+                        }
+                        // Gold Berry: heal 30 HP when HP drops below 50%
+                        if p.held_item == HELD_GOLD_BERRY && p.hp > 0 && p.hp * 2 <= p.max_hp {
+                            let heal = 30u16.min(p.max_hp - p.hp);
+                            p.hp += heal;
+                            p.held_item = HELD_NONE; // consumed
+                            eot_msgs.push(format!("{}'s Gold Berry restored its health!", p.name()));
+                        }
+                    }
+                    if battle.enemy.held_item == HELD_LEFTOVERS && battle.enemy.hp > 0 && battle.enemy.hp < battle.enemy.max_hp {
+                        let heal = (battle.enemy.max_hp / 16).max(1);
+                        battle.enemy.hp = (battle.enemy.hp + heal).min(battle.enemy.max_hp);
+                        let ename_lr = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{} restored a little HP using its Leftovers!", eprefix, ename_lr));
+                    }
+                    if battle.enemy.held_item == HELD_BERRY && battle.enemy.hp > 0 && battle.enemy.hp * 2 <= battle.enemy.max_hp {
+                        let heal = 10u16.min(battle.enemy.max_hp - battle.enemy.hp);
+                        battle.enemy.hp += heal;
+                        battle.enemy.held_item = HELD_NONE;
+                        let ename_br = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{}'s Berry restored its health!", eprefix, ename_br));
+                    }
+                    if battle.enemy.held_item == HELD_GOLD_BERRY && battle.enemy.hp > 0 && battle.enemy.hp * 2 <= battle.enemy.max_hp {
+                        let heal = 30u16.min(battle.enemy.max_hp - battle.enemy.hp);
+                        battle.enemy.hp += heal;
+                        battle.enemy.held_item = HELD_NONE;
+                        let ename_gb = battle.enemy.name().to_string();
+                        eot_msgs.push(format!("{}{}'s Gold Berry restored its health!", eprefix, ename_gb));
+                    }
+
                     battle.turn_count += 1;
                     for m in &eot_msgs { battle.battle_queue.push_back(BattleStep::Text(m.clone())); }
-                    // Update HP displays for status damage and trap damage
+                    // Update HP displays for status damage, trap damage, and held item recovery
                     let player_hp_now = self.party.get(battle.player_idx).map(|p| p.hp).unwrap_or(0);
                     let enemy_hp_now = battle.enemy.hp;
                     if !eot_msgs.is_empty() {
@@ -4757,7 +4816,7 @@ weather_turns: 0,
             }
         } else { true };
 
-        let crit_d = if is_high_crit_move(mid) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+        let crit_d = crit_denominator(mid, enemy.held_item);
         let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_d) == 0;
         if !accuracy_ok {
             (mid, 0, 1.0, false) // miss — zero damage
@@ -4784,7 +4843,8 @@ weather_turns: 0,
             let def_mult = if is_crit { stage_multiplier(def_stage.min(0)) } else { stage_multiplier(def_stage) };
             let (dmg, eff) = calc_damage(enemy, def_stat, dt1, dt2, md, rng, is_crit, atk_mult, def_mult);
             let wm = weather_move_modifier(weather, md.move_type, mid);
-            (mid, (dmg as f64 * wm) as u16, eff, is_crit)
+            let hm = held_item_type_boost(enemy.held_item, md.move_type);
+            (mid, (dmg as f64 * wm * hm) as u16, eff, is_crit)
         } else {
             (mid, 5, 1.0, false)
         }
@@ -4803,7 +4863,8 @@ weather_turns: 0,
                 if effective_acc >= 100.0 { true } else { (engine.rng.next_u64() % 100) < effective_acc as u64 }
             }
         } else { true };
-        let crit_denom = if is_high_crit_move(move_id) { CRIT_CHANCE_HIGH } else { CRIT_CHANCE };
+        let p_held_item = self.party.get(battle.player_idx).map(|p| p.held_item).unwrap_or(HELD_NONE);
+        let crit_denom = crit_denominator(move_id, p_held_item);
         let is_crit = accuracy_ok && (engine.rng.next_u64() % crit_denom) == 0;
         if !accuracy_ok {
             return (0, 1.0, false);
@@ -4830,7 +4891,8 @@ weather_turns: 0,
             if let Some(atk) = self.party.get(battle.player_idx) {
                 let (dmg, eff) = calc_damage(atk, def_stat, dt1, dt2, move_data, rng, is_crit, atk_mult, def_mult);
                 let wm = weather_move_modifier(battle.weather, move_data.move_type, move_id);
-                ((dmg as f64 * wm) as u16, eff, is_crit)
+                let hm = held_item_type_boost(atk.held_item, move_data.move_type);
+                ((dmg as f64 * wm * hm) as u16, eff, is_crit)
             } else {
                 (0, 1.0, false)
             }
@@ -12090,5 +12152,98 @@ weather_turns: 0,
         // Weather modifier edge cases
         assert_eq!(weather_move_modifier(Weather::Rain, PokemonType::Grass, MOVE_RAZOR_LEAF), 1.0);
         assert_eq!(weather_move_modifier(Weather::Sun, PokemonType::Grass, MOVE_SOLAR_BEAM), 1.0);
+    }
+
+    // ─── Sprint 153: Held Items ────────────────────────────
+
+    #[test]
+    fn test_sprint153_held_item_type_boost() {
+        // Each type-boost item gives 1.1x to its matching type
+        assert_eq!(held_item_type_boost(HELD_CHARCOAL, PokemonType::Fire), 1.1);
+        assert_eq!(held_item_type_boost(HELD_CHARCOAL, PokemonType::Water), 1.0);
+        assert_eq!(held_item_type_boost(HELD_MYSTIC_WATER, PokemonType::Water), 1.1);
+        assert_eq!(held_item_type_boost(HELD_MIRACLE_SEED, PokemonType::Grass), 1.1);
+        assert_eq!(held_item_type_boost(HELD_MAGNET, PokemonType::Electric), 1.1);
+        assert_eq!(held_item_type_boost(HELD_NEVERMELTICE, PokemonType::Ice), 1.1);
+        assert_eq!(held_item_type_boost(HELD_BLACK_BELT, PokemonType::Fighting), 1.1);
+        assert_eq!(held_item_type_boost(HELD_POISON_BARB, PokemonType::Poison), 1.1);
+        assert_eq!(held_item_type_boost(HELD_SOFT_SAND, PokemonType::Ground), 1.1);
+        assert_eq!(held_item_type_boost(HELD_SHARP_BEAK, PokemonType::Flying), 1.1);
+        assert_eq!(held_item_type_boost(HELD_TWISTED_SPOON, PokemonType::Psychic), 1.1);
+        assert_eq!(held_item_type_boost(HELD_SILVER_POWDER, PokemonType::Bug), 1.1);
+        assert_eq!(held_item_type_boost(HELD_HARD_STONE, PokemonType::Rock), 1.1);
+        assert_eq!(held_item_type_boost(HELD_SPELL_TAG, PokemonType::Ghost), 1.1);
+        assert_eq!(held_item_type_boost(HELD_DRAGON_SCALE, PokemonType::Dragon), 1.1);
+        assert_eq!(held_item_type_boost(HELD_BLACK_GLASSES, PokemonType::Dark), 1.1);
+        assert_eq!(held_item_type_boost(HELD_METAL_COAT, PokemonType::Steel), 1.1);
+        assert_eq!(held_item_type_boost(HELD_PINK_BOW, PokemonType::Normal), 1.1);
+        assert_eq!(held_item_type_boost(HELD_POLKADOT_BOW, PokemonType::Normal), 1.1);
+        // No boost for HELD_NONE
+        assert_eq!(held_item_type_boost(HELD_NONE, PokemonType::Fire), 1.0);
+        // Non-type items don't boost
+        assert_eq!(held_item_type_boost(HELD_LEFTOVERS, PokemonType::Normal), 1.0);
+    }
+
+    #[test]
+    fn test_sprint153_held_item_names() {
+        assert_eq!(held_item_name(HELD_LEFTOVERS), "Leftovers");
+        assert_eq!(held_item_name(HELD_BERRY), "Berry");
+        assert_eq!(held_item_name(HELD_GOLD_BERRY), "Gold Berry");
+        assert_eq!(held_item_name(HELD_FOCUS_BAND), "Focus Band");
+        assert_eq!(held_item_name(HELD_SCOPE_LENS), "Scope Lens");
+        assert_eq!(held_item_name(HELD_CHARCOAL), "Charcoal");
+        assert_eq!(held_item_name(HELD_NONE), "");
+    }
+
+    #[test]
+    fn test_sprint153_crit_denominator() {
+        // Base crit: 1/16
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_NONE), 16);
+        // High-crit move: 1/4
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_NONE), 4);
+        // Scope Lens on non-high-crit: 1/8
+        assert_eq!(crit_denominator(MOVE_TACKLE, HELD_SCOPE_LENS), 8);
+        // Scope Lens on high-crit move: still 1/4 (high-crit takes priority)
+        assert_eq!(crit_denominator(MOVE_SLASH, HELD_SCOPE_LENS), 4);
+    }
+
+    #[test]
+    fn test_sprint153_pokemon_held_item_default() {
+        // New Pokemon should have HELD_NONE
+        let p = Pokemon::new(PIKACHU, 25);
+        assert_eq!(p.held_item, HELD_NONE);
+    }
+
+    #[test]
+    fn test_sprint153_leftovers_recovery() {
+        // Leftovers restores 1/16 max HP per turn
+        let mut p = Pokemon::new(MEGANIUM, 50);
+        p.held_item = HELD_LEFTOVERS;
+        let max = p.max_hp;
+        p.hp = max / 2; // Set to half HP
+        let expected_heal = (max / 16).max(1);
+        let hp_before = p.hp;
+        // Simulate Leftovers effect
+        if p.held_item == HELD_LEFTOVERS && p.hp > 0 && p.hp < p.max_hp {
+            let heal = (p.max_hp / 16).max(1);
+            p.hp = (p.hp + heal).min(p.max_hp);
+        }
+        assert_eq!(p.hp, hp_before + expected_heal);
+    }
+
+    #[test]
+    fn test_sprint153_berry_consumption() {
+        // Berry heals 10 HP when HP < 50%, then consumed
+        let mut p = Pokemon::new(PIKACHU, 25);
+        p.held_item = HELD_BERRY;
+        p.hp = p.max_hp / 4; // Set to 25% HP
+        let hp_before = p.hp;
+        if p.held_item == HELD_BERRY && p.hp > 0 && p.hp * 2 <= p.max_hp {
+            let heal = 10u16.min(p.max_hp - p.hp);
+            p.hp += heal;
+            p.held_item = HELD_NONE;
+        }
+        assert_eq!(p.hp, hp_before + 10);
+        assert_eq!(p.held_item, HELD_NONE); // consumed
     }
 }

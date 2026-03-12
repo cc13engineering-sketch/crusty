@@ -1,12 +1,9 @@
 // AI-INSTRUCTIONS: pokemonv2/data.rs — Leaf module. No sibling imports.
 // Defines all shared data types: enums, structs, Pokemon, species/move data.
 // Lives at the bottom of the import graph. Everything else imports from here.
-// Sprint 4: Added 7 new species (Caterpie, Metapod, Weedle, Zubat, Poliwag, Ledyba, Spinarak),
-//           7 new moves (StringShot, PoisonSting, Harden, LeechLife, Constrict, Bubble, Supersonic),
-//           ITEM_MYSTERY_EGG, MUSIC_PROF_OAK, MUSIC_JOHTO_TRAINER_BATTLE.
-// Sprint 5: Added Bellsprout + Gastly species, VineWhip/Hypnosis/Lick/Growth moves,
-//           ITEM_PP_UP/RARE_CANDY/PRZ_CURE_BERRY/HYPER_POTION, MUSIC_VIOLET_CITY/ROUTE_31.
-// Sprint 6: All 251 species moved to species_data.rs. SpeciesId constants re-exported via pub use.
+// Sprint 6: All 251 species moved to species_data.rs. Re-exported via pub use.
+// Sprint 7: All 251 moves moved to move_data.rs. Re-exported via pub use.
+//           MoveData struct extended with effect_id, effect_chance, priority, high_crit.
 
 // Re-export all 251 species data from species_data.rs
 pub use super::species_data::{species_data, NUM_SPECIES};
@@ -292,185 +289,17 @@ pub struct MoveData {
     pub pp: u8,
     /// Gen 2: derived from move_type (Normal/Fighting/etc = physical, rest = special)
     pub is_special: bool,
+    /// Effect ID (maps to EFFECT_* constants in move_data.rs)
+    pub effect_id: u8,
+    /// Secondary effect chance (0-100 percentage)
+    pub effect_chance: u8,
+    /// Move priority (-1 to +3, default 1)
+    pub priority: i8,
+    /// True for the 7 high-crit-ratio moves
+    pub high_crit: bool,
 }
 
-static TACKLE_DATA: MoveData = MoveData {
-    id: MOVE_TACKLE,
-    name: "TACKLE",
-    move_type: PokemonType::Normal,
-    power: 35,
-    accuracy: 95,
-    pp: 35,
-    is_special: false,
-};
-
-static GROWL_DATA: MoveData = MoveData {
-    id: MOVE_GROWL,
-    name: "GROWL",
-    move_type: PokemonType::Normal,
-    power: 0,
-    accuracy: 100,
-    pp: 40,
-    is_special: false,
-};
-
-static LEER_DATA: MoveData = MoveData {
-    id: MOVE_LEER,
-    name: "LEER",
-    move_type: PokemonType::Normal,
-    power: 0,
-    accuracy: 100,
-    pp: 30,
-    is_special: false,
-};
-
-static SCRATCH_DATA: MoveData = MoveData {
-    id: MOVE_SCRATCH,
-    name: "SCRATCH",
-    move_type: PokemonType::Normal,
-    power: 40,
-    accuracy: 100,
-    pp: 35,
-    is_special: false,
-};
-
-static TAIL_WHIP_DATA: MoveData = MoveData {
-    id: MOVE_TAIL_WHIP,
-    name: "TAIL WHIP",
-    move_type: PokemonType::Normal,
-    power: 0,
-    accuracy: 100,
-    pp: 30,
-    is_special: false,
-};
-
-static SAND_ATTACK_DATA: MoveData = MoveData {
-    id: MOVE_SAND_ATTACK,
-    name: "SAND ATTACK",
-    move_type: PokemonType::Ground, // GIMLI FIX: Ground, not Normal
-    power: 0,
-    accuracy: 100,
-    pp: 15,
-    is_special: false,
-};
-
-static DEFENSE_CURL_DATA: MoveData = MoveData {
-    id: MOVE_DEFENSE_CURL,
-    name: "DEFENSE CURL",
-    move_type: PokemonType::Normal,
-    power: 0,
-    accuracy: 100,
-    pp: 40,
-    is_special: false,
-};
-
-static SPLASH_DATA: MoveData = MoveData {
-    id: MOVE_SPLASH,
-    name: "SPLASH",
-    move_type: PokemonType::Normal,
-    power: 0,
-    accuracy: 100,
-    pp: 40,
-    is_special: false,
-};
-
-static STRUGGLE_DATA: MoveData = MoveData {
-    id: MOVE_STRUGGLE,
-    name: "STRUGGLE",
-    move_type: PokemonType::Normal,
-    power: 50,
-    accuracy: 100,
-    pp: 1,
-    is_special: false,
-};
-
-static SYNTHESIS_DATA: MoveData = MoveData {
-    id: MOVE_SYNTHESIS,
-    name: "SYNTHESIS",
-    move_type: PokemonType::Grass,
-    power: 0,
-    accuracy: 100,
-    pp: 5,
-    is_special: true,
-};
-
-// Sprint 4 move data
-static STRING_SHOT_DATA: MoveData = MoveData {
-    id: MOVE_STRING_SHOT, name: "STRING SHOT",
-    move_type: PokemonType::Bug, power: 0, accuracy: 95, pp: 40, is_special: false,
-};
-static POISON_STING_DATA: MoveData = MoveData {
-    id: MOVE_POISON_STING, name: "POISON STING",
-    move_type: PokemonType::Poison, power: 15, accuracy: 100, pp: 35, is_special: false,
-};
-static HARDEN_DATA: MoveData = MoveData {
-    id: MOVE_HARDEN, name: "HARDEN",
-    move_type: PokemonType::Normal, power: 0, accuracy: 100, pp: 30, is_special: false,
-};
-static LEECH_LIFE_DATA: MoveData = MoveData {
-    id: MOVE_LEECH_LIFE, name: "LEECH LIFE",
-    move_type: PokemonType::Bug, power: 20, accuracy: 100, pp: 15, is_special: false,
-};
-static CONSTRICT_DATA: MoveData = MoveData {
-    id: MOVE_CONSTRICT, name: "CONSTRICT",
-    move_type: PokemonType::Normal, power: 10, accuracy: 100, pp: 35, is_special: false,
-};
-static BUBBLE_DATA: MoveData = MoveData {
-    id: MOVE_BUBBLE, name: "BUBBLE",
-    move_type: PokemonType::Water, power: 20, accuracy: 100, pp: 30, is_special: true,
-};
-static SUPERSONIC_DATA: MoveData = MoveData {
-    id: MOVE_SUPERSONIC, name: "SUPERSONIC",
-    move_type: PokemonType::Normal, power: 0, accuracy: 55, pp: 20, is_special: false,
-};
-
-// Sprint 5 move data
-static VINE_WHIP_DATA: MoveData = MoveData {
-    id: MOVE_VINE_WHIP, name: "VINE WHIP",
-    move_type: PokemonType::Grass, power: 35, accuracy: 100, pp: 10, is_special: true,
-};
-static HYPNOSIS_DATA: MoveData = MoveData {
-    id: MOVE_HYPNOSIS, name: "HYPNOSIS",
-    move_type: PokemonType::Psychic, power: 0, accuracy: 60, pp: 20, is_special: false,
-};
-static LICK_DATA: MoveData = MoveData {
-    id: MOVE_LICK, name: "LICK",
-    move_type: PokemonType::Ghost, power: 20, accuracy: 100, pp: 30, is_special: false,
-};
-static GROWTH_DATA: MoveData = MoveData {
-    id: MOVE_GROWTH, name: "GROWTH",
-    move_type: PokemonType::Normal, power: 0, accuracy: 100, pp: 40, is_special: false,
-};
-
-/// Return move data for the given id. Returns Tackle data for unknown moves.
-pub fn move_data(id: MoveId) -> &'static MoveData {
-    match id {
-        MOVE_TACKLE => &TACKLE_DATA,
-        MOVE_GROWL => &GROWL_DATA,
-        MOVE_LEER => &LEER_DATA,
-        MOVE_SCRATCH => &SCRATCH_DATA,
-        MOVE_TAIL_WHIP => &TAIL_WHIP_DATA,
-        MOVE_SAND_ATTACK => &SAND_ATTACK_DATA,
-        MOVE_DEFENSE_CURL => &DEFENSE_CURL_DATA,
-        MOVE_SPLASH => &SPLASH_DATA,
-        MOVE_STRUGGLE => &STRUGGLE_DATA,
-        MOVE_SYNTHESIS => &SYNTHESIS_DATA,
-        // Sprint 4
-        MOVE_STRING_SHOT => &STRING_SHOT_DATA,
-        MOVE_POISON_STING => &POISON_STING_DATA,
-        MOVE_HARDEN => &HARDEN_DATA,
-        MOVE_LEECH_LIFE => &LEECH_LIFE_DATA,
-        MOVE_CONSTRICT => &CONSTRICT_DATA,
-        MOVE_BUBBLE => &BUBBLE_DATA,
-        MOVE_SUPERSONIC => &SUPERSONIC_DATA,
-        // Sprint 5
-        MOVE_VINE_WHIP => &VINE_WHIP_DATA,
-        MOVE_HYPNOSIS => &HYPNOSIS_DATA,
-        MOVE_LICK => &LICK_DATA,
-        MOVE_GROWTH => &GROWTH_DATA,
-        _ => &TACKLE_DATA, // fallback
-    }
-}
+// Sprint 7: All move data moved to move_data.rs. Re-exported below.
 
 // --- Type Effectiveness ---
 
@@ -541,11 +370,61 @@ pub fn type_effectiveness(atk: PokemonType, def: PokemonType) -> f64 {
     }
 }
 
-// --- Move ID Constants ---
-pub const MOVE_TACKLE: MoveId = 33;
-pub const MOVE_GROWL: MoveId = 45;
-pub const MOVE_LEER: MoveId = 43;
-pub const MOVE_SCRATCH: MoveId = 10;
+// --- Move data re-exports from move_data.rs (Sprint 7) ---
+pub use super::move_data::{move_data, NUM_MOVES};
+pub use super::move_data::{
+    MOVE_POUND, MOVE_KARATE_CHOP, MOVE_DOUBLESLAP, MOVE_COMET_PUNCH, MOVE_MEGA_PUNCH,
+    MOVE_PAY_DAY, MOVE_FIRE_PUNCH, MOVE_ICE_PUNCH, MOVE_THUNDERPUNCH, MOVE_SCRATCH,
+    MOVE_VICEGRIP, MOVE_GUILLOTINE, MOVE_RAZOR_WIND, MOVE_SWORDS_DANCE, MOVE_CUT,
+    MOVE_GUST, MOVE_WING_ATTACK, MOVE_WHIRLWIND, MOVE_FLY, MOVE_BIND,
+    MOVE_SLAM, MOVE_VINE_WHIP, MOVE_STOMP, MOVE_DOUBLE_KICK, MOVE_MEGA_KICK,
+    MOVE_JUMP_KICK, MOVE_ROLLING_KICK, MOVE_SAND_ATTACK, MOVE_HEADBUTT, MOVE_HORN_ATTACK,
+    MOVE_FURY_ATTACK, MOVE_HORN_DRILL, MOVE_TACKLE, MOVE_BODY_SLAM, MOVE_WRAP,
+    MOVE_TAKE_DOWN, MOVE_THRASH, MOVE_DOUBLE_EDGE, MOVE_TAIL_WHIP, MOVE_POISON_STING,
+    MOVE_TWINEEDLE, MOVE_PIN_MISSILE, MOVE_LEER, MOVE_BITE, MOVE_GROWL,
+    MOVE_ROAR, MOVE_SING, MOVE_SUPERSONIC, MOVE_SONICBOOM, MOVE_DISABLE,
+    MOVE_ACID, MOVE_EMBER, MOVE_FLAMETHROWER, MOVE_MIST, MOVE_WATER_GUN,
+    MOVE_HYDRO_PUMP, MOVE_SURF, MOVE_ICE_BEAM, MOVE_BLIZZARD, MOVE_PSYBEAM,
+    MOVE_BUBBLEBEAM, MOVE_AURORA_BEAM, MOVE_HYPER_BEAM, MOVE_PECK, MOVE_DRILL_PECK,
+    MOVE_SUBMISSION, MOVE_LOW_KICK, MOVE_COUNTER, MOVE_SEISMIC_TOSS, MOVE_STRENGTH,
+    MOVE_ABSORB, MOVE_MEGA_DRAIN, MOVE_LEECH_SEED, MOVE_GROWTH, MOVE_RAZOR_LEAF,
+    MOVE_SOLARBEAM, MOVE_POISONPOWDER, MOVE_STUN_SPORE, MOVE_SLEEP_POWDER, MOVE_PETAL_DANCE,
+    MOVE_STRING_SHOT, MOVE_DRAGON_RAGE, MOVE_FIRE_SPIN, MOVE_THUNDERSHOCK, MOVE_THUNDERBOLT,
+    MOVE_THUNDER_WAVE, MOVE_THUNDER, MOVE_ROCK_THROW, MOVE_EARTHQUAKE, MOVE_FISSURE,
+    MOVE_DIG, MOVE_TOXIC, MOVE_CONFUSION, MOVE_PSYCHIC_M, MOVE_HYPNOSIS,
+    MOVE_MEDITATE, MOVE_AGILITY, MOVE_QUICK_ATTACK, MOVE_RAGE, MOVE_TELEPORT,
+    MOVE_NIGHT_SHADE, MOVE_MIMIC, MOVE_SCREECH, MOVE_DOUBLE_TEAM, MOVE_RECOVER,
+    MOVE_HARDEN, MOVE_MINIMIZE, MOVE_SMOKESCREEN, MOVE_CONFUSE_RAY, MOVE_WITHDRAW,
+    MOVE_DEFENSE_CURL, MOVE_BARRIER, MOVE_LIGHT_SCREEN, MOVE_HAZE, MOVE_REFLECT,
+    MOVE_FOCUS_ENERGY, MOVE_BIDE, MOVE_METRONOME, MOVE_MIRROR_MOVE, MOVE_SELFDESTRUCT,
+    MOVE_EGG_BOMB, MOVE_LICK, MOVE_SMOG, MOVE_SLUDGE, MOVE_BONE_CLUB,
+    MOVE_FIRE_BLAST, MOVE_WATERFALL, MOVE_CLAMP, MOVE_SWIFT, MOVE_SKULL_BASH,
+    MOVE_SPIKE_CANNON, MOVE_CONSTRICT, MOVE_AMNESIA, MOVE_KINESIS, MOVE_SOFTBOILED,
+    MOVE_HI_JUMP_KICK, MOVE_GLARE, MOVE_DREAM_EATER, MOVE_POISON_GAS, MOVE_BARRAGE,
+    MOVE_LEECH_LIFE, MOVE_LOVELY_KISS, MOVE_SKY_ATTACK, MOVE_TRANSFORM, MOVE_BUBBLE,
+    MOVE_DIZZY_PUNCH, MOVE_SPORE, MOVE_FLASH, MOVE_PSYWAVE, MOVE_SPLASH,
+    MOVE_ACID_ARMOR, MOVE_CRABHAMMER, MOVE_EXPLOSION, MOVE_FURY_SWIPES, MOVE_BONEMERANG,
+    MOVE_REST, MOVE_ROCK_SLIDE, MOVE_HYPER_FANG, MOVE_SHARPEN, MOVE_CONVERSION,
+    MOVE_TRI_ATTACK, MOVE_SUPER_FANG, MOVE_SLASH, MOVE_SUBSTITUTE, MOVE_STRUGGLE,
+    MOVE_SKETCH, MOVE_TRIPLE_KICK, MOVE_THIEF, MOVE_SPIDER_WEB, MOVE_MIND_READER,
+    MOVE_NIGHTMARE, MOVE_FLAME_WHEEL, MOVE_SNORE, MOVE_CURSE, MOVE_FLAIL,
+    MOVE_CONVERSION2, MOVE_AEROBLAST, MOVE_COTTON_SPORE, MOVE_REVERSAL, MOVE_SPITE,
+    MOVE_POWDER_SNOW, MOVE_PROTECT, MOVE_MACH_PUNCH, MOVE_SCARY_FACE, MOVE_FAINT_ATTACK,
+    MOVE_SWEET_KISS, MOVE_BELLY_DRUM, MOVE_SLUDGE_BOMB, MOVE_MUD_SLAP, MOVE_OCTAZOOKA,
+    MOVE_SPIKES, MOVE_ZAP_CANNON, MOVE_FORESIGHT, MOVE_DESTINY_BOND, MOVE_PERISH_SONG,
+    MOVE_ICY_WIND, MOVE_DETECT, MOVE_BONE_RUSH, MOVE_LOCK_ON, MOVE_OUTRAGE,
+    MOVE_SANDSTORM, MOVE_GIGA_DRAIN, MOVE_ENDURE, MOVE_CHARM, MOVE_ROLLOUT,
+    MOVE_FALSE_SWIPE, MOVE_SWAGGER, MOVE_MILK_DRINK, MOVE_SPARK, MOVE_FURY_CUTTER,
+    MOVE_STEEL_WING, MOVE_MEAN_LOOK, MOVE_ATTRACT, MOVE_SLEEP_TALK, MOVE_HEAL_BELL,
+    MOVE_RETURN, MOVE_PRESENT, MOVE_FRUSTRATION, MOVE_SAFEGUARD, MOVE_PAIN_SPLIT,
+    MOVE_SACRED_FIRE, MOVE_MAGNITUDE, MOVE_DYNAMICPUNCH, MOVE_MEGAHORN, MOVE_DRAGONBREATH,
+    MOVE_BATON_PASS, MOVE_ENCORE, MOVE_PURSUIT, MOVE_RAPID_SPIN, MOVE_SWEET_SCENT,
+    MOVE_IRON_TAIL, MOVE_METAL_CLAW, MOVE_VITAL_THROW, MOVE_MORNING_SUN, MOVE_SYNTHESIS,
+    MOVE_MOONLIGHT, MOVE_HIDDEN_POWER, MOVE_CROSS_CHOP, MOVE_TWISTER, MOVE_RAIN_DANCE,
+    MOVE_SUNNY_DAY, MOVE_CRUNCH, MOVE_MIRROR_COAT, MOVE_PSYCH_UP, MOVE_EXTREMESPEED,
+    MOVE_ANCIENTPOWER, MOVE_SHADOW_BALL, MOVE_FUTURE_SIGHT, MOVE_ROCK_SMASH,
+    MOVE_WHIRLPOOL, MOVE_BEAT_UP,
+};
 
 // --- Item ID Constants ---
 pub const ITEM_BERRY: u8 = 3;
@@ -565,28 +444,7 @@ pub const ITEM_PRZ_CURE_BERRY: u8 = 54;
 pub const ITEM_HYPER_POTION: u8 = 26;
 // NOTE: MAP_CARD is NOT a bag item. It is tracked via EVENT_ENGINE_MAP_CARD flag only.
 
-// --- Move ID Constants (Sprint 2 additions) ---
-pub const MOVE_TAIL_WHIP: MoveId = 39;
-pub const MOVE_SAND_ATTACK: MoveId = 28;
-pub const MOVE_DEFENSE_CURL: MoveId = 111;
-pub const MOVE_SPLASH: MoveId = 150;
-pub const MOVE_STRUGGLE: MoveId = 165;
-pub const MOVE_SYNTHESIS: MoveId = 235;
-
-// --- Move ID Constants (Sprint 4 additions) ---
-pub const MOVE_STRING_SHOT: MoveId = 81;
-pub const MOVE_POISON_STING: MoveId = 40;
-pub const MOVE_HARDEN: MoveId = 106;
-pub const MOVE_LEECH_LIFE: MoveId = 141;
-pub const MOVE_CONSTRICT: MoveId = 132;
-pub const MOVE_BUBBLE: MoveId = 145;
-pub const MOVE_SUPERSONIC: MoveId = 48;
-
-// --- Move ID Constants (Sprint 5 additions) ---
-pub const MOVE_VINE_WHIP: MoveId = 22;
-pub const MOVE_HYPNOSIS: MoveId = 95;
-pub const MOVE_LICK: MoveId = 122;
-pub const MOVE_GROWTH: MoveId = 74;
+// Move ID constants now re-exported from move_data.rs above.
 
 // --- Battle Enums ---
 
@@ -779,5 +637,204 @@ mod tests {
         assert!(data.is_special, "Bubble should be a special move");
         assert_eq!(data.power, 20);
         assert_eq!(data.move_type, PokemonType::Water);
+    }
+
+    // --- Sprint 7 Tests: All 251 moves ---
+
+    #[test]
+    fn test_all_251_moves_have_valid_data() {
+        for id in 1..=251u16 {
+            let d = move_data(id);
+            assert_eq!(d.id, id, "Move {} has wrong id field", id);
+            assert!(!d.name.is_empty(), "Move {} has empty name", id);
+            assert!(d.pp > 0 && d.pp <= 40, "Move {} has invalid PP: {}", id, d.pp);
+            assert!(d.accuracy > 0 && d.accuracy <= 100, "Move {} has invalid accuracy: {}", id, d.accuracy);
+            assert!(d.priority >= 0 && d.priority <= 3, "Move {} has invalid priority: {}", id, d.priority);
+        }
+    }
+
+    #[test]
+    fn test_tackle_matches_pokecrystal() {
+        let d = move_data(MOVE_TACKLE);
+        assert_eq!(d.id, 33);
+        assert_eq!(d.name, "TACKLE");
+        assert_eq!(d.move_type, PokemonType::Normal);
+        assert_eq!(d.power, 35);
+        assert_eq!(d.accuracy, 95);
+        assert_eq!(d.pp, 35);
+        assert!(!d.is_special);
+        assert_eq!(d.effect_chance, 0);
+        assert_eq!(d.priority, 1);
+        assert!(!d.high_crit);
+    }
+
+    #[test]
+    fn test_fire_punch_matches_pokecrystal() {
+        let d = move_data(MOVE_FIRE_PUNCH);
+        assert_eq!(d.name, "FIRE PUNCH");
+        assert_eq!(d.move_type, PokemonType::Fire);
+        assert_eq!(d.power, 75);
+        assert!(d.is_special); // Fire is special in Gen 2
+        assert_eq!(d.effect_chance, 10);
+        assert_eq!(d.priority, 1);
+    }
+
+    #[test]
+    fn test_surf_matches_pokecrystal() {
+        let d = move_data(MOVE_SURF);
+        assert_eq!(d.name, "SURF");
+        assert_eq!(d.move_type, PokemonType::Water);
+        assert_eq!(d.power, 95);
+        assert_eq!(d.accuracy, 100);
+        assert_eq!(d.pp, 15);
+        assert!(d.is_special);
+    }
+
+    #[test]
+    fn test_blizzard_matches_pokecrystal() {
+        let d = move_data(MOVE_BLIZZARD);
+        assert_eq!(d.name, "BLIZZARD");
+        assert_eq!(d.move_type, PokemonType::Ice);
+        assert_eq!(d.power, 120);
+        assert_eq!(d.accuracy, 70);
+        assert_eq!(d.pp, 5);
+        assert_eq!(d.effect_chance, 10); // 10% freeze
+    }
+
+    #[test]
+    fn test_earthquake_matches_pokecrystal() {
+        let d = move_data(MOVE_EARTHQUAKE);
+        assert_eq!(d.name, "EARTHQUAKE");
+        assert_eq!(d.move_type, PokemonType::Ground);
+        assert_eq!(d.power, 100);
+        assert_eq!(d.accuracy, 100);
+        assert_eq!(d.pp, 10);
+        assert!(!d.is_special); // Ground is physical
+    }
+
+    #[test]
+    fn test_psychic_matches_pokecrystal() {
+        let d = move_data(MOVE_PSYCHIC_M);
+        assert_eq!(d.name, "PSYCHIC");
+        assert_eq!(d.move_type, PokemonType::Psychic);
+        assert_eq!(d.power, 90);
+        assert_eq!(d.accuracy, 100);
+        assert_eq!(d.pp, 10);
+        assert_eq!(d.effect_chance, 10); // 10% SpDef drop
+        assert!(d.is_special);
+    }
+
+    #[test]
+    fn test_quick_attack_has_priority_2() {
+        let d = move_data(MOVE_QUICK_ATTACK);
+        assert_eq!(d.name, "QUICK ATTACK");
+        assert_eq!(d.priority, 2);
+    }
+
+    #[test]
+    fn test_protect_has_priority_3() {
+        let d = move_data(MOVE_PROTECT);
+        assert_eq!(d.name, "PROTECT");
+        assert_eq!(d.priority, 3);
+    }
+
+    #[test]
+    fn test_counter_has_priority_0() {
+        let d = move_data(MOVE_COUNTER);
+        assert_eq!(d.name, "COUNTER");
+        assert_eq!(d.priority, 0);
+    }
+
+    #[test]
+    fn test_extremespeed_has_priority_2() {
+        let d = move_data(MOVE_EXTREMESPEED);
+        assert_eq!(d.name, "EXTREMESPEED");
+        assert_eq!(d.priority, 2);
+        assert_eq!(d.power, 80);
+    }
+
+    #[test]
+    fn test_slash_has_high_crit() {
+        let d = move_data(MOVE_SLASH);
+        assert_eq!(d.name, "SLASH");
+        assert!(d.high_crit);
+    }
+
+    #[test]
+    fn test_exactly_7_high_crit_moves() {
+        let count = (1..=251u16).filter(|&id| move_data(id).high_crit).count();
+        assert_eq!(count, 7, "Should have exactly 7 high-crit moves");
+    }
+
+    #[test]
+    fn test_curse_uses_ghost_type() {
+        let d = move_data(MOVE_CURSE);
+        assert_eq!(d.name, "CURSE");
+        assert_eq!(d.move_type, PokemonType::Ghost);
+        assert_eq!(d.power, 0);
+    }
+
+    #[test]
+    fn test_move_data_fallback_for_invalid_id() {
+        let d0 = move_data(0);
+        let d999 = move_data(999);
+        assert_eq!(d0.id, 33, "Invalid id 0 should return Tackle");
+        assert_eq!(d999.id, 33, "Invalid id 999 should return Tackle");
+    }
+
+    #[test]
+    fn test_hyper_beam_matches_pokecrystal() {
+        let d = move_data(MOVE_HYPER_BEAM);
+        assert_eq!(d.name, "HYPER BEAM");
+        assert_eq!(d.power, 150);
+        assert_eq!(d.accuracy, 90);
+        assert_eq!(d.pp, 5);
+    }
+
+    #[test]
+    fn test_swords_dance_is_status() {
+        let d = move_data(MOVE_SWORDS_DANCE);
+        assert_eq!(d.name, "SWORDS DANCE");
+        assert_eq!(d.power, 0);
+        assert_eq!(d.pp, 30);
+    }
+
+    #[test]
+    fn test_thunderbolt_matches_pokecrystal() {
+        let d = move_data(MOVE_THUNDERBOLT);
+        assert_eq!(d.name, "THUNDERBOLT");
+        assert_eq!(d.move_type, PokemonType::Electric);
+        assert_eq!(d.power, 95);
+        assert_eq!(d.accuracy, 100);
+        assert_eq!(d.pp, 15);
+        assert_eq!(d.effect_chance, 10); // 10% para
+        assert!(d.is_special);
+    }
+
+    #[test]
+    fn test_shadow_ball_matches_pokecrystal() {
+        let d = move_data(MOVE_SHADOW_BALL);
+        assert_eq!(d.name, "SHADOW BALL");
+        assert_eq!(d.move_type, PokemonType::Ghost);
+        assert_eq!(d.power, 80);
+        assert_eq!(d.accuracy, 100);
+        assert_eq!(d.pp, 15);
+        assert_eq!(d.effect_chance, 20);
+    }
+
+    #[test]
+    fn test_priority_distribution() {
+        let p0 = (1..=251u16).filter(|&id| move_data(id).priority == 0).count();
+        let p2 = (1..=251u16).filter(|&id| move_data(id).priority == 2).count();
+        let p3 = (1..=251u16).filter(|&id| move_data(id).priority == 3).count();
+        // FORCE_SWITCH: Whirlwind(18), Roar(46) = 2
+        // COUNTER: Counter(68) = 1
+        // MIRROR_COAT: Mirror Coat(243) = 1
+        assert_eq!(p0, 4, "4 moves with priority 0");
+        // PRIORITY_HIT: Quick Attack(98), Mach Punch(183), ExtremeSpeed(245) = 3
+        assert_eq!(p2, 3, "3 moves with priority 2");
+        // PROTECT: Protect(182), Detect(197) = 2
+        // ENDURE: Endure(203) = 1
+        assert_eq!(p3, 3, "3 moves with priority 3");
     }
 }

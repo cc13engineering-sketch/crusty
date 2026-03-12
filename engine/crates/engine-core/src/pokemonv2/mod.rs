@@ -14,6 +14,7 @@
 
 pub mod data;
 pub mod species_data;
+pub mod move_data;
 pub mod maps;
 pub mod events;
 pub mod overworld;

@@ -13,6 +13,7 @@
 //               sprites <- data; dialogue is a leaf; mod.rs imports everything.
 
 pub mod data;
+pub mod species_data;
 pub mod maps;
 pub mod events;
 pub mod overworld;
@@ -1227,5 +1228,154 @@ mod tests {
         assert_eq!(r31.warps[0].dest_map, MapId::Route31VioletGate);
         let gate = load_map(MapId::Route31VioletGate);
         assert_eq!(gate.warps[0].dest_map, MapId::VioletCity);
+    }
+
+    // ── Sprint 6: All 251 Species Database ───────────────────────────────────
+
+    #[test]
+    fn test_all_251_species_have_valid_data() {
+        use data::species_data;
+        use species_data::NUM_SPECIES;
+        for id in 1..=(NUM_SPECIES as u16) {
+            let d = species_data(id);
+            assert_eq!(d.id, id, "Species {} has wrong id field", id);
+            assert!(!d.name.is_empty(), "Species {} has empty name", id);
+            assert!(d.base_hp > 0, "Species {} has zero HP", id);
+            assert!(d.catch_rate > 0, "Species {} has zero catch rate", id);
+            assert!(!d.learnset.is_empty(), "Species {} has empty learnset", id);
+        }
+    }
+
+    #[test]
+    fn test_sprint6_bulbasaur_spot_check() {
+        use species_data::BULBASAUR;
+        let d = data::species_data(BULBASAUR);
+        assert_eq!(d.name, "BULBASAUR");
+        assert_eq!(d.id, 1);
+        assert_eq!(d.base_hp, 45);
+        assert_eq!(d.base_attack, 49);
+        assert_eq!(d.base_defense, 49);
+        assert_eq!(d.base_speed, 45);
+        assert_eq!(d.base_sp_attack, 65);
+        assert_eq!(d.base_sp_defense, 65);
+        assert_eq!(d.catch_rate, 45);
+        assert!(matches!(d.type1, data::PokemonType::Grass));
+        assert!(matches!(d.type2, data::PokemonType::Poison));
+    }
+
+    #[test]
+    fn test_sprint6_pikachu_spot_check() {
+        use species_data::PIKACHU;
+        let d = data::species_data(PIKACHU);
+        assert_eq!(d.name, "PIKACHU");
+        assert_eq!(d.id, 25);
+        assert_eq!(d.base_hp, 35);
+        assert_eq!(d.base_speed, 90);
+        assert!(matches!(d.type1, data::PokemonType::Electric));
+        assert_eq!(d.catch_rate, 190);
+        assert!(matches!(d.growth_rate, data::GrowthRate::MediumFast));
+    }
+
+    #[test]
+    fn test_sprint6_mewtwo_spot_check() {
+        use species_data::MEWTWO;
+        let d = data::species_data(MEWTWO);
+        assert_eq!(d.name, "MEWTWO");
+        assert_eq!(d.id, 150);
+        assert_eq!(d.base_hp, 106);
+        assert_eq!(d.base_sp_attack, 154);
+        assert_eq!(d.base_speed, 130);
+        assert_eq!(d.catch_rate, 3);
+        assert!(matches!(d.growth_rate, data::GrowthRate::Slow));
+        assert!(matches!(d.type1, data::PokemonType::Psychic));
+    }
+
+    #[test]
+    fn test_sprint6_lugia_spot_check() {
+        use species_data::LUGIA;
+        let d = data::species_data(LUGIA);
+        assert_eq!(d.name, "LUGIA");
+        assert_eq!(d.id, 249);
+        assert_eq!(d.base_hp, 106);
+        assert_eq!(d.base_sp_defense, 154);
+        assert!(matches!(d.type1, data::PokemonType::Psychic));
+        assert!(matches!(d.type2, data::PokemonType::Flying));
+        assert_eq!(d.catch_rate, 3);
+        assert!(matches!(d.growth_rate, data::GrowthRate::Slow));
+    }
+
+    #[test]
+    fn test_sprint6_ho_oh_spot_check() {
+        use species_data::HO_OH;
+        let d = data::species_data(HO_OH);
+        assert_eq!(d.name, "HO-OH");
+        assert_eq!(d.id, 250);
+        assert_eq!(d.base_hp, 106);
+        assert_eq!(d.base_attack, 130);
+        assert!(matches!(d.type1, data::PokemonType::Fire));
+        assert!(matches!(d.type2, data::PokemonType::Flying));
+        assert_eq!(d.catch_rate, 3);
+    }
+
+    #[test]
+    fn test_sprint6_celebi_spot_check() {
+        use species_data::CELEBI;
+        let d = data::species_data(CELEBI);
+        assert_eq!(d.name, "CELEBI");
+        assert_eq!(d.id, 251);
+        assert_eq!(d.base_hp, 100);
+        assert_eq!(d.base_attack, 100);
+        assert_eq!(d.base_sp_attack, 100);
+        assert!(matches!(d.type1, data::PokemonType::Psychic));
+        assert!(matches!(d.type2, data::PokemonType::Grass));
+        assert_eq!(d.catch_rate, 45);
+        assert!(matches!(d.growth_rate, data::GrowthRate::MediumSlow));
+    }
+
+    #[test]
+    fn test_sprint6_magikarp_spot_check() {
+        use species_data::MAGIKARP;
+        let d = data::species_data(MAGIKARP);
+        assert_eq!(d.name, "MAGIKARP");
+        assert_eq!(d.id, 129);
+        assert_eq!(d.base_hp, 20);
+        assert_eq!(d.base_attack, 10);
+        assert_eq!(d.catch_rate, 255);
+        assert!(matches!(d.type1, data::PokemonType::Water));
+        assert!(matches!(d.growth_rate, data::GrowthRate::Slow));
+    }
+
+    #[test]
+    fn test_sprint6_blissey_spot_check() {
+        use species_data::BLISSEY;
+        let d = data::species_data(BLISSEY);
+        assert_eq!(d.name, "BLISSEY");
+        assert_eq!(d.id, 242);
+        assert_eq!(d.base_hp, 255);
+        assert_eq!(d.base_attack, 10);
+        assert_eq!(d.base_sp_defense, 135);
+        assert!(matches!(d.type1, data::PokemonType::Normal));
+        assert!(matches!(d.growth_rate, data::GrowthRate::Fast));
+    }
+
+    #[test]
+    fn test_sprint6_fallback_for_invalid_id() {
+        // ID 0 and ID 300 should return Bulbasaur (table[0])
+        let d0 = data::species_data(0);
+        let d300 = data::species_data(300);
+        assert_eq!(d0.id, 1, "Invalid id 0 should return species 1 (Bulbasaur)");
+        assert_eq!(d300.id, 1, "Invalid id 300 should return species 1 (Bulbasaur)");
+    }
+
+    #[test]
+    fn test_sprint6_all_species_can_create_pokemon() {
+        use data::species_data;
+        use species_data::NUM_SPECIES;
+        for id in 1..=(NUM_SPECIES as u16) {
+            let poke = Pokemon::new(id, 5);
+            assert_eq!(poke.species, id);
+            assert!(poke.hp > 0, "Species {} level 5 should have > 0 HP", id);
+            assert!(poke.moves.iter().any(|m| m.is_some()), "Species {} should have at least 1 move", id);
+        }
     }
 }

@@ -390,8 +390,9 @@ mod tests {
 
     #[test]
     fn test_hoppip_uses_struggle() {
+        // Hoppip at level 2 knows only Splash (non-damaging), so pick_damaging_move returns Struggle.
         use super::super::data::Pokemon;
-        let hoppip = Pokemon::new(HOPPIP, 2); // level 2: only knows Splash (power=0)
+        let hoppip = Pokemon::new(HOPPIP, 2);
         let chosen = pick_damaging_move(&hoppip);
         assert_eq!(chosen, MOVE_STRUGGLE, "Hoppip at level 2 should use Struggle (no damaging moves)");
     }

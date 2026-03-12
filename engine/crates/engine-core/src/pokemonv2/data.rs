@@ -6,6 +6,50 @@
 //           ITEM_MYSTERY_EGG, MUSIC_PROF_OAK, MUSIC_JOHTO_TRAINER_BATTLE.
 // Sprint 5: Added Bellsprout + Gastly species, VineWhip/Hypnosis/Lick/Growth moves,
 //           ITEM_PP_UP/RARE_CANDY/PRZ_CURE_BERRY/HYPER_POTION, MUSIC_VIOLET_CITY/ROUTE_31.
+// Sprint 6: All 251 species moved to species_data.rs. SpeciesId constants re-exported via pub use.
+
+// Re-export all 251 species data from species_data.rs
+pub use super::species_data::{species_data, NUM_SPECIES};
+pub use super::species_data::{
+    BULBASAUR, IVYSAUR, VENUSAUR, CHARMANDER, CHARMELEON, CHARIZARD,
+    SQUIRTLE, WARTORTLE, BLASTOISE, CATERPIE, METAPOD, BUTTERFREE,
+    WEEDLE, KAKUNA, BEEDRILL, PIDGEY, PIDGEOTTO, PIDGEOT,
+    RATTATA, RATICATE, SPEAROW, FEAROW, EKANS, ARBOK,
+    PIKACHU, RAICHU, SANDSHREW, SANDSLASH, NIDORAN_F, NIDORINA,
+    NIDOQUEEN, NIDORAN_M, NIDORINO, NIDOKING, CLEFAIRY, CLEFABLE,
+    VULPIX, NINETALES, JIGGLYPUFF, WIGGLYTUFF, ZUBAT, GOLBAT,
+    ODDISH, GLOOM, VILEPLUME, PARAS, PARASECT, VENONAT, VENOMOTH,
+    DIGLETT, DUGTRIO, MEOWTH, PERSIAN, PSYDUCK, GOLDUCK,
+    MANKEY, PRIMEAPE, GROWLITHE, ARCANINE, POLIWAG, POLIWHIRL,
+    POLIWRATH, ABRA, KADABRA, ALAKAZAM, MACHOP, MACHOKE, MACHAMP,
+    BELLSPROUT, WEEPINBELL, VICTREEBEL, TENTACOOL, TENTACRUEL,
+    GEODUDE, GRAVELER, GOLEM, PONYTA, RAPIDASH, SLOWPOKE, SLOWBRO,
+    MAGNEMITE, MAGNETON, FARFETCH_D, DODUO, DODRIO, SEEL, DEWGONG,
+    GRIMER, MUK, SHELLDER, CLOYSTER, GASTLY, HAUNTER, GENGAR,
+    ONIX, DROWZEE, HYPNO, KRABBY, KINGLER, VOLTORB, ELECTRODE,
+    EXEGGCUTE, EXEGGUTOR, CUBONE, MAROWAK, HITMONLEE, HITMONCHAN,
+    LICKITUNG, KOFFING, WEEZING, RHYHORN, RHYDON, CHANSEY, TANGELA,
+    KANGASKHAN, HORSEA, SEADRA, GOLDEEN, SEAKING, STARYU, STARMIE,
+    MR_MIME, SCYTHER, JYNX, ELECTABUZZ, MAGMAR, PINSIR, TAUROS,
+    MAGIKARP, GYARADOS, LAPRAS, DITTO, EEVEE, VAPOREON, JOLTEON,
+    FLAREON, PORYGON, OMANYTE, OMASTAR, KABUTO, KABUTOPS, AERODACTYL,
+    SNORLAX, ARTICUNO, ZAPDOS, MOLTRES, DRATINI, DRAGONAIR, DRAGONITE,
+    MEWTWO, MEW, CHIKORITA, BAYLEEF, MEGANIUM, CYNDAQUIL, QUILAVA,
+    TYPHLOSION, TOTODILE, CROCONAW, FERALIGATR, SENTRET, FURRET,
+    HOOTHOOT, NOCTOWL, LEDYBA, LEDIAN, SPINARAK, ARIADOS, CROBAT,
+    CHINCHOU, LANTURN, PICHU, CLEFFA, IGGLYBUFF, TOGEPI, TOGETIC,
+    NATU, XATU, MAREEP, FLAAFFY, AMPHAROS, BELLOSSOM, MARILL, AZUMARILL,
+    SUDOWOODO, POLITOED, HOPPIP, SKIPLOOM, JUMPLUFF, AIPOM, SUNKERN,
+    SUNFLORA, YANMA, WOOPER, QUAGSIRE, ESPEON, UMBREON, MURKROW,
+    SLOWKING, MISDREAVUS, UNOWN, WOBBUFFET, GIRAFARIG, PINECO, FORRETRESS,
+    DUNSPARCE, GLIGAR, STEELIX, SNUBBULL, GRANBULL, QWILFISH, SCIZOR,
+    SHUCKLE, HERACROSS, SNEASEL, TEDDIURSA, URSARING, SLUGMA, MAGCARGO,
+    SWINUB, PILOSWINE, CORSOLA, REMORAID, OCTILLERY, DELIBIRD, MANTINE,
+    SKARMORY, HOUNDOUR, HOUNDOOM, KINGDRA, PHANPY, DONPHAN, PORYGON2,
+    STANTLER, SMEARGLE, TYROGUE, HITMONTOP, SMOOCHUM, ELEKID, MAGBY,
+    MILTANK, BLISSEY, RAIKOU, ENTEI, SUICUNE, LARVITAR, PUPITAR,
+    TYRANITAR, LUGIA, HO_OH, CELEBI,
+};
 
 // --- Type Aliases ---
 
@@ -234,299 +278,6 @@ pub struct SpeciesData {
     pub base_exp: u8,
     pub growth_rate: GrowthRate,
     pub learnset: &'static [(u8, MoveId)],
-}
-
-// Learnsets (level, move_id) for Sprint 1 starters
-static CHIKORITA_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (1, MOVE_GROWL),
-];
-
-static CYNDAQUIL_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (1, MOVE_LEER),
-];
-
-static TOTODILE_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_SCRATCH),
-    (1, MOVE_LEER),
-];
-
-static CHIKORITA_DATA: SpeciesData = SpeciesData {
-    id: CHIKORITA,
-    name: "CHIKORITA",
-    type1: PokemonType::Grass,
-    type2: PokemonType::Grass,
-    base_hp: 45,
-    base_attack: 49,
-    base_defense: 65,
-    base_speed: 45,
-    base_sp_attack: 49,
-    base_sp_defense: 65,
-    catch_rate: 45,
-    base_exp: 64,
-    growth_rate: GrowthRate::MediumSlow,
-    learnset: CHIKORITA_LEARNSET,
-};
-
-static CYNDAQUIL_DATA: SpeciesData = SpeciesData {
-    id: CYNDAQUIL,
-    name: "CYNDAQUIL",
-    type1: PokemonType::Fire,
-    type2: PokemonType::Fire,
-    base_hp: 39,
-    base_attack: 52,
-    base_defense: 43,
-    base_speed: 65,
-    base_sp_attack: 60,
-    base_sp_defense: 50,
-    catch_rate: 45,
-    base_exp: 65,
-    growth_rate: GrowthRate::MediumSlow,
-    learnset: CYNDAQUIL_LEARNSET,
-};
-
-static TOTODILE_DATA: SpeciesData = SpeciesData {
-    id: TOTODILE,
-    name: "TOTODILE",
-    type1: PokemonType::Water,
-    type2: PokemonType::Water,
-    base_hp: 50,
-    base_attack: 65,
-    base_defense: 64,
-    base_speed: 43,
-    base_sp_attack: 44,
-    base_sp_defense: 48,
-    catch_rate: 45,
-    base_exp: 66,
-    growth_rate: GrowthRate::MediumSlow,
-    learnset: TOTODILE_LEARNSET,
-};
-
-static PIDGEY_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (5, MOVE_SAND_ATTACK),
-];
-
-static RATTATA_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (1, MOVE_TAIL_WHIP),
-];
-
-static SENTRET_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (5, MOVE_DEFENSE_CURL),
-];
-
-static HOOTHOOT_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE),
-    (1, MOVE_GROWL),
-];
-
-static HOPPIP_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_SPLASH),
-    (5, MOVE_SYNTHESIS),
-    (5, MOVE_TAIL_WHIP),
-    (10, MOVE_TACKLE),
-];
-
-static PIDGEY_DATA: SpeciesData = SpeciesData {
-    id: PIDGEY,
-    name: "PIDGEY",
-    type1: PokemonType::Normal,
-    type2: PokemonType::Flying,
-    base_hp: 40,
-    base_attack: 45,
-    base_defense: 40,
-    base_speed: 56,
-    base_sp_attack: 35,
-    base_sp_defense: 35,
-    catch_rate: 255,
-    base_exp: 55,
-    growth_rate: GrowthRate::MediumSlow,
-    learnset: PIDGEY_LEARNSET,
-};
-
-static RATTATA_DATA: SpeciesData = SpeciesData {
-    id: RATTATA,
-    name: "RATTATA",
-    type1: PokemonType::Normal,
-    type2: PokemonType::Normal,
-    base_hp: 30,
-    base_attack: 56,
-    base_defense: 35,
-    base_speed: 72,
-    base_sp_attack: 25,
-    base_sp_defense: 35,
-    catch_rate: 255,
-    base_exp: 57,
-    growth_rate: GrowthRate::MediumFast,
-    learnset: RATTATA_LEARNSET,
-};
-
-static SENTRET_DATA: SpeciesData = SpeciesData {
-    id: SENTRET,
-    name: "SENTRET",
-    type1: PokemonType::Normal,
-    type2: PokemonType::Normal,
-    base_hp: 35,
-    base_attack: 46,
-    base_defense: 34,
-    base_speed: 20,
-    base_sp_attack: 35,
-    base_sp_defense: 45,
-    catch_rate: 255,
-    base_exp: 57,
-    growth_rate: GrowthRate::MediumFast,
-    learnset: SENTRET_LEARNSET,
-};
-
-static HOOTHOOT_DATA: SpeciesData = SpeciesData {
-    id: HOOTHOOT,
-    name: "HOOTHOOT",
-    type1: PokemonType::Normal,
-    type2: PokemonType::Flying,
-    base_hp: 60,
-    base_attack: 30,
-    base_defense: 30,
-    base_speed: 50,
-    base_sp_attack: 36,
-    base_sp_defense: 56,
-    catch_rate: 255,
-    base_exp: 58,
-    growth_rate: GrowthRate::MediumFast,
-    learnset: HOOTHOOT_LEARNSET,
-};
-
-static HOPPIP_DATA: SpeciesData = SpeciesData {
-    id: HOPPIP,
-    name: "HOPPIP",
-    type1: PokemonType::Grass,
-    type2: PokemonType::Flying,
-    base_hp: 35,
-    base_attack: 35,
-    base_defense: 40,
-    base_speed: 50,
-    base_sp_attack: 35,
-    base_sp_defense: 55,
-    catch_rate: 255,
-    base_exp: 74,
-    growth_rate: GrowthRate::MediumSlow,
-    learnset: HOPPIP_LEARNSET,
-};
-
-// Sprint 4 learnsets
-static CATERPIE_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE), (1, MOVE_STRING_SHOT),
-];
-static METAPOD_LEARNSET: &[(u8, MoveId)] = &[(1, MOVE_HARDEN)];
-static WEEDLE_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT),
-];
-static ZUBAT_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_LEECH_LIFE), (6, MOVE_SUPERSONIC),
-];
-static POLIWAG_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_BUBBLE),
-];
-static LEDYBA_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_TACKLE), (8, MOVE_SUPERSONIC),
-];
-static SPINARAK_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_POISON_STING), (1, MOVE_STRING_SHOT),
-    (11, MOVE_CONSTRICT),
-];
-
-// Sprint 4 species data
-static CATERPIE_DATA: SpeciesData = SpeciesData {
-    id: CATERPIE, name: "CATERPIE", type1: PokemonType::Bug, type2: PokemonType::Bug,
-    base_hp: 45, base_attack: 30, base_defense: 35, base_speed: 45,
-    base_sp_attack: 20, base_sp_defense: 20, catch_rate: 255, base_exp: 53,
-    growth_rate: GrowthRate::MediumFast, learnset: CATERPIE_LEARNSET,
-};
-static METAPOD_DATA: SpeciesData = SpeciesData {
-    id: METAPOD, name: "METAPOD", type1: PokemonType::Bug, type2: PokemonType::Bug,
-    base_hp: 50, base_attack: 20, base_defense: 55, base_speed: 30,
-    base_sp_attack: 25, base_sp_defense: 25, catch_rate: 120, base_exp: 72,
-    growth_rate: GrowthRate::MediumFast, learnset: METAPOD_LEARNSET,
-};
-static WEEDLE_DATA: SpeciesData = SpeciesData {
-    id: WEEDLE, name: "WEEDLE", type1: PokemonType::Bug, type2: PokemonType::Poison,
-    base_hp: 40, base_attack: 35, base_defense: 30, base_speed: 50,
-    base_sp_attack: 20, base_sp_defense: 20, catch_rate: 255, base_exp: 52,
-    growth_rate: GrowthRate::MediumFast, learnset: WEEDLE_LEARNSET,
-};
-static ZUBAT_DATA: SpeciesData = SpeciesData {
-    id: ZUBAT, name: "ZUBAT", type1: PokemonType::Poison, type2: PokemonType::Flying,
-    base_hp: 40, base_attack: 45, base_defense: 35, base_speed: 55,
-    base_sp_attack: 30, base_sp_defense: 40, catch_rate: 255, base_exp: 54,
-    growth_rate: GrowthRate::MediumFast, learnset: ZUBAT_LEARNSET,
-};
-static POLIWAG_DATA: SpeciesData = SpeciesData {
-    id: POLIWAG, name: "POLIWAG", type1: PokemonType::Water, type2: PokemonType::Water,
-    base_hp: 40, base_attack: 50, base_defense: 40, base_speed: 90,
-    base_sp_attack: 40, base_sp_defense: 40, catch_rate: 255, base_exp: 77,
-    growth_rate: GrowthRate::MediumSlow, learnset: POLIWAG_LEARNSET,
-};
-static LEDYBA_DATA: SpeciesData = SpeciesData {
-    id: LEDYBA, name: "LEDYBA", type1: PokemonType::Bug, type2: PokemonType::Flying,
-    base_hp: 40, base_attack: 20, base_defense: 30, base_speed: 55,
-    base_sp_attack: 40, base_sp_defense: 80, catch_rate: 255, base_exp: 54,
-    growth_rate: GrowthRate::Fast, learnset: LEDYBA_LEARNSET,
-};
-static SPINARAK_DATA: SpeciesData = SpeciesData {
-    id: SPINARAK, name: "SPINARAK", type1: PokemonType::Bug, type2: PokemonType::Poison,
-    base_hp: 40, base_attack: 60, base_defense: 40, base_speed: 30,
-    base_sp_attack: 40, base_sp_defense: 40, catch_rate: 255, base_exp: 54,
-    growth_rate: GrowthRate::Fast, learnset: SPINARAK_LEARNSET,
-};
-
-// Sprint 5 learnsets
-static BELLSPROUT_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_VINE_WHIP), (6, MOVE_GROWTH),
-];
-static GASTLY_LEARNSET: &[(u8, MoveId)] = &[
-    (1, MOVE_HYPNOSIS), (1, MOVE_LICK),
-];
-
-// Sprint 5 species data
-static BELLSPROUT_DATA: SpeciesData = SpeciesData {
-    id: BELLSPROUT, name: "BELLSPROUT", type1: PokemonType::Grass, type2: PokemonType::Poison,
-    base_hp: 50, base_attack: 75, base_defense: 35, base_speed: 40,
-    base_sp_attack: 70, base_sp_defense: 30, catch_rate: 255, base_exp: 84,
-    growth_rate: GrowthRate::MediumSlow, learnset: BELLSPROUT_LEARNSET,
-};
-static GASTLY_DATA: SpeciesData = SpeciesData {
-    id: GASTLY, name: "GASTLY", type1: PokemonType::Ghost, type2: PokemonType::Poison,
-    base_hp: 30, base_attack: 35, base_defense: 30, base_speed: 80,
-    base_sp_attack: 100, base_sp_defense: 35, catch_rate: 190, base_exp: 95,
-    growth_rate: GrowthRate::MediumSlow, learnset: GASTLY_LEARNSET,
-};
-
-/// Return species data for the given id. Returns Chikorita data for unknown species.
-pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
-    match id {
-        CHIKORITA => &CHIKORITA_DATA,
-        CYNDAQUIL => &CYNDAQUIL_DATA,
-        TOTODILE => &TOTODILE_DATA,
-        PIDGEY => &PIDGEY_DATA,
-        RATTATA => &RATTATA_DATA,
-        SENTRET => &SENTRET_DATA,
-        HOOTHOOT => &HOOTHOOT_DATA,
-        HOPPIP => &HOPPIP_DATA,
-        // Sprint 4
-        CATERPIE => &CATERPIE_DATA,
-        METAPOD => &METAPOD_DATA,
-        WEEDLE => &WEEDLE_DATA,
-        ZUBAT => &ZUBAT_DATA,
-        POLIWAG => &POLIWAG_DATA,
-        LEDYBA => &LEDYBA_DATA,
-        SPINARAK => &SPINARAK_DATA,
-        // Sprint 5
-        BELLSPROUT => &BELLSPROUT_DATA,
-        GASTLY => &GASTLY_DATA,
-        _ => &CHIKORITA_DATA, // fallback
-    }
 }
 
 // --- Move Data ---
@@ -790,11 +541,6 @@ pub fn type_effectiveness(atk: PokemonType, def: PokemonType) -> f64 {
     }
 }
 
-// --- Species ID Constants ---
-pub const CHIKORITA: SpeciesId = 152;
-pub const CYNDAQUIL: SpeciesId = 155;
-pub const TOTODILE: SpeciesId = 158;
-
 // --- Move ID Constants ---
 pub const MOVE_TACKLE: MoveId = 33;
 pub const MOVE_GROWL: MoveId = 45;
@@ -841,26 +587,6 @@ pub const MOVE_VINE_WHIP: MoveId = 22;
 pub const MOVE_HYPNOSIS: MoveId = 95;
 pub const MOVE_LICK: MoveId = 122;
 pub const MOVE_GROWTH: MoveId = 74;
-
-// --- Species ID Constants (Sprint 2 additions) ---
-pub const PIDGEY: SpeciesId = 16;
-pub const RATTATA: SpeciesId = 19;
-pub const SENTRET: SpeciesId = 161;
-pub const HOOTHOOT: SpeciesId = 163;
-pub const HOPPIP: SpeciesId = 187;
-
-// --- Species ID Constants (Sprint 4 additions) ---
-pub const CATERPIE: SpeciesId = 10;
-pub const METAPOD: SpeciesId = 11;
-pub const WEEDLE: SpeciesId = 13;
-pub const ZUBAT: SpeciesId = 41;
-pub const POLIWAG: SpeciesId = 60;
-pub const LEDYBA: SpeciesId = 165;
-pub const SPINARAK: SpeciesId = 167;
-
-// --- Species ID Constants (Sprint 5 additions) ---
-pub const BELLSPROUT: SpeciesId = 69;
-pub const GASTLY: SpeciesId = 92;
 
 // --- Battle Enums ---
 

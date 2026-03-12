@@ -21,6 +21,14 @@ The team lead is responsible for:
 1. All sprints are complete (queued.jsonl is empty, progress.jsonl is empty)
 2. The session is forcibly terminated
 
+### Session Context Reset Between Sprints
+
+**CRITICAL:** The team lead MUST clear session context between sprints. After completing a sprint (commit + push + tracker update), before starting the next sprint:
+1. Shut down all teammate agents from the current sprint
+2. Delete the current team (TeamDelete)
+3. Create a fresh team for the next sprint (TeamCreate)
+4. This ensures each sprint starts with clean context — no stale assumptions from the previous sprint's architecture, plan, or implementation carry over
+
 ---
 
 ## Engine-Wide Changes Are Allowed
@@ -295,3 +303,8 @@ fill viewport. Always test on mobile viewport sizes.
 **Problem**: Mary/Pippin/Sam's worktree changes were lost because they never committed. Branches existed but had zero new commits. Bilbo had to re-implement from scratch instead of reviewing three implementations.
 **Fix**: Added mandatory `git add -A && git commit` step to all worktree agent prompts. Agents must commit before reporting completion and include their branch name in the message.
 **Impact**: Bilbo can now `git diff` and cherry-pick across all three implementations.
+
+### 2026-03-12: Session Context Reset Between Sprints
+**Problem**: User requested that session context be cleared between sprints to prevent stale assumptions from bleeding across sprint boundaries.
+**Fix**: Added mandatory session context reset: shut down teammates, delete team, create fresh team before next sprint.
+**Impact**: Each sprint starts with completely clean agent context.

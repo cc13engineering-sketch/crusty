@@ -86,7 +86,7 @@ impl PokemonV2Sim {
                 walk_offset: 0.0,
                 is_walking: false,
                 walk_frame: 0,
-                frame_timer: 0.0,
+                step_frame: 0,
                 name: "GOLD".to_string(),
             },
             party: Vec::new(),
@@ -650,11 +650,55 @@ mod tests {
     #[test]
     fn test_walking_changes_position() {
         let mut sim = PokemonV2Sim::with_state(MapId::PlayersHouse2F, 3, 3, vec![]);
+        sim.player.facing = Direction::Right;  // pre-face to avoid turn-in-place
         let mut engine = Engine::new(160, 144);
         let start_x = sim.player.x;
         engine.input.keys_held.insert("ArrowRight".to_string());
         sim.step(&mut engine);
         assert!(sim.player.is_walking || sim.player.x != start_x);
+    }
+
+    #[test]
+    fn test_turn_in_place_does_not_walk() {
+        // Player faces Down, press Right -> should turn but not walk
+        let mut sim = PokemonV2Sim::with_state(MapId::PlayersHouse2F, 3, 3, vec![]);
+        sim.player.facing = Direction::Down;
+        let mut engine = Engine::new(160, 144);
+
+        // Press Right for 1 frame
+        engine.input.keys_held.insert("ArrowRight".to_string());
+        sim.step(&mut engine);
+
+        // Should have turned to face Right but NOT started walking
+        assert_eq!(sim.player.facing, Direction::Right);
+        assert!(!sim.player.is_walking, "Should turn in place, not walk");
+        assert_eq!(sim.player.x, 3, "X should not change on turn");
+        assert_eq!(sim.player.y, 3, "Y should not change on turn");
+    }
+
+    #[test]
+    fn test_walk_starts_after_turn() {
+        // Player faces Down, press Right for 2+ frames -> turn then walk
+        let mut sim = PokemonV2Sim::with_state(MapId::PlayersHouse2F, 3, 3, vec![]);
+        sim.player.facing = Direction::Down;
+        let mut engine = Engine::new(160, 144);
+
+        // Frame 1: turn in place
+        engine.input.keys_held.insert("ArrowRight".to_string());
+        sim.step(&mut engine);
+        engine.input.keys_pressed.clear();
+        assert_eq!(sim.player.facing, Direction::Right);
+        assert!(!sim.player.is_walking);
+
+        // Frame 2: now facing matches held direction -> walk starts
+        sim.step(&mut engine);
+        engine.input.keys_pressed.clear();
+        // Player should either be walking or have walked (depending on walkability)
+        let map = load_map(MapId::PlayersHouse2F);
+        let (tx, _ty) = (sim.player.x + 1, sim.player.y);
+        if is_walkable(&map, tx, sim.player.y) {
+            assert!(sim.player.is_walking, "Should start walking on second frame");
+        }
     }
 
     #[test]
@@ -715,7 +759,7 @@ mod tests {
         let mut player = PlayerState {
             x: 0, y: 0, facing: Direction::Down,
             walk_offset: 0.0, is_walking: false,
-            walk_frame: 0, frame_timer: 0.0,
+            walk_frame: 0, step_frame: 0,
             name: "TEST".to_string(),
         };
         let mut npc_states = Vec::new();

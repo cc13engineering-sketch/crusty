@@ -22,7 +22,6 @@ pub const TILE_PX: i32 = 16;
 pub const VIEW_TILES_X: i32 = 10;
 pub const VIEW_TILES_Y: i32 = 9;
 pub const WALK_SPEED: f64 = 2.0;
-pub const CAMERA_LERP: f64 = 0.2;
 pub const NPC_WANDER_INTERVAL: f64 = 2.0;
 
 // ── Result Type ───────────────────────────────────────────────────────────────
@@ -57,11 +56,8 @@ pub fn step_overworld(
     // ── 1. Advance player walk ────────────────────────────────────────────
     if player.is_walking {
         player.walk_offset += WALK_SPEED;
-        player.frame_timer += 1.0;
-        if player.frame_timer >= 2.0 {
-            player.frame_timer = 0.0;
-            player.walk_frame = (player.walk_frame + 1) % 4;
-        }
+        player.step_frame += 1;
+        player.walk_frame = ((player.step_frame >> 2) & 3) as u8;
 
         if player.walk_offset >= TILE_PX as f64 {
             player.walk_offset = 0.0;
@@ -139,27 +135,33 @@ pub fn step_overworld(
                     else { None };
 
     if let Some(dir) = maybe_dir {
-        player.facing = dir;
-        let (tx, ty) = target_tile(player.x, player.y, dir);
+        if dir != player.facing {
+            // Turn in place: change facing, don't walk yet
+            player.facing = dir;
+        } else {
+            let (tx, ty) = target_tile(player.x, player.y, dir);
 
-        // Review #7: use direction-aware walkability for ledge support
-        if is_walkable_with_direction(map, tx, ty, dir) && npc_at(npc_states, tx, ty).is_none() {
-            player.is_walking = true;
-            player.walk_offset = 0.0;
-        } else if tx < 0 || ty < 0 || tx >= map.width || ty >= map.height {
-            // Check for map connection at edge
-            let conn = match dir {
-                Direction::Left  => &map.connections.west,
-                Direction::Right => &map.connections.east,
-                Direction::Up    => &map.connections.north,
-                Direction::Down  => &map.connections.south,
-            };
-            if let Some(connection) = conn {
-                return OverworldResult::MapConnection {
-                    direction: dir,
-                    dest_map: connection.dest_map,
-                    offset: connection.offset,
+            // Review #7: use direction-aware walkability for ledge support
+            if is_walkable_with_direction(map, tx, ty, dir) && npc_at(npc_states, tx, ty).is_none() {
+                player.is_walking = true;
+                player.walk_offset = 0.0;
+                player.walk_frame = 0;
+                // step_frame continues (free-running, not reset per walk)
+            } else if tx < 0 || ty < 0 || tx >= map.width || ty >= map.height {
+                // Check for map connection at edge
+                let conn = match dir {
+                    Direction::Left  => &map.connections.west,
+                    Direction::Right => &map.connections.east,
+                    Direction::Up    => &map.connections.north,
+                    Direction::Down  => &map.connections.south,
                 };
+                if let Some(connection) = conn {
+                    return OverworldResult::MapConnection {
+                        direction: dir,
+                        dest_map: connection.dest_map,
+                        offset: connection.offset,
+                    };
+                }
             }
         }
     }
@@ -272,8 +274,8 @@ pub fn update_camera(camera: &mut CameraState, player: &PlayerState) {
     let target_x = (player.x * TILE_PX) as f64 + walk_dx;
     let target_y = (player.y * TILE_PX) as f64 + walk_dy;
 
-    camera.x += (target_x - camera.x) * CAMERA_LERP;
-    camera.y += (target_y - camera.y) * CAMERA_LERP;
+    camera.x = target_x;
+    camera.y = target_y;
 }
 
 pub fn snap_camera(camera: &mut CameraState, player: &PlayerState) {
@@ -339,16 +341,13 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 }
                 if state.is_walking {
                     state.walk_offset += WALK_SPEED;
-                    state.frame_timer += 1.0;
-                    if state.frame_timer >= 2.0 {
-                        state.frame_timer = 0.0;
-                        state.walk_frame = (state.walk_frame + 1) % 4;
-                    }
+                    state.step_frame += 1;
+                    state.walk_frame = ((state.step_frame >> 2) & 3) as u8;
                     if state.walk_offset >= TILE_PX as f64 {
                         state.walk_offset = 0.0;
                         state.is_walking = false;
                         state.walk_frame = 0;
-                        state.frame_timer = 0.0;
+                        // step_frame continues (free-running, matches Crystal's OBJECT_STEP_FRAME)
                         match state.facing {
                             Direction::Up   => state.y -= 1,
                             Direction::Down => state.y += 1,
@@ -373,16 +372,13 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 }
                 if state.is_walking {
                     state.walk_offset += WALK_SPEED;
-                    state.frame_timer += 1.0;
-                    if state.frame_timer >= 2.0 {
-                        state.frame_timer = 0.0;
-                        state.walk_frame = (state.walk_frame + 1) % 4;
-                    }
+                    state.step_frame += 1;
+                    state.walk_frame = ((state.step_frame >> 2) & 3) as u8;
                     if state.walk_offset >= TILE_PX as f64 {
                         state.walk_offset = 0.0;
                         state.is_walking = false;
                         state.walk_frame = 0;
-                        state.frame_timer = 0.0;
+                        // step_frame continues (free-running)
                         match state.facing {
                             Direction::Left  => state.x -= 1,
                             Direction::Right => state.x += 1,
@@ -422,12 +418,27 @@ mod tests {
         let player = PlayerState {
             x: 5, y: 3, facing: Direction::Down,
             walk_offset: 0.0, is_walking: false,
-            walk_frame: 0, frame_timer: 0.0,
+            walk_frame: 0, step_frame: 0,
             name: "TEST".to_string(),
         };
         let mut camera = CameraState { x: 0.0, y: 0.0 };
         snap_camera(&mut camera, &player);
         assert_eq!(camera.x, (5 * TILE_PX) as f64);
+        assert_eq!(camera.y, (3 * TILE_PX) as f64);
+    }
+
+    #[test]
+    fn test_camera_locks_to_player_mid_walk() {
+        let player = PlayerState {
+            x: 5, y: 3, facing: Direction::Right,
+            walk_offset: 8.0, is_walking: true,
+            walk_frame: 0, step_frame: 0,
+            name: "TEST".to_string(),
+        };
+        let mut camera = CameraState { x: 0.0, y: 0.0 };
+        update_camera(&mut camera, &player);
+        // Camera should be exactly at player tile pos + walk offset
+        assert_eq!(camera.x, (5 * TILE_PX) as f64 + 8.0);
         assert_eq!(camera.y, (3 * TILE_PX) as f64);
     }
 

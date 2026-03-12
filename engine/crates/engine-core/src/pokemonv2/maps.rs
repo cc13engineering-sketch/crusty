@@ -188,7 +188,7 @@ pub fn init_npc_states(map: &MapData) -> Vec<NpcState> {
         visible: true,
         wander_timer: 0.0,
         walk_frame: 0,
-        frame_timer: 0.0,
+        step_frame: 0,
         emote: None,
     }).collect()
 }

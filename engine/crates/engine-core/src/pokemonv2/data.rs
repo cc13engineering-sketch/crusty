@@ -81,7 +81,7 @@ pub struct PlayerState {
     pub walk_offset: f64,
     pub is_walking: bool,
     pub walk_frame: u8,
-    pub frame_timer: f64,
+    pub step_frame: u32,
     pub name: String,
 }
 
@@ -96,7 +96,7 @@ pub struct NpcState {
     pub visible: bool,
     pub wander_timer: f64,
     pub walk_frame: u8,
-    pub frame_timer: f64,
+    pub step_frame: u32,
     /// Active emote bubble: (emote_type, frames_remaining)
     pub emote: Option<(Emote, u8)>,
 }

@@ -2,6 +2,9 @@
 // This is the second Pokemon Crystal rewrite, sprint-driven from first principles.
 // Reference old pokemon/ module for patterns but follow new sprint architecture.
 //
+// Sprint 4: Handles OverworldResult::TrainerBattle, trainer party StartBattle routing,
+//           MrPokemonsHouse entry script, beaten_flag set on victory, refresh_npc_visibility.
+//
 // Module swap: Change import in lib.rs to use pokemonv2::PokemonV2Sim instead of
 // pokemon::PokemonSim. See POKEMON VERSION SWAP comments in lib.rs.
 //

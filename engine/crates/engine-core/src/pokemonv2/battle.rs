@@ -1,5 +1,8 @@
 // AI-INSTRUCTIONS: pokemonv2/battle.rs — Battle system. Imports data.rs ONLY.
 // BattleState, BattlePhase, auto-battle loop, Gen 2 damage formula.
+// Sprint 4: Refactored enemy->enemy_party (Vec<Pokemon>) + enemy_index. Multi-mon trainer parties.
+//           new_trainer_party() constructor, current_enemy()/current_enemy_mut() helpers,
+//           beaten_flag field, party advancement on enemy faint.
 // Review #4: BattleType and BattleResult live in data.rs, imported here.
 // Review #17: MOVE_STRUGGLE lives in data.rs, imported here.
 // Import graph: battle.rs <- data.rs ONLY

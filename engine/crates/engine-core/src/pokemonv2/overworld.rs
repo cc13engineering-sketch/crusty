@@ -1,5 +1,7 @@
 // AI-INSTRUCTIONS: pokemonv2/overworld.rs — Player movement, collision, warps, camera, NPC wandering.
 // Sprint 2: Ledge movement, wild encounter checks, map connection transitions, new step_overworld signature.
+// Sprint 4: TrainerBattle OverworldResult variant, is_in_sight() helper, trainer sight detection
+//           in step_overworld after each player step. Uses NpcDef.trainer_range + event flags.
 // Review #3: step_overworld takes time_of_day, rng_enc, rng_slot as parameters (caller extracts).
 // Review #7: is_walkable_with_direction imported from maps.rs, not defined here.
 // Import graph: overworld.rs <- data.rs, maps.rs, events.rs(EventFlags, SceneState)

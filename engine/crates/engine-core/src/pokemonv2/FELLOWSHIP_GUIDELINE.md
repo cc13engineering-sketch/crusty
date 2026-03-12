@@ -8,6 +8,8 @@
 
 **Sprints run continuously without human intervention.** The user is AFK. Do not pause between sprints to ask for confirmation, approval, or feedback. When one sprint completes (commit + push + tracker update), immediately pick up the next sprint from the queue and start the pipeline.
 
+**BUT SOMETIMES THE USER WILL COME BACK TO THEIR COMPUTER - you must respect their requests**
+
 The team lead is responsible for:
 - Automatically advancing through all pipeline stages
 - Spawning agents as needed without waiting for human input

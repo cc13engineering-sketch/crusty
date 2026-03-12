@@ -1,6 +1,9 @@
 // AI-INSTRUCTIONS: pokemonv2/events.rs — Event system. Imports data.rs and maps.rs (MapId only).
 // Sprint 2: ScriptResult enum, loaded_wild_species on ScriptState, new ScriptStep variants,
 //           15+ new event flags, ~20 new scripts, SceneState expanded to 32 entries.
+// Sprint 4: LoadTrainerParty ScriptStep, trainer_party/trainer_beaten_flag on ScriptState,
+//           11 new event flags (32-43), scene constants for MrPokemonsHouse,
+//           ~20 new script IDs (300-334), trainer/Mr.Pokemon/BerryHouse script builders.
 // Import graph: events.rs <- data.rs, maps.rs(MapId only)
 
 use super::data::{

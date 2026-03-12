@@ -4,6 +4,7 @@
 //
 // Sprint 4: Handles OverworldResult::TrainerBattle, trainer party StartBattle routing,
 //           MrPokemonsHouse entry script, beaten_flag set on victory, refresh_npc_visibility.
+// Sprint 5: VioletCity map callback (sets flypoint), warp_to_last_pokecenter updated for Violet.
 //
 // Module swap: Change import in lib.rs to use pokemonv2::PokemonV2Sim instead of
 // pokemon::PokemonSim. See POKEMON VERSION SWAP comments in lib.rs.
@@ -448,7 +449,9 @@ impl PokemonV2Sim {
     }
 
     fn warp_to_last_pokecenter(&mut self) {
-        let dest = if self.event_flags.has(EVENT_ENGINE_FLYPOINT_CHERRYGROVE) {
+        let dest = if self.event_flags.has(EVENT_ENGINE_FLYPOINT_VIOLET) {
+            MapId::VioletPokecenter1F
+        } else if self.event_flags.has(EVENT_ENGINE_FLYPOINT_CHERRYGROVE) {
             MapId::CherrygrovePokecenter1F
         } else {
             MapId::ElmsLab
@@ -461,6 +464,9 @@ impl PokemonV2Sim {
         match self.current_map_id {
             MapId::CherrygroveCity => {
                 self.event_flags.set(EVENT_ENGINE_FLYPOINT_CHERRYGROVE);
+            }
+            MapId::VioletCity => {
+                self.event_flags.set(EVENT_ENGINE_FLYPOINT_VIOLET);
             }
             MapId::Route29 => {
                 // Review #19: inline loop instead of undefined find_npc_by_event_flag method
@@ -940,6 +946,7 @@ mod tests {
     #[test]
     fn test_all_map_entry_scripts_dont_panic() {
         let all_maps = [
+            // Sprint 1-2
             MapId::PlayersHouse2F, MapId::PlayersHouse1F, MapId::NewBarkTown,
             MapId::ElmsLab, MapId::ElmsHouse, MapId::PlayersNeighborsHouse,
             MapId::Route29, MapId::Route27, MapId::Route29Route46Gate,
@@ -947,6 +954,14 @@ mod tests {
             MapId::CherrygroveMart, MapId::GuideGentsHouse,
             MapId::CherrygroveGymSpeechHouse, MapId::CherrygroveEvolutionSpeechHouse,
             MapId::Route46, MapId::Route30,
+            // Sprint 4
+            MapId::Route30BerryHouse, MapId::MrPokemonsHouse, MapId::Route31,
+            // Sprint 5
+            MapId::Route31VioletGate, MapId::VioletCity,
+            MapId::VioletMart, MapId::VioletGym, MapId::EarlsPokemonAcademy,
+            MapId::VioletNicknameSpeechHouse, MapId::VioletPokecenter1F,
+            MapId::VioletKylesHouse, MapId::SproutTower1F,
+            MapId::DarkCaveVioletEntrance, MapId::Route32, MapId::Route36,
         ];
         for &map_id in &all_maps {
             let mut sim = PokemonV2Sim::with_state(map_id, 1, 1, vec![]);
@@ -1119,5 +1134,54 @@ mod tests {
         // NPC facing Up
         assert!(is_in_sight(5, 5, Direction::Up, 5, 3, 3), "Up: in range");
         assert!(!is_in_sight(5, 5, Direction::Up, 5, 7, 3), "Up: wrong direction");
+    }
+
+    // ── Sprint 5 Integration Tests: Violet City + Route 31 ──────────────────
+
+    #[test]
+    fn test_violet_city_flypoint_set_on_entry() {
+        let mut sim = PokemonV2Sim::with_state(
+            MapId::VioletCity, 20, 20, vec![Pokemon::new(155, 5)],
+        );
+        sim.check_map_callbacks();
+        assert!(sim.event_flags.has(EVENT_ENGINE_FLYPOINT_VIOLET),
+            "Entering Violet City should set flypoint flag");
+    }
+
+    #[test]
+    fn test_blackout_routes_to_violet_pokecenter() {
+        let mut sim = PokemonV2Sim::with_state(
+            MapId::VioletCity, 20, 20, vec![Pokemon::new(155, 5)],
+        );
+        sim.event_flags.set(EVENT_ENGINE_FLYPOINT_VIOLET);
+        sim.event_flags.set(EVENT_ENGINE_FLYPOINT_CHERRYGROVE);
+        sim.warp_to_last_pokecenter();
+        assert_eq!(sim.current_map_id, MapId::VioletPokecenter1F,
+            "Blackout with Violet flypoint should go to Violet Pokecenter");
+    }
+
+    #[test]
+    fn test_all_sprint5_maps_load_from_mod() {
+        let ids = [
+            MapId::Route31, MapId::Route31VioletGate, MapId::VioletCity,
+            MapId::VioletMart, MapId::VioletGym, MapId::EarlsPokemonAcademy,
+            MapId::VioletNicknameSpeechHouse, MapId::VioletPokecenter1F,
+            MapId::VioletKylesHouse, MapId::SproutTower1F,
+            MapId::DarkCaveVioletEntrance, MapId::Route32, MapId::Route36,
+        ];
+        for &id in &ids {
+            let m = load_map(id);
+            assert!(m.width > 0);
+            assert!(m.height > 0);
+        }
+    }
+
+    #[test]
+    fn test_route31_to_gate_path_exists() {
+        // Verify Route 31 -> Gate warp chain works
+        let r31 = load_map(MapId::Route31);
+        assert_eq!(r31.warps[0].dest_map, MapId::Route31VioletGate);
+        let gate = load_map(MapId::Route31VioletGate);
+        assert_eq!(gate.warps[0].dest_map, MapId::VioletCity);
     }
 }

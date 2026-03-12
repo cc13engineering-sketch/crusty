@@ -4,6 +4,8 @@
 // Sprint 4: Added 7 new species (Caterpie, Metapod, Weedle, Zubat, Poliwag, Ledyba, Spinarak),
 //           7 new moves (StringShot, PoisonSting, Harden, LeechLife, Constrict, Bubble, Supersonic),
 //           ITEM_MYSTERY_EGG, MUSIC_PROF_OAK, MUSIC_JOHTO_TRAINER_BATTLE.
+// Sprint 5: Added Bellsprout + Gastly species, VineWhip/Hypnosis/Lick/Growth moves,
+//           ITEM_PP_UP/RARE_CANDY/PRZ_CURE_BERRY/HYPER_POTION, MUSIC_VIOLET_CITY/ROUTE_31.
 
 // --- Type Aliases ---
 
@@ -477,6 +479,28 @@ static SPINARAK_DATA: SpeciesData = SpeciesData {
     growth_rate: GrowthRate::Fast, learnset: SPINARAK_LEARNSET,
 };
 
+// Sprint 5 learnsets
+static BELLSPROUT_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_VINE_WHIP), (6, MOVE_GROWTH),
+];
+static GASTLY_LEARNSET: &[(u8, MoveId)] = &[
+    (1, MOVE_HYPNOSIS), (1, MOVE_LICK),
+];
+
+// Sprint 5 species data
+static BELLSPROUT_DATA: SpeciesData = SpeciesData {
+    id: BELLSPROUT, name: "BELLSPROUT", type1: PokemonType::Grass, type2: PokemonType::Poison,
+    base_hp: 50, base_attack: 75, base_defense: 35, base_speed: 40,
+    base_sp_attack: 70, base_sp_defense: 30, catch_rate: 255, base_exp: 84,
+    growth_rate: GrowthRate::MediumSlow, learnset: BELLSPROUT_LEARNSET,
+};
+static GASTLY_DATA: SpeciesData = SpeciesData {
+    id: GASTLY, name: "GASTLY", type1: PokemonType::Ghost, type2: PokemonType::Poison,
+    base_hp: 30, base_attack: 35, base_defense: 30, base_speed: 80,
+    base_sp_attack: 100, base_sp_defense: 35, catch_rate: 190, base_exp: 95,
+    growth_rate: GrowthRate::MediumSlow, learnset: GASTLY_LEARNSET,
+};
+
 /// Return species data for the given id. Returns Chikorita data for unknown species.
 pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
     match id {
@@ -496,6 +520,9 @@ pub fn species_data(id: SpeciesId) -> &'static SpeciesData {
         POLIWAG => &POLIWAG_DATA,
         LEDYBA => &LEDYBA_DATA,
         SPINARAK => &SPINARAK_DATA,
+        // Sprint 5
+        BELLSPROUT => &BELLSPROUT_DATA,
+        GASTLY => &GASTLY_DATA,
         _ => &CHIKORITA_DATA, // fallback
     }
 }
@@ -644,6 +671,24 @@ static SUPERSONIC_DATA: MoveData = MoveData {
     move_type: PokemonType::Normal, power: 0, accuracy: 55, pp: 20, is_special: false,
 };
 
+// Sprint 5 move data
+static VINE_WHIP_DATA: MoveData = MoveData {
+    id: MOVE_VINE_WHIP, name: "VINE WHIP",
+    move_type: PokemonType::Grass, power: 35, accuracy: 100, pp: 10, is_special: true,
+};
+static HYPNOSIS_DATA: MoveData = MoveData {
+    id: MOVE_HYPNOSIS, name: "HYPNOSIS",
+    move_type: PokemonType::Psychic, power: 0, accuracy: 60, pp: 20, is_special: false,
+};
+static LICK_DATA: MoveData = MoveData {
+    id: MOVE_LICK, name: "LICK",
+    move_type: PokemonType::Ghost, power: 20, accuracy: 100, pp: 30, is_special: false,
+};
+static GROWTH_DATA: MoveData = MoveData {
+    id: MOVE_GROWTH, name: "GROWTH",
+    move_type: PokemonType::Normal, power: 0, accuracy: 100, pp: 40, is_special: false,
+};
+
 /// Return move data for the given id. Returns Tackle data for unknown moves.
 pub fn move_data(id: MoveId) -> &'static MoveData {
     match id {
@@ -665,6 +710,11 @@ pub fn move_data(id: MoveId) -> &'static MoveData {
         MOVE_CONSTRICT => &CONSTRICT_DATA,
         MOVE_BUBBLE => &BUBBLE_DATA,
         MOVE_SUPERSONIC => &SUPERSONIC_DATA,
+        // Sprint 5
+        MOVE_VINE_WHIP => &VINE_WHIP_DATA,
+        MOVE_HYPNOSIS => &HYPNOSIS_DATA,
+        MOVE_LICK => &LICK_DATA,
+        MOVE_GROWTH => &GROWTH_DATA,
         _ => &TACKLE_DATA, // fallback
     }
 }
@@ -760,6 +810,11 @@ pub const ITEM_POKEGEAR: u8 = 59;
 pub const ITEM_MYSTIC_WATER: u8 = 95;
 pub const ITEM_PINK_BOW: u8 = 104;
 pub const ITEM_MYSTERY_EGG: u8 = 130;  // key item, not consumed
+// --- Item ID Constants (Sprint 5 additions) ---
+pub const ITEM_PP_UP: u8 = 48;
+pub const ITEM_RARE_CANDY: u8 = 43;
+pub const ITEM_PRZ_CURE_BERRY: u8 = 54;
+pub const ITEM_HYPER_POTION: u8 = 26;
 // NOTE: MAP_CARD is NOT a bag item. It is tracked via EVENT_ENGINE_MAP_CARD flag only.
 
 // --- Move ID Constants (Sprint 2 additions) ---
@@ -779,6 +834,12 @@ pub const MOVE_CONSTRICT: MoveId = 132;
 pub const MOVE_BUBBLE: MoveId = 145;
 pub const MOVE_SUPERSONIC: MoveId = 48;
 
+// --- Move ID Constants (Sprint 5 additions) ---
+pub const MOVE_VINE_WHIP: MoveId = 22;
+pub const MOVE_HYPNOSIS: MoveId = 95;
+pub const MOVE_LICK: MoveId = 122;
+pub const MOVE_GROWTH: MoveId = 74;
+
 // --- Species ID Constants (Sprint 2 additions) ---
 pub const PIDGEY: SpeciesId = 16;
 pub const RATTATA: SpeciesId = 19;
@@ -794,6 +855,10 @@ pub const ZUBAT: SpeciesId = 41;
 pub const POLIWAG: SpeciesId = 60;
 pub const LEDYBA: SpeciesId = 165;
 pub const SPINARAK: SpeciesId = 167;
+
+// --- Species ID Constants (Sprint 5 additions) ---
+pub const BELLSPROUT: SpeciesId = 69;
+pub const GASTLY: SpeciesId = 92;
 
 // --- Battle Enums ---
 
@@ -840,6 +905,8 @@ pub const MUSIC_RIVAL_ENCOUNTER: u8 = 11;
 pub const MUSIC_RIVAL_AFTER: u8 = 12;
 pub const MUSIC_PROF_OAK: u8 = 13;
 pub const MUSIC_JOHTO_TRAINER_BATTLE: u8 = 14;
+pub const MUSIC_VIOLET_CITY: u8 = 15;
+pub const MUSIC_ROUTE_31: u8 = 16;
 
 #[cfg(test)]
 mod tests {
@@ -873,6 +940,66 @@ mod tests {
     fn test_new_moves_data() {
         let moves = [MOVE_STRING_SHOT, MOVE_POISON_STING, MOVE_HARDEN,
                      MOVE_LEECH_LIFE, MOVE_CONSTRICT, MOVE_BUBBLE, MOVE_SUPERSONIC];
+        for &mv in &moves {
+            let data = move_data(mv);
+            assert!(!data.name.is_empty(), "Move {} should have a name", mv);
+            assert!(data.pp > 0, "Move {} should have non-zero PP", mv);
+        }
+    }
+
+    #[test]
+    fn test_bellsprout_data() {
+        let data = species_data(BELLSPROUT);
+        assert_eq!(data.name, "BELLSPROUT");
+        assert_eq!(data.type1, PokemonType::Grass);
+        assert_eq!(data.type2, PokemonType::Poison);
+        assert_eq!(data.base_hp, 50);
+        assert_eq!(data.base_attack, 75);
+        assert_eq!(data.base_sp_attack, 70);
+        assert_eq!(data.catch_rate, 255);
+        assert!(matches!(data.growth_rate, GrowthRate::MediumSlow));
+    }
+
+    #[test]
+    fn test_gastly_data() {
+        let data = species_data(GASTLY);
+        assert_eq!(data.name, "GASTLY");
+        assert_eq!(data.type1, PokemonType::Ghost);
+        assert_eq!(data.type2, PokemonType::Poison);
+        assert_eq!(data.base_hp, 30);
+        assert_eq!(data.base_sp_attack, 100);
+        assert_eq!(data.base_speed, 80);
+        assert_eq!(data.catch_rate, 190);
+    }
+
+    #[test]
+    fn test_bellsprout_learnset_at_level5() {
+        let poke = Pokemon::new(BELLSPROUT, 5);
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 1, "Level 5 Bellsprout should know only VineWhip");
+        assert!(known.contains(&MOVE_VINE_WHIP));
+    }
+
+    #[test]
+    fn test_gastly_learnset_at_level5() {
+        let poke = Pokemon::new(GASTLY, 5);
+        let known: Vec<_> = poke.moves.iter().filter_map(|&m| m).collect();
+        assert_eq!(known.len(), 2, "Level 5 Gastly should know Hypnosis + Lick");
+        assert!(known.contains(&MOVE_HYPNOSIS));
+        assert!(known.contains(&MOVE_LICK));
+    }
+
+    #[test]
+    fn test_vine_whip_is_special() {
+        let data = move_data(MOVE_VINE_WHIP);
+        assert!(data.is_special, "Vine Whip should be a special move (Grass type in Gen 2)");
+        assert_eq!(data.power, 35);
+        assert_eq!(data.move_type, PokemonType::Grass);
+    }
+
+    #[test]
+    fn test_sprint5_moves_data() {
+        let moves = [MOVE_VINE_WHIP, MOVE_HYPNOSIS, MOVE_LICK, MOVE_GROWTH];
         for &mv in &moves {
             let data = move_data(mv);
             assert!(!data.name.is_empty(), "Move {} should have a name", mv);

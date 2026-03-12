@@ -4,11 +4,15 @@
 //           C_GRASS/C_LEDGE collision, is_walkable_with_direction, MapConnection handling.
 // Sprint 4: Route30 full (20x54), Route30BerryHouse, MrPokemonsHouse, Route31 stub.
 //           NpcDef.trainer_range for sight-range trainer battles. Route30 encounter data.
+// Sprint 5: Route31 full (40x18), Route31VioletGate, VioletCity, 7 building stubs,
+//           DarkCaveVioletEntrance, Route32 stub, Route36 stub.
 // Import graph: maps.rs <- data.rs ONLY
 
 use super::data::{Direction, NpcState, SpeciesId,
     PIDGEY, RATTATA, SENTRET, HOOTHOOT, HOPPIP,
-    CATERPIE, WEEDLE, ZUBAT, POLIWAG, LEDYBA, SPINARAK};
+    CATERPIE, WEEDLE, ZUBAT, POLIWAG, LEDYBA, SPINARAK,
+    BELLSPROUT, GASTLY,
+    MUSIC_VIOLET_CITY, MUSIC_ROUTE_31};
 
 // ── Collision Tile Constants ──────────────────────────────────────────────────
 pub const C_FLOOR: u8 = 0;    // walkable
@@ -48,6 +52,19 @@ pub enum MapId {
     Route30BerryHouse,
     MrPokemonsHouse,
     Route31,
+    // Sprint 5 (new)
+    Route31VioletGate,
+    VioletCity,
+    VioletMart,
+    VioletGym,
+    EarlsPokemonAcademy,
+    VioletNicknameSpeechHouse,
+    VioletPokecenter1F,
+    VioletKylesHouse,
+    SproutTower1F,
+    DarkCaveVioletEntrance,
+    Route32,
+    Route36,
 }
 
 /// NPC movement patterns. Matches pokecrystal's SPRITEMOVEDATA_ constants.
@@ -258,7 +275,20 @@ pub fn load_map(id: MapId) -> MapData {
         MapId::Route30              => build_route30(),
         MapId::Route30BerryHouse    => build_route30_berry_house(),
         MapId::MrPokemonsHouse      => build_mr_pokemons_house(),
-        MapId::Route31              => build_route31_stub(),
+        MapId::Route31              => build_route31(),
+        // Sprint 5 (new)
+        MapId::Route31VioletGate    => build_route31_violet_gate(),
+        MapId::VioletCity           => build_violet_city(),
+        MapId::VioletMart           => build_violet_city_stub(MapId::VioletMart, "VIOLET MART", MapId::VioletCity, 0),
+        MapId::VioletGym            => build_violet_city_stub(MapId::VioletGym, "VIOLET GYM", MapId::VioletCity, 1),
+        MapId::EarlsPokemonAcademy  => build_violet_city_stub(MapId::EarlsPokemonAcademy, "EARL'S POKEMON ACADEMY", MapId::VioletCity, 2),
+        MapId::VioletNicknameSpeechHouse => build_violet_city_stub(MapId::VioletNicknameSpeechHouse, "VIOLET NICKNAME HOUSE", MapId::VioletCity, 3),
+        MapId::VioletPokecenter1F   => build_violet_city_stub(MapId::VioletPokecenter1F, "VIOLET POKEMON CENTER", MapId::VioletCity, 4),
+        MapId::VioletKylesHouse     => build_violet_city_stub(MapId::VioletKylesHouse, "KYLE'S HOUSE", MapId::VioletCity, 5),
+        MapId::SproutTower1F        => build_violet_city_stub(MapId::SproutTower1F, "SPROUT TOWER 1F", MapId::VioletCity, 6),
+        MapId::DarkCaveVioletEntrance => build_dark_cave_violet_entrance_stub(),
+        MapId::Route32              => build_connection_stub(MapId::Route32, "ROUTE 32"),
+        MapId::Route36              => build_connection_stub(MapId::Route36, "ROUTE 36"),
     }
 }
 
@@ -1175,28 +1205,379 @@ fn build_mr_pokemons_house() -> MapData {
     }
 }
 
-// ── Route 31 Stub (20 x 20) ─────────────────────────────────────────────────
+// ── Route 31 (40 x 18) ─────────────────────────────────────────────────────
+// Source: pokecrystal-master/maps/Route31.asm, map_const ROUTE_31, 20, 9
 
-fn build_route31_stub() -> MapData {
-    let (w, h) = (20i32, 20i32);
-    let tiles = vec![0u8; (w * h) as usize];
-    let col = vec![C_FLOOR; (w * h) as usize];
+fn build_route31_encounters() -> WildEncounterTable {
+    WildEncounterTable {
+        encounter_rate: 10,
+        morning: vec![
+            WildSlot { species: LEDYBA,     level: 4 },
+            WildSlot { species: CATERPIE,   level: 4 },
+            WildSlot { species: BELLSPROUT, level: 5 },
+            WildSlot { species: PIDGEY,     level: 5 },
+            WildSlot { species: WEEDLE,     level: 4 },
+            WildSlot { species: HOPPIP,     level: 5 },
+            WildSlot { species: HOPPIP,     level: 5 },
+        ],
+        day: vec![
+            WildSlot { species: PIDGEY,     level: 4 },
+            WildSlot { species: CATERPIE,   level: 4 },
+            WildSlot { species: BELLSPROUT, level: 5 },
+            WildSlot { species: PIDGEY,     level: 5 },
+            WildSlot { species: WEEDLE,     level: 4 },
+            WildSlot { species: HOPPIP,     level: 5 },
+            WildSlot { species: HOPPIP,     level: 5 },
+        ],
+        night: vec![
+            WildSlot { species: SPINARAK,   level: 4 },
+            WildSlot { species: POLIWAG,    level: 4 },
+            WildSlot { species: BELLSPROUT, level: 5 },
+            WildSlot { species: HOOTHOOT,   level: 5 },
+            WildSlot { species: ZUBAT,      level: 4 },
+            WildSlot { species: GASTLY,     level: 5 },
+            WildSlot { species: GASTLY,     level: 5 },
+        ],
+    }
+}
+
+fn build_route31() -> MapData {
+    let (w, h) = (40i32, 18i32);
+    let total = (w * h) as usize;
+    let mut tiles = vec![0u8; total];
+    let mut col = vec![C_FLOOR; total];
+
+    // Perimeter walls (top/bottom)
+    for x in 0..w {
+        set_tile(&mut tiles, &mut col, w, x, 0, 2, C_WALL);
+        set_tile(&mut tiles, &mut col, w, x, 17, 2, C_WALL);
+    }
+
+    // Tree/wall blocks along top and bottom corridors
+    for x in 0..4 { for y in 0..8 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 6..12 { for y in 0..3 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 24..30 { for y in 0..3 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 0..4 { for y in 10..18 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 6..14 { for y in 15..18 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 24..30 { for y in 15..18 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+
+    // Dark Cave entrance wall area (east side)
+    for x in 32..40 { for y in 0..4 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    for x in 36..40 { for y in 4..8 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+
+    // Grass patches
+    for x in 12..20 { for y in 4..8 { set_tile(&mut tiles, &mut col, w, x, y, 7, C_GRASS); } }
+    for x in 8..14 { for y in 10..14 { set_tile(&mut tiles, &mut col, w, x, y, 7, C_GRASS); } }
+    for x in 20..28 { for y in 10..14 { set_tile(&mut tiles, &mut col, w, x, y, 7, C_GRASS); } }
+
+    // Gate warps (west side)
+    set_tile(&mut tiles, &mut col, w, 4, 6, 3, C_WARP);
+    set_tile(&mut tiles, &mut col, w, 4, 7, 3, C_WARP);
+    // Dark Cave entrance warp
+    set_tile(&mut tiles, &mut col, w, 34, 5, 3, C_WARP);
 
     MapData {
         id: MapId::Route31,
         name: "ROUTE 31",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            // warp idx 0: gate upper
+            WarpDef { x: 4, y: 6, dest_map: MapId::Route31VioletGate, dest_warp_id: 2 },
+            // warp idx 1: gate lower
+            WarpDef { x: 4, y: 7, dest_map: MapId::Route31VioletGate, dest_warp_id: 3 },
+            // warp idx 2: Dark Cave entrance
+            WarpDef { x: 34, y: 5, dest_map: MapId::DarkCaveVioletEntrance, dest_warp_id: 0 },
+        ],
+        npcs: vec![
+            // idx 0: Fisher (Kenya mail NPC) at (17,7), StandingDown
+            NpcDef { x: 17, y: 7, sprite_id: 4, move_type: NpcMoveType::Standing(Direction::Down),
+                script_id: 403, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "KENYA_FISHER", trainer_range: None },
+            // idx 1: Youngster at (9,5), SpinRandom
+            NpcDef { x: 9, y: 5, sprite_id: 15, move_type: NpcMoveType::SpinRandom,
+                script_id: 404, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
+            // idx 2: Bug Catcher Wade at (21,13), StandingLeft, trainer range=5
+            NpcDef { x: 21, y: 13, sprite_id: 18, move_type: NpcMoveType::Standing(Direction::Left),
+                script_id: 402, event_flag: Some(44), event_flag_show: false, palette: 0,
+                facing: Direction::Left, name: "BUG_CATCHER_WADE", trainer_range: Some(5) },
+            // idx 3: CooltrainerM at (33,8), SpinRandom
+            NpcDef { x: 33, y: 8, sprite_id: 14, move_type: NpcMoveType::SpinRandom,
+                script_id: 405, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "COOLTRAINER_M", trainer_range: None },
+            // idx 4: Fruit Tree at (16,7)
+            NpcDef { x: 16, y: 7, sprite_id: 16, move_type: NpcMoveType::Still,
+                script_id: 406, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "FRUIT_TREE", trainer_range: None },
+            // idx 5: Potion PokeBall at (29,5) -- hidden when EVENT_ROUTE_31_POTION set
+            NpcDef { x: 29, y: 5, sprite_id: 6, move_type: NpcMoveType::Still,
+                script_id: 407, event_flag: Some(46), event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "POTION_BALL", trainer_range: None },
+            // idx 6: Poke Ball PokeBall at (19,15) -- hidden when EVENT_ROUTE_31_POKE_BALL set
+            NpcDef { x: 19, y: 15, sprite_id: 6, move_type: NpcMoveType::Still,
+                script_id: 408, event_flag: Some(47), event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "POKE_BALL_BALL", trainer_range: None },
+        ],
+        bg_events: vec![
+            BgEvent { x: 7, y: 5, kind: BgEventKind::Read, script_id: 400 },
+            BgEvent { x: 31, y: 5, kind: BgEventKind::Read, script_id: 401 },
+        ],
+        coord_events: vec![],
+        wild_encounters: Some(build_route31_encounters()),
+        connections: MapConnections {
+            north: None,
+            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::Route30, offset: 10 }),
+            east: None,
+            west: Some(MapConnection { direction: Direction::Left, dest_map: MapId::VioletCity, offset: -9 }),
+        },
+        music_id: MUSIC_ROUTE_31,
+    }
+}
+
+// ── Route 31 Violet Gate (10 x 8) ──────────────────────────────────────────
+// Source: pokecrystal-master/maps/Route31VioletGate.asm
+
+fn build_route31_violet_gate() -> MapData {
+    let (w, h) = (10i32, 8i32);
+    let (mut tiles, mut col) = fill_room(w, h, 4);
+
+    // West exit warps (to Violet City)
+    set_tile(&mut tiles, &mut col, w, 0, 4, 3, C_WARP);
+    set_tile(&mut tiles, &mut col, w, 0, 5, 3, C_WARP);
+    // East exit warps (to Route 31)
+    set_tile(&mut tiles, &mut col, w, 9, 4, 3, C_WARP);
+    set_tile(&mut tiles, &mut col, w, 9, 5, 3, C_WARP);
+
+    MapData {
+        id: MapId::Route31VioletGate,
+        name: "ROUTE 31 GATE",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            // warp idx 0: west exit upper -> VioletCity warp 7
+            WarpDef { x: 0, y: 4, dest_map: MapId::VioletCity, dest_warp_id: 7 },
+            // warp idx 1: west exit lower -> VioletCity warp 8
+            WarpDef { x: 0, y: 5, dest_map: MapId::VioletCity, dest_warp_id: 8 },
+            // warp idx 2: east exit upper -> Route31 warp 0
+            WarpDef { x: 9, y: 4, dest_map: MapId::Route31, dest_warp_id: 0 },
+            // warp idx 3: east exit lower -> Route31 warp 1
+            WarpDef { x: 9, y: 5, dest_map: MapId::Route31, dest_warp_id: 1 },
+        ],
+        npcs: vec![
+            // idx 0: Officer at (5,2), StandingDown
+            NpcDef { x: 5, y: 2, sprite_id: 8, move_type: NpcMoveType::Standing(Direction::Down),
+                script_id: 420, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "OFFICER", trainer_range: None },
+            // idx 1: CooltrainerF at (1,2), SpinRandom
+            NpcDef { x: 1, y: 2, sprite_id: 19, move_type: NpcMoveType::SpinRandom,
+                script_id: 421, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "COOLTRAINER_F", trainer_range: None },
+        ],
+        coord_events: vec![],
+        bg_events: vec![],
+        wild_encounters: None,
+        connections: MapConnections::none(),
+        music_id: MUSIC_ROUTE_31,
+    }
+}
+
+// ── Violet City (40 x 36) ──────────────────────────────────────────────────
+// Source: pokecrystal-master/maps/VioletCity.asm, map_const VIOLET_CITY, 20, 18
+
+fn build_violet_city() -> MapData {
+    let (w, h) = (40i32, 36i32);
+    let total = (w * h) as usize;
+    let mut tiles = vec![1u8; total]; // path default
+    let mut col = vec![C_FLOOR; total];
+
+    // Perimeter walls (top/bottom)
+    for x in 0..w {
+        set_tile(&mut tiles, &mut col, w, x, 0, 2, C_WALL);
+        set_tile(&mut tiles, &mut col, w, x, 35, 2, C_WALL);
+    }
+    // Left border wall
+    for y in 0..h { set_tile(&mut tiles, &mut col, w, 0, y, 2, C_WALL); }
+
+    // Building blocks (approximate)
+    // Violet Mart area: rows 13-16, cols 7-12
+    for x in 7..13 { for y in 13..16 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Violet Gym area: rows 13-16, cols 16-21
+    for x in 16..22 { for y in 13..16 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Earl's Academy area: rows 13-16, cols 28-33
+    for x in 28..34 { for y in 13..16 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Nickname Speech House: rows 11-14, cols 1-5
+    for x in 1..6 { for y in 11..14 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Pokecenter area: rows 21-24, cols 29-34
+    for x in 29..35 { for y in 21..24 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Kyle's House: rows 25-28, cols 19-24
+    for x in 19..25 { for y in 25..28 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+    // Sprout Tower area: rows 1-4, cols 21-26
+    for x in 21..27 { for y in 1..4 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
+
+    // Water tiles (pond near Sprout Tower)
+    for x in 15..20 { for y in 2..6 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WATER); } }
+
+    // Warp tiles for building entrances
+    set_tile(&mut tiles, &mut col, w, 9, 17, 3, C_WARP);   // Mart
+    set_tile(&mut tiles, &mut col, w, 18, 17, 3, C_WARP);  // Gym
+    set_tile(&mut tiles, &mut col, w, 30, 17, 3, C_WARP);  // Academy
+    set_tile(&mut tiles, &mut col, w, 3, 15, 3, C_WARP);   // Nickname House
+    set_tile(&mut tiles, &mut col, w, 31, 25, 3, C_WARP);  // Pokecenter
+    set_tile(&mut tiles, &mut col, w, 21, 29, 3, C_WARP);  // Kyle's House
+    set_tile(&mut tiles, &mut col, w, 23, 5, 3, C_WARP);   // Sprout Tower
+    set_tile(&mut tiles, &mut col, w, 39, 24, 3, C_WARP);  // East gate upper
+    set_tile(&mut tiles, &mut col, w, 39, 25, 3, C_WARP);  // East gate lower
+
+    MapData {
+        id: MapId::VioletCity,
+        name: "VIOLET CITY",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            // warp idx 0: Violet Mart
+            WarpDef { x: 9, y: 17, dest_map: MapId::VioletMart, dest_warp_id: 0 },
+            // warp idx 1: Violet Gym
+            WarpDef { x: 18, y: 17, dest_map: MapId::VioletGym, dest_warp_id: 0 },
+            // warp idx 2: Earl's Academy
+            WarpDef { x: 30, y: 17, dest_map: MapId::EarlsPokemonAcademy, dest_warp_id: 0 },
+            // warp idx 3: Nickname Speech House
+            WarpDef { x: 3, y: 15, dest_map: MapId::VioletNicknameSpeechHouse, dest_warp_id: 0 },
+            // warp idx 4: Pokecenter
+            WarpDef { x: 31, y: 25, dest_map: MapId::VioletPokecenter1F, dest_warp_id: 0 },
+            // warp idx 5: Kyle's House
+            WarpDef { x: 21, y: 29, dest_map: MapId::VioletKylesHouse, dest_warp_id: 0 },
+            // warp idx 6: Sprout Tower
+            WarpDef { x: 23, y: 5, dest_map: MapId::SproutTower1F, dest_warp_id: 0 },
+            // warp idx 7: East gate upper -> Route31VioletGate warp 0
+            WarpDef { x: 39, y: 24, dest_map: MapId::Route31VioletGate, dest_warp_id: 0 },
+            // warp idx 8: East gate lower -> Route31VioletGate warp 1
+            WarpDef { x: 39, y: 25, dest_map: MapId::Route31VioletGate, dest_warp_id: 1 },
+        ],
+        npcs: vec![
+            // idx 0: Earl at (13,16), SpinRandom -- conditional on EVENT_VIOLET_CITY_EARL
+            NpcDef { x: 13, y: 16, sprite_id: 4, move_type: NpcMoveType::SpinRandom,
+                script_id: 430, event_flag: Some(48), event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "EARL", trainer_range: None },
+            // idx 1: Lass at (28,28), SpinRandom
+            NpcDef { x: 28, y: 28, sprite_id: 20, move_type: NpcMoveType::SpinRandom,
+                script_id: 431, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "LASS", trainer_range: None },
+            // idx 2: Super Nerd at (24,14), SpinRandom
+            NpcDef { x: 24, y: 14, sprite_id: 21, move_type: NpcMoveType::SpinRandom,
+                script_id: 432, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "SUPER_NERD", trainer_range: None },
+            // idx 3: Gramps at (17,20), WalkLeftRight
+            NpcDef { x: 17, y: 20, sprite_id: 22, move_type: NpcMoveType::WalkLeftRight,
+                script_id: 433, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "GRAMPS", trainer_range: None },
+            // idx 4: Youngster at (5,18), SpinRandom
+            NpcDef { x: 5, y: 18, sprite_id: 15, move_type: NpcMoveType::SpinRandom,
+                script_id: 434, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "YOUNGSTER", trainer_range: None },
+            // idx 5: Fruit Tree at (14,29)
+            NpcDef { x: 14, y: 29, sprite_id: 16, move_type: NpcMoveType::Still,
+                script_id: 435, event_flag: None, event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "FRUIT_TREE", trainer_range: None },
+            // idx 6: PP Up PokeBall at (4,1) -- hidden when EVENT_VIOLET_CITY_PP_UP set
+            NpcDef { x: 4, y: 1, sprite_id: 6, move_type: NpcMoveType::Still,
+                script_id: 436, event_flag: Some(49), event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "PP_UP_BALL", trainer_range: None },
+            // idx 7: Rare Candy PokeBall at (35,5) -- hidden when EVENT_VIOLET_CITY_RARE_CANDY set
+            NpcDef { x: 35, y: 5, sprite_id: 6, move_type: NpcMoveType::Still,
+                script_id: 437, event_flag: Some(50), event_flag_show: false, palette: 0,
+                facing: Direction::Down, name: "RARE_CANDY_BALL", trainer_range: None },
+        ],
+        coord_events: vec![],
+        bg_events: vec![
+            BgEvent { x: 24, y: 20, kind: BgEventKind::Read, script_id: 440 },
+            BgEvent { x: 15, y: 17, kind: BgEventKind::Read, script_id: 441 },
+            BgEvent { x: 24, y: 8, kind: BgEventKind::Read, script_id: 442 },
+            BgEvent { x: 27, y: 17, kind: BgEventKind::Read, script_id: 443 },
+            BgEvent { x: 32, y: 25, kind: BgEventKind::Read, script_id: 444 },
+            BgEvent { x: 10, y: 17, kind: BgEventKind::Read, script_id: 445 },
+            // Hidden Hyper Potion: item event
+            BgEvent { x: 37, y: 14, kind: BgEventKind::Read, script_id: 446 },
+        ],
+        wild_encounters: None,
+        connections: MapConnections {
+            north: None,
+            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::Route32, offset: 0 }),
+            east: Some(MapConnection { direction: Direction::Right, dest_map: MapId::Route31, offset: 9 }),
+            west: Some(MapConnection { direction: Direction::Left, dest_map: MapId::Route36, offset: 0 }),
+        },
+        music_id: MUSIC_VIOLET_CITY,
+    }
+}
+
+/// Generic stub interior for Violet City buildings.
+/// Creates an 8x8 (or 10x8 for pokecenter/gym) room with a single return warp.
+fn build_violet_city_stub(id: MapId, name: &'static str, return_map: MapId, return_warp_id: u8) -> MapData {
+    let (w, h) = match id {
+        MapId::VioletGym | MapId::SproutTower1F => (10i32, 10i32),
+        MapId::VioletPokecenter1F => (10i32, 8i32),
+        _ => (8i32, 8i32),
+    };
+    let (mut tiles, mut col) = fill_room(w, h, 4);
+    // Return warp at bottom-center
+    let warp_x = w / 2;
+    let warp_y = h - 1;
+    set_tile(&mut tiles, &mut col, w, warp_x, warp_y, 3, C_WARP);
+    set_tile(&mut tiles, &mut col, w, warp_x + 1, warp_y, 3, C_WARP);
+
+    MapData {
+        id,
+        name,
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            WarpDef { x: warp_x, y: warp_y, dest_map: return_map, dest_warp_id: return_warp_id },
+            WarpDef { x: warp_x + 1, y: warp_y, dest_map: return_map, dest_warp_id: return_warp_id },
+        ],
+        npcs: vec![],
+        coord_events: vec![],
+        bg_events: vec![],
+        wild_encounters: None,
+        connections: MapConnections::none(),
+        music_id: MUSIC_VIOLET_CITY,
+    }
+}
+
+/// Dark Cave Violet Entrance stub -- minimal room with return warp to Route 31.
+fn build_dark_cave_violet_entrance_stub() -> MapData {
+    let (w, h) = (10i32, 10i32);
+    let (mut tiles, mut col) = fill_room(w, h, 4);
+    set_tile(&mut tiles, &mut col, w, 5, 9, 3, C_WARP);
+
+    MapData {
+        id: MapId::DarkCaveVioletEntrance,
+        name: "DARK CAVE",
+        width: w, height: h, tiles, collision: col,
+        warps: vec![
+            // warp idx 0: return to Route 31 warp 2
+            WarpDef { x: 5, y: 9, dest_map: MapId::Route31, dest_warp_id: 2 },
+        ],
+        npcs: vec![],
+        coord_events: vec![],
+        bg_events: vec![],
+        wild_encounters: None,
+        connections: MapConnections::none(),
+        music_id: 0,
+    }
+}
+
+/// Generic connection stub -- minimal open map for south/west targets.
+fn build_connection_stub(id: MapId, name: &'static str) -> MapData {
+    let (w, h) = (40i32, 20i32);
+    let tiles = vec![0u8; (w * h) as usize];
+    let col = vec![C_FLOOR; (w * h) as usize];
+
+    MapData {
+        id,
+        name,
         width: w, height: h, tiles, collision: col,
         warps: vec![],
         npcs: vec![],
         coord_events: vec![],
         bg_events: vec![],
         wild_encounters: None,
-        connections: MapConnections {
-            north: None,
-            south: Some(MapConnection { direction: Direction::Down, dest_map: MapId::Route30, offset: 10 }),
-            east: None,
-            west: None,
-        },
+        connections: MapConnections::none(),
         music_id: 0,
     }
 }
@@ -1793,14 +2174,145 @@ mod tests {
         assert!(has_mr, "Route30 should have warp to Mr. Pokemon's House");
     }
 
+    // test_route31_stub deleted (Bilbo Mod 1) -- superseded by test_route31_dimensions + test_route31_has_encounters
+
     #[test]
-    fn test_route31_stub() {
+    fn test_sprint5_maps_load() {
+        let ids = [
+            MapId::Route31, MapId::Route31VioletGate, MapId::VioletCity,
+            MapId::VioletMart, MapId::VioletGym, MapId::EarlsPokemonAcademy,
+            MapId::VioletNicknameSpeechHouse, MapId::VioletPokecenter1F,
+            MapId::VioletKylesHouse, MapId::SproutTower1F,
+            MapId::DarkCaveVioletEntrance, MapId::Route32, MapId::Route36,
+        ];
+        for &id in &ids {
+            let m = load_map(id);
+            assert!(m.width > 0, "Map {:?} has zero width", id);
+            assert!(m.height > 0, "Map {:?} has zero height", id);
+            assert_eq!(m.tiles.len(), (m.width * m.height) as usize, "tiles mismatch {:?}", id);
+            assert_eq!(m.collision.len(), (m.width * m.height) as usize, "collision mismatch {:?}", id);
+        }
+    }
+
+    #[test]
+    fn test_route31_dimensions() {
         let m = load_map(MapId::Route31);
-        assert_eq!(m.width, 20);
-        assert_eq!(m.height, 20);
-        assert!(m.connections.south.is_some());
-        assert_eq!(m.connections.south.as_ref().unwrap().dest_map, MapId::Route30);
-        assert!(m.wild_encounters.is_none());
+        assert_eq!(m.width, 40);
+        assert_eq!(m.height, 18);
+    }
+
+    #[test]
+    fn test_route31_violet_gate_dimensions() {
+        let m = load_map(MapId::Route31VioletGate);
+        assert_eq!(m.width, 10);
+        assert_eq!(m.height, 8);
+    }
+
+    #[test]
+    fn test_violet_city_dimensions() {
+        let m = load_map(MapId::VioletCity);
+        assert_eq!(m.width, 40);
+        assert_eq!(m.height, 36);
+    }
+
+    #[test]
+    fn test_route31_has_encounters() {
+        let m = load_map(MapId::Route31);
+        assert!(m.wild_encounters.is_some(), "Route 31 should have wild encounters");
+        let table = m.wild_encounters.unwrap();
+        assert_eq!(table.morning.len(), 7);
+        assert_eq!(table.day.len(), 7);
+        assert_eq!(table.night.len(), 7);
+        assert_eq!(table.encounter_rate, 10);
+    }
+
+    #[test]
+    fn test_route31_npc_count() {
+        let m = load_map(MapId::Route31);
+        assert_eq!(m.npcs.len(), 7, "Route 31 should have 7 NPCs");
+    }
+
+    #[test]
+    fn test_violet_city_npc_count() {
+        let m = load_map(MapId::VioletCity);
+        assert_eq!(m.npcs.len(), 8, "Violet City should have 8 NPCs");
+    }
+
+    #[test]
+    fn test_violet_city_warp_count() {
+        let m = load_map(MapId::VioletCity);
+        assert_eq!(m.warps.len(), 9, "Violet City should have 9 warps");
+    }
+
+    #[test]
+    fn test_route31_gate_warp_count() {
+        let m = load_map(MapId::Route31VioletGate);
+        assert_eq!(m.warps.len(), 4, "Gate should have 4 warps");
+    }
+
+    #[test]
+    fn test_sprint5_warp_bidirectional() {
+        // Route 31 <-> Route 31 Violet Gate
+        let r31 = load_map(MapId::Route31);
+        let gate = load_map(MapId::Route31VioletGate);
+        let vc = load_map(MapId::VioletCity);
+
+        // Route31 warp 0 -> Gate warp 2, and Gate warp 2 -> Route31 warp 0
+        assert_eq!(r31.warps[0].dest_map, MapId::Route31VioletGate);
+        assert_eq!(r31.warps[0].dest_warp_id, 2);
+        assert_eq!(gate.warps[2].dest_map, MapId::Route31);
+        assert_eq!(gate.warps[2].dest_warp_id, 0);
+
+        // Route31 warp 1 -> Gate warp 3, and Gate warp 3 -> Route31 warp 1
+        assert_eq!(r31.warps[1].dest_map, MapId::Route31VioletGate);
+        assert_eq!(r31.warps[1].dest_warp_id, 3);
+        assert_eq!(gate.warps[3].dest_map, MapId::Route31);
+        assert_eq!(gate.warps[3].dest_warp_id, 1);
+
+        // Gate warp 0 -> VioletCity warp 7, and VioletCity warp 7 -> Gate warp 0
+        assert_eq!(gate.warps[0].dest_map, MapId::VioletCity);
+        assert_eq!(gate.warps[0].dest_warp_id, 7);
+        assert_eq!(vc.warps[7].dest_map, MapId::Route31VioletGate);
+        assert_eq!(vc.warps[7].dest_warp_id, 0);
+
+        // Gate warp 1 -> VioletCity warp 8, and VioletCity warp 8 -> Gate warp 1
+        assert_eq!(gate.warps[1].dest_map, MapId::VioletCity);
+        assert_eq!(gate.warps[1].dest_warp_id, 8);
+        assert_eq!(vc.warps[8].dest_map, MapId::Route31VioletGate);
+        assert_eq!(vc.warps[8].dest_warp_id, 1);
+    }
+
+    #[test]
+    fn test_violet_city_stubs_have_return_warps() {
+        let stub_maps = [
+            MapId::VioletMart, MapId::VioletGym, MapId::EarlsPokemonAcademy,
+            MapId::VioletNicknameSpeechHouse, MapId::VioletPokecenter1F,
+            MapId::VioletKylesHouse, MapId::SproutTower1F,
+        ];
+        for &id in &stub_maps {
+            let m = load_map(id);
+            assert!(!m.warps.is_empty(), "Stub {:?} should have at least one warp", id);
+            let has_return = m.warps.iter().any(|w| w.dest_map == MapId::VioletCity);
+            assert!(has_return, "Stub {:?} should warp back to VioletCity", id);
+        }
+    }
+
+    #[test]
+    fn test_dark_cave_stub_returns_to_route31() {
+        let m = load_map(MapId::DarkCaveVioletEntrance);
+        assert_eq!(m.warps.len(), 1);
+        assert_eq!(m.warps[0].dest_map, MapId::Route31);
+        assert_eq!(m.warps[0].dest_warp_id, 2);
+    }
+
+    #[test]
+    fn test_route31_wade_trainer() {
+        let m = load_map(MapId::Route31);
+        let wade = m.npcs.iter().find(|n| n.name == "BUG_CATCHER_WADE");
+        assert!(wade.is_some(), "Route 31 should have Bug Catcher Wade");
+        let wade = wade.unwrap();
+        assert_eq!(wade.trainer_range, Some(5), "Wade should have sight range 5");
+        assert_eq!(wade.event_flag, Some(44), "Wade beaten flag should be EVENT_BEAT_BUG_CATCHER_WADE (44)");
     }
 
     #[test]

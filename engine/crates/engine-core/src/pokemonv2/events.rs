@@ -4,13 +4,16 @@
 // Sprint 4: LoadTrainerParty ScriptStep, trainer_party/trainer_beaten_flag on ScriptState,
 //           11 new event flags (32-43), scene constants for MrPokemonsHouse,
 //           ~20 new script IDs (300-334), trainer/Mr.Pokemon/BerryHouse script builders.
+// Sprint 5: 14 new event flags (44-57), 27 new script IDs (400-446),
+//           Wade trainer script, item ball scripts, Earl/violet city scripts.
 // Import graph: events.rs <- data.rs, maps.rs(MapId only)
 
 use super::data::{
     BattleType, Direction, Emote, NpcState, PlayerState, Pokemon, SpeciesId,
     ITEM_BERRY, ITEM_MYSTIC_WATER, ITEM_POTION, ITEM_MYSTERY_EGG,
+    ITEM_PP_UP, ITEM_RARE_CANDY, ITEM_POKE_BALL, ITEM_HYPER_POTION,
     CYNDAQUIL, TOTODILE, CHIKORITA,
-    CATERPIE, PIDGEY, RATTATA,
+    CATERPIE, PIDGEY, RATTATA, WEEDLE,
     MUSIC_SHOW_ME_AROUND, MUSIC_RIVAL_ENCOUNTER, MUSIC_RIVAL_AFTER,
     MUSIC_PROF_OAK,
     HOPPIP,
@@ -65,6 +68,21 @@ pub const EVENT_GOT_MYSTERY_EGG_FROM_MR_POKEMON: u16 = 40;
 pub const EVENT_MR_POKEMONS_HOUSE_OAK: u16 = 41;
 pub const EVENT_JOEY_ASKED_FOR_PHONE_NUMBER: u16 = 42;
 pub const EVENT_PLAYERS_NEIGHBORS_HOUSE_NEIGHBOR: u16 = 43;
+// Sprint 5 event flags
+pub const EVENT_BEAT_BUG_CATCHER_WADE: u16 = 44;
+pub const EVENT_WADE_ASKED_FOR_PHONE_NUMBER: u16 = 45;
+pub const EVENT_ROUTE_31_POTION: u16 = 46;
+pub const EVENT_ROUTE_31_POKE_BALL: u16 = 47;
+pub const EVENT_VIOLET_CITY_EARL: u16 = 48;
+pub const EVENT_VIOLET_CITY_PP_UP: u16 = 49;
+pub const EVENT_VIOLET_CITY_RARE_CANDY: u16 = 50;
+pub const EVENT_VIOLET_CITY_HIDDEN_HYPER_POTION: u16 = 51;
+pub const EVENT_ENGINE_FLYPOINT_VIOLET: u16 = 52;
+pub const EVENT_GOT_TM50_NIGHTMARE: u16 = 53;
+pub const EVENT_GOT_KENYA: u16 = 54;
+pub const EVENT_GAVE_KENYA: u16 = 55;
+pub const EVENT_TALKED_TO_MOM_AFTER_MYSTERY_EGG_QUEST: u16 = 56;
+pub const EVENT_EARLS_ACADEMY_EARL: u16 = 57;
 
 // ── Scene Constants ───────────────────────────────────────────────────────────
 
@@ -205,6 +223,38 @@ pub const SCRIPT_MR_POKEMON_MEET: u16 = 331;
 pub const SCRIPT_MR_POKEMON_MAGAZINES: u16 = 332;
 pub const SCRIPT_MR_POKEMON_COMPUTER: u16 = 333;
 pub const SCRIPT_MR_POKEMON_COINS: u16 = 334;
+
+// Sprint 5: Route 31 scripts
+pub const SCRIPT_ROUTE31_SIGN: u16 = 400;
+pub const SCRIPT_DARK_CAVE_SIGN: u16 = 401;
+pub const SCRIPT_TRAINER_WADE: u16 = 402;
+pub const SCRIPT_ROUTE31_MAIL_RECIPIENT: u16 = 403;
+pub const SCRIPT_ROUTE31_YOUNGSTER: u16 = 404;
+pub const SCRIPT_ROUTE31_COOLTRAINER_M: u16 = 405;
+pub const SCRIPT_ROUTE31_FRUIT_TREE: u16 = 406;
+pub const SCRIPT_ROUTE31_POTION: u16 = 407;
+pub const SCRIPT_ROUTE31_POKE_BALL: u16 = 408;
+
+// Sprint 5: Route 31 Violet Gate scripts
+pub const SCRIPT_GATE_OFFICER_VIOLET: u16 = 420;
+pub const SCRIPT_GATE_COOLTRAINER_F_VIOLET: u16 = 421;
+
+// Sprint 5: Violet City scripts
+pub const SCRIPT_VIOLET_CITY_EARL: u16 = 430;
+pub const SCRIPT_VIOLET_CITY_LASS: u16 = 431;
+pub const SCRIPT_VIOLET_CITY_SUPER_NERD: u16 = 432;
+pub const SCRIPT_VIOLET_CITY_GRAMPS: u16 = 433;
+pub const SCRIPT_VIOLET_CITY_YOUNGSTER: u16 = 434;
+pub const SCRIPT_VIOLET_CITY_FRUIT_TREE: u16 = 435;
+pub const SCRIPT_VIOLET_CITY_PP_UP: u16 = 436;
+pub const SCRIPT_VIOLET_CITY_RARE_CANDY: u16 = 437;
+pub const SCRIPT_VIOLET_CITY_SIGN: u16 = 440;
+pub const SCRIPT_VIOLET_GYM_SIGN: u16 = 441;
+pub const SCRIPT_SPROUT_TOWER_SIGN: u16 = 442;
+pub const SCRIPT_EARLS_ACADEMY_SIGN: u16 = 443;
+pub const SCRIPT_VIOLET_POKECENTER_SIGN: u16 = 444;
+pub const SCRIPT_VIOLET_MART_SIGN: u16 = 445;
+pub const SCRIPT_VIOLET_CITY_HIDDEN_HYPER_POTION: u16 = 446;
 
 // ── EventFlags ───────────────────────────────────────────────────────────────
 
@@ -832,6 +882,38 @@ pub fn get_script(id: u16) -> Vec<ScriptStep> {
         SCRIPT_MR_POKEMON_COMPUTER => simple_text("A PC connected to the network."),
         SCRIPT_MR_POKEMON_COINS => simple_text("An impressive coin collection."),
 
+        // Sprint 5: Route 31 scripts
+        SCRIPT_ROUTE31_SIGN => simple_text("ROUTE 31\nVIOLET CITY - CHERRYGROVE CITY"),
+        SCRIPT_DARK_CAVE_SIGN => simple_text("DARK CAVE"),
+        SCRIPT_TRAINER_WADE => build_trainer_wade_script(),
+        SCRIPT_ROUTE31_MAIL_RECIPIENT => build_route31_mail_recipient_script(),
+        SCRIPT_ROUTE31_YOUNGSTER => simple_text("YOUNGSTER: There are lots of\nPOKeMON in DARK CAVE!"),
+        SCRIPT_ROUTE31_COOLTRAINER_M => simple_text("COOLTRAINER: DARK CAVE is pitch\nblack. You need FLASH to see."),
+        SCRIPT_ROUTE31_FRUIT_TREE => build_fruit_tree_script(),
+        SCRIPT_ROUTE31_POTION => build_route31_potion_script(),
+        SCRIPT_ROUTE31_POKE_BALL => build_route31_poke_ball_script(),
+
+        // Sprint 5: Route 31 Violet Gate scripts
+        SCRIPT_GATE_OFFICER_VIOLET => simple_text("OFFICER: Did you visit\nSPROUT TOWER?"),
+        SCRIPT_GATE_COOLTRAINER_F_VIOLET => simple_text("COOLTRAINER: I came too far out.\nI have to go back."),
+
+        // Sprint 5: Violet City scripts
+        SCRIPT_VIOLET_CITY_EARL => build_violet_city_earl_script(),
+        SCRIPT_VIOLET_CITY_LASS => simple_text("LASS: There are ghosts in\nSPROUT TOWER! Normal-type\nmoves don't work on them!"),
+        SCRIPT_VIOLET_CITY_SUPER_NERD => simple_text("SUPER NERD: If you beat the GYM\nLEADER, it's prime time!"),
+        SCRIPT_VIOLET_CITY_GRAMPS => simple_text("GRAMPS: FALKNER inherited the\nGYM from his father."),
+        SCRIPT_VIOLET_CITY_YOUNGSTER => simple_text("YOUNGSTER: There's a wiggly tree\nup ahead that won't budge!"),
+        SCRIPT_VIOLET_CITY_FRUIT_TREE => build_fruit_tree_script(),
+        SCRIPT_VIOLET_CITY_PP_UP => build_violet_city_pp_up_script(),
+        SCRIPT_VIOLET_CITY_RARE_CANDY => build_violet_city_rare_candy_script(),
+        SCRIPT_VIOLET_CITY_SIGN => simple_text("VIOLET CITY\nThe City of Nostalgic Scents"),
+        SCRIPT_VIOLET_GYM_SIGN => simple_text("VIOLET CITY POKeMON GYM\nLEADER: FALKNER\n\"The Elegant Master of\nFlying POKeMON!\""),
+        SCRIPT_SPROUT_TOWER_SIGN => simple_text("SPROUT TOWER"),
+        SCRIPT_EARLS_ACADEMY_SIGN => simple_text("EARL'S POKeMON ACADEMY"),
+        SCRIPT_VIOLET_POKECENTER_SIGN => simple_text("POKEMON CENTER"),
+        SCRIPT_VIOLET_MART_SIGN => simple_text("VIOLET MART"),
+        SCRIPT_VIOLET_CITY_HIDDEN_HYPER_POTION => build_violet_city_hidden_hyper_potion_script(),
+
         _ => vec![ScriptStep::End],
     }
 }
@@ -1230,6 +1312,104 @@ fn build_mr_pokemon_talk_script() -> Vec<ScriptStep> {
     ]
 }
 
+// ── Sprint 5 Script Builders ────────────────────────────────────────────────
+
+fn build_trainer_wade_script() -> Vec<ScriptStep> {
+    vec![
+        // Wade NPC index is 2 in Route 31
+        ScriptStep::FacingPlayer { npc_idx: 2 },
+        ScriptStep::ShowText("WADE: I caught a bunch of\nPOKeMON! Let me battle with you!".to_string()),
+        ScriptStep::LoadTrainerParty {
+            party: vec![(CATERPIE, 2), (CATERPIE, 2), (WEEDLE, 3), (CATERPIE, 2)],
+            beaten_flag: EVENT_BEAT_BUG_CATCHER_WADE,
+        },
+        ScriptStep::StartBattle { battle_type: BattleType::Normal },
+        ScriptStep::ShowText("WADE: I need to catch stronger\nPOKeMON...".to_string()),
+        ScriptStep::ShowText("WADE: Can I have your phone\nnumber? I'll call if I spot\nsome rare POKeMON!".to_string()),
+        ScriptStep::SetEvent(EVENT_WADE_ASKED_FOR_PHONE_NUMBER),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route31_mail_recipient_script() -> Vec<ScriptStep> {
+    // Stub: the full Kenya sidequest requires Route 35.
+    // For Sprint 5, just show the sleepy man dialogue.
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::ShowText("FISHER: ...I'm waiting for\nsomeone to deliver MAIL to me.\n...Zzz...".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route31_potion_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::CheckEvent { flag: EVENT_ROUTE_31_POTION, jump_if_true: 3 },
+        ScriptStep::GiveItem { item_id: ITEM_POTION, count: 1 },
+        ScriptStep::SetEvent(EVENT_ROUTE_31_POTION),
+        // jump target 3:
+        ScriptStep::ShowText("Found a POTION!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_route31_poke_ball_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::CheckEvent { flag: EVENT_ROUTE_31_POKE_BALL, jump_if_true: 3 },
+        ScriptStep::GiveItem { item_id: ITEM_POKE_BALL, count: 1 },
+        ScriptStep::SetEvent(EVENT_ROUTE_31_POKE_BALL),
+        // jump target 3:
+        ScriptStep::ShowText("Found a POKe BALL!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_violet_city_earl_script() -> Vec<ScriptStep> {
+    // Sprint 5 simplification: Earl dialogue + flag, no complex movement sequence
+    vec![
+        ScriptStep::FacingPlayer { npc_idx: 0 },
+        ScriptStep::CheckEvent { flag: EVENT_EARLS_ACADEMY_EARL, jump_if_true: 5 },
+        ScriptStep::ShowText("EARL: I'm EARL! Want me to\nteach you about POKeMON?".to_string()),
+        ScriptStep::ShowText("EARL: Follow me!".to_string()),
+        ScriptStep::SetEvent(EVENT_EARLS_ACADEMY_EARL),
+        // jump target 5:
+        ScriptStep::ShowText("EARL: The POKeMON ACADEMY is\nwhere you learn about battling!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_violet_city_pp_up_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::CheckEvent { flag: EVENT_VIOLET_CITY_PP_UP, jump_if_true: 3 },
+        ScriptStep::GiveItem { item_id: ITEM_PP_UP, count: 1 },
+        ScriptStep::SetEvent(EVENT_VIOLET_CITY_PP_UP),
+        // jump target 3:
+        ScriptStep::ShowText("Found a PP UP!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_violet_city_rare_candy_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::CheckEvent { flag: EVENT_VIOLET_CITY_RARE_CANDY, jump_if_true: 3 },
+        ScriptStep::GiveItem { item_id: ITEM_RARE_CANDY, count: 1 },
+        ScriptStep::SetEvent(EVENT_VIOLET_CITY_RARE_CANDY),
+        // jump target 3:
+        ScriptStep::ShowText("Found a RARE CANDY!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
+fn build_violet_city_hidden_hyper_potion_script() -> Vec<ScriptStep> {
+    vec![
+        ScriptStep::CheckEvent { flag: EVENT_VIOLET_CITY_HIDDEN_HYPER_POTION, jump_if_true: 3 },
+        ScriptStep::GiveItem { item_id: ITEM_HYPER_POTION, count: 1 },
+        ScriptStep::SetEvent(EVENT_VIOLET_CITY_HIDDEN_HYPER_POTION),
+        // jump target 3:
+        ScriptStep::ShowText("Found a HYPER POTION!".to_string()),
+        ScriptStep::End,
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1623,5 +1803,75 @@ mod tests {
             &mut flags, &mut scenes, MapId::Route30,
             &mut party, &mut bag, false, false, false, false);
         assert!(matches!(result, ScriptResult::StartBattle { battle_type: BattleType::Normal, .. }));
+    }
+
+    #[test]
+    fn test_sprint5_event_flags() {
+        let mut flags = EventFlags::new();
+        assert!(!flags.has(EVENT_BEAT_BUG_CATCHER_WADE));
+        flags.set(EVENT_BEAT_BUG_CATCHER_WADE);
+        assert!(flags.has(EVENT_BEAT_BUG_CATCHER_WADE));
+        assert!(!flags.has(EVENT_ENGINE_FLYPOINT_VIOLET));
+        flags.set(EVENT_ENGINE_FLYPOINT_VIOLET);
+        assert!(flags.has(EVENT_ENGINE_FLYPOINT_VIOLET));
+    }
+
+    #[test]
+    fn test_wade_script_loads() {
+        let steps = get_script(SCRIPT_TRAINER_WADE);
+        assert!(steps.len() > 3, "Wade script should have multiple steps");
+        // Check it has a LoadTrainerParty step
+        let has_party = steps.iter().any(|s| matches!(s, ScriptStep::LoadTrainerParty { .. }));
+        assert!(has_party, "Wade script should load trainer party");
+    }
+
+    #[test]
+    fn test_wade_party_composition() {
+        let steps = get_script(SCRIPT_TRAINER_WADE);
+        for step in &steps {
+            if let ScriptStep::LoadTrainerParty { party, beaten_flag } = step {
+                assert_eq!(party.len(), 4, "Wade should have 4 Pokemon");
+                assert_eq!(party[0], (CATERPIE, 2));
+                assert_eq!(party[1], (CATERPIE, 2));
+                assert_eq!(party[2], (WEEDLE, 3));
+                assert_eq!(party[3], (CATERPIE, 2));
+                assert_eq!(*beaten_flag, EVENT_BEAT_BUG_CATCHER_WADE);
+                return;
+            }
+        }
+        panic!("Wade script should contain LoadTrainerParty step");
+    }
+
+    #[test]
+    fn test_sprint5_sign_scripts_load() {
+        let sign_ids = [
+            SCRIPT_ROUTE31_SIGN, SCRIPT_DARK_CAVE_SIGN,
+            SCRIPT_VIOLET_CITY_SIGN, SCRIPT_VIOLET_GYM_SIGN,
+            SCRIPT_SPROUT_TOWER_SIGN, SCRIPT_EARLS_ACADEMY_SIGN,
+            SCRIPT_VIOLET_POKECENTER_SIGN, SCRIPT_VIOLET_MART_SIGN,
+        ];
+        for &id in &sign_ids {
+            let steps = get_script(id);
+            assert!(steps.len() >= 2, "Sign script {} should have at least ShowText + End", id);
+            assert!(matches!(steps[0], ScriptStep::ShowText(_)), "Sign script {} should start with ShowText", id);
+        }
+    }
+
+    #[test]
+    fn test_item_ball_scripts_check_flags() {
+        let item_scripts = [
+            SCRIPT_ROUTE31_POTION, SCRIPT_ROUTE31_POKE_BALL,
+            SCRIPT_VIOLET_CITY_PP_UP, SCRIPT_VIOLET_CITY_RARE_CANDY,
+            SCRIPT_VIOLET_CITY_HIDDEN_HYPER_POTION,
+        ];
+        for &id in &item_scripts {
+            let steps = get_script(id);
+            let has_check = steps.iter().any(|s| matches!(s, ScriptStep::CheckEvent { .. }));
+            assert!(has_check, "Item script {} should check event flag", id);
+            let has_give = steps.iter().any(|s| matches!(s, ScriptStep::GiveItem { .. }));
+            assert!(has_give, "Item script {} should give an item", id);
+            let has_set = steps.iter().any(|s| matches!(s, ScriptStep::SetEvent(_)));
+            assert!(has_set, "Item script {} should set event flag", id);
+        }
     }
 }

@@ -226,28 +226,18 @@
             browser_state_ptr, browser_state_len
         } = api;
 
-        // Game Boy-style resolution: render at a fixed virtual size
-        // Use a multiple of 160x144 (GBC native) that fits the screen
+        // Game Boy native resolution — render at 160x144, CSS handles display scaling
         const GBC_W = 160;
         const GBC_H = 144;
 
-        // Calculate the largest integer scale that fits the screen
-        const maxScale = Math.min(
-            Math.floor(window.innerWidth / GBC_W),
-            Math.floor(window.innerHeight / GBC_H)
-        );
-        const SCALE = Math.max(maxScale, 1);
-        const W = GBC_W * SCALE;
-        const H = GBC_H * SCALE;
-
         const canvas = document.getElementById('game-canvas');
-        canvas.width = W;
-        canvas.height = H;
+        canvas.width = GBC_W;
+        canvas.height = GBC_H;
 
         // Sprite overlay canvas (same size, positioned on top)
         const overlay = document.getElementById('sprite-overlay');
-        overlay.width = W;
-        overlay.height = H;
+        overlay.width = GBC_W;
+        overlay.height = GBC_H;
 
         // CSS-stretch canvas to fill viewport while preserving aspect ratio
         const isTouchDevice = matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -355,8 +345,8 @@
         function toEngine(pageX, pageY) {
             const r = canvas.getBoundingClientRect();
             return [
-                (pageX - r.left) / r.width * W,
-                (pageY - r.top) / r.height * H
+                (pageX - r.left) / r.width * GBC_W,
+                (pageY - r.top) / r.height * GBC_H
             ];
         }
 
@@ -558,7 +548,7 @@
             const wasm = await initWasm();
             const memory = wasm.memory;
 
-            init(W, H);
+            init(GBC_W, GBC_H);
 
             for (const [k, v] of new URLSearchParams(location.search)) {
                 set_url_param(k, v);
@@ -573,10 +563,10 @@
             setup_test_pokemon();
 
             const updateBrowserState = initBrowserState(memory, browser_state_ptr, browser_state_len, {
-                canvasSizeFn: () => ({ w: parseFloat(canvas.style.width) || W, h: parseFloat(canvas.style.height) || H })
+                canvasSizeFn: () => ({ w: parseFloat(canvas.style.width) || GBC_W, h: parseFloat(canvas.style.height) || GBC_H })
             });
 
-            const imageData = ctx2d.createImageData(W, H);
+            const imageData = ctx2d.createImageData(GBC_W, GBC_H);
             let last = performance.now();
             let prevPhase = '';
 
@@ -627,12 +617,12 @@
                 // --- Pokemon Sprite Overlay ---
                 const phase = get_game_state_str('game_phase');
                 const inBattle = get_game_state_f64('in_battle');
-                overlayCtx.clearRect(0, 0, W, H);
+                overlayCtx.clearRect(0, 0, GBC_W, GBC_H);
 
                 if (inBattle > 0.5) {
                     const enemyName = get_game_state_str('enemy_pokemon');
                     const playerName = get_game_state_str('player_pokemon');
-                    const spriteSize = get_game_state_f64('enemy_sprite_size') || (40 * SCALE);
+                    const spriteSize = get_game_state_f64('enemy_sprite_size') || 40;
                     const enemyX = get_game_state_f64('enemy_sprite_x');
                     const enemyY = get_game_state_f64('enemy_sprite_y');
                     const playerX = get_game_state_f64('player_sprite_x');

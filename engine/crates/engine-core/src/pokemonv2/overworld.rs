@@ -21,7 +21,7 @@ use crate::engine::Engine;
 pub const TILE_PX: i32 = 16;
 pub const VIEW_TILES_X: i32 = 10;
 pub const VIEW_TILES_Y: i32 = 9;
-pub const WALK_SPEED: f64 = 8.0;
+pub const WALK_SPEED: f64 = 2.0;
 pub const CAMERA_LERP: f64 = 0.2;
 pub const NPC_WANDER_INTERVAL: f64 = 2.0;
 
@@ -58,7 +58,7 @@ pub fn step_overworld(
     if player.is_walking {
         player.walk_offset += WALK_SPEED;
         player.frame_timer += 1.0;
-        if player.frame_timer >= 4.0 {
+        if player.frame_timer >= 2.0 {
             player.frame_timer = 0.0;
             player.walk_frame = (player.walk_frame + 1) % 4;
         }
@@ -339,9 +339,16 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 }
                 if state.is_walking {
                     state.walk_offset += WALK_SPEED;
+                    state.frame_timer += 1.0;
+                    if state.frame_timer >= 2.0 {
+                        state.frame_timer = 0.0;
+                        state.walk_frame = (state.walk_frame + 1) % 4;
+                    }
                     if state.walk_offset >= TILE_PX as f64 {
                         state.walk_offset = 0.0;
                         state.is_walking = false;
+                        state.walk_frame = 0;
+                        state.frame_timer = 0.0;
                         match state.facing {
                             Direction::Up   => state.y -= 1,
                             Direction::Down => state.y += 1,
@@ -366,9 +373,16 @@ fn tick_npc_wander(npc_states: &mut Vec<NpcState>, map: &MapData, engine: &Engin
                 }
                 if state.is_walking {
                     state.walk_offset += WALK_SPEED;
+                    state.frame_timer += 1.0;
+                    if state.frame_timer >= 2.0 {
+                        state.frame_timer = 0.0;
+                        state.walk_frame = (state.walk_frame + 1) % 4;
+                    }
                     if state.walk_offset >= TILE_PX as f64 {
                         state.walk_offset = 0.0;
                         state.is_walking = false;
+                        state.walk_frame = 0;
+                        state.frame_timer = 0.0;
                         match state.facing {
                             Direction::Left  => state.x -= 1,
                             Direction::Right => state.x += 1,
@@ -533,5 +547,47 @@ mod tests {
         let night = check_wild_encounter(&map, x, y, TimeOfDay::Night, 0, 0).unwrap();
         // Morning slot 0 is Pidgey, Night slot 0 is Hoothoot -- different species
         assert_ne!(morning.0, night.0, "Morning and Night slot 0 should have different species");
+    }
+
+    #[test]
+    fn test_walk_speed_matches_crystal() {
+        // Pokemon Crystal: 2px/frame through 16px tiles = 8 frames per tile
+        assert_eq!(WALK_SPEED, 2.0, "WALK_SPEED must be 2.0 to match Crystal's 8 frames/tile");
+        assert_eq!(TILE_PX, 16, "TILE_PX must be 16");
+        let frames_per_tile = (TILE_PX as f64 / WALK_SPEED).ceil() as i32;
+        assert_eq!(frames_per_tile, 8, "Should take 8 frames to cross one tile");
+    }
+
+    #[test]
+    fn test_all_outdoor_warps_have_walkable_approach() {
+        use super::super::maps::{C_FLOOR, C_GRASS, C_WARP};
+        let outdoor_maps = [
+            MapId::NewBarkTown,
+            MapId::CherrygroveCity,
+            MapId::Route29,
+            MapId::Route30,
+            MapId::Route31,
+            MapId::VioletCity,
+        ];
+        for map_id in &outdoor_maps {
+            let map = load_map(*map_id);
+            for warp in &map.warps {
+                // Warp tile itself should be walkable (C_WARP is walkable)
+                let warp_idx = (warp.y * map.width + warp.x) as usize;
+                if warp_idx < map.collision.len() {
+                    let warp_col = map.collision[warp_idx];
+                    assert!(warp_col == C_WARP || warp_col == C_FLOOR || warp_col == C_GRASS,
+                        "Map {:?}: warp at ({},{}) has non-walkable collision type {}",
+                        map_id, warp.x, warp.y, warp_col);
+                }
+                // Approach tile (y+1) should be walkable
+                let approach_y = warp.y + 1;
+                if approach_y < map.height {
+                    assert!(is_walkable(&map, warp.x, approach_y),
+                        "Map {:?}: approach tile ({},{}) south of warp ({},{}) is not walkable",
+                        map_id, warp.x, approach_y, warp.x, warp.y);
+                }
+            }
+        }
     }
 }

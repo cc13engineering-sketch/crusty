@@ -676,9 +676,9 @@ mod tests {
         let mut sim = PokemonV2Sim::with_state(MapId::PlayersHouse2F, 7, 1, vec![]);
         let mut engine = Engine::new(160, 144);
         // Walk up toward the stair warp tile at (7, 0)
-        // Needs 2+ frames at 8px/frame to complete 1 tile (16px)
+        // At WALK_SPEED=2.0, needs 8 frames to cross 16px tile
         engine.input.keys_held.insert("ArrowUp".to_string());
-        for _ in 0..4 {
+        for _ in 0..12 {
             sim.step(&mut engine);
             engine.input.keys_pressed.clear();
         }

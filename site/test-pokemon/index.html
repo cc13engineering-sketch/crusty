@@ -44,6 +44,12 @@
             align-items: center;
             justify-content: center;
         }
+        @media (hover: none) and (pointer: coarse) {
+            #game-container {
+                align-items: flex-start;
+                padding-top: env(safe-area-inset-top);
+            }
+        }
         .controls-hint {
             position: fixed;
             bottom: 8px;
@@ -72,7 +78,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 200px;
+            height: 40vh;
             z-index: 30;
             pointer-events: none;
         }
@@ -84,11 +90,11 @@
         .dpad {
             display: grid;
             position: absolute;
-            bottom: 40px;
-            left: 20px;
-            grid-template-columns: 48px 48px 48px;
-            grid-template-rows: 48px 48px 48px;
-            gap: 2px;
+            bottom: calc(env(safe-area-inset-bottom) + 4vw);
+            left: 4vw;
+            grid-template-columns: 16vw 16vw 16vw;
+            grid-template-rows: 16vw 16vw 16vw;
+            gap: 1vw;
             pointer-events: auto;
         }
         .dpad-btn {
@@ -103,6 +109,7 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .dpad-btn:active { background: rgba(255,255,255,0.4); }
         .dpad-empty { background: transparent; border: none; }
@@ -110,16 +117,16 @@
         .ab-buttons {
             display: flex;
             position: absolute;
-            bottom: 40px;
-            right: 20px;
+            bottom: calc(env(safe-area-inset-bottom) + 4vw);
+            right: 4vw;
             flex-direction: row;
             align-items: flex-end;
-            gap: 10px;
+            gap: 3vw;
             pointer-events: auto;
         }
         .ab-btn {
-            width: 58px;
-            height: 58px;
+            width: 17vw;
+            height: 17vw;
             border-radius: 50%;
             background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.25);
@@ -132,22 +139,23 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .ab-btn:active { background: rgba(255,255,255,0.4); }
         .ab-btn-b { margin-bottom: 0; }
-        .ab-btn-a { margin-bottom: 30px; }
+        .ab-btn-a { margin-bottom: 8vw; }
         /* START/SELECT: small buttons, bottom center */
         .start-select {
             display: flex;
             position: absolute;
-            bottom: 10px;
+            bottom: calc(env(safe-area-inset-bottom) + 1vw);
             left: 50%;
             transform: translateX(-50%);
-            gap: 16px;
+            gap: 4vw;
             pointer-events: auto;
         }
         .ss-btn {
-            padding: 6px 16px;
+            padding: 1.5vw 4vw;
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.2);
             border-radius: 12px;
@@ -159,6 +167,7 @@
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transform: rotate(-15deg);
         }
         .ss-btn:active { background: rgba(255,255,255,0.3); }
@@ -234,17 +243,30 @@
         const canvas = document.getElementById('game-canvas');
         canvas.width = W;
         canvas.height = H;
-        canvas.style.width = W + 'px';
-        canvas.style.height = H + 'px';
 
         // Sprite overlay canvas (same size, positioned on top)
         const overlay = document.getElementById('sprite-overlay');
         overlay.width = W;
         overlay.height = H;
-        overlay.style.width = W + 'px';
-        overlay.style.height = H + 'px';
-        overlay.style.left = canvas.offsetLeft + 'px';
-        overlay.style.top = canvas.offsetTop + 'px';
+
+        // CSS-stretch canvas to fill viewport while preserving aspect ratio
+        const isTouchDevice = matchMedia('(hover: none) and (pointer: coarse)').matches;
+        const controlsReserve = isTouchDevice ? 0.40 : 0;
+
+        function resizeCanvas() {
+            const vw = window.innerWidth;
+            const availH = window.innerHeight * (1 - controlsReserve);
+            const aspect = GBC_W / GBC_H;
+            let dw, dh;
+            if (vw / availH > aspect) { dh = availH; dw = availH * aspect; }
+            else { dw = vw; dh = vw / aspect; }
+            canvas.style.width = Math.floor(dw) + 'px';
+            canvas.style.height = Math.floor(dh) + 'px';
+            overlay.style.width = canvas.style.width;
+            overlay.style.height = canvas.style.height;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
         const ctx2d = canvas.getContext('2d', { alpha: false });
         ctx2d.imageSmoothingEnabled = false;

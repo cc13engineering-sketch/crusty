@@ -95,6 +95,8 @@ pub struct NpcState {
     pub is_walking: bool,
     pub visible: bool,
     pub wander_timer: f64,
+    pub walk_frame: u8,
+    pub frame_timer: f64,
     /// Active emote bubble: (emote_type, frames_remaining)
     pub emote: Option<(Emote, u8)>,
 }

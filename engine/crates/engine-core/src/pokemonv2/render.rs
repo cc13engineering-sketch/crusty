@@ -120,7 +120,7 @@ fn render_overworld(sim: &PokemonV2Sim, engine: &mut Engine) {
         let sx = npc.x * TILE_PX - cam_ox + walk_dx;
         let sy = npc.y * TILE_PX - cam_oy + walk_dy;
 
-        draw_sprite(engine, npc_def.sprite_id, sx, sy, npc.facing, 0);
+        draw_sprite(engine, npc_def.sprite_id, sx, sy, npc.facing, npc.walk_frame);
 
         // Draw emote if active
         if let Some((emote, _frames)) = npc.emote {

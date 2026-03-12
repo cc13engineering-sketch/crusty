@@ -255,6 +255,31 @@ Once you've determined the actual state, update `progress.jsonl` with the correc
 
 ---
 
+## Lessons Learned — Error Prevention Registry
+
+When a bug or design mistake is discovered during QA or user testing, document it here.
+Agents MUST consult this registry before implementing similar features.
+
+### Warp Placement (Sprint 0)
+**Bug:** 3 of 4 house entrances in New Bark Town were unreachable — warp tiles placed
+inside building wall rectangles where the approach tile was also a wall.
+**Rule:** Outdoor building warps must be placed at the BOTTOM EDGE of the wall rectangle
+so the approach tile (y+1) falls on the walkable path. Always test that the tile south
+of every warp is walkable.
+**Test:** `test_all_outdoor_warps_have_walkable_approach` catches this automatically.
+
+### Movement Speed (Sprint 0)
+**Bug:** WALK_SPEED=8.0 was 4x faster than Pokemon Crystal, making the game feel frantic.
+**Rule:** WALK_SPEED must be 2.0 (2px/frame through 16px tiles = 8 frames/tile).
+**Test:** `test_walk_speed_matches_crystal` asserts the constant.
+
+### Viewport Scaling (Sprint 0)
+**Bug:** Integer-only canvas scaling left tiny game rectangle on mobile devices.
+**Rule:** Render at integer scale for pixel-perfect framebuffer, then CSS-stretch to
+fill viewport. Always test on mobile viewport sizes.
+
+---
+
 ## Process Refinements Log
 
 ### 2026-03-08: Engine-Wide Changes Allowed

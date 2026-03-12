@@ -1559,7 +1559,8 @@ mod tests {
         };
         let mut npc_states = vec![NpcState {
             x: 7, y: 4, facing: Direction::Left, walk_offset: 0.0,
-            is_walking: false, visible: true, wander_timer: 0.0, emote: None,
+            is_walking: false, visible: true, wander_timer: 0.0,
+            walk_frame: 0, frame_timer: 0.0, emote: None,
         }];
         let mut flags = EventFlags::new();
         let mut scenes = SceneState::new();

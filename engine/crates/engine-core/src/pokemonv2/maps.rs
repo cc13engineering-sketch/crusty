@@ -187,6 +187,8 @@ pub fn init_npc_states(map: &MapData) -> Vec<NpcState> {
         is_walking: false,
         visible: true,
         wander_timer: 0.0,
+        walk_frame: 0,
+        frame_timer: 0.0,
         emote: None,
     }).collect()
 }
@@ -431,20 +433,20 @@ fn build_new_bark_town() -> MapData {
     for x in 10..14 { for y in 11..16 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
     for x in 1..6  { for y in 9..14 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
 
-    set_tile(&mut tiles, &mut col, w, 6,  3, 3, C_WARP);
-    set_tile(&mut tiles, &mut col, w, 13, 5, 3, C_WARP);
-    set_tile(&mut tiles, &mut col, w, 3, 11, 3, C_WARP);
-    set_tile(&mut tiles, &mut col, w, 11,13, 3, C_WARP);
+    set_tile(&mut tiles, &mut col, w, 6,  5, 3, C_WARP);  // Elm's Lab — bottom edge of wall
+    set_tile(&mut tiles, &mut col, w, 13, 5, 3, C_WARP);  // Player's House — already at bottom edge
+    set_tile(&mut tiles, &mut col, w, 3, 13, 3, C_WARP);  // Neighbor's House — bottom edge of wall
+    set_tile(&mut tiles, &mut col, w, 11,15, 3, C_WARP);  // Elm's House — bottom edge of wall
 
     MapData {
         id: MapId::NewBarkTown,
         name: "NEW BARK TOWN",
         width: w, height: h, tiles, collision: col,
         warps: vec![
-            WarpDef { x: 6,  y: 3,  dest_map: MapId::ElmsLab,              dest_warp_id: 0 },
+            WarpDef { x: 6,  y: 5,  dest_map: MapId::ElmsLab,              dest_warp_id: 0 },
             WarpDef { x: 13, y: 5,  dest_map: MapId::PlayersHouse1F,       dest_warp_id: 0 },
-            WarpDef { x: 3,  y: 11, dest_map: MapId::PlayersNeighborsHouse, dest_warp_id: 0 },
-            WarpDef { x: 11, y: 13, dest_map: MapId::ElmsHouse,            dest_warp_id: 0 },
+            WarpDef { x: 3,  y: 13, dest_map: MapId::PlayersNeighborsHouse, dest_warp_id: 0 },
+            WarpDef { x: 11, y: 15, dest_map: MapId::ElmsHouse,            dest_warp_id: 0 },
         ],
         npcs: vec![
             NpcDef { x: 6,  y: 8, sprite_id: 3, move_type: NpcMoveType::SpinRandom, script_id: 2, event_flag: None, event_flag_show: false, palette: 0, facing: Direction::Down, name: "TEACHER", trainer_range: None },
@@ -764,12 +766,12 @@ fn build_cherrygrove_city() -> MapData {
     // Evo speech house: columns 30-34, rows 10-14
     for x in 30..35 { for y in 10..14 { set_tile(&mut tiles, &mut col, w, x, y, 2, C_WALL); } }
 
-    // Warp tiles
-    set_tile(&mut tiles, &mut col, w, 23, 3, 3, C_WARP); // Mart
-    set_tile(&mut tiles, &mut col, w, 29, 3, 3, C_WARP); // Pokecenter
-    set_tile(&mut tiles, &mut col, w, 17, 7, 3, C_WARP); // Gym Speech House
-    set_tile(&mut tiles, &mut col, w, 25, 9, 3, C_WARP); // Guide Gent's House
-    set_tile(&mut tiles, &mut col, w, 31, 11, 3, C_WARP); // Evo Speech House
+    // Warp tiles — placed at bottom edge of wall rectangles so approach tile (y+1) is walkable
+    set_tile(&mut tiles, &mut col, w, 23, 3, 3, C_WARP);  // Mart (already at bottom edge)
+    set_tile(&mut tiles, &mut col, w, 29, 3, 3, C_WARP);  // Pokecenter (already at bottom edge)
+    set_tile(&mut tiles, &mut col, w, 17, 8, 3, C_WARP);  // Gym Speech House (wall y=6..9, bottom=8)
+    set_tile(&mut tiles, &mut col, w, 25, 11, 3, C_WARP); // Guide Gent's House (wall y=8..12, bottom=11)
+    set_tile(&mut tiles, &mut col, w, 31, 13, 3, C_WARP); // Evo Speech House (wall y=10..14, bottom=13)
 
     MapData {
         id: MapId::CherrygroveCity,
@@ -778,9 +780,9 @@ fn build_cherrygrove_city() -> MapData {
         warps: vec![
             WarpDef { x: 23, y: 3,  dest_map: MapId::CherrygroveMart,                dest_warp_id: 2 },
             WarpDef { x: 29, y: 3,  dest_map: MapId::CherrygrovePokecenter1F,         dest_warp_id: 1 },
-            WarpDef { x: 17, y: 7,  dest_map: MapId::CherrygroveGymSpeechHouse,       dest_warp_id: 1 },
-            WarpDef { x: 25, y: 9,  dest_map: MapId::GuideGentsHouse,                 dest_warp_id: 1 },
-            WarpDef { x: 31, y: 11, dest_map: MapId::CherrygroveEvolutionSpeechHouse, dest_warp_id: 1 },
+            WarpDef { x: 17, y: 8,  dest_map: MapId::CherrygroveGymSpeechHouse,       dest_warp_id: 1 },
+            WarpDef { x: 25, y: 11, dest_map: MapId::GuideGentsHouse,                 dest_warp_id: 1 },
+            WarpDef { x: 31, y: 13, dest_map: MapId::CherrygroveEvolutionSpeechHouse, dest_warp_id: 1 },
         ],
         npcs: vec![
             // idx 0: Guide Gent -- hidden when EVENT_GUIDE_GENT_IN_HIS_HOUSE (18) is set
@@ -1056,7 +1058,7 @@ fn build_route30() -> MapData {
 
     // Warp mats for house doors
     set(&mut tiles, &mut col, 7, 39, 4, C_WARP);  // Berry House door
-    set(&mut tiles, &mut col, 17, 5, 4, C_WARP);   // Mr. Pokemon's House door
+    set(&mut tiles, &mut col, 16, 5, 4, C_WARP);   // Mr. Pokemon's House door (edge of walkable corridor)
 
     MapData {
         id: MapId::Route30,
@@ -1067,7 +1069,7 @@ fn build_route30() -> MapData {
         collision: col,
         warps: vec![
             WarpDef { x: 7, y: 39, dest_map: MapId::Route30BerryHouse, dest_warp_id: 0 },
-            WarpDef { x: 17, y: 5, dest_map: MapId::MrPokemonsHouse, dest_warp_id: 0 },
+            WarpDef { x: 16, y: 5, dest_map: MapId::MrPokemonsHouse, dest_warp_id: 0 },
         ],
         npcs: vec![
             // 0: Youngster Joey — trainer, script 301, beaten flag 32, range 3
